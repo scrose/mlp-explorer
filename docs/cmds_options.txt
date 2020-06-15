@@ -1,0 +1,72 @@
+
+================================================
+Compute Canada: SSH for main accounts
+================================================
+UID - srose
+PW - 08FsyKsr2011+
+
+ssh srose@cedar.computecanada.ca
+ssh -i .ssh/cc_id srose@cedar.computecanada.ca
+
+
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCwhIkbUvdYb9Zj14V2I3RSZ+Wg37nft7+imhylQM3xS5uLJlEgrUceRowuy71ypLf0QudieIaNZfsn/myVoKytflHfDoMF0O9TrzxWiXciBh8Eew31KXdsBGqnxIWmC8zUYhWXRpL1/XYZRrJGZxj/Pk1sggeT0TstgNwlNYaDYkugZpRMHUQbrOCRjr+JoBksJujQdta55GBGd9Sn9vspRurH06AAPPACl4+yRVSLQ7E05RyWRnrH6NZp3HbO2ZsH6FU63KFj2arAYPmK2P5uLukZ/ZmBzhg/vLFVrv8GDX2Sq8JaPcIVyFIWglNUh7sBINbHrbppTbb3MjIL6saZ
+
+------------------------------------------------
+Compute Canada Database (CCDB)
+------------------------------------------------
+Login: https://ccdb.computecanada.ca/security/login
+
+Higg's Lab (def-ehiggs) CCRI: tnx-721-01
+
+
+
+------------------------------------------------
+Compute Canada: Arbutus Cloud
+------------------------------------------------
+Login: https://arbutus.cloud.computecanada.ca
+
+
+Instances
+----------------------------------------------------------------------------
+Name			VCPUs	Disk	RAM
+	
+dev.meat.uvic.ca	4 	0B 	6GB
+meat.uvic.ca		4 	0B 	6GB
+
+
+
+Volumes
+----------------------------------------------------------------------------
+Name					Size	Attached To
+
+65f2e434-d661-4181-a590-91aefe3d45c8	150GiB 	/dev/vdb on dev.meat.uvic.ca
+6f84b9d5-3ae2-4d86-899a-efb5a133fbf5	50GiB 	/dev/vda on dev.meat.uvic.ca
+lowResVol				150GiB 	/dev/vdb on meat.uvic.ca	
+devMEATVol				50GiB 	/dev/vda on meat.uvic.ca	
+
+
+------------------------------------------------
+Compute Canada - MLP Explorer/MEAT Redevelopment
+------------------------------------------------
+
+Production Server:
+meat.uvic.ca <http://meat.uvic.ca/>
+
+Development Server:
+dev.meat.uvic.ca <http://dev.meat.uvic.ca/>
+ssh -i .ssh/computecanada centos@meat.uvic.ca
+
+
+Restarting Docker (MEAT)
+docker restart meat-production
+
+
+
+
+
+
+
+
+
+
+

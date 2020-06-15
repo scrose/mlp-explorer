@@ -1,0 +1,12 @@
+MEAT
+----
+
+- compare IAT with monoplot
+
+- IAT: 
+--- modular - convenient workflow
+--- can higher resolution
+--- 
+
+- rebuild IAT in R
+--- plugins 
