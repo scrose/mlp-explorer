@@ -1,0 +1,13 @@
+{
+  "general": {
+    "project": "Mountain Legacy Project",
+    "app": "Explorer"
+  },
+  "db": {
+    "host": "localhost",
+    "user": "boutrous",
+    "password": "shipwreck2011",
+    "database": "mlp",
+    "port": 5432
+  }
+}
