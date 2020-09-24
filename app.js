@@ -33,6 +33,37 @@ const params = require('./params');
 const indexRouter = require('./routes/indexRouter');
 const usersRouter = require('./routes/usersRouter');
 
+// const https = require('https')
+//
+// const data = JSON.stringify({
+//   todo: 'Buy the milk'
+// })
+//
+// const options = {
+//   hostname: 'localhost',
+//   port: 3000,
+//   path: '/',
+//   method: 'GET',
+//   headers: {
+//     'Content-Type': 'application/json',
+//     'Content-Length': data.length
+//   }
+// }
+//
+// const req = https.request(options, res => {
+//   console.log(`statusCode: ${res.statusCode}`)
+//
+//   res.on('data', d => {
+//     process.stdout.write(d)
+//   })
+// })
+//
+// req.on('error', error => {
+//   console.error(error)
+// })
+//
+// req.write(data)
+// req.end()
 
 // // Load list of Stations
 // db.any('SELECT name FROM stations')
@@ -105,8 +136,15 @@ app.use(function(err, req, res, next) {
 // )
 
 app.listen(params.port, () => {
-  console.log(`MLP app running on port ${params.port}.`)
+  console.log('MLP app running on port ${params.port}.')
 })
+
+// Gracefully handle termination
+// process.on('SIGTERM', () => {
+//   server.close(() => {
+//     console.log('MLP app terminated.')
+//   })
+// })
 
 
 // Expose app modules

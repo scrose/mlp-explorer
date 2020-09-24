@@ -3,56 +3,28 @@
   Mountain Legacy Project: Explorer Application
   ------------------------------------------------------
   Module:       routes > index
+  Description:  Receives HTTP request data and routes to
+                appropriate controller for processing.
   ------------------------------------------------------
   Creator:      Spencer Rose
   Copyright:    (c) 2020 Runtime Software Development Inc.
-  License:
+  License:      MIT
   Version:      1.0
-  Last Updated: June 15, 2020
+  Last Updated: September 21, 2020
   ------------------------------------------------------
-  Module:       Core
-  Filename:     /app.js
+  Module:       core.router.index
+  Filename:     /indexRouter.js
   ======================================================
 */
 
-// const Main = require('../models/index');
+// const express = require('express');
+// const router = express.Router();
+//
+// /* GET users listing. */
+// router.get('/', function(req, res, next) {
+//     res.send('This is the main page.');
+// });
 
-// Display list of all Authors.
-exports.author_list = function(req, res) {
-    res.send('NOT IMPLEMENTED: Author list');
-};
-
-// Display detail page for a specific Author.
-exports.author_detail = function(req, res) {
-    res.send('NOT IMPLEMENTED: Author detail: ' + req.params.id);
-};
-
-// Display Author create form on GET.
-exports.author_create_get = function(req, res) {
-    res.send('NOT IMPLEMENTED: Author create GET');
-};
-
-// Handle Author create on POST.
-exports.author_create_post = function(req, res) {
-    res.send('NOT IMPLEMENTED: Author create POST');
-};
-
-// Display Author delete form on GET.
-exports.author_delete_get = function(req, res) {
-    res.send('NOT IMPLEMENTED: Author delete GET');
-};
-
-// Handle Author delete on POST.
-exports.author_delete_post = function(req, res) {
-    res.send('NOT IMPLEMENTED: Author delete POST');
-};
-
-// Display Author update form on GET.
-exports.author_update_get = function(req, res) {
-    res.send('NOT IMPLEMENTED: Author update GET');
-};
-
-// Handle Author update on POST.
-exports.author_update_post = function(req, res) {
-    res.send('NOT IMPLEMENTED: Author update POST');
+exports.router = function () {
+    return Date();
 };
