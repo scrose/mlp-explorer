@@ -1,9 +1,0 @@
-{
-  "db": {
-    "host": "localhost",
-    "username": "boutrous",
-    "password": "shipwreck2011",
-    "database": "mlp",
-    "port": 5432
-  }
-}

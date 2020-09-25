@@ -2,8 +2,8 @@
   ======================================================
   Mountain Legacy Project: Explorer Application
   ------------------------------------------------------
-  Module:       core.router.users
-  Filename:     routes/usersRouter.js
+  Module:       core.router.user
+  Filename:     routes/user.js
   Description:  Receives HTTP request data and routes to
                 appropriate controller for processing.
   ------------------------------------------------------
@@ -15,25 +15,20 @@
   ======================================================
 */
 
-const express = require('express');
-const router = express.Router();
+const Router = require('express-promise-router')
+const db = require('../db')
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('Users');
-});
-
-
-//
-router.get('/', function (req, res) {
-  res.send('GET request to the homepage')
+// create a new express-promise-router
+// this has the same API as the normal express router except
+// it allows you to use async functions as route handlers
+const router = new Router()
+// export our router to be mounted by the parent application
+module.exports = router
+router.get('/:id', async (req, res) => {
+  const { id } = req.params
+  const { rows } = await db.query('SELECT * FROM stations WHERE id = $1', [id])
+  res.send(rows[0])
 })
-
-// POST method route
-router.post('/', function (req, res) {
-  res.send('POST request to the homepage')
-})
-
 
 
 module.exports = router;

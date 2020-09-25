@@ -3,11 +3,18 @@
     "project": "Mountain Legacy Project",
     "app": "Explorer"
   },
-  "db": {
-    "host": "localhost",
+  "server": {
+    "hostname": "localhost",
     "user": "boutrous",
     "password": "shipwreck2011",
     "database": "mlp",
-    "port": 5432
+    "port": 3000
+  },
+  "db": {
+    "hostname": "localhost",
+    "username": "boutrous",
+    "password": "shipwreck2011",
+    "database": "mlp",
+    "port": 3000
   }
 }

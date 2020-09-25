@@ -15,137 +15,101 @@
   ======================================================
 */
 
+'use strict';
 
-// -------------------------------
-// Initialization
-// -------------------------------
+/**
+ * Module dependencies.
+ */
 
-// Express modules
 const express = require('express');
-const createError = require('http-errors');
-// const bodyParser = require('body-parser')
-const path = require('path');
-const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-const params = require('./params');
+const path = require('path');
+const session = require('express-session');
+const methodOverride = require('method-override');
 
-// Router endpoints
-const indexRouter = require('./routes/indexRouter');
-const usersRouter = require('./routes/usersRouter');
+const mountRoutes = require('./routes')
+const app = module.exports = express();
 
-// const https = require('https')
-//
-// const data = JSON.stringify({
-//   todo: 'Buy the milk'
-// })
-//
-// const options = {
-//   hostname: 'localhost',
-//   port: 3000,
-//   path: '/',
-//   method: 'GET',
-//   headers: {
-//     'Content-Type': 'application/json',
-//     'Content-Length': data.length
-//   }
-// }
-//
-// const req = https.request(options, res => {
-//   console.log(`statusCode: ${res.statusCode}`)
-//
-//   res.on('data', d => {
-//     process.stdout.write(d)
-//   })
-// })
-//
-// req.on('error', error => {
-//   console.error(error)
-// })
-//
-// req.write(data)
-// req.end()
+mountRoutes(app)
 
-// // Load list of Stations
-// db.any('SELECT name FROM stations')
-//     .then(function (data) {
-//         console.log('DATA:', data.value)
-//     })
-//     .catch(function (error) {
-//         console.log('ERROR:', error)
-//     })
-//
-//
-// db.any({
-//     name: 'find-user',
-//     text: 'SELECT name FROM station', // can also be a QueryFile object
-//     values: [1]
-// })
-//     .then(user => {
-//         // user found;
-//     })
-//     .catch(error => {
-//         // error;
-//     });
-
-
-// -------------------------------
-// Application
-// -------------------------------
-const app = express();
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Views engine
-app.set('views', path.join(__dirname, 'views'));
+// set our default template engine to "ejs"
+// which prevents the need for using file extensions
 app.set('view engine', 'ejs');
 
-// Routes
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+// set views for error and 404 pages
+app.set('views', path.join(__dirname, 'views'));
 
+// define a custom res.message() method
+// which stores messages in the session
+app.response.message = function(msg){
+  // reference `req.session` via the `this.req` reference
+  const sess = this.req.session;
+  // simply add the msg to an array for later
+  sess.messages = sess.messages || [];
+  sess.messages.push(msg);
+  return this;
+};
 
-// -------------------------------
-// Error Handlers
-// -------------------------------
+// log
+if (!module.parent) app.use(logger('dev'));
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
+// serve static files
+app.use(express.static(path.join(__dirname, 'public')));
+
+// session support
+app.use(session({
+  resave: false, // don't save session if unmodified
+  saveUninitialized: false, // don't create session until something stored
+  secret: 'some secret here'
+}));
+
+// parse request bodies (req.body)
+app.use(express.urlencoded({ extended: true }))
+
+// allow overriding methods in query (?_method=put)
+app.use(methodOverride('_method'));
+
+// expose the "messages" local variable when views are rendered
+app.use(function(req, res, next){
+  var msgs = req.session.messages || [];
+
+  // expose "messages" local variable
+  res.locals.messages = msgs;
+
+  // expose "hasMessages"
+  res.locals.hasMessages = !! msgs.length;
+
+  /* This is equivalent:
+   res.locals({
+     messages: msgs,
+     hasMessages: !! msgs.length
+   });
+  */
+
+  next();
+  // empty or "flush" the messages so they
+  // don't build up
+  req.session.messages = [];
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+// load controllers
+require('./lib/boot')(app, { verbose: !module.parent });
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+app.use(function(err, req, res, next){
+  // log it
+  if (!module.parent) console.error(err.stack);
+
+  // error page
+  res.status(500).render('5xx');
 });
 
-// Body parser
-// app.use(bodyParser.json())
-// app.use(
-//     bodyParser.urlencoded({
-//       extended: true,
-//     })
-// )
+// assume 404 since no middleware responded
+app.use(function(req, res, next){
+  res.status(404).render('404', { url: req.originalUrl });
+});
 
-app.listen(params.port, () => {
-  console.log('MLP app running on port ${params.port}.')
-})
-
-// Gracefully handle termination
-// process.on('SIGTERM', () => {
-//   server.close(() => {
-//     console.log('MLP app terminated.')
-//   })
-// })
-
-
-// Expose app modules
-module.exports = app;
+/* istanbul ignore next */
+if (!module.parent) {
+  app.listen(3000);
+  console.log('Express started on port 3000');
+}

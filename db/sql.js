@@ -2,9 +2,9 @@
 
 // Proper way to organize an sql provider:
 //
-// - have all sql files for Users in ./sql/users
+// - have all sql files for Users in ./sql/user
 // - have all sql files for Products in ./sql/products
-// - have your sql provider module as ./sql/indexController.js
+// - have your sql provider module as ./sql/index.js
 
 const QueryFile = require('pg-promise').QueryFile;
 const path = require('path');
@@ -18,9 +18,9 @@ function sql(file) {
 module.exports = {
     // external queries for Users:
     users: {
-        add: sql('users/create.sql'),
-        search: sql('users/search.sql'),
-        report: sql('users/report.sql'),
+        add: sql('user/create.sql'),
+        search: sql('user/search.sql'),
+        report: sql('user/report.sql'),
     },
     // external queries for Products:
     products: {

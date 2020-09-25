@@ -17,29 +17,7 @@
 
 // Initialization
 'use strict';
-const formidable = require('formidable');
 const http = require('http');
-
-http.createServer(function (req, res) {
-    if (req.url == '/fileupload') {
-        var form = new formidable.IncomingForm();
-        form.parse(req, function (err, fields, files) {
-            res.write('File uploaded');
-            res.end();
-        });
-    } else {
-        res.writeHead(200, {'Content-Type': 'text/html'});
-        res.write('<form action="fileupload" method="post" enctype="multipart/form-data">');
-        res.write('<input type="file" name="filetoupload"><br>');
-        res.write('<input type="submit">');
-        res.write('</form>');
-        return res.end();
-    }
-}).listen(8080);
-
-
-
-
 
 
 // function loadJSON(callback, path) {
@@ -57,16 +35,16 @@ http.createServer(function (req, res) {
 //     xobj.send(null);
 // }
 
-function getJSON(url, callback) {
-    let xhr = new XMLHttpRequest();
-    xhr.onload = function () {
-        callback(this.responseText)
-    };
-    xhr.open('GET', url, true);
-    xhr.send();
+exports.getJSON = function getJSON(url, callback) {
+    // let xhr = new XMLHttpRequest();
+    // xhr.onload = function () {
+    //     callback(this.responseText)
+    // };
+    // xhr.open('GET', url, true);
+    // xhr.send();
 }
 
-export function getUsefulContents(url, callback) {
-    getJSON(url, data => callback(JSON.parse(data)));
+exports.loadJSON =  function loadJSON(url, callback) {
+    exports.getJSON(url, data => callback(JSON.parse(data)));
 }
 
