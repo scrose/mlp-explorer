@@ -8,8 +8,45 @@
 </head>
 
 <body>
-<h1><%= station.name %> <a href="/pet/<%= station.id %>/edit">edit</a></h1>
+<h1>Mountain Legacy Project</h1>
+<h2><%= station.name %> <a href="/stations/<%= station.id %>/edit">edit</a></h2>
+<h3>
+    <%= station.station_owner_type %> <a href="/<%= station.station_owner_type.toLowerCase() %>/<%= station.id %>/edit">edit</a>
+</h3>
 
-<p>You are viewing <%= station.name %></p>
+<table>
+    <thead>
+    <tr>
+        <th colspan="2">Station Details</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <th>Latitude</th>
+        <td><%= station.lat %></td>
+    </tr>
+    <tr>
+        <th>Longitude</th>
+        <td><%= station.long %></td>
+    </tr>
+    <tr>
+        <th>Elevation</th>
+        <td><%= station.elevation %></td>
+    </tr>
+    <tr>
+        <th>NTS Sheet</th>
+        <td><%= station.nts_sheet %></td>
+    </tr>
+    <tr>
+        <th>Created</th>
+        <td><%= station.created_at %></td>
+    </tr>
+    <tr>
+        <th>Modified</th>
+        <td><%= station.updated_at %></td>
+    </tr>
+    </tbody>
+</table>
+
 </body>
-</html>/html>
+</html>

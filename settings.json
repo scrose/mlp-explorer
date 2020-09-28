@@ -15,6 +15,6 @@
     "username": "boutrous",
     "password": "shipwreck2011",
     "database": "mlp",
-    "port": 3000
+    "port": 5432
   }
 }

@@ -1,3 +1,3 @@
 exports.index = function(req, res){
-    res.redirect('/user');
+    res.render('index', {});
 };

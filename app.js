@@ -27,10 +27,7 @@ const path = require('path');
 const session = require('express-session');
 const methodOverride = require('method-override');
 
-const mountRoutes = require('./routes')
-const app = module.exports = express();
-
-mountRoutes(app)
+const app = express();
 
 // set our default template engine to "ejs"
 // which prevents the need for using file extensions
@@ -51,7 +48,7 @@ app.response.message = function(msg){
 };
 
 // log
-if (!module.parent) app.use(logger('dev'));
+app.use(logger('dev'));
 
 // serve static files
 app.use(express.static(path.join(__dirname, 'public')));
@@ -71,7 +68,7 @@ app.use(methodOverride('_method'));
 
 // expose the "messages" local variable when views are rendered
 app.use(function(req, res, next){
-  var msgs = req.session.messages || [];
+  const msgs = req.session.messages || [];
 
   // expose "messages" local variable
   res.locals.messages = msgs;
@@ -92,24 +89,22 @@ app.use(function(req, res, next){
   req.session.messages = [];
 });
 
+
 // load controllers
-require('./lib/boot')(app, { verbose: !module.parent });
-
-app.use(function(err, req, res, next){
-  // log it
-  if (!module.parent) console.error(err.stack);
-
-  // error page
-  res.status(500).render('5xx');
-});
+require('./routes')(app, { verbose: true });
 
 // assume 404 since no middleware responded
 app.use(function(req, res, next){
   res.status(404).render('404', { url: req.originalUrl });
 });
 
-/* istanbul ignore next */
-if (!module.parent) {
-  app.listen(3000);
-  console.log('Express started on port 3000');
-}
+app.use(function(err, req, res, next){
+  // log it
+  console.error(err.stack);
+
+  // error page
+  res.status(500).render('5xx');
+});
+
+
+module.exports = app;
