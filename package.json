@@ -26,7 +26,8 @@
     "morgan": "~1.9.1",
     "pg": "^8.2.1",
     "pg-native": "^3.0.0",
-    "pg-promise": "^10.5.6"
+    "pg-promise": "^10.5.6",
+    "node-forge": ">=0.10.0"
   },
   "devDependencies": {
     "express-session": "^1.17.1",
