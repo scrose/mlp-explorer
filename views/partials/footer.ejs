@@ -1,0 +1,13 @@
+<footer class="page-footer">
+    <script src="/js/utils.js"></script>
+    <script src="/js/build.js"></script>
+    <script src="/js/forms.js"></script>
+    <% if (messages) { %>
+    <script>
+        // session messages
+        <% for (const [key, msg] of Object.entries(messages)) { %>
+            document.getElementById("msg_container").appendChild(buildNode(null, <%- msg %>));
+        <%}%>
+    </script>
+    <%}%>
+</footer>

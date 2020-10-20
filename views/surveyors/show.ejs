@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <%- include('../partials/head', {title: content.title}); %>
+</head>
+<body>
+<%- include('../partials/header', {content: content}); %>
+<%- include('../partials/editor_menu', {content: content}); %>
+
+<main>
+    <!-- Surveyors (with attached surveys) -->
+    <h2>Surveyor: <%= surveyor.given_names %> <%= surveyor.last_name %></h2>
+        <table class="records">
+            <thead>
+            <tr>
+                <th colspan="2">Surveyor Details</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <th>Given Name</th>
+                <td><%= surveyor.given_names %></td>
+            </tr>
+            <tr>
+                <th>Last Name</th>
+                <td><%= surveyor.last_name %></td>
+            </tr>
+            <tr>
+                <th>Short Name</th>
+                <td><%= surveyor.short_name %></td>
+            </tr>
+            <tr>
+                <th>Affiliation</th>
+                <td><%= surveyor.affiliation %></td>
+            </tr>
+            <tr>
+                <th>Created</th>
+                <td><%= surveyor.created_at %></td>
+            </tr>
+            <tr>
+                <th>Modified</th>
+                <td><%= surveyor.updated_at %></td>
+            </tr>
+            <tr>
+                <th>Surveys</th>
+                <td>
+                    <ul>
+                        <% for (const [key, survey] of Object.entries(surveys)) { %>
+                            <li><a href="/surveys/<%= survey.id %>"><%= survey.name %></a></li>
+                        <% } %>
+                    </ul>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+</main>
+</body>
+</html>

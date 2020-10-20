@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <%- include('../../../views/partials/head', {title: content.title}); %>
+    </head>
+    <body>
+        <%- include('../../../views/partials/header', {content: content}); %>
+        <h1>Mountain Legacy Project</h1>
+        <h2>Surveyor: <%= surveyor.given_names %> <%= surveyor.last_name %></h2>
+        <ul class="editor_menu">
+            <li><a href="/surveyors/<%= surveyor.id %>/edit">Edit</a></li>
+            <li><a href="#">Dashboard</a></li>
+            <li><a href="#">Settings</a></li>
+            <li><a href="#">Help</a></li>
+        </ul>
+        <h2>Surveyor: <%= surveyor.given_names %> <%= surveyor.last_name %></h2>
+        <table class="records">
+            <thead>
+            <tr>
+                <th colspan="2">Surveyor Details</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <th>Given Name</th>
+                <td><%= surveyor.given_names %></td>
+            </tr>
+            <tr>
+                <th>Last Name</th>
+                <td><%= surveyor.last_name %></td>
+            </tr>
+            <tr>
+                <th>Short Name</th>
+                <td><%= surveyor.short_name %></td>
+            </tr>
+            <tr>
+                <th>Affiliation</th>
+                <td><%= surveyor.affiliation %></td>
+            </tr>
+            <tr>
+                <th>Created</th>
+                <td><%= surveyor.created_at %></td>
+            </tr>
+            <tr>
+                <th>Modified</th>
+                <td><%= surveyor.updated_at %></td>
+            </tr>
+            </tbody>
+        </table>
+    </body>
+</html>

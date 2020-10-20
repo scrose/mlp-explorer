@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <%- include('../partials/head', {title: content.title}); %>
+</head>
+<body>
+<%- include('../partials/header', {content: content}); %>
+<main>
+    <!-- edit surveyor record -->
+    <div id="form_container"></div>
+
+</main>
+<%- include('../partials/footer', {content: content}); %>
+<script>
+    // user form data
+    const formContainer = document.getElementById("form_container");
+    domTree = buildNode(null, <%- form %>);
+    window.onload = formContainer.appendChild(domTree);
+    // form validation
+    window.onload = formValidator.attachHandlers(<%- validator %>);
+</script>
+</body>
+</html>

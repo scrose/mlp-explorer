@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <%- include('../partials/head', {title: content.title}); %>
+</head>
+<body>
+<%- include('../partials/header', {content: content}); %>
+<%- include('../partials/editor_menu', {content: content}); %>
+<main>
+    <div class=""></div>
+    <table class="records">
+        <tbody>
+        <tr>
+            <th>Logged-in</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Last Sign-in</th>
+            <th>Added</th>
+            <th>Updated</th>
+        </tr>
+        <!-- users (with attached surveys) -->
+        <% for (const [key, user] of Object.entries(users)) { %>
+            <tr>
+                <td>
+                    n/a
+                </td>
+                <td><%= user.email %></td>
+                <td><%= user.role %></td>
+                <td><time><%= tools.date.formatDate(user.last_sign_in_at, "yyyy-mm-dd hh:mm:ss") %></time></td>
+                <td><time><%= tools.date.formatDate(user.created_at, "yyyy-mm-dd hh:mm:ss") %></time></td>
+                <td><time><%= tools.date.formatDate(user.updated_at, "yyyy-mm-dd hh:mm:ss") %></time></td>
+                <td><a href="/users/<%= user.user_id %>">view</a></td>
+                <td><a href="/users/<%= user.user_id %>/edit">edit</a></td>
+                <td><a href="/users/<%= user.user_id %>/delete">delete</a></td>
+            </tr>
+        <% } %>
+        </tbody>
+    </table>
+</main>
+<%- include('../partials/footer', {content: content}); %>
+</body>
+</html>
+

@@ -1,6 +1,6 @@
 /* *******************************************
 *  Form Initialization: Vars
-*  NOTE: inherits functions from eventForm.js
+*  NOTE: inherits functions from forms.js
 ********************************************** */
 
 validation['empty'] = 'You must select at least one choice to submit the form.';
@@ -158,7 +158,7 @@ function spoilToggle(e) {
   *  Utility Functions
   ********************************************** */
 
-  // Returns array of choice elements
+  // Returns array of choice partials
   function getBallotChoices() {
     var choices = [];
     var choiceGroups = document.getElementById('choice_groups');

@@ -1,0 +1,71 @@
+
+
+
+===============
+MLP Explorer
+===============
+
+Database (Posgresql)
+
+brew services start postgresql
+brew services restart postgresql
+
+
+
+
+----------------
+MEAT Database
+----------------
+
+_________________
+PSQL
+
+Connect to mlp database:
+
+>> psql mlp boutrous
+.. psql mlp2 boutrous
+
+
+Error: Postgres could not connect to server
+
+>> rm /usr/local/var/postgres/postmaster.pid
+
+
+_________________
+Show connected users
+
+SELECT pid, usename, client_addr 
+FROM pg_stat_activity 
+WHERE datname ='mlp2';
+
+Disconnect users:
+
+SELECT pg_terminate_backend (pid)
+FROM pg_stat_activity
+WHERE datname = 'mlp';
+
+SELECT pg_terminate_backend (53844)
+FROM pg_stat_activity
+WHERE datname = 'mlp';
+
+----------------
+Node Types
+----------------
+ id |       name        
+----+-------------------
+  2 | surveyors
+  3 | surveys
+  4 | survey_seasons
+  5 | stations
+  6 | historic_visits
+  7 | visits
+  8 | locations
+  9 | historic_captures
+ 10 | captures
+
+
+
+
+=========================
+NOTES
+=========================

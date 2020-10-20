@@ -24,16 +24,15 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = function addRoutes(parent, options){
-    const controllers_dir = path.join(__dirname, '..', 'controllers');
+    const controllersDir = path.join(__dirname, '..', 'controllers');
     const verbose = options.verbose;
     // Read files in controllers directory
-    fs.readdirSync(controllers_dir).forEach(function(dir_name){
-        const file = path.join(controllers_dir, dir_name)
-        // only map directories to routes
-        if (!fs.statSync(file).isDirectory()) return;
-        verbose && console.log('\n   %s:', dir_name);
-        const obj = require(file);
-        const name = obj.name || dir_name;
+    fs.readdirSync(controllersDir).forEach(function(fileName){
+        const file = path.basename(fileName,path.extname(fileName));
+        const filePath = path.join(controllersDir, fileName)
+        verbose && console.log('\n   %s [%s]: %s', fileName, file, filePath);
+        const obj = require(filePath);
+        const name = obj.name || file;
         const prefix = obj.prefix || '';
         const app = express();
         let handler;
@@ -42,7 +41,9 @@ module.exports = function addRoutes(parent, options){
 
         // allow specifying the view engine
         if (obj.engine) app.set('view engine', obj.engine);
-        app.set('views', path.join(__dirname, '..', 'controllers', name, 'views'));
+        const viewsDir = path.join(__dirname, '..', 'views', file)
+        app.set('views', viewsDir);
+        console.log(viewsDir)
 
         // generate routes based on the exported methods
         for (const file_key in obj) {
@@ -63,12 +64,32 @@ module.exports = function addRoutes(parent, options){
                     url = '/' + name + '/:' + name + '_id/edit';
                     break;
                 case 'update':
-                    method = 'put';
-                    url = '/' + name + '/:' + name + '_id';
+                    method = 'post';
+                    url = '/' + name + '/:' + name + '_id/edit';
                     break;
                 case 'create':
-                    method = 'post';
+                    method = 'get';
                     url = '/' + name + '/create';
+                    break;
+                case 'insert':
+                    method = 'post';
+                    url = '/' + name + '/insert';
+                    break;
+                case 'register':
+                    method = 'get';
+                    url = '/register';
+                    break;
+                case 'login':
+                    method = 'get';
+                    url = '/' + name + '/login';
+                    break;
+                case 'auth':
+                    method = 'post';
+                    url = '/login';
+                    break;
+                case 'logout':
+                    method = 'get';
+                    url = '/logout';
                     break;
                 case 'index':
                     method = 'get';
