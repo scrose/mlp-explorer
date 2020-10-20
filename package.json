@@ -26,16 +26,14 @@
     "morgan": "~1.9.1",
     "pg": "^8.2.1",
     "pg-native": "^3.0.0",
-    "pg-promise": "^10.5.6",
-    "pug": "^3.0.0",
-    "saxon-js": "^2.0.2",
-    "webpack-dev-server": "^3.11.0"
+    "pg-promise": "^10.5.6"
   },
   "devDependencies": {
     "express-session": "^1.17.1",
     "formidable": "^1.2.2",
     "method-override": "^3.0.0",
     "nodemailer": "^6.4.14",
-    "nodemon": "^2.0.4"
+    "nodemon": "^2.0.4",
+    "node-forge": ">=0.10.0"
   }
 }
