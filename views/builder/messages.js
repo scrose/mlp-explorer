@@ -3,7 +3,7 @@
   Mountain Legacy Project: Explorer Application
   ------------------------------------------------------
   Module:       Core.Views.FormBuilder
-  Filename:     views/builder/forms.js
+  Filename:     views/builder/validator.js
   ------------------------------------------------------
   Module to assist in building HTML forms from data
   layer.
@@ -33,6 +33,7 @@ messages = {
     warning: {},
     error: {
         '23514': 'Registration email is empty or invalid.',
+        '42P01': 'Database misconfigured',
         'default': "An error occurred. Your request could not be completed. Contact the site administrator for assistance."
     }
 }

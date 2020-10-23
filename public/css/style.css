@@ -260,6 +260,13 @@ Forms
 =================================
 */
 
+/* Add a background color and some padding around the form */
+.form_container {
+  border-radius: 5px;
+  background-color: #f2f2f2;
+  padding: 20px;
+}
+
 /* Fieldset */
 
 fieldset {
@@ -368,11 +375,11 @@ input[type=submit]:hover {
   background-color: #45a049;
 }
 
-/* Add a background color and some padding around the form */
-.form_container {
-  border-radius: 5px;
-  background-color: #f2f2f2;
-  padding: 20px;
+/* Style disabled submit button */
+input[type=submit].disabled, input[type=submit].disabled:hover {
+  background-color: #666;
+  color: white;
+  cursor: default;
 }
 
 /* HREF form button */

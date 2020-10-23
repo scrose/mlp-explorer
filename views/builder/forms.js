@@ -3,7 +3,7 @@
   Mountain Legacy Project: Explorer Application
   ------------------------------------------------------
   Module:       Core.Views.FormBuilder
-  Filename:     views/builder/forms.js
+  Filename:     views/builder/validator.js
   ------------------------------------------------------
   Module to assist in building HTML forms from data
   layer.
@@ -43,13 +43,23 @@ function buildSelect(fieldID, schema, values) {
 }
 
 
+// build validation handler from schema
+function buildValidator(formID, schema) {
+    let validator = {id: formID, checklist: {}};
+    for (const [key, field] of Object.entries(schema.fields)) {
+        if (field.validation) validator.checklist[key] = {handlers: field.validation, complete: false};
+    }
+    return validator;
+}
+
+
 // build forms from schema
 function buildForm(action, schema, values, widgets) {
     let form = {
         form:
             {
                 attributes: {
-                    action: action.paths.submit,
+                    action: action.routes.submit,
                     method: action.method,
                     id: schema.attributes.model,
                     name: schema.attributes.model},
@@ -140,17 +150,25 @@ function buildForm(action, schema, values, widgets) {
                 fields.push(label);
         }
     }
-    // add action buttons
-    // submit
-    fields.push({input: {attributes: {type: 'submit', value: action.name ? action.name : 'submit'}}});
-    // cancel
-    if (action.cancelURL)
-        fields.push({a: {attributes: {class: "form_button", href: action.paths.cancel}, textNode: 'cancel'}});
+    // submit button
+    if (action.routes.submit)
+        fields.push({input: {
+            attributes: {
+                type: 'submit',
+                id: 'submit_' + schema.attributes.model,
+                value: action.name ? action.name : 'Submit'}
+        }});
+    // cancel button (link)
+    if (action.routes.cancel)
+        fields.push({a: {
+            attributes: {
+                class: "form_button",
+                href: action.routes.cancel
+            }, textNode: 'Cancel'}});
 
     // add input fields
     form.form.fieldset.childNodes = fields;
-    // return JSON form schema
-    // console.log(values, JSON.stringify(form))
+
     return form;
 }
 
@@ -178,28 +196,38 @@ exports.login = (action, schema) => {
 
 // build registration schema from filtered user model schema
 exports.registration = (action, schema) => {
-    let registration_schema = {
+    let registrationSchema = {
         legend: 'User Registration',
         attributes: schema.attributes,
         fields: {}
     };
-    registration_schema.fields[schema.attributes.username] = schema.fields[schema.attributes.username];
+    // reconfigure userid input
+    registrationSchema.fields[schema.attributes.username] = schema.fields[schema.attributes.username];
+    // reconfigure password input
     const passwordField = schema.fields[schema.attributes.password];
     passwordField.attributes.type = 'password';
-    registration_schema.fields[schema.attributes.password] = passwordField;
+    passwordField.attributes.class = 'password';
+    delete passwordField.attributes.href;
+    registrationSchema.fields[schema.attributes.password] = passwordField;
     // create repeat password field
-    registration_schema.fields['repeat_password'] = {label: 'Repeat Password', attributes: {type: 'password'}};
+    registrationSchema.fields['repeat_password'] = {label: 'Repeat Password', attributes: {type: 'password', class: 'password'}};
     // build the registration form
-    let registration_form = buildForm(action, registration_schema);
+    let registrationForm = buildForm(action, registrationSchema);
     // Add registration
-    return JSON.stringify(registration_form);
+    return JSON.stringify(registrationForm);
+}
+
+exports.registrationValidator = (formID, schema) => {
+    let regSchema = {fields:{}};
+    regSchema.fields[schema.attributes.username] = schema.fields[schema.attributes.username];
+    regSchema.fields[schema.attributes.password] = schema.fields[schema.attributes.password];
+    // create repeat password field
+    regSchema.fields['repeat_password'] = {validation: ['isRepeatPassword']};
+    // build the registration form
+    return JSON.stringify(buildValidator(formID, regSchema));
 }
 
 // build validation object from model schema
 exports.validator = (formID, schema) => {
-    let validator = {id:formID, fields: {}};
-    for (const [key, field] of Object.entries(schema.fields)) {
-        validator.fields[key] = field.validation || []
-    }
-    return JSON.stringify(validator);
+    return JSON.stringify(buildValidator(formID, schema));
 }

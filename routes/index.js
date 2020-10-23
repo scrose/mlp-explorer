@@ -75,6 +75,14 @@ module.exports = function addRoutes(parent, options){
                     method = 'post';
                     url = '/' + name + '/insert';
                     break;
+                case 'remove':
+                    method = 'get';
+                    url = '/' + name + '/:' + name + '_id/delete';
+                    break;
+                case 'delete':
+                    method = 'post';
+                    url = '/' + name + '/:' + name + '_id/delete';
+                    break;
                 case 'register':
                     method = 'get';
                     url = '/register';

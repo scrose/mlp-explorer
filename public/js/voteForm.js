@@ -1,6 +1,6 @@
 /* *******************************************
 *  Form Initialization: Vars
-*  NOTE: inherits functions from forms.js
+*  NOTE: inherits functions from validator.js
 ********************************************** */
 
 validation['empty'] = 'You must select at least one choice to submit the form.';

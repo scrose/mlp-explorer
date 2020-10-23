@@ -3,7 +3,7 @@
   Mountain Legacy Project: Explorer Application
   ------------------------------------------------------
   Module:       Core.UI.Editor.Form.Validation
-  File:         public/js/forms.js
+  File:         public/js/validator.js
   ------------------------------------------------------
   Dynamically renders forms from JSON schema.
   ------------------------------------------------------
@@ -22,107 +22,166 @@
   ------------------------------------------------------
 */
 
-const validationMessages = {
-	success: 'Valid',
-	Email: {
-		success: 'OK',
-		error: 'Not a valid email address.'
-	},
-	isPassword: {
-		success: 'OK',
-		error: 'Minimum eight and maximum 10 characters, at least one uppercase letter,\n' +
-			'\t// one lowercase letter, one number and one special character'
-	}
-}
-
-const fieldValidators = {
-	isEmpty: function(data) {
-		console.log('if empty.');
-	},
-	// format: user@example.com
-	isEmail: function(email) {
-		return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:[.][a-zA-Z0-9-]+)*$/.test(email);
-	},
-	// format: Minimum eight and maximum 10 characters, at least one uppercase letter,
-	// one lowercase letter, one number and one special character
-	isPassword: function(password) {
-		return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,10}$/.test(password);
-	}
-}
-
-const formValidator = {
-	attachHandlers: function (params) {
-		const validator = this;
-		const inputs = document.getElementById(params.id).elements;
-		if (!inputs) return;
-		// Iterate over the form controls
-		for (var i = 0; i < inputs.length; i++) {
-			const inputName = inputs[i].getAttribute('name') || null;
-			// initialize element in DOM
-			validator.init(inputName);
-			if (inputName && inputs[i].nodeName === "INPUT") {
-				if (inputs[i].addEventListener) { // Modern browsers
-					const validators = params.fields[inputName] || null;
-					if (validators) {
-						inputs[i].addEventListener('input', function (e) {
-							try {
-								validators.forEach(
-									function (check) {
-										if (validator.apply(check, e)) validator.message(inputName, check, 'success');
-										}
-									);
-							} catch (err) {
-								e.preventDefault();
-								console.log(err);
-							}
-						});
-						inputs[i].addEventListener('change', function (e) {
-							try {
-								validators.forEach(
-									function (check) {
-										if (!validator.apply(check, e)) {
-											validator.message(inputName, check, 'error');
-										}
-									}
-								);
-							} catch (err) {
-								e.preventDefault();
-								console.log(err);
-							}
-						});
-
-					}
-				} else if (inputs[i].attachEvent) { // IE v. < 8.0
-					inputs[i].attachEvent('onsubmit', validateEventForm);
+// field validation messages
+function createFormValidatorMessenger() {
+	return {
+		success: 'Valid',
+		isRequired: {
+			success: '',
+			error: 'This field is required.'
+		},
+		isEmail: {
+			success: 'OK',
+			error: 'Not a valid email address.'
+		},
+		isPassword: {
+			success: 'OK',
+			error: 'Passwords must have a minimum eight and maximum 10 characters, at least one uppercase letter,\n' +
+				'\t one lowercase letter, one number and one special character'
+		},
+		isValidForm: {
+			success: 'OK',
+			error: 'Form not valid.'
+		},
+		isRepeatPassword: {
+			success: 'OK',
+			error: 'Passwords do not match.'
+		},
+		// initialize field validation message container
+		init: function (inputName) {
+			let parentNode = document.getElementById('label_' + inputName);
+			if (parentNode) {
+				const msgNode = document.createElement("SPAN");
+				msgNode.setAttribute('class', 'validation')
+				msgNode.setAttribute('id', 'msg_' + inputName);
+				parentNode.appendChild(msgNode);
+			}
+		},
+		// add validation message to input
+		message: function (inputName, check, response) {
+			let msgNode = nodeBuilder.extend('msg_' + inputName);
+			if (msgNode.element) {
+				msgNode.addClassname(response);
+				let msg = this[check][response];
+				if (msgNode && msg) {
+					msgNode.element.innerHTML = msg;
 				}
 			}
-		}
-	},
-	// apply field validation
-	apply: function (check, e) {
-		return fieldValidators[check](e.target.value);
-	},
-	// initialize field validation message container
-	init: function (inputName) {
-		let parentNode = document.getElementById('label_' + inputName);
-		if (parentNode) {
-			const msgNode = document.createElement("SPAN");
-			msgNode.setAttribute('class', 'validation')
-			msgNode.setAttribute('id', 'msg_' + inputName);
-			parentNode.appendChild(msgNode);
-			console.log('added')
-		}
-	},
-	message: function (inputName, check, validationType) {
-		let msgNode = nodeUtils('msg_' + inputName).addClassname(validationType);
-		console.log(msgNode)
-		let msg = validationMessages[check];
-		if (msgNode && msg) {
-			const textNode = document.createTextNode(msg);
-			msgNode.element.appendChild(textNode);
+		},
+		// add validation message to input
+		clear: function (inputName) {
+			let msgNode = document.getElementById('msg_' + inputName);
+			if (msgNode) msgNode.innerHTML = '';
 		}
 	}
 }
+
+// main form/inputs validation
+function createFormValidator() {
+	return {
+		checklist: {},
+		form: {},
+		submit: {},
+		messenger: createFormValidatorMessenger(),
+		// initialize event listeners for form inputs
+		init: function (params) {
+			this.form = document.getElementById(params.id);
+			this.submit = nodeBuilder.extend('submit_' + params.id).addClassname('disabled');
+			this.checklist = params.checklist;
+			if (!this.form.elements) return;
+			this.submit.disableInput();
+			// add form listener
+			const validator = this;
+			this.form.addEventListener('input', function (e) {
+				if (validator.checkAll()) {
+					validator.submit.enableInput();
+					validator.submit.removeClassname('disabled');
+				} else {
+					validator.submit.disableInput();
+					validator.submit.addClassname('disabled');
+				}
+			});
+			// Iterate over the form controls
+			for (const field in this.checklist) {
+				const input = document.getElementById(field);
+				const fieldChecklist = this.checklist[field];
+				// initialize validation messenger
+				this.messenger.init(field);
+				if (field && input.nodeName === "INPUT") {
+					if (input.addEventListener) { // Modern browsers
+						this.addHandlers('input', input, fieldChecklist);
+					} else if (input.attachEvent) { // IE v. < 8.0
+						// this.inputs[i].attachEvent('onsubmit', validateEventForm);
+					}
+				}
+			}
+		},
+		addHandlers: function (eventType, input, fieldChecklist) {
+			let validator = this;
+			input.addEventListener(eventType, function (e) {
+				try {
+					fieldChecklist.complete = true;
+					validator.messenger.clear(input.getAttribute('name'));
+					fieldChecklist.handlers.forEach(function (handler) {
+						if (!validator.check(handler, e) && fieldChecklist.complete) {
+							validator.messenger.message(input.getAttribute('name'), handler, 'error');
+							fieldChecklist.complete = false;
+						}
+					});
+				} catch (err) {
+					e.preventDefault();
+					console.log(err);
+				}
+			});
+		},
+		isRequired: function (e) {
+			return !!e.target.value;
+		},
+		// format: user@example.com
+		isEmail: function (e) {
+			return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:[.][a-zA-Z0-9-]+)*$/.test(e.target.value);
+		},
+		// format: Minimum eight and maximum 10 characters, at least one uppercase letter,
+		// one lowercase letter, one number and one special character
+		isPassword: function (e) {
+			return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,10}$/.test(e.target.value);
+		},
+		// format: Minimum eight and maximum 10 characters, at least one uppercase letter,
+		// one lowercase letter, one number and one special character
+		isRepeatPassword: function (e) {
+			const password = document.getElementById('encrypted_password');
+			return password.value === e.target.value;
+		},
+		// apply field validation
+		check: function (check, e) {
+			try {
+				return this[check](e);
+			} catch (e) {
+				console.log(check, e)
+			}
+		},
+		// check all validations
+		checkAll: function () {
+			for (const field in this.checklist) {
+				if (!this.checklist[field].complete) return false;
+			}
+			return true;
+		}
+	}
+}
+// create validator object
+const formValidator = createFormValidator();
+
+
+
+
+
+
+
+
+
+
+
 
 /*
   ------------------------------------------------------

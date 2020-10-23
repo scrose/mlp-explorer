@@ -15,21 +15,3 @@
   Last Updated: October 20, 2020
   ======================================================
 */
-
-
-/*
-  ------------------------------------------------------
-  Extension wrapper for DOM node
-  ------------------------------------------------------
-*/
-function nodeUtils(id) {
-  return {
-    element: document.getElementById(id),
-    addClassname: function(className) {
-      let arr = this.element.className.split(" ");
-      if (arr.indexOf(name) === -1) {
-        this.element.className += " " + name;
-      }
-    }
-  }
-}

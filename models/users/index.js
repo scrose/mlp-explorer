@@ -43,7 +43,7 @@ let modelSchema = {
                 placeholder: '',
                 required: 'required'
             },
-            validation: ['isEmail']
+            validation: ['isRequired', 'isEmail']
         },
         role_id: {
             label: 'User Role',
@@ -61,7 +61,8 @@ let modelSchema = {
                 href: '/reset_password',
                 class: 'form_button',
                 required: 'required'
-            }
+            },
+            validation: ['isPassword']
         },
         reset_password_token: {
             label: '',

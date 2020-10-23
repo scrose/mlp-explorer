@@ -8,16 +8,13 @@
 <main>
     <!-- edit surveyor record -->
     <div id="form_container"></div>
-
 </main>
 <%- include('../partials/footer', {content: content}); %>
 <script>
-    // user form data
-    const formContainer = document.getElementById("form_container");
-    domTree = buildNode(null, <%- form %>);
-    window.onload = formContainer.appendChild(domTree);
-    // form validation
-    window.onload = formValidator.attachHandlers(<%- validator %>);
+    // build user form
+    nodeBuilder.build("form_container", <%- formSchema %>);
+    // initialize form validator
+    window.onload = formValidator.init(<%- validatorSchema %>);
 </script>
 </body>
 </html>

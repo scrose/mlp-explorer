@@ -94,7 +94,7 @@ exports.before = async (req, res, next) => {
 };
 
 
-// list all users
+// ------- list all users -------
 exports.list = async (req, res, next) => {
     await users.findAll()
         .then((result) => {
@@ -115,7 +115,7 @@ exports.list = async (req, res, next) => {
 };
 
 
-// register new user
+// ------- register new user -------
 exports.register = async (req, res, next) => {
     // const roles = await users.findAllRoles();
     // let roles_select = await forms.select('role_id', users.userRolesSchema, roles.rows);
@@ -128,9 +128,9 @@ exports.register = async (req, res, next) => {
             content: req.content,
             tools: utils,
             breadcrumb_menu: req.breadcrumbs,
-            form: forms.registration({
+            formSchema: forms.registration({
                 name: 'Register',
-                paths: {
+                routes: {
                     submit: '/users/insert',
                     cancel: '/',
                     confirm: '',
@@ -140,7 +140,7 @@ exports.register = async (req, res, next) => {
             },
             users.schema,
             {}),
-            validator: forms.validator(req.formID, users.schema)
+            validatorSchema: forms.registrationValidator(req.formID, users.schema)
         });
         res.cleanup();
     } catch(e) {
@@ -150,13 +150,11 @@ exports.register = async (req, res, next) => {
 };
 
 
-// insert user into db
+// ------- insert user into db -------
 exports.insert = async (req, res, next) => {
+    console.log(req.body)
     const resultPath = '/';
     try {
-        // validate body
-        validate(req.body);
-
         await users.insert(req.body)
             .then((result) => {
                 if (!result) throw "User could not be added."
@@ -180,6 +178,58 @@ exports.insert = async (req, res, next) => {
     }
 }
 
+// ------- remove user confirmation -------
+exports.remove = async (req, res, next) => {
+    const successPath = '/';
+    const failPath = '/';
+    try {
+        res.render('register', {
+            messages: req.session.messages || [],
+            content: req.content,
+            tools: utils,
+            breadcrumb_menu: req.breadcrumbs,
+            formSchema: forms.registration({
+                    name: 'Delete',
+                    routes: {
+                        submit: req.url,
+                        cancel: '/users',
+                        confirm: '',
+                        success: successPath
+                    },
+                    method: 'POST'
+                },
+                users.schema,
+                {})
+        });
+        res.cleanup();
+    } catch(e) {
+        res.message(e);
+        res.redirect(failPath);
+    }
+}
+
+// ------- delete user from db -------
+exports.delete = async (req, res, next) => {
+    const resultPath = '/';
+    try {
+        await users.delete(req.body)
+            .then((result) => {
+                if (!result) throw "User not found."
+                res.message(null, 'db-1', 'success');
+            })
+            .catch((err) => {
+                res.message(err, 'db-1', 'error');
+            })
+            .finally(() =>{
+                    console.log('Redirecting to %s', resultPath);
+                    res.redirect(resultPath)
+                }
+            );
+    } catch(e) {
+        res.message(e, 'db-1', 'error');
+        res.redirect(resultPath);
+    }
+}
 
 // show single user
 exports.show = async (req, res, next) => {
@@ -215,7 +265,7 @@ exports.edit = async (req, res, next) => {
                     content: req.content,
                     tools: utils,
                     breadcrumb_menu: req.breadcrumbs,
-                    form: forms.create({
+                    formSchema: forms.create({
                             paths: {
                                 submit: req.url,
                                 cancel: path.join('/', modelName, req.content.id),
