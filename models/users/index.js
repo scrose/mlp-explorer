@@ -20,142 +20,119 @@ db = require('../../db')
 
 
 let modelSchema = {
-    attributes: {
-        model: 'users',
-        username: 'email',
-        password: 'encrypted_password'
-    },
-    legend: 'User Profile',
+    model: 'users',
+    label: 'User Profile',
     fields: {
         user_id: {
-            hide_if_empty: true,
             label: 'ID',
-            attributes: {
-                type: 'hidden',
-                required: 'required'
-            }
+            type: 'integer',
+            render: {
+                edit: { attributes:{
+                    type:'number'
+                }}
+            },
+            validation: ['isRequired']
         },
         email: {
             label: 'Email',
-            attributes: {
-                type: 'email',
-                maxlength: 255,
-                placeholder: '',
-                required: 'required'
+            type: 'email',
+            render: {
+                register: { attributes:{
+                    type:'email'
+                }}
             },
             validation: ['isRequired', 'isEmail']
         },
         role_id: {
             label: 'User Role',
+            type: 'integer',
             restrict: [3],
-            attributes: {
-                type: 'select',
-                maxlength: 255,
-            }
+            render: {
+                register: { attributes:{
+                        type:'hidden',
+                        value: 1
+                    }}
+            },
+            validation: ['isRequired']
         },
         encrypted_password: {
             label: 'User Password',
-            text: 'Reset Password',
-            attributes: {
-                type: 'link',
-                href: '/reset_password',
-                class: 'form_button',
-                required: 'required'
+            type: 'password',
+            render: {
+                register: {
+                    attributes:{
+                        type:'password',
+                        class: 'password'
+                    }
+                }
             },
             validation: ['isPassword']
         },
+        repeat_password: {
+            label: 'Repeat Password',
+            type: 'password',
+            render: {
+                register: {
+                    attributes:{
+                        type:'password',
+                        class: 'password'
+                    }
+                }
+            },
+            validation: ['isRepeatPassword']
+        },
         reset_password_token: {
             label: '',
-            restrict: [3],
-            attributes: {
-                type: 'ignore',
-                maxlength: 255,
-                placeholder: ''
-            }
+            type: 'string',
+            restrict: [3]
         },
         reset_password_sent_at: {
             label: 'Reset Password Sent at',
-            restrict: [3],
-            attributes: {
-                type: 'timestamp',
-                class: 'datetime'
-            }
+            type: 'timestamp',
+            restrict: [3]
         },
         remember_created_at: {
             label: 'Remember Created at',
-            restrict: [3],
-            attributes: {
-                type: 'timestamp',
-                class: 'datetime'
-            }
+            type: 'timestamp',
+            restrict: [3]
         },
         sign_in_count: {
             label: 'Sign in Count',
-            hide_if_empty: true,
-            restrict: [3],
-            attributes: {
-                type: 'number',
-                disabled: true
-            }
+            type: 'integer',
+            restrict: [3]
         },
         current_sign_in_at: {
             label: 'Current Sign-in at',
-            hide_if_empty: true,
+            type: 'timestamp',
             restrict: [3],
-            attributes: {
-                type: 'timestamp',
-                class: 'datetime'
-            }
         },
         last_sign_in_at: {
             label: 'Last Sign-in at',
-            hide_if_empty: true,
+            type: 'timestamp',
             restrict: [3],
-            attributes: {
-                type: 'timestamp',
-                class: 'datetime'
-            }
         },
         created_at: {
             label: 'Created at',
-            hide_if_empty: true,
-            attributes: {
-                type: 'timestamp',
-                class: 'datetime'
-            }
+            type: 'timestamp',
         },
         updated_at: {
             label: 'Last Modified at',
-            hide_if_empty: true,
-            attributes: {
-                type: 'timestamp',
-                class: 'datetime'
-            }
+            type: 'timestamp',
         }
     }
 }
 
 let userRolesSchema = {
-    attributes: {
-        model: 'user_roles',
-        option: {
-            id: 'id',
-            value: 'name'
-        }
-    },
-    legend: 'User Roles',
+    model: 'user_roles',
+    label: 'User Roles',
     fields: {
         id: {
             label: 'ID',
-            attributes: {
-                type: 'hidden',
-            }
+            type: 'integer'
         },
         name: {
             label: 'Name',
-            attributes: {
-                type: 'text',
-            }
+            type: 'string',
         }
     }
 }
@@ -184,28 +161,6 @@ exports.findAll = (queryText) => {
         return db.query(queryText, []);
     }
 }
-
-
-// register user
-exports.register = (queryText) => {
-    const timestamp = utils.date.getTimestamp();
-    return (data) => {
-        const { rows } = db.query(queryText, [
-            data.email,
-            data.encrypted_password,
-            data.sign_in_count,
-            current_sign_in_at,
-            last_sign_in_at,
-            current_sign_in_ip,
-            last_sign_in_ip,
-            created_at,
-            updated_at,
-            role
-        ]);
-        return rows[0];
-    }
-}
-
 
 // update user profile
 exports.update = (queryText) => {

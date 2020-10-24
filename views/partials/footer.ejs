@@ -6,9 +6,11 @@
     <% if (messages) { %>
     <script>
         <% for (const [key, msg] of Object.entries(messages)) { %>
-            // session message
-            nodeBuilder.build("msg_container", <%- msg %>);
-        <%}%>
+            <% if (msg) { %>
+                // session message
+                nodeBuilder.build("msg_container", <%- msg %>);
+            <% } %>
+        <% } %>
     </script>
-    <%}%>
+    <% } %>
 </footer>

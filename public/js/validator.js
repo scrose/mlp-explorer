@@ -104,6 +104,8 @@ function createFormValidator() {
 			// Iterate over the form controls
 			for (const field in this.checklist) {
 				const input = document.getElementById(field);
+				// only proceed with existing inputs
+				if (!input) continue;
 				const fieldChecklist = this.checklist[field];
 				// initialize validation messenger
 				this.messenger.init(field);
@@ -139,7 +141,7 @@ function createFormValidator() {
 		},
 		// format: user@example.com
 		isEmail: function (e) {
-			return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:[.][a-zA-Z0-9-]+)*$/.test(e.target.value);
+			return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+$/.test(e.target.value);
 		},
 		// format: Minimum eight and maximum 10 characters, at least one uppercase letter,
 		// one lowercase letter, one number and one special character

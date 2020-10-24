@@ -16,6 +16,7 @@
   ======================================================
 */
 
+
 classNames = {
     info: 'fa fa-info-circle',
     success: 'fa fa-check',
@@ -28,31 +29,31 @@ messages = {
 
     },
     success: {
-        'db-1': "Database successfully updated."
+        'default': "Successfully updated."
     },
     warning: {},
     error: {
         '23514': 'Registration email is empty or invalid.',
-        '42P01': 'Database misconfigured',
-        'default': "An error occurred. Your request could not be completed. Contact the site administrator for assistance."
+        '42P01': 'Database is misconfigured. Contact the site administrator for assistance.',
+        default: "An error occurred. Your request could not be completed. Contact the site administrator for assistance."
     }
 }
 
 // session message creator
-exports.buildMessage = (e, msg, sev) => {
-    console.log(e)
-    // get database error code if it exists
-    let code = (e) ? e.code : null;
-    // get database error severity if it exists, otherwise use parameter
-    let severity = (e) ? e.severity.toLowerCase() : (sev) ? sev : null;
-    // get the indexed message, otherwise use the parameter
-    let message = (code && severity) ? messages[severity][code] : msg;
-    if (!message) return;
+exports.buildMessage = (e, severity, code) => {
+    if (!e && (!severity || !code)) return;
+    // get database error if it exists
+    let errorMessage = (e) ? (
+        messages.error.hasOwnProperty(e.code) ?
+            messages.error[e.code] : messages.error.default ) : '';
+    // get additional indexed message (if provided)
+    let messageSeverity = (e) ? 'error' : ( severity ? severity : 'info' );
+    let customMessage = (code && severity) ? messages[severity][code] : '';
     return JSON.stringify({
         div:
             {
-                attributes: {class: 'msg ' + severity},
-                textNode: message
+                attributes: {class: 'msg ' + messageSeverity},
+                textNode: customMessage + ' ' + errorMessage
             }
     });
 }

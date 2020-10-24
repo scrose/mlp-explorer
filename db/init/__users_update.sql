@@ -18,6 +18,7 @@ SELECT setval('users_id_seq', COALESCE((SELECT MAX(id)+1 FROM users), 1), false)
 /* add user roles column */
 ALTER TABLE users ADD COLUMN IF NOT EXISTS role INT DEFAULT 1;
 
+/* ensure roles have default value and not null */
 ALTER TABLE users ALTER COLUMN role SET DEFAULT 1;
 ALTER TABLE users ALTER COLUMN role SET NOT NULL;
 

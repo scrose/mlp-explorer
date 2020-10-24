@@ -23,7 +23,6 @@ exports.index = async (req, res, next) => {
         req.content = params.settings.general;
         res.render('index', {
             messages: req.session.messages || [],
-            message: null,
             model: 'Home',
             content: req.content,
             breadcrumb_menu: req.breadcrumbs,

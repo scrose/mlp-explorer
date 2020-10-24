@@ -59,7 +59,7 @@ app.response.message = function(e){
   // app.response.message = messages.create(this.req.session);
   sess.messages = sess.messages || [];
   sess.messages.push(messages.buildMessage(e));
-  console.log(e);
+  console.log('Error encountered.\n%s', e);
   return this;
 };
 

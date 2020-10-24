@@ -12,7 +12,6 @@ brew services restart postgresql
 
 
 
-
 ----------------
 MEAT Database
 ----------------
@@ -67,5 +66,10 @@ Node Types
 
 
 =========================
-NOTES
+Dummy users
 =========================
+
+
+Admin
+- spencer.rose@goruntime.ca
+- Udd*56009

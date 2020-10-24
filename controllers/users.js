@@ -122,29 +122,30 @@ exports.register = async (req, res, next) => {
     // let widget = {'role_id': roles_select}
     const successPath = '/';
     const failPath = '/';
+    const formView = 'register';
     try {
-        res.render('register', {
+        res.render(formView, {
             messages: req.session.messages || [],
             content: req.content,
             tools: utils,
             breadcrumb_menu: req.breadcrumbs,
-            formSchema: forms.registration({
-                name: 'Register',
-                routes: {
-                    submit: '/users/insert',
-                    cancel: '/',
-                    confirm: '',
-                    success: successPath
+            formSchema: forms.create(
+                {
+                        view: formView,
+                        name: 'Register',
+                        routes: {
+                            submit: '/users/insert',
+                            cancel: '/',
+                            confirm: '',
+                            success: successPath
+                        }, method: 'POST'
                 },
-                method: 'POST'
-            },
-            users.schema,
-            {}),
-            validatorSchema: forms.registrationValidator(req.formID, users.schema)
+                users.schema),
+            validatorSchema: forms.validator(formView, req.formID, users.schema)
         });
         res.cleanup();
-    } catch(e) {
-        res.message(e);
+    } catch(err) {
+        res.message(err);
         res.redirect(failPath);
     }
 };
@@ -152,30 +153,24 @@ exports.register = async (req, res, next) => {
 
 // ------- insert user into db -------
 exports.insert = async (req, res, next) => {
-    console.log(req.body)
+
     const resultPath = '/';
-    try {
-        await users.insert(req.body)
-            .then((result) => {
-                if (!result) throw "User could not be added."
-                console.log(result.rows);
-                let userEmail = result.rows[0].email;
-                // send confirmation email to user
-                utils.email.send(userEmail, "Verify registration.");
-                res.message(null, 'db-1', 'success');
-            })
-            .catch((err) => {
-                res.message(err, 'db-1', 'error');
-            })
-            .finally(() =>{
-                    console.log('Redirecting to %s', resultPath);
-                    res.redirect(resultPath)
-                }
-            );
-    } catch(e) {
-        res.message(e, 'db-1', 'error');
-        res.redirect(resultPath);
-    }
+    await users.insert(req.body)
+        .then((result) => {
+            if (!result) throw new Error('User could not be registered.')
+            // let userEmail = result.rows[0].email;
+            // // send confirmation email to user
+            // utils.email.send(userEmail, "Verify registration.");
+            res.message(null, 'default', 'success');
+        })
+        .catch((e) => {
+            res.message(e);
+        })
+        .finally(() =>{
+                console.log('Redirecting to %s', resultPath);
+                res.redirect(resultPath)
+            }
+        );
 }
 
 // ------- remove user confirmation -------

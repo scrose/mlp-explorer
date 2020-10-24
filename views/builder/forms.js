@@ -42,133 +42,159 @@ function buildSelect(fieldID, schema, values) {
     return selectInput;
 }
 
-
 // build validation handler from schema
-function buildValidator(formID, schema) {
+function buildValidator(view, formID, schema) {
     let validator = {id: formID, checklist: {}};
-    for (const [key, field] of Object.entries(schema.fields)) {
-        if (field.validation) validator.checklist[key] = {handlers: field.validation, complete: false};
+    for (const [fieldName, fieldObj] of Object.entries(schema.fields)) {
+        if (fieldObj.hasOwnProperty('validation')) validator.checklist[fieldName] = {handlers: fieldObj.validation, complete: false};
     }
     return validator;
 }
 
+function createInputBuilder(formParams, formWidgets) {
+    return {
+        // class properties
+        params: formParams,
+        widgets: formWidgets,
+        attributes: {},
+        inputLabel: {},
+        labelText: '',
+        handler: null,
+        value: false,
+        checkValues: function (field, values) {
+            // check if field is empty
+            return !values.hasOwnProperty(field);
+        },
+        build: function (fieldName, fieldAttributes, labelText, values) {
+            if (!fieldAttributes.hasOwnProperty('type')) return null;
+            this.attributes = fieldAttributes;
+            this.handler = (this.hasOwnProperty(this.attributes.type)) ? this[this.attributes.type] : this.default;
 
-// build forms from schema
-function buildForm(action, schema, values, widgets) {
-    let form = {
-        form:
-            {
-                attributes: {
-                    action: action.routes.submit,
-                    method: action.method,
-                    id: schema.attributes.model,
-                    name: schema.attributes.model},
-                fieldset: {legend: {textNode: schema.legend}}
-            }
-    };
-    let fields = [];
-
-    // build dom schema
-    for (const [key, field] of Object.entries(schema.fields)) {
-        const id = key;
-        field.attributes.id = id
-        field.attributes.name = id
-
-        // create input element and label
-        let elem = {input: {attributes: field.attributes}};
-        let label = {label: {attributes: {id: 'label_' + id, for: id, class: field.attributes.type}}};
-
-        // check user permissions to access field
-        let role = 3;
-        if (field.restrict && !field.restrict.includes(role)) {
-            continue;
-        }
-
-        // check if empty form/field
-        const emptyForm = !(values && !utils.data.isEmpty(values));
-        const emptyField = emptyForm || !values[key];
-        if (emptyField && field.hide_if_empty) continue;
-
+            // attach required name + id to attributes
+            this.attributes.id = fieldName;
+            this.attributes.name = fieldName;
+            this.labelText = labelText;
+            this.inputLabel = {label: {attributes: {
+                        id: 'label_' + fieldName,
+                        for: fieldName,
+                        class: this.attributes.type
+            }}};
+            this.value = values && values.hasOwnProperty(fieldName) ? values[fieldName] : '';
+            return this.handler();
+        },
         // handle form input types
-        switch (field.attributes.type) {
-            case 'ignore':
-                continue;
-            case 'hidden':
-                if (!emptyField) elem.input.attributes.value = values[key];
-                fields.push(elem);
-                break;
-            case 'select':
-                if (widgets) {
-                    widgets[id].label.childNodes = [{textNode: field.label}];
-                    // get widget indexed by fieldname and set selected option
-                    if (!emptyField) {
-                        widgets[id].select.childNodes.forEach((val) => {
-                            if (val.option.attributes.value === values[key]) {
-                                val.option.attributes.selected = "selected";
-                            }
-                        });
-                    }
-                    fields.push(widgets[id]);
+        ignore: function() {return {}},
+        hidden: function() {
+            if (this.value) this.attributes.value = this.value;
+            return {input:{attributes: this.attributes}};
+        },
+        select: function(elem, values) {
+            if (this.widgets.hasOwnProperty(this.attributes.id)) {
+                this.widgets[this.attributes.id].label.childNodes = [{textNode: this.params.label}];
+                // get widget indexed by fieldname and set selected option
+                if (!values.hasOwnProperty(elem.id)) {
+                    this.widgets[this.attributes.id].select.childNodes.forEach((val) => {
+                        if (val.option.attributes.value === values[this.attributes.id]) {
+                            val.option.attributes.selected = "selected";
+                        }
+                    });
                 }
-                break;
-            case 'checkbox':
-                if (!emptyField && values[key] === true) elem.input.attributes.checked = '';
-                label.label.childNodes = [elem, {textNode: field.label}];
-                fields.push(label);
-                break;
-            case 'date':
-                // handle date values (if given)
-                // NOTE Posgres format (yyy-mm-ddThh:02:40.677Z) -> JS format (yyyy-mm-dd)
-                if (!emptyField) {
-                    elem.input.attributes.value = utils.date.formatDate(
-                        values[key], "yyyy-mm-dd"
-                    );
-                    label.label.textNode = field.label;
-                    fields.push(label);
-                    fields.push(elem);
-                }
-                break;
-            case 'link':
-                field.attributes.href = field.attributes.href || '#';
-                const hyperlink = {a: {attributes: field.attributes, textNode: field.text || 'Link'}};
-                label.label.childNodes = [{textNode: field.label}];
-                fields.push(label, {div: hyperlink});
-                break;
-            case 'timestamp':
-                // handle timestamp values (if given)
-                if (!emptyField) {
-                    // NOTE Posgres format (yyy-mm-ddThh:02:40.677Z) -> JS format (yyyy-mm-dd HH:mm:ss)
-                    const timestamp = {time: {attributes: field.attributes}};
-                    label.textNode = field.label;
-                    timestamp.time.textNode = values[key] ? utils.date.formatDate(values[key], "yyyy-mm-dd HH:mm:ss") : 'n/a';
-                    fields.push(label, {div: timestamp});
-                }
-                break;
-            default:
-                if (!emptyField) elem.input.attributes.value = values[key];
-                label.label.childNodes = [{textNode: field.label}, elem];
-                fields.push(label);
+                return this.widgets[this.attributes.id];
+            }
+        },
+        checkbox: function() {
+            if (this.value && this.value === true) this.attributes.checked = '';
+            this.inputLabel.inputLabel.childNodes = [{input:{attributes: this.attributes}}, {textNode: this.labelText}];
+            return this.inputLabel;
+        },
+        date: function() {
+            // handle date values (if given)
+            // NOTE: Posgres format (yyy-mm-ddThh:02:40.677Z) -> JS format (yyyy-mm-dd)
+            if (this.value) {
+                this.attributes.value = utils.date.formatDate(this.value, "yyyy-mm-dd");
+                this.inputLabel.label.textNode = field.label;
+                return [this.label, {input:{attributes: this.attributes}}];
+            }
+        },
+        link: function() {
+            this.attributes.href = this.attributes.href || '#';
+            const hyperlink = {a: {attributes: this.attributes, textNode: 'Link Text' || 'Link'}};
+            this.inputLabel.label.childNodes = [{textNode: this.labelText}];
+            return [this.label, {div: hyperlink}];
+        },
+        // handle timestamps
+        timestamp: function() {
+            // NOTE Posgres format (yyy-mm-ddThh:02:40.677Z) -> JS format (yyyy-mm-dd HH:mm:ss)
+            const timestamp = {time: {attributes: this.attributes}};
+            this.inputLabel.label.textNode = this.labelText;
+            timestamp.time.textNode = this.value ? utils.date.formatDate(this.value, "yyyy-mm-dd HH:mm:ss") : 'n/a';
+            return [this.label, {div: timestamp}];
+        },
+        default: function() {
+            this.attributes.value = this.value;
+            // wrap input in label element
+            this.inputLabel.label.childNodes = [{textNode: this.labelText}, {input:{attributes: this.attributes}}];
+            return this.inputLabel;
         }
     }
+}
+
+
+// build forms from schema
+function buildForm(params, schema, values, widgets) {
+    let form = {
+        form: {
+            attributes: {
+                action: params.routes.submit,
+                method: params.method,
+                id: schema.model,
+                name: schema.model},
+            fieldset: {legend: {textNode: schema.label}}}
+    };
+    let inputs = [];
+
+    // create input builder
+    let inputBuilder = createInputBuilder(params, widgets);
+
+    // check if form is empty
+    const emptyForm = !(values && !utils.data.isEmpty(values));
+
+    // build DOM schema
+    for (const [fieldName, field] of Object.entries(schema.fields)) {
+
+        // check if field has view rendering attributes
+        if (!field.hasOwnProperty('render')) continue;
+        if (!field.render.hasOwnProperty(params.view)) continue;
+        let fieldObj = field.render[params.view];
+        if (!fieldObj.hasOwnProperty('attributes')) continue;
+
+        // check user permissions to access field
+        // TODO: restrict field permissions by user role
+        let role = 3;
+        if (field.hasOwnProperty('restrict') && !field.restrict.includes(role)) continue;
+
+        // build input element from schema
+        inputs.push(inputBuilder.build(fieldName, fieldObj.attributes, field.label, values));
+
+    }
     // submit button
-    if (action.routes.submit)
-        fields.push({input: {
+    if (params.routes.submit)
+        inputs.push({input: {
             attributes: {
                 type: 'submit',
-                id: 'submit_' + schema.attributes.model,
-                value: action.name ? action.name : 'Submit'}
+                id: 'submit_' + schema.model,
+                value: params.name ? params.name : 'Submit'}
         }});
     // cancel button (link)
-    if (action.routes.cancel)
-        fields.push({a: {
+    if (params.routes.cancel)
+        inputs.push({a: {
             attributes: {
                 class: "form_button",
-                href: action.routes.cancel
+                href: params.routes.cancel
             }, textNode: 'Cancel'}});
 
     // add input fields
-    form.form.fieldset.childNodes = fields;
-
+    form.form.fieldset.childNodes = inputs;
     return form;
 }
 
@@ -179,55 +205,11 @@ exports.select = (id, schema, values) => {
 }
 
 // build forms from schema
-exports.create = (action, schema, values, widgets) => {
-    return JSON.stringify(buildForm(action, schema, values, widgets));
-}
-
-// build login schema from filtered user model schema
-exports.login = (action, schema) => {
-    let login_schema = {legend: 'User Login', fields: {}};
-    login_schema.fields[schema.attributes.username] = schema.fields[schema.attributes.username];
-    login_schema.fields[schema.attributes.password] = schema.fields[schema.attributes.password];
-    console.log(login_schema)
-    let login_form = buildForm(action, login_schema);
-    // Add registration
-    return JSON.stringify(login_form);
-}
-
-// build registration schema from filtered user model schema
-exports.registration = (action, schema) => {
-    let registrationSchema = {
-        legend: 'User Registration',
-        attributes: schema.attributes,
-        fields: {}
-    };
-    // reconfigure userid input
-    registrationSchema.fields[schema.attributes.username] = schema.fields[schema.attributes.username];
-    // reconfigure password input
-    const passwordField = schema.fields[schema.attributes.password];
-    passwordField.attributes.type = 'password';
-    passwordField.attributes.class = 'password';
-    delete passwordField.attributes.href;
-    registrationSchema.fields[schema.attributes.password] = passwordField;
-    // create repeat password field
-    registrationSchema.fields['repeat_password'] = {label: 'Repeat Password', attributes: {type: 'password', class: 'password'}};
-    // build the registration form
-    let registrationForm = buildForm(action, registrationSchema);
-    // Add registration
-    return JSON.stringify(registrationForm);
-}
-
-exports.registrationValidator = (formID, schema) => {
-    let regSchema = {fields:{}};
-    regSchema.fields[schema.attributes.username] = schema.fields[schema.attributes.username];
-    regSchema.fields[schema.attributes.password] = schema.fields[schema.attributes.password];
-    // create repeat password field
-    regSchema.fields['repeat_password'] = {validation: ['isRepeatPassword']};
-    // build the registration form
-    return JSON.stringify(buildValidator(formID, regSchema));
+exports.create = (params, schema, filter, values, widgets) => {
+    return JSON.stringify(buildForm(params, schema, filter, values, widgets));
 }
 
 // build validation object from model schema
-exports.validator = (formID, schema) => {
-    return JSON.stringify(buildValidator(formID, schema));
+exports.validator = (view, formID, schema) => {
+    return JSON.stringify(buildValidator(view, formID, schema));
 }
