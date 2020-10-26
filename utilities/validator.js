@@ -2,8 +2,8 @@
   ======================================================
   Mountain Legacy Project: Explorer Application
   ------------------------------------------------------
-  Module:       Core.Utilities.Data
-  File:         /utilities/data.js
+  Module:       Core.Utilities.Validator
+  File:         /utilities/validator.js
   ------------------------------------------------------
   Utility methods for handling data
   ------------------------------------------------------

@@ -26,8 +26,7 @@ const logger = require('morgan');
 const path = require('path');
 const session = require('express-session');
 const methodOverride = require('method-override');
-const menu = require('./views/builder/nav')
-const messages = require('./views/builder/messages')
+const builder = require('./views/builder')
 
 const app = express();
 
@@ -50,18 +49,20 @@ app.use(session({
   secret: 'Built in Victoria, BC'
 }));
 
+
 // session-persistent message middleware:
 // custom res.message() method  which stores messages in the session
-app.response.message = function(e){
+app.response.message = function(e, severity, code){
+  console.log(e, severity, code)
   // reference `req.session` via the `this.req` reference
   const sess = this.req.session;
   // simply add the msg to an array for later
-  // app.response.message = messages.create(this.req.session);
   sess.messages = sess.messages || [];
-  sess.messages.push(messages.buildMessage(e));
-  console.log('Error encountered.\n%s', e);
+  sess.messages.push(builder.messages.create(e, severity, code));
+  if (e) console.log('Error encountered.\n%s', e);
   return this;
 };
+
 
 // session-persistent message middleware:
 // custom res.message() method  which stores messages in the session
@@ -108,14 +109,50 @@ app.use(express.urlencoded({ extended: true }))
 // allow overriding methods in query (?_method=put)
 app.use(methodOverride('_method'));
 
-// define breadcrumb menu
+// define view parameters
 app.use(function(req, res, next) {
-  req.breadcrumbs = menu.get_breadcrumbs(req.originalUrl);
+  // Add boilerplate content
+  req.view = params.settings.general;
+
+  // response messages
+  req.view.messages = req.session.messages || []
+
+  // navigation menus
+  req.view.menus = {
+    breadcrumb: builder.nav.buildBreadcrumbMenu(req.originalUrl),
+    user: builder.nav.buildUserMenu(req.session.user),
+    editor: builder.nav.buildEditorMenu(req.session.user, req)
+  }
+
+  // utilities
+  // TODO: move data preprocessing out of view
+  req.view.utils = utils;
+
+  // user-specific request/session parameters
+  req.user = req.session.user || null;
+
   next();
 });
 
+
+
 // map routes -> controllers
 require('./routes')(app, { verbose: true });
+
+// restrict user permissions by role
+app.use(function (req, res, next) {
+  console.log('RESTRICT', next, req.session.user);
+  // if (req.session.user ||
+  //     (req.method === 'GET' && req.url === '/login') ||
+  //     (req.method === 'GET' && req.url === '/register'))
+  // {
+  //   next();
+  // } else {
+  //   res.message(null, 'restricted', 'error');
+  //   res.redirect('/');
+  // }
+  next();
+});
 
 // assume 404 since no middleware responded
 app.use(function(req, res, next){

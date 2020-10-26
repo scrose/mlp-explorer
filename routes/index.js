@@ -89,7 +89,7 @@ module.exports = function addRoutes(parent, options){
                     break;
                 case 'login':
                     method = 'get';
-                    url = '/' + name + '/login';
+                    url = '/login';
                     break;
                 case 'auth':
                     method = 'post';

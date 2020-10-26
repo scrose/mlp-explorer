@@ -47,6 +47,10 @@ function createFormValidatorMessenger() {
 			success: 'OK',
 			error: 'Passwords do not match.'
 		},
+		default: {
+			success: 'OK',
+			error: 'Field is invalid.'
+		},
 		// initialize field validation message container
 		init: function (inputName) {
 			let parentNode = document.getElementById('label_' + inputName);
@@ -86,10 +90,12 @@ function createFormValidator() {
 		// initialize event listeners for form inputs
 		init: function (params) {
 			this.form = document.getElementById(params.id);
-			this.submit = nodeBuilder.extend('submit_' + params.id).addClassname('disabled');
+			// disable submit button until form is valid
+			this.submit = nodeBuilder.extend('submit_' + params.id).addClassname('disabled').disableInput();
+			// validation checklist
 			this.checklist = params.checklist;
 			if (!this.form.elements) return;
-			this.submit.disableInput();
+
 			// add form listener
 			const validator = this;
 			this.form.addEventListener('input', function (e) {
@@ -101,7 +107,8 @@ function createFormValidator() {
 					validator.submit.addClassname('disabled');
 				}
 			});
-			// Iterate over the form controls
+
+			// add listeners for each form input in checklist
 			for (const field in this.checklist) {
 				const input = document.getElementById(field);
 				// only proceed with existing inputs
@@ -109,6 +116,13 @@ function createFormValidator() {
 				const fieldChecklist = this.checklist[field];
 				// initialize validation messenger
 				this.messenger.init(field);
+
+				// validate fields with preset values
+				if ( this.getValue(field) ) {
+					this.validate(input, fieldChecklist);
+				}
+
+				// add event listeners to triggerable fields (inputs)
 				if (field && input.nodeName === "INPUT") {
 					if (input.addEventListener) { // Modern browsers
 						this.addHandlers('input', input, fieldChecklist);
@@ -116,17 +130,46 @@ function createFormValidator() {
 						// this.inputs[i].attachEvent('onsubmit', validateEventForm);
 					}
 				}
+				// add event listeners to triggerable fields (select)
+				if (field && input.nodeName === "SELECT") {
+					// do initial validation
+				}
+			}
+		},
+		validate: function (input, fieldChecklist) {
+			let validator = this;
+			const inputName = input.getAttribute('name');
+			try {
+				fieldChecklist.complete = true;
+				validator.messenger.clear(inputName);
+				fieldChecklist.handlers.forEach(function (handler) {
+					if (!validator.check(handler, validator.getValue(inputName)) && fieldChecklist.complete) {
+							validator.messenger.message(inputName, handler, 'error');
+							fieldChecklist.complete = false;
+					}
+				});
+				if (this.checkAll()) {
+
+					this.submit.enableInput();
+					this.submit.removeClassname('disabled');
+				} else {
+					this.submit.disableInput();
+					this.submit.addClassname('disabled');
+				}
+			} catch (err) {
+				console.log(err);
 			}
 		},
 		addHandlers: function (eventType, input, fieldChecklist) {
 			let validator = this;
+			const inputName = input.getAttribute('name');
 			input.addEventListener(eventType, function (e) {
 				try {
 					fieldChecklist.complete = true;
-					validator.messenger.clear(input.getAttribute('name'));
+					validator.messenger.clear(inputName);
 					fieldChecklist.handlers.forEach(function (handler) {
 						if (!validator.check(handler, e) && fieldChecklist.complete) {
-							validator.messenger.message(input.getAttribute('name'), handler, 'error');
+							validator.messenger.message(inputName, handler, 'error');
 							fieldChecklist.complete = false;
 						}
 					});
@@ -136,35 +179,46 @@ function createFormValidator() {
 				}
 			});
 		},
-		isRequired: function (e) {
-			return !!e.target.value;
+		getValue: function(inputName) {
+			const field = document.getElementById(inputName);
+			return (field.nodeName === 'INPUT') ? field.value :
+				(field.nodeName === 'SELECT') ? field.options[field.selectedIndex].text : null;
+		},
+		isSelected: function (value) {
+			return !!value;
+		},
+		isRequired: function (value) {
+			return !!value;
 		},
 		// format: user@example.com
-		isEmail: function (e) {
-			return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+$/.test(e.target.value);
+		isEmail: function (value) {
+			return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+$/.test(value);
 		},
 		// format: Minimum eight and maximum 10 characters, at least one uppercase letter,
 		// one lowercase letter, one number and one special character
-		isPassword: function (e) {
-			return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,10}$/.test(e.target.value);
+		isPassword: function (value) {
+			return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,10}$/.test(value);
 		},
 		// format: Minimum eight and maximum 10 characters, at least one uppercase letter,
 		// one lowercase letter, one number and one special character
-		isRepeatPassword: function (e) {
+		isRepeatPassword: function (value) {
 			const password = document.getElementById('encrypted_password');
-			return password.value === e.target.value;
+			return password.value === value;
 		},
-		// apply field validation
+		// apply single field validation handler
 		check: function (check, e) {
 			try {
-				return this[check](e);
-			} catch (e) {
-				console.log(check, e)
+				const value = (e.target) ? e.target.value : e;
+				return this[check](value);
+			} catch (err) {
+				console.log(e, check, err)
 			}
 		},
-		// check all validations
+		// check all validation checklists are completed for the form
 		checkAll: function () {
+			console.log(this.checklist)
 			for (const field in this.checklist) {
+				console.log(field, this.checklist[field].complete)
 				if (!this.checklist[field].complete) return false;
 			}
 			return true;

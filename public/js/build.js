@@ -3,22 +3,22 @@
   Mountain Legacy Project: Explorer Application
   ------------------------------------------------------
   Module:       Core.UI.Editor.Forms
-  File:         public/js/validator.js
+  File:         public/js/build.js
   ------------------------------------------------------
-  Dynamically renders forms from JSON schema.
+  Dynamically renders HTML elements from JSON schema.
   ------------------------------------------------------
   Creator:      Spencer Rose
   Copyright:    (c) 2020 Runtime Software Development Inc.
   License:      MIT
   Version:      1.0
-  Last Updated: October 7, 2020
+  Last Updated: October 28, 2020
   ======================================================
 */
 
 
 /*
   ------------------------------------------------------
-  Extension wrapper for DOM node
+  DOM builder from schema
   ------------------------------------------------------
 */
 // main form/inputs validation
@@ -40,7 +40,6 @@ function createNodeBuilder() {
 					const node = this;
 					let classNameArray = this.element.className.trim().split(' ');
 					node.element.className = '';
-					console.log(classNameArray, classNameArray.indexOf(name))
 					classNameArray.forEach(function (classNameItem) {
 						if (classNameItem !== className) node.element.className += classNameItem + ' ';
 						node.element.className.trim();

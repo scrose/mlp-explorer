@@ -1,11 +1,6 @@
 <header class="page-header">
-    <nav id="user_menu">
-        <ul class="user_menu">
-            <li><a href="/login">Login</a></li>
-            <li><a href="/register">Register</a></li>
-        </ul>
-    </nav>
-    <h1><a href="/"><%= content.project_name %>: <%= content.app_name %></a></h1>
+    <nav id="user_menu"></nav>
+    <h1><a href="/"><%= content.projectName %>: <%= content.appName %></a></h1>
     <nav id="main_menu">
         <ul class="main_menu">
             <li><a href="/">Home</a></li>
@@ -16,14 +11,7 @@
             <li><a href="#">Help</a></li>
         </ul>
     </nav>
-    <nav id="breadcrumb_menu">
-        <ul class="breadcrumb">
-            <ul>
-                <% breadcrumb_menu.forEach(function(item){ %>
-                    <li><a href="<%= item.url %>"><%= item.name %></a></li>
-                <% }); %>
-            </ul>
-        </ul>
-    </nav>
-    <div id="msg_container"></div>
+    <nav id="breadcrumb_menu"></nav>
+    <nav id="editor_menu"></nav>
+    <aside id="msg_container"></aside>
 </header>

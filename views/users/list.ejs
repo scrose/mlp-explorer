@@ -25,9 +25,9 @@
                 </td>
                 <td><%= user.email %></td>
                 <td><%= user.role %></td>
-                <td><time><%= tools.date.formatDate(user.last_sign_in_at, "yyyy-mm-dd hh:mm:ss") %></time></td>
-                <td><time><%= tools.date.formatDate(user.created_at, "yyyy-mm-dd hh:mm:ss") %></time></td>
-                <td><time><%= tools.date.formatDate(user.updated_at, "yyyy-mm-dd hh:mm:ss") %></time></td>
+                <td><time><%= user.last_sign_in_at %></time></td>
+                <td><time><%= user.created_at %></time></td>
+                <td><time><%= user.updated_at %></time></td>
                 <td><a href="/users/<%= user.user_id %>">view</a></td>
                 <td><a href="/users/<%= user.user_id %>/edit">edit</a></td>
                 <td><a href="/users/<%= user.user_id %>/delete">delete</a></td>

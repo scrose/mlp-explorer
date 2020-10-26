@@ -1,8 +1,11 @@
 {
   "general": {
-    "project_name": "Mountain Legacy Project",
-    "app_name": "Explorer",
+    "projectName": "Mountain Legacy Project",
+    "appName": "Explorer",
     "title": "Welcome to the Mountain Legacy Project Explorer"
+  },
+  "menu": {
+    "frontpage": "HOME"
   },
   "server": {
     "hostname": "localhost",

@@ -25,61 +25,96 @@ let modelSchema = {
     fields: {
         user_id: {
             label: 'ID',
-            type: 'integer',
+            type: 'hidden',
             render: {
-                edit: { attributes:{
-                    type:'number'
-                }}
-            },
-            validation: ['isRequired']
+                edit: {
+                    validation: ['isRequired']
+                }
+            }
         },
         email: {
             label: 'Email',
             type: 'email',
             render: {
-                register: { attributes:{
-                    type:'email'
-                }}
-            },
-            validation: ['isRequired', 'isEmail']
+                register: {
+                    validation: ['isRequired', 'isEmail']
+                },
+                login: {
+                    validation: ['isRequired', 'isEmail']
+                },
+                edit: {
+                    validation: ['isRequired', 'isEmail']
+                }
+            }
         },
         role_id: {
             label: 'User Role',
-            type: 'integer',
+            type: 'select',
             restrict: [3],
             render: {
-                register: { attributes:{
+                register: {
+                    attributes:{
                         type:'hidden',
                         value: 1
-                    }}
-            },
-            validation: ['isRequired']
+                    }
+                },
+                edit: {
+                    attributes:{
+                        type:'select',
+                        value: 1
+                    },
+                    validation: ['isSelected']
+                }
+            }
         },
         encrypted_password: {
-            label: 'User Password',
+            label: 'Password',
             type: 'password',
             render: {
                 register: {
                     attributes:{
-                        type:'password',
-                        class: 'password'
-                    }
-                }
-            },
-            validation: ['isPassword']
+                        type:'password'
+                    },
+                    validation: ['isPassword']
+                },
+                login: {
+                    attributes:{
+                        type:'password'
+                    },
+                    validation: ['isPassword']
+                },
+                edit: {
+                    attributes:{
+                        type:'password'
+                    },
+                    validation: ['isPassword']
+                },
+                // edit: {
+                //     attributes:{
+                //         type:'link',
+                //         url: 'reset_password',
+                //         linkText: 'Reset Password'
+                //     }
+                // }
+            }
         },
         repeat_password: {
             label: 'Repeat Password',
-            type: 'password',
+            type: 'repeat_password',
             render: {
                 register: {
                     attributes:{
-                        type:'password',
-                        class: 'password'
-                    }
+                        repeat: 'encrypted_password'
+                    },
+                    validation: ['isRepeatPassword']
+                },
+                edit: {
+                    attributes:{
+                        repeat: 'encrypted_password'
+                    },
+                    validation: ['isRepeatPassword']
                 }
-            },
-            validation: ['isRepeatPassword']
+            }
         },
         reset_password_token: {
             label: '',
@@ -128,11 +163,17 @@ let userRolesSchema = {
     fields: {
         id: {
             label: 'ID',
-            type: 'integer'
+            type: 'integer',
+            render: {
+                select: {
+                    option: 'name',
+                    value: 'id'
+                }
+            },
         },
         name: {
             label: 'Name',
-            type: 'string',
+            type: 'text',
         }
     }
 }
@@ -145,6 +186,13 @@ exports.userRolesSchema = userRolesSchema
 exports.findById = (queryText) => {
     return (id) => {
         return db.query(queryText, [id]);
+    }
+}
+
+// show individual user
+exports.findByEmail = (queryText) => {
+    return (email) => {
+        return db.query(queryText, [email]);
     }
 }
 
@@ -168,6 +216,7 @@ exports.update = (queryText) => {
         return db.query(queryText, [
             data.user_id,
             data.email,
+            data.encrypted_password,
             data.role_id
         ]);
     }
@@ -178,6 +227,7 @@ exports.insert = (queryText) => {
     return (data) => {
         return db.query(queryText, [
             data.email,
+            data.encrypted_password,
             data.role_id
         ]);
     }
@@ -189,28 +239,3 @@ exports.findAllRoles = (queryText) => {
         return db.query(queryText, [])
     }
 }
-
-
-// Update stations
-// module.exports = {
-//     update: (params, callback) => {
-//         client.query('BEGIN', err => {
-//             if (shouldAbort(err)) return
-//             const queryText = 'INSERT INTO users(name) VALUES($1) RETURNING id'
-//             client.query(queryText, ['brianc'], (err, res) => {
-//                 if (shouldAbort(err)) return
-//                 const insertPhotoText = 'INSERT INTO photos(user_id, photo_url) VALUES ($1, $2)'
-//                 const insertPhotoValues = [res.rows[0].id, 's3.bucket.foo']
-//                 client.query(insertPhotoText, insertPhotoValues, (err, res) => {
-//                     if (shouldAbort(err)) return
-//                     client.query('COMMIT', err => {
-//                         if (err) {
-//                             console.error('Error committing transaction', err.stack)
-//                         }
-//                         done()
-//                     })
-//                 })
-//             })
-//         })
-//     }
-// }

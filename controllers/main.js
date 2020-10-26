@@ -15,21 +15,48 @@
   ======================================================
 */
 
+/* global constants */
+const modelName = 'main'
 const params = require('../params')
+
+// preliminary handler
+exports.before = async (req, res, next) => {
+
+    // Add boilerplate content
+    req.view = params.settings.general;
+
+    // event-specific request parameters
+    req.view.modelName = modelName;
+
+    // response messages
+    req.view.messages = req.session.messages || null;
+
+    // menus
+    req.view.menus = {
+        breadcrumb: req.breadcrumbs,
+        user: req.userMenu
+    }
+
+    // utilities
+    // TODO: move data preprocessing out of view
+    req.view.utils = utils;
+
+    // user-specific request/session parameters
+    req.user = req.session.user || null;
+
+    next()
+
+};
 
 // Render main page
 exports.index = async (req, res, next) => {
     try {
-        req.content = params.settings.general;
         res.render('index', {
-            messages: req.session.messages || [],
-            model: 'Home',
-            content: req.content,
-            breadcrumb_menu: req.breadcrumbs,
+            content: req.view,
         });
         res.cleanup();
     }
     catch(e) {
-        console.log(e)
+        res.message(e);
     }
 };

@@ -8,16 +8,15 @@
   Copyright:    (c) 2020 Runtime Software Development Inc.
   License:
   Version:      1.0
-  Last Updated: June 15, 2020
+  Last Updated: October 27, 2020
   ------------------------------------------------------
-  Module:       Core.Uploader
-  Filename:     /file.js
+  Module:       Core.Views.Builder
+  Filename:     /utilities/index.js
   ======================================================
 */
 
 // Initialization
 'use strict';
-exports.data = require('./data');
-exports.file = require('./file');
-exports.date = require('./date');
-exports.email = require('./email');
+exports.nav = require('./nav');
+exports.forms = require('./forms');
+exports.messages = require('./messages');
