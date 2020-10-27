@@ -27,8 +27,8 @@
 const fs = require('fs');
 const path = require('path');
 
-module.exports = function getModels(model){
-    if (!model.type) return
+module.exports = function getModels(model) {
+    if (!model.type) return;
     const modelDir = path.join(__dirname, '..', 'models', model.type);
     console.log(modelDir)
 

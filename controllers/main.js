@@ -22,28 +22,8 @@ const params = require('../params')
 // preliminary handler
 exports.before = async (req, res, next) => {
 
-    // Add boilerplate content
-    req.view = params.settings.general;
-
     // event-specific request parameters
     req.view.modelName = modelName;
-
-    // response messages
-    req.view.messages = req.session.messages || null;
-
-    // menus
-    req.view.menus = {
-        breadcrumb: req.breadcrumbs,
-        user: req.userMenu
-    }
-
-    // utilities
-    // TODO: move data preprocessing out of view
-    req.view.utils = utils;
-
-    // user-specific request/session parameters
-    req.user = req.session.user || null;
-
     next()
 
 };
@@ -56,7 +36,7 @@ exports.index = async (req, res, next) => {
         });
         res.cleanup();
     }
-    catch(e) {
-        res.message(e);
+    catch(err) {
+        res.message(err);
     }
 };

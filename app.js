@@ -52,14 +52,13 @@ app.use(session({
 
 // session-persistent message middleware:
 // custom res.message() method  which stores messages in the session
-app.response.message = function(e, severity, code){
-  console.log(e, severity, code)
+app.response.message = function(e){
   // reference `req.session` via the `this.req` reference
   const sess = this.req.session;
   // simply add the msg to an array for later
   sess.messages = sess.messages || [];
-  sess.messages.push(builder.messages.create(e, severity, code));
-  if (e) console.log('Error encountered.\n%s', e);
+  sess.messages.push(builder.messages.create(e));
+  if (e) console.log('Message sent:\n%s', e);
   return this;
 };
 
@@ -123,10 +122,6 @@ app.use(function(req, res, next) {
     user: builder.nav.buildUserMenu(req.session.user),
     editor: builder.nav.buildEditorMenu(req.session.user, req)
   }
-
-  // utilities
-  // TODO: move data preprocessing out of view
-  req.view.utils = utils;
 
   // user-specific request/session parameters
   req.user = req.session.user || null;

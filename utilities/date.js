@@ -108,11 +108,10 @@ function formatDate(date, format, utc) {
 
 // export date formatter
 exports.formatDate = (date, format, utc) => {
-    return formatDate(date, format, utc);
+    return formatDate(date.toString(), format, utc);
 }
 
-// convenience method for creating timestamp with/out timezone
-exports.getTimestamp = function getTimestamp(timezone) {
-    let now = new Date();
-    return formatDate(now, "dddd h:mmtt d MMM yyyy");
+// export date converter
+exports.convert = ( dateStr ) => {
+    return new Date( dateStr );
 }

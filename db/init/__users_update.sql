@@ -15,6 +15,9 @@ SELECT setval('users_id_seq', COALESCE((SELECT MAX(id)+1 FROM users), 1), false)
 
 SELECT setval('users_id_seq', COALESCE((SELECT MAX(id)+1 FROM users), 1), false);
 
+/* add session token column */
+ALTER TABLE users ADD COLUMN IF NOT EXISTS session_token VARCHAR;
+
 /* add user roles column */
 ALTER TABLE users ADD COLUMN IF NOT EXISTS role INT DEFAULT 1;
 

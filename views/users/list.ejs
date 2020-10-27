@@ -5,7 +5,6 @@
 </head>
 <body>
 <%- include('../partials/header', {content: content}); %>
-<%- include('../partials/editor_menu', {content: content}); %>
 <main>
     <table class="records">
         <tbody>
@@ -13,18 +12,21 @@
             <th>Logged-in</th>
             <th>Email</th>
             <th>Role</th>
+            <th>Current Sign-in</th>
             <th>Last Sign-in</th>
-            <th>Added</th>
+            <th>Created</th>
             <th>Updated</th>
         </tr>
         <!-- users (with attached surveys) -->
+        <% if (users.length === 0) { %>
+            <td colspan="8">No users.</td>
+        <% } %>
         <% for (const [key, user] of Object.entries(users)) { %>
             <tr>
-                <td>
-                    n/a
-                </td>
+                <td><%= !!user.session_token %></td>
                 <td><%= user.email %></td>
                 <td><%= user.role %></td>
+                <td><time><%= user.current_sign_in_at %></time></td>
                 <td><time><%= user.last_sign_in_at %></time></td>
                 <td><time><%= user.created_at %></time></td>
                 <td><time><%= user.updated_at %></time></td>

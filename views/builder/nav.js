@@ -40,6 +40,7 @@ module.exports.buildBreadcrumbMenu = function(url) {
 
 // build user menu
 module.exports.buildUserMenu = function(user) {
+    console.log(user)
     // user not logged in
     if (!user) {
         return  JSON.stringify({ul: {
@@ -56,8 +57,10 @@ module.exports.buildUserMenu = function(user) {
         return  JSON.stringify({ul: {
                 attributes: {class: "user_menu"},
                 childNodes: [
-                    { li: { textNode: 'Signed In: ' + userName}},
-                    { li: { a: {attributes: { href: path.join("/users", user.id, 'edit') }, textNode:'Edit Profile'}}}
+                    { li: { a: {
+                        attributes: { href: path.join("/users", user.id.toString(), 'edit') },
+                        textNode: 'Signed in as: ' + userName
+                    }}}
                 ]}});
     }
 };

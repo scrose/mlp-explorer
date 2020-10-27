@@ -16,47 +16,45 @@
 */
 
 
-classNames = {
-    info: 'fa fa-info-circle',
-    success: 'fa fa-check',
-    warning: 'fa fa-warning',
-    error: 'fa fa-times-circle'
-}
-
-messages = {
+let messages = {
     info: {
-
+        default: ''
     },
     success: {
-        default: "Successfully updated.",
-        login: "Logged in successfully."
+        register: 'User successfully registered.',
+        login: "Logged in successfully.",
+        logout: "Logged in successfully.",
+        default: "Successfully updated."
     },
-    warning: {},
+    warning: {
+        default: ''
+    },
     error: {
         '23514': 'Registration email is empty or invalid.',
         '42P01': 'Database is misconfigured. Contact the site administrator for assistance.',
+        login: 'Authentication failed. Please check your login credentials.',
+        logout: 'Logging out failed. Contact the site administrator for assistance.',
         default: 'An error occurred. Your request could not be completed. Contact the site administrator for assistance.',
         restrict: 'Access denied!'
     }
 }
 
 // session message creator
-exports.create = (e, severity, code) => {
-    if (!e && !severity) return;
-    // get database error if it exists
-    let errorMessage = (e) ? (
-        messages.error.hasOwnProperty(e.code) ?
-            messages.error[e.code] : messages.error.default ) : '';
-    // get additional indexed message (if provided)
-    let messageSeverity = (e) ? 'error' : ( severity ? severity : 'info' );
-    let customMessage = severity && messages.hasOwnProperty(severity) ? (
-        code && messages[severity].hasOwnProperty(code) ? messages[severity][code] : messages[severity].default
-    ) : '';
+exports.create = (e) => {
+    if (!e) return;
+    // get severity level
+    let severity = (e.hasOwnProperty('severity')) ? (
+        messages.hasOwnProperty(e.severity.toLowerCase()) ?
+            e.severity.toLowerCase() : 'info' ) : 'info';
+    // get message
+    let message = (e.hasOwnProperty('code')) ? (
+        messages[severity].hasOwnProperty(e.code) ?
+            messages[severity][e.code] : messages[severity].default ) : '';
     return JSON.stringify({
         div:
             {
-                attributes: {class: 'msg ' + messageSeverity},
-                textNode: customMessage + ' ' + errorMessage
+                attributes: {class: 'msg ' + severity},
+                textNode: message
             }
     });
 }

@@ -1,14 +1,14 @@
 INSERT INTO users(
     email,
-    role,
     encrypted_password,
+    role,
     created_at,
     updated_at
 )
 VALUES(
-    $1::text,
-    $2::integer,
-    $3::varchar,
+    $1::varchar,
+    $2::varchar,
+    $3::integer,
     NOW()::timestamp,
     NOW()::timestamp
 )

@@ -46,11 +46,12 @@ exports.removeEmpty = function removeEmpty( array ) {
 exports.reformat = function reformat( data, schema ) {
     data.forEach((item) => {
         for (const [key, field] of Object.entries( item )) {
-            console.log(key, field)
+            if (!field) continue;
             const dataType = schema.fields.hasOwnProperty( key ) ? schema.fields[key].type : null;
             switch (dataType) {
                 case 'timestamp':
-                    item = date.formatDate(item, "yyyy-MM-dd hh:mm:ss");
+                    //"yyyy-MM-dd hh:mm:ss"
+                    item[key] = date.convert(field).toLocaleString();
                     break;
                 }
             }
@@ -59,6 +60,11 @@ exports.reformat = function reformat( data, schema ) {
 }
 
 // sanitize user data
-exports.sanitize = function sanitize( data ) {
-    return data
+exports.sanitize = function sanitize( fieldType, data ) {
+    switch (dataType) {
+        case 'timestamp':
+            //"yyyy-MM-dd hh:mm:ss"
+            item[key] = date.convert(field).toLocaleString();
+            break;
+    }
 }

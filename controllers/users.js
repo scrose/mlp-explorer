@@ -20,35 +20,13 @@
 const modelName = 'users'
 
 /* initialize imports */
-const utils = require('../utilities')
-const path = require('path')
+const utils = require('../utilities');
+const path = require('path');
 const users = require('../models')({ type: modelName });
-const builder = require('../views/builder')
+const builder = require('../views/builder');
+let crypto = require('crypto');
 
 exports.engine = 'ejs';
-
-
-/*
-------------------------------------------------------
-  Controller Support Functions
-------------------------------------------------------
-*/
-
-// authenticate user
-function authenticate(email, pass, user, fn) {
-    console.log('Authenticating %s', user.email);
-    return pass===user.encrypted_password;
-    // apply the same algorithm to the POSTed password, applying
-    // the hash against the pass / salt, if there is a match we
-    // found the user
-    // hash({ password: pass, salt: user.salt }, function (err, pass, salt, hash) {
-    //     if (err) return fn(err);
-    //     if (hash === user.hash) return fn(null, user)
-    //     fn(new Error('invalid password'));
-    // });
-}
-
-
 
 
 /*
@@ -71,9 +49,10 @@ exports.list = async (req, res, next) => {
     await users.findAll()
         .then((result) => {
             if (!result) throw new Error();
+            const userList = utils.data.reformat( result.rows, users.create() );
             res.render('list', {
                 content: req.view,
-                users: utils.data.reformat( result.rows, users.schema )
+                users: userList
             });
             res.cleanup();
         })
@@ -86,56 +65,49 @@ exports.list = async (req, res, next) => {
 
 // ------- register new user -------
 exports.register = async (req, res, next) => {
-    const successPath = '/';
-    const failPath = '/';
-    const formView = 'register';
+    // build registration form + validator schemas
+    let {form, validator} = builder.forms.create(
+        {
+            view: 'register',
+            name: 'Register',
+            method: 'POST',
+            routes: {
+                submit: '/users/insert',
+                cancel: '/',
+            }
+        }, users.create());
     try {
-        res.render(formView, {
-            messages: req.session.messages || [],
+        res.render('register', {
             content: req.view,
-            tools: utils,
-            breadcrumb_menu: req.breadcrumbs,
-            formSchema: builder.forms.create(
-                {
-                        view: formView,
-                        name: 'Register',
-                        routes: {
-                            submit: '/users/insert',
-                            cancel: '/',
-                            confirm: '',
-                            success: successPath
-                        }, method: 'POST'
-                },
-                users.schema),
-            validatorSchema: builder.builder.forms.validator(formView, req.view.formID, users.schema)
+            formSchema: form,
+            validatorSchema: validator
         });
         res.cleanup();
     } catch(err) {
         res.message(err);
-        res.redirect(failPath);
+        res.redirect('/');
     }
 };
 
 
 // ------- insert user into db -------
 exports.insert = async (req, res, next) => {
-    const resultPath = '/';
-    await users.insert(req.body)
+    let newUser = users.create( req.body );
+    console.log(newUser)
+    await users.insert( newUser.getData() )
         .then((result) => {
-            if (!result) throw new Error('User could not be registered.');
+            if (result.rows.length === 0) throw new Error();
             // let userEmail = result.rows[0].email;
             // // send confirmation email to user
             // utils.email.send(userEmail, "Verify registration.");
-            res.message(null, 'default', 'success');
+            res.message({severity:'success', code:'register'});
         })
-        .catch((e) => {
-            res.message(e);
+        .catch((err) => {
+            res.message(err);
         })
-        .finally(() =>{
-                console.log('Redirecting to %s', resultPath);
-                res.redirect(resultPath)
-            }
-        );
+        .finally(() => {
+            res.redirect('/')
+        });
 }
 
 
@@ -168,31 +140,52 @@ exports.login = (req, res, next) => {
     }
 };
 
+// ------- logout user -------
+exports.logout = async (req, res, next) => {
+    await users.logout( req.user )
+        .then((user) => {
+            // Regenerate session when signing out to prevent fixation
+            req.session.regenerate(function(){
+                // Store the user's primary key
+                // in the session store to be retrieved,
+                // or in this case the entire user object
+                req.session.user = null;
+                res.message({severity:'success', code:'logout'});
+                res.redirect('/');
+            });
+        })
+        .catch((err) => {
+            res.message({severity:'error', code:'logout'});
+            res.redirect('/login');
+        });
+};
+
 
 // ------- authenticate user -------
 exports.auth = async (req, res, next) => {
-    await users.findByEmail(req.body.email)
+    await users.login( req.body )
         .then((user) => {
+
             if (!authenticate(req.body.email, req.body.encrypted_password, user.rows[0]) ) {
-                throw new Error(`Authentication failed for ` + req.body.email);
+                throw new Error();
             }
             // Regenerate session when signing in to prevent fixation
             req.session.regenerate(function(){
                 // Store the user's primary key
                 // in the session store to be retrieved,
                 // or in this case the entire user object
-                req.session.user = user;
-                res.message(null, 'success', 'login');
-                res.redirect('back');
+                req.session.user = user.rows[0];
+                res.message({severity:'success', code:'login'});
+                res.redirect('/');
             });
         })
         .catch((err) => {
-            res.message(err);
+            res.message({severity:'error', code:'login'});
             res.redirect('/login');
         });
 }
 
-// show single user
+// ------- show user profile -------
 exports.show = async (req, res, next) => {
     await users.findById(req.view.id)
         .then((result) => {
@@ -207,7 +200,7 @@ exports.show = async (req, res, next) => {
             res.cleanup();
         })
         .catch((err) => {
-            res.message(err, 'db-1', 'error');
+            res.message(err);
             res.redirect('/users');
         });
 };
@@ -262,10 +255,10 @@ exports.edit = async (req, res, next) => {
 // ------- update user profile -------
 exports.update = async (req, res, next) => {
     try {
-        await users.update(req.body)
+        await users.update( req.body )
             .then((result) => {
                 if (!result.rows) throw new Error('User not found.');
-                res.message(null, 'success');
+                res.message({severity:'success', code:'register'});
             })
             .catch((err) => {
                 res.message(err);
