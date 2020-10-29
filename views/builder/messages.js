@@ -30,7 +30,7 @@ let messages = {
         default: ''
     },
     error: {
-        '23514': 'Registration email is empty or invalid.',
+        '23514': 'Email and/or password are empty or invalid.',
         '42P01': 'Database is misconfigured. Contact the site administrator for assistance.',
         login: 'Authentication failed. Please check your login credentials.',
         logout: 'Logging out failed. Contact the site administrator for assistance.',
@@ -42,14 +42,15 @@ let messages = {
 // session message creator
 exports.create = (e) => {
     if (!e) return;
+    console.log(e)
     // get severity level
     let severity = (e.hasOwnProperty('severity')) ? (
         messages.hasOwnProperty(e.severity.toLowerCase()) ?
-            e.severity.toLowerCase() : 'info' ) : 'info';
+            e.severity.toLowerCase() : 'error' ) : 'error';
     // get message
     let message = (e.hasOwnProperty('code')) ? (
         messages[severity].hasOwnProperty(e.code) ?
-            messages[severity][e.code] : messages[severity].default ) : '';
+            messages[severity][e.code] : messages[severity].default ) : messages[severity].default;
     return JSON.stringify({
         div:
             {

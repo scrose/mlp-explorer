@@ -15,9 +15,8 @@
   ======================================================
 */
 
-const utils = require('../../utilities')
 const db = require('../../db')
-const crypto = require('crypto')
+const utils = require('../../utilities')
 
 let modelSchema = {
         model: 'users',
@@ -25,28 +24,8 @@ let modelSchema = {
         data: {},
         fields: {
             user_id: {
-                label: 'ID',
-                type: 'hidden',
-                render: {
-                    edit: {
-                        validation: ['isRequired']
-                    }
-                }
-            },
-            email: {
-                label: 'Email',
-                type: 'email',
-                render: {
-                    register: {
-                        validation: ['isRequired', 'isEmail']
-                    },
-                    login: {
-                        validation: ['isRequired', 'isEmail']
-                    },
-                    edit: {
-                        validation: ['isRequired', 'isEmail']
-                    }
-                }
+                label: 'User ID',
+                type: 'string',
             },
             role_id: {
                 label: 'User Role',
@@ -68,7 +47,22 @@ let modelSchema = {
                     }
                 }
             },
-            encrypted_password: {
+            email: {
+                label: 'Email',
+                type: 'email',
+                render: {
+                    register: {
+                        validation: ['isRequired', 'isEmail']
+                    },
+                    login: {
+                        validation: ['isRequired', 'isEmail']
+                    },
+                    edit: {
+                        validation: ['isRequired', 'isEmail']
+                    }
+                }
+            },
+            password: {
                 label: 'Password',
                 type: 'password',
                 render: {
@@ -99,19 +93,27 @@ let modelSchema = {
                     // }
                 }
             },
+            salt_token: {
+                label: 'Salt Hash',
+                type: 'string'
+            },
+            session_token: {
+                label: 'Session Token',
+                type: 'string'
+            },
             repeat_password: {
                 label: 'Repeat Password',
                 type: 'repeat_password',
                 render: {
                     register: {
                         attributes: {
-                            repeat: 'encrypted_password'
+                            repeat: 'password'
                         },
                         validation: ['isRepeatPassword']
                     },
                     edit: {
                         attributes: {
-                            repeat: 'encrypted_password'
+                            repeat: 'password'
                         },
                         validation: ['isRepeatPassword']
                     }
@@ -157,7 +159,8 @@ let modelSchema = {
             }
         },
         // get data values set in schema
-        getData: function () {
+        getData: function (fieldName) {
+            if (fieldName) return (this.fields.hasOwnProperty(fieldName)) ? this.fields[fieldName].value : null;
             let filteredData = {}
             Object.entries(this.fields).forEach(([key, field]) => {
                 filteredData[key] = field.value;
@@ -166,22 +169,24 @@ let modelSchema = {
         },
         // set salt and hash the password for a user
         encrypt: function () {
-            // Creating a unique salt for a particular user
-            let password = this.fields.encrypted_password.value || null;
+            let password = this.fields.password.value || null;
             if (!password) return;
-            this.salt = crypto.randomBytes(16).toString('hex');
-            // Hashing user's salt and password with 1000 iterations,
-            this.hash = crypto.pbkdf2Sync(password, this.salt,
-                1000, 64, `sha512`).toString(`hex`);
-            // encrypt password value
-            this.fields.encrypted_password.value = this.hash;
+            // generate unique identifier for user (user_id)
+            this.unique_id = utils.secure.genUUID();
+            // generate a unique salt for the user (salt_token)
+            this.salt = utils.secure.genID();
+            // Hash user's salt and password
+            this.hash = utils.secure.encrypt(password, this.salt);
+            // save encrypted password values / salt
+            this.fields.user_id.value = this.unique_id;
+            this.fields.password.value = this.hash;
             this.fields.repeat_password.value = this.hash;
+            this.fields.salt_token.value = this.salt;
+            return this;
         },
         authenticate: function (password) {
-            console.log('Authenticating username %s', user.email);
-            const hash = crypto.pbkdf2Sync(password,
-                this.salt, 1000, 64, `sha512`).toString(`hex`);
-            return this.hash === hash;
+            console.log('Authenticating user %s', this.fields.email.value);
+            return this.fields.password.value === utils.secure.encrypt(password, this.fields.salt_token.value);
         }
 }
 
@@ -215,7 +220,6 @@ exports.create = function createModel(data) {
         Object.entries(modelSchema.fields).forEach(([key, field]) => {
             field.value = data.hasOwnProperty(key) ? data[key] : null;
         });
-    modelSchema.encrypt();
     return modelSchema;
 }
 
@@ -253,19 +257,30 @@ exports.update = (queryText) => {
         return db.query(queryText, [
             data.user_id,
             data.email,
-            data.encrypted_password,
+            data.password,
+            data.salt_token,
             data.role_id
         ]);
     }
 }
 
-// login user
-exports.login = (queryText) => {
+// open user session (login)
+exports.insertSession = (queryText) => {
     return (data) => {
         return db.query(queryText, [
             data.email,
-            data.encrypted_password,
-            data.session
+            data.user_id,
+            data.session_token
+        ]);
+    }
+}
+
+// close user session (logout)
+exports.deleteSession = (queryText) => {
+    return (data) => {
+        return db.query(queryText, [
+            data.email,
+            data.user_id
         ]);
     }
 }
@@ -273,9 +288,12 @@ exports.login = (queryText) => {
 // insert new user profile
 exports.insert = (queryText) => {
     return (data) => {
+        console.log(data)
         return db.query(queryText, [
+            data.user_id,
             data.email,
-            data.encrypted_password,
+            data.password,
+            data.salt_token,
             data.role_id
         ]);
     }

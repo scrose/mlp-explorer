@@ -46,7 +46,7 @@ module.exports.buildUserMenu = function(user) {
         return  JSON.stringify({ul: {
                 attributes: {class: "user_menu"},
                 childNodes: [
-                    { li: { a: {attributes: { href: "/login" }, textNode:'Login'}}},
+                    { li: { a: {attributes: { href: "/login" }, textNode:'Sign In'}}},
                     { li: { a: {attributes: { href: "/register"}, textNode:'Register'}}}
                 ]}});
     }
@@ -60,7 +60,8 @@ module.exports.buildUserMenu = function(user) {
                     { li: { a: {
                         attributes: { href: path.join("/users", user.id.toString(), 'edit') },
                         textNode: 'Signed in as: ' + userName
-                    }}}
+                    }}},
+                    { li: { a: {attributes: { href: "/logout" }, textNode:'Sign Out'}}}
                 ]}});
     }
 };

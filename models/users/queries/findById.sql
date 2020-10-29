@@ -1,9 +1,9 @@
 SELECT
-    users.id AS user_id,
-    user_roles.id AS role_id,
+    users.user_id AS user_id,
+    user_roles.role_id AS role_id,
     user_roles.name AS role,
     users.email,
-    users.encrypted_password,
+    users.password,
     users.reset_password_token,
     users.reset_password_sent_at,
     remember_created_at,
@@ -16,5 +16,5 @@ SELECT
     users.updated_at
 FROM users
 LEFT OUTER JOIN user_roles
-ON users.role = user_roles.id
-WHERE users.id=$1::integer
+ON users.role_id = user_roles.role_id
+WHERE users.user_id=$1::integer

@@ -1,10 +1,11 @@
 UPDATE users
 SET
+session_token = $3,
 sign_in_count = sign_in_count + 1,
 current_sign_in_at = NOW()::timestamp,
-session_token =
+last_sign_in_at = NOW()::timestamp
 WHERE
 email = $1::varchar
 AND
-encrypted_password = $2::varchar
+user_id = $2::varchar
 RETURNING *

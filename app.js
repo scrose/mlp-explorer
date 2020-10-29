@@ -27,6 +27,7 @@ const path = require('path');
 const session = require('express-session');
 const methodOverride = require('method-override');
 const builder = require('./views/builder')
+const utils = require('./utilities')
 
 const app = express();
 
@@ -41,12 +42,21 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 
+// Proxy setting
+app.set('trust proxy', 1) // trust first proxy
+
 // =====================================
 // session support
 app.use(session({
+
+  genid: function(req) {
+    return utils.secure.genUUID() // use UUIDs for session IDs
+  },
   resave: false, // don't save session if unmodified
   saveUninitialized: false, // don't create session until something stored
-  secret: 'Built in Victoria, BC'
+  secret: '0d658f82d0651c19872d331401842823',
+  maxAge: utils.date.now.setDate(utils.date.now.getDate() + 1),
+  cookie: { secure: true }
 }));
 
 

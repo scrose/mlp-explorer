@@ -60,11 +60,6 @@ exports.reformat = function reformat( data, schema ) {
 }
 
 // sanitize user data
-exports.sanitize = function sanitize( fieldType, data ) {
-    switch (dataType) {
-        case 'timestamp':
-            //"yyyy-MM-dd hh:mm:ss"
-            item[key] = date.convert(field).toLocaleString();
-            break;
-    }
+exports.sanitize = function sanitize( data ) {
+    return data;
 }

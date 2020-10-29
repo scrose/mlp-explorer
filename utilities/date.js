@@ -111,7 +111,10 @@ exports.formatDate = (date, format, utc) => {
     return formatDate(date.toString(), format, utc);
 }
 
-// export date converter
+// export converted date
 exports.convert = ( dateStr ) => {
     return new Date( dateStr );
 }
+
+// export today's date
+exports.now = new Date()

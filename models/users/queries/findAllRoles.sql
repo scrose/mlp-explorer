@@ -1,1 +1,1 @@
-SELECT * FROM user_roles ORDER BY id ASC
+SELECT * FROM user_roles ORDER BY role_id ASC

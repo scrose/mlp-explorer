@@ -24,7 +24,6 @@ const utils = require('../utilities');
 const path = require('path');
 const users = require('../models')({ type: modelName });
 const builder = require('../views/builder');
-let crypto = require('crypto');
 
 exports.engine = 'ejs';
 
@@ -92,8 +91,7 @@ exports.register = async (req, res, next) => {
 
 // ------- insert user into db -------
 exports.insert = async (req, res, next) => {
-    let newUser = users.create( req.body );
-    console.log(newUser)
+    let newUser = users.create( req.body ).encrypt();
     await users.insert( newUser.getData() )
         .then((result) => {
             if (result.rows.length === 0) throw new Error();
@@ -123,10 +121,9 @@ exports.login = (req, res, next) => {
                 routes: {
                     submit: req.url,
                     cancel: '/',
-                    success: '/'
                 }
             },
-            users.schema);
+            users.create());
 
         res.render('login', {
             content: req.view,
@@ -139,6 +136,7 @@ exports.login = (req, res, next) => {
         res.redirect('/');
     }
 };
+
 
 // ------- logout user -------
 exports.logout = async (req, res, next) => {
@@ -163,26 +161,43 @@ exports.logout = async (req, res, next) => {
 
 // ------- authenticate user -------
 exports.auth = async (req, res, next) => {
-    await users.login( req.body )
-        .then((user) => {
+    try {
+        let reqUser = utils.data.sanitize(req.body);
+        // confirm user exists
+        const result = await users.findByEmail( reqUser.email );
+        if (result.rows.length === 0) throw new Error();
+        // wrap requested user data for authentication
+        let authUser = users.create( result.rows[0] );
+        // authenticate user credentials
+        if ( !authUser.authenticate(reqUser.password) ) throw new Error();
+        // Regenerate session when signing in to prevent fixation
+        req.session.regenerate(function(){
+            // Store the user's primary key
+            // in the session store to be retrieved,
+            // or in this case the entire user object
+            req.session.user = {
+                id: authUser.getData('user_id'),
+                email: authUser.getData('email'),
+                role: authUser.getData('role_id')
+            };
+        });
+        console.log(req.sessionID);
+        // save session token to db
+        await users.insertSession( authUser.getData() )
+            .then((user) => {
+                if (!user) throw new Error();
 
-            if (!authenticate(req.body.email, req.body.encrypted_password, user.rows[0]) ) {
-                throw new Error();
-            }
-            // Regenerate session when signing in to prevent fixation
-            req.session.regenerate(function(){
-                // Store the user's primary key
-                // in the session store to be retrieved,
-                // or in this case the entire user object
-                req.session.user = user.rows[0];
                 res.message({severity:'success', code:'login'});
                 res.redirect('/');
-            });
-        })
-        .catch((err) => {
-            res.message({severity:'error', code:'login'});
-            res.redirect('/login');
-        });
+            })
+    } catch (e) {
+        console.log(e);
+        res.message({severity:'error', code:'login'});
+        res.redirect('/login');
+    }
+
+
+
 }
 
 // ------- show user profile -------

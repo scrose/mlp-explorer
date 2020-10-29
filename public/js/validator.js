@@ -202,7 +202,7 @@ function createFormValidator() {
 		// format: Minimum eight and maximum 10 characters, at least one uppercase letter,
 		// one lowercase letter, one number and one special character
 		isRepeatPassword: function (value) {
-			const password = document.getElementById('encrypted_password');
+			const password = document.getElementById('password');
 			return password.value === value;
 		},
 		// apply single field validation handler
