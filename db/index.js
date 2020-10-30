@@ -10,6 +10,7 @@
   - Binds controllers to data layer / models.
   - Binds pg-promise database queries and data exports.
   - Options for search and node tree export data formats.
+  - Uses reusable connection pool to check out, use, return.
   ------------------------------------------------------
   Creator:      Spencer Rose
   Copyright:    (c) 2020 Runtime Software Development Inc.
@@ -17,13 +18,11 @@
   Version:      1.0
   Last Updated: September 23, 2020
   ======================================================
-    TODO: PosgreSQL Connection Pooling: Option production
-     pooling = pgBouncer, a lightweight connection pooler for PostgreSQL.
-    https://pgdash.io/blog/pgbouncer-connection-pool.html
 */
 
 'use strict';
 
+// initialize connection pool / client
 const params = require('../params');
 const {Pool, Client} = require('pg');
 const config = {
@@ -36,9 +35,8 @@ const config = {
     idleTimeoutMillis: 30000
 };
 const pool = new Pool(config);
-const client = new Client(config);
-client.connect();
-
+// const client = new Client(config);
+// client.connect();
 
 
 // the pool will emit an error on behalf of any idle clients
@@ -56,31 +54,8 @@ function getSchema(queryText) {
     }
 }
 
-// subquery for transactions
-function subquery(queryText, params, callback) {
-    client.query(queryText, params, (err, res) => {
-        if (shouldAbort(err)) return
-        // check if any queries remain
 
-        const insertPhotoText = 'INSERT INTO photos(user_id, photo_url) VALUES ($1, $2)'
-        const insertPhotoValues = [res.rows[0].id, 's3.bucket.foo']
-        client.query(insertPhotoText, insertPhotoValues, (err, res) => {
-            if (shouldAbort(err)) return
-
-        })
-    })
-}
-
-function commit(done) {
-    client.query('COMMIT', err => {
-        if (err) {
-            console.error('Error committing transaction', err.stack)
-        }
-        done()
-    })
-}
-
-// Single query
+// export database data layer API (DataAPI)
 module.exports = {
     query: (text, params) => pool.query(text, params),
     // query: (queryText, params, callback) => {

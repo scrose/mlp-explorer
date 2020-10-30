@@ -42,7 +42,6 @@ let messages = {
 // session message creator
 exports.create = (e) => {
     if (!e) return;
-    console.log(e)
     // get severity level
     let severity = (e.hasOwnProperty('severity')) ? (
         messages.hasOwnProperty(e.severity.toLowerCase()) ?

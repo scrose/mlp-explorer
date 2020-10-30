@@ -23,3 +23,4 @@ exports.date = require('./date');
 exports.email = require('./email');
 exports.user = require('./user');
 exports.secure = require('./secure');
+exports.session = require('./session')

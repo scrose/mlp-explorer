@@ -40,7 +40,6 @@ module.exports.buildBreadcrumbMenu = function(url) {
 
 // build user menu
 module.exports.buildUserMenu = function(user) {
-    console.log(user)
     // user not logged in
     if (!user) {
         return  JSON.stringify({ul: {

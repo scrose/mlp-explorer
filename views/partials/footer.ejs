@@ -2,7 +2,7 @@
     <script src="/js/utils.js"></script>
     <script src="/js/build.js"></script>
     <script src="/js/validator.js"></script>
-    <% if (content.messages) { %>
+    <% if (content.messages.length !== 0) { %>
     <script>
         nodeBuilder.build("msg_container", <%- content.messages %>);
     </script>

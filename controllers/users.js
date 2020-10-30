@@ -165,7 +165,8 @@ exports.auth = async (req, res, next) => {
         let reqUser = utils.data.sanitize(req.body);
         // confirm user exists
         const result = await users.findByEmail( reqUser.email );
-        if (result.rows.length === 0) throw new Error();
+        if (result.rows.length === 0) throw "User email not found.";
+        console.log('!!!!!!!!!!!!!!!!!')
         // wrap requested user data for authentication
         let authUser = users.create( result.rows[0] );
         // authenticate user credentials
@@ -181,23 +182,19 @@ exports.auth = async (req, res, next) => {
                 role: authUser.getData('role_id')
             };
         });
-        console.log(req.sessionID);
+        console.log('!!!!!!!!', req.sessionID);
         // save session token to db
         await users.insertSession( authUser.getData() )
             .then((user) => {
                 if (!user) throw new Error();
-
                 res.message({severity:'success', code:'login'});
                 res.redirect('/');
             })
     } catch (e) {
-        console.log(e);
+        console.log('Authentication Error: %s', e);
         res.message({severity:'error', code:'login'});
         res.redirect('/login');
     }
-
-
-
 }
 
 // ------- show user profile -------
@@ -236,7 +233,7 @@ exports.edit = async (req, res, next) => {
     await users.findById(req.view.id)
         .then((result) => {
             if (!result.rows) throw new Error('User not found.');
-            console.log(req.view.id, result.rows[0])
+            // console.log(req.view.id, result.rows[0])
             res.render(formView, {
                 messages: req.session.messages || [],
                 content: req.view,

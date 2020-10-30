@@ -171,17 +171,20 @@ let modelSchema = {
         encrypt: function () {
             let password = this.fields.password.value || null;
             if (!password) return;
+
             // generate unique identifier for user (user_id)
             this.unique_id = utils.secure.genUUID();
             // generate a unique salt for the user (salt_token)
             this.salt = utils.secure.genID();
             // Hash user's salt and password
             this.hash = utils.secure.encrypt(password, this.salt);
+
             // save encrypted password values / salt
             this.fields.user_id.value = this.unique_id;
             this.fields.password.value = this.hash;
             this.fields.repeat_password.value = this.hash;
             this.fields.salt_token.value = this.salt;
+
             return this;
         },
         authenticate: function (password) {
@@ -288,7 +291,6 @@ exports.deleteSession = (queryText) => {
 // insert new user profile
 exports.insert = (queryText) => {
     return (data) => {
-        console.log(data)
         return db.query(queryText, [
             data.user_id,
             data.email,

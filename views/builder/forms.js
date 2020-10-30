@@ -108,7 +108,6 @@ function createInputBuilder(formParams, formWidgets) {
             return [{input:{attributes: this.attributes}}];
         },
         select: function() {
-            console.log(this.widgets)
             if (this.widgets.hasOwnProperty(this.attributes.id)) {
                 this.widgets[this.attributes.id].label.childNodes = [{textNode: this.labelText}];
                 // get widget indexed by fieldname and set selected option

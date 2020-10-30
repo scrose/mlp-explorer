@@ -1,5 +1,4 @@
 {
   "settings": "/Users/boutrous/Workspace/NodeJS/mlp-explorer/settings.json",
-  "config": "/Users/boutrous/Workspace/NodeJS/mlp-explorer/db/conf.json",
-  "routes": "/Users/boutrous/Workspace/NodeJS/mlp-explorer/routes/routes.json"
+  "config": "/Users/boutrous/Workspace/NodeJS/mlp-explorer/db/conf.json"
 }

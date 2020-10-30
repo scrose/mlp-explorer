@@ -16,16 +16,12 @@
 */
 
 'use strict';
-const date = require('./date');
 const crypto = require('crypto');
 const uid = require('uid-safe')
 
 // Generate UUID
-exports.genUUID = async function () {
-    return await uid(128, function (err, string) {
-        if (err) throw err
-        console.log(string)
-    })
+exports.genUUID = function () {
+    return uid.sync(128)
 };
 
 // Generate Random ID (16 bytes)

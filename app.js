@@ -45,42 +45,43 @@ app.set('views', path.join(__dirname, 'views'));
 // Proxy setting
 app.set('trust proxy', 1) // trust first proxy
 
-// =====================================
-// session support
-app.use(session({
 
+
+// ---------------------------------
+// session management
+// see documentation: https://github.com/expressjs/session
+// ---------------------------------
+let sessionStore = utils.session(session)
+
+app.use(session({
   genid: function(req) {
     return utils.secure.genUUID() // use UUIDs for session IDs
   },
+  store: new sessionStore(),
   resave: false, // don't save session if unmodified
   saveUninitialized: false, // don't create session until something stored
   secret: '0d658f82d0651c19872d331401842823',
   maxAge: utils.date.now.setDate(utils.date.now.getDate() + 1),
-  cookie: { secure: true }
+  cookie: { secure: true, sameSite: true, maxAge: 86400000 }
 }));
 
 
 // session-persistent message middleware:
-// custom res.message() method  which stores messages in the session
 app.response.message = function(e){
-  // reference `req.session` via the `this.req` reference
-  const sess = this.req.session;
-  // simply add the msg to an array for later
-  sess.messages = sess.messages || [];
-  sess.messages.push(builder.messages.create(e));
-  if (e) console.log('Message sent:\n%s', e);
+  this.res.messages = this.res.messages || [];
+  this.res.messages.push(builder.messages.create(e));
+  let statusCode = (e.code === 'error') ? 400 : 200;
+  this.res.status(statusCode).json(e);
+  if (e) console.log('Status Message:\n\t%s\n\t%s\n\t%s', e.code, e.severity);
   return this;
 };
 
 
 // session-persistent message middleware:
-// custom res.message() method  which stores messages in the session
+// custom res.cleanup() method which deletes messages in the session
 app.response.cleanup = function(){
-  console.log('Clean up session.')
-  const sess = this.req.session;
-  sess.messages = [];
-  // Important: save session updates
-  sess.save()
+  console.log('Clean up messages.')
+  this.res.messages = [];
   return this;
 };
 
@@ -105,9 +106,15 @@ app.response.cleanup = function(){
 // };
 
 
-// =====================================
-// logger
+// ---------------------------------
+// session support
+// ---------------------------------
 app.use(logger('dev'));
+
+
+// ---------------------------------
+// static routes
+// ---------------------------------
 
 // serve static files
 app.use(express.static(path.join(__dirname, 'public')));
@@ -118,12 +125,17 @@ app.use(express.urlencoded({ extended: true }))
 // allow overriding methods in query (?_method=put)
 app.use(methodOverride('_method'));
 
-// define view parameters
+
+
+// ---------------------------------
+// view parameters
+// ---------------------------------
 app.use(function(req, res, next) {
   // Add boilerplate content
   req.view = params.settings.general;
 
   // response messages
+  console.log('Session Messages:', req.session.messages)
   req.view.messages = req.session.messages || []
 
   // navigation menus
@@ -140,11 +152,16 @@ app.use(function(req, res, next) {
 });
 
 
-
+// ---------------------------------
 // map routes -> controllers
+// ---------------------------------
 require('./routes')(app, { verbose: true });
 
+
+
+// ---------------------------------
 // restrict user permissions by role
+// ---------------------------------
 app.use(function (req, res, next) {
   console.log('RESTRICT', next, req.session.user);
   // if (req.session.user ||
@@ -159,6 +176,10 @@ app.use(function (req, res, next) {
   next();
 });
 
+
+// ---------------------------------
+// default routes
+// ---------------------------------
 // assume 404 since no middleware responded
 app.use(function(req, res, next){
   res.status(404).render('404', { url: req.originalUrl });
