@@ -5,15 +5,12 @@
 </head>
 <body>
 <%- include('../partials/header', {content: content}); %>
-<%- include('../partials/editor_menu', {content: content}); %>
 <main>
-    <!-- edit surveyor record -->
     <div id="form_container"></div>
-
 </main>
 <%- include('../partials/footer', {content: content}); %>
 <script>
-    // build user edit form
+    // build user form
     nodeBuilder.build("form_container", <%- formSchema %>);
     // initialize form validator
     window.onload = formValidator.init(<%- validatorSchema %>);

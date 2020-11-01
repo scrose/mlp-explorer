@@ -15,7 +15,6 @@
   ======================================================
 */
 
-
 /*
   ------------------------------------------------------
   Form Validator
@@ -90,11 +89,14 @@ function createFormValidator() {
 		// initialize event listeners for form inputs
 		init: function (params) {
 			this.form = document.getElementById(params.id);
+			// abort if form is empty
+			if (!this.form.elements) return;
+			// validation checklist (abort validation if empty)
+			if (this.isEmpty(params.checklist)) return;
+
+			this.checklist = params.checklist;
 			// disable submit button until form is valid
 			this.submit = nodeBuilder.extend('submit_' + params.id).addClassname('disabled').disableInput();
-			// validation checklist
-			this.checklist = params.checklist;
-			if (!this.form.elements) return;
 
 			// add form listener
 			const validator = this;
@@ -204,6 +206,14 @@ function createFormValidator() {
 		isRepeatPassword: function (value) {
 			const password = document.getElementById('password');
 			return password.value === value;
+		},
+		isEmpty: function (obj) {
+			for(var prop in obj) {
+				if(obj.hasOwnProperty(prop)) {
+					return false;
+				}
+			}
+			return JSON.stringify(obj) === JSON.stringify({});
 		},
 		// apply single field validation handler
 		check: function (check, e) {

@@ -85,7 +85,11 @@ module.exports = function addRoutes(parent, options){
                     break;
                 case 'register':
                     method = 'get';
-                    url = '/register';
+                    url = '/users/register';
+                    break;
+                case 'confirm':
+                    method = 'post';
+                    url = '/users/register';
                     break;
                 case 'login':
                     method = 'get';

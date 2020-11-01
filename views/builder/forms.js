@@ -18,7 +18,7 @@
 
 'use strict'
 
-let utils = require('../../utilities')
+let utils = require('../../_utilities')
 
 // build selection list from schema
 function buildSelect(fieldID, schema, data) {
@@ -29,7 +29,7 @@ function buildSelect(fieldID, schema, data) {
     // get option/value indexes
     let optionField, valueField;
     // build DOM schema
-    for (const [fieldName, field] of Object.entries(schema.fields)) {
+    for (const [fieldName, field] of Object.entries(schema)) {
 
         // check if field has view rendering attributes
         if (!field.hasOwnProperty('render')) continue;
@@ -56,9 +56,9 @@ function buildSelect(fieldID, schema, data) {
 }
 
 // build handler mapping for validation schema
-function buildValidator(view, formID, schema) {
-    let validator = {id: formID, checklist: {}};
-    for (const [fieldName, field] of Object.entries(schema.fields)) {
+function buildValidator(view, model) {
+    let validator = {id: model., checklist: {}};
+    for (const [fieldName, field] of Object.entries(schema)) {
             // check if field has view rendering a validation schema
             if (!field.hasOwnProperty('render')) continue;
             if (!field.render.hasOwnProperty(view)) continue;
@@ -79,12 +79,12 @@ function createInputBuilder(formParams, formWidgets) {
         labelText: '',
         handler: null,
         value: false,
-        checkValues: function (field, values) {
-            // check if field is empty
-            return !values.hasOwnProperty(field);
-        },
+        // checkValues: function (field, values) {
+        //     // check if field is empty
+        //     return !values.hasOwnProperty(field);
+        // },
         // build input field from schema
-        build: function (fieldName, fieldAttributes, labelText, values) {
+        build: function (fieldName, fieldAttributes, fieldValue, labelText) {
 
             // attach required name + id to attributes
             this.attributes = fieldAttributes;
@@ -96,8 +96,7 @@ function createInputBuilder(formParams, formWidgets) {
                         for: fieldName,
                         class: this.attributes.type
             }}};
-            this.inputValues = values || {};
-            this.value = values && values.hasOwnProperty(fieldName) ? values[fieldName] : '';
+            this.value = fieldValue ? fieldValue : '';
             this.handler = (this.hasOwnProperty(this.attributes.type)) ? this[this.attributes.type] : this.default;
             return this.handler();
         },
@@ -130,7 +129,7 @@ function createInputBuilder(formParams, formWidgets) {
             if (this.value) {
                 this.attributes.value = utils.date.formatDate(this.value, "yyyy-mm-dd");
                 this.inputLabel.label.textNode = field.label;
-                return [this.label, {input:{attributes: this.attributes}}];
+                return [this.inputLabel, {input:{attributes: this.attributes}}];
             }
         },
         link: function() {
@@ -144,13 +143,19 @@ function createInputBuilder(formParams, formWidgets) {
             this.inputLabel.label.childNodes = [{textNode: this.labelText}];
             return [this.inputLabel, {div: hyperlink}];
         },
+        // handle simple inline text
+        textNode: function() {
+            const tnode = {div: {attributes: this.attributes, p: {textNode:this.value }}};
+            this.inputLabel.label.textNode = this.labelText;
+            return [this.inputLabel, tnode];
+        },
         // handle timestamps
         timestamp: function() {
             // NOTE Posgres format (yyy-mm-ddThh:02:40.677Z) -> JS format (yyyy-mm-dd HH:mm:ss)
             const timestamp = {time: {attributes: this.attributes}};
             this.inputLabel.label.textNode = this.labelText;
             timestamp.time.textNode = this.value ? utils.date.formatDate(this.value, "yyyy-mm-dd HH:mm:ss") : 'n/a';
-            return [this.label, {div: timestamp}];
+            return [this.inputLabel, {div: timestamp}];
         },
         password: function() {
             this.attributes.value = this.value;
@@ -159,12 +164,10 @@ function createInputBuilder(formParams, formWidgets) {
             return [this.inputLabel];
         },
         repeat_password: function() {
-            // load current password value (if exists)
-            const password = (this.inputValues) ? this.inputValues[this.attributes.repeat] : '';
             // wrap input in label element
             this.inputLabel.label.childNodes = [
                 {textNode: this.labelText},
-                {input:{attributes: {type: 'password', id: 'repeat_password', name: 'repeat_password', value: password}}}
+                {input:{attributes: {type: 'password', id: 'repeat_password', name: 'repeat_password', value: this.value}}}
                 ];
             return [this.inputLabel];
         },
@@ -179,7 +182,7 @@ function createInputBuilder(formParams, formWidgets) {
 
 
 // build forms from schema
-function buildForm(params, schema, values, widgets) {
+function buildForm(params, schema, widgets) {
     let form = {
         form: {
             attributes: {
@@ -187,7 +190,7 @@ function buildForm(params, schema, values, widgets) {
                 method: params.method,
                 id: schema.model,
                 name: schema.model},
-            fieldset: {legend: {textNode: schema.label}}
+            fieldset: {legend: {textNode: schema.legend}}
         }
     };
     let inputs = [];
@@ -195,17 +198,16 @@ function buildForm(params, schema, values, widgets) {
     // create input builder
     let inputBuilder = createInputBuilder(params, widgets);
 
-    // check if form is empty
-    const emptyForm = !(values && !utils.data.isEmpty(values));
-
     // build DOM schema
-    for (const [fieldName, field] of Object.entries(schema.fields)) {
+    for (const [fieldName, field] of Object.entries(schema.schema)) {
 
         // check if field has view rendering attributes
         if (!field.hasOwnProperty('render')) continue;
         if (!field.render.hasOwnProperty(params.view)) continue;
+        let fieldValue = (field.hasOwnProperty('value')) ? field.value : '';
         let fieldObj = field.render[params.view];
 
+        // initialize field (<input>) attributes
         fieldObj.attributes = fieldObj.hasOwnProperty('attributes') ? fieldObj.attributes : {};
         // option to use default or custom input type set in schema
         fieldObj.attributes.type = (fieldObj.attributes.hasOwnProperty('type')) ? fieldObj.attributes.type : field.type;
@@ -216,7 +218,7 @@ function buildForm(params, schema, values, widgets) {
         if (field.hasOwnProperty('restrict') && !field.restrict.includes(role)) continue;
 
         // build input element from schema
-        inputBuilder.build(fieldName, fieldObj.attributes, field.label, values).forEach((elem) => {inputs.push(elem)});
+        inputBuilder.build(fieldName, fieldObj.attributes, fieldValue, field.label).forEach((elem) => {inputs.push(elem)});
 
     }
     // submit button
@@ -248,15 +250,15 @@ exports.select = (id, schema, values) => {
     return buildSelect(id, schema, values);
 }
 
-// build form + validator schemas from model schema + data
-exports.create = (params, schema, values, widgets) => {
+// build form + validator schemas from model schema (w/ data)
+exports.create = (params, model, widgets) => {
     return {
-        form: JSON.stringify(buildForm(params, schema, values, widgets)),
-        validator: JSON.stringify(buildValidator(params.view, schema.model, schema))
+        form: JSON.stringify(buildForm(params, model, widgets)),
+        validator: JSON.stringify(buildValidator(params.view, model))
     };
 }
 
 // build validation object from model schema
-exports.validator = (view, formID, schema) => {
-    return JSON.stringify(buildValidator(view, formID, schema));
+exports.validator = (view, model) => {
+    return JSON.stringify(buildValidator(view, model));
 }

@@ -40,21 +40,14 @@ let messages = {
 }
 
 // session message creator
-exports.create = (e) => {
-    if (!e) return;
-    // get severity level
-    let severity = (e.hasOwnProperty('severity')) ? (
-        messages.hasOwnProperty(e.severity.toLowerCase()) ?
-            e.severity.toLowerCase() : 'error' ) : 'error';
-    // get message
-    let message = (e.hasOwnProperty('code')) ? (
-        messages[severity].hasOwnProperty(e.code) ?
-            messages[severity][e.code] : messages[severity].default ) : messages[severity].default;
+exports.create = (msg) => {
+    if (!msg) return;
+    console.log('Status Message:\n\t%s\n\t%s', msg.severity, msg.message);
     return JSON.stringify({
         div:
             {
-                attributes: {class: 'msg ' + severity},
-                textNode: message
+                attributes: {class: 'msg ' + msg.severity},
+                textNode: msg.message
             }
     });
 }

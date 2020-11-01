@@ -16,12 +16,12 @@
   ======================================================
 */
 
-const utils = require('../utilities/data')
+const utils = require('../_utilities/data')
 const path = require('path')
 const modelName = 'surveyors'
-const surveyors = require('../models')({ type: modelName });
-const surveys = require('../models')({ type: 'surveys' });
-const params = require('../params')
+const surveyors = require('../services')({ type: modelName });
+const surveys = require('../services')({ type: 'surveys' });
+const params = require('../config')
 const forms = require('../views/builder/forms')
 const messages = require('../views/builder/messages')
 

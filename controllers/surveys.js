@@ -2,8 +2,8 @@
  * Module dependencies.
  */
 
-const models = require('../models')({ verbose: true });
-const params = require('../params')
+const models = require('../services')({ verbose: true });
+const params = require('../config')
 
 exports.engine = 'ejs';
 

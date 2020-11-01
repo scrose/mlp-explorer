@@ -2,8 +2,8 @@
   ======================================================
   Mountain Legacy Project: Explorer Application
   ------------------------------------------------------
-  Module:       Core.Contollers.Users
-  File:         /controllers/users.js
+  Module:       Core.Controllers.Users
+  File:         /controllers/user.js
   ------------------------------------------------------
   Parses and translates user data into application
   executions and responds.
@@ -17,102 +17,55 @@
 */
 
 /* global constants */
-const modelName = 'users'
+const model = 'users'
 
-/* initialize imports */
-const utils = require('../utilities');
-const path = require('path');
-const users = require('../models')({ type: modelName });
+/* imports */
+const User = require('../classes/user');
+const UserRole = require('../classes/userRole');
+const userServices = require('../services')({ type: model });
+const userRoleServices = require('../services')({ type: 'userRoles' });
 const builder = require('../views/builder');
+const utils = require('../_utilities');
+const path = require('path');
+const {ValidationError} = require('../classes/error')
+const jwt = require('express-jwt');
 
 exports.engine = 'ejs';
 
 
-/*
-------------------------------------------------------
-  Controller Handlers
-------------------------------------------------------
-*/
-
-// preliminary handler
+// ------- preliminary handler -------
 exports.before = async (req, res, next) => {
     // event-specific request parameters
     req.view.id = req.params.users_id || null;
-    req.view.modelName = modelName;
+    req.view.model = model;
     next();
 };
 
-
 // ------- list all users -------
 exports.list = async (req, res, next) => {
-    await users.findAll()
+    await userServices.findAll()
         .then((result) => {
-            if (!result) throw new Error();
-            const userList = utils.data.reformat( result.rows, users.create() );
+            let userList = []
+            result.rows.forEach((data) => {
+                let user = new User( data );
+                userList.push(user);
+            });
+
             res.render('list', {
                 content: req.view,
                 users: userList
             });
-            res.cleanup();
         })
         .catch((err) => {
-            res.message(err);
-            next();
+            next(err);
         });
 };
-
-
-// ------- register new user -------
-exports.register = async (req, res, next) => {
-    // build registration form + validator schemas
-    let {form, validator} = builder.forms.create(
-        {
-            view: 'register',
-            name: 'Register',
-            method: 'POST',
-            routes: {
-                submit: '/users/insert',
-                cancel: '/',
-            }
-        }, users.create());
-    try {
-        res.render('register', {
-            content: req.view,
-            formSchema: form,
-            validatorSchema: validator
-        });
-        res.cleanup();
-    } catch(err) {
-        res.message(err);
-        res.redirect('/');
-    }
-};
-
-
-// ------- insert user into db -------
-exports.insert = async (req, res, next) => {
-    let newUser = users.create( req.body ).encrypt();
-    await users.insert( newUser.getData() )
-        .then((result) => {
-            if (result.rows.length === 0) throw new Error();
-            // let userEmail = result.rows[0].email;
-            // // send confirmation email to user
-            // utils.email.send(userEmail, "Verify registration.");
-            res.message({severity:'success', code:'register'});
-        })
-        .catch((err) => {
-            res.message(err);
-        })
-        .finally(() => {
-            res.redirect('/')
-        });
-}
-
 
 
 // ------- login user -------
 exports.login = (req, res, next) => {
     try {
+        let user = new User();
         let {form, validator} = builder.forms.create(
             {
                 view: 'login',
@@ -123,222 +76,232 @@ exports.login = (req, res, next) => {
                     cancel: '/',
                 }
             },
-            users.create());
+            user);
 
         res.render('login', {
             content: req.view,
             formSchema: form,
             validatorSchema: validator
         });
-        res.cleanup();
     } catch(err) {
-        res.message(err);
-        res.redirect('/');
+        next(err);
     }
 };
 
 
 // ------- logout user -------
 exports.logout = async (req, res, next) => {
-    await users.logout( req.user )
-        .then((user) => {
-            // Regenerate session when signing out to prevent fixation
-            req.session.regenerate(function(){
-                // Store the user's primary key
-                // in the session store to be retrieved,
-                // or in this case the entire user object
-                req.session.user = null;
-                res.message({severity:'success', code:'logout'});
-                res.redirect('/');
-            });
-        })
-        .catch((err) => {
-            res.message({severity:'error', code:'logout'});
-            res.redirect('/login');
+    try {
+        if (!req.session.user) throw new Error();
+        // Regenerate session when signing out to prevent fixation
+        req.session.regenerate(function(){
+            // Store the user's primary key
+            // in the session store to be retrieved,
+            // or in this case the entire user object
+            req.session.user = null;
+            res.message({severity:'success', code:'logout'});
+            res.redirect('/');
         });
+    }
+    catch(err) {
+        console.log(err)
+        next(err);
+    }
 };
 
 
 // ------- authenticate user -------
 exports.auth = async (req, res, next) => {
+    let reqUser
     try {
-        let reqUser = utils.data.sanitize(req.body);
-        // confirm user exists
-        const result = await users.findByEmail( reqUser.email );
-        if (result.rows.length === 0) throw "User email not found.";
-        console.log('!!!!!!!!!!!!!!!!!')
-        // wrap requested user data for authentication
-        let authUser = users.create( result.rows[0] );
-        // authenticate user credentials
-        if ( !authUser.authenticate(reqUser.password) ) throw new Error();
-        // Regenerate session when signing in to prevent fixation
-        req.session.regenerate(function(){
-            // Store the user's primary key
-            // in the session store to be retrieved,
-            // or in this case the entire user object
-            req.session.user = {
-                id: authUser.getData('user_id'),
-                email: authUser.getData('email'),
-                role: authUser.getData('role_id')
-            };
-        });
-        console.log('!!!!!!!!', req.sessionID);
-        // save session token to db
-        await users.insertSession( authUser.getData() )
-            .then((user) => {
-                if (!user) throw new Error();
-                res.message({severity:'success', code:'login'});
-                res.redirect('/');
-            })
-    } catch (e) {
-        console.log('Authentication Error: %s', e);
-        res.message({severity:'error', code:'login'});
-        res.redirect('/login');
+        reqUser = utils.data.sanitize( req.body );
     }
+    catch (err) {
+        next(err);
+    }
+    // confirm user exists
+    await userServices.findByEmail( reqUser.email )
+        .then((result) => {
+            if (result.rows.length === 0) throw new ValidationError("nouser");
+            // wrap requested user data for authentication
+            let authUser = new User( result );
+            // authenticate user credentials
+            if ( !authUser.authenticate(reqUser.password) ) throw new ValidationError("login");
+            // TODO: Include JWT signing (http://jwt.io/)
+            // Regenerate session when signing in to prevent fixation
+            req.session.regenerate(function(err){
+                // Store user object in the session store to be retrieved
+                req.session.user = {
+                    id: authUser.getData('user_id'),
+                    email: authUser.getData('email'),
+                    role: authUser.getData('role_id')
+                };
+                req.session.messages = {code: 'login', type:'success'}
+                res.redirect('/');
+            });
+        })
+        .catch((err) => {
+            next(err);
+        });
+
 }
+
+
+
+// ------- register new user -------
+exports.register = async (req, res, next) => {
+    // build registration form + validator schemas
+    let user = new User();
+    let {form, validator} = builder.forms.create(
+        {
+            view: 'register',
+            name: 'Register',
+            method: 'POST',
+            routes: {
+                submit: '/users/register',
+                cancel: '/',
+            }
+        }, user);
+    try {
+        res.render('register', {
+            content: req.view,
+            formSchema: form,
+            validatorSchema: validator
+        });
+    } catch(err) {
+        next(err)
+    }
+};
+
+
+// ------- confirm user registration -------
+exports.confirm = async (req, res, next) => {
+    // create user from schema
+    let user;
+    try {
+        user = new User( req.body );
+        user.encrypt();
+    } catch (err) {
+        next(err);
+    }
+    // insert user record in database
+    await userServices.insert( user.data )
+        .then((result) => {
+            if (result.rows.length === 0) throw new ValidationError("register");
+            // let userEmail = result.rows[0].email;
+            // // send confirmation email to user
+            // utils.email.send(userEmail, "Verify registration.");
+            res.success('Registration successful!');
+            res.redirect('/')
+        })
+        .catch((err) => {
+            next(err)
+        })
+}
+
 
 // ------- show user profile -------
 exports.show = async (req, res, next) => {
-    await users.findById(req.view.id)
+    await userServices.findById( req.view.id )
         .then((result) => {
-            if (!result) throw new Error('User not found.');
+            if (result.rows.length === 0) throw new ValidationError("nouser");
+            let user = new User( result );
             res.render('show', {
-                messages: req.session.messages || [],
                 content: req.view,
-                tools: utils,
-                breadcrumb_menu: req.breadcrumbs,
-                user: result.rows[0]
+                user: user.data
             });
-            res.cleanup();
+            res.success('View successful!');
+            console.log(req.session.message)
         })
         .catch((err) => {
-            res.message(err);
-            res.redirect('/users');
+            next(err);
         });
 };
 
 
 // ------- edit user profile -------
 exports.edit = async (req, res, next) => {
-    const successPath = '/';
-    const failPath = '/';
-    const formView = 'edit';
-
     // retrieve user roles
-    const roles = await users.findAllRoles();
-    let rolesSelect = await forms.select('role_id', users.userRolesSchema, roles.rows);
-    let widget = {'role_id': rolesSelect}
+    let userRole = new UserRole();
+    const roles = await userRoleServices.findAll().catch((err) => next(err));
+    // build widget for selection of user roles
+    let widget = {'role_id': builder.forms.select('role_id', userRole.schema, roles.rows)}
 
-    // render edit form
-    await users.findById(req.view.id)
+    await userServices.findById( req.view.id )
         .then((result) => {
-            if (!result.rows) throw new Error('User not found.');
-            // console.log(req.view.id, result.rows[0])
-            res.render(formView, {
-                messages: req.session.messages || [],
+            if (result.rows.length === 0) throw new ValidationError('nouser');
+            let user = new User( result );
+            let {form, validator} = builder.forms.create(
+                {
+                    view: 'edit',
+                    name: 'Edit',
+                    method: 'POST',
+                    routes: {
+                        submit: path.join('/users', req.view.id, 'edit'),
+                        cancel: '/users',
+                    }
+                },
+                user,
+                widget
+            );
+            res.render('edit', {
                 content: req.view,
-                tools: utils,
-                breadcrumb_menu: req.breadcrumbs,
-                formSchema: builder.forms.create(
-                    {
-                        view: formView,
-                        name: 'Update',
-                        routes: {
-                            submit: req.url,
-                            cancel: '/',
-                            confirm: '',
-                            success: successPath
-                        }, method: 'POST'
-                    },
-                    users.schema,
-                    result.rows[0],
-                    widget),
-                validatorSchema: builder.forms.validator(formView, req.formID, users.schema)
+                formSchema: form,
+                validatorSchema: validator
             });
-            res.cleanup();
         })
-        .catch((err) => {
-            res.message(err);
-            next();
-        });
+        .catch((err) => next(err));
 }
 
 
 // ------- update user profile -------
 exports.update = async (req, res, next) => {
-    try {
-        await users.update( req.body )
-            .then((result) => {
-                if (!result.rows) throw new Error('User not found.');
-                res.message({severity:'success', code:'register'});
-            })
-            .catch((err) => {
-                res.message(err);
-            })
-            .finally(() =>{
-                console.log('Redirecting to %s', path.join('users', req.params.users_id, 'edit'))
-                res.redirect(path.join('/users', req.params.users_id, 'edit'))
-            }
-            );
-    } catch(e) {
-        res.message(e);
-        res.redirect(path.join('/users', req.params.users_id));
-    }
+    await userServices.update( req.body )
+        .then((result) => {
+            if (result.rows.length === 0) throw new ValidationError('nouser');
+            res.success('Update successful!');
+            console.log('Redirecting to %s', path.join('users', req.params.users_id, 'edit'))
+            res.redirect(path.join('/users', req.params.users_id, 'edit'))
+        })
+        .catch((err) => next(err));
 }
 
 
 
-// ------- remove user confirmation -------
+// ------- confirm deletion of user account -------
 exports.remove = async (req, res, next) => {
-    const successPath = '/';
-    const failPath = '/';
-    try {
-        res.render('register', {
-            messages: req.session.messages || [],
-            content: req.view,
-            tools: utils,
-            breadcrumb_menu: req.breadcrumbs,
-            formSchema: forms.registration({
+    await userServices.findById( req.view.id )
+        .then((result) => {
+            if (result.rows.length === 0) throw new ValidationError('nouser');
+            let user = new User( result );
+            let {form, validator} = builder.forms.create(
+                {
+                    view: 'delete',
                     name: 'Delete',
+                    method: 'POST',
                     routes: {
-                        submit: req.url,
+                        submit: path.join('/users', req.view.id, 'delete'),
                         cancel: '/users',
-                        confirm: '',
-                        success: successPath
-                    },
-                    method: 'POST'
-                },
-                users.schema,
-                {})
-        });
-        res.cleanup();
-    } catch(e) {
-        res.message(e);
-        res.redirect(failPath);
-    }
+                    }
+                }, user);
+            res.render('register', {
+                content: req.view,
+                formSchema: form,
+                validatorSchema: validator
+            });
+        })
+        .catch((err) => next(err));
 }
 
-// ------- delete user from db -------
+// ------- delete user account -------
 exports.delete = async (req, res, next) => {
-    const resultPath = '/';
-    try {
-        await users.delete(req.body)
-            .then((result) => {
-                if (!result) throw new Error('User could not be deleted.')
-                res.message(null, 'db-1', 'success');
-            })
-            .catch((err) => {
-                res.message(err, 'db-1', 'error');
-            })
-            .finally(() =>{
-                    console.log('Redirecting to %s', resultPath);
-                    res.redirect(resultPath)
-                }
-            );
-    } catch(e) {
-        res.message(e, 'db-1', 'error');
-        res.redirect(resultPath);
-    }
+    await userServices.delete( req.body )
+        .then((result) => {
+            if (result.rows.length === 0) throw new ValidationError('nouser');
+            res.success("User successfully deleted.");
+            res.redirect('/users')
+        })
+        .catch((err) => next(err));
 }
 
 

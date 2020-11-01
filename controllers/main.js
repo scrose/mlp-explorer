@@ -17,7 +17,7 @@
 
 /* global constants */
 const modelName = 'main'
-const params = require('../params')
+const params = require('../config')
 
 // preliminary handler
 exports.before = async (req, res, next) => {
@@ -34,7 +34,6 @@ exports.index = async (req, res, next) => {
         res.render('index', {
             content: req.view,
         });
-        res.cleanup();
     }
     catch(err) {
         res.message(err);

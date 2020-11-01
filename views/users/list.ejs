@@ -12,26 +12,28 @@
             <th>Logged-in</th>
             <th>Email</th>
             <th>Role</th>
-            <th>Current Sign-in</th>
-            <th>Last Sign-in</th>
             <th>Created</th>
-            <th>Updated</th>
         </tr>
         <% if (users.length === 0) { %>
             <td colspan="8">No users.</td>
         <% } %>
         <% for (const [key, user] of Object.entries(users)) { %>
             <tr>
-                <td><%= !!user.session_token %></td>
+                <td><!-- %= !!user.session_token % --></td>
                 <td><%= user.email %></td>
                 <td><%= user.role %></td>
-                <td><time><%= user.current_sign_in_at %></time></td>
-                <td><time><%= user.last_sign_in_at %></time></td>
                 <td><time><%= user.created_at %></time></td>
-                <td><time><%= user.updated_at %></time></td>
                 <td><a href="/users/<%= user.user_id %>">view</a></td>
-                <td><a href="/users/<%= user.user_id %>/edit">edit</a></td>
-                <td><a href="/users/<%= user.user_id %>/delete">delete</a></td>
+                <td>
+                    <% if (user.role_id !== 5) { %>
+                        <a href="/users/<%= user.user_id %>/edit">edit</a>
+                    <% } %>
+                </td>
+                <td>
+                    <% if (user.role_id !== 5) { %>
+                        <a href="/users/<%= user.user_id %>/delete">delete</a>
+                    <% } %>
+                </td>
             </tr>
         <% } %>
         </tbody>

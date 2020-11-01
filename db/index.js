@@ -7,7 +7,7 @@
   ------------------------------------------------------
   Binding for data layer API - PostgreSQL / pg-promise.
   Key Functionality
-  - Binds controllers to data layer / models.
+  - Binds controllers to data layer / services.
   - Binds pg-promise database queries and data exports.
   - Options for search and node tree export data formats.
   - Uses reusable connection pool to check out, use, return.
@@ -23,7 +23,7 @@
 'use strict';
 
 // initialize connection pool / client
-const params = require('../params');
+const params = require('../config');
 const {Pool, Client} = require('pg');
 const config = {
     user: params.db.username,

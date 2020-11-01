@@ -5,7 +5,7 @@
 const db = require('../db');
 const path = require('path');
 const modelName = 'stations'
-const surveyors = require('../models')({ type: modelName });
+const surveyors = require('../services')({ type: modelName });
 exports.engine = 'ejs';
 
 exports.before = function(req, res, next){

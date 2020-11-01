@@ -17,19 +17,19 @@
 
 'use strict';
 
-/**
- * Module dependencies.
- */
-
 const express = require('express');
 const logger = require('morgan');
 const path = require('path');
 const session = require('express-session');
 const methodOverride = require('method-override');
-const builder = require('./views/builder')
-const utils = require('./utilities')
+const builder = require('./views/builder');
+const utils = require('./_utilities');
+const params = require('./config');
 
 const app = express();
+
+// hide Express usage
+app.disable('x-powered-by');
 
 // =====================================
 // views engine
@@ -41,10 +41,8 @@ app.set('view engine', 'ejs');
 // set views for error and 404 pages
 app.set('views', path.join(__dirname, 'views'));
 
-
 // Proxy setting
 app.set('trust proxy', 1) // trust first proxy
-
 
 
 // ---------------------------------
@@ -60,28 +58,32 @@ app.use(session({
   store: new sessionStore(),
   resave: false, // don't save session if unmodified
   saveUninitialized: false, // don't create session until something stored
-  secret: '0d658f82d0651c19872d331401842823',
+  secret: params.session.secret,
   maxAge: utils.date.now.setDate(utils.date.now.getDate() + 1),
   cookie: { secure: true, sameSite: true, maxAge: 86400000 }
 }));
 
 
-// session-persistent message middleware:
-app.response.message = function(e){
-  this.res.messages = this.res.messages || [];
-  this.res.messages.push(builder.messages.create(e));
-  let statusCode = (e.code === 'error') ? 400 : 200;
-  this.res.status(statusCode).json(e);
-  if (e) console.log('Status Message:\n\t%s\n\t%s\n\t%s', e.code, e.severity);
-  return this;
-};
-
+// ---------------------------------
+// message handling
+// ---------------------------------
+app.response.success = function (msg) {
+    if (msg) {
+      this.req.session.messages = this.req.session.messages || [];
+      this.req.session.messages.push(
+          JSON.stringify({
+            div: { attributes: {class: 'msg success'}, textNode: msg }
+          })
+      );
+    }
+    return this;
+}
 
 // session-persistent message middleware:
 // custom res.cleanup() method which deletes messages in the session
 app.response.cleanup = function(){
   console.log('Clean up messages.')
-  this.res.messages = [];
+  this.req.session.messages = [];
   return this;
 };
 
@@ -125,8 +127,6 @@ app.use(express.urlencoded({ extended: true }))
 // allow overriding methods in query (?_method=put)
 app.use(methodOverride('_method'));
 
-
-
 // ---------------------------------
 // view parameters
 // ---------------------------------
@@ -135,7 +135,9 @@ app.use(function(req, res, next) {
   req.view = params.settings.general;
 
   // response messages
-  console.log('Session Messages:', req.session.messages)
+  // req.session.user = req.user
+  // req.session.authenticated = !req.user.anonymous
+  console.log('Message Bank: ', req.session.messages)
   req.view.messages = req.session.messages || []
 
   // navigation menus
@@ -145,18 +147,12 @@ app.use(function(req, res, next) {
     editor: builder.nav.buildEditorMenu(req.session.user, req)
   }
 
-  // user-specific request/session parameters
-  req.user = req.session.user || null;
-
   next();
 });
 
-
-// ---------------------------------
+// =====================================
 // map routes -> controllers
-// ---------------------------------
 require('./routes')(app, { verbose: true });
-
 
 
 // ---------------------------------
@@ -178,19 +174,9 @@ app.use(function (req, res, next) {
 
 
 // ---------------------------------
-// default routes
+// default handlers
 // ---------------------------------
-// assume 404 since no middleware responded
-app.use(function(req, res, next){
-  res.status(404).render('404', { url: req.originalUrl });
-});
-
-// assume 5xx for server crash
-app.use(function(err, req, res, next){
-  // log it
-  console.error(err.stack);
-  // error page
-  res.status(500).render('5xx');
-});
+app.use(utils.error.errorHandler);
+app.use(utils.error.notFoundHandler);
 
 module.exports = app;

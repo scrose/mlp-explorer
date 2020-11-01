@@ -5,34 +5,34 @@
 </head>
 <body>
 <%- include('../partials/header', {content: content}); %>
-<%- include('../partials/editor_menu', {content: content}); %>
-
 <main>
-    <table class="records">
-        <thead>
-        <tr>
-            <th colspan="2">User Profile</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-            <th>Email</th>
-            <td><%= user.email %></td>
-        </tr>
-        <tr>
-            <th>Role</th>
-            <td><%= user.role %></td>
-        </tr>
-        <tr>
-            <th>Created</th>
-            <td><%= user.created_at %></td>
-        </tr>
-        <tr>
-            <th>Modified</th>
-            <td><%= user.updated_at %></td>
-        </tr>
-        </tbody>
-    </table>
+    <div class="page-content">
+        <table class="records">
+            <thead>
+            <tr>
+                <th colspan="2">User Profile</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <th>Email</th>
+                <td><%= user.email %></td>
+            </tr>
+            <tr>
+                <th>Role</th>
+                <td><%= user.role %></td>
+            </tr>
+            <tr>
+                <th>Created</th>
+                <td><%= user.created_at %></td>
+            </tr>
+            <tr>
+                <th>Modified</th>
+                <td><%= user.updated_at %></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 </main>
 <%- include('../partials/footer', {content: content}); %>
 </body>

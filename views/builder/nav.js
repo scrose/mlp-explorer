@@ -16,9 +16,9 @@
 */
 
 'use strict';
-const params = require('../../params')
+const params = require('../../config')
 const path = require('path')
-const utils = require('../../utilities')
+const utils = require('../../_utilities')
 
 
 // build breadcrumb menu
@@ -30,7 +30,11 @@ module.exports.buildBreadcrumbMenu = function(url) {
 
     for ( let i=0; i < arrURL.length; i++ ) {
         accURL = i !== arrURL.length-1 ? accURL + "/" + arrURL[i] : null;
-        breadcrumbs[i + 1] = { li: { a: { attributes:{ href: accURL }}, textNode: arrURL[i].toLowerCase()}};
+        // hide user ID
+        const linkText = (i === 1 && arrURL[0] === 'users') ? 'ID' : arrURL[i].toLowerCase();
+        breadcrumbs[breadcrumbs.length] = (accURL) ?
+             { li: { a: { attributes:{ href: accURL }, textNode: linkText}}} :
+             { li: {textNode: linkText}};
     }
     return  JSON.stringify({ul: {
             attributes: {class: "breadcrumb_menu"},
@@ -46,7 +50,7 @@ module.exports.buildUserMenu = function(user) {
                 attributes: {class: "user_menu"},
                 childNodes: [
                     { li: { a: {attributes: { href: "/login" }, textNode:'Sign In'}}},
-                    { li: { a: {attributes: { href: "/register"}, textNode:'Register'}}}
+                    { li: { a: {attributes: { href: "/users/register"}, textNode:'Register'}}}
                 ]}});
     }
     // user is logged in
