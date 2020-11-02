@@ -1,39 +1,43 @@
-/*
-  ======================================================
-  Mountain Legacy Project: Explorer Application
-  ------------------------------------------------------
-  Module:       Core.Controllers.Users
-  File:         /controllers/user.js
-  ------------------------------------------------------
-  Parses and translates user data into application
-  executions and responds.
-  ------------------------------------------------------
-  Creator:      Spencer Rose
-  Copyright:    (c) 2020 Runtime Software Development Inc.
-  License:      MIT
-  Version:      1.0
-  Last Updated: October 2, 2020
-  ======================================================
-*/
+/*!
+ * MLP.Core.Controllers.Users
+ * File: /controllers/user.js
+ * Copyright(c) 2020 Runtime Software Development Inc.
+ * MIT Licensed
+ */
 
-/* global constants */
+/**
+ * Module constants.
+ * @private
+ */
 const model = 'users'
 
-/* imports */
-const User = require('../classes/user');
-const UserRole = require('../classes/userRole');
+/**
+ * Module dependencies.
+ * @private
+ */
+
+const User = require('../models/user');
+const UserRole = require('../models/userRole');
 const userServices = require('../services')({ type: model });
 const userRoleServices = require('../services')({ type: 'userRoles' });
 const builder = require('../views/builder');
 const utils = require('../_utilities');
 const path = require('path');
-const {ValidationError} = require('../classes/error')
+const {ValidationError} = require('../models/error')
 const jwt = require('express-jwt');
+
 
 exports.engine = 'ejs';
 
 
-// ------- preliminary handler -------
+/**
+ * Preliminary data preparation.
+ *
+ * @param {Request} req
+ * @param {Response} res
+ * @param {NextFunction} next
+ * @api private
+ */
 exports.before = async (req, res, next) => {
     // event-specific request parameters
     req.view.id = req.params.users_id || null;
@@ -41,7 +45,15 @@ exports.before = async (req, res, next) => {
     next();
 };
 
-// ------- list all users -------
+/**
+ * List all users
+ *
+ * @param {Request} req
+ * @param {Response} res
+ * @param {NextFunction} next
+ * @return {Session} for chaining
+ * @api public
+ */
 exports.list = async (req, res, next) => {
     await userServices.findAll()
         .then((result) => {
@@ -68,7 +80,7 @@ exports.login = (req, res, next) => {
         let user = new User();
         let {form, validator} = builder.forms.create(
             {
-                view: 'login',
+                view: req.view.name,
                 name: 'Login',
                 method: 'POST',
                 routes: {
@@ -100,8 +112,8 @@ exports.logout = async (req, res, next) => {
             // or in this case the entire user object
             req.session.user = null;
             res.message({severity:'success', code:'logout'});
-            res.redirect('/');
-        });
+
+        }, next);
     }
     catch(err) {
         console.log(err)
@@ -129,17 +141,18 @@ exports.auth = async (req, res, next) => {
             if ( !authUser.authenticate(reqUser.password) ) throw new ValidationError("login");
             // TODO: Include JWT signing (http://jwt.io/)
             // Regenerate session when signing in to prevent fixation
-            req.session.regenerate(function(err){
+            req.session.regenerate(function (err){
                 // Store user object in the session store to be retrieved
                 req.session.user = {
                     id: authUser.getData('user_id'),
                     email: authUser.getData('email'),
                     role: authUser.getData('role_id')
                 };
-                req.session.messages = {code: 'login', type:'success'}
-                res.redirect('/');
+                req.session.messages = {code: 'login', type:'success'};
             });
-        })
+        }).then(
+            res.redirect('/')
+        )
         .catch((err) => {
             next(err);
         });
@@ -154,7 +167,7 @@ exports.register = async (req, res, next) => {
     let user = new User();
     let {form, validator} = builder.forms.create(
         {
-            view: 'register',
+            view: req.view.name,
             name: 'Register',
             method: 'POST',
             routes: {
@@ -221,6 +234,7 @@ exports.show = async (req, res, next) => {
 
 // ------- edit user profile -------
 exports.edit = async (req, res, next) => {
+    req.view.name = 'edit';
     // retrieve user roles
     let userRole = new UserRole();
     const roles = await userRoleServices.findAll().catch((err) => next(err));
@@ -233,8 +247,8 @@ exports.edit = async (req, res, next) => {
             let user = new User( result );
             let {form, validator} = builder.forms.create(
                 {
-                    view: 'edit',
-                    name: 'Edit',
+                    view: req.view.name,
+                    name: 'Update',
                     method: 'POST',
                     routes: {
                         submit: path.join('/users', req.view.id, 'edit'),
@@ -276,7 +290,7 @@ exports.remove = async (req, res, next) => {
             let user = new User( result );
             let {form, validator} = builder.forms.create(
                 {
-                    view: 'delete',
+                    view: req.view.name,
                     name: 'Delete',
                     method: 'POST',
                     routes: {

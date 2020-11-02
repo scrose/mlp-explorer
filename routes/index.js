@@ -43,7 +43,7 @@ module.exports = function addRoutes(parent, options){
         if (obj.engine) app.set('view engine', obj.engine);
         const viewsDir = path.join(__dirname, '..', 'views', file)
         app.set('views', viewsDir);
-        console.log(viewsDir)
+        console.log('     View: %s', viewsDir);
 
         // generate routes based on the exported methods
         for (const file_key in obj) {

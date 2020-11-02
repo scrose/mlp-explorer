@@ -21,6 +21,7 @@ const express = require('express');
 const logger = require('morgan');
 const path = require('path');
 const session = require('express-session');
+const sessionStore = require('./models/sessionStore')
 const methodOverride = require('method-override');
 const builder = require('./views/builder');
 const utils = require('./_utilities');
@@ -49,7 +50,6 @@ app.set('trust proxy', 1) // trust first proxy
 // session management
 // see documentation: https://github.com/expressjs/session
 // ---------------------------------
-let sessionStore = utils.session(session)
 
 app.use(session({
   genid: function(req) {
@@ -133,6 +133,7 @@ app.use(methodOverride('_method'));
 app.use(function(req, res, next) {
   // Add boilerplate content
   req.view = params.settings.general;
+  req.view.name = path.parse(req.originalUrl).base;
 
   // response messages
   // req.session.user = req.user

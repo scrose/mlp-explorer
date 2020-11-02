@@ -17,7 +17,7 @@
 
 'use strict';
 
-const Model = require('./model')
+const Model = require('./base')
 
 class UserRole extends Model {
     constructor (...params) {

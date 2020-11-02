@@ -28,14 +28,6 @@ let messages = {
     },
     warning: {
         default: ''
-    },
-    error: {
-        '23514': 'Email and/or password are empty or invalid.',
-        '42P01': 'Database is misconfigured. Contact the site administrator for assistance.',
-        login: 'Authentication failed. Please check your login credentials.',
-        logout: 'Logging out failed. Contact the site administrator for assistance.',
-        default: 'An error occurred. Your request could not be completed. Contact the site administrator for assistance.',
-        restrict: 'Access denied!'
     }
 }
 

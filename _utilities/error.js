@@ -48,7 +48,7 @@ exports.notFoundHandler = notFoundHandler;
 // Global error handler
 function errorHandler(err, req, res, next) {
     // log error
-    console.error(err);
+    console.error('-------------', err);
 
     // handle database check violations
     if (err.hasOwnProperty('code')) {
@@ -59,7 +59,8 @@ function errorHandler(err, req, res, next) {
                 attributes: {class: 'msg error'},
                 textNode: msg}
         })];
-        return res.status(400).render('main', { content: req.view });
+        console.error('\n\n-------------\n\n');
+        return res.status(400).render('../main', { content: req.view });
 
     }
 
@@ -70,7 +71,7 @@ function errorHandler(err, req, res, next) {
                 attributes: {class: 'msg error'},
                 textNode: err.message}
         })];
-        return res.status(400).render('main', { content: req.view });
+        return res.status(400).render('../main', { content: req.view });
     }
 
     if (err.name === 'TypeError' || err.name === 'ReferenceError') {
@@ -80,12 +81,12 @@ function errorHandler(err, req, res, next) {
                 attributes: {class: 'msg error'},
                 textNode: messages.error.default}
         })];
-        return res.status(400).render('main', { content: req.view });
+        return res.status(400).render('../main', { content: req.view });
     }
 
     if (err.name === 'UnauthorizedError') {
         // jwt authentication error
-        return res.status(401).render('main', { content: req.view, url: req.originalUrl });
+        return res.status(401).render('../main', { content: req.view, url: req.originalUrl });
     }
 
     // default to 500 server error
