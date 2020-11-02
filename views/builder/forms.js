@@ -57,8 +57,8 @@ function buildSelect(fieldID, schema, data) {
 
 // build handler mapping for validation schema
 function buildValidator(view, model) {
-    let validator = {id: model., checklist: {}};
-    for (const [fieldName, field] of Object.entries(schema)) {
+    let validator = {id: model.name, checklist: {}};
+    for (const [fieldName, field] of Object.entries(model.schema)) {
             // check if field has view rendering a validation schema
             if (!field.hasOwnProperty('render')) continue;
             if (!field.render.hasOwnProperty(view)) continue;

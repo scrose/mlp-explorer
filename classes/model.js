@@ -62,6 +62,13 @@ class Model {
         this.clear();
     };
 
+    // set single value from model
+    setValue(field, value) {
+        if (field && this.schema.hasOwnProperty(field)) {
+            this.schema[field].value = (value) ? value : null;
+        }
+    };
+
     // get single value from model
     getValue(field) {
         if (field) return (this.schema.hasOwnProperty(field)) ? this.schema[field].value : null;
@@ -77,7 +84,7 @@ class Model {
     };
 
     // clear data values set in model
-    clearData() {
+    clear() {
         if (this.hasOwnProperty('schema')) {
             Object.entries(this.schema).forEach(([key, field]) => {
                 field.value = '';

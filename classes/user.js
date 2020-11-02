@@ -25,9 +25,9 @@ class User extends Model {
         // Pass Model arguments
         super(...params)
 
-        this.modelID = 'users';
-        this.modelLabel = 'User Profile';
-        this.ModelSchema = {
+        this.name = 'users';
+        this.label = 'User Profile';
+        this.schema = {
             user_id: {
                 label: 'User ID',
                 type: 'string',
@@ -156,21 +156,17 @@ class User extends Model {
 
     // encrypt salt and password for a user
     encrypt () {
-        let password = this.fields.password.value || null;
+        let password = this.getValue('password') || null;
         if (!password) return;
 
         // generate unique identifier for user (user_id)
-        this.unique_id = utils.secure.genUUID();
-        // generate a unique salt for the user (salt_token)
-        this.salt = utils.secure.genID();
-        // Hash user's salt and password
+        this.setValue('user_id', utils.secure.genUUID());
+        // Hash user password
         this.hash = utils.secure.encrypt(password, this.salt);
-
-        // save encrypted password values / salt
-        this.fields.user_id.value = this.unique_id;
-        this.fields.password.value = this.hash;
-        this.fields.repeat_password.value = this.hash;
-        this.fields.salt_token.value = this.salt;
+        this.setValue('password', this.hash);
+        this.setValue('repeat_password', this.hash);
+        // generate a unique salt for the user (salt_token)
+        this.setValue('salt_token', utils.secure.genID());
 
         return this;
     }

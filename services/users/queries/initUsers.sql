@@ -34,7 +34,8 @@ DROP TABLE IF EXISTS user_roles;
 
 -- create user roles table
 CREATE TABLE IF NOT EXISTS user_roles (
-role_id PRIMARY KEY,
+id serial PRIMARY KEY,
+role_id SMALLINT UNIQUE NOT NULL,
 name VARCHAR (255) UNIQUE NOT NULL
 );
 

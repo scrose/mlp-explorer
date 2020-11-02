@@ -122,7 +122,7 @@ exports.auth = async (req, res, next) => {
     // confirm user exists
     await userServices.findByEmail( reqUser.email )
         .then((result) => {
-            if (result.rows.length === 0) throw new ValidationError("nouser");
+            if (result.rows.length === 0) throw new ValidationError("login");
             // wrap requested user data for authentication
             let authUser = new User( result );
             // authenticate user credentials
