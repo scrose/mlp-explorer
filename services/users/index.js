@@ -1,53 +1,78 @@
-/*
-  ======================================================
-  Mountain Legacy Project: Explorer Application
-  ------------------------------------------------------
-  Module:       Core.Services.Users
-  File:         /services/users/index.js
-  ------------------------------------------------------
-  User data model (JS Class)
-  ------------------------------------------------------
-  Creator:      Spencer Rose
-  Copyright:    (c) 2020 Runtime Software Development Inc.
-  License:      MIT
-  Version:      1.0
-  Last Updated: October 31, 2020
-  ======================================================
-*/
-
-const db = require('../../db')
+/*!
+ * MLP.Core.Services.Users
+ * File: /services/users/index.js
+ * Copyright(c) 2020 Runtime Software Development Inc.
+ * MIT Licensed
+ */
 
 'use strict';
 
-// find user by ID
+/**
+ * Module dependencies.
+ * @private
+ */
+
+const db = require('../../db')
+
+/**
+ * Find user by ID.
+ *
+ * @private
+ * @param {String} queryText
+ */
+
 module.exports.findById = (queryText) => {
     return (id) => {
         return db.query(queryText, [id]);
     }
 }
 
-// find user by email
+/**
+ * Find user by email.
+ *
+ * @private
+ * @param {String} queryText
+ */
+
 module.exports.findByEmail = (queryText) => {
     return (email) => {
         return db.query(queryText, [email]);
     }
 }
 
-// find user by other field
+/**
+ * Find user by specified field.
+ *
+ * @private
+ * @param {String} queryText
+ */
+
 module.exports.findOne = (queryText) => {
-    return (id) => {
-        return db.query(queryText, [id]);
+    return (field) => {
+        return db.query(queryText, [field]);
     }
 }
 
-// list all users (with surveys)
+/**
+ * List all users (with surveys).
+ *
+ * @private
+ * @param {String} queryText
+ */
+
 module.exports.findAll = (queryText) => {
     return () => {
         return db.query(queryText, []);
     }
 }
 
-// update user data
+/**
+ * Update user data.
+ *
+ * @private
+ * @param {String} queryText
+ */
+
 module.exports.update = (queryText) => {
     return (data) => {
         return db.query(queryText, [
@@ -60,7 +85,13 @@ module.exports.update = (queryText) => {
     }
 }
 
-// insert new user
+/**
+ * Insert new user.
+ *
+ * @private
+ * @param {String} queryText
+ */
+
 module.exports.insert = (queryText) => {
     return (data) => {
         return db.query(queryText, [
@@ -74,7 +105,13 @@ module.exports.insert = (queryText) => {
 }
 
 
-// delete user
+/**
+ * Delete user.
+ *
+ * @private
+ * @param {String} queryText
+ */
+
 module.exports.delete = (queryText) => {
     return (data) => {
         return db.query(queryText, [

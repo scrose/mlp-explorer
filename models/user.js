@@ -16,6 +16,13 @@ const Model = require('./base');
 const utils = require('../_utilities');
 
 /**
+ * Module exports.
+ * @public
+ */
+
+module.exports = User
+
+/**
  * Define User data model schema
  *
  * @private
@@ -146,16 +153,20 @@ let schema ={
 };
 
 /**
- * Create User data model. Inherit from Model abstract class.
+ * Create User data model. Call base Model class as constructor.
  *
  * @private
  * @param data
  */
+function User(data = null) {
+    Model.call(this, 'users', 'User Profile', schema, data);
+}
 
-let User = function (data = null) {
-};
+/**
+ * Inherit methods from Model abstract class.
+ */
 
-User.prototype = new Model('users', 'User Profile', data, schema);
+User.prototype = Object.create(Model.prototype);
 
 /**
  * Encrypt user salt and password
@@ -163,18 +174,19 @@ User.prototype = new Model('users', 'User Profile', data, schema);
  * @public
  */
 
-Object.defineProperty(User, 'encrypt', function() {
+utils.obj.defineMethod(User, 'encrypt', function() {
     let password = this.getValue('password') || null;
     if (!password) return;
 
     // generate unique identifier for user (user_id)
     this.setValue('user_id', utils.secure.genUUID());
-    // Hash user password
-    this.hash = utils.secure.encrypt(password, this.salt);
-    this.setValue('password', this.hash);
-    this.setValue('repeat_password', this.hash);
-    // generate a unique salt for the user (salt_token)
-    this.setValue('salt_token', utils.secure.genID());
+    // Generate unique hash and salt tokens
+    let salt_token = utils.secure.genID();
+    let hash_token = utils.secure.encrypt(password, salt_token);
+    // Set values in schema
+    this.setValue('password', hash_token);
+    this.setValue('repeat_password', hash_token);
+    this.setValue('salt_token', salt_token);
 
     return this;
 });
@@ -185,15 +197,14 @@ Object.defineProperty(User, 'encrypt', function() {
  * @param {String} password
  */
 
-Object.defineProperty(this, 'authenticate', function ( password ) {
+utils.obj.defineMethod(User, 'authenticate', function ( password ) {
     console.log('Authenticating user %s', this.getValue('email'));
     return this.getValue('password') === utils.secure.encrypt(password, this.getValue('salt_token'));
 });
 
 
-/**
- * Module exports.
- * @public
- */
+Object.defineProperty(User.prototype, 'constructor', {
+    value: User,
+    enumerable: false, // so that it does not appear in 'for in' loop
+    writable: true });
 
-module.exports = User

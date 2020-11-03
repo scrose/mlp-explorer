@@ -9,39 +9,82 @@
 'use strict';
 
 /**
- * Validation errors
- *
- * @param {Request} req
- * @param {Response} res
- * @param {NextFunction} next
- * @api private
+ * Module dependencies.
+ * @private
  */
-class ValidationError extends Error {
-    messages = {
-        '23514': 'Email and/or password are empty or invalid.',
-        '42P01': 'Database is misconfigured. Contact the site administrator for assistance.',
-        login: 'Authentication failed. Please check your login credentials.',
-        logout: 'Logging out failed. Contact the site administrator for assistance.',
-        session: 'Session error. Contact the site administrator for assistance.',
-        default: 'An error occurred. Your request could not be completed. Contact the site administrator for assistance.',
-        restrict: 'Access denied!'
-    };
-    constructor(code='default', ...params) {
-        // Pass remaining arguments (including vendor specific ones) to parent constructor
-        super(...params)
 
-        // Maintains proper stack trace for where our error was thrown (only available on V8)
-        if (Error.captureStackTrace) {
-            Error.captureStackTrace(this, ValidationError)
-        }
+const utils = require('../_utilities');
 
-        this.name = 'ValidationError';
-        this.code = code;
-        this.message = (this.messages.hasOwnProperty(code)) ? this.messages[code] : this.messages.default;
-        // Custom debugging information
-        this.date = new Date();
+/**
+ * Define Error messages for lookup.
+ *
+ * @private
+ */
 
-    }
+let errorMessages = {
+    '23514': 'Email and/or password are empty or invalid.',
+    '42P01': 'Database is misconfigured. Contact the site administrator for assistance.',
+    login: 'Authentication failed. Please check your login credentials.',
+    logout: 'Logging out failed. Contact the site administrator for assistance.',
+    session: 'Session error. Contact the site administrator for assistance.',
+    default: 'An error occurred. Your request could not be completed. Contact the site administrator for assistance.',
+    restrict: 'Access denied!'
+};
+
+/**
+ * Helper function to lookup error messages by code.
+ *
+ * @private
+ * @param code
+ */
+function lookup(code = null) {
+    return errorMessages.hasOwnProperty(code) ? errorMessages[code] : errorMessages.default;
 }
 
-module.exports.ValidationError = ValidationError;
+/**
+ * Module exports.
+ * @public
+ */
+
+module.exports = GeneralError;
+
+/**
+ * Create General (custom) Error data model.
+ *
+ * @private
+ * @param err
+ */
+
+function GeneralError(err) {
+    // Object.defineProperty(this, 'code', {
+    //     value: (err.hasOwnProperty('code')) ? err.code : 'default',
+    //     writable: false
+    // });
+    //
+    // Object.defineProperty(this, 'date', {
+    //     value: new Date(),
+    //     writable: false
+    // });
+    //
+    // Object.defineProperty(this, 'message', {
+    //     value: lookup(this.code),
+    //     writable: true
+    // });
+
+}
+
+/**
+ * Create JSON schema for error message.
+ *
+ * @param {Object} data
+ * @api public
+ */
+
+// utils.obj.defineMethod(GeneralError, 'json', function () {
+//     return JSON.stringify({
+//         div:{
+//             attributes: {class: 'msg error'},
+//             textNode: this.message}
+//     })
+// });
+

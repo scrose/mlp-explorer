@@ -88,9 +88,10 @@ function createFormValidator() {
 		messenger: createFormValidatorMessenger(),
 		// initialize event listeners for form inputs
 		init: function (params) {
+			console.log(params)
 			this.form = document.getElementById(params.id);
 			// abort if form is empty
-			if (!this.form.elements) return;
+			if (!this.form.hasOwnProperty('elements')) return;
 			// validation checklist (abort validation if empty)
 			if (this.isEmpty(params.checklist)) return;
 
@@ -237,10 +238,6 @@ function createFormValidator() {
 }
 // create validator object
 const formValidator = createFormValidator();
-
-
-
-
 
 
 

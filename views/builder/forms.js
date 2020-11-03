@@ -1,30 +1,32 @@
-/*
-  ======================================================
-  Mountain Legacy Project: Explorer Application
-  ------------------------------------------------------
-  Module:       Core.Views.Builder.Forms
-  Filename:     views/builder/forms.js
-  ------------------------------------------------------
-  Module to assist in building HTML forms from using
-  data model schema
-  ------------------------------------------------------
-  Creator:      Spencer Rose
-  Copyright:    (c) 2020 Runtime Software Development Inc.
-  License:      MIT
-  Version:      1.0
-  Last Updated: October 2, 2020
-  ======================================================
-*/
+/*!
+ * MLP.Core.Views.Builder.Forms
+ * File: /views/builder/forms.js
+ * Copyright(c) 2020 Runtime Software Development Inc.
+ * MIT Licensed
+ */
 
 'use strict'
 
+/**
+ * Module dependencies.
+ * @private
+ */
+
 let utils = require('../../_utilities')
 
-// build selection list from schema
-function buildSelect(fieldID, schema, data) {
+/**
+ * Build input selection list from schema
+ *
+ * @public
+ * @param id
+ * @param schema
+ * @param data
+ */
+
+function buildSelect(id, schema, data) {
     let selectInput = {
-        label: { attributes: {for: fieldID} },
-        select: { attributes: {name: fieldID, id: fieldID} }
+        label: { attributes: {for: id} },
+        select: { attributes: {name: id, id: id} }
     };
     // get option/value indexes
     let optionField, valueField;
@@ -38,33 +40,36 @@ function buildSelect(fieldID, schema, data) {
         valueField = field.render.select.value;
     }
     // build select options schema
-    const options = [];
-    for (const [key, item] of Object.entries(data)) {
+    selectInput.select.childNodes = [];
+    Object.entries(data).forEach(([key, item]) => {
         // create option element
-        const elem = {
+        selectInput.select.childNodes.push({
             option: {
-                attributes: {
-                    value: item[valueField]
-                },
+                attributes: { value: item[valueField] },
                 textNode: item[optionField]
             }
-        };
-        options.push(elem);
-    }
-    selectInput.select.childNodes = options;
+        })
+    });
     return selectInput;
 }
 
-// build handler mapping for validation schema
+/**
+ * Build handler mapping for validation schema
+ *
+ * @public
+ * @param {String} view
+ * @param {Object} model
+ */
+
 function buildValidator(view, model) {
     let validator = {id: model.name, checklist: {}};
     for (const [fieldName, field] of Object.entries(model.schema)) {
-            // check if field has view rendering a validation schema
-            if (!field.hasOwnProperty('render')) continue;
-            if (!field.render.hasOwnProperty(view)) continue;
-            let fieldObj = field.render[view];
-            if (!fieldObj.hasOwnProperty('validation')) continue;
-            validator.checklist[fieldName] = {handlers: fieldObj.validation, complete: false};
+        // check if field has view rendering a validation schema
+        if (!field.hasOwnProperty('render')) continue;
+        if (!field.render.hasOwnProperty(view)) continue;
+        let fieldObj = field.render[view];
+        if (!fieldObj.hasOwnProperty('validation')) continue;
+        validator.checklist[fieldName] = {handlers: fieldObj.validation, complete: false};
     }
     return validator;
 }
@@ -188,9 +193,10 @@ function buildForm(params, schema, widgets) {
             attributes: {
                 action: params.routes.submit,
                 method: params.method,
-                id: schema.model,
-                name: schema.model},
-            fieldset: {legend: {textNode: schema.legend}}
+                id: params.id,
+                name: params.id
+            },
+            fieldset: {legend: {textNode: params.legend || schema.model}}
         }
     };
     let inputs = [];
@@ -228,7 +234,7 @@ function buildForm(params, schema, widgets) {
             attributes: {
                 type: 'submit',
                 id: 'submit_' + schema.model,
-                value: params.name ? params.name : 'Submit'}
+                value: params.submitValue ? params.submitValue : 'Submit'}
         }});
     // cancel button (link)
     if (params.routes.cancel)

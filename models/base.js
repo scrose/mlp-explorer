@@ -8,6 +8,13 @@
 'use strict';
 
 /**
+ * Module dependencies.
+ * @private
+ */
+
+const utils = require('../_utilities');
+
+/**
  * Module exports.
  * @public
  */
@@ -42,11 +49,11 @@ module.exports = Model
  * @api private
  * @param {String} name
  * @param {String} label
- * @param {Object} data
  * @param {Object} schema
+ * @param {Object} data
  */
 
-function Model(name, label, data=null, schema=null) {
+function Model(name, label, schema=null, data = null) {
     Object.defineProperty(this, 'name', {
         value: name,
         writable: false
@@ -55,23 +62,28 @@ function Model(name, label, data=null, schema=null) {
         value: label,
         writable: false
     });
-    Object.defineProperty(this, 'data', {
-        value: data,
-        writable: true
-    });
     Object.defineProperty(this, 'schema', {
         value: schema,
-        writable: true
+        writable: false
+    });
+    Object.defineProperty(this, 'data', {
+        value: data,
+        writable: false
     });
 
-    // if (typeof data === 'object' && data !== null) {
-    //     // merge data into this, ignoring prototype properties
-    //     for (var prop in data) {
-    //         if (!(prop in this)) {
-    //             this[prop] = data[prop]
-    //         }
-    //     }
-    // }
+    const self = this;
+
+    // merge data into schema
+    if (typeof data === 'object' && data !== null) {
+        const inputData = (data.hasOwnProperty('rows')) ? data.rows[0] : data;
+        Object.entries(self.schema).forEach(([key, field]) => {
+            field.value = inputData.hasOwnProperty(key) ? inputData[key] : null;
+        });
+    } else {
+        Object.entries(self.schema).forEach(([key, field]) => {
+            field.value = '';
+        });
+    }
 }
 
 
@@ -82,7 +94,7 @@ function Model(name, label, data=null, schema=null) {
  * @api public
  */
 
-defineMethod(Model.prototype, 'setData', function (data) {
+utils.obj.defineMethod(Model, 'setData', function (data) {
     // set data values in schema
     if (data !== null && this.hasOwnProperty('schema')) {
         const inputData = (data.hasOwnProperty('rows')) ? data.rows[0] : data;
@@ -99,6 +111,8 @@ defineMethod(Model.prototype, 'setData', function (data) {
 });
 
 
+
+
 /**
  * Set field value in model schema.
  *
@@ -107,7 +121,7 @@ defineMethod(Model.prototype, 'setData', function (data) {
  * @api public
  */
 
-defineMethod(Model.prototype, 'setValue', function(field, value) {
+utils.obj.defineMethod(Model, 'setValue', function(field, value) {
     if (field && this.schema.hasOwnProperty(field)) {
         this.schema[field].value = (value) ? value : null;
     }
@@ -121,7 +135,7 @@ defineMethod(Model.prototype, 'setValue', function(field, value) {
  * @api public
  */
 
-defineMethod(Model.prototype, 'getValue', function(field) {
+utils.obj.defineMethod(Model, 'getValue', function(field) {
     if (field) return (this.schema.hasOwnProperty(field)) ? this.schema[field].value : null;
 });
 
@@ -132,7 +146,7 @@ defineMethod(Model.prototype, 'getValue', function(field) {
  * @api public
  */
 
-defineMethod(Model.prototype, 'setValue', function () {
+utils.obj.defineMethod(Model, 'getData', function () {
     let filteredData = {}
     Object.entries(this.schema).forEach(([key, field]) => {
         filteredData[key] = field.value;
@@ -148,7 +162,7 @@ defineMethod(Model.prototype, 'setValue', function () {
  * @api public
  */
 
-defineMethod(Model.prototype, 'clear', function () {
+utils.obj.defineMethod(Model, 'clear', function () {
     if (this.hasOwnProperty('schema')) {
         Object.entries(this.schema).forEach(([key, field]) => {
             field.value = '';
@@ -156,23 +170,3 @@ defineMethod(Model.prototype, 'clear', function () {
     }
     return this;
 });
-
-
-
-/**
- * Helper function for creating a method on a prototype.
- *
- * @param {Object} obj
- * @param {String} name
- * @param {Function} fn
- * @private
- */
-function defineMethod(obj, name, fn) {
-    Object.defineProperty(obj, name, {
-        configurable: true,
-        enumerable: false,
-        value: fn,
-        writable: true
-    });
-}
-

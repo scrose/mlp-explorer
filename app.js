@@ -1,21 +1,16 @@
-/*
-  ======================================================
-  Mountain Legacy Project: Explorer Application
-  ------------------------------------------------------
-
-  ------------------------------------------------------
-  Creator:      Spencer Rose
-  Copyright:    (c) 2020 Runtime Software Development Inc.
-  License:
-  Version:      1.0
-  Last Updated: June 15, 2020
-  ------------------------------------------------------
-  Module:       Core
-  Filename:     /app.js
-  ======================================================
-*/
+/*!
+ * MLP.Core.App
+ * File: app.js
+ * Copyright(c) 2020 Runtime Software Development Inc.
+ * MIT Licensed
+ */
 
 'use strict';
+
+/**
+ * Module dependencies.
+ * @private
+ */
 
 const express = require('express');
 const logger = require('morgan');
@@ -177,7 +172,7 @@ app.use(function (req, res, next) {
 // ---------------------------------
 // default handlers
 // ---------------------------------
-app.use(utils.error.errorHandler);
-app.use(utils.error.notFoundHandler);
+app.use(utils.err.errorHandler);
+app.use(utils.err.notFoundHandler);
 
 module.exports = app;

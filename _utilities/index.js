@@ -1,26 +1,23 @@
-/*
-  ======================================================
-  Mountain Legacy Project: Explorer Application
-  ------------------------------------------------------
+/*!
+ * MLP.Core.Utilities.Object
+ * File: /_utilities/object.js
+ * Copyright(c) 2020 Runtime Software Development Inc.
+ * MIT Licensed
+ */
 
-  ------------------------------------------------------
-  Creator:      Spencer Rose
-  Copyright:    (c) 2020 Runtime Software Development Inc.
-  License:
-  Version:      1.0
-  Last Updated: June 15, 2020
-  ------------------------------------------------------
-  Module:       Core.Uploader
-  Filename:     /file.js
-  ======================================================
-*/
 
-// Initialization
 'use strict';
+
+/**
+ * Module exports.
+ * @public
+ */
+
+exports.obj = require('./object');
 exports.data = require('./data');
 exports.file = require('./file');
 exports.date = require('./date');
 exports.email = require('./email');
 exports.user = require('./user');
 exports.secure = require('./secure');
-exports.error = require('./error')
+exports.err = require('./error')

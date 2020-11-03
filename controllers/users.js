@@ -26,6 +26,9 @@ const path = require('path');
 const {ValidationError} = require('../models/error')
 const jwt = require('express-jwt');
 
+/**
+ * Set view engine
+ */
 
 exports.engine = 'ejs';
 
@@ -33,9 +36,9 @@ exports.engine = 'ejs';
 /**
  * Preliminary data preparation.
  *
- * @param {Request} req
- * @param {Response} res
- * @param {NextFunction} next
+ * @param req
+ * @param res
+ * @param next
  * @api private
  */
 exports.before = async (req, res, next) => {
@@ -48,10 +51,9 @@ exports.before = async (req, res, next) => {
 /**
  * List all users
  *
- * @param {Request} req
- * @param {Response} res
- * @param {NextFunction} next
- * @return {Session} for chaining
+ * @param req
+ * @param res
+ * @param next
  * @api public
  */
 exports.list = async (req, res, next) => {
@@ -59,10 +61,9 @@ exports.list = async (req, res, next) => {
         .then((result) => {
             let userList = []
             result.rows.forEach((data) => {
-                let user = new User( data );
-                userList.push(user);
+                let user = new User(data);
+                userList.push(user.data);
             });
-
             res.render('list', {
                 content: req.view,
                 users: userList
@@ -74,7 +75,15 @@ exports.list = async (req, res, next) => {
 };
 
 
-// ------- login user -------
+/**
+ * User sign-in interface.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @api public
+ */
+
 exports.login = (req, res, next) => {
     try {
         let user = new User();
@@ -101,7 +110,14 @@ exports.login = (req, res, next) => {
 };
 
 
-// ------- logout user -------
+/**
+ * User sign-out interface.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @api public
+ */
 exports.logout = async (req, res, next) => {
     try {
         if (!req.session.user) throw new Error();
@@ -122,8 +138,15 @@ exports.logout = async (req, res, next) => {
 };
 
 
-// ------- authenticate user -------
-exports.auth = async (req, res, next) => {
+/**
+ * Authenticate user credentials.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @api public
+ */
+exports.authenticate = async (req, res, next) => {
     let reqUser
     try {
         reqUser = utils.data.sanitize( req.body );
@@ -159,16 +182,23 @@ exports.auth = async (req, res, next) => {
 
 }
 
+/**
+ * User registration interface.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @api public
+ */
 
-
-// ------- register new user -------
 exports.register = async (req, res, next) => {
-    // build registration form + validator schemas
     let user = new User();
     let {form, validator} = builder.forms.create(
         {
+            id: model,
             view: req.view.name,
-            name: 'Register',
+            submitValue: 'Register',
+            legend: 'User Registration',
             method: 'POST',
             routes: {
                 submit: '/users/register',
@@ -186,20 +216,28 @@ exports.register = async (req, res, next) => {
     }
 };
 
+/**
+ * Confirm user registration.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @api public
+ */
 
-// ------- confirm user registration -------
 exports.confirm = async (req, res, next) => {
-    // create user from schema
     let user;
     try {
+        // create user from submitted user credentials
         user = new User( req.body );
         user.encrypt();
     } catch (err) {
         next(err);
     }
-    // insert user record in database
-    await userServices.insert( user.data )
+    // insert user in database
+    await userServices.insert( user.getData() )
         .then((result) => {
+
             if (result.rows.length === 0) throw new ValidationError("register");
             // let userEmail = result.rows[0].email;
             // // send confirmation email to user
@@ -221,7 +259,7 @@ exports.show = async (req, res, next) => {
             let user = new User( result );
             res.render('show', {
                 content: req.view,
-                user: user.data
+                user: user.getData()
             });
             res.success('View successful!');
             console.log(req.session.message)
