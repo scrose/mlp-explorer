@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <%- include('../partials/head', {title: content.title}); %>
+        <%- include('../common/head', {title: content.title}); %>
     </head>
     <body>
-    <%- include('../partials/header', {content: content}); %>
+    <%- include('../common/header', {content: content}); %>
     <main>
     <table class="records">
         <tbody>
@@ -52,6 +52,6 @@
         </tbody>
     </table>
     </main>
-    <%- include('../partials/footer', {content: content}); %>
+    <%- include('../common/footer', {content: content}); %>
     </body>
 </html>

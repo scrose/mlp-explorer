@@ -1,10 +1,9 @@
 /*!
- * MLP.Core.Utilities.Object
- * File: /_utilities/object.js
+ * MLP.Core.Utilities
+ * File: /_utilities/index.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
-
 
 'use strict';
 
@@ -20,4 +19,4 @@ exports.date = require('./date');
 exports.email = require('./email');
 exports.user = require('./user');
 exports.secure = require('./secure');
-exports.err = require('./error')
+exports.validate = require('./validator');

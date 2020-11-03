@@ -34,8 +34,12 @@ let schema ={
         render: {
             delete: {
                 attributes: {
-                    type: 'hidden',
-                    value: 1
+                    type: 'hidden'
+                }
+            },
+            edit: {
+                attributes: {
+                    type: 'hidden'
                 }
             }
         }
@@ -103,9 +107,10 @@ let schema ={
             },
             edit: {
                 attributes: {
-                    type: 'password'
-                },
-                validation: ['isPassword']
+                    type: 'link',
+                    linkText: 'Reset Password',
+                    url: '#'
+                }
             }
         }
     },
@@ -119,12 +124,6 @@ let schema ={
         type: 'repeat_password',
         render: {
             register: {
-                attributes: {
-                    repeat: 'password'
-                },
-                validation: ['isRepeatPassword']
-            },
-            edit: {
                 attributes: {
                     repeat: 'password'
                 },
@@ -201,10 +200,3 @@ utils.obj.defineMethod(User, 'authenticate', function ( password ) {
     console.log('Authenticating user %s', this.getValue('email'));
     return this.getValue('password') === utils.secure.encrypt(password, this.getValue('salt_token'));
 });
-
-
-Object.defineProperty(User.prototype, 'constructor', {
-    value: User,
-    enumerable: false, // so that it does not appear in 'for in' loop
-    writable: true });
-

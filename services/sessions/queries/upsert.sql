@@ -13,5 +13,7 @@ VALUES(
     NOW()::timestamp
 )
 ON CONFLICT (user_id) DO UPDATE
-SET session_id = $2::varchar
+SET
+session_id = $2::varchar,
+updated_at = NOW()::timestamp
 RETURNING *

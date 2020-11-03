@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <%- include('../../../views/partials/head', {title: content.title}); %>
+        <%- include('../../../views/common/head', {title: content.title}); %>
     </head>
     <body>
-        <%- include('../../../views/partials/header', {content: content}); %>
+        <%- include('../../../views/common/header', {content: content}); %>
         <h1>Mountain Legacy Project</h1>
         <h2>Surveyor: <%= surveyor.given_names %> <%= surveyor.last_name %></h2>
         <ul class="editor_menu">

@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <%- include('../partials/head', {title: content.title}); %>
+    <%- include('../common/head', {title: content.title}); %>
 </head>
 <body>
-<%- include('../partials/header', {content: content}); %>
-<%- include('../partials/editor_menu', {content: content}); %>
+<%- include('../common/header', {content: content}); %>
+<%- include('../common/editor_menu', {content: content}); %>
 
 <main>
     <!-- Surveyors (with attached surveys) -->

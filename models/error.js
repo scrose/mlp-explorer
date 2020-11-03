@@ -9,13 +9,6 @@
 'use strict';
 
 /**
- * Module dependencies.
- * @private
- */
-
-const utils = require('../_utilities');
-
-/**
  * Define Error messages for lookup.
  *
  * @private
@@ -25,66 +18,62 @@ let errorMessages = {
     '23514': 'Email and/or password are empty or invalid.',
     '42P01': 'Database is misconfigured. Contact the site administrator for assistance.',
     login: 'Authentication failed. Please check your login credentials.',
-    logout: 'Logging out failed. Contact the site administrator for assistance.',
+    logoutFailure: 'Logging out failed. You are no longer signed in.',
+    logoutRedundant: 'User is not signed in.',
     session: 'Session error. Contact the site administrator for assistance.',
     default: 'An error occurred. Your request could not be completed. Contact the site administrator for assistance.',
     restrict: 'Access denied!'
 };
 
 /**
- * Helper function to lookup error messages by code.
- *
- * @private
- * @param code
- */
-function lookup(code = null) {
-    return errorMessages.hasOwnProperty(code) ? errorMessages[code] : errorMessages.default;
-}
-
-/**
  * Module exports.
  * @public
  */
 
-module.exports = GeneralError;
+module.exports = LocalError;
 
 /**
- * Create General (custom) Error data model.
+ * Create local (custom) Error data model.
  *
- * @private
- * @param err
+ * @public
+ * @param message
+ * @param fileName
+ * @param lineNumber
  */
 
-function GeneralError(err) {
-    // Object.defineProperty(this, 'code', {
-    //     value: (err.hasOwnProperty('code')) ? err.code : 'default',
-    //     writable: false
-    // });
-    //
-    // Object.defineProperty(this, 'date', {
-    //     value: new Date(),
-    //     writable: false
-    // });
-    //
-    // Object.defineProperty(this, 'message', {
-    //     value: lookup(this.code),
-    //     writable: true
-    // });
-
+function LocalError(message, fileName=null, lineNumber=null) {
+    let instance;
+    instance = new Error(message);
+    instance.name = 'LocalError';
+    instance.decoded = errorMessages.hasOwnProperty(message) ?
+        errorMessages[message] : errorMessages.default;
+    // Object.setPrototypeOf(instance, Object.getPrototypeOf(this));
+    if (Error.captureStackTrace) {
+        Error.captureStackTrace(instance, LocalError);
+    }
+    return instance;
 }
 
 /**
- * Create JSON schema for error message.
- *
- * @param {Object} data
- * @api public
+ * Inherit methods from Error class.
  */
 
-// utils.obj.defineMethod(GeneralError, 'json', function () {
-//     return JSON.stringify({
-//         div:{
-//             attributes: {class: 'msg error'},
-//             textNode: this.message}
-//     })
-// });
+LocalError.prototype = Object.create(Error.prototype, {
+    constructor: {
+        value: Error,
+        enumerable: false,
+        writable: true,
+        configurable: true
+    }
+});
+
+/**
+ * Inherit methods from Model abstract class.
+ */
+
+if (Object.setPrototypeOf){
+    Object.setPrototypeOf(LocalError, Error);
+} else {
+    LocalError.__proto__ = Error;
+}
 

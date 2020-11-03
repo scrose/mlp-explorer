@@ -22,8 +22,8 @@ const modelName = 'surveyors'
 const surveyors = require('../services')({ type: modelName });
 const surveys = require('../services')({ type: 'surveys' });
 const params = require('../config')
-const forms = require('../views/builder/forms')
-const messages = require('../views/builder/messages')
+const forms = require('../views/builders/forms')
+const messages = require('../views/builders/messages')
 
 exports.engine = 'ejs';
 

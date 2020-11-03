@@ -12,10 +12,9 @@
  * @private
  */
 
-const {ValidationError} = require('./error')
+const LocalError = require('./error')
 const {Store} = require('express-session');
-const sessionServices = require('../services')({ type: 'session' });
-const util = require('../_utilities')
+const sessionServices = require('../services')({ type: 'sessions' });
 
 /**
  * Module constants.
@@ -29,7 +28,7 @@ const prefix = 'sess:';
  * @public
  */
 
-module.exports = Store
+module.exports = SessionStore
 
 /**
  * All callbacks should have a noop if none provided for compatibility
@@ -38,6 +37,18 @@ module.exports = Store
 
 const noop = () => {}
 
+/**
+ * Create SessionStore class. Call base Store class as constructor.
+ *
+ * @public
+ */
+function SessionStore() {}
+
+/**
+ * Inherit methods from Model abstract class.
+ */
+
+SessionStore.prototype = Object.create(Store.prototype);
 
 /**
  * Fetch session by the given session ID.
@@ -52,42 +63,31 @@ const noop = () => {}
  * @public
  */
 
-Store.prototype.get = function get(sessionId, callback=noop()) {
-
-    // if (!sess) {
-    //     return
-    // }
-    //
-    // // parse
-    // sess = JSON.parse(sess)
-    //
-    // if (session.cookie) {
-    //     var expires = typeof session.cookie.expires === 'string'
-    //         ? new Date(session.cookie.expires)
-    //         : session.cookie.expires
-    //
-    //     // destroy expired session
-    //     if (expires && expires <= Date.now()) {
-    //         delete this.sessions[sessionId]
-    //         return
-    //     }
-    // }
-    //
-    // return sess
+SessionStore.prototype.get = function (sessionId, callback=noop()) {
 
     let key = prefix + sessionId
 
     sessionServices.findBySessionId(key)
         .then((result) => {
             if (result.rows.length === 0) return callback();
-            let data = JSON.parse(result.rows[0].session_data);
-            callback(null, data)
+            let session = result.rows[0].session_data;
+            if (session.cookie) {
+                let expires = typeof session.cookie.expires === 'string'
+                    ? new Date(session.cookie.expires)
+                    : session.cookie.expires;
+
+                // destroy expired session
+                if (expires && expires <= Date.now()) {
+                    console.error('Cookie expired: %s', sessionId)
+                    return callback(null, 'EXPIRED');
+                }
+            }
+            callback(null, session);
         })
         .catch((err) => {
             console.error('SESSION get() Error: ', err)
             return callback(err)
         });
-
 }
 
 /**
@@ -102,18 +102,20 @@ Store.prototype.get = function get(sessionId, callback=noop()) {
  * @public
  */
 
-Store.prototype.set = function set(sessionId, session, callback) {
+SessionStore.prototype.set = function (sessionId, session, callback) {
+
     let session_json
     try {
         session_json = JSON.stringify(session)
     }
     catch (err) {
+        console.error('SESSION set() Error: ', err)
         return callback(err)
     }
 
     let args = {
-        sessionId: prefix + sessionId,
         user_id: session.user.id || 'anonymous',
+        session_id: prefix + sessionId,
         session_data: session_json,
         expires: _getTTL(session)
     };
@@ -122,7 +124,7 @@ Store.prototype.set = function set(sessionId, session, callback) {
 
     sessionServices.upsert(args)
         .then((data) => {
-            if (data.rows.length === 0) throw "Session could not be saved.";
+            if (data.rows.length === 0) throw LocalError('session');
             callback()
         })
         .catch((err) => {
@@ -130,9 +132,6 @@ Store.prototype.set = function set(sessionId, session, callback) {
             return callback(err)
         });
 };
-
-
-
 
 /**
  * Get number of active sessions.
@@ -143,7 +142,7 @@ Store.prototype.set = function set(sessionId, session, callback) {
  * @public
  */
 
-Store.prototype.length = function length(callback) {
+SessionStore.prototype.length = function (callback) {
     sessionServices.findAll()
         .then((result) => {
             callback(null, result.rows.length);
@@ -168,7 +167,7 @@ Store.prototype.length = function length(callback) {
  * @public
  */
 
-Store.prototype.touch = function touch(sessionId, session, callback) {
+SessionStore.prototype.touch = function (sessionId, session, callback) {
     // var currentSession = getSession.call(this, sessionId)
     //
     // if (currentSession) {
@@ -181,24 +180,25 @@ Store.prototype.touch = function touch(sessionId, session, callback) {
 
     let sess_json
     try {
-        sess_json = JSON.stringify(sess)
+        sess_json = JSON.stringify(session);
     }
     catch (err) {
+        console.error('SESSION touch() Error: ', err)
         return callback(err)
     }
 
     let args = {
-        sessionId: prefix + sessionId,
-        user_id: session.user || 'anonymous',
+        user_id: session.user.id || 'anonymous',
+        session_id: prefix + sessionId,
         session_data: sess_json,
-        expires: _getTTL(sess)
+        expires: _getTTL(session)
     }
+
+    console.log(args)
 
     sessionServices.update(args)
         .then((data) => {
-            if (data.rows.length === 0) throw "Session expired";
-            let result = JSON.parse(data.rows[0]);
-            // if (ret !== 1) return callback(null, 'EXPIRED')
+            if (data.rows.length === 0) return callback(null, 'EXPIRED');
             callback(null, 'OK')
         })
         .catch((err) => {
@@ -216,10 +216,7 @@ Store.prototype.touch = function touch(sessionId, session, callback) {
  * @public
  */
 
-Store.prototype.all = function (callback = noop) {
-
-    let prefixLen = prefix.length
-
+SessionStore.prototype.all = function (callback = noop) {
     sessionServices.findAll()
         .then((result) => {
             if (result.rows.length === 0) throw new Error();
@@ -230,6 +227,48 @@ Store.prototype.all = function (callback = noop) {
         });
 }
 
+/**
+ * This required method is used to destroy/delete a session from the store
+ * given a session ID (sessionId). The callback should be called as
+ * callback(error) once the session is destroyed.
+ *
+ * @param {string} sessionId
+ * @param {function} callback
+ * @public
+ */
+
+SessionStore.prototype.destroy = function(sessionId, callback = noop) {
+    let key = prefix + sessionId
+    console.log('Deleting SESSION ID %s', key);
+    sessionServices.delete(key)
+        .then((result) => {
+            if (result.rows.length === 0) throw LocalError("session");
+            console.log('Deleted SESSION ID %s', result.rows[0])
+            callback();
+        })
+        .catch((err) => {
+            console.error('SESSION destroy() Error: ', err)
+            return callback(err)
+        });
+}
+
+/**
+ * This optional method is used to delete all sessions from the store.
+ * The callback should be called as callback(error) once the store is cleared.
+ *
+ * @param {function} callback
+ * @public
+ */
+SessionStore.prototype.clear = function (callback = noop) {
+    sessionServices.deleteAll()
+        .then(() => {
+            callback();
+        })
+        .catch((err) => {
+            console.error('SESSION clear() Error: ', err)
+            return callback(err)
+        });
+}
 
 /**
  * This private method is used to get all sessions in the store
@@ -246,43 +285,4 @@ function _getTTL(session) {
         ttl = Math.ceil(ms / 1000);
     }
     return ttl;
-}
-
-/**
- * This required method is used to destroy/delete a session from the store
- * given a session ID (sessionId). The callback should be called as
- * callback(error) once the session is destroyed.
- *
- * @param {string} sessionId
- * @param {function} callback
- * @public
- */
-Store.prototype.destroy = function(sessionId, callback = noop) {
-    let key = prefix + sessionId
-    sessionServices.delete(key)
-        .then(() => {
-            callback();
-        })
-        .catch((err) => {
-            console.error('SESSION destroy() Error: ', err)
-            return callback(err)
-        });
-}
-
-/**
- * This optional method is used to delete all sessions from the store.
- * The callback should be called as callback(error) once the store is cleared.
- *
- * @param {function} callback
- * @public
- */
-Store.prototype.clear = function (callback = noop) {
-    sessionServices.deleteAll()
-        .then(() => {
-            callback();
-        })
-        .catch((err) => {
-            console.error('SESSION clear() Error: ', err)
-            return callback(err)
-        });
 }

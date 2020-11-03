@@ -3,7 +3,7 @@
   Mountain Legacy Project: Explorer Application
   ------------------------------------------------------
   Module:       Core.Views.Builder.Forms
-  Filename:     views/builder/forms.js
+  Filename:     views/builders/forms.js
   ------------------------------------------------------
   Module to assist in building HTML forms from using
   data model schema
@@ -142,7 +142,7 @@ function buildTable(params, schema, values, widgets) {
     };
     let inputs = [];
 
-    // create input builder
+    // create input builders
     let inputBuilder = createInputBuilder(params, widgets);
 
     // check if form is empty

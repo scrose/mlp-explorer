@@ -158,7 +158,7 @@ function spoilToggle(e) {
   *  Utility Functions
   ********************************************** */
 
-  // Returns array of choice partials
+  // Returns array of choice common
   function getBallotChoices() {
     var choices = [];
     var choiceGroups = document.getElementById('choice_groups');

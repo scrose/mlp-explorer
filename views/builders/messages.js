@@ -3,7 +3,7 @@
   Mountain Legacy Project: Explorer Application
   ------------------------------------------------------
   Module:       Core.Views.Builder.Messages
-  Filename:     views/builder/messages.js
+  Filename:     views/builders/messages.js
   ------------------------------------------------------
   Module to assist in building response messages schema.
   ------------------------------------------------------

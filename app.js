@@ -18,34 +18,44 @@ const path = require('path');
 const session = require('express-session');
 const sessionStore = require('./models/sessionStore')
 const methodOverride = require('method-override');
-const builder = require('./views/builder');
+const builder = require('./views/builders');
 const utils = require('./_utilities');
-const params = require('./config');
+const error = require('./error')
+const config = require('./config');
+
+/**
+ * Initialize main Express instance.
+ */
 
 const app = express();
 
-// hide Express usage
+/**
+ * Hide Express usage information from public.
+ */
+
 app.disable('x-powered-by');
 
-// =====================================
-// views engine
+/**
+ * Define the views parameters:
+ * - View engine: set default template engine to "ejs"
+ *   which prevents the need for using file extensions
+ * - Views main directory: set views for error and 404 pages
+ */
 
-// set our default template engine to "ejs"
-// which prevents the need for using file extensions
 app.set('view engine', 'ejs');
-
-// set views for error and 404 pages
 app.set('views', path.join(__dirname, 'views'));
 
-// Proxy setting
+/**
+ * Set proxy.
+ */
+
 app.set('trust proxy', 1) // trust first proxy
 
-
-// ---------------------------------
-// session management
-// see documentation: https://github.com/expressjs/session
-// ---------------------------------
-
+/**
+ * Initialize session variables and management.
+ * see documentation: https://github.com/expressjs/session
+ */
+// TODO: ensure cookie:secure is set to true for https on production server
 app.use(session({
   genid: function(req) {
     return utils.secure.genUUID() // use UUIDs for session IDs
@@ -53,29 +63,38 @@ app.use(session({
   store: new sessionStore(),
   resave: false, // don't save session if unmodified
   saveUninitialized: false, // don't create session until something stored
-  secret: params.session.secret,
-  maxAge: utils.date.now.setDate(utils.date.now.getDate() + 1),
-  cookie: { secure: true, sameSite: true, maxAge: 86400000 }
+  secret: config.session.secret,
+  maxAge: config.session.TTL * 3600000,
+  // cookie: { secure: false, sameSite: true, maxAge: 86400000 }
+  cookie: { secure: false, sameSite: true, maxAge: 1 }
 }));
 
+/**
+ * Define session-persistent messenger.
+ *
+ * @param {json} msg
+ * @public
+ */
 
-// ---------------------------------
-// message handling
-// ---------------------------------
-app.response.success = function (msg) {
-    if (msg) {
+app.response.message = function (msg) {
+    if (msg && this.req.session) {
       this.req.session.messages = this.req.session.messages || [];
       this.req.session.messages.push(
           JSON.stringify({
-            div: { attributes: {class: 'msg success'}, textNode: msg }
+            div: { attributes: {class: 'msg ' + msg.type}, textNode: msg.text }
           })
       );
     }
     return this;
 }
 
-// session-persistent message middleware:
-// custom res.cleanup() method which deletes messages in the session
+/**
+ * Define session-persistent messenger cleanup function to
+ * delete all of the messages in the session.
+ *
+ * @public
+ */
+
 app.response.cleanup = function(){
   console.log('Clean up messages.')
   this.req.session.messages = [];
@@ -103,51 +122,60 @@ app.response.cleanup = function(){
 // };
 
 
-// ---------------------------------
-// session support
-// ---------------------------------
+/**
+ * Define logger for development.
+ */
+
 app.use(logger('dev'));
 
 
-// ---------------------------------
-// static routes
-// ---------------------------------
+/**
+ * Serve static files.
+ */
 
-// serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// parse request bodies (req.body)
-app.use(express.urlencoded({ extended: true }))
+/**
+ * Parse request bodies (req.body)
+ */
 
-// allow overriding methods in query (?_method=put)
+app.use(express.urlencoded({ extended: true }))
+app.use(express.json());
+
+/**
+ * Allow overriding methods in query (?_method=put)
+ */
+
 app.use(methodOverride('_method'));
 
-// ---------------------------------
-// view parameters
-// ---------------------------------
+/**
+ * Define view parameters for template rendering (middleware)
+ */
+
 app.use(function(req, res, next) {
-  // Add boilerplate content
-  req.view = params.settings.general;
+  // add boilerplate content
+  req.view = config.settings.general;
   req.view.name = path.parse(req.originalUrl).base;
 
-  // response messages
-  // req.session.user = req.user
-  // req.session.authenticated = !req.user.anonymous
-  console.log('Message Bank: ', req.session.messages)
+  // check user session data
+  console.log('Current User: ', req.session.user || 'anonymous');
+  console.log('Message Bank: ', req.session.messages);
   req.view.messages = req.session.messages || []
 
   // navigation menus
   req.view.menus = {
-    breadcrumb: builder.nav.buildBreadcrumbMenu(req.originalUrl),
-    user: builder.nav.buildUserMenu(req.session.user),
-    editor: builder.nav.buildEditorMenu(req.session.user, req)
+    breadcrumb: builder.nav.breadcrumbMenu(req.originalUrl),
+    user: builder.nav.userMenu(req.session.user),
+    editor: builder.nav.editorMenu(req.session.user, req)
   }
 
   next();
 });
 
-// =====================================
-// map routes -> controllers
+/**
+ * Initialize router: map routes to controllers and views.
+ */
+
 require('./routes')(app, { verbose: true });
 
 
@@ -169,10 +197,11 @@ app.use(function (req, res, next) {
 });
 
 
-// ---------------------------------
-// default handlers
-// ---------------------------------
-app.use(utils.err.errorHandler);
-app.use(utils.err.notFoundHandler);
+/**
+ * Set default global error handlers.
+ */
+
+app.use(error.global);
+app.use(error.notFound);
 
 module.exports = app;

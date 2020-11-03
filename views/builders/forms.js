@@ -1,6 +1,6 @@
 /*!
- * MLP.Core.Views.Builder.Forms
- * File: /views/builder/forms.js
+ * MLP.Core.Views.Builders.Forms
+ * File: /views/builders/forms.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -24,28 +24,22 @@ let utils = require('../../_utilities')
  */
 
 function buildSelect(id, schema, data) {
+    if (!schema.hasOwnProperty(id)) return;
+
     let selectInput = {
         label: { attributes: {for: id} },
         select: { attributes: {name: id, id: id} }
     };
-    // get option/value indexes
-    let optionField, valueField;
-    // build DOM schema
-    for (const [fieldName, field] of Object.entries(schema)) {
+    // get input select option field name
+    let optionField = schema[id].render.select.option;
 
-        // check if field has view rendering attributes
-        if (!field.hasOwnProperty('render')) continue;
-        if (!field.render.hasOwnProperty('select')) continue;
-        optionField = field.render.select.option;
-        valueField = field.render.select.value;
-    }
     // build select options schema
     selectInput.select.childNodes = [];
     Object.entries(data).forEach(([key, item]) => {
         // create option element
         selectInput.select.childNodes.push({
             option: {
-                attributes: { value: item[valueField] },
+                attributes: { value: item[id] },
                 textNode: item[optionField]
             }
         })
@@ -61,7 +55,7 @@ function buildSelect(id, schema, data) {
  * @param {Object} model
  */
 
-function buildValidator(view, model) {
+function Validator(view, model) {
     let validator = {id: model.name, checklist: {}};
     for (const [fieldName, field] of Object.entries(model.schema)) {
         // check if field has view rendering a validation schema
@@ -74,44 +68,83 @@ function buildValidator(view, model) {
     return validator;
 }
 
-function createInputBuilder(formParams, formWidgets) {
-    return {
-        // class properties
-        params: formParams,
-        widgets: formWidgets,
-        attributes: {},
-        inputLabel: {},
-        labelText: '',
-        handler: null,
-        value: false,
-        // checkValues: function (field, values) {
-        //     // check if field is empty
-        //     return !values.hasOwnProperty(field);
-        // },
-        // build input field from schema
-        build: function (fieldName, fieldAttributes, fieldValue, labelText) {
+/**
+ * Create Input Builder.
+ *
+ * @public
+ * @param {Object} params
+ * @param {Object} widgets
+ */
+
+function InputBuilder(params, widgets) {
+    this.params = params;
+    this.widgets = widgets;
+    this.attributes = {};
+    this.inputLabel = {};
+    this.labelText = '';
+    this.handler = null;
+    this.value = false;
+}
+
+/**
+ * Build input DOM from parameters.
+ *
+ * @public
+ * @param {Object} params
+ * @param {Object} widgets
+ * @param {Object} params
+ * @param {Object} widgets
+ */
+
+InputBuilder.prototype.build = function (params) {
 
             // attach required name + id to attributes
-            this.attributes = fieldAttributes;
-            this.attributes.id = fieldName;
+            this.attributes = params.attributes;
+            this.attributes.id = params.;
             this.attributes.name = fieldName;
             this.labelText = labelText;
             this.inputLabel = {label: {attributes: {
-                        id: 'label_' + fieldName,
-                        for: fieldName,
+                        id: 'label_' + params.name,
+                        for: params.name,
                         class: this.attributes.type
             }}};
-            this.value = fieldValue ? fieldValue : '';
-            this.handler = (this.hasOwnProperty(this.attributes.type)) ? this[this.attributes.type] : this.default;
+            this.value = params.value ? params.value : '';
+            this.handler = (this.hasOwnProperty(params.attributes.type)) ? this[params.attributes.type] : this.default;
             return this.handler();
-        },
+        }
+
         // handle form input types
-        ignore: function() {return {}},
-        hidden: function() {
+/**
+ * Ignore input.
+ *
+ * @public
+ */
+
+InputBuilder.prototype.ignore = function() {
+    return {}
+}
+
+/**
+ * Build hidden input.
+ *
+ * @public
+ */
+
+InputBuilder.prototype.hidden = function() {
             if (this.value) this.attributes.value = this.value;
             return [{input:{attributes: this.attributes}}];
-        },
-        select: function() {
+        }
+/**
+ * Build input from paramters.
+ *
+ * @public
+ * @param {Object} params
+ * @param {Object} widgets
+ * @param {Object} params
+ * @param {Object} widgets
+ */
+
+InputBuilder.prototype.select = function() {
             if (this.widgets.hasOwnProperty(this.attributes.id)) {
                 this.widgets[this.attributes.id].label.childNodes = [{textNode: this.labelText}];
                 // get widget indexed by fieldname and set selected option
@@ -122,13 +155,34 @@ function createInputBuilder(formParams, formWidgets) {
                 });
                 return [this.widgets[this.attributes.id]];
             }
-        },
-        checkbox: function() {
+        }
+/**
+ * Build input from paramters.
+ *
+ * @public
+ * @param {Object} params
+ * @param {Object} widgets
+ * @param {Object} params
+ * @param {Object} widgets
+ */
+
+InputBuilder.prototype.checkbox = function() {
             if (this.value && this.value === true) this.attributes.checked = '';
             this.inputLabel.inputLabel.childNodes = [{input:{attributes: this.attributes}}, {textNode: this.labelText}];
             return [this.inputLabel];
-        },
-        date: function() {
+        }
+
+/**
+ * Build input from paramters.
+ *
+ * @public
+ * @param {Object} params
+ * @param {Object} widgets
+ * @param {Object} params
+ * @param {Object} widgets
+ */
+
+InputBuilder.prototype.date = function() {
             // handle date values (if given)
             // NOTE: Posgres format (yyy-mm-ddThh:02:40.677Z) -> JS format (yyyy-mm-dd)
             if (this.value) {
@@ -136,8 +190,19 @@ function createInputBuilder(formParams, formWidgets) {
                 this.inputLabel.label.textNode = field.label;
                 return [this.inputLabel, {input:{attributes: this.attributes}}];
             }
-        },
-        link: function() {
+        }
+
+/**
+ * Build input from paramters.
+ *
+ * @public
+ * @param {Object} params
+ * @param {Object} widgets
+ * @param {Object} params
+ * @param {Object} widgets
+ */
+
+InputBuilder.prototype.link = function() {
             let url = this.attributes.url || '#';
             let className = this.attributes.class || 'form_button';
             let target = this.attributes.target || '_self';
@@ -147,28 +212,69 @@ function createInputBuilder(formParams, formWidgets) {
             };
             this.inputLabel.label.childNodes = [{textNode: this.labelText}];
             return [this.inputLabel, {div: hyperlink}];
-        },
+        }
         // handle simple inline text
-        textNode: function() {
+/**
+ * Build input from paramters.
+ *
+ * @public
+ * @param {Object} params
+ * @param {Object} widgets
+ * @param {Object} params
+ * @param {Object} widgets
+ */
+
+InputBuilder.prototype.textNode = function() {
             const tnode = {div: {attributes: this.attributes, p: {textNode:this.value }}};
             this.inputLabel.label.textNode = this.labelText;
             return [this.inputLabel, tnode];
-        },
+        }
         // handle timestamps
-        timestamp: function() {
+
+/**
+ * Build input from paramters.
+ *
+ * @public
+ * @param {Object} params
+ * @param {Object} widgets
+ * @param {Object} params
+ * @param {Object} widgets
+ */
+
+InputBuilder.prototype.timestamp = function() {
             // NOTE Posgres format (yyy-mm-ddThh:02:40.677Z) -> JS format (yyyy-mm-dd HH:mm:ss)
             const timestamp = {time: {attributes: this.attributes}};
             this.inputLabel.label.textNode = this.labelText;
             timestamp.time.textNode = this.value ? utils.date.formatDate(this.value, "yyyy-mm-dd HH:mm:ss") : 'n/a';
             return [this.inputLabel, {div: timestamp}];
         },
-        password: function() {
+/**
+ * Build input from paramters.
+ *
+ * @public
+ * @param {Object} params
+ * @param {Object} widgets
+ * @param {Object} params
+ * @param {Object} widgets
+ */
+
+InputBuilder.prototype.build = password: function() {
             this.attributes.value = this.value;
             // wrap input in label element
             this.inputLabel.label.childNodes = [{textNode: this.labelText}, {input:{attributes: this.attributes}}];
             return [this.inputLabel];
         },
-        repeat_password: function() {
+/**
+ * Build input from paramters.
+ *
+ * @public
+ * @param {Object} params
+ * @param {Object} widgets
+ * @param {Object} params
+ * @param {Object} widgets
+ */
+
+InputBuilder.prototype.build = repeat_password: function() {
             // wrap input in label element
             this.inputLabel.label.childNodes = [
                 {textNode: this.labelText},
@@ -176,7 +282,17 @@ function createInputBuilder(formParams, formWidgets) {
                 ];
             return [this.inputLabel];
         },
-        default: function() {
+/**
+ * Build input from paramters.
+ *
+ * @public
+ * @param {Object} params
+ * @param {Object} widgets
+ * @param {Object} params
+ * @param {Object} widgets
+ */
+
+InputBuilder.prototype.build = default: function() {
             this.attributes.value = this.value;
             // wrap input in label element
             this.inputLabel.label.childNodes = [{textNode: this.labelText}, {input:{attributes: this.attributes}}];
@@ -185,10 +301,17 @@ function createInputBuilder(formParams, formWidgets) {
     }
 }
 
+/**
+ * Create Form element from schema.
+ *
+ * @public
+ * @param {Object} params
+ * @param {Object} schema
+ * @param {Object} widgets
+ */
 
-// build forms from schema
-function buildForm(params, schema, widgets) {
-    let form = {
+function FormBuilder(params, schema, widgets) {
+    this.form = {
         form: {
             attributes: {
                 action: params.routes.submit,
@@ -199,10 +322,22 @@ function buildForm(params, schema, widgets) {
             fieldset: {legend: {textNode: params.legend || schema.model}}
         }
     };
-    let inputs = [];
+    this.inputs = [];
 
-    // create input builder
-    let inputBuilder = createInputBuilder(params, widgets);
+    // create input builders
+    this.inputBuilder = InputBuilder(params, widgets);
+}
+
+/**
+ * Build form DOM from schema.
+ *
+ * @public
+ * @param {Object} params
+ * @param {Object} schema
+ * @param {Object} widgets
+ */
+
+FormBuilder.prototype.build = function () {
 
     // build DOM schema
     for (const [fieldName, field] of Object.entries(schema.schema)) {
@@ -224,7 +359,13 @@ function buildForm(params, schema, widgets) {
         if (field.hasOwnProperty('restrict') && !field.restrict.includes(role)) continue;
 
         // build input element from schema
-        inputBuilder.build(fieldName, fieldObj.attributes, fieldValue, field.label).forEach((elem) => {inputs.push(elem)});
+        let args = {
+            name: fieldName,
+            attributes: fieldObj.attributes,
+            value: fieldValue,
+            label: field.label
+        }
+        inputBuilder.build(args).forEach((elem) => {inputs.push(elem)});
 
     }
     // submit button

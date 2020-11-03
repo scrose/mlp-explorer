@@ -1,49 +1,61 @@
-/*
-  ======================================================
-  Mountain Legacy Project: Explorer Application
-  ------------------------------------------------------
-  Module:       Core.Classes.UserRole
-  File:         /classes/userRole.js
-  ------------------------------------------------------
-  User role data model (JS Class).
-  ------------------------------------------------------
-  Creator:      Spencer Rose
-  Copyright:    (c) 2020 Runtime Software Development Inc.
-  License:      MIT
-  Version:      1.0
-  Last Updated: October 31, 2020
-  ======================================================
-*/
+/*!
+ * MLP.Core.Models.UserRoles
+ * File: /models/user.js
+ * Copyright(c) 2020 Runtime Software Development Inc.
+ * MIT Licensed
+ */
 
 'use strict';
 
-const Model = require('./base')
+/**
+ * Module dependencies.
+ * @private
+ */
 
-class UserRole extends Model {
-    constructor (...params) {
-        // Pass Model arguments
-        super(...params)
+const Model = require('./base');
+const utils = require('../_utilities');
 
-        this.modelName = 'user_roles';
-        this.modelLabel = 'User Roles';
-        this.modelSchema = {
-            id: {
-                label: 'ID',
-                    type: 'integer',
-                    render: {
-                    select: {
-                        option: 'name',
-                            value: 'id'
-                    }
-                },
-            },
-            name: {
-                label: 'Name',
-                    type: 'text',
+/**
+ * Module exports.
+ * @public
+ */
+
+module.exports = UserRole
+
+/**
+ * Define UserRole data model schema
+ *
+ * @private
+ */
+let schema = {
+    role_id: {
+        label: 'ID',
+        type: 'integer',
+        render: {
+            select: {
+                option: 'name',
+                value: 'role_id'
             }
         }
+    },
+    name: {
+        label: 'Name',
+        type: 'text',
     }
+};
+
+/**
+ * Create User data model. Call base Model class as constructor.
+ *
+ * @private
+ * @param data
+ */
+function UserRole(data = null) {
+    Model.call(this, 'user_roles', 'User Role', schema, data);
 }
 
-// export class
-module.exports = UserRole
+/**
+ * Inherit methods from Model abstract class.
+ */
+
+UserRole.prototype = Object.create(Model.prototype);

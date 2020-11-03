@@ -1,28 +1,30 @@
-/*
-  ======================================================
-  Mountain Legacy Project: Explorer Application
-  ------------------------------------------------------
-  Module:       Core.Views.Builder.Navigation
-  Filename:     views/builder/nav.js
-  ------------------------------------------------------
-  Builds navigation menus
-  ------------------------------------------------------
-  Creator:      Spencer Rose
-  Copyright:    (c) 2020 Runtime Software Development Inc.
-  License:      MIT
-  Version:      1.0
-  Last Updated: October 26, 2020
-  ======================================================
-*/
+/*!
+ * MLP.Core.Views.Builder.Navigation
+ * File: /views/builders/nav.js
+ * Copyright(c) 2020 Runtime Software Development Inc.
+ * MIT Licensed
+ */
 
 'use strict';
+
+/**
+ * Module dependencies.
+ * @private
+ */
+
 const params = require('../../config')
 const path = require('path')
 const utils = require('../../_utilities')
 
 
-// build breadcrumb menu
-module.exports.buildBreadcrumbMenu = function(url) {
+/**
+ * Build "breadcrumb" navigation menu.
+ *
+ * @param {string} url
+ * @public
+ */
+
+module.exports.breadcrumbMenu = function(url) {
     // initialize with home route
     let breadcrumbs = [{ li: { a: { attributes: { href: '/'}, textNode: params.settings.menu.frontpage}}}],
         accURL = "", // accumulative url
@@ -43,7 +45,7 @@ module.exports.buildBreadcrumbMenu = function(url) {
 };
 
 // build user menu
-module.exports.buildUserMenu = function(user) {
+module.exports.userMenu = function(user) {
     // user not logged in
     if (!user) {
         return  JSON.stringify({ul: {
@@ -71,7 +73,7 @@ module.exports.buildUserMenu = function(user) {
 
 
 // build editor tools menu
-module.exports.buildEditorMenu = function(user, req) {
+module.exports.editorMenu = function(user, req) {
 
     let menu = {ul: { attributes:{ class: 'editor_menu'}, childNodes:[]}};
 

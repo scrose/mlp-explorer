@@ -17,7 +17,7 @@ const db = require('../../db')
 /**
  * Find user by ID.
  *
- * @private
+ * @public
  * @param {String} queryText
  */
 
@@ -30,7 +30,7 @@ module.exports.findById = (queryText) => {
 /**
  * Find user by email.
  *
- * @private
+ * @public
  * @param {String} queryText
  */
 
@@ -43,7 +43,7 @@ module.exports.findByEmail = (queryText) => {
 /**
  * Find user by specified field.
  *
- * @private
+ * @public
  * @param {String} queryText
  */
 
@@ -56,7 +56,7 @@ module.exports.findOne = (queryText) => {
 /**
  * List all users (with surveys).
  *
- * @private
+ * @public
  * @param {String} queryText
  */
 
@@ -69,7 +69,7 @@ module.exports.findAll = (queryText) => {
 /**
  * Update user data.
  *
- * @private
+ * @public
  * @param {String} queryText
  */
 
@@ -78,8 +78,6 @@ module.exports.update = (queryText) => {
         return db.query(queryText, [
             data.user_id,
             data.email,
-            data.password,
-            data.salt_token,
             data.role_id
         ]);
     }
@@ -88,7 +86,7 @@ module.exports.update = (queryText) => {
 /**
  * Insert new user.
  *
- * @private
+ * @public
  * @param {String} queryText
  */
 
@@ -108,7 +106,7 @@ module.exports.insert = (queryText) => {
 /**
  * Delete user.
  *
- * @private
+ * @public
  * @param {String} queryText
  */
 

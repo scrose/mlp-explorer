@@ -18,12 +18,12 @@ const model = 'users'
 
 const User = require('../models/user');
 const UserRole = require('../models/userRole');
+const LocalError = require('../models/error')
 const userServices = require('../services')({ type: model });
 const userRoleServices = require('../services')({ type: 'userRoles' });
-const builder = require('../views/builder');
+const builder = require('../views/builders');
 const utils = require('../_utilities');
 const path = require('path');
-const {ValidationError} = require('../models/error')
 const jwt = require('express-jwt');
 
 /**
@@ -31,7 +31,6 @@ const jwt = require('express-jwt');
  */
 
 exports.engine = 'ejs';
-
 
 /**
  * Preliminary data preparation.
@@ -41,6 +40,7 @@ exports.engine = 'ejs';
  * @param next
  * @api private
  */
+
 exports.before = async (req, res, next) => {
     // event-specific request parameters
     req.view.id = req.params.users_id || null;
@@ -89,8 +89,10 @@ exports.login = (req, res, next) => {
         let user = new User();
         let {form, validator} = builder.forms.create(
             {
+                id: model,
                 view: req.view.name,
-                name: 'Login',
+                submitValue: 'Sign In',
+                legend: 'User Sign In',
                 method: 'POST',
                 routes: {
                     submit: req.url,
@@ -120,23 +122,21 @@ exports.login = (req, res, next) => {
  */
 exports.logout = async (req, res, next) => {
     try {
-        if (!req.session.user) throw new Error();
-        // Regenerate session when signing out to prevent fixation
-        req.session.regenerate(function(){
-            // Store the user's primary key
-            // in the session store to be retrieved,
-            // or in this case the entire user object
-            req.session.user = null;
-            res.message({severity:'success', code:'logout'});
-
-        }, next);
+        console.log('Logging out:', req.session.user)
+        if (!req.session.user) throw new LocalError("logoutRedundant");
+        // Destroy session when signing out
+        req.session.destroy(function(err){
+            if (err) {
+                console.error(err);
+                throw new LocalError("logoutFailure");
+            }
+            res.redirect('/?logout=true');
+        });
     }
     catch(err) {
-        console.log(err)
         next(err);
     }
 };
-
 
 /**
  * Authenticate user credentials.
@@ -146,10 +146,16 @@ exports.logout = async (req, res, next) => {
  * @param next
  * @api public
  */
+
 exports.authenticate = async (req, res, next) => {
+    // validate user credentials
     let reqUser
     try {
-        reqUser = utils.data.sanitize( req.body );
+        const { email, password } = req.body
+        reqUser = {
+            email: utils.validate(email).isEmail(),
+            password: utils.validate(password).isPassword()
+        };
     }
     catch (err) {
         next(err);
@@ -157,25 +163,24 @@ exports.authenticate = async (req, res, next) => {
     // confirm user exists
     await userServices.findByEmail( reqUser.email )
         .then((result) => {
-            if (result.rows.length === 0) throw new ValidationError("login");
+            if (result.rows.length === 0) throw LocalError("loginFailure");
             // wrap requested user data for authentication
             let authUser = new User( result );
             // authenticate user credentials
-            if ( !authUser.authenticate(reqUser.password) ) throw new ValidationError("login");
+            if ( !authUser.authenticate(reqUser.password) ) throw LocalError("login");
             // TODO: Include JWT signing (http://jwt.io/)
             // Regenerate session when signing in to prevent fixation
             req.session.regenerate(function (err){
                 // Store user object in the session store to be retrieved
                 req.session.user = {
-                    id: authUser.getData('user_id'),
-                    email: authUser.getData('email'),
-                    role: authUser.getData('role_id')
+                    id: authUser.getValue('user_id'),
+                    email: authUser.getValue('email'),
+                    role: authUser.getValue('role_id')
                 };
                 req.session.messages = {code: 'login', type:'success'};
+                res.redirect('/')
             });
-        }).then(
-            res.redirect('/')
-        )
+        })
         .catch((err) => {
             next(err);
         });
@@ -238,7 +243,7 @@ exports.confirm = async (req, res, next) => {
     await userServices.insert( user.getData() )
         .then((result) => {
 
-            if (result.rows.length === 0) throw new ValidationError("register");
+            if (result.rows.length === 0) throw new LocalError("register");
             // let userEmail = result.rows[0].email;
             // // send confirmation email to user
             // utils.email.send(userEmail, "Verify registration.");
@@ -251,11 +256,19 @@ exports.confirm = async (req, res, next) => {
 }
 
 
-// ------- show user profile -------
+/**
+ * Show the user's profile data.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @api public
+ */
+
 exports.show = async (req, res, next) => {
     await userServices.findById( req.view.id )
         .then((result) => {
-            if (result.rows.length === 0) throw new ValidationError("nouser");
+            if (result.rows.length === 0) throw new LocalError("nouser");
             let user = new User( result );
             res.render('show', {
                 content: req.view,
@@ -269,8 +282,15 @@ exports.show = async (req, res, next) => {
         });
 };
 
+/**
+ * Edit the user's profile data.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @api public
+ */
 
-// ------- edit user profile -------
 exports.edit = async (req, res, next) => {
     req.view.name = 'edit';
     // retrieve user roles
@@ -281,13 +301,15 @@ exports.edit = async (req, res, next) => {
 
     await userServices.findById( req.view.id )
         .then((result) => {
-            if (result.rows.length === 0) throw new ValidationError('nouser');
+            if (result.rows.length === 0) throw new LocalError('nouser');
             let user = new User( result );
             let {form, validator} = builder.forms.create(
                 {
+                    id: model,
                     view: req.view.name,
-                    name: 'Update',
+                    submitValue: 'Update',
                     method: 'POST',
+                    legend: 'Update User Profile',
                     routes: {
                         submit: path.join('/users', req.view.id, 'edit'),
                         cancel: '/users',
@@ -305,26 +327,49 @@ exports.edit = async (req, res, next) => {
         .catch((err) => next(err));
 }
 
+/**
+ * Update the user's profile data.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @api public
+ */
 
-// ------- update user profile -------
 exports.update = async (req, res, next) => {
-    await userServices.update( req.body )
+    let user;
+    try {
+        // initialize user object
+        user = new User( req.body );
+    } catch (err) {
+        next(err);
+    }
+    // update user data
+    await userServices.update( user.getData() )
         .then((result) => {
-            if (result.rows.length === 0) throw new ValidationError('nouser');
+            if (result.rows.length === 0) throw new LocalError("update");
             res.success('Update successful!');
-            console.log('Redirecting to %s', path.join('users', req.params.users_id, 'edit'))
-            res.redirect(path.join('/users', req.params.users_id, 'edit'))
+            res.redirect('/')
         })
-        .catch((err) => next(err));
+        .catch((err) => {
+            next(err)
+        })
+
 }
 
+/**
+ * Confirm removal of user.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @api public
+ */
 
-
-// ------- confirm deletion of user account -------
 exports.remove = async (req, res, next) => {
     await userServices.findById( req.view.id )
         .then((result) => {
-            if (result.rows.length === 0) throw new ValidationError('nouser');
+            if (result.rows.length === 0) throw new LocalError('nouser');
             let user = new User( result );
             let {form, validator} = builder.forms.create(
                 {
@@ -345,11 +390,19 @@ exports.remove = async (req, res, next) => {
         .catch((err) => next(err));
 }
 
-// ------- delete user account -------
+/**
+ * Delete user.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @api public
+ */
+
 exports.delete = async (req, res, next) => {
     await userServices.delete( req.body )
         .then((result) => {
-            if (result.rows.length === 0) throw new ValidationError('nouser');
+            if (result.rows.length === 0) throw new LocalError('nouser');
             res.success("User successfully deleted.");
             res.redirect('/users')
         })
