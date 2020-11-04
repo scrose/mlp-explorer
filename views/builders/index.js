@@ -1,22 +1,50 @@
-/*
-  ======================================================
-  Mountain Legacy Project: Explorer Application
-  ------------------------------------------------------
+/*!
+ * MLP.Core.Views.Builders
+ * File: /views/builders/index.js
+ * Copyright(c) 2020 Runtime Software Development Inc.
+ * MIT Licensed
+ */
 
-  ------------------------------------------------------
-  Creator:      Spencer Rose
-  Copyright:    (c) 2020 Runtime Software Development Inc.
-  License:
-  Version:      1.0
-  Last Updated: October 27, 2020
-  ------------------------------------------------------
-  Module:       Core.Views.Builder
-  Filename:     /_utilities/index.js
-  ======================================================
-*/
+'use strict'
 
-// Initialization
-'use strict';
+/**
+ * Module dependencies.
+ * @private
+ */
+
+const FormBuilder = require('./forms');
+const ValidatorBuilder = require('./validator');
+
+/**
+ * Module exports.
+ * @public
+ */
+
 exports.nav = require('./nav');
-exports.forms = require('./forms');
 exports.messages = require('./messages');
+
+/**
+ * Build form DOM and export as JSON schema
+ *
+ * @public
+ * @param {Object} params
+ * @return {JSON} DOM schema
+ */
+
+exports.form = (params) => {
+    let formBuilder = new FormBuilder();
+    return JSON.stringify(formBuilder.build(params));
+}
+
+/**
+ * Build validator DOM and export as JSON schema
+ *
+ * @public
+ * @param {Object} params
+ * @return {JSON} DOM schema
+ */
+
+exports.validator = (params) => {
+    let validatorBuilder = new ValidatorBuilder();
+    return JSON.stringify(validatorBuilder.build(params))
+}

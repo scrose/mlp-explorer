@@ -13,7 +13,6 @@
  */
 
 const Model = require('./base');
-const utils = require('../_utilities');
 
 /**
  * Module exports.
@@ -30,17 +29,11 @@ module.exports = UserRole
 let schema = {
     role_id: {
         label: 'ID',
-        type: 'integer',
-        render: {
-            select: {
-                option: 'name',
-                value: 'role_id'
-            }
-        }
+        type: 'integer'
     },
     name: {
         label: 'Name',
-        type: 'text',
+        type: 'text'
     }
 };
 

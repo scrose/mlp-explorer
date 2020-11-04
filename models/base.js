@@ -86,7 +86,6 @@ function Model(name, label, schema=null, data = null) {
     }
 }
 
-
 /**
  * Set values of model schema fields.
  *
@@ -109,9 +108,6 @@ utils.obj.defineMethod(Model, 'setData', function (data) {
     // otherwise, empty schema of values
     this.clear();
 });
-
-
-
 
 /**
  * Set field value in model schema.
@@ -169,4 +165,18 @@ utils.obj.defineMethod(Model, 'clear', function () {
         });
     }
     return this;
+});
+
+/**
+ * Set options of provided schema field.
+ *
+ * @param {String} field
+ * @param {Array} data
+ * @api public
+ */
+
+utils.obj.defineMethod(Model, 'setOptions', function(field, options) {
+    if (field && this.schema.hasOwnProperty(field) && options.isArray()) {
+        this.schema[field].options = (options) ? options : null;
+    }
 });

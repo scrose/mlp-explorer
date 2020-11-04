@@ -9,7 +9,7 @@
  * Module constants.
  * @private
  */
-const model = 'users'
+const modelName = 'users'
 
 /**
  * Module dependencies.
@@ -17,14 +17,13 @@ const model = 'users'
  */
 
 const User = require('../models/user');
-const UserRole = require('../models/userRole');
 const LocalError = require('../models/error')
-const userServices = require('../services')({ type: model });
+const userServices = require('../services')({ type: modelName });
 const userRoleServices = require('../services')({ type: 'userRoles' });
 const builder = require('../views/builders');
 const utils = require('../_utilities');
 const path = require('path');
-const jwt = require('express-jwt');
+// const jwt = require('express-jwt');
 
 /**
  * Set view engine
@@ -43,8 +42,8 @@ exports.engine = 'ejs';
 
 exports.before = async (req, res, next) => {
     // event-specific request parameters
-    req.view.id = req.params.users_id || null;
-    req.view.model = model;
+    req.view.id = req.params.hasOwnProperty('user_id') ? req.params.users_id : null;
+    req.view.model = modelName;
     next();
 };
 
@@ -87,24 +86,21 @@ exports.list = async (req, res, next) => {
 exports.login = (req, res, next) => {
     try {
         let user = new User();
-        let {form, validator} = builder.forms.create(
-            {
-                id: model,
-                view: req.view.name,
-                submitValue: 'Sign In',
-                legend: 'User Sign In',
-                method: 'POST',
-                routes: {
-                    submit: req.url,
-                    cancel: '/',
-                }
+        let args = {
+            model: user,
+            view: req.view.name,
+            method: 'POST',
+            legend: 'User Sign In',
+            actions: {
+                submit: {value: 'Sign In', url: '/login'},
+                cancel: {value: 'Cancel', url: '/'},
             },
-            user);
-
+            restrict: req.session.user || null
+        }
+        req.view.form = builder.form(args);
+        req.view.validator = builder.validator(args);
         res.render('login', {
-            content: req.view,
-            formSchema: form,
-            validatorSchema: validator
+            content: req.view
         });
     } catch(err) {
         next(err);
@@ -171,6 +167,7 @@ exports.authenticate = async (req, res, next) => {
             // TODO: Include JWT signing (http://jwt.io/)
             // Regenerate session when signing in to prevent fixation
             req.session.regenerate(function (err){
+                if (err) throw LocalError(err);
                 // Store user object in the session store to be retrieved
                 req.session.user = {
                     id: authUser.getValue('user_id'),
@@ -197,24 +194,22 @@ exports.authenticate = async (req, res, next) => {
  */
 
 exports.register = async (req, res, next) => {
-    let user = new User();
-    let {form, validator} = builder.forms.create(
-        {
-            id: model,
-            view: req.view.name,
-            submitValue: 'Register',
-            legend: 'User Registration',
-            method: 'POST',
-            routes: {
-                submit: '/users/register',
-                cancel: '/',
-            }
-        }, user);
     try {
+        let args = {
+            model: new User(),
+            view: req.view.name,
+            method: 'POST',
+            legend: 'User Registration',
+            actions: {
+                submit: {value: 'Register', url: '/users/register'},
+                cancel: {value: 'Cancel', url: '/'}
+            },
+            restrict: null
+        }
+        req.view.form = builder.form(args);
+        req.view.validator = builder.validator(args);
         res.render('register', {
-            content: req.view,
-            formSchema: form,
-            validatorSchema: validator
+            content: req.view
         });
     } catch(err) {
         next(err)
@@ -255,7 +250,6 @@ exports.confirm = async (req, res, next) => {
         })
 }
 
-
 /**
  * Show the user's profile data.
  *
@@ -294,34 +288,30 @@ exports.show = async (req, res, next) => {
 exports.edit = async (req, res, next) => {
     req.view.name = 'edit';
     // retrieve user roles
-    let userRole = new UserRole();
-    const roles = await userRoleServices.findAll().catch((err) => next(err));
-    // build widget for selection of user roles
-    let widget = {'role_id': builder.forms.select('role_id', userRole.schema, roles.rows)}
+    const {rows} = await userRoleServices.findAll().catch((err) => next(err));
 
     await userServices.findById( req.view.id )
         .then((result) => {
             if (result.rows.length === 0) throw new LocalError('nouser');
             let user = new User( result );
-            let {form, validator} = builder.forms.create(
-                {
-                    id: model,
-                    view: req.view.name,
-                    submitValue: 'Update',
-                    method: 'POST',
-                    legend: 'Update User Profile',
-                    routes: {
-                        submit: path.join('/users', req.view.id, 'edit'),
-                        cancel: '/users',
-                    }
+            // add role options to model
+            user.setOptions('role', rows);
+            // assemble build parameters
+            let args = {
+                model: user,
+                view: req.view.name,
+                method: 'POST',
+                legend: 'Update User Profile',
+                actions: {
+                    submit: {value: 'Update', url: path.join('/users', req.view.id, 'edit')},
+                    cancel: {value: 'Cancel', url: '/'},
                 },
-                user,
-                widget
-            );
+                restrict: req.session.user || null
+            }
+            req.view.form = builder.form(args);
+            req.view.validator = builder.validator(args);
             res.render('edit', {
-                content: req.view,
-                formSchema: form,
-                validatorSchema: validator
+                content: req.view
             });
         })
         .catch((err) => next(err));
@@ -371,7 +361,7 @@ exports.remove = async (req, res, next) => {
         .then((result) => {
             if (result.rows.length === 0) throw new LocalError('nouser');
             let user = new User( result );
-            let {form, validator} = builder.forms.create(
+            let {form, validator} = builder.form(
                 {
                     view: req.view.name,
                     name: 'Delete',
