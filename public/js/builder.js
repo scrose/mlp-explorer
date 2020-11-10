@@ -1,6 +1,6 @@
 /*!
  * MLP.UI.Editor.Builder
- * File: /public/js/builders.js
+ * File: /public/js/builder.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -44,7 +44,7 @@ Builder.prototype.build = function(id, schema) {
 }
 
 /**
- * [Helper] Recursively build html nodes using JSON object as DOM schema
+ * [Helper] Recursively builds html nodes using JSON object as DOM schema.
  *
  * @private
  * @param {Element} parent
@@ -67,7 +67,6 @@ Builder.prototype._build_ = function (parent, schema, debug=false) {
 		}
 		// set node attributes
 		if (prop === 'attributes') {
-			// add node attributes
 			for (const att in node) {
 				if (debug) console.log(' - Add attribute %s value %s to ', att, node[att], parent.nodeName);
 				parent.setAttribute(att, node[att]);
@@ -111,7 +110,7 @@ Builder.prototype._build_ = function (parent, schema, debug=false) {
  */
 
 function NodeWrapper(id) {
-	this.element = document.getElementById('fs');
+	this.element = document.getElementById(id);
 	if (!this.element) console.error('Element ID %s not found.', id);
 }
 

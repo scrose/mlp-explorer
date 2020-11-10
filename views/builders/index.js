@@ -13,7 +13,6 @@
  */
 
 const FormBuilder = require('./forms');
-const ValidatorBuilder = require('./validator');
 
 /**
  * Module exports.
@@ -33,18 +32,6 @@ exports.messages = require('./messages');
 
 exports.form = (params) => {
     let formBuilder = new FormBuilder();
-    return JSON.stringify(formBuilder.build(params));
-}
-
-/**
- * Build validator DOM and export as JSON schema
- *
- * @public
- * @param {Object} params
- * @return {JSON} DOM schema
- */
-
-exports.validator = (params) => {
-    let validatorBuilder = new ValidatorBuilder();
-    return JSON.stringify(validatorBuilder.build(params))
+    let {form, validator} = formBuilder.build(params)
+    return {form: JSON.stringify(form), validator: JSON.stringify(validator)};
 }

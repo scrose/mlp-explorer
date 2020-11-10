@@ -42,7 +42,7 @@ exports.engine = 'ejs';
 
 exports.before = async (req, res, next) => {
     // event-specific request parameters
-    req.view.id = req.params.hasOwnProperty('user_id') ? req.params.users_id : null;
+    req.view.id = req.params.hasOwnProperty('users_id') ? req.params.users_id : null;
     req.view.model = modelName;
     next();
 };
@@ -73,7 +73,6 @@ exports.list = async (req, res, next) => {
         });
 };
 
-
 /**
  * User sign-in interface.
  *
@@ -85,9 +84,8 @@ exports.list = async (req, res, next) => {
 
 exports.login = (req, res, next) => {
     try {
-        let user = new User();
         let args = {
-            model: user,
+            model: new User(),
             view: req.view.name,
             method: 'POST',
             legend: 'User Sign In',
@@ -97,25 +95,43 @@ exports.login = (req, res, next) => {
             },
             restrict: req.session.user || null
         }
-        req.view.form = builder.form(args);
-        req.view.validator = builder.validator(args);
-        res.render('login', {
-            content: req.view
-        });
+        let {form, validator} = builder.form(args);
+        req.view.form = form;
+        req.view.validator = validator;
+        res.render('login', {content: req.view});
     } catch(err) {
         next(err);
     }
 };
 
-
 /**
  * User sign-out interface.
  *
+ *
+ exports.logout=function(req,res){
+
+  sess=req.session;
+  var data = {
+    "Data":""
+  };
+  sess.destroy(function(err) {
+    if(err){
+      data["Data"] = 'Error destroying session';
+      res.json(data);
+    }else{
+      data["Data"] = 'Session destroy successfully';
+      res.json(data);
+      //res.redirect("/login");
+    }
+  });
+
+};
  * @param req
  * @param res
  * @param next
  * @api public
  */
+
 exports.logout = async (req, res, next) => {
     try {
         console.log('Logging out:', req.session.user)
@@ -149,13 +165,14 @@ exports.authenticate = async (req, res, next) => {
     try {
         const { email, password } = req.body
         reqUser = {
-            email: utils.validate(email).isEmail(),
-            password: utils.validate(password).isPassword()
+            email: utils.validate(email).isEmail().data,
+            password: utils.validate(password).isPassword().data
         };
     }
     catch (err) {
         next(err);
     }
+
     // confirm user exists
     await userServices.findByEmail( reqUser.email )
         .then((result) => {
@@ -165,6 +182,7 @@ exports.authenticate = async (req, res, next) => {
             // authenticate user credentials
             if ( !authUser.authenticate(reqUser.password) ) throw LocalError("login");
             // TODO: Include JWT signing (http://jwt.io/)
+            console.log('Current Session ID:', req.session.id)
             // Regenerate session when signing in to prevent fixation
             req.session.regenerate(function (err){
                 if (err) throw LocalError(err);
@@ -206,8 +224,9 @@ exports.register = async (req, res, next) => {
             },
             restrict: null
         }
-        req.view.form = builder.form(args);
-        req.view.validator = builder.validator(args);
+        let {form, validator} = builder.form(args);
+        req.view.form = form;
+        req.view.validator = validator;
         res.render('register', {
             content: req.view
         });
@@ -228,21 +247,26 @@ exports.register = async (req, res, next) => {
 exports.confirm = async (req, res, next) => {
     let user;
     try {
-        // create user from submitted user credentials
-        user = new User( req.body );
+        // validate user input data
+        let {email, password, role_id} = req.body
+        user = new User( {
+            email: utils.validate(email).isEmail().data,
+            password: utils.validate(password).isPassword().data,
+            role_id: role_id
+        } );
         user.encrypt();
     } catch (err) {
         next(err);
     }
+
     // insert user in database
     await userServices.insert( user.getData() )
         .then((result) => {
-
             if (result.rows.length === 0) throw new LocalError("register");
             // let userEmail = result.rows[0].email;
             // // send confirmation email to user
             // utils.email.send(userEmail, "Verify registration.");
-            res.success('Registration successful!');
+            res.message({type: 'success', text: 'Registration successful!'});
             res.redirect('/')
         })
         .catch((err) => {
@@ -308,8 +332,9 @@ exports.edit = async (req, res, next) => {
                 },
                 restrict: req.session.user || null
             }
-            req.view.form = builder.form(args);
-            req.view.validator = builder.validator(args);
+            let {form, validator} = builder.form(args);
+            req.view.form = form;
+            req.view.validator = validator;
             res.render('edit', {
                 content: req.view
             });

@@ -65,8 +65,7 @@ app.use(session({
   saveUninitialized: false, // don't create session until something stored
   secret: config.session.secret,
   maxAge: config.session.TTL * 3600000,
-  // cookie: { secure: false, sameSite: true, maxAge: 86400000 }
-  cookie: { secure: false, sameSite: true, maxAge: 1 }
+  cookie: { secure: false, sameSite: true, maxAge: 86400000 }
 }));
 
 /**
@@ -79,11 +78,9 @@ app.use(session({
 app.response.message = function (msg) {
     if (msg && this.req.session) {
       this.req.session.messages = this.req.session.messages || [];
-      this.req.session.messages.push(
-          JSON.stringify({
-            div: { attributes: {class: 'msg ' + msg.type}, textNode: msg.text }
-          })
-      );
+      this.req.session.messages.push({
+        div: { attributes: {class: 'msg ' + msg.type}, textNode: msg.text }
+      });
     }
     return this;
 }
@@ -101,33 +98,11 @@ app.response.cleanup = function(){
   return this;
 };
 
-
-// exports.logout=function(req,res){
-//
-//   sess=req.session;
-//   var data = {
-//     "Data":""
-//   };
-//   sess.destroy(function(err) {
-//     if(err){
-//       data["Data"] = 'Error destroying session';
-//       res.json(data);
-//     }else{
-//       data["Data"] = 'Session destroy successfully';
-//       res.json(data);
-//       //res.redirect("/login");
-//     }
-//   });
-//
-// };
-
-
 /**
  * Define logger for development.
  */
 
 app.use(logger('dev'));
-
 
 /**
  * Serve static files.
@@ -155,12 +130,15 @@ app.use(methodOverride('_method'));
 app.use(function(req, res, next) {
   // add boilerplate content
   req.view = config.settings.general;
+
+  // get current view from route
   req.view.name = path.parse(req.originalUrl).base;
 
   // check user session data
   console.log('Current User: ', req.session.user || 'anonymous');
-  console.log('Message Bank: ', req.session.messages);
-  req.view.messages = req.session.messages || []
+  console.log('Message Bank: ', JSON.stringify(req.session.messages));
+
+  req.view.messages = JSON.stringify(req.session.messages) || []
 
   // navigation menus
   req.view.menus = {

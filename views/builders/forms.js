@@ -13,7 +13,6 @@
  */
 
 const utils = require('../../_utilities');
-const ValidatorBuilder = require('./validator');
 const InputBuilder = require('./input');
 
 /**
@@ -30,8 +29,6 @@ module.exports = FormBuilder;
  */
 
 function FormBuilder() {
-    this.form = {};
-    this.inputs = [];
     this.inputBuilder = new InputBuilder();
 }
 
@@ -48,50 +45,27 @@ FormBuilder.prototype.build = function (params) {
             attributes: {
                 action: params.actions.submit.url,
                 method: params.method,
-                id: params.model.id,
-                name: params.model.id
+                id: params.model.name,
+                name: params.model.name
             },
             fieldset: {legend: {textNode: params.legend || params.model.label}}
         }
     };
-
+    let inputs = [];
+    let validator = {id: params.model.name, checklist: {}};
     // get user role ID to restrict access to the field
     let role = params.restrict ? ( params.user ? params.user.role_id : 1 ) : 1;
-
-    // filter renderable and non-restricted fields in schema
+    // create input builder
     let inputBuilder = this.inputBuilder
 
-
-
-    let inputs_ = [];
+    // filter renderable and non-restricted fields in schema
     Object.entries(params.model.schema.fields)
         .filter(([key, obj]) => obj.hasOwnProperty('render'))
-            .filter(([key, obj]) => obj.render.hasOwnProperty(params.view))
-            .filter(([key, obj]) => obj.render[params.view].hasOwnProperty('restrict'))
-                // .forEach(([key, obj]) => {
-                //     // select rendering view
-                //     let renderObj = obj.render[params.view];
-                //     console.log(renderObj)
-                //     // initialize field (<input>) attributes
-                //     renderObj.attributes = renderObj.hasOwnProperty('attributes') ? renderObj.attributes : {};
-                //     // option to use default or custom input type set in schema
-                //     renderObj.attributes.type = renderObj.attributes.hasOwnProperty('type')
-                //         ? renderObj.attributes.type : obj.type;
-                //     inputs_.push(renderObj);
-                //     // return inputBuilder.build({
-                //     //     name: key,
-                //     //     attributes: renderObj.attributes,
-                //     //     value: obj.hasOwnProperty('value') ? obj.value : '',
-                //     //     label: obj.label
-                //     // })
-                // });
-    console.log(inputs_)
-
-
-    this.inputs = Object.entries(params.model.schema.fields)
-        .filter(([key, obj]) => obj.hasOwnProperty('render'))
         .filter(([key, obj]) => obj.render.hasOwnProperty(params.view))
-        .filter(([key, obj]) => obj.hasOwnProperty('restrict') ? obj.restrict.includes(role) : true)
+        .filter(([key, obj]) => obj.render[params.view].hasOwnProperty('restrict')
+            ? obj.render[params.view].restrict.includes(role)
+            : true
+        )
         .forEach(([key, obj]) => {
             // select rendering view
             let renderObj = obj.render[params.view];
@@ -100,32 +74,38 @@ FormBuilder.prototype.build = function (params) {
             // option to use default or custom input type set in schema
             renderObj.attributes.type = renderObj.attributes.hasOwnProperty('type')
                 ? renderObj.attributes.type : obj.type;
-            return inputBuilder.build({
-                name: key,
-                attributes: renderObj.attributes,
-                value: obj.hasOwnProperty('value') ? obj.value : '',
-                label: obj.label
-            });
-        });
 
-    console.log(this.inputs)
+            // build input from parameters
+            inputs.push(
+                inputBuilder.build({
+                    name: key,
+                    attributes: renderObj.attributes,
+                    value: obj.hasOwnProperty('value') ? obj.value : '',
+                    label: obj.label
+                }));
 
-    // buttons wrapped in <div> element
+            // add validation checklist (if exists) to validator
+            if (renderObj.hasOwnProperty('validation'))
+                validator.checklist[key] = {handlers: renderObj.validation, complete: false};
+
+        })
+
+    // initialize buttons wrapped in <div> element
     let buttons = {div:{attributes:{class: 'buttons'}, childNodes:[]}};
 
     // add submit button
     if (params.actions.hasOwnProperty('submit'))
         buttons.div.childNodes.push(
             inputBuilder.build({
-                name: 'submit',
+                name: 'submit_' + params.model.name,
                 attributes: {type: 'submit'},
                 value: params.actions.submit.hasOwnProperty('value')
                     ? params.actions.submit.value : 'Submit',
                 label: ''
-        }));
+            }));
 
     // add cancel button <link>
-    if (params.actions.hasOwnProperty('submit'))
+    if (params.actions.hasOwnProperty('cancel'))
         buttons.div.childNodes.push(
             inputBuilder.build({
                 name: 'submit',
@@ -139,9 +119,9 @@ FormBuilder.prototype.build = function (params) {
                 label: ''
             }));
 
-    // add all input fields to form
-    this.inputs.push(buttons);
+    // return form and validator schemas
+    inputs.push(buttons);
     this.schema.form.fieldset.childNodes = inputs;
-    return this.schema;
+    return {form: this.schema, validator: validator};
 }
 

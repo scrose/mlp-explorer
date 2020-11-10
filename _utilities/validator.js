@@ -1,6 +1,6 @@
 /*!
- * MLP.Core.Controllers.Users
- * File: /controllers/user.js
+ * MLP.Core.Utilities.Validator
+ * File: /_utilities/validator.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -14,57 +14,106 @@ const LocalError = require("../models/error");
 
 /**
  * Create validator instance.
- *
- * @param {Object} data
- * @api public
  */
 
-module.exports = (id, data) => {
-    return {
-        id: id,
-        data:  data,
-        error: (msg) => {
-            throw new LocalError(msg);
-        },
+let validator = new Validator();
 
-        // Check if object is empty
-        // NOTE: This should work in ES5 compliant implementations.
-        isEmpty: () => {
-            if (!Object.keys(data).length) this.error('Field %s is not empty.', id);
-            return this;
-        },
-        isRequired: () => {
-            if (!!!value) this.error('Item is required.');
-            return this;
-        },
-        // format: user@example.com
-        isEmail: () => {
-            if (/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+$/.test(value)) {
-                this.error('Email %s is invalid.', data);
-            }
-        },
-        // format: Minimum eight and maximum 10 characters, at least one uppercase letter,
-        // one lowercase letter, one number and one special character
-        isPassword: () => {
-            if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,10}$/.test(value)) {
-                this.error('Password is invalid.');
-            }
-            return this;
-        },
-        // format: Minimum eight and maximum 10 characters, at least one uppercase letter,
-        // one lowercase letter, one number and one special character
-        isRepeatPassword: (pwd) => {
-            if (pwd === data) {
-                this.error('Repeat password is invalid.');
-            }
-            return this;
-        }
-    }
+/**
+ * Module exports.
+ */
+
+module.exports = (data) => {
+    return validator.init(data);
 }
 
+/**
+ * Create Validator object.
+ *
+ * @public
+ */
 
+function Validator() {
+    this.data = {};
+}
 
+/**
+ * Generate validation error.
+ *
+ * @private
+ * @param {String} code
+ * @throws {Error} validation error
+ */
 
+Validator.prototype.error = function(code=null) {
+    throw new LocalError(code);
+}
 
+/**
+ * Initialize validator.
+ *
+ * @private
+ * @param {Object} data
+ * @return {Validator} validator instance
+ */
 
+Validator.prototype.init = function (data) {
+    this.data = data;
+    return this;
+}
+
+/**
+ * Validate required input.
+ *
+ * @private
+ * @param {String} value
+ * @return {Boolean} validation result
+ */
+
+Validator.prototype.isRequired = function () {
+    if (!!!this.value) this.error();
+    return this;
+}
+
+/**
+ * Validate email address.
+ *
+ * @private
+ * @param {String} value
+ * @return {Boolean} validation result
+ */
+
+Validator.prototype.isEmail = function () {
+    if (!/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+$/.test(this.data))
+        this.error();
+    return this;
+}
+
+/**
+ * Validate password value. Uses format: Minimum eight and maximum
+ * 10 characters, at least one uppercase letter, one lowercase letter,
+ * one number and one special character
+ *
+ * @private
+ * @param {String} value
+ * @return {Boolean} validation result
+ */
+
+Validator.prototype.isPassword = function () {
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,10}$/.test(this.data))
+        this.error();
+    return this;
+}
+
+/**
+ * Validate that repeat password matches password.
+ *
+ * @private
+ * @param {String} value
+ * @return {Boolean} validation result
+ */
+
+Validator.prototype.isRepeatPassword = function (password) {
+    if (password !== this.data) this.error()
+    return this;
+}
 

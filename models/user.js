@@ -122,7 +122,7 @@ let schema ={
         },
         repeat_password: {
             label: 'Repeat Password',
-            type: 'repeat_password',
+            type: 'password',
             render: {
                 register: {
                     attributes: {

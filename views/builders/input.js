@@ -49,8 +49,8 @@ InputBuilder.prototype.build = function (params) {
         label: {attributes: {id: 'label_' + params.name, for: params.name}}
     };
     this.value = params.value ? params.value : '';
-    // select input type builder
-    return this.hasOwnProperty(params.attributes.type) ? this[params.attributes.type] : this.default;
+    // select builder function by input type
+    return typeof this[params.attributes.type] === "function" ? this[params.attributes.type]() : this.default();
 }
 
 /**
@@ -69,7 +69,7 @@ InputBuilder.prototype.ignore = function() { return {}; }
 
 InputBuilder.prototype.hidden = function() {
     if (this.value) this.attributes.value = this.value;
-    return [{input:{attributes: this.attributes}}];
+    return {input:{attributes: this.attributes}};
 }
 
 /**
@@ -87,7 +87,7 @@ InputBuilder.prototype.select = function() {
                 val.option.attributes.selected = "selected";
             }
         });
-        return [this.widgets[this.attributes.id]];
+        return this.widgets[this.attributes.id];
     }
 }
 
@@ -133,7 +133,7 @@ InputBuilder.prototype.select = function (id, schema, data) {
 InputBuilder.prototype.checkbox = function() {
     if (this.value && this.value === true) this.attributes.checked = '';
     this.inputLabel.inputLabel.childNodes = [{input:{attributes: this.attributes}}, {textNode: this.labelText}];
-    return [this.inputLabel];
+    return this.inputLabel;
 }
 
 /**
@@ -147,7 +147,7 @@ InputBuilder.prototype.date = function() {
     if (this.value) {
         this.attributes.value = utils.date.formatDate(this.value, "yyyy-mm-dd");
         this.inputLabel.label.textNode = field.label;
-        return [this.inputLabel, {input:{attributes: this.attributes}}];
+        return this.inputLabel, {input:{attributes: this.attributes}};
     }
 }
 
@@ -158,16 +158,16 @@ InputBuilder.prototype.date = function() {
  */
 
 InputBuilder.prototype.link = function() {
-            let url = this.attributes.url || '#';
-            let className = this.attributes.class || 'form_button';
-            let target = this.attributes.target || '_self';
-            const hyperlink = {a: {
-                attributes: {href: url, class: className, target: target},
-                textNode: this.attributes.linkText || this.attributes.url}
-            };
-            this.inputLabel.label.childNodes = [{textNode: this.labelText}];
-            return [this.inputLabel, {div: hyperlink}];
-        }
+    let url = this.attributes.url || '#';
+    let className = this.attributes.class || 'form_button';
+    let target = this.attributes.target || '_self';
+    const hyperlink = {a: {
+            attributes: {href: url, class: className, target: target},
+            textNode: this.attributes.linkText || this.attributes.url}
+    };
+    this.inputLabel.label.childNodes = [{textNode: this.labelText}];
+    return (this.labelText) ? [this.inputLabel, {div: hyperlink}] : hyperlink;
+}
 
 /**
  * Build inline text node.
@@ -202,23 +202,10 @@ InputBuilder.prototype.timestamp = function() {
  */
 
 InputBuilder.prototype.password = function() {
-    this.attributes.value = this.value;
+    if (this.value) this.attributes.value = this.value;
+    if (this.attributes.hasOwnProperty('repeat')) delete this.attributes.repeat;
     this.inputLabel.label.childNodes = [{textNode: this.labelText}, {input:{attributes: this.attributes}}];
-    return [this.inputLabel];
-}
-
-/**
- * Build repeat password input element. Wraps input element in label.
- *
- * @public
- */
-
-InputBuilder.prototype.repeat_password = function() {
-    this.inputLabel.label.childNodes = [
-        {textNode: this.labelText},
-        {input:{attributes: {type: 'password', id: 'repeat_password', name: 'repeat_password', value: this.value}}}
-        ];
-    return [this.inputLabel];
+    return this.inputLabel;
 }
 
 /**
@@ -227,9 +214,9 @@ InputBuilder.prototype.repeat_password = function() {
  * @public
  */
 
-InputBuilder.prototype.button = function() {
-    this.attributes.value = this.value;
-    return [{input:{attributes: this.attributes}}];
+InputBuilder.prototype.submit = function() {
+    if (this.value) this.attributes.value = this.value;
+    return {input:{attributes: this.attributes}};
 }
 
 /**
@@ -239,8 +226,7 @@ InputBuilder.prototype.button = function() {
  */
 
 InputBuilder.prototype.default = function() {
-    this.attributes.value = this.value;
-    // wrap input in label element
+    if (this.value) this.attributes.value = this.value;
     this.inputLabel.label.childNodes = [{textNode: this.labelText}, {input:{attributes: this.attributes}}];
-    return [this.inputLabel];
+    return this.inputLabel;
 }

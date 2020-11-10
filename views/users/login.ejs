@@ -10,10 +10,10 @@
 </main>
 <%- include('../common/footer', {content: content}); %>
 <script>
-    // build user edit form
-    nodeBuilder.build("form_container", <%- formSchema %>);
+    // build user form
+    nodeBuilder.build("form_container", <%- content.form %>);
     // initialize form validator
-    window.onload = formValidator.init(<%- validatorSchema %>);
+    window.onload = formValidator.init(<%- content.validator %>);
 </script>
 </body>
 </html>

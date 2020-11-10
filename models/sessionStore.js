@@ -104,21 +104,23 @@ SessionStore.prototype.get = function (sessionId, callback=noop()) {
 
 SessionStore.prototype.set = function (sessionId, session, callback) {
 
-    let session_json
+    let session_json, args;
+    let user_id = session.hasOwnProperty('user') ? session.user.id : null;
+    // Do not store session data for anonymous users
+    if (!user_id) return callback();
     try {
-        session_json = JSON.stringify(session)
+        session_json = JSON.stringify(session);
+        args = {
+            user_id: user_id,
+            session_id: prefix + sessionId,
+            session_data: session_json,
+            expires: _getTTL(session)
+        };
     }
     catch (err) {
         console.error('SESSION set() Error: ', err)
         return callback(err)
     }
-
-    let args = {
-        user_id: session.user.id || 'anonymous',
-        session_id: prefix + sessionId,
-        session_data: session_json,
-        expires: _getTTL(session)
-    };
 
     console.log('Session parameters:', args);
 
@@ -194,8 +196,6 @@ SessionStore.prototype.touch = function (sessionId, session, callback) {
         expires: _getTTL(session)
     }
 
-    console.log(args)
-
     sessionServices.update(args)
         .then((data) => {
             if (data.rows.length === 0) return callback(null, 'EXPIRED');
@@ -242,8 +242,8 @@ SessionStore.prototype.destroy = function(sessionId, callback = noop) {
     console.log('Deleting SESSION ID %s', key);
     sessionServices.delete(key)
         .then((result) => {
-            if (result.rows.length === 0) throw LocalError("session");
-            console.log('Deleted SESSION ID %s', result.rows[0])
+            if (result.rows.length === 0) console.log('\t - Deleted SESSION ID %s was not stored.', key);
+            else console.log('\t - Deleted SESSION ID %s', result.rows[0])
             callback();
         })
         .catch((err) => {
