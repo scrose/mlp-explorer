@@ -57,16 +57,22 @@ app.set('trust proxy', 1) // trust first proxy
  */
 // TODO: ensure cookie:secure is set to true for https on production server
 app.use(session({
-  genid: function(req) {
-    return utils.secure.genUUID() // use UUIDs for session IDs
-  },
-  store: new sessionStore(),
-  resave: false, // don't save session if unmodified
-  saveUninitialized: false, // don't create session until something stored
-  secret: config.session.secret,
-  maxAge: config.session.TTL * 3600000,
-  cookie: { secure: false, sameSite: true, maxAge: 86400000 }
-}));
+    genid: function(req) {
+      return utils.secure.genUUID() // use UUIDs for session IDs
+    },
+    store: new sessionStore(),
+    resave: false, // don't save session if unmodified
+    saveUninitialized: false, // don't create session until something stored
+    secret: config.session.secret,
+    // 'Time-to-live' in milliseconds
+    maxAge: config.session.ttl * 60 * 60 * 1000,
+    cookie: {
+      secure: false,
+      sameSite: true,
+      maxAge: config.session.ttl * 60 * 60 * 1000
+    }
+  }
+));
 
 /**
  * Define session-persistent messenger.
@@ -102,32 +108,54 @@ app.response.cleanup = function(){
  * Define logger for development.
  */
 
-app.use(logger('dev'));
+app.use(
+    logger('dev')
+);
 
 /**
  * Serve static files.
  */
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(
+    path.join(__dirname, 'public'))
+);
 
 /**
  * Parse request bodies (req.body)
  */
 
-app.use(express.urlencoded({ extended: true }))
-app.use(express.json());
+app.use(
+    express.urlencoded({ extended: true })
+)
+app.use(
+    express.json()
+);
 
 /**
  * Allow overriding methods in query (?_method=put)
  */
 
-app.use(methodOverride('_method'));
+app.use(
+    methodOverride('_method')
+);
 
 /**
  * Define view parameters for template rendering (middleware)
  */
 
 app.use(function(req, res, next) {
+
+  // init anonymous user
+  console.log('!!!', req.session.user)
+  if (req.session.user == null) {
+    // req.session.user = {
+    //   id: 'anonymous',
+    //   email: null,
+    //   role: 0
+    // }
+  }
+
+
   // add boilerplate content
   req.view = config.settings.general;
 
@@ -138,7 +166,9 @@ app.use(function(req, res, next) {
   console.log('Current User: ', req.session.user || 'anonymous');
   console.log('Message Bank: ', JSON.stringify(req.session.messages));
 
+  // add messages to view and clear
   req.view.messages = JSON.stringify(req.session.messages) || []
+  req.session.messages = []
 
   // navigation menus
   req.view.menus = {

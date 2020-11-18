@@ -47,7 +47,7 @@ module.exports.breadcrumbMenu = function(url) {
 // build user menu
 module.exports.userMenu = function(user) {
     // user not logged in
-    if (!user) {
+    if (!user || user.email == null) {
         return  JSON.stringify({ul: {
                 attributes: {class: "user_menu"},
                 childNodes: [

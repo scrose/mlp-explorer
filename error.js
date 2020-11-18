@@ -36,7 +36,8 @@ function decode(err) {
     }
     // decode message
     else {
-        msg = 'An error occurred. Your request could not be completed. Contact the site administrator for assistance.'
+        msg = 'An error occurred. Your request could not be completed. ' +
+            'Contact the site administrator for assistance.'
     }
 
     // return JSON schema for user error message

@@ -17,7 +17,6 @@
 
 /* global constants */
 const modelName = 'main'
-const params = require('../config')
 
 // preliminary handler
 exports.before = async (req, res, next) => {
@@ -36,6 +35,6 @@ exports.index = async (req, res, next) => {
         });
     }
     catch(err) {
-        res.message(err);
+        next(err);
     }
 };

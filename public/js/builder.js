@@ -61,7 +61,7 @@ Builder.prototype._build_ = function (parent, schema, debug=false) {
 		let node = Array.isArray(schema) ? schema : schema[prop];
 		if (debug) console.log(Object.entries(schema).flat());
 		// empty node
-		if (node == null || parseInt(prop) === 0) {
+		if (node == null || !Array.isArray(node) && parseInt(prop) === 0) {
 			console.log('Node is empty.')
 			return parent;
 		}
@@ -74,7 +74,7 @@ Builder.prototype._build_ = function (parent, schema, debug=false) {
 		} else {
 			// create new node(s)
 			let newNode = null;
-			if (prop === 'childNodes') {
+			if (prop === 'childNodes' || Array.isArray(node)) {
 				if (!Array.isArray(node)) {
 					if (debug) console.log('ChildNodes must be an array.');
 					return parent;

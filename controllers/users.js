@@ -105,27 +105,7 @@ exports.login = (req, res, next) => {
 };
 
 /**
- * User sign-out interface.
- *
- *
- exports.logout=function(req,res){
-
-  sess=req.session;
-  var data = {
-    "Data":""
-  };
-  sess.destroy(function(err) {
-    if(err){
-      data["Data"] = 'Error destroying session';
-      res.json(data);
-    }else{
-      data["Data"] = 'Session destroy successfully';
-      res.json(data);
-      //res.redirect("/login");
-    }
-  });
-
-};
+ * Logout current user from session.
  * @param req
  * @param res
  * @param next
@@ -136,13 +116,16 @@ exports.logout = async (req, res, next) => {
     try {
         console.log('Logging out:', req.session.user)
         if (!req.session.user) throw new LocalError("logoutRedundant");
-        // Destroy session when signing out
-        req.session.destroy(function(err){
-            if (err) {
-                console.error(err);
-                throw new LocalError("logoutFailure");
-            }
-            res.redirect('/?logout=true');
+        // Regenerate session as anonymous when signing out
+        req.session.regenerate(function (err){
+            if (err) throw LocalError(err);
+            req.session.user = {
+                id: 'anonymous',
+                email: null,
+                role: 0
+            };
+            req.session.messages = [{type:'success', text: 'You have been logged out.'}];
+            res.redirect('/')
         });
     }
     catch(err) {
@@ -192,7 +175,7 @@ exports.authenticate = async (req, res, next) => {
                     email: authUser.getValue('email'),
                     role: authUser.getValue('role_id')
                 };
-                req.session.messages = {code: 'login', type:'success'};
+                req.session.messages = [{type: 'success', text:'Login successful.'}];
                 res.redirect('/')
             });
         })

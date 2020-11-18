@@ -12,6 +12,7 @@
  * @private
  */
 
+const config = require('../config');
 const LocalError = require('./error')
 const {Store} = require('express-session');
 const sessionServices = require('../services')({ type: 'sessions' });
@@ -69,16 +70,17 @@ SessionStore.prototype.get = function (sessionId, callback=noop()) {
 
     sessionServices.findBySessionId(key)
         .then((result) => {
+            console.log('@@@@@', key, result['rows'])
             if (result.rows.length === 0) return callback();
             let session = result.rows[0].session_data;
             if (session.cookie) {
                 let expires = typeof session.cookie.expires === 'string'
                     ? new Date(session.cookie.expires)
                     : session.cookie.expires;
-
                 // destroy expired session
-                if (expires && expires <= Date.now()) {
-                    console.error('Cookie expired: %s', sessionId)
+                let now = Date.now().toLocaleString()
+                if (expires && expires <= now) {
+                    console.error('Cookie expired: %s (expiry: %s / %s)', sessionId, expires, now)
                     return callback(null, 'EXPIRED');
                 }
             }
@@ -103,7 +105,6 @@ SessionStore.prototype.get = function (sessionId, callback=noop()) {
  */
 
 SessionStore.prototype.set = function (sessionId, session, callback) {
-
     let session_json, args;
     let user_id = session.hasOwnProperty('user') ? session.user.id : null;
     // Do not store session data for anonymous users
@@ -271,15 +272,16 @@ SessionStore.prototype.clear = function (callback = noop) {
 }
 
 /**
- * This private method is used to get all sessions in the store
- * as an array. The callback should be called as callback(error, sessions).
+ * This private method is used to compute the Time-to-live
+ * from configuration settings and convert it from milliseconds
+ * to hours.
  *
  * @param {Session} session
  * @public
  */
 
 function _getTTL(session) {
-    let ttl = 86400;
+    let ttl = config.session.ttl * 60 * 60 * 1000;
     if (session && session.cookie && session.cookie.expires) {
         let ms = Number(new Date(session.cookie.expires)) - Date.now();
         ttl = Math.ceil(ms / 1000);
