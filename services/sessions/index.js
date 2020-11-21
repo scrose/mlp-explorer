@@ -15,19 +15,6 @@
 const db = require('../../db')
 
 /**
- * Find session by user ID.
- *
- * @public
- * @param {String} queryText
- */
-
-exports.findByUserId = (queryText) => {
-    return (user_id) => {
-        return db.query(queryText, [user_id]);
-    }
-}
-
-/**
  * Find session by session ID.
  *
  * @public
@@ -35,8 +22,11 @@ exports.findByUserId = (queryText) => {
  */
 
 exports.findBySessionId = (queryText) => {
-    return (session_id) => {
-        return db.query(queryText, [session_id]);
+    return (sid, expires) => {
+        return db.query(queryText, [
+            sid,
+            expires.valueOf() / 1000
+        ]);
     }
 }
 
@@ -63,15 +53,15 @@ exports.findAll = (queryText) => {
 exports.upsert = (queryText) => {
     return (data) => {
         return db.query(queryText, [
-            data.user_id,
             data.session_id,
+            data.expires.valueOf() / 1000,
             data.session_data
         ]);
     }
 }
 
 /**
- * Update session.
+ * Touch session to keep from expiring.
  *
  * @public
  * @param {String} queryText
@@ -80,8 +70,8 @@ exports.upsert = (queryText) => {
 exports.update = (queryText) => {
     return (data) => {
         return db.query(queryText, [
-            data.user_id,
             data.session_id,
+            data.expires.valueOf() / 1000,
             data.session_data
         ]);
     }
@@ -95,10 +85,23 @@ exports.update = (queryText) => {
  */
 
 exports.delete = (queryText) => {
-    return (sessionID) => {
+    return (sid) => {
         return db.query(queryText, [
-            sessionID
+            sid
         ]);
+    }
+}
+
+/**
+ * Prune expired sessions.
+ *
+ * @public
+ * @param {String} queryText
+ */
+
+exports.prune = (queryText) => {
+    return () => {
+        return db.query(queryText, []);
     }
 }
 

@@ -12,7 +12,6 @@
  * @private
  */
 
-const utils = require('../../_utilities');
 const InputBuilder = require('./input');
 
 /**
@@ -75,7 +74,7 @@ FormBuilder.prototype.build = function (params) {
             renderObj.attributes.type = renderObj.attributes.hasOwnProperty('type')
                 ? renderObj.attributes.type : obj.type;
 
-            // build input from parameters
+            // build input built from schema parameters
             inputs.push(
                 inputBuilder.build({
                     name: key,

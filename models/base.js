@@ -12,7 +12,7 @@
  * @private
  */
 
-const utils = require('../_utilities');
+const utils = require('../lib');
 
 /**
  * Module exports.

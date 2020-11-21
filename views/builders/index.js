@@ -20,7 +20,6 @@ const FormBuilder = require('./forms');
  */
 
 exports.nav = require('./nav');
-exports.messages = require('./messages');
 
 /**
  * Build form DOM and export as JSON schema

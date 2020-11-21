@@ -16,13 +16,17 @@ const config = require('../config');
 const LocalError = require('./error')
 const {Store} = require('express-session');
 const sessionServices = require('../services')({ type: 'sessions' });
+const cron = require('node-cron');
+
+/** @returns {number} */
+const currentTimestamp = () => Math.ceil(Date.now());
 
 /**
  * Module constants.
  * @private
  */
 
-const prefix = 'sess:';
+const prefix = '_sess_';
 
 /**
  * Module exports.
@@ -43,6 +47,7 @@ const noop = () => {}
  *
  * @public
  */
+
 function SessionStore() {}
 
 /**
@@ -59,37 +64,42 @@ SessionStore.prototype = Object.create(Store.prototype);
  * undefined if the session was not found (and there was no error). A special
  * case is made when error.code === 'ENOENT' to act like callback(null, null).
  *
- * @param {string} sessionId
- * @param {function} callback
+ * @param {string} sid – the session id
+ * @param {function} fn
+ *        – a standard Node.js callback returning the parsed session object
  * @public
  */
 
-SessionStore.prototype.get = function (sessionId, callback=noop()) {
+SessionStore.prototype.get = function (sid, callback=noop()) {
 
-    let key = prefix + sessionId
+    let key = prefix + sid
 
-    sessionServices.findBySessionId(key)
+    sessionServices.findBySessionId(key, currentTimestamp())
         .then((result) => {
-            console.log('@@@@@', key, result['rows'])
-            if (result.rows.length === 0) return callback();
-            let session = result.rows[0].session_data;
-            if (session.cookie) {
-                let expires = typeof session.cookie.expires === 'string'
-                    ? new Date(session.cookie.expires)
-                    : session.cookie.expires;
-                // destroy expired session
-                let now = Date.now().toLocaleString()
-                if (expires && expires <= now) {
-                    console.error('Cookie expired: %s (expiry: %s / %s)', sessionId, expires, now)
-                    return callback(null, 'EXPIRED');
-                }
-            }
-            callback(null, session);
+            if (result.rows.length === 0) callback(null);
+            const sess_data = result.rows[0].session_data;
+            let session = (typeof sess_data === 'string') ? JSON.parse(sess_data) : sess_data
+            console.log('GET Session %s:', sid)
+            printSession(session)
+            return callback(null, session);
         })
         .catch((err) => {
-            console.error('SESSION get() Error: ', err)
-            return callback(err)
+            console.error('SESSION %s GET Error: ', sid, err)
+            return callback(err, null)
         });
+
+        if (sess.cookie) {
+            var expires = typeof sess.cookie.expires === 'string'
+                ? new Date(sess.cookie.expires)
+                : sess.cookie.expires
+
+            // destroy expired session
+            if (expires && expires <= Date.now()) {
+                delete this.sessions[sessionId]
+                return
+            }
+        }
+
 }
 
 /**
@@ -104,18 +114,14 @@ SessionStore.prototype.get = function (sessionId, callback=noop()) {
  * @public
  */
 
-SessionStore.prototype.set = function (sessionId, session, callback) {
+SessionStore.prototype.set = function (sid, sess, callback) {
     let session_json, args;
-    let user_id = session.hasOwnProperty('user') ? session.user.id : null;
-    // Do not store session data for anonymous users
-    if (!user_id) return callback();
     try {
-        session_json = JSON.stringify(session);
+        session_json = JSON.stringify(sess);
         args = {
-            user_id: user_id,
-            session_id: prefix + sessionId,
-            session_data: session_json,
-            expires: _getTTL(session)
+            session_id: prefix + sid,
+            expires: new Date(_getExpireTime(sess) * 1000),
+            session_data: session_json
         };
     }
     catch (err) {
@@ -123,12 +129,15 @@ SessionStore.prototype.set = function (sessionId, session, callback) {
         return callback(err)
     }
 
-    console.log('Session parameters:', args);
+    // show session parameters
+    console.log('SET Session %s:', sid)
+    printSession(sess)
+
 
     sessionServices.upsert(args)
         .then((data) => {
             if (data.rows.length === 0) throw LocalError('session');
-            callback()
+            return callback()
         })
         .catch((err) => {
             console.error('SESSION set() Error: ', err, callback)
@@ -170,20 +179,20 @@ SessionStore.prototype.length = function (callback) {
  * @public
  */
 
-SessionStore.prototype.touch = function (sessionId, session, callback) {
-    // var currentSession = getSession.call(this, sessionId)
+SessionStore.prototype.touch = function (sid, sess, callback) {
+    // var currentSession = getSession.call(this, sid)
     //
     // if (currentSession) {
     //     // update expiration
     //     currentSession.cookie = session.cookie
-    //     this.sessions[sessionId] = JSON.stringify(currentSession)
+    //     this.sessions[sid] = JSON.stringify(currentSession)
     // }
     //
     // callback && defer(callback)
 
     let sess_json
     try {
-        sess_json = JSON.stringify(session);
+        sess_json = JSON.stringify(sess);
     }
     catch (err) {
         console.error('SESSION touch() Error: ', err)
@@ -191,16 +200,21 @@ SessionStore.prototype.touch = function (sessionId, session, callback) {
     }
 
     let args = {
-        user_id: session.user.id || 'anonymous',
-        session_id: prefix + sessionId,
+        session_id: prefix + sid,
         session_data: sess_json,
-        expires: _getTTL(session)
+        expires: new Date(_getExpireTime(null) * 1000)
     }
+
+    // show session parameters
+    console.log('TOUCH Session %s:', sid)
+    console.log('- Expires %s:', args.expires.toLocaleString())
+    console.log('- Current %s:', new Date(currentTimestamp()).toLocaleString())
+    printSession(sess)
 
     sessionServices.update(args)
         .then((data) => {
-            if (data.rows.length === 0) return callback(null, 'EXPIRED');
-            callback(null, 'OK')
+            if (data.rows.length === 0) throw LocalError('session');
+            callback(null)
         })
         .catch((err) => {
             console.error('SESSION touch() Error: ', err)
@@ -238,13 +252,15 @@ SessionStore.prototype.all = function (callback = noop) {
  * @public
  */
 
-SessionStore.prototype.destroy = function(sessionId, callback = noop) {
-    let key = prefix + sessionId
+SessionStore.prototype.destroy = function(sid, callback = noop) {
+    let key = prefix + sid
     console.log('Deleting SESSION ID %s', key);
     sessionServices.delete(key)
         .then((result) => {
-            if (result.rows.length === 0) console.log('\t - Deleted SESSION ID %s was not stored.', key);
-            else console.log('\t - Deleted SESSION ID %s', result.rows[0])
+            if (result.rows.length === 0)
+                console.log('\t - SESSION ID %s was not found. Deletion cancelled.', key);
+            else
+                console.log('\t - Deleted SESSION ID %s.', result.rows[0])
             callback();
         })
         .catch((err) => {
@@ -271,20 +287,87 @@ SessionStore.prototype.clear = function (callback = noop) {
         });
 }
 
+
 /**
- * This private method is used to compute the Time-to-live
- * from configuration settings and convert it from milliseconds
- * to hours.
+ * Does garbage collection for expired sessions in the database.
+ * Scheduled tasks use using crontab to be run on the server periodically.
  *
- * @param {Session} session
- * @public
+ * @param {SimpleErrorCallback} [fn] - standard Node.js callback called on completion
+ * @access public
  */
 
-function _getTTL(session) {
-    let ttl = config.session.ttl * 60 * 60 * 1000;
-    if (session && session.cookie && session.cookie.expires) {
-        let ms = Number(new Date(session.cookie.expires)) - Date.now();
-        ttl = Math.ceil(ms / 1000);
+// Remove the error.log file every twenty-first day of the month.
+// cron.schedule('0 0 21 * *', function() {
+//     console.log('---------------------');
+//     console.log('Running Cron Job');
+//     fs.unlink('./error.log', err => {
+//         if (err) throw err;
+//         console.log('Error file successfully deleted');
+//     });
+// });
+
+cron.schedule('* * * * *', function() {
+    sessionServices.prune()
+        .then((result) => {
+            result.rows.forEach((sess)=>{
+                console.log('Session %s pruned.', sess.session_id)
+            })
+        })
+        .catch((err) => {
+            console.error('SESSION prune() Error: ', err)
+            if (fn && typeof fn === 'function') {
+                return fn(err);
+            }
+        });
+});
+
+/**
+ * This private method is used to compute the Time-to-live (TTL)
+ * from configuration settings and convert it from milliseconds
+ * to seconds.
+ *
+ * @param {object} sess – the session object to store
+ * @returns {number} the unix timestamp, in seconds
+ * @access private
+ */
+
+function _getExpireTime(sess) {
+    let expire
+    let now = currentTimestamp()
+    if (sess && sess.cookie && sess.cookie.expires) {
+        const expireDate = new Date(sess.cookie.expires);
+        expire = Math.ceil(expireDate.valueOf() / 1000);
     }
-    return ttl;
+    else {
+        expire = Number(now / 1000 + config.session.ttl);
+    }
+    return expire;
+}
+
+/**
+ * Print expiry details to console.
+ *
+ * @param {object} session – the session object to store
+ * @access private
+ */
+
+function printSession(session) {
+    if (session.cookie) {
+        let expires = typeof session.cookie.expires === 'string'
+            ? new Date(session.cookie.expires)
+            : session.cookie.expires;
+        let now = currentTimestamp()
+        let ttex = Number(expires.valueOf() - now) / 1000
+        console.log('- Cookie Data:\n\t %s', session.cookie)
+        console.log(
+            '- Expires: %s\n- Current: %s\n- Time Remaining: %s sec\n',
+            expires.toLocaleString(),
+            new Date(now).toLocaleString(),
+            ttex
+        )
+        if (expires && ttex <=0) {
+            console.error(' --- Cookie expired.'
+            )
+        }
+    }
 }

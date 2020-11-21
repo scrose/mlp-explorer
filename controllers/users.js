@@ -21,7 +21,7 @@ const LocalError = require('../models/error')
 const userServices = require('../services')({ type: modelName });
 const userRoleServices = require('../services')({ type: 'userRoles' });
 const builder = require('../views/builders');
-const utils = require('../_utilities');
+const utils = require('../lib');
 const path = require('path');
 // const jwt = require('express-jwt');
 
@@ -42,8 +42,8 @@ exports.engine = 'ejs';
 
 exports.before = async (req, res, next) => {
     // event-specific request parameters
-    req.view.id = req.params.hasOwnProperty('users_id') ? req.params.users_id : null;
-    req.view.model = modelName;
+    res.locals.users_id = req.params.hasOwnProperty('users_id') ? req.params.users_id : null;
+    res.locals.modelName = modelName;
     next();
 };
 
@@ -64,7 +64,7 @@ exports.list = async (req, res, next) => {
                 userList.push(user.data);
             });
             res.render('list', {
-                content: req.view,
+                content: res.locals,
                 users: userList
             });
         })
@@ -86,7 +86,7 @@ exports.login = (req, res, next) => {
     try {
         let args = {
             model: new User(),
-            view: req.view.name,
+            view: res.locals.view,
             method: 'POST',
             legend: 'User Sign In',
             actions: {
@@ -96,9 +96,9 @@ exports.login = (req, res, next) => {
             restrict: req.session.user || null
         }
         let {form, validator} = builder.form(args);
-        req.view.form = form;
-        req.view.validator = validator;
-        res.render('login', {content: req.view});
+        res.locals.form = form;
+        res.locals.validator = validator;
+        res.render('login');
     } catch(err) {
         next(err);
     }
@@ -115,7 +115,8 @@ exports.login = (req, res, next) => {
 exports.logout = async (req, res, next) => {
     try {
         console.log('Logging out:', req.session.user)
-        if (!req.session.user) throw new LocalError("logoutRedundant");
+        if (!req.session.user)
+            throw new LocalError("logoutRedundant");
         // Regenerate session as anonymous when signing out
         req.session.regenerate(function (err){
             if (err) throw LocalError(err);
@@ -124,7 +125,7 @@ exports.logout = async (req, res, next) => {
                 email: null,
                 role: 0
             };
-            req.session.messages = [{type:'success', text: 'You have been logged out.'}];
+            res.message({type:'success', text: 'You have been logged out.'});
             res.redirect('/')
         });
     }
@@ -135,6 +136,7 @@ exports.logout = async (req, res, next) => {
 
 /**
  * Authenticate user credentials.
+ * TODO: Include JWT signing (http://jwt.io/)
  *
  * @param req
  * @param res
@@ -159,23 +161,29 @@ exports.authenticate = async (req, res, next) => {
     // confirm user exists
     await userServices.findByEmail( reqUser.email )
         .then((result) => {
-            if (result.rows.length === 0) throw LocalError("loginFailure");
+
+            if (result.rows.length === 0)
+                throw LocalError("loginFailure");
+
             // wrap requested user data for authentication
             let authUser = new User( result );
+
             // authenticate user credentials
-            if ( !authUser.authenticate(reqUser.password) ) throw LocalError("login");
-            // TODO: Include JWT signing (http://jwt.io/)
-            console.log('Current Session ID:', req.session.id)
+            if ( !authUser.authenticate(reqUser.password) )
+                throw LocalError("login");
+
             // Regenerate session when signing in to prevent fixation
             req.session.regenerate(function (err){
                 if (err) throw LocalError(err);
+
                 // Store user object in the session store to be retrieved
                 req.session.user = {
                     id: authUser.getValue('user_id'),
                     email: authUser.getValue('email'),
                     role: authUser.getValue('role_id')
                 };
-                req.session.messages = [{type: 'success', text:'Login successful.'}];
+
+                res.message('Login successful.', 'success');
                 res.redirect('/')
             });
         })
@@ -198,7 +206,7 @@ exports.register = async (req, res, next) => {
     try {
         let args = {
             model: new User(),
-            view: req.view.name,
+            view: res.locals.view,
             method: 'POST',
             legend: 'User Registration',
             actions: {
@@ -208,10 +216,10 @@ exports.register = async (req, res, next) => {
             restrict: null
         }
         let {form, validator} = builder.form(args);
-        req.view.form = form;
-        req.view.validator = validator;
+        res.locals.form = form;
+        res.locals.validator = validator;
         res.render('register', {
-            content: req.view
+            content: res.locals
         });
     } catch(err) {
         next(err)
@@ -267,16 +275,13 @@ exports.confirm = async (req, res, next) => {
  */
 
 exports.show = async (req, res, next) => {
-    await userServices.findById( req.view.id )
+    await userServices.findById( res.locals.users_id )
         .then((result) => {
             if (result.rows.length === 0) throw new LocalError("nouser");
             let user = new User( result );
             res.render('show', {
-                content: req.view,
                 user: user.getData()
             });
-            res.success('View successful!');
-            console.log(req.session.message)
         })
         .catch((err) => {
             next(err);
@@ -293,34 +298,32 @@ exports.show = async (req, res, next) => {
  */
 
 exports.edit = async (req, res, next) => {
-    req.view.name = 'edit';
-    // retrieve user roles
-    const {rows} = await userRoleServices.findAll().catch((err) => next(err));
 
-    await userServices.findById( req.view.id )
+    // retrieve user roles
+    const {roles} = await userRoleServices.findAll().catch((err) => next(err));
+
+    await userServices.findById( res.locals.users_id )
         .then((result) => {
             if (result.rows.length === 0) throw new LocalError('nouser');
             let user = new User( result );
             // add role options to model
-            user.setOptions('role', rows);
+            user.setOptions('role', roles);
             // assemble build parameters
             let args = {
                 model: user,
-                view: req.view.name,
+                view: res.locals.view,
                 method: 'POST',
                 legend: 'Update User Profile',
                 actions: {
-                    submit: {value: 'Update', url: path.join('/users', req.view.id, 'edit')},
+                    submit: {value: 'Update', url: path.join('/users', res.locals.users_id, 'edit')},
                     cancel: {value: 'Cancel', url: '/'},
                 },
                 restrict: req.session.user || null
             }
             let {form, validator} = builder.form(args);
-            req.view.form = form;
-            req.view.validator = validator;
-            res.render('edit', {
-                content: req.view
-            });
+            res.locals.form = form;
+            res.locals.validator = validator;
+            res.render('edit');
         })
         .catch((err) => next(err));
 }
@@ -365,22 +368,22 @@ exports.update = async (req, res, next) => {
  */
 
 exports.remove = async (req, res, next) => {
-    await userServices.findById( req.view.id )
+    await userServices.findById( res.locals.id )
         .then((result) => {
             if (result.rows.length === 0) throw new LocalError('nouser');
             let user = new User( result );
             let {form, validator} = builder.form(
                 {
-                    view: req.view.name,
+                    view: res.locals.name,
                     name: 'Delete',
                     method: 'POST',
                     routes: {
-                        submit: path.join('/users', req.view.id, 'delete'),
+                        submit: path.join('/users', res.locals.id, 'delete'),
                         cancel: '/users',
                     }
                 }, user);
             res.render('register', {
-                content: req.view,
+                content: res.locals,
                 formSchema: form,
                 validatorSchema: validator
             });

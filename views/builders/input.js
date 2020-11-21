@@ -1,6 +1,6 @@
 /*!
  * MLP.Core.Views.Builders.Input
- * File: /views/builders/forms.js
+ * File: /views/builders/input.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -12,7 +12,7 @@
  * @private
  */
 
-let utils = require('../../_utilities');
+let utils = require('../../lib');
 
 /**
  * Module exports.
@@ -73,25 +73,6 @@ InputBuilder.prototype.hidden = function() {
 }
 
 /**
- * Build select input from available widgets.
- *
- * @public
- */
-
-InputBuilder.prototype.select = function() {
-    if (this.widgets.hasOwnProperty(this.attributes.id)) {
-        this.widgets[this.attributes.id].label.childNodes = [{textNode: this.labelText}];
-        // get widget indexed by field name and set selected option
-        this.widgets[this.attributes.id].select.childNodes.forEach((val) => {
-            if (val.option.attributes.value === this.value) {
-                val.option.attributes.selected = "selected";
-            }
-        });
-        return this.widgets[this.attributes.id];
-    }
-}
-
-/**
  * Build input selection list from schema
  *
  * @public
@@ -132,7 +113,8 @@ InputBuilder.prototype.select = function (id, schema, data) {
 
 InputBuilder.prototype.checkbox = function() {
     if (this.value && this.value === true) this.attributes.checked = '';
-    this.inputLabel.inputLabel.childNodes = [{input:{attributes: this.attributes}}, {textNode: this.labelText}];
+    this.inputLabel.label.textNode = this.labelText;
+    this.inputLabel.input = {attributes: this.attributes};
     return this.inputLabel;
 }
 
@@ -146,8 +128,9 @@ InputBuilder.prototype.checkbox = function() {
 InputBuilder.prototype.date = function() {
     if (this.value) {
         this.attributes.value = utils.date.formatDate(this.value, "yyyy-mm-dd");
-        this.inputLabel.label.textNode = field.label;
-        return this.inputLabel, {input:{attributes: this.attributes}};
+        this.inputLabel.label.textNode = this.label;
+        this.inputLabel.input = {attributes: this.attributes}
+        return this.inputLabel;
     }
 }
 
@@ -165,8 +148,10 @@ InputBuilder.prototype.link = function() {
             attributes: {href: url, class: className, target: target},
             textNode: this.attributes.linkText || this.attributes.url}
     };
-    this.inputLabel.label.childNodes = [{textNode: this.labelText}];
-    return (this.labelText) ? [this.inputLabel, {div: hyperlink}] : hyperlink;
+    // add label (if provided)
+    if (this.labelText)
+        this.inputLabel.label.childNodes = [{textNode: this.labelText}, {div: hyperlink}];
+    return this.labelText ? this.inputLabel : hyperlink;
 }
 
 /**
@@ -178,7 +163,8 @@ InputBuilder.prototype.link = function() {
 InputBuilder.prototype.textNode = function() {
     const text = {div: {attributes: this.attributes, p: {textNode:this.value }}};
     this.inputLabel.label.textNode = this.labelText;
-    return [this.inputLabel, text];
+    this.inputLabel.childNodes = [{input:{attributes: this.attributes}}, text]
+    return this.inputLabel;
 }
 
 /**
@@ -192,8 +178,11 @@ InputBuilder.prototype.textNode = function() {
 InputBuilder.prototype.timestamp = function() {
     const timestamp = {time: {attributes: this.attributes}};
     this.inputLabel.label.textNode = this.labelText;
-    timestamp.time.textNode = this.value ? utils.date.formatDate(this.value, "yyyy-mm-dd HH:mm:ss") : 'n/a';
-    return [this.inputLabel, {div: timestamp}];
+    timestamp.time.textNode = this.value
+        ? utils.date.formatDate(this.value, "yyyy-mm-dd HH:mm:ss")
+        : 'n/a';
+    this.inputLabel.div = timestamp
+    return this.inputLabel;
 }
 /**
  * Build password input element. Wraps input element in label.

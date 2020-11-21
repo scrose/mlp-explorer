@@ -1,4 +1,3 @@
 DELETE FROM sessions
-WHERE
-session_id = $1::varchar
+WHERE expire < NOW()::timestamp
 RETURNING session_id

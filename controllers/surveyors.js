@@ -1,29 +1,17 @@
-/*
-  ======================================================
-  Mountain Legacy Project: Explorer Application
-  ------------------------------------------------------
-  Module:       Core.Contollers.Surveyors
-  Filename:     controllers/surveyors/main.js
-  ------------------------------------------------------
-  Parses and translates user data into application
-  executions and responds.
-  ------------------------------------------------------
-  Creator:      Spencer Rose
-  Copyright:    (c) 2020 Runtime Software Development Inc.
-  License:      MIT
-  Version:      1.0
-  Last Updated: October 2, 2020
-  ======================================================
-*/
+/*!
+ * MLP.Core.Controllers.Surveyors
+ * File: /controllers/surveyors.js
+ * Copyright(c) 2020 Runtime Software Development Inc.
+ * MIT Licensed
+ */
 
-const utils = require('../_utilities/data')
+const utils = require('../lib/data')
 const path = require('path')
 const modelName = 'surveyors'
 const surveyors = require('../services')({ type: modelName });
 const surveys = require('../services')({ type: 'surveys' });
 const params = require('../config')
 const forms = require('../views/builders/forms')
-const messages = require('../views/builders/messages')
 
 exports.engine = 'ejs';
 

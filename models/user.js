@@ -13,7 +13,7 @@
  */
 
 const Model = require('./base');
-const utils = require('../_utilities');
+const utils = require('../lib');
 
 /**
  * Module exports.

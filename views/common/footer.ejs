@@ -2,14 +2,14 @@
     <script src="/js/utils.js"></script>
     <script src="/js/builder.js"></script>
     <script src="/js/validator.js"></script>
-    <% if (content.messages.length !== 0) { %>
+    <% if (messages.length !== 0) { %>
     <script>
-        nodeBuilder.build("msg_container", <%- content.messages %>);
+        nodeBuilder.build("msg_container", <%- messages %>);
     </script>
     <% } %>
     <script>
-        nodeBuilder.build("breadcrumb_menu", <%- content.menus.breadcrumb %>);
-        nodeBuilder.build("user_menu", <%- content.menus.user %>);
-        nodeBuilder.build("editor_menu", <%- content.menus.editor %>);
+        nodeBuilder.build("breadcrumb_menu", <%- menus.breadcrumb %>);
+        nodeBuilder.build("user_menu", <%- menus.user %>);
+        nodeBuilder.build("editor_menu", <%- menus.editor %>);
     </script>
 </footer>

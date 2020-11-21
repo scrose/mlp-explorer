@@ -18,7 +18,7 @@
 
 'use strict'
 
-let utils = require('../../_utilities')
+let utils = require('../../lib')
 
 
 function createInputBuilder(formParams, formWidgets) {

@@ -1,6 +1,6 @@
 /*!
  * MLP.Core.Utilities.Error
- * File: /_utilities/error.js
+ * File: /lib/error.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -63,9 +63,9 @@ function globalHandler(err, req, res, next) {
 
     // log error
     console.error('\n--- %s --- \n%s\n',
-        err.hasOwnProperty('name') ? err.name : 'Validation Error', err);
+        err.hasOwnProperty('name') ? err.name : 'Validation Error', err, err.stack);
 
-    req.view.messages = [decode(err)];
+    res.locals.messages = [decode(err)];
     return res.status(500).render(path.join(__dirname, 'views/main'), { content: req.view });
 
     // // default to 5xx server error
@@ -83,6 +83,6 @@ function globalHandler(err, req, res, next) {
  */
 
 function notFoundHandler (req, res, next){
-    res.status(404).render('404', { content: req.view, url: req.originalUrl });
+    res.status(404).render('404', { content: req.locals, url: req.originalUrl });
 }
 

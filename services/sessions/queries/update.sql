@@ -1,9 +1,7 @@
 UPDATE sessions
 SET
+expire = TO_TIMESTAMP($2)
 session_data = $3::json,
-updated_at = NOW()::timestamp
 WHERE
-user_id = $1::varchar
-AND
-session_id = $2::varchar
-RETURNING *
+session_id = $1::varchar
+RETURNING session_id

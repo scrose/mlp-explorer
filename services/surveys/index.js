@@ -1,6 +1,6 @@
 
 params = require('../../config')
-utils = require('../../_utilities/data')
+utils = require('../../lib/data')
 db = require('../../db')
 
 // get table schema

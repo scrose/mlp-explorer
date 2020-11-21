@@ -36,9 +36,9 @@ Builder.prototype.wrap = function(id) {
 Builder.prototype.build = function(id, schema) {
 	const container = document.getElementById(id);
 	try {
-		this._build_(container, schema);
+		this.__build(container, schema);
 	} catch (e) {
-		console.error('Node build failed.')
+		console.error('Node build failed.', e)
 	}
 
 }
@@ -52,7 +52,7 @@ Builder.prototype.build = function(id, schema) {
  * @param {Boolean} debug
  */
 
-Builder.prototype._build_ = function (parent, schema, debug=false) {
+Builder.prototype.__build = function (parent, schema, debug=true) {
 	if (!schema) {
 		if (debug) console.log('DOM schema is empty.');
 		return document.createElement('span');
@@ -82,7 +82,7 @@ Builder.prototype._build_ = function (parent, schema, debug=false) {
 				// build and append child nodes
 				const builder = this;
 				node.forEach((childNode) => {
-					parent.appendChild(builder._build_(null, childNode))
+					parent.appendChild(builder.__build(null, childNode))
 				});
 				continue;
 			} else if (prop === 'textNode') {
@@ -92,7 +92,7 @@ Builder.prototype._build_ = function (parent, schema, debug=false) {
 			} else {
 				// default build node
 				if (debug) console.log('Build: %s', prop);
-				newNode = this._build_(document.createElement(prop), node);
+				newNode = this.__build(document.createElement(prop), node);
 			}
 			// add node to parent node (if provided)
 			if (newNode && parent) parent.appendChild(newNode);

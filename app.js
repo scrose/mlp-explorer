@@ -15,12 +15,11 @@
 const express = require('express');
 const logger = require('morgan');
 const path = require('path');
-const session = require('express-session');
-const sessionStore = require('./models/sessionStore')
 const methodOverride = require('method-override');
 const builder = require('./views/builders');
-const utils = require('./_utilities');
+const session = require('./lib/session');
 const error = require('./error')
+const messages = require('./lib/messages');
 const config = require('./config');
 
 /**
@@ -52,57 +51,16 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('trust proxy', 1) // trust first proxy
 
 /**
- * Initialize session variables and management.
- * see documentation: https://github.com/expressjs/session
+ * Generate session.
  */
-// TODO: ensure cookie:secure is set to true for https on production server
-app.use(session({
-    genid: function(req) {
-      return utils.secure.genUUID() // use UUIDs for session IDs
-    },
-    store: new sessionStore(),
-    resave: false, // don't save session if unmodified
-    saveUninitialized: false, // don't create session until something stored
-    secret: config.session.secret,
-    // 'Time-to-live' in milliseconds
-    maxAge: config.session.ttl * 60 * 60 * 1000,
-    cookie: {
-      secure: false,
-      sameSite: true,
-      maxAge: config.session.ttl * 60 * 60 * 1000
-    }
-  }
-));
+
+app.use(session);
 
 /**
  * Define session-persistent messenger.
- *
- * @param {json} msg
- * @public
  */
 
-app.response.message = function (msg) {
-    if (msg && this.req.session) {
-      this.req.session.messages = this.req.session.messages || [];
-      this.req.session.messages.push({
-        div: { attributes: {class: 'msg ' + msg.type}, textNode: msg.text }
-      });
-    }
-    return this;
-}
-
-/**
- * Define session-persistent messenger cleanup function to
- * delete all of the messages in the session.
- *
- * @public
- */
-
-app.response.cleanup = function(){
-  console.log('Clean up messages.')
-  this.req.session.messages = [];
-  return this;
-};
+app.use(messages);
 
 /**
  * Define logger for development.
@@ -145,39 +103,24 @@ app.use(
 
 app.use(function(req, res, next) {
 
-  // init anonymous user
-  console.log('!!!', req.session.user)
-  if (req.session.user == null) {
-    // req.session.user = {
-    //   id: 'anonymous',
-    //   email: null,
-    //   role: 0
-    // }
-  }
+    // store response local variables scoped to the request
+    res.locals.general = config.settings.general;
+    res.locals.view = path.parse(req.originalUrl).base;
+    res.locals.user = req.session.user
 
+    // check user session data
+    console.log('Session: ', req.session.id);
+    console.log('Active User: ', res.locals.user);
+    console.log('Message Bank: ', JSON.stringify(res.locals.messages));
 
-  // add boilerplate content
-  req.view = config.settings.general;
-
-  // get current view from route
-  req.view.name = path.parse(req.originalUrl).base;
-
-  // check user session data
-  console.log('Current User: ', req.session.user || 'anonymous');
-  console.log('Message Bank: ', JSON.stringify(req.session.messages));
-
-  // add messages to view and clear
-  req.view.messages = JSON.stringify(req.session.messages) || []
-  req.session.messages = []
-
-  // navigation menus
-  req.view.menus = {
+    // navigation menus
+    res.locals.menus = {
     breadcrumb: builder.nav.breadcrumbMenu(req.originalUrl),
-    user: builder.nav.userMenu(req.session.user),
-    editor: builder.nav.editorMenu(req.session.user, req)
-  }
+    user: builder.nav.userMenu(res.locals.user),
+    editor: builder.nav.editorMenu(res.locals.user, req)
+    }
 
-  next();
+    next();
 });
 
 /**
