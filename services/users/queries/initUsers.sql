@@ -82,8 +82,8 @@ INSERT INTO users(
 VALUES(
     '0d658f82d0651c19872d331401842823',
     'support@goruntime.ca',
-    '2cdfbfa2466147cd067f112324de8f0ab8ab18ce6bde8227c27429261fe9bdf3bbf7f0d2b1b1a335d8fda13acb8f69f0369ce91c06763a7b86d6c39aa7e897c4',
-    'b9765e5211efbfe2287d6471d5dea33f',
+'50945a1451c94825fda78d52e2e2e6d770cf79a0da2a98a2abe1d2e9c8639a9afd5d32fbaf14cdb1acb9817cb9fe8ca639ac051510437daea24d3c688253096c',
+    'aa6f3e5aca77997c534d78df126e291d',
     5,
     NOW()::timestamp,
     NOW()::timestamp

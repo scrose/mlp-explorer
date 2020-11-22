@@ -1,6 +1,6 @@
 /*!
  * MLP.Core.Controllers.Users
- * File: /controllers/user.js
+ * File: /controllers/permissions.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -42,7 +42,7 @@ exports.engine = 'ejs';
 
 exports.before = async (req, res, next) => {
     // event-specific request parameters
-    res.locals.users_id = req.params.hasOwnProperty('users_id') ? req.params.users_id : null;
+    res.locals.req_id = req.params.hasOwnProperty('users_id') ? req.params.users_id : null;
     res.locals.modelName = modelName;
     next();
 };
@@ -120,13 +120,12 @@ exports.logout = async (req, res, next) => {
         // Regenerate session as anonymous when signing out
         req.session.regenerate(function (err){
             if (err) throw LocalError(err);
-            req.session.user = {
-                id: 'anonymous',
-                email: null,
-                role: 0
-            };
-            res.message({type:'success', text: 'You have been logged out.'});
-            res.redirect('/')
+            res.message('Successfully logged out!', 'success');
+            req.session.save(function(err) {
+                if (err) throw LocalError(err)
+                // session saved
+                res.redirect('/')
+            })
         });
     }
     catch(err) {
@@ -175,16 +174,17 @@ exports.authenticate = async (req, res, next) => {
             // Regenerate session when signing in to prevent fixation
             req.session.regenerate(function (err){
                 if (err) throw LocalError(err);
-
                 // Store user object in the session store to be retrieved
                 req.session.user = {
                     id: authUser.getValue('user_id'),
-                    email: authUser.getValue('email'),
-                    role: authUser.getValue('role_id')
+                    email: authUser.getValue('email')
                 };
-
                 res.message('Login successful.', 'success');
-                res.redirect('/')
+                req.session.save(function(err) {
+                    if (err) throw LocalError(err)
+                    // session saved
+                    res.redirect('/')
+                })
             });
         })
         .catch((err) => {
@@ -218,9 +218,7 @@ exports.register = async (req, res, next) => {
         let {form, validator} = builder.form(args);
         res.locals.form = form;
         res.locals.validator = validator;
-        res.render('register', {
-            content: res.locals
-        });
+        res.render('register');
     } catch(err) {
         next(err)
     }
@@ -275,7 +273,7 @@ exports.confirm = async (req, res, next) => {
  */
 
 exports.show = async (req, res, next) => {
-    await userServices.findById( res.locals.users_id )
+    await userServices.findById( res.locals.req_id )
         .then((result) => {
             if (result.rows.length === 0) throw new LocalError("nouser");
             let user = new User( result );
@@ -283,9 +281,7 @@ exports.show = async (req, res, next) => {
                 user: user.getData()
             });
         })
-        .catch((err) => {
-            next(err);
-        });
+        .catch((err) => next(err));
 };
 
 /**
@@ -302,7 +298,7 @@ exports.edit = async (req, res, next) => {
     // retrieve user roles
     const {roles} = await userRoleServices.findAll().catch((err) => next(err));
 
-    await userServices.findById( res.locals.users_id )
+    await userServices.findById( res.locals.req_id )
         .then((result) => {
             if (result.rows.length === 0) throw new LocalError('nouser');
             let user = new User( result );
@@ -349,7 +345,7 @@ exports.update = async (req, res, next) => {
     await userServices.update( user.getData() )
         .then((result) => {
             if (result.rows.length === 0) throw new LocalError("update");
-            res.success('Update successful!');
+            res.message('Update to ' + result.rows[0].email + ' profile successful!', 'success');
             res.redirect('/')
         })
         .catch((err) => {
@@ -368,7 +364,7 @@ exports.update = async (req, res, next) => {
  */
 
 exports.remove = async (req, res, next) => {
-    await userServices.findById( res.locals.id )
+    await userServices.findById( res.locals.req_id )
         .then((result) => {
             if (result.rows.length === 0) throw new LocalError('nouser');
             let user = new User( result );
@@ -378,15 +374,13 @@ exports.remove = async (req, res, next) => {
                     name: 'Delete',
                     method: 'POST',
                     routes: {
-                        submit: path.join('/users', res.locals.id, 'delete'),
+                        submit: path.join('/users', res.locals.req_id, 'delete'),
                         cancel: '/users',
                     }
                 }, user);
-            res.render('register', {
-                content: res.locals,
-                formSchema: form,
-                validatorSchema: validator
-            });
+            res.locals.form = form;
+            res.locals.validator = validator;
+            res.render('register');
         })
         .catch((err) => next(err));
 }
@@ -404,7 +398,7 @@ exports.delete = async (req, res, next) => {
     await userServices.delete( req.body )
         .then((result) => {
             if (result.rows.length === 0) throw new LocalError('nouser');
-            res.success("User successfully deleted.");
+            res.message('User successfully deleted.', 'success');
             res.redirect('/users')
         })
         .catch((err) => next(err));

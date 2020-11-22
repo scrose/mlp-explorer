@@ -1,4 +1,7 @@
-DELETE FROM sessions
+DELETE
+FROM
+     sessions
 WHERE
-session_id = $1::varchar
-RETURNING session_id
+      session_id = $1::varchar
+RETURNING
+    session_id

@@ -1,6 +1,6 @@
 INSERT INTO sessions(
     session_id,
-    expire,
+    expires,
     session_data
 )
 VALUES(
@@ -10,7 +10,7 @@ VALUES(
 )
 ON CONFLICT (session_id) DO UPDATE
 SET
-session_id = $1::varchar,
-expire = TO_TIMESTAMP($2),
-session_data = $3::json
+    session_id = $1::varchar,
+    expires = TO_TIMESTAMP($2),
+    session_data = $3::json
 RETURNING *

@@ -7,12 +7,13 @@
 
 
 const sessionStore = require('../models/sessionStore')
-const tester = require('./tester')
+const Tester = require('./tester')
 const config = require('../config')
 
 /**
  * Return tester module
  */
+let tester = new Tester()
 module.exports = tester
 
 /**
@@ -68,4 +69,9 @@ tester.add(
     null
 )
 
-
+tester.add(
+    'touch_session',
+    sessStore.touch,
+    ['test_session', sess, tester.cb],
+    null
+)

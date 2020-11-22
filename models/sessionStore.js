@@ -17,6 +17,7 @@ const LocalError = require('./error')
 const {Store} = require('express-session');
 const sessionServices = require('../services')({ type: 'sessions' });
 const cron = require('node-cron');
+const debug = require('../lib/debug').debugger('sessions')
 
 /** @returns {number} */
 const currentTimestamp = () => Math.ceil(Date.now());
@@ -48,7 +49,16 @@ const noop = () => {}
  * @public
  */
 
-function SessionStore() {}
+function SessionStore() {
+    // initialize sessions table
+    sessionServices.initSessions()
+        .then(() => {
+            debug('Sessions table generated.')
+        })
+        .catch((err) => {
+            console.error('SESSION INIT Error: ', err)
+        });
+}
 
 /**
  * Inherit methods from Model abstract class.
@@ -71,15 +81,17 @@ SessionStore.prototype = Object.create(Store.prototype);
  */
 
 SessionStore.prototype.get = function (sid, callback=noop()) {
-
     let key = prefix + sid
-
-    sessionServices.findBySessionId(key, currentTimestamp())
+    let now = currentTimestamp() / 1000
+    sessionServices.findBySessionId(key, now)
         .then((result) => {
-            if (result.rows.length === 0) callback(null);
+            debug('GET Session ' + key)
+            if (result.rows.length === 0) {
+                debug('\tSession not found: ' + key)
+                return callback(null);
+            }
             const sess_data = result.rows[0].session_data;
             let session = (typeof sess_data === 'string') ? JSON.parse(sess_data) : sess_data
-            console.log('GET Session %s:', sid)
             printSession(session)
             return callback(null, session);
         })
@@ -87,19 +99,6 @@ SessionStore.prototype.get = function (sid, callback=noop()) {
             console.error('SESSION %s GET Error: ', sid, err)
             return callback(err, null)
         });
-
-        if (sess.cookie) {
-            var expires = typeof sess.cookie.expires === 'string'
-                ? new Date(sess.cookie.expires)
-                : sess.cookie.expires
-
-            // destroy expired session
-            if (expires && expires <= Date.now()) {
-                delete this.sessions[sessionId]
-                return
-            }
-        }
-
 }
 
 /**
@@ -115,32 +114,30 @@ SessionStore.prototype.get = function (sid, callback=noop()) {
  */
 
 SessionStore.prototype.set = function (sid, sess, callback) {
-    let session_json, args;
+    let key = prefix + sid
+    let args;
     try {
-        session_json = JSON.stringify(sess);
         args = {
-            session_id: prefix + sid,
-            expires: new Date(_getExpireTime(sess) * 1000),
-            session_data: session_json
+            session_id: key,
+            expires: this._getExpires(sess),
+            session_data: JSON.stringify(sess)
         };
     }
     catch (err) {
-        console.error('SESSION set() Error: ', err)
+        console.error('SESSION %s SET() Error: ', key, err)
         return callback(err)
     }
-
-    // show session parameters
-    console.log('SET Session %s:', sid)
-    printSession(sess)
-
 
     sessionServices.upsert(args)
         .then((data) => {
             if (data.rows.length === 0) throw LocalError('session');
+            // show session parameters
+            debug('SET Session ' + key)
+            printSession(sess)
             return callback()
         })
         .catch((err) => {
-            console.error('SESSION set() Error: ', err, callback)
+            console.error('SESSION SET() Error: ', err, callback)
             return callback(err)
         });
 };
@@ -180,44 +177,34 @@ SessionStore.prototype.length = function (callback) {
  */
 
 SessionStore.prototype.touch = function (sid, sess, callback) {
-    // var currentSession = getSession.call(this, sid)
-    //
-    // if (currentSession) {
-    //     // update expiration
-    //     currentSession.cookie = session.cookie
-    //     this.sessions[sid] = JSON.stringify(currentSession)
-    // }
-    //
-    // callback && defer(callback)
-
-    let sess_json
+    let key = prefix + sid
+    let args;
     try {
-        sess_json = JSON.stringify(sess);
+        args = {
+            session_id: key,
+            expires: this._getExpires(sess),
+            session_data: JSON.stringify(sess)
+        };
     }
     catch (err) {
-        console.error('SESSION touch() Error: ', err)
+        console.error('SESSION %s TOUCH() Error: ', key, err)
         return callback(err)
     }
 
-    let args = {
-        session_id: prefix + sid,
-        session_data: sess_json,
-        expires: new Date(_getExpireTime(null) * 1000)
-    }
-
     // show session parameters
-    console.log('TOUCH Session %s:', sid)
-    console.log('- Expires %s:', args.expires.toLocaleString())
-    console.log('- Current %s:', new Date(currentTimestamp()).toLocaleString())
+    debug('TOUCH Session ' + key)
     printSession(sess)
 
     sessionServices.update(args)
         .then((data) => {
-            if (data.rows.length === 0) throw LocalError('session');
+            if (data.rows.length === 0) {
+                debug('TOUCH Session not found ' + key)
+                callback();
+            }
             callback(null)
         })
         .catch((err) => {
-            console.error('SESSION touch() Error: ', err)
+            console.error('SESSION %s TOUCH() Error: ', key, err)
             return callback(err)
         });
 }
@@ -254,13 +241,13 @@ SessionStore.prototype.all = function (callback = noop) {
 
 SessionStore.prototype.destroy = function(sid, callback = noop) {
     let key = prefix + sid
-    console.log('Deleting SESSION ID %s', key);
+    debug('Deleting SESSION ID ' + key);
     sessionServices.delete(key)
         .then((result) => {
             if (result.rows.length === 0)
-                console.log('\t - SESSION ID %s was not found. Deletion cancelled.', key);
+                debug('- SESSION ID ' + key + 'was not found. Deletion cancelled.');
             else
-                console.log('\t - Deleted SESSION ID %s.', result.rows[0])
+                debug('- Deleted SESSION ID ' + result.rows[0].session_id)
             callback();
         })
         .catch((err) => {
@@ -287,43 +274,9 @@ SessionStore.prototype.clear = function (callback = noop) {
         });
 }
 
-
 /**
- * Does garbage collection for expired sessions in the database.
- * Scheduled tasks use using crontab to be run on the server periodically.
- *
- * @param {SimpleErrorCallback} [fn] - standard Node.js callback called on completion
- * @access public
- */
-
-// Remove the error.log file every twenty-first day of the month.
-// cron.schedule('0 0 21 * *', function() {
-//     console.log('---------------------');
-//     console.log('Running Cron Job');
-//     fs.unlink('./error.log', err => {
-//         if (err) throw err;
-//         console.log('Error file successfully deleted');
-//     });
-// });
-
-cron.schedule('* * * * *', function() {
-    sessionServices.prune()
-        .then((result) => {
-            result.rows.forEach((sess)=>{
-                console.log('Session %s pruned.', sess.session_id)
-            })
-        })
-        .catch((err) => {
-            console.error('SESSION prune() Error: ', err)
-            if (fn && typeof fn === 'function') {
-                return fn(err);
-            }
-        });
-});
-
-/**
- * This private method is used to compute the Time-to-live (TTL)
- * from configuration settings and convert it from milliseconds
+ * This private method is used to compute the Expiry date
+ * from the session cookie and convert it from milliseconds
  * to seconds.
  *
  * @param {object} sess – the session object to store
@@ -331,17 +284,16 @@ cron.schedule('* * * * *', function() {
  * @access private
  */
 
-function _getExpireTime(sess) {
-    let expire
-    let now = currentTimestamp()
+SessionStore.prototype._getExpires = function (sess) {
+    let now = currentTimestamp() / 1000
     if (sess && sess.cookie && sess.cookie.expires) {
-        const expireDate = new Date(sess.cookie.expires);
-        expire = Math.ceil(expireDate.valueOf() / 1000);
+        return typeof sess.cookie.expires === 'string'
+            ? new Date(sess.cookie.expires).valueOf() / 1000
+            : sess.cookie.expires.valueOf() / 1000
     }
     else {
-        expire = Number(now / 1000 + config.session.ttl);
+        return Number(now + 1000 * config.session.ttl);
     }
-    return expire;
 }
 
 /**
@@ -358,12 +310,12 @@ function printSession(session) {
             : session.cookie.expires;
         let now = currentTimestamp()
         let ttex = Number(expires.valueOf() - now) / 1000
-        console.log('- Cookie Data:\n\t %s', session.cookie)
-        console.log(
-            '- Expires: %s\n- Current: %s\n- Time Remaining: %s sec\n',
-            expires.toLocaleString(),
-            new Date(now).toLocaleString(),
-            ttex
+        debug('- Cookie Data:\n\t' + session.cookie)
+        debug(
+            '- Expires: ' + expires.toLocaleString() +
+            '\n- Current: ' + new Date(now).toLocaleString() +
+            '\n- Time Remaining: ' + ttex + ' sec'
+
         )
         if (expires && ttex <=0) {
             console.error(' --- Cookie expired.'
@@ -371,3 +323,36 @@ function printSession(session) {
         }
     }
 }
+
+/**
+ * Does garbage collection for expired sessions in the database.
+ * Scheduled tasks use using crontab to be run on the server periodically.
+ *
+ * @param {SimpleErrorCallback} [fn] - standard Node.js callback called on completion
+ * @access public
+ */
+
+// Remove the error.log file every twenty-first day of the month.
+// cron.schedule('0 0 21 * *', function() {
+//     debug('---------------------');
+//     debug('Running Cron Job');
+//     fs.unlink('./error.log', err => {
+//         if (err) throw err;
+//         debug('Error file successfully deleted');
+//     });
+// });
+
+cron.schedule('* * * * *', function() {
+    sessionServices.prune()
+        .then((result) => {
+            result.rows.forEach((sess)=>{
+                debug('Session pruned: \n\t' + sess.session_id)
+            })
+        })
+        .catch((err) => {
+            console.error('SESSION PRUNE() Error: ', err)
+            if (fn && typeof fn === 'function') {
+                return fn(err);
+            }
+        });
+});

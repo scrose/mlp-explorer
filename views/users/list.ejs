@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <%- include('../common/head', {title: content.title}); %>
+    <%- include('../common/head'); %>
 </head>
 <body>
-<%- include('../common/header', {content: content}); %>
+<%- include('../common/header'); %>
 <main>
     <table class="records">
         <tbody>
@@ -13,6 +13,9 @@
             <th>Email</th>
             <th>Role</th>
             <th>Created</th>
+            <th>View</th>
+            <th>Edit</th>
+            <th>Delete</th>
         </tr>
         <% if (users.length === 0) { %>
             <td colspan="8">No users.</td>
@@ -23,15 +26,23 @@
                 <td><%= user.email %></td>
                 <td><%= user.role %></td>
                 <td><time><%= user.created_at %></time></td>
-                <td><a href="/users/<%= user.user_id %>">view</a></td>
+                <td>
+                    <a href="/users/<%= user.user_id %>">
+                        view
+                    </a>
+                </td>
                 <td>
                     <% if (user.role_id !== 5) { %>
                         <a href="/users/<%= user.user_id %>/edit">edit</a>
+                    <% } else { %>
+                        edit
                     <% } %>
                 </td>
                 <td>
                     <% if (user.role_id !== 5) { %>
                         <a href="/users/<%= user.user_id %>/delete">delete</a>
+                    <% } else { %>
+                            delete
                     <% } %>
                 </td>
             </tr>

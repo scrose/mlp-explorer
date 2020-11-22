@@ -1,6 +1,6 @@
 /*!
  * MLP.Core.Models.UserRoles
- * File: /models/user.js
+ * File: /models/permissions.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */

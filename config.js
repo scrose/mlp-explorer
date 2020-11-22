@@ -22,6 +22,7 @@ let settings = JSON.parse(settingsFile);
 
 // Expose module data
 module.exports.settings = settings;
+module.exports.debug = settings.debug
 module.exports.port = settings.server.port || process.env.port || 3000;
 module.exports.hostname = settings.server.hostname;
 module.exports.db = settings.db;

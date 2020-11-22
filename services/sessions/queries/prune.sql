@@ -1,3 +1,7 @@
-DELETE FROM sessions
-WHERE expire < NOW()::timestamp
-RETURNING session_id
+DELETE
+FROM
+     sessions
+WHERE
+      expires < NOW()::timestamp
+RETURNING
+    session_id

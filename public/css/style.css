@@ -227,6 +227,10 @@ ul.breadcrumb_menu li a:hover {
   text-decoration: underline;
 }
 
+/* Use home icon for frontpage link */
+ul.breadcrumb_menu li a.home {
+  content:'\f015';
+}
 
 /* User Navigation Menu */
 

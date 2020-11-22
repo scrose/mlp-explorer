@@ -1,6 +1,6 @@
 /*!
  * MLP.Core.Models.User
- * File: /models/user.js
+ * File: /models/permissions.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -176,6 +176,7 @@ User.prototype = Object.create(Model.prototype);
  */
 
 utils.obj.defineMethod(User, 'encrypt', function() {
+
     let password = this.getValue('password') || null;
     if (!password) return;
 

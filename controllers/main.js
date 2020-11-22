@@ -15,10 +15,13 @@ exports.before = async (req, res, next) => {
     next()
 };
 
-// Render main page
+// Render main page / dashboard for logged-in users
 exports.index = async (req, res, next) => {
     try {
-        res.render('index');
+        if (req.session.user)
+            res.render('dashboard');
+        else
+            res.render('index');
     }
     catch(err) {
         next(err);

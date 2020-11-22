@@ -1,23 +1,9 @@
-/*
-  ======================================================
-  Mountain Legacy Project: Explorer Application
-  ------------------------------------------------------
-  Module:       Core.Services
-  Filename:     /services/index.js
-  ------------------------------------------------------
-  Binding for data layer API - PostgreSQL / pg-promise.
-  Key Functionality
-  - Binds controllers to data layer / services.
-  - Binds pg-promise database queries and data exports.
-  - Options for search and node tree export data formats.
-  ------------------------------------------------------
-  Creator:      Spencer Rose
-  Copyright:    (c) 2020 Runtime Software Development Inc.
-  License:      MIT
-  Version:      1.0
-  Last Updated: November 1, 2020
-  ======================================================
-*/
+/*!
+ * MLP.Core.Services
+ * File: /services/index.js
+ * Copyright(c) 2020 Runtime Software Development Inc.
+ * MIT Licensed
+ */
 
 'use strict';
 

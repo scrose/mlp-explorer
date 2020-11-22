@@ -13,11 +13,14 @@
  */
 function Tester() {
     this.tests = {}
+    this.results = {}
     // set up optional callback
     this.cb = (label) => {
+        let self = this
         return function (...args) {
-            console.log('\n --- Test %s Callback:', label)
-            if (!args) {
+            self.results[label] = args
+            console.log('\n --- Start %s callback ---', label)
+            if (!args || args.length === 0) {
                 console.log('\n\t No arguments.')
             }
             else if (typeof args === "object") {
@@ -30,7 +33,7 @@ function Tester() {
             else {
                 console.log('\n\t Args: %s', args)
             }
-            console.log('\n --- end callback ---\n')
+            console.log('\n --- End callback ---\n')
         }
     }
 }
@@ -72,16 +75,29 @@ Tester.prototype.add = function (label, fn, args, expected) {
  */
 
 Tester.prototype.run = function (id, timeout=0) {
-    self = this
+    let self = this
     setTimeout(function () {
+        console.log('\nRunning test %s', id)
         let test = self.tests[id]
         const output = test.fn(...test.args)
         test.output = output ? output : null
         test.result = test.output === test.expected
-        console.log(test)
         return this
     }, timeout)
 }
 
-let tester = new Tester()
-module.exports = tester
+/**
+ * Run unit test with given parameters.
+ *
+ * @param {object} args – function parameters
+ * @public
+ */
+
+Tester.prototype.print = function (timeout=0) {
+    let self = this
+    setTimeout(function () {
+        console.log('\nResults: %s', self.results)
+    }, timeout)
+}
+
+module.exports = Tester

@@ -24,16 +24,18 @@ const utils = require('../../lib')
  * @public
  */
 
-module.exports.breadcrumbMenu = function(url) {
+module.exports.breadcrumbMenu = function(url, user) {
+    const userName = user ? user.email.replace(/@.*$/,"") : 'ID';
+    const homeIcon = {i: {attributes: {class: 'fa fa-lg fa-home'}}}
     // initialize with home route
-    let breadcrumbs = [{ li: { a: { attributes: { href: '/'}, textNode: params.settings.menu.frontpage}}}],
+    let breadcrumbs = [{ li: { a: { attributes: { href: '/', class:'home' }, homeIcon}}}],
         accURL = "", // accumulative url
         arrURL = utils.data.removeEmpty(url.substring(1).split("/"));
 
     for ( let i=0; i < arrURL.length; i++ ) {
         accURL = i !== arrURL.length-1 ? accURL + "/" + arrURL[i] : null;
         // hide user ID
-        const linkText = (i === 1 && arrURL[0] === 'users') ? 'ID' : arrURL[i].toLowerCase();
+        const linkText = (i === 1 && arrURL[0] === 'users') ? userName : arrURL[i].toLowerCase();
         breadcrumbs[breadcrumbs.length] = (accURL) ?
              { li: { a: { attributes:{ href: accURL }, textNode: linkText}}} :
              { li: {textNode: linkText}};
@@ -58,13 +60,13 @@ module.exports.userMenu = function(user) {
     // user is logged in
     else {
         // extract username from email
-        const userName = user.email.replace(/@.*$/,"");
+        const userName = user.role < 5 ? user.email.replace(/@.*$/,"") : 'Admin';
         return  JSON.stringify({ul: {
                 attributes: {class: "user_menu"},
                 childNodes: [
                     { li: { a: {
-                        attributes: { href: path.join("/users", user.id.toString(), 'edit') },
-                        textNode: 'Signed in as: ' + userName
+                        attributes: { href: path.join("/users", user.id.toString()) },
+                        textNode: userName
                     }}},
                     { li: { a: {attributes: { href: "/logout" }, textNode:'Sign Out'}}}
                 ]}});
@@ -77,11 +79,12 @@ module.exports.editorMenu = function(user, req) {
 
     let menu = {ul: { attributes:{ class: 'editor_menu'}, childNodes:[]}};
 
-    if (req.params.id) {
-        menu.ul.childNodes.push({li: {a: {attributes: {href: uri + '/create'}, textNode: 'New'}}});
-        menu.ul.childNodes.push({li: {a: {attributes: {href: uri + '/edit'}, textNode: 'Edit'}}});
+    console.log(req)
+    if (req) {
+        menu.ul.childNodes.push({li: {a: {attributes: {href: req.uri + '/create'}, textNode: 'New'}}});
+        menu.ul.childNodes.push({li: {a: {attributes: {href: req.uri + '/edit'}, textNode: 'Edit'}}});
     }
-    menu.ul.childNodes.push({li: {a: {attributes: {href: '#'}, textNode: 'Dashboard'}}});
+    menu.ul.childNodes.push({li: {a: {attributes: {href: '/'}, textNode: 'Dashboard'}}});
     menu.ul.childNodes.push({li: {a: {attributes: {href: '#'}, textNode: 'Settings'}}});
     menu.ul.childNodes.push({li: {a: {attributes: {href: '#'}, textNode: 'Help'}}});
 

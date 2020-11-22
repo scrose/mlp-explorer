@@ -19,6 +19,7 @@ const methodOverride = require('method-override');
 const builder = require('./views/builders');
 const session = require('./lib/session');
 const error = require('./error')
+const permit = require('./lib/permissions')
 const messages = require('./lib/messages');
 const config = require('./config');
 
@@ -108,6 +109,8 @@ app.use(function(req, res, next) {
     res.locals.view = path.parse(req.originalUrl).base;
     res.locals.user = req.session.user
 
+    // store authorization
+
     // check user session data
     console.log('Session: ', req.session.id);
     console.log('Active User: ', res.locals.user);
@@ -115,9 +118,9 @@ app.use(function(req, res, next) {
 
     // navigation menus
     res.locals.menus = {
-    breadcrumb: builder.nav.breadcrumbMenu(req.originalUrl),
+    breadcrumb: builder.nav.breadcrumbMenu(req.originalUrl, res.locals.user),
     user: builder.nav.userMenu(res.locals.user),
-    editor: builder.nav.editorMenu(res.locals.user, req)
+    editor: builder.nav.editorMenu(res.locals.user, res.locals)
     }
 
     next();
@@ -130,22 +133,13 @@ app.use(function(req, res, next) {
 require('./routes')(app, { verbose: true });
 
 
-// ---------------------------------
-// restrict user permissions by role
-// ---------------------------------
-app.use(function (req, res, next) {
-  console.log('RESTRICT', next, req.session.user);
-  // if (req.session.user ||
-  //     (req.method === 'GET' && req.url === '/login') ||
-  //     (req.method === 'GET' && req.url === '/register'))
-  // {
-  //   next();
-  // } else {
-  //   res.message(null, 'restricted', 'error');
-  //   res.redirect('/');
-  // }
-  next();
-});
+/**
+ * Restrict user permissions by role.
+ */
+
+app.use(
+    permit.authorize(req, res, next)
+);
 
 
 /**

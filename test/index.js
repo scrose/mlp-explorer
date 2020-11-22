@@ -92,10 +92,11 @@ app.get('/', function (req, res) {
 // Sessions tests
 app.get('/sessions', function (req, res) {
   sessionTests.run('delete_session', 1000)
-  sessionTests.run('set_session', 2000)
-  let result = sessionTests.run('get_session', 6000)
-  res.json(result)
-
+  sessionTests.run('set_session', 1500)
+  sessionTests.run('get_session', 1600)
+  sessionTests.run('touch_session', 2000)
+  sessionTests.run('get_session', 9000)
+  sessionTests.print(10000)
 });
 
 

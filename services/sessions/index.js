@@ -15,6 +15,19 @@
 const db = require('../../db')
 
 /**
+ * Initialize sessions table.
+ *
+ * @public
+ * @param {String} queryText
+ */
+
+exports.initSessions = (queryText) => {
+    return () => {
+        return db.query(queryText, []);
+    }
+}
+
+/**
  * Find session by session ID.
  *
  * @public
@@ -25,7 +38,7 @@ exports.findBySessionId = (queryText) => {
     return (sid, expires) => {
         return db.query(queryText, [
             sid,
-            expires.valueOf() / 1000
+            expires
         ]);
     }
 }
@@ -54,7 +67,7 @@ exports.upsert = (queryText) => {
     return (data) => {
         return db.query(queryText, [
             data.session_id,
-            data.expires.valueOf() / 1000,
+            data.expires,
             data.session_data
         ]);
     }
@@ -71,7 +84,7 @@ exports.update = (queryText) => {
     return (data) => {
         return db.query(queryText, [
             data.session_id,
-            data.expires.valueOf() / 1000,
+            data.expires,
             data.session_data
         ]);
     }
