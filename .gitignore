@@ -114,6 +114,8 @@ dist
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
+.idea/
+
 # User-specific stuff
 .idea/**/workspace.xml
 .idea/**/tasks.xml
@@ -124,8 +126,26 @@ dist
 # Generated files
 .idea/**/contentModel.xml
 
+.idea/**/codeStyles
+.idea/**/dataSources
+.idea/**/dataSources.local.xml
+.idea/**/dataSources.xml
+.idea/**/dbnavigator.xml
+.idea/**/externalDependencies.xml
+.idea/**/inspectionProfiles
+.idea/**/jsLibraryMappings.xml
+.idea/**/misc.xml
+.idea/**/mlp-explorer.iml
+.idea/**/modules.xml
+.idea/**/prettier.xml
+.idea/**/runConfigurations
+.idea/**/sqldialects.xml
+.idea/**/vcs.xml
+.idea/**/watcherTasks.xml
+
 # Sensitive or high-churn files
 .idea/**/dataSources/
+.idea/**/dataSources.xml
 .idea/**/dataSources.ids
 .idea/**/dataSources.local.xml
 .idea/**/sqlDataSources.xml
