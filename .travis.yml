@@ -7,8 +7,8 @@ matrix:
         - node_js: '12'
 cache:
     directories: [node_modules]
-install:
-    npm
+#before_install:
+#        - npm i -g npm@version-number
 after_success: npm run coverage
 before_script:
     - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
