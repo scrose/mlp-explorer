@@ -107,7 +107,10 @@ dist
 # TernJS port file
 .tern-port
 
+# Intellij files
+*/.idea/workspace.xml
+*/.idea/tasks.xml
+
 # Misc files
 .DS_STORE
 .DS_Store
-.idea/
