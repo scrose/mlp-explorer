@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <%- include('../common/head'); %>
 </head>
 <body>
 <%- include('../common/header'); %>
 <main>
-    <div id="form_container"></div>
+    <div class="page-content">
+        <div id="form_container"></div>
+    </div>
 </main>
-<%- include('../common/footer', {content: content}); %>
+<%- include('../common/footer'); %>
 <script>
     // build user form
     nodeBuilder.build("form_container", <%- form %>);

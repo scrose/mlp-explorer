@@ -205,7 +205,7 @@ Validator.prototype.isEmail = function (value) {
  */
 
 Validator.prototype.isPassword = function (value) {
-	return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,10}$/.test(value);
+	return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/.test(value);
 }
 
 /**
@@ -297,7 +297,7 @@ function ValidatorMessenger() {
 		},
 		isPassword: {
 			success: 'OK',
-			error: 'Passwords must have a minimum eight and maximum 10 characters, at least one uppercase letter,\n' +
+			error: 'Passwords must have a minimum eight and maximum 20 characters, at least one uppercase letter,\n' +
 				'\t one lowercase letter, one number and one special character'
 		},
 		isValidForm: {

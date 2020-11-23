@@ -12,7 +12,7 @@
  * @private
  */
 
-let utils = require('../../lib');
+let utils = require('../../src/lib');
 
 /**
  * Module exports.
