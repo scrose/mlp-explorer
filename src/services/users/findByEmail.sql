@@ -1,1 +1,0 @@
-SELECT * FROM users WHERE users.email = $1::text LIMIT 1

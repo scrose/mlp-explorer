@@ -15,8 +15,7 @@ import query from './database.js';
  */
 
 export function findAll() {
-  const queryText = fs.readdirSync('./roles/findAll.sql');
-  return query(queryText, []);
+  return query('SELECT *\n' + 'FROM user_roles\n' + 'ORDER BY role_id ASC', []);
 }
 
 /**
