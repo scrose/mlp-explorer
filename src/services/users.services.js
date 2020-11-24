@@ -111,25 +111,24 @@ export function update(data) {
 
 export function insert(data) {
   return query(
-    'INSERT INTO users(\n' +
-      '    user_id,\n' +
-      '    email,\n' +
-      '    password,\n' +
-      '    salt_token,\n' +
-      '    role_id,\n' +
-      '    created_at,\n' +
-      '    updated_at\n' +
-      ')\n' +
-      'VALUES(\n' +
-      '    $1::varchar,\n' +
-      '    $2::varchar,\n' +
-      '    $3::varchar,\n' +
-      '    $4::varchar,\n' +
-      '    $5::integer,\n' +
-      '    NOW()::timestamp,\n' +
-      '    NOW()::timestamp\n' +
-      ')\n' +
-      'RETURNING user_id',
+    `INSERT INTO users(
+                  user_id, 
+                  email, 
+                  password, 
+                  salt_token, 
+                  role_id, 
+                  created_at, 
+                  updated_at
+        ) VALUES(
+                 $1::varchar, 
+                 $2::varchar, 
+                 $3::varchar, 
+                 $4::varchar, 
+                 $5::integer, 
+                 NOW()::timestamp, 
+                 NOW()::timestamp
+                 ) 
+        RETURNING user_id`,
     [data.user_id, data.email, data.password, data.salt_token, data.role_id]
   );
 }
@@ -144,7 +143,10 @@ export function insert(data) {
 
 export function remove(id) {
   return query(
-    'DELETE FROM users\n' + 'WHERE\n' + 'user_id = $1::varchar\n' + 'AND\n' + 'role_id != 5\n' + 'RETURNING *',
+    `DELETE FROM users
+            WHERE user_id = $1::varchar
+              AND role_id != 5
+                RETURNING *`,
     [id]
   );
 }
@@ -159,70 +161,52 @@ export function remove(id) {
 
 export function init(data) {
   return query(
-    '-- Initialize Users Table\n' +
-      '\n' +
-      '-- drop old users table\n' +
-      'DROP TABLE IF EXISTS users;\n' +
-      '\n' +
-      '-- drop old user roles table\n' +
-      'DROP TABLE IF EXISTS user_roles;\n' +
-      '\n' +
-      '-- create user roles table\n' +
-      'CREATE TABLE IF NOT EXISTS user_roles (\n' +
-      'id serial PRIMARY KEY,\n' +
-      'role_id SMALLINT UNIQUE NOT NULL,\n' +
-      'name VARCHAR (255) UNIQUE NOT NULL\n' +
-      ');\n' +
-      '\n' +
-      " INSERT INTO user_roles (role_id, name) VALUES (1, 'Registered');\n" +
-      " INSERT INTO user_roles (role_id, name) VALUES (2, 'Editor');\n" +
-      " INSERT INTO user_roles (role_id, name) VALUES (3, 'Contributor');\n" +
-      " INSERT INTO user_roles (role_id, name) VALUES (4, 'Administrator');\n" +
-      " INSERT INTO user_roles (role_id, name) VALUES (5, 'Super-Administrator');\n" +
-      '\n' +
-      'SELECT * FROM user_roles;\n' +
-      '\n' +
-      '\n' +
-      '-- create new users table\n' +
-      'CREATE TABLE IF NOT EXISTS users (\n' +
-      '   id serial PRIMARY KEY,\n' +
-      '   user_id VARCHAR (255) UNIQUE NOT NULL,\n' +
-      '   role_id SMALLINT NOT NULL DEFAULT 1,\n' +
-      '   email VARCHAR (255) UNIQUE NOT NULL,\n' +
-      '   password VARCHAR (512) NOT NULL,\n' +
-      '   salt_token VARCHAR (255) NOT NULL,\n' +
-      '   reset_password_token VARCHAR (255),\n' +
-      '   reset_password_expires TIMESTAMP,\n' +
-      '   last_sign_in_at TIMESTAMP,\n' +
-      '   last_sign_in_ip VARCHAR (255),\n' +
-      '   created_at TIMESTAMP,\n' +
-      '   updated_at TIMESTAMP,\n' +
-      '   FOREIGN KEY (role_id) REFERENCES user_roles(role_id),\n' +
-      "   CHECK (email ~* '^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,63}$'),\n" +
-      "--   CHECK (user_id ~* '^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$'),\n" +
-      "   CHECK (password ~* '^[a-fA-F0-9]+$'),\n" +
-      "   CHECK (salt_token ~* '^[a-fA-F0-9]+$')\n" +
-      ');\n' +
-      '-- add super-administrator\n' +
-      'INSERT INTO users(\n' +
-      '    user_id,\n' +
-      '    email,\n' +
-      '    password,\n' +
-      '    salt_token,\n' +
-      '    role_id,\n' +
-      '    created_at,\n' +
-      '    updated_at\n' +
-      ')\n' +
-      'VALUES(\n' +
-      '    $1::varchar,\n' +
-      '    $2::varchar,\n' +
-      '    $3::varchar,\n' +
-      '    $4::varchar,\n' +
-      '    5,\n' +
-      '    NOW()::timestamp,\n' +
-      '    NOW()::timestamp\n' +
-      ')\n' +
-      'RETURNING *;',
+    `CREATE TABLE IF NOT EXISTS user_roles (
+    id serial PRIMARY KEY,
+    role_id SMALLINT UNIQUE NOT NULL,
+    name VARCHAR (255) UNIQUE NOT NULL);
+INSERT INTO user_roles (role_id, name) VALUES (1, 'Registered');
+INSERT INTO user_roles (role_id, name) VALUES (2, 'Editor');
+INSERT INTO user_roles (role_id, name) VALUES (3, 'Contributor');
+INSERT INTO user_roles (role_id, name) VALUES (4, 'Administrator');
+INSERT INTO user_roles (role_id, name) VALUES (5, 'Super-Administrator');
+CREATE TABLE IF NOT EXISTS users (
+    id serial PRIMARY KEY,
+    user_id VARCHAR (255) UNIQUE NOT NULL,
+    role_id SMALLINT NOT NULL DEFAULT 1,
+    email VARCHAR (255) UNIQUE NOT NULL,
+    password VARCHAR (512) NOT NULL,
+    salt_token VARCHAR (255) NOT NULL,
+    reset_password_token VARCHAR (255),
+    reset_password_expires TIMESTAMP,
+    last_sign_in_at TIMESTAMP,
+    last_sign_in_ip VARCHAR (255),
+    created_at TIMESTAMP,
+    pdated_at TIMESTAMP,
+    FOREIGN KEY (role_id) REFERENCES user_roles(role_id),
+    CHECK (email ~* '^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,63}$'),
+    CHECK (password ~* '^[a-fA-F0-9]+$'),
+    CHECK (salt_token ~* '^[a-fA-F0-9]+$')
+    );
+    INSERT INTO users(
+              user_id,
+              email,
+              password,
+              salt_token,
+              role_id,
+              created_at,
+              updated_at
+              )
+          VALUES(
+                 $1::varchar,
+                 $2::varchar,
+                 $3::varchar,
+                 $4::varchar,
+                 5,
+                 NOW()::timestamp,
+                 NOW()::timestamp\n
+                 )
+        RETURNING *;`,
     [admin.user_id, admin.email, admin.hash, admin.salt_token]
   );
 }

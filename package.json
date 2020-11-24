@@ -17,8 +17,8 @@
     "start": "node ./build/bin/www",
     "devstart": "nodemon ../src/mlp-explorer/bin/www",
     "serverstart": "DEBUG=mlp-explorer:* npm run devstart",
-      "test": "nyc mocha --exit",
-      "coverage": "nyc npm run test"
+    "test": "nyc mocha --exit",
+    "coverage": "nyc npm run test"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",

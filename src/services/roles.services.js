@@ -5,7 +5,6 @@
  * MIT Licensed
  */
 
-import fs from 'fs';
 import query from './database.js';
 
 /**
@@ -15,7 +14,7 @@ import query from './database.js';
  */
 
 export function findAll() {
-  return query('SELECT *\n' + 'FROM user_roles\n' + 'ORDER BY role_id ASC', []);
+  return query(`SELECT *\n` + 'FROM user_roles\n' + `ORDER BY role_id ASC`, []);
 }
 
 /**
@@ -26,8 +25,9 @@ export function findAll() {
  */
 
 export function update(data) {
-  const queryText = fs.readdirSync('./roles/update.sql');
-  return query(queryText, [data.name]);
+  return query(
+      `UPDATE user_roles SET name = $2::varchar WHERE role_id = $1::varchar RETURNING *`,
+      [data.name]);
 }
 
 /**
@@ -38,8 +38,9 @@ export function update(data) {
  */
 
 export function insert(data) {
-  const queryText = fs.readdirSync('./roles/insert.sql');
-  return query(queryText, [data.name]);
+  return query(
+      `INSERT INTO user_roles(name) VALUES($1::varchar) RETURNING *`,
+      [data.name]);
 }
 
 /**
@@ -49,6 +50,6 @@ export function insert(data) {
  */
 
 export function remove(id) {
-  const queryText = fs.readdirSync('./roles/delete.sql');
-  return query(queryText, [id]);
+  return query(
+      `DELETE FROM user_roles WHERE role_id = $1::varchar RETURNING *`, [id]);
 }

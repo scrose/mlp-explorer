@@ -22,11 +22,11 @@ import query from './database.js';
 
 export function init() {
   return query(
-    '--DROP TABLE IF EXISTS sessions;' +
-      'CREATE TABLE IF NOT EXISTS sessions ( ' +
-      'id serial NOT NULL PRIMARY KEY, ' +
-      'session_id VARCHAR (255) UNIQUE NOT NULL, ' +
-      'expires TIMESTAMP session_data json NOT NULL );',
+    `CREATE TABLE IF NOT EXISTS sessions (
+                id serial NOT NULL PRIMARY KEY,
+                session_id VARCHAR (255) UNIQUE NOT NULL,
+                expires TIMESTAMP,
+                session_data json NOT NULL);`,
     []
   );
 }
@@ -40,10 +40,12 @@ export function init() {
  */
 
 export function findBySessionId(sid, expires) {
-  return query('SELECT session_data FROM sessions WHERE session_id=$1::varchar AND expires >= TO_TIMESTAMP($2)', [
-    sid,
-    expires,
-  ]);
+  return query(
+      `SELECT session_data 
+            FROM sessions 
+            WHERE session_id=$1::varchar 
+              AND expires >= TO_TIMESTAMP($2)`,
+      [sid, expires]);
 }
 
 /**
@@ -53,7 +55,7 @@ export function findBySessionId(sid, expires) {
  */
 
 export function findAll() {
-  return query('SELECT * FROM sessions', []);
+  return query(`SELECT * FROM sessions`, []);
 }
 
 /**
@@ -65,22 +67,22 @@ export function findAll() {
 
 export function upsert(data) {
   return query(
-    'INSERT INTO sessions(\n' +
-      '    session_id,\n' +
-      '    expires,\n' +
-      '    session_data\n' +
-      ')\n' +
-      'VALUES(\n' +
-      '    $1::varchar,\n' +
-      '    TO_TIMESTAMP($2),\n' +
-      '    $3::json\n' +
-      ')\n' +
-      'ON CONFLICT (session_id) DO UPDATE\n' +
-      'SET\n' +
-      '    session_id = $1::varchar,\n' +
-      '    expires = TO_TIMESTAMP($2),\n' +
-      '    session_data = $3::json\n' +
-      'RETURNING *',
+    `INSERT INTO sessions(
+            session_id,
+            expires,
+            session_data
+            ) 
+        VALUES(
+            $1::varchar,
+            TO_TIMESTAMP($2),
+            $3::json
+        )
+        ON CONFLICT (session_id) DO UPDATE
+        SET
+            session_id = $1::varchar,
+            expires = TO_TIMESTAMP($2),
+            session_data = $3::json
+        RETURNING *`,
     [data.session_id, data.expires, data.session_data]
   );
 }
@@ -94,13 +96,14 @@ export function upsert(data) {
 
 export function update(data) {
   return query(
-    'UPDATE sessions\n' +
-      'SET\n' +
-      '    expires = TO_TIMESTAMP($2),\n' +
-      '    session_data = $3::json\n' +
-      'WHERE\n' +
-      '      session_id = $1::varchar\n' +
-      'RETURNING session_id',
+    `UPDATE sessions
+        SET
+            expires = TO_TIMESTAMP($2), 
+            session_data = $3::json
+        WHERE
+            session_id = $1::varchar
+        RETURNING 
+            session_id`,
     [data.session_id, data.expires, data.session_data]
   );
 }
@@ -113,7 +116,11 @@ export function update(data) {
  */
 
 export function remove(sid) {
-  return query('DELETE FROM sessions WHERE session_id = $1::varchar RETURNING session_id', [sid]);
+  return query(
+      `DELETE FROM sessions 
+            WHERE session_id = $1::varchar 
+            RETURNING session_id`,
+      [sid]);
 }
 
 /**
@@ -123,7 +130,7 @@ export function remove(sid) {
  */
 
 export function removeAll() {
-  return query('DELETE FROM sessions RETURNING session_id', []);
+  return query(`DELETE FROM sessions RETURNING session_id`, []);
 }
 
 /**
@@ -133,5 +140,5 @@ export function removeAll() {
  */
 
 export function prune() {
-  return query('DELETE FROM sessions WHERE expires < NOW()::timestamp RETURNING session_id', []);
+  return query(`DELETE FROM sessions WHERE expires < NOW()::timestamp RETURNING session_id`, []);
 }
