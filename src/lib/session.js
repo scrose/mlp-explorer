@@ -13,7 +13,7 @@
  */
 
 import session from 'express-session';
-import SessionStore from '../../models/SessionStore.js';
+import SessionStore from '../models/SessionStore.js';
 import { genUUID } from './secure.js';
 import { session as config } from '../config.js';
 

@@ -7,7 +7,7 @@
 
 'use strict';
 
-import LocalError from '../../models/Error.js';
+import LocalError from '../models/Error.js';
 import * as userServices from '../services/users.services.js';
 import { roles, permissions } from '../config.js';
 

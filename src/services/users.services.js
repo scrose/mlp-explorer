@@ -13,7 +13,7 @@
  */
 
 import query from './database.js';
-import { admin } from '../config';
+import { admin } from '../config.js';
 
 /**
  * Find user by ID. Joined with user roles table.
@@ -25,34 +25,22 @@ import { admin } from '../config';
 
 export function findById(id) {
   return query(
-    'SELECT\n' +
-      '    users.user_id AS user_id,\n' +
-      '    user_roles.role_id AS role_id,\n' +
-      '    user_roles.name AS role,\n' +
-      '    users.email,\n' +
-      '    users.reset_password_token,\n' +
-      '    users.reset_password_expires,\n' +
-      '    users.created_at,\n' +
-      '    users.updated_at\n' +
-      'FROM users\n' +
-      'LEFT OUTER JOIN user_roles\n' +
-      'ON users.role_id = user_roles.role_id\n' +
-      'WHERE users.user_id=$1::varchar',
+    `SELECT
+            users.user_id AS user_id,
+            user_roles.role_id AS role_id,
+            user_roles.name AS role,
+            users.email,
+            users.reset_password_token,
+            users.reset_password_expires,
+            users.created_at,
+            users.updated_at
+        FROM users
+        LEFT OUTER JOIN user_roles
+        ON users.role_id = user_roles.role_id
+        WHERE users.user_id=$1::varchar`,
     [id]
   );
 }
-
-/**
- * Find user by email.
- *
- * @public
- * @param {String} email
- * @return {Promise} result
- */
-
-// export function findByEmail(email) {
-//   return query('SELECT * FROM users WHERE users.email = $1::text LIMIT 1, [email]);
-// }
 
 /**
  * Find all registered users.
@@ -63,16 +51,16 @@ export function findById(id) {
 
 export function findAll() {
   return query(
-    'SELECT\n' +
-      '    users.user_id AS user_id,\n' +
-      '    user_roles.role_id AS role_id,\n' +
-      '    user_roles.name AS role,\n' +
-      '    users.email,\n' +
-      '    users.created_at,\n' +
-      '    users.updated_at\n' +
-      'FROM users\n' +
-      'LEFT OUTER JOIN user_roles\n' +
-      'ON users.role_id = user_roles.role_id',
+    `SELECT
+            users.user_id AS user_id,
+            user_roles.role_id AS role_id,
+            user_roles.name AS role,
+            users.email,
+            users.created_at,
+            users.updated_at
+        FROM users
+        LEFT OUTER JOIN user_roles
+        ON users.role_id = user_roles.role_id`,
     []
   );
 }
@@ -87,16 +75,16 @@ export function findAll() {
 
 export function update(data) {
   return query(
-    'UPDATE users\n' +
-      'SET\n' +
-      'email = $2::text,\n' +
-      'role_id = $3::integer,\n' +
-      'updated_at = NOW()::timestamp\n' +
-      'WHERE\n' +
-      'user_id = $1::varchar\n' +
-      'AND\n' +
-      'role_id != 5\n' +
-      'RETURNING *',
+    `UPDATE users
+            SET
+            email = $2::text,
+            role_id = $3::integer,
+            updated_at = NOW()::timestamp
+            WHERE
+            user_id = $1::varchar
+            AND
+            role_id != 5
+            RETURNING *`,
     [data.user_id, data.email, data.role_id]
   );
 }

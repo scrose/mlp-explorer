@@ -12,12 +12,13 @@
  * @private
  */
 
-import { session as config } from '../src/config.js';
+import { session as config } from '../config.js';
 import LocalError from './Error.js';
-import { Store } from 'express-session';
-import * as services from '../src/services/sessions.services.js';
+import sess from 'express-session';
+import query from '../lib/database.js';
+import * as sql from './queries/sessions.queries.js';
 import cron from 'node-cron';
-import debug from '../src/lib/debug.js';
+import debug from '../lib/debug.js';
 
 /** @returns {number} */
 const currentTimestamp = () => Math.ceil(Date.now());
@@ -51,8 +52,7 @@ const noop = () => {};
 
 function SessionStore() {
   // initialize sessions table
-  services
-    .init()
+  query(sql.initSessions)
     .then(() => {
       debug('Sessions table generated.');
     })
@@ -65,7 +65,7 @@ function SessionStore() {
  * Inherit methods from Model abstract class.
  */
 
-SessionStore.prototype = Object.create(Store.prototype);
+SessionStore.prototype = Object.create(sess.Store.prototype);
 
 /**
  * Fetch session by the given session ID.
@@ -84,8 +84,7 @@ SessionStore.prototype = Object.create(Store.prototype);
 SessionStore.prototype.get = function (sid, callback = noop()) {
   let key = prefix + sid;
   let now = currentTimestamp() / 1000;
-  services
-    .findBySessionId(key, now)
+    query(sql.findBySessionId, [key, now])
     .then((result) => {
       debug('GET Session ' + key);
       if (result.rows.length === 0) {
@@ -129,8 +128,7 @@ SessionStore.prototype.set = function (sid, sess, callback) {
     return callback(err);
   }
 
-  services
-    .upsert(args)
+  query(sql.upsert, [args])
     .then((data) => {
       if (data.rows.length === 0) throw LocalError('session');
       // show session parameters
@@ -154,8 +152,7 @@ SessionStore.prototype.set = function (sid, sess, callback) {
  */
 
 SessionStore.prototype.length = function (callback) {
-  services
-    .findAll()
+  query(sql.findAll)
     .then((result) => {
       callback(null, result.rows.length);
     })
@@ -197,8 +194,7 @@ SessionStore.prototype.touch = function (sid, sess, callback) {
   debug('TOUCH Session ' + key);
   printSession(sess);
 
-  services
-    .update(args)
+  query(sql.update [args])
     .then((data) => {
       if (data.rows.length === 0) {
         debug('TOUCH Session not found ' + key);
@@ -221,8 +217,7 @@ SessionStore.prototype.touch = function (sid, sess, callback) {
  */
 
 SessionStore.prototype.all = function (callback = noop) {
-  services
-    .findAll()
+  query(sql.findAll)
     .then((result) => {
       if (result.rows.length === 0) throw new Error();
       callback(null, result.rows);
@@ -245,8 +240,7 @@ SessionStore.prototype.all = function (callback = noop) {
 SessionStore.prototype.destroy = function (sid, callback = noop) {
   let key = prefix + sid;
   debug('Deleting SESSION ID ' + key);
-  services
-    .remove(key)
+  query(sql.remove, [key])
     .then((result) => {
       if (result.rows.length === 0) debug('- SESSION ID ' + key + 'was not found. Deletion cancelled.');
       else debug('- Deleted SESSION ID ' + result.rows[0].session_id);
@@ -266,8 +260,7 @@ SessionStore.prototype.destroy = function (sid, callback = noop) {
  * @public
  */
 SessionStore.prototype.clear = function (callback = noop) {
-  services
-    .removeAll()
+  query(sql.removeAll)
     .then(() => {
       callback();
     })

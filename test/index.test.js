@@ -11,9 +11,10 @@
  */
 
 import { expect, server, BASE_URL } from './setup.js';
+import mocha from 'mocha';
 
-describe('Index page test', () => {
-  it('gets base url', (done) => {
+mocha.describe('Index page test', () => {
+    mocha.it('gets base url', (done) => {
     server
       .get(`${BASE_URL}/`)
       .expect(200)
