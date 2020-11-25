@@ -1,5 +1,5 @@
 /*!
- * MLP.Core.Utilities.Object
+ * MLP.API.Utilities.Object
  * File: /models/Model.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed

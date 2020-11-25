@@ -1,5 +1,5 @@
 /*!
- * MLP.Core.Services.Sessions
+ * MLP.API.Services.Sessions
  * File: sessions.services.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
@@ -41,11 +41,12 @@ export function init() {
 
 export function findBySessionId(sid, expires) {
   return query(
-      `SELECT session_data 
+    `SELECT session_data 
             FROM sessions 
             WHERE session_id=$1::varchar 
               AND expires >= TO_TIMESTAMP($2)`,
-      [sid, expires]);
+    [sid, expires]
+  );
 }
 
 /**
@@ -117,10 +118,11 @@ export function update(data) {
 
 export function remove(sid) {
   return query(
-      `DELETE FROM sessions 
+    `DELETE FROM sessions 
             WHERE session_id = $1::varchar 
             RETURNING session_id`,
-      [sid]);
+    [sid]
+  );
 }
 
 /**

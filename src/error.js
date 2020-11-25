@@ -1,5 +1,5 @@
 /*!
- * MLP.Core.Utilities.Error
+ * MLP.API.Utilities.Error
  * File: error.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
@@ -19,13 +19,15 @@
  * @param {Error} err
  */
 
-function getMessage(err=null) {
+function getMessage(err = null) {
   if (err && err.hasOwnProperty('name') && err.name === 'LocalError') {
     return err.decoded;
   }
   // decode message
   else {
-    return 'An error occurred. Your request could not be completed. ' + 'Contact the site administrator for assistance.';
+    return (
+      'An error occurred. Your request could not be completed. ' + 'Contact the site administrator for assistance.'
+    );
   }
 }
 
@@ -37,12 +39,12 @@ function getMessage(err=null) {
  */
 
 function renderMessage(msg) {
-    return JSON.stringify({
-        div: {
-            attributes: { class: 'msg error' },
-            textNode: msg,
-        },
-    });
+  return JSON.stringify({
+    div: {
+      attributes: { class: 'msg error' },
+      textNode: msg,
+    },
+  });
 }
 
 /**
@@ -61,7 +63,6 @@ export function globalHandler(err, req, res, next) {
 
   res.locals.messages = [getMessage(err)];
   return res.status(500).json(res.locals);
-
 }
 
 /**
@@ -75,6 +76,6 @@ export function globalHandler(err, req, res, next) {
  */
 
 export function notFoundHandler(req, res, next) {
-    res.locals.messages=[getMessage()];
-    res.status(404).json(res.locals);
+  res.locals.messages = [getMessage()];
+  res.status(404).json(res.locals);
 }

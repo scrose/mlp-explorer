@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="/css/style.css">
+<title>Edit <%= station.name %></title>
+</head>
+
+<body>
+<h1><%= station.name %></h1>
+    <form action="/pet/<%= station.id %>?_method=put" method="post">
+    <label>Name: <input type="text" name="pet[name]" value="<%= station.name %>"></label>
+    <input type="submit" value="Update">
+    </form>
+    </body>
+    </html>

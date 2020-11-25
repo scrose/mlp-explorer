@@ -1,5 +1,5 @@
 /*!
- * MLP.Core.App
+ * MLP.API.App
  * File: app.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed

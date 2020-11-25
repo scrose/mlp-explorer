@@ -1,5 +1,5 @@
 /*!
- * MLP.Core.Utilities.Messages
+ * MLP.API.Utilities.Messages
  * File: /lib/messages.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed

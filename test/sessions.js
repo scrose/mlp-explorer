@@ -1,5 +1,5 @@
 // /*!
-//  * MLP.Core.Tests.Sessions
+//  * MLP.API.Tests.Sessions
 //  * File: /test/sessions.services.js
 //  * Copyright(c) 2020 Runtime Software Development Inc.
 //  * MIT Licensed

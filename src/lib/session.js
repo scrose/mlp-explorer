@@ -1,5 +1,5 @@
 /*!
- * MLP.Core.Utilities.Session
+ * MLP.API.Utilities.Session
  * File: /lib/session.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed

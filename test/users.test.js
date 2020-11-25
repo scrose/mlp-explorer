@@ -1,5 +1,5 @@
 /*!
- * MLP.Core.Tests.Users
+ * MLP.API.Tests.Users
  * File: users.test.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
@@ -14,41 +14,41 @@ import { expect, server, BASE_URL } from './setup.js';
 import mocha from 'mocha';
 
 mocha.describe('List all users', () => {
-    mocha.it('List all users page', done => {
-        server
-            .get(`${BASE_URL}/users`)
-            .expect(200)
-            .end((err, res) => {
-                expect(res.status).to.equal(200);
-                expect(res.body.users).to.instanceOf(Array);
-                res.body.users.forEach(u => {
-                    expect(u).to.have.property('user_id');
-                    expect(u).to.have.property('role_id');
-                    expect(u).to.have.property('email');
-                    expect(u).to.have.property('created_at');
-                    expect(u).to.have.property('updated_at');
-                });
-                done();
-            });
-    });
+  mocha.it('List all users page', (done) => {
+    server
+      .get(`${BASE_URL}/users`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.status).to.equal(200);
+        expect(res.body.users).to.instanceOf(Array);
+        res.body.users.forEach((u) => {
+          expect(u).to.have.property('user_id');
+          expect(u).to.have.property('role_id');
+          expect(u).to.have.property('email');
+          expect(u).to.have.property('created_at');
+          expect(u).to.have.property('updated_at');
+        });
+        done();
+      });
+  });
 });
 
 mocha.describe('Show specified user', () => {
-    mocha.it('Show user page', done => {
-        server
-            .get(`${BASE_URL}/users/0d658f82d0651c19872d331401842823`)
-            .expect(200)
-            .end((err, res) => {
-                expect(res.status).to.equal(200);
-                expect(res.body.user).to.instanceOf(Object);
-                expect(res.body.user).to.have.property('user_id');
-                expect(res.body.user).to.have.property('role_id');
-                expect(res.body.user).to.have.property('email');
-                expect(res.body.user).to.have.property('created_at');
-                expect(res.body.user).to.have.property('updated_at');
-                done();
-            });
-    });
+  mocha.it('Show user page', (done) => {
+    server
+      .get(`${BASE_URL}/users/0d658f82d0651c19872d331401842823`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.status).to.equal(200);
+        expect(res.body.user).to.instanceOf(Object);
+        expect(res.body.user).to.have.property('user_id');
+        expect(res.body.user).to.have.property('role_id');
+        expect(res.body.user).to.have.property('email');
+        expect(res.body.user).to.have.property('created_at');
+        expect(res.body.user).to.have.property('updated_at');
+        done();
+      });
+  });
 });
 
 // /**

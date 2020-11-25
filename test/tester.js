@@ -1,5 +1,5 @@
 // /*!
-//  * MLP.Core.Tests.Tester
+//  * MLP.API.Tests.Tester
 //  * File: /test/tester.js
 //  * Copyright(c) 2020 Runtime Software Development Inc.
 //  * MIT Licensed

@@ -1,10 +1,9 @@
 /*!
- * MLP.Core.Controllers.Users
+ * MLP.API.Controllers.Users
  * File: users.controller.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
-
 
 /**
  * Module dependencies.
@@ -33,7 +32,7 @@ export const list = async (req, res, next) => {
   await user
     .getAll()
     .then((data) => {
-        res.status(200).json({users: data.rows});
+      res.status(200).json({ users: data.rows });
       let userList = [];
       // result.rows.forEach((data) => {
       //   let user = new User(data);
@@ -41,7 +40,9 @@ export const list = async (req, res, next) => {
       // });
       // res.render('list', { users: userList });
     })
-    .catch((err) => {next(err);});
+    .catch((err) => {
+      next(err);
+    });
 };
 
 /**
@@ -54,19 +55,19 @@ export const list = async (req, res, next) => {
  * @src public
  */
 
-export const show =  async (req, res, next) => {
-    // restrict(res, next, config.roles.Administrator, res.locals.req_id);
-    await user
-        .getById(req.params.user_id)
-        .then((data) => {
-            if (data.rows.length === 0) throw new LocalError('nouser');
-            res.status(200).json({user: data.rows[0]});
-            // let user = new User(result);
-            // res.render('show', {
-            //     user: user.getData(),
-            // });
-        })
-        .catch((err) => next(err));
+export const show = async (req, res, next) => {
+  // restrict(res, next, config.roles.Administrator, res.locals.req_id);
+  await user
+    .getById(req.params.user_id)
+    .then((data) => {
+      if (data.rows.length === 0) throw new LocalError('nouser');
+      res.status(200).json({ user: data.rows[0] });
+      // let user = new User(result);
+      // res.render('show', {
+      //     user: user.getData(),
+      // });
+    })
+    .catch((err) => next(err));
 };
 
 /**
@@ -194,7 +195,7 @@ export const authenticate = async (req, res, next) => {
  * @src public
  */
 
-export const register =  async (req, res, next) => {
+export const register = async (req, res, next) => {
   // remove to open to visitors
   restrict(res, next, config.roles.Administrator);
 
@@ -228,7 +229,7 @@ export const register =  async (req, res, next) => {
  * @src public
  */
 
-export const confirm =  async (req, res, next) => {
+export const confirm = async (req, res, next) => {
   // remove to open to visitors
   restrict(res, next, config.roles.Administrator);
 
@@ -262,8 +263,6 @@ export const confirm =  async (req, res, next) => {
     });
 };
 
-
-
 /**
  * Edit the user's profile data.
  *
@@ -273,7 +272,7 @@ export const confirm =  async (req, res, next) => {
  * @src public
  */
 
-export const edit =  async (req, res, next) => {
+export const edit = async (req, res, next) => {
   // retrieve user roles
   const { roles } = await userRoleServices.findAll().catch((err) => next(err));
 

@@ -1,5 +1,5 @@
 /*!
- * MLP.Core.Utilities
+ * MLP.API.Utilities
  * File: /lib/index.test.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed

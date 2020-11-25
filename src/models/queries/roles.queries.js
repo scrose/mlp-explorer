@@ -1,10 +1,9 @@
 /*!
- * MLP.Core.Models.Queries.Roles
+ * MLP.API.Models.Queries.Roles
  * File: roles.queries.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
-
 
 /**
  * Find all user roles.

@@ -1,5 +1,5 @@
 /*!
- * MLP.Core.Models.Sessions.Queries
+ * MLP.API.Models.Sessions.Queries
  * File: sessions.queries.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
@@ -15,7 +15,7 @@ export const initSessions = `CREATE TABLE IF NOT EXISTS sessions (
                 id serial NOT NULL PRIMARY KEY,
                 session_id VARCHAR (255) UNIQUE NOT NULL,
                 expires TIMESTAMP,
-                session_data json NOT NULL);`
+                session_data json NOT NULL);`;
 
 /**
  * Find session by session ID.
@@ -24,7 +24,7 @@ export const initSessions = `CREATE TABLE IF NOT EXISTS sessions (
 export const findBySessionId = `SELECT session_data 
             FROM sessions 
             WHERE session_id=$1::varchar
-              AND expires >= TO_TIMESTAMP($2)`
+              AND expires >= TO_TIMESTAMP($2)`;
 
 /**
  * Find all sessions.

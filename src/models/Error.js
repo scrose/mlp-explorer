@@ -1,5 +1,5 @@
 /*!
- * MLP.Core.Classes.Error
+ * MLP.API.Classes.Error
  * File: /classes/Error.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed

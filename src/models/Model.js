@@ -1,5 +1,5 @@
 /*!
- * MLP.Core.Models.Base
+ * MLP.API.Models.Base
  * File: /models/Model.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
@@ -22,26 +22,26 @@ export default Model;
  * @src private
  */
 
-function Model(data=null) {
-    this.name = null;
-    this.label = null;
-    this.schema = null;
-    this.data = data;
-    this.pool = null;
+function Model(data = null) {
+  this.name = null;
+  this.label = null;
+  this.schema = null;
+  this.data = data;
+  this.pool = null;
 
-    const self = this;
+  const self = this;
 
-    // merge data into schema
-    if (typeof data === 'object' && data !== null) {
-        const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
-        Object.entries(self.schema.fields).forEach(([key, field]) => {
-            field.value = inputData.hasOwnProperty(key) ? inputData[key] : null;
-        });
-    } else {
-        Object.entries(self.schema.fields).forEach(([_, field]) => {
-            field.value = '';
-        });
-    }
+  // merge data into schema
+  if (typeof data === 'object' && data !== null) {
+    const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
+    Object.entries(self.schema.fields).forEach(([key, field]) => {
+      field.value = inputData.hasOwnProperty(key) ? inputData[key] : null;
+    });
+  } else {
+    Object.entries(self.schema.fields).forEach(([_, field]) => {
+      field.value = '';
+    });
+  }
 }
 
 /**
@@ -51,20 +51,20 @@ function Model(data=null) {
  * @src public
  */
 
-Model.prototype.setData = function(data) {
-    // set data values in schema
-    if (typeof data === 'object') {
-        const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
-        let model = this;
-        Object.entries(this.schema.fields).forEach(([key, field]) => {
-            field.value = inputData.hasOwnProperty(key) ? inputData[key] : null;
-            // add convenient field reference
-            model[key] = model.hasOwnProperty(key) ? model[key] : field.value;
-        });
-        return;
-    }
-    // otherwise, empty schema of values
-    this.clear();
+Model.prototype.setData = function (data) {
+  // set data values in schema
+  if (typeof data === 'object') {
+    const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
+    let model = this;
+    Object.entries(this.schema.fields).forEach(([key, field]) => {
+      field.value = inputData.hasOwnProperty(key) ? inputData[key] : null;
+      // add convenient field reference
+      model[key] = model.hasOwnProperty(key) ? model[key] : field.value;
+    });
+    return;
+  }
+  // otherwise, empty schema of values
+  this.clear();
 };
 
 /**
@@ -75,10 +75,10 @@ Model.prototype.setData = function(data) {
  * @src public
  */
 
-Model.prototype.setValue = function(field, value) {
-    if (typeof field === 'string' && this.schema.fields.hasOwnProperty(field)) {
-        this.schema.fields[field].value = value ? value : null;
-    }
+Model.prototype.setValue = function (field, value) {
+  if (typeof field === 'string' && this.schema.fields.hasOwnProperty(field)) {
+    this.schema.fields[field].value = value ? value : null;
+  }
 };
 
 /**
@@ -88,8 +88,8 @@ Model.prototype.setValue = function(field, value) {
  * @src public
  */
 
-Model.prototype.getValue = function(field) {
-    if (field) return this.schema.fields.hasOwnProperty(field) ? this.schema.fields[field].value : null;
+Model.prototype.getValue = function (field) {
+  if (field) return this.schema.fields.hasOwnProperty(field) ? this.schema.fields[field].value : null;
 };
 
 /**
@@ -99,12 +99,12 @@ Model.prototype.getValue = function(field) {
  * @src public
  */
 
-Model.prototype.getData = function() {
-    let filteredData = {};
-    Object.entries(this.schema.fields).forEach(([key, field]) => {
-        filteredData[key] = field.value;
-    });
-    return filteredData;
+Model.prototype.getData = function () {
+  let filteredData = {};
+  Object.entries(this.schema.fields).forEach(([key, field]) => {
+    filteredData[key] = field.value;
+  });
+  return filteredData;
 };
 
 /**
@@ -114,13 +114,13 @@ Model.prototype.getData = function() {
  * @src public
  */
 
-Model.prototype.clear = function() {
-    if (this.hasOwnProperty('schema')) {
-        Object.entries(this.schema.fields).forEach(([_, field]) => {
-            field.value = '';
-        });
-    }
-    return this;
+Model.prototype.clear = function () {
+  if (this.hasOwnProperty('schema')) {
+    Object.entries(this.schema.fields).forEach(([_, field]) => {
+      field.value = '';
+    });
+  }
+  return this;
 };
 
 /**
@@ -131,10 +131,10 @@ Model.prototype.clear = function() {
  * @src public
  */
 
-Model.prototype.setOptions = function(field, options) {
-    if (field && this.schema.fields.hasOwnProperty(field) && typeof options === 'object') {
-        this.schema.fields[field].options = options ? options : null;
-    }
+Model.prototype.setOptions = function (field, options) {
+  if (field && this.schema.fields.hasOwnProperty(field) && typeof options === 'object') {
+    this.schema.fields[field].options = options ? options : null;
+  }
 };
 
 /**
@@ -169,13 +169,11 @@ Model.prototype.setOptions = function(field, options) {
  */
 
 export function createModel(schema) {
-    let derivedModel = function() {}
-    derivedModel.prototype = Object.create(Model.prototype);
-    derivedModel.prototype.schema = schema;
-    derivedModel.prototype.name = schema.name;
-    derivedModel.prototype.label = schema.label;
-    derivedModel.prototype.pool = pool;
-    return derivedModel;
+  let derivedModel = function () {};
+  derivedModel.prototype = Object.create(Model.prototype);
+  derivedModel.prototype.schema = schema;
+  derivedModel.prototype.name = schema.name;
+  derivedModel.prototype.label = schema.label;
+  derivedModel.prototype.pool = pool;
+  return derivedModel;
 }
-
-

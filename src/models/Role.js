@@ -1,5 +1,5 @@
 /*!
- * MLP.Core.Models.UserRoles
+ * MLP.API.Models.UserRoles
  * File: Role.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
@@ -48,7 +48,7 @@ Role.prototype = Object.create(Model.prototype);
  */
 
 defineMethod(Role, 'findAll', async () => {
-    return this.query(queries.findAll, []);
+  return this.query(queries.findAll, []);
 });
 
 /**
@@ -60,5 +60,5 @@ defineMethod(Role, 'findAll', async () => {
  */
 
 defineMethod(Role, 'remove', async (role_id) => {
-    return this.query(queries.remove, [role_id]);
+  return this.query(queries.remove, [role_id]);
 });

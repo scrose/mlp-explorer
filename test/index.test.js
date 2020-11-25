@@ -1,6 +1,6 @@
 /*!
- * MLP.Core.Tests
- * File: /test/index.test.js
+ * MLP.API.Tests.Index
+ * File: index.test.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -14,7 +14,7 @@ import { expect, server, BASE_URL } from './setup.js';
 import mocha from 'mocha';
 
 mocha.describe('Index page test', () => {
-    mocha.it('gets base url', (done) => {
+  mocha.it('gets base url', (done) => {
     server
       .get(`${BASE_URL}/`)
       .expect(200)

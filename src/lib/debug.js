@@ -1,5 +1,5 @@
 /*!
- * MLP.Core.Utilities.Debug
+ * MLP.API.Utilities.Debug
  * File: /lib/debug.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed

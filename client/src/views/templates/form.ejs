@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <%- include('../common/head', {title: content.title}); %>
+</head>
+<body>
+<%- include('../common/header', {content: content}); %>
+<main>
+    <!-- edit surveyor record -->
+    <div id="form_container"></div>
+</main>
+<%- include('../common/footer', {content: content}); %>
+<script>
+    // build user edit form
+    nodeBuilder.build("form_container", <%- formSchema %>);
+    // initialize form validator
+    window.onload = formValidator.init(<%- validatorSchema %>);
+</script>
+</body>
+</html>

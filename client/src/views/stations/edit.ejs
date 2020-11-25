@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <%- include('../../../views/common/head', {title: content.title}); %>
+</head>
+<body>
+<%- include('../../../views/common/header', {content: content}); %>
+
+<form action="/pet/<%= content.id %>?_method=put" method="post">
+    <label>Name: <input type="text" name="pet[name]" value="<%= station.name %>"></label>
+    <input type="submit" value="Update">
+</form>
+</body>
+</html>

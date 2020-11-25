@@ -1,5 +1,5 @@
 /*!
- * MLP.Core.Library.Database
+ * MLP.API.Library.Database
  * File: database.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
@@ -21,13 +21,13 @@ import { db } from '../config.js';
  * clients to check out, use, and return.
  */
 export const pgPool = new pg.Pool({
-    user: db.username,
-    database: db.database,
-    password: db.password,
-    host: db.hostname,
-    port: db.port,
-    max: 10, // max number of clients in the pool
-    idleTimeoutMillis: 30000,
+  user: db.username,
+  database: db.database,
+  password: db.password,
+  host: db.hostname,
+  port: db.port,
+  max: 10, // max number of clients in the pool
+  idleTimeoutMillis: 30000,
 });
 
 /**
@@ -36,8 +36,8 @@ export const pgPool = new pg.Pool({
  * happens.
  */
 pgPool.on('error', (err, client) => {
-    console.error('Unexpected error on idle client', err, client);
-    process.exit(-1);
+  console.error('Unexpected error on idle client', err, client);
+  process.exit(-1);
 });
 
 /**
@@ -45,7 +45,6 @@ pgPool.on('error', (err, client) => {
  */
 
 export default pgPool;
-
 
 // ;(async () => {
 //     // note: we don't try/catch this because if connecting throws an exception
@@ -66,4 +65,3 @@ export default pgPool;
 //         client.release()
 //     }
 // })().catch(e => console.error(e.stack))
-

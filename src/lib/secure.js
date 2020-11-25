@@ -1,5 +1,5 @@
 /*!
- * MLP.Core.Utilities.Secure
+ * MLP.API.Utilities.Secure
  * File: /lib/secure.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed

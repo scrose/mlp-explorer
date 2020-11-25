@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <%- include('./common/head', {content: content}); %>
+</head>
+<body>
+<%- include('./common/header', {content: content}); %>
+<main>
+    <h2>401: Not Authorized</h2>
+    <p>You are not authorized to access <%= url %></p>
+    <p><a href="/">Return to the homepage</a></p>
+</main>
+<%- include('./common/footer', {content: content}); %>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <%- include('../common/head', {title: content.title}); %>
+</head>
+<body>
+<%- include('../common/header', {content: content}); %>
+<%- include('../common/editor_menu', {content: content}); %>
+<main>
+    <!-- edit surveyor record -->
+    <div id="form_container"></div>
+
+</main>
+<%- include('../common/footer', {content: content}); %>
+<script>
+    // surveyor form data
+    const form_container = document.getElementById("form_container");
+    domTree = buildNode(null, <%- form %>);
+    form_container.appendChild(domTree);
+</script>
+</body>
+</html>

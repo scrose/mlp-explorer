@@ -1,5 +1,5 @@
 /*!
- * Core.Router
+ * Core.API.Router
  * File: /src/routes/index.test.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
@@ -12,14 +12,14 @@ const apiRouter = express.Router();
 //
 // indexRouter.post('/messages', modifyMessage, addMessage);
 
-import {list, show} from '../controllers/users.controller.js'
+import * as users from '../controllers/users.controller.js';
 
 apiRouter.get('/', function (req, res, next) {
-    return res.status(200).json({ message: 'Welcome to Express API template' });
+  return res.status(200).json({ message: 'Welcome to Express API template' });
 });
 
-apiRouter.get('/users', list);
-apiRouter.get('/users/:user_id', show);
+apiRouter.get('/users', users.list);
+apiRouter.get('/users/:user_id', users.show);
 
 export default apiRouter;
 

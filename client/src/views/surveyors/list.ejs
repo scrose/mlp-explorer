@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <%- include('../common/head', {title: content.title}); %>
+    </head>
+    <body>
+    <%- include('../common/header', {content: content}); %>
+    <main>
+    <table class="records">
+        <tbody>
+        <tr>
+            <th>Surveys</th>
+            <th>Given names</th>
+            <th>Last name</th>
+            <th>Short name</th>
+            <th>Affiliation</th>
+    <!--        <th>Modified</th>-->
+            <th colspan="3"></th>
+        </tr>
+        <!-- Surveyors (with attached surveys) -->
+        <% for (const [key, surveyor] of Object.entries(surveyors)) { %>
+            <tr>
+                <td>
+                    <button type="button" class="collapsible">+</button>
+                    <div class="content">
+                        <ul>
+                        <% for (const [key, survey] of Object.entries(surveyor)) { %>
+                                <li><a href="/<%= content.uri %>/<%= survey.id %>"><%= survey.name %></a></li>
+                        <%}%>
+                        </ul>
+                    </div>
+                </td>
+                <td><%= surveyor[0].given_names %></td>
+                <td><%= surveyor[0].last_name %></td>
+                <td><%= surveyor[0].short_name %></td>
+                <td><%= surveyor[0].affiliation %></td>
+    <!--            <td><%= surveyor[0].updated_at %></td>-->
+                <td>
+                    <a href="/surveyors/<%= surveyor.id %>/publish">
+                        <% if (surveyor[0].published) { %>
+                            unpublish
+                        <% } else  { %>
+                            publish
+                        <% } %>
+                    </a>
+                </td>
+                <td><a href="/surveyors/<%= surveyor[0].parent_id %>">view</a></td>
+                <td><a href="/surveyors/<%= surveyor[0].parent_id %>/edit">edit</a></td>
+                <td><a href="/surveyors/<%= surveyor[0].parent_id %>/delete">delete</a></td>
+            </tr>
+        <% } %>
+        </tbody>
+    </table>
+    </main>
+    <%- include('../common/footer', {content: content}); %>
+    </body>
+</html>

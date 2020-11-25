@@ -1,5 +1,5 @@
 /*!
- * MLP.Core.Services.Users
+ * MLP.API.Services.Users
  * File: users.services.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed

@@ -1,5 +1,5 @@
 /*!
- * MLP.Core.Models.Schema.Roles
+ * MLP.API.Models.Schema.Roles
  * File: roles.schema.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed

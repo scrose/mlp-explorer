@@ -1,5 +1,5 @@
 /*!
- * MLP.Core.Models.User
+ * MLP.API.Models.User
  * File: User.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
@@ -15,7 +15,6 @@
 import schema from './schemas/users.schema.js';
 import * as queries from './queries/users.queries.js';
 import { createModel } from './Model.js';
-
 
 /**
  * Create User data model. Inherit
@@ -41,8 +40,8 @@ export default User;
  * @return {Promise} result
  */
 
-User.prototype.getAll = function() {
-    return this.pool.query(queries.findAll, []);
+User.prototype.getAll = function () {
+  return this.pool.query(queries.findAll, []);
 };
 
 /**
@@ -53,8 +52,8 @@ User.prototype.getAll = function() {
  * @return {Promise} result
  */
 
-User.prototype.getById = function(user_id) {
-    return this.pool.query(queries.findById, [user_id]);
+User.prototype.getById = function (user_id) {
+  return this.pool.query(queries.findById, [user_id]);
 };
 
 /**
@@ -65,8 +64,8 @@ User.prototype.getById = function(user_id) {
  * @return {Promise} result
  */
 
-User.prototype.update = function(data) {
-    return this.pool.query(queries.update, [data.user_id, data.email, data.role_id]);
+User.prototype.update = function (data) {
+  return this.pool.query(queries.update, [data.user_id, data.email, data.role_id]);
 };
 
 /**
@@ -77,8 +76,8 @@ User.prototype.update = function(data) {
  * @return {Promise} result
  */
 
-User.prototype.add = function(data) {
-    return this.pool.query(queries.insert, [data.user_id, data.email, data.password, data.salt_token, data.role_id]);
+User.prototype.add = function (data) {
+  return this.pool.query(queries.insert, [data.user_id, data.email, data.password, data.salt_token, data.role_id]);
 };
 
 /**
@@ -89,8 +88,8 @@ User.prototype.add = function(data) {
  * @return {Promise} result
  */
 
-User.prototype.remove = function(user_id) {
-    return this.pool.query(queries.remove, [user_id]);
+User.prototype.remove = function (user_id) {
+  return this.pool.query(queries.remove, [user_id]);
 };
 
 /**
@@ -101,8 +100,8 @@ User.prototype.remove = function(user_id) {
  * @return {Promise} result
  */
 
-User.prototype.initTable = function() {
-    return this.pool.query(queries.init, []);
+User.prototype.initTable = function () {
+  return this.pool.query(queries.init, []);
 };
 
 /**
@@ -111,7 +110,7 @@ User.prototype.initTable = function() {
  * @public
  */
 
-User.prototype.encrypt = function() {
+User.prototype.encrypt = function () {
   let password = this.getValue('password') || null;
   if (!password) return;
 
@@ -133,7 +132,7 @@ User.prototype.encrypt = function() {
  * @public
  * @param {String} password
  */
-User.prototype.authenticate = function(password) {
+User.prototype.authenticate = function (password) {
   console.log('Authenticating user %s', this.getValue('email'));
   return this.getValue('password') === utils.secure.encrypt(password, this.getValue('salt_token'));
 };
