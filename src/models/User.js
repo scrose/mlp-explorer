@@ -1,6 +1,6 @@
 /*!
  * MLP.Core.Models.User
- * File: /models/permissions.js
+ * File: User.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -12,162 +12,98 @@
  * @private
  */
 
-const Model = require('./Base');
-const utils = require('../src/lib');
+import schema from './schemas/users.schema.js';
+import * as queries from './queries/users.queries.js';
+import { createModel } from './Model.js';
+
+
+/**
+ * Create User data model. Inherit
+ * methods, properties from Model abstract class.
+ *
+ * @private
+ * @param data
+ */
+
+let User = createModel(schema);
 
 /**
  * Module exports.
  * @public
  */
 
-module.exports = User;
+export default User;
 
 /**
- * Define User data model schema
+ * Find all registered users.
  *
- * @private
+ * @public
+ * @return {Promise} result
  */
-let schema = {
-  fields: {
-    user_id: {
-      label: 'User ID',
-      type: 'string',
-      render: {
-        delete: {
-          attributes: {
-            type: 'hidden',
-          },
-        },
-        edit: {
-          attributes: {
-            type: 'hidden',
-          },
-        },
-      },
-    },
-    email: {
-      label: 'Email',
-      type: 'email',
-      render: {
-        register: {
-          validation: ['isRequired', 'isEmail'],
-        },
-        login: {
-          validation: ['isRequired', 'isEmail'],
-        },
-        edit: {
-          validation: ['isRequired', 'isEmail'],
-        },
-        delete: {
-          attributes: {
-            type: 'textNode',
-          },
-        },
-      },
-    },
-    role_id: {
-      label: 'User Role ID',
-      type: 'select',
-      render: {
-        register: {
-          attributes: {
-            type: 'hidden',
-            value: 1,
-          },
-        },
-        edit: {
-          attributes: {
-            type: 'select',
-            value: 1,
-          },
-          validation: ['isSelected'],
-          restrict: [3],
-        },
-      },
-    },
-    role: {
-      label: 'User Role',
-      type: 'string',
-      restrict: [3],
-    },
-    password: {
-      label: 'Password',
-      type: 'password',
-      render: {
-        register: {
-          attributes: {
-            type: 'password',
-          },
-          validation: ['isPassword'],
-        },
-        login: {
-          attributes: {
-            type: 'password',
-          },
-          validation: ['isPassword'],
-        },
-        edit: {
-          attributes: {
-            type: 'link',
-            linkText: 'Reset Password',
-            url: '#',
-          },
-        },
-      },
-    },
-    salt_token: {
-      label: 'Salt Hash',
-      type: 'password',
-      restrict: [3],
-    },
-    repeat_password: {
-      label: 'Repeat Password',
-      type: 'password',
-      render: {
-        register: {
-          attributes: {
-            repeat: 'password',
-          },
-          validation: ['isRepeatPassword'],
-        },
-      },
-    },
-    reset_password_token: {
-      label: '',
-      type: 'string',
-      restrict: [3],
-    },
-    reset_password_expires: {
-      label: 'Reset Password Sent at',
-      type: 'timestamp',
-      restrict: [3],
-    },
-    created_at: {
-      label: 'Created at',
-      type: 'timestamp',
-    },
-    updated_at: {
-      label: 'Last Modified at',
-      type: 'timestamp',
-    },
-  },
+
+User.prototype.getAll = function() {
+    return this.pool.query(queries.findAll, []);
 };
 
 /**
- * Create User data model. Call base Model class as constructor.
+ * Find user by ID. Joined with user roles table.
  *
- * @private
- * @param data
+ * @public
+ * @param {String} id
+ * @return {Promise} result
  */
-function User(data = null) {
-  Model.call(this, 'users', 'User Profile', schema, data);
-}
+
+User.prototype.getById = function(user_id) {
+    return this.pool.query(queries.findById, [user_id]);
+};
 
 /**
- * Inherit methods from Model abstract class.
+ * Update user data.
+ *
+ * @public
+ * @param {Object} data
+ * @return {Promise} result
  */
 
-User.prototype = Object.create(Model.prototype);
+User.prototype.update = function(data) {
+    return this.pool.query(queries.update, [data.user_id, data.email, data.role_id]);
+};
+
+/**
+ * Insert new user.
+ *
+ * @public
+ * @param {Object} data
+ * @return {Promise} result
+ */
+
+User.prototype.add = function(data) {
+    return this.pool.query(queries.insert, [data.user_id, data.email, data.password, data.salt_token, data.role_id]);
+};
+
+/**
+ * Delete user.
+ *
+ * @public
+ * @param {Object} data
+ * @return {Promise} result
+ */
+
+User.prototype.remove = function(user_id) {
+    return this.pool.query(queries.remove, [user_id]);
+};
+
+/**
+ * Initialize users table
+ *
+ * @public
+ * @param {object} data
+ * @return {Promise} result
+ */
+
+User.prototype.initTable = function() {
+    return this.pool.query(queries.init, []);
+};
 
 /**
  * Encrypt user salt and password
@@ -175,7 +111,7 @@ User.prototype = Object.create(Model.prototype);
  * @public
  */
 
-utils.obj.defineMethod(User, 'encrypt', function () {
+User.prototype.encrypt = function() {
   let password = this.getValue('password') || null;
   if (!password) return;
 
@@ -190,15 +126,14 @@ utils.obj.defineMethod(User, 'encrypt', function () {
   this.setValue('salt_token', salt_token);
 
   return this;
-});
+};
 
 /**
  * Authenticate user credentials.
  * @public
  * @param {String} password
  */
-
-utils.obj.defineMethod(User, 'authenticate', function (password) {
+User.prototype.authenticate = function(password) {
   console.log('Authenticating user %s', this.getValue('email'));
   return this.getValue('password') === utils.secure.encrypt(password, this.getValue('salt_token'));
-});
+};

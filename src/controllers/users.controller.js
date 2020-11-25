@@ -1,53 +1,24 @@
 /*!
  * MLP.Core.Controllers.Users
- * File: /controllers/permissions.js
+ * File: users.controller.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
 
-/**
- * Module constants.
- * @private
- */
-
-const modelName = 'users';
 
 /**
  * Module dependencies.
  * @private
  */
 
-const User = require('../../models/User');
-const LocalError = require('../../models/Error');
-const userServices = require('../src/services')({ type: modelName });
-const userRoleServices = require('../src/services')({ type: 'roles' });
-const builder = require('../../views/builders');
-const utils = require('../lib');
-const path = require('path');
-const config = require('../config');
-const { restrict } = require('../lib/permissions');
-// const jwt = require('express-jwt');
+import User from '../models/User.js';
+import Role from '../models/Role.js';
+import LocalError from '../models/Error.js';
+import path from 'path';
+import * as config from '../config.js';
+import { restrict } from '../lib/permissions.js';
 
-/**
- * Set view engine
- */
-
-exports.engine = 'ejs';
-
-/**
- * Preliminary data preparation.
- *
- * @param req
- * @param res
- * @param next
- * @api private
- */
-
-exports.before = async (req, res, next) => {
-  // event-specific request parameters
-  res.locals.req_id = req.params.hasOwnProperty('users_id') ? req.params.users_id : null;
-  next();
-};
+let user = new User();
 
 /**
  * List all users
@@ -55,24 +26,47 @@ exports.before = async (req, res, next) => {
  * @param req
  * @param res
  * @param next
- * @api public
+ * @src public
  */
-exports.list = async (req, res, next) => {
-  restrict(res, next, 'list');
-
-  await userServices
-    .findAll()
-    .then((result) => {
+export const list = async (req, res, next) => {
+  // restrict(res, next, 'list');
+  await user
+    .getAll()
+    .then((data) => {
+        res.status(200).json({users: data.rows});
       let userList = [];
-      result.rows.forEach((data) => {
-        let user = new User(data);
-        userList.push(user.data);
-      });
-      res.render('list', { users: userList });
+      // result.rows.forEach((data) => {
+      //   let user = new User(data);
+      //   userList.push(user.data);
+      // });
+      // res.render('list', { users: userList });
     })
-    .catch((err) => {
-      next(err);
-    });
+    .catch((err) => {next(err);});
+};
+
+/**
+ * Show the user's profile data. Only the profile of the current user
+ * is accessible, unless the user has administrator privileges.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @src public
+ */
+
+export const show =  async (req, res, next) => {
+    // restrict(res, next, config.roles.Administrator, res.locals.req_id);
+    await user
+        .getById(req.params.user_id)
+        .then((data) => {
+            if (data.rows.length === 0) throw new LocalError('nouser');
+            res.status(200).json({user: data.rows[0]});
+            // let user = new User(result);
+            // res.render('show', {
+            //     user: user.getData(),
+            // });
+        })
+        .catch((err) => next(err));
 };
 
 /**
@@ -81,10 +75,10 @@ exports.list = async (req, res, next) => {
  * @param req
  * @param res
  * @param next
- * @api public
+ * @src public
  */
 
-exports.login = (req, res, next) => {
+export const login = async (req, res, next) => {
   try {
     let args = {
       model: new User(),
@@ -111,10 +105,10 @@ exports.login = (req, res, next) => {
  * @param req
  * @param res
  * @param next
- * @api public
+ * @src public
  */
 
-exports.logout = async (req, res, next) => {
+export const logout = async (req, res, next) => {
   try {
     console.log('Logging out:', req.session.user);
     if (!req.session.user) throw new LocalError('logoutRedundant');
@@ -140,10 +134,10 @@ exports.logout = async (req, res, next) => {
  * @param req
  * @param res
  * @param next
- * @api public
+ * @src public
  */
 
-exports.authenticate = async (req, res, next) => {
+export const authenticate = async (req, res, next) => {
   // validate user credentials
   let reqUser;
   try {
@@ -197,10 +191,10 @@ exports.authenticate = async (req, res, next) => {
  * @param req
  * @param res
  * @param next
- * @api public
+ * @src public
  */
 
-exports.register = async (req, res, next) => {
+export const register =  async (req, res, next) => {
   // remove to open to visitors
   restrict(res, next, config.roles.Administrator);
 
@@ -231,10 +225,10 @@ exports.register = async (req, res, next) => {
  * @param req
  * @param res
  * @param next
- * @api public
+ * @src public
  */
 
-exports.confirm = async (req, res, next) => {
+export const confirm =  async (req, res, next) => {
   // remove to open to visitors
   restrict(res, next, config.roles.Administrator);
 
@@ -268,31 +262,7 @@ exports.confirm = async (req, res, next) => {
     });
 };
 
-/**
- * Show the user's profile data. Only the profile of the current user
- * is accessible, unless the user has administrator privileges.
- *
- * @param req
- * @param res
- * @param next
- * @api public
- */
 
-exports.show = async (req, res, next) => {
-  // restrict to owners and administrators
-  restrict(res, next, config.roles.Administrator, res.locals.req_id);
-
-  await userServices
-    .findById(res.locals.req_id)
-    .then((result) => {
-      if (result.rows.length === 0) throw new LocalError('nouser');
-      let user = new User(result);
-      res.render('show', {
-        user: user.getData(),
-      });
-    })
-    .catch((err) => next(err));
-};
 
 /**
  * Edit the user's profile data.
@@ -300,10 +270,10 @@ exports.show = async (req, res, next) => {
  * @param req
  * @param res
  * @param next
- * @api public
+ * @src public
  */
 
-exports.edit = async (req, res, next) => {
+export const edit =  async (req, res, next) => {
   // retrieve user roles
   const { roles } = await userRoleServices.findAll().catch((err) => next(err));
 
@@ -340,10 +310,10 @@ exports.edit = async (req, res, next) => {
  * @param req
  * @param res
  * @param next
- * @api public
+ * @src public
  */
 
-exports.update = async (req, res, next) => {
+export const update = async (req, res, next) => {
   let user;
   try {
     // initialize user object
@@ -370,10 +340,10 @@ exports.update = async (req, res, next) => {
  * @param req
  * @param res
  * @param next
- * @api public
+ * @src public
  */
 
-exports.remove = async (req, res, next) => {
+export const confirmRemove = async (req, res, next) => {
   await userServices
     .findById(res.locals.req_id)
     .then((result) => {
@@ -404,10 +374,10 @@ exports.remove = async (req, res, next) => {
  * @param req
  * @param res
  * @param next
- * @api public
+ * @src public
  */
 
-exports.delete = async (req, res, next) => {
+export const remove = async (req, res, next) => {
   await userServices
     .delete(req.body)
     .then((result) => {

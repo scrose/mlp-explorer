@@ -1,6 +1,6 @@
 /*!
  * MLP.Core.Utilities.Object
- * File: /models/Base.js
+ * File: /models/Model.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -14,24 +14,24 @@
  * @param {Object} obj
  */
 
-exports.getProperties = function (obj) {
+export function getProperties(obj) {
   return Object.getOwnPropertyNames(obj).filter((item) => typeof obj[item] === 'function');
-};
+}
 
 /**
- * Helper function for creating a method on a prototype.
+ * Helper function for adding methods to object constructors:
  *
  * @param {Object} obj
  * @param {String} name
- * @param {Function} fn
+ * @param {function(*): *} fn
  * @private
  */
 
-exports.defineMethod = function (obj, name, fn) {
-  Object.defineProperty(obj.prototype, name, {
+export function defineMethod(obj, name, fn) {
+  Object.defineProperty(obj, name, {
     configurable: true,
     enumerable: false,
     value: fn,
     writable: true,
   });
-};
+}

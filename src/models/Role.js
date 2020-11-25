@@ -1,6 +1,6 @@
 /*!
  * MLP.Core.Models.UserRoles
- * File: /models/permissions.js
+ * File: Role.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -12,30 +12,17 @@
  * @private
  */
 
-const Model = require('./Base');
+import Model from './Model.js';
+import schema from './schemas/roles.schema.js';
+import { defineMethod } from '../lib/object.js';
+import * as queries from './queries/roles.queries.js';
 
 /**
  * Module exports.
  * @public
  */
 
-module.exports = Role;
-
-/**
- * Define Role data model schema
- *
- * @private
- */
-let schema = {
-  role_id: {
-    label: 'ID',
-    type: 'integer',
-  },
-  name: {
-    label: 'Name',
-    type: 'text',
-  },
-};
+export default Role;
 
 /**
  * Create User data model. Call base Model class as constructor.
@@ -52,3 +39,26 @@ function Role(data = null) {
  */
 
 Role.prototype = Object.create(Model.prototype);
+
+/**
+ * Find all user roles.
+ *
+ * @public
+ * @return {Promise} result
+ */
+
+defineMethod(Role, 'findAll', async () => {
+    return this.query(queries.findAll, []);
+});
+
+/**
+ * Remove role.
+ *
+ * @public
+ * @param {String} id
+ * @return {Promise} result
+ */
+
+defineMethod(Role, 'remove', async (role_id) => {
+    return this.query(queries.remove, [role_id]);
+});

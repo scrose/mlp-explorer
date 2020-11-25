@@ -3,8 +3,8 @@
 /**
  * Module dependencies
  */
-const app = require('../app')
-const http = require('http')
+import app from '../app.js'
+import http from 'http'
 
 /**
  * Get port from environment and store in Express

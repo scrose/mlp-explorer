@@ -1,6 +1,6 @@
 /*!
- * MLP.Core.Database
- * File: /services/database.js
+ * MLP.Core.Library.Database
+ * File: database.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -16,34 +16,54 @@
 import pg from 'pg';
 import { db } from '../config.js';
 
-const config = {
-  user: db.username,
-  database: db.database,
-  password: db.password,
-  host: db.hostname,
-  port: db.port,
-  max: 10, // max number of clients in the pool
-  idleTimeoutMillis: 30000,
-};
-
 /**
  * Create client pool to allow for reusable pool of
  * clients to check out, use, and return.
  */
-
-const pool = new pg.Pool(config);
+export const pgPool = new pg.Pool({
+    user: db.username,
+    database: db.database,
+    password: db.password,
+    host: db.hostname,
+    port: db.port,
+    max: 10, // max number of clients in the pool
+    idleTimeoutMillis: 30000,
+});
 
 /**
  * Pool will emit an error on behalf of any idle clients
  * it contains if a backend error or network partition
  * happens.
  */
-pool.on('error', (err, client) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
+pgPool.on('error', (err, client) => {
+    console.error('Unexpected error on idle client', err, client);
+    process.exit(-1);
 });
 
-// export database data layer API (DataAPI)
-export default function query(sql, params) {
-  return pool.query(sql, params);
-}
+/**
+ * Export pg-pool object instance.
+ */
+
+export default pgPool;
+
+
+// ;(async () => {
+//     // note: we don't try/catch this because if connecting throws an exception
+//     // we don't need to dispose of the client (it will be undefined)
+//     const client = await pool.connect()
+//     try {
+//         await client.query('BEGIN')
+//         const queryText = 'INSERT INTO users(name) VALUES($1) RETURNING id'
+//         const res = await client.query(queryText, ['brianc'])
+//         const insertPhotoText = 'INSERT INTO photos(user_id, photo_url) VALUES ($1, $2)'
+//         const insertPhotoValues = [res.rows[0].id, 's3.bucket.foo']
+//         await client.query(insertPhotoText, insertPhotoValues)
+//         await client.query('COMMIT')
+//     } catch (e) {
+//         await client.query('ROLLBACK')
+//         throw e
+//     } finally {
+//         client.release()
+//     }
+// })().catch(e => console.error(e.stack))
+

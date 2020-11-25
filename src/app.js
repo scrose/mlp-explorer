@@ -16,13 +16,12 @@ import logger from 'morgan';
 import express from 'express';
 import path from 'path';
 import methodOverride from 'method-override';
-// import builder from "../views/builders/database.js";
 import session from './lib/session.js';
 import { globalHandler, notFoundHandler } from './error.js';
 import { authorize } from './lib/permissions.js';
 import messages from './lib/messages.js';
 import { general } from './config.js';
-import apiRouter from '../src/routes/index.js';
+import apiRouter from './/routes/index.js';
 
 /**
  * Initialize main Express instance.
@@ -93,7 +92,7 @@ app.use(methodOverride('_method'));
  * Express router.
  */
 
-app.use('/api', apiRouter);
+app.use('/src', apiRouter);
 
 /**
  * Define view parameters for template rendering (middleware)

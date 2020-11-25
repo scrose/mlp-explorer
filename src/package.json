@@ -1,7 +1,7 @@
 {
   "name": "mlp-explorer",
   "version": "1.0.0",
-  "main": "src/app.js",
+  "main": "api/app.js",
   "type": "module",
   "private": true,
   "author": {
@@ -13,7 +13,7 @@
   "repository": "github:scrose/mlp-explorer/",
   "bugs": "https://github.com/scrose/mlp-explorer/issues",
   "scripts": {
-    "startdev": "nodemon ./src/bin/www",
+    "startdev": "nodemon api/bin/www.js",
     "start": "node ./build/bin/www",
     "devstart": "nodemon ../src/mlp-explorer/bin/www",
     "serverstart": "DEBUG=mlp-explorer:* npm run devstart",

@@ -6,13 +6,22 @@
  */
 
 import express from 'express';
-const router = express.Router();
+const apiRouter = express.Router();
 
-router.get('/', function (req, res, next) {
-  return res.status(200).json({ message: 'Welcome to Express API template' });
+// import { modifyMessage } from '../middleware';
+//
+// indexRouter.post('/messages', modifyMessage, addMessage);
+
+import {list, show} from '../controllers/users.controller.js'
+
+apiRouter.get('/', function (req, res, next) {
+    return res.status(200).json({ message: 'Welcome to Express API template' });
 });
 
-export default router;
+apiRouter.get('/users', list);
+apiRouter.get('/users/:user_id', show);
+
+export default apiRouter;
 
 //
 // // Module dependencies

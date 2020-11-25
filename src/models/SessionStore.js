@@ -15,8 +15,8 @@
 import { session as config } from '../config.js';
 import LocalError from './Error.js';
 import sess from 'express-session';
-import query from '../lib/database.js';
-import * as sql from './queries/sessions.queries.js';
+import pool from '../lib/database.js';
+import * as queries from './queries/sessions.queries.js';
 import cron from 'node-cron';
 import debug from '../lib/debug.js';
 
@@ -52,7 +52,7 @@ const noop = () => {};
 
 function SessionStore() {
   // initialize sessions table
-  query(sql.initSessions)
+  pool.query(queries.initSessions, [])
     .then(() => {
       debug('Sessions table generated.');
     })
@@ -84,7 +84,7 @@ SessionStore.prototype = Object.create(sess.Store.prototype);
 SessionStore.prototype.get = function (sid, callback = noop()) {
   let key = prefix + sid;
   let now = currentTimestamp() / 1000;
-    query(sql.findBySessionId, [key, now])
+    pool.query(queries.findBySessionId, [key, now])
     .then((result) => {
       debug('GET Session ' + key);
       if (result.rows.length === 0) {
@@ -128,7 +128,7 @@ SessionStore.prototype.set = function (sid, sess, callback) {
     return callback(err);
   }
 
-  query(sql.upsert, [args])
+  pool.query(queries.upsert, [args.session_id, args.expires, args.session_data])
     .then((data) => {
       if (data.rows.length === 0) throw LocalError('session');
       // show session parameters
@@ -152,7 +152,7 @@ SessionStore.prototype.set = function (sid, sess, callback) {
  */
 
 SessionStore.prototype.length = function (callback) {
-  query(sql.findAll)
+  pool.query(queries.findAll, [])
     .then((result) => {
       callback(null, result.rows.length);
     })
@@ -194,7 +194,7 @@ SessionStore.prototype.touch = function (sid, sess, callback) {
   debug('TOUCH Session ' + key);
   printSession(sess);
 
-  query(sql.update [args])
+  pool.query(queries.update, [args.session_id, args.expires, args.session_data])
     .then((data) => {
       if (data.rows.length === 0) {
         debug('TOUCH Session not found ' + key);
@@ -217,7 +217,7 @@ SessionStore.prototype.touch = function (sid, sess, callback) {
  */
 
 SessionStore.prototype.all = function (callback = noop) {
-  query(sql.findAll)
+  pool.query(queries.findAll, [])
     .then((result) => {
       if (result.rows.length === 0) throw new Error();
       callback(null, result.rows);
@@ -240,7 +240,7 @@ SessionStore.prototype.all = function (callback = noop) {
 SessionStore.prototype.destroy = function (sid, callback = noop) {
   let key = prefix + sid;
   debug('Deleting SESSION ID ' + key);
-  query(sql.remove, [key])
+  pool.query(queries.remove, [key])
     .then((result) => {
       if (result.rows.length === 0) debug('- SESSION ID ' + key + 'was not found. Deletion cancelled.');
       else debug('- Deleted SESSION ID ' + result.rows[0].session_id);
@@ -260,7 +260,7 @@ SessionStore.prototype.destroy = function (sid, callback = noop) {
  * @public
  */
 SessionStore.prototype.clear = function (callback = noop) {
-  query(sql.removeAll)
+  pool.query(queries.removeAll, [])
     .then(() => {
       callback();
     })
@@ -341,8 +341,7 @@ function printSession(session) {
 cron.schedule(
   '* * * * *',
   function () {
-    services
-      .prune()
+    pool.query(queries.prune, [])
       .then((result) => {
         result.rows.forEach((sess) => {
           debug('Session pruned: \n\t' + sess.session_id);

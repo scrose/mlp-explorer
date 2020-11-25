@@ -8,7 +8,7 @@
 'use strict';
 
 import LocalError from '../models/Error.js';
-import * as userServices from '../services/users.services.js';
+import User from '../models/User.js';
 import { roles, permissions } from '../config.js';
 
 /**
@@ -17,7 +17,7 @@ import { roles, permissions } from '../config.js';
  * @param req
  * @param res
  * @param next
- * @api public
+ * @src public
  */
 
 export function authorize(req, res, next) {
@@ -26,7 +26,8 @@ export function authorize(req, res, next) {
   if (typeof res.locals.user === 'undefined') return next();
 
   // get user role
-  userServices
+    let user = new User();
+    user
     .findById(res.locals.user.id)
     .then((result) => {
       if (result.rows.length === 0) throw new LocalError('nouser');
@@ -43,7 +44,7 @@ export function authorize(req, res, next) {
  * @param next
  * @param view
  * @param ownerId
- * @api public
+ * @src public
  *
  */
 
@@ -67,7 +68,7 @@ export function restrict(res, next, view, ownerId = false) {
  * @param res
  * @param view
  * @param ownerId
- * @api public
+ * @src public
  *
  */
 
@@ -84,7 +85,7 @@ export function isRestricted(res, view, ownerId = null) {
  *
  * @param model
  * @param view
- * @api public
+ * @src public
  *
  */
 
