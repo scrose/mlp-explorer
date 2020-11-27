@@ -8,7 +8,7 @@
 'use strict';
 
 /**
- * Define Role data model schema
+ * Define RoleModel data model schema
  *
  * @private
  */

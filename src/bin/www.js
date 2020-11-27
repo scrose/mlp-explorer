@@ -9,7 +9,7 @@ import http from 'http'
 /**
  * Get port from environment and store in Express
  */
-const port = normalizePort(process.env.PORT || '3000')
+const port = normalizePort(process.env.API_PORT || '3001')
 app.set('port', port);
 
 /**
@@ -75,6 +75,6 @@ function onError (error) {
  */
 function onListening () {
   const addr = server.address()
-  const uri = typeof addr === 'string' ? addr : `http://localhost:${addr.port}`
+  const uri = typeof addr === 'string' ? addr : `localhost:${addr.port}`
   console.log(`Listening on ${uri}`)
 }

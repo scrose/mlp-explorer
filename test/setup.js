@@ -6,4 +6,4 @@ import app from '../src/app.js';
 chai.use(sinonChai);
 export const { expect } = chai;
 export const server = supertest.agent(app);
-export const BASE_URL = '/src';
+export const BASE_URL = '/';

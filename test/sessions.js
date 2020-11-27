@@ -1,11 +1,11 @@
 // /*!
 //  * MLP.API.Tests.Sessions
-//  * File: /test/sessions.services.js
+//  * File: /test/database.services.js
 //  * Copyright(c) 2020 Runtime Software Development Inc.
 //  * MIT Licensed
 //  */
 //
-// import SessionStore from '../models/SessionStore';
+// import SessionModel from '../models/SessionModel';
 // const Tester = require('./tester');
 // const config = require('../src/config');
 //
@@ -19,7 +19,7 @@
 //  * Initialize test session.
 //  * see documentation: https://github.com/expressjs/session
 //  */
-// SessionStore = new SessionStore();
+// SessionModel = new SessionModel();
 // sess = {
 //   id: 'test_session',
 //   resave: false, // don't save session if unmodified

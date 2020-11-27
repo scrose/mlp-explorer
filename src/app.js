@@ -21,7 +21,7 @@ import { globalHandler, notFoundHandler } from './error.js';
 import { authorize } from './lib/permissions.js';
 import messages from './lib/messages.js';
 import { general } from './config.js';
-import apiRouter from './/routes/index.js';
+import router from './routes/index.routes.js';
 
 /**
  * Initialize main Express instance.
@@ -89,12 +89,6 @@ app.use(express.json());
 app.use(methodOverride('_method'));
 
 /**
- * Express router.
- */
-
-app.use('/src', apiRouter);
-
-/**
  * Define view parameters for template rendering (middleware)
  */
 
@@ -106,7 +100,7 @@ app.use(function (req, res, next) {
 
   // check user session data
   console.log('Session: ', req.session.id);
-  console.log('Active User: ', res.locals.user);
+  console.log('Active UserModel: ', res.locals.user);
   console.log('Message Bank: ', JSON.stringify(res.locals.messages));
 
   next();
@@ -128,10 +122,10 @@ app.use(function (req, res, next) {
 });
 
 /**
- * Initialize router: map routes to controllers and views.
+ * Initialize router.
  */
 
-// require('../src/routes')(app, { verbose: true });
+app.use('/', router);
 
 /**
  * Set default global error handlers.

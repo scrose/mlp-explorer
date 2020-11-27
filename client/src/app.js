@@ -13,6 +13,12 @@ fetch('http://localhost:3000/api/').then(function (response) {
     console.warn('Something went wrong.', err);
 });
 
+
+const name = new Binding("Jeremy");
+name.subscribe((newVal) => console.log(`Name changed to ${newVal}`));
+name.value = "Doreen";
+// logs "Name changed to Doreen" to the console
+
 // // Example POST method implementation:
 // async function postData(url = '', data = {}) {
 //     // Default options are marked with *

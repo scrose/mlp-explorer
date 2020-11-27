@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Models.UserRoles
- * File: Role.js
+ * File: role.model.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -12,7 +12,7 @@
  * @private
  */
 
-import Model from './Model.js';
+import Model from './model.js';
 import schema from './schemas/roles.schema.js';
 import { defineMethod } from '../lib/object.js';
 import * as queries from './queries/roles.queries.js';
@@ -25,13 +25,13 @@ import * as queries from './queries/roles.queries.js';
 export default Role;
 
 /**
- * Create User data model. Call base Model class as constructor.
+ * Create UserModel data model. Call base Model class as constructor.
  *
  * @private
  * @param data
  */
 function Role(data = null) {
-  Model.call(this, 'user_roles', 'User Role', schema, data);
+  Model.call(this, 'user_roles', 'UserModel RoleModel', schema, data);
 }
 
 /**

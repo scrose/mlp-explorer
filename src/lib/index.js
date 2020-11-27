@@ -19,4 +19,4 @@ exports.date = require('./date');
 exports.email = require('./email');
 exports.user = require('./permissions');
 exports.secure = require('./secure');
-exports.validate = require('./validator');
+exports.validate = require('./validate.utils');

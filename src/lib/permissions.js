@@ -7,8 +7,8 @@
 
 'use strict';
 
-import LocalError from '../models/Error.js';
-import User from '../models/User.js';
+import LocalError from '../models/error.js';
+import User from '../models/user.js';
 import { roles, permissions } from '../config.js';
 
 /**

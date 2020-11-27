@@ -1,6 +1,6 @@
 /*!
  * MLP.UI.Editor.Form.Validator
- * File: /public/js/validator.js
+ * File: /public/js/validate.utils.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */

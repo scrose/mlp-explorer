@@ -12,15 +12,20 @@
 
 import { expect, server, BASE_URL } from './setup.js';
 import mocha from 'mocha';
+import { general } from '../src/config.js'
+
+console.log(general)
 
 mocha.describe('Index page test', () => {
   mocha.it('gets base url', (done) => {
     server
-      .get(`${BASE_URL}/`)
+      .get(`${BASE_URL}`)
       .expect(200)
       .end((err, res) => {
         expect(res.status).to.equal(200);
-        expect(res.body.message).to.equal('Welcome to Express API template');
+        expect(res.body.general.projectName).to.equal(general.projectName);
+        expect(res.body.general.appName).to.equal(general.appName);
+        expect(res.body.general.title).to.equal(general.title);
         done();
       });
   });

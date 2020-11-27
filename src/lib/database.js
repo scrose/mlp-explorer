@@ -14,18 +14,18 @@
  */
 
 import pg from 'pg';
-import { db } from '../config.js';
 
 /**
  * Create client pool to allow for reusable pool of
  * clients to check out, use, and return.
  */
-export const pgPool = new pg.Pool({
-  user: db.username,
-  database: db.database,
-  password: db.password,
-  host: db.hostname,
-  port: db.port,
+
+const pgPool = new pg.Pool({
+  user: process.env.DB_USER,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASS,
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
   max: 10, // max number of clients in the pool
   idleTimeoutMillis: 30000,
 });

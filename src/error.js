@@ -12,23 +12,19 @@
  * @private
  */
 
+import LocalError from './models/error.js';
+
 /**
- * Helper function to decode error.
+ * Helper function to interpret error code.
  *
  * @private
  * @param {Error} err
  */
 
 function getMessage(err = null) {
-  if (err && err.hasOwnProperty('name') && err.name === 'LocalError') {
-    return err.decoded;
-  }
-  // decode message
-  else {
-    return (
-      'An error occurred. Your request could not be completed. ' + 'Contact the site administrator for assistance.'
-    );
-  }
+    return (err && err.hasOwnProperty('name') && err.name === 'LocalError')
+        ? err.decoded
+        : LocalError('default').decoded;
 }
 
 /**
@@ -39,12 +35,12 @@ function getMessage(err = null) {
  */
 
 function renderMessage(msg) {
-  return JSON.stringify({
-    div: {
-      attributes: { class: 'msg error' },
-      textNode: msg,
-    },
-  });
+    return JSON.stringify({
+        div: {
+            attributes: { class: 'msg error' },
+            textNode: msg,
+        },
+    });
 }
 
 /**
@@ -58,11 +54,11 @@ function renderMessage(msg) {
  */
 
 export function globalHandler(err, req, res, next) {
-  // log error
-  console.error('\n--- %s --- \n%s\n', err.hasOwnProperty('name') ? err.name : 'Validation Error', err, err.stack);
+    // log error
+    console.error('\n--- %s --- \n%s\n', err.hasOwnProperty('name') ? err.name : 'Validation Error', err, err.stack);
 
-  res.locals.messages = [getMessage(err)];
-  return res.status(500).json(res.locals);
+    res.locals.messages = [getMessage(err)];
+    return res.status(500).json(res.locals);
 }
 
 /**
@@ -76,6 +72,6 @@ export function globalHandler(err, req, res, next) {
  */
 
 export function notFoundHandler(req, res, next) {
-  res.locals.messages = [getMessage()];
-  res.status(404).json(res.locals);
+    res.locals.messages = [getMessage(LocalError('notfound'))];
+    res.status(404).json(res.locals);
 }

@@ -13,7 +13,7 @@
  */
 
 import session from 'express-session';
-import SessionStore from '../models/SessionStore.js';
+import SessionStore from '../models/sessionStore.js';
 import { genUUID } from './secure.js';
 import { session as config } from '../config.js';
 
@@ -31,7 +31,7 @@ export default session({
   store: new SessionStore(),
   resave: false, // don't save session if unmodified
   saveUninitialized: false, // don't create session until something stored
-  secret: config.secret,
+  secret: process.env.SESSION_SECRET,
   // 'Time-to-live' in milliseconds
   maxAge: 1000 * config.ttl,
   cookie: {

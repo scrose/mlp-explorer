@@ -12,11 +12,17 @@
 
 import { expect, server, BASE_URL } from './setup.js';
 import mocha from 'mocha';
+import valid from '../src/lib/validate.utils.js'
+
+/**
+ * List all users
+ * @private
+ */
 
 mocha.describe('List all users', () => {
   mocha.it('List all users page', (done) => {
     server
-      .get(`${BASE_URL}/users`)
+      .get(`${BASE_URL}users`)
       .expect(200)
       .end((err, res) => {
         expect(res.status).to.equal(200);
@@ -33,10 +39,15 @@ mocha.describe('List all users', () => {
   });
 });
 
-mocha.describe('Show specified user', () => {
-  mocha.it('Show user page', (done) => {
+/**
+ * Specified user profile.
+ * @private
+ */
+
+mocha.describe('Show user profile', () => {
+  mocha.it('Get user data by Id', (done) => {
     server
-      .get(`${BASE_URL}/users/0d658f82d0651c19872d331401842823`)
+      .get(`${BASE_URL}users/ITtqyWEPAEgQZEOwTUgOkyNuJ2bRvkUMiuLW1fOQ3FqNBzvS`)
       .expect(200)
       .end((err, res) => {
         expect(res.status).to.equal(200);
@@ -49,6 +60,36 @@ mocha.describe('Show specified user', () => {
         done();
       });
   });
+});
+
+
+/**
+ * Create new user.
+ * @private
+ */
+
+mocha.describe('Confirm new user', () => {
+    mocha.it('Insert user data', (done) => {
+        server
+            .post(`${BASE_URL}users/add`)
+            .set('Accept', 'application/json')
+            .send({
+                email: valid.load('user@example.ca').isEmail().data,
+                password: valid.load('5565lSSR!3323').isPassword().data,
+                role_id: 2,
+            })
+            .expect(200)
+            .end((err, res) => {
+                expect(res.status).to.equal(200);
+                expect(res.body.user).to.instanceOf(Object);
+                expect(res.body.user).to.have.property('user_id');
+                expect(res.body.user).to.have.property('role_id');
+                expect(res.body.user).to.have.property('email');
+                expect(res.body.user).to.have.property('created_at');
+                expect(res.body.user).to.have.property('updated_at');
+                done();
+            });
+    });
 });
 
 // /**

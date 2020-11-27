@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Utilities.Validator
- * File: /lib/validator.js
+ * File: /lib/validateUtils.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -10,21 +10,14 @@
  * @private
  */
 
-const LocalError = require('../../models/Error');
+import LocalError from '../models/error.js';
 
 /**
- * Create validator instance.
+ * Export validator instance.
  */
 
-let validator = new Validator();
+export default new Validator();
 
-/**
- * Module exports.
- */
-
-module.exports = (data) => {
-  return validator.init(data);
-};
 
 /**
  * Create Validator object.
@@ -49,14 +42,14 @@ Validator.prototype.error = function (code = null) {
 };
 
 /**
- * Initialize validator.
+ * Initialize validateUtils.
  *
  * @private
  * @param {Object} data
- * @return {Validator} validator instance
+ * @return {Validator} validateUtils instance
  */
 
-Validator.prototype.init = function (data) {
+Validator.prototype.load = function (data) {
   this.data = data;
   return this;
 };
@@ -70,7 +63,7 @@ Validator.prototype.init = function (data) {
  */
 
 Validator.prototype.isRequired = function () {
-  if (!!!this.value) this.error();
+  if (!!!this.value) this.error('Value is required.');
   return this;
 };
 
@@ -83,7 +76,7 @@ Validator.prototype.isRequired = function () {
  */
 
 Validator.prototype.isEmail = function () {
-  if (!/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+$/.test(this.data)) this.error();
+  if (!/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+$/.test(this.data)) this.error('Invalid email.');
   return this;
 };
 
@@ -98,7 +91,7 @@ Validator.prototype.isEmail = function () {
  */
 
 Validator.prototype.isPassword = function () {
-  if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/.test(this.data)) this.error();
+  if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/.test(this.data)) this.error('Password is invalid.');
   return this;
 };
 
@@ -111,6 +104,6 @@ Validator.prototype.isPassword = function () {
  */
 
 Validator.prototype.isRepeatPassword = function (password) {
-  if (password !== this.data) this.error();
+  if (password !== this.data) this.error('Passwords do not match.');
   return this;
 };

@@ -1,6 +1,6 @@
 /*!
- * MLP.API.Models.SessionStore
- * File: /models/SessionStore.js
+ * MLP.API.Models.SessionModel
+ * File: /models/SessionModel.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -13,7 +13,7 @@
  */
 
 import { session as config } from '../config.js';
-import LocalError from './Error.js';
+import LocalError from './error.js';
 import sess from 'express-session';
 import pool from '../lib/database.js';
 import * as queries from './queries/sessions.queries.js';
@@ -45,7 +45,7 @@ export default SessionStore;
 const noop = () => {};
 
 /**
- * Create SessionStore class. Call base Store class as constructor.
+ * Create SessionModel class. Call base Store class as constructor.
  *
  * @public
  */
