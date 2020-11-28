@@ -18,5 +18,5 @@ exports.file = require('./file');
 exports.date = require('./date');
 exports.email = require('./email');
 exports.user = require('./permissions');
-exports.secure = require('./secure');
+exports.secure = require('./secure.utils');
 exports.validate = require('./validate.utils');

@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Models.User
- * File: user.model.js
+ * File: user.composer.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -14,12 +14,13 @@
 
 import schema from './schemas/users.schema.js';
 import * as queries from './queries/users.queries.js';
-import { createModel } from './model.js';
+import { createModel } from './composer.js';
+import { genID, genUUID, encrypt } from '../lib/secure.utils.js'
 import LocalError from './error.js';
 
 /**
  * Create UserModel data model. Inherit
- * methods, properties from Model abstract class.
+ * methods, properties from Composer abstract class.
  *
  * @private
  * @param data
@@ -47,27 +48,34 @@ User.prototype.exists = function() {
 };
 
 /**
- * Save user data to database. If
+ * Register user in database.
  *
  * @public
- * @param {Object} data
+ * @return {Promise} result
+ */
+
+User.prototype.register = async function() {
+    let data = this.getData();
+    return this.pool.query(
+        queries.insert,
+        [data.user_id, data.email, data.password, data.salt_token, data.role_id],
+    );
+
+};
+
+/**
+ * Save user data to existing record in database.
+ *
+ * @public
  * @return {Promise} result
  */
 
 User.prototype.save = async function() {
     let data = this.getData();
-    // check if user exists
-    let exists = await this.exists().catch((_) => {throw new LocalError('nouser')})
-    if (exists)
-        return this.pool.query(
-            queries.insert,
-            [data.user_id, data.email, data.password, data.salt_token, data.role_id],
-        );
-    else
-        return this.pool.query(
+    return this.pool.query(
             queries.update,
             [data.user_id, data.email, data.role_id]
-        );
+    );
 };
 
 /**
@@ -84,18 +92,6 @@ User.prototype.remove = function() {
 };
 
 /**
- * Initialize users table
- *
- * @public
- * @param {object} data
- * @return {Promise} result
- */
-
-User.prototype.initTable = function() {
-    return this.pool.query(queries.init, []);
-};
-
-/**
  * Encrypt user salt and password
  *
  * @public
@@ -106,10 +102,10 @@ User.prototype.encrypt = function() {
     if (!password) return;
 
     // generate unique identifier for user (user_id)
-    this.setValue('user_id', utils.secure.genUUID());
+    this.setValue('user_id', genUUID());
     // Generate unique hash and salt tokens
-    let salt_token = utils.secure.genID();
-    let hash_token = utils.secure.encrypt(password, salt_token);
+    let salt_token = genID();
+    let hash_token = encrypt(password, salt_token);
     // Set values in schema
     this.setValue('password', hash_token);
     this.setValue('repeat_password', hash_token);

@@ -32,8 +32,6 @@ if (result.error) {
  * @public
  */
 export const general = settings.general;
-export const admin = settings.admin;
-export const debug = settings.debug;
 export const roles = settings.roles;
 export const session = settings.session;
 export const permissions = settings.permissions;

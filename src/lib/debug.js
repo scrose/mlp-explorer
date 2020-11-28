@@ -7,8 +7,6 @@
 
 'use strict';
 
-import { debug as config } from '../config.js';
-
 /**
  * Debug logger.
  * @param type
@@ -17,7 +15,7 @@ import { debug as config } from '../config.js';
 
 export default function (type) {
   return function (msg, err) {
-    if (config[type]) console.log(msg);
+    if (process.env.DEBUG === 1) console.log(msg);
     if (err) console.log(err);
   };
 }

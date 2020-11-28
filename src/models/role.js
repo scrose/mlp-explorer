@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Models.UserRoles
- * File: role.model.js
+ * File: role.composer.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -12,7 +12,7 @@
  * @private
  */
 
-import Model from './model.js';
+import {createModel} from './composer.js';
 import schema from './schemas/roles.schema.js';
 import { defineMethod } from '../lib/object.js';
 import * as queries from './queries/roles.queries.js';
@@ -22,23 +22,22 @@ import * as queries from './queries/roles.queries.js';
  * @public
  */
 
-export default Role;
-
 /**
- * Create UserModel data model. Call base Model class as constructor.
+ * Create UserModel data model. Inherit
+ * methods, properties from Composer abstract class.
  *
  * @private
  * @param data
  */
-function Role(data = null) {
-  Model.call(this, 'user_roles', 'UserModel RoleModel', schema, data);
-}
+
+let Role = createModel(schema);
 
 /**
- * Inherit methods from Model abstract class.
+ * Module exports.
+ * @public
  */
 
-Role.prototype = Object.create(Model.prototype);
+export default Role;
 
 /**
  * Find all user roles.

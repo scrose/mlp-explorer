@@ -19,9 +19,10 @@ import methodOverride from 'method-override';
 import session from './lib/session.js';
 import { globalHandler, notFoundHandler } from './error.js';
 import { authorize } from './lib/permissions.js';
-import messages from './lib/messages.js';
+import messages from './lib/messages.utils.js';
 import { general } from './config.js';
 import router from './routes/index.routes.js';
+import db from './services/database.services.js';
 
 /**
  * Initialize main Express instance.
@@ -100,8 +101,8 @@ app.use(function (req, res, next) {
 
   // check user session data
   console.log('Session: ', req.session.id);
-  console.log('Active UserModel: ', res.locals.user);
-  console.log('Message Bank: ', JSON.stringify(res.locals.messages));
+  console.log('Active User: ', res.locals.user);
+  console.log('Message Bank: ', res.locals.messages);
 
   next();
 });

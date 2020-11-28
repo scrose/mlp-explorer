@@ -14,7 +14,7 @@
 
 import session from 'express-session';
 import SessionStore from '../models/sessionStore.js';
-import { genUUID } from './secure.js';
+import { genUUID } from './secure.utils.js';
 import { session as config } from '../config.js';
 
 /**

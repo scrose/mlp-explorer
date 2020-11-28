@@ -63,7 +63,7 @@ function SessionStore() {
 }
 
 /**
- * Inherit methods from Model abstract class.
+ * Inherit methods from Composer abstract class.
  */
 
 SessionStore.prototype = Object.create(sess.Store.prototype);

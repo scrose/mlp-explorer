@@ -44,10 +44,12 @@ mocha.describe('List all users', () => {
  * @private
  */
 
+let user_id = 'ITtqyWEPAEgQZEOwTUgOkyNuJ2bRvkUMiuLW1fOQ3FqNBzvS';
+
 mocha.describe('Show user profile', () => {
   mocha.it('Get user data by Id', (done) => {
     server
-      .get(`${BASE_URL}users/ITtqyWEPAEgQZEOwTUgOkyNuJ2bRvkUMiuLW1fOQ3FqNBzvS`)
+      .get(`${BASE_URL}users/${user_id}`)
       .expect(200)
       .end((err, res) => {
         expect(res.status).to.equal(200);
@@ -71,16 +73,41 @@ mocha.describe('Show user profile', () => {
 mocha.describe('Confirm new user', () => {
     mocha.it('Insert user data', (done) => {
         server
-            .post(`${BASE_URL}users/add`)
+            .post(`${BASE_URL}users/register`)
             .set('Accept', 'application/json')
             .send({
-                email: valid.load('user@example.ca').isEmail().data,
-                password: valid.load('5565lSSR!3323').isPassword().data,
+                email: 'user@example.ca',
+                password: '5565lSSR!3323',
                 role_id: 2,
             })
             .expect(200)
             .end((err, res) => {
-                expect(res.status).to.equal(200);
+                console.log('\n\nconfirm new user\n\n', res.body)
+                expect(res.status).to.equal(302);
+                expect(res.body).to.instanceOf(Object);
+                expect(res.locals.messages).to.equal(['user_id']);
+                done();
+            });
+    });
+});
+
+/**
+ *
+ * Delete new user.
+ * @private
+ */
+
+mocha.describe('Remove user', () => {
+    mocha.it('Delete user data', (done) => {
+        server
+            .post(`${BASE_URL}users/delete`)
+            .set('Accept', 'application/json')
+            .send({
+                user_id: user_id
+            })
+            .expect(200)
+            .end((err, res) => {
+                expect(res.status).to.equal(302);
                 expect(res.body.user).to.instanceOf(Object);
                 expect(res.body.user).to.have.property('user_id');
                 expect(res.body.user).to.have.property('role_id');

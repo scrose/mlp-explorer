@@ -8,7 +8,7 @@
 // Render main page / dashboard for logged-in users
 export const index = async (req, res, next) => {
   try {
-    res.json(res.locals);
+    res.status(200).json(res.locals);
   } catch (err) {
     next(err);
   }

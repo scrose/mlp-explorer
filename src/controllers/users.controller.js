@@ -17,6 +17,25 @@ import path from 'path';
 import * as config from '../config.js';
 import { restrict } from '../lib/permissions.js';
 import db from '../services/database.services.js';
+import valid from '../lib/validate.utils.js'
+
+/**
+ * List all users
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @src public
+ */
+export const init = async (req, res, next) => {
+    await db
+        .init(
+            'users',
+            [process.env.API_USER, process.env.API_EMAIL, process.env.API_HASH, process.env.API_SALT]
+        )
+        .then(() => next())
+        .catch((err) => next(err));
+};
 
 /**
  * List all users
@@ -211,7 +230,7 @@ export const register = async (req, res, next) => {
 };
 
 /**
- * Add (i.e. register) a new user to database.
+ * Add (i.e. register) new user to database.
  *
  * @param req
  * @param res
@@ -221,15 +240,15 @@ export const register = async (req, res, next) => {
 
 export const add = async (req, res, next) => {
     // remove to open up to visitors
-    restrict(res, next, config.roles.Administrator);
-
+    // restrict(res, next, config.roles.Administrator);
     let newUser;
     try {
         // validate user input data
+
         let { email, password, role_id } = req.body;
         newUser = new User({
-            email: utils.validate(email).isEmail().data,
-            password: utils.validate(password).isPassword().data,
+            email: valid.load(email).isEmail().data,
+            password: valid.load(password).isPassword().data,
             role_id: role_id,
         });
         newUser.encrypt();
@@ -239,7 +258,7 @@ export const add = async (req, res, next) => {
 
     // insert user in database
     await newUser
-        .insert(userServices.getData())
+        .register()
         .then((result) => {
             if (result.rows.length === 0) throw new LocalError('register');
             let user_id = result.rows[0].user_id;
@@ -333,26 +352,26 @@ export const update = async (req, res, next) => {
  */
 
 export const confirmRemove = async (req, res, next) => {
-    await userServices
-        .findById(res.locals.req_id)
+    await db
+        .findById(req.params.user_id)
         .then((result) => {
             if (result.rows.length === 0) throw new LocalError('nouser');
-            let user = new User(result);
-            let { form, validator } = builder.form(
-                {
-                    view: res.locals.name,
-                    name: 'Delete',
-                    method: 'POST',
-                    routes: {
-                        submit: path.join('/users', res.locals.req_id, 'delete'),
-                        cancel: '/users',
-                    },
-                },
-                user,
-            );
-            res.locals.form = form;
-            res.locals.validator = validator;
-            res.render('register');
+            // let user = new User(result);
+            // let { form, validator } = builder.form(
+            //     {
+            //         view: res.locals.name,
+            //         name: 'Delete',
+            //         method: 'POST',
+            //         routes: {
+            //             submit: path.join('/users', res.locals.req_id, 'delete'),
+            //             cancel: '/users',
+            //         },
+            //     },
+            //     user,
+            // );
+            // res.locals.form = form;
+            // res.locals.validator = validator;
+            res.status(200).json(res.locals);
         })
         .catch((err) => next(err));
 };
@@ -367,11 +386,11 @@ export const confirmRemove = async (req, res, next) => {
  */
 
 export const remove = async (req, res, next) => {
-    await userServices
-        .delete(req.body)
+    await db
+        .remove('users', req.body.user_id)
         .then((result) => {
             if (result.rows.length === 0) throw new LocalError('nouser');
-            res.message('UserModel successfully deleted.', 'success');
+            res.message('User ${req.body.user_id} successfully deleted.', 'success');
             res.redirect('/users');
         })
         .catch((err) => next(err));
