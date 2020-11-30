@@ -12,7 +12,7 @@
 
 import mocha from 'mocha';
 import { BASE_URL, expect, server } from './setup.js';
-import SessionStore from '../src/models/sessionStore.js';
+import SessionStore from '../src/models/sessionstore.models.js';
 
 /**
  * Initialize test session.
@@ -21,6 +21,8 @@ import SessionStore from '../src/models/sessionStore.js';
 
 let store = new SessionStore();
 let sid = 'test_session';
+let session_user_id = 'test_user_id';
+let expiryDate = new Date(Date.now() + 5 * 1000);
 let session = {
     id: sid,
     resave: false, // don't save session if unmodified
@@ -31,10 +33,10 @@ let session = {
     cookie: {
         secure: false,
         sameSite: true,
-        expires: new Date(Date.now() + 5 * 1000),
+        expires: expiryDate,
     },
     user: {
-        id: 'test_user_id',
+        id: session_user_id,
     },
 };
 
@@ -42,7 +44,22 @@ let session = {
  * Test session lifecycle.
  */
 
-mocha.describe('Test Session Lifecycle', () => {
+mocha.describe('Session Lifecycle', () => {
+    mocha.it('Clear all sessions', (done) => {
+        store.clear(function(err) {
+            if (err) done(err);
+            else done();
+        });
+    });
+    mocha.it('Get number of sessions', (done) => {
+        store.length(function(err, n) {
+            if (err) done(err);
+            else {
+                expect(n).to.equal(0);
+                done();
+            }
+        });
+    });
     mocha.it('Set session data', (done) => {
         store.set(sid, session, function(err) {
             if (err) done(err);
@@ -50,9 +67,36 @@ mocha.describe('Test Session Lifecycle', () => {
         });
     });
     mocha.it('Get session data', (done) => {
-        store.get(sid, function(err) {
+        store.get(sid, function(err, sessionData) {
+            if (err) done(err);
+            else  {
+                const cookieExpiry = new Date(sessionData.cookie.expires)
+                expect(sessionData.id).to.equal(sid);
+                expect(sessionData.user.id).to.equal(session_user_id);
+                expect(cookieExpiry.valueOf()).to.equal(expiryDate.valueOf());
+                done();
+            }
+        });
+    });
+    mocha.it('Touch session', (done) => {
+        store.touch(sid, session, function(err) {
             if (err) done(err);
             else  done();
+        });
+    });
+    mocha.it('Destroy session', (done) => {
+        store.destroy(sid, function(err) {
+            if (err) done(err);
+            else  done();
+        });
+    });
+    mocha.it('Get number of sessions', (done) => {
+        store.length(function(err, n) {
+            if (err) done(err);
+            else {
+                expect(n).to.equal(0);
+                done();
+            }
         });
     });
 });

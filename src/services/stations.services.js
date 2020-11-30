@@ -1,4 +1,4 @@
-db = require('./database');
+db = require('./pgdb');
 
 // show individual station
 exports.findById = (queryText) => {

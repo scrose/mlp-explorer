@@ -31,7 +31,7 @@ let errorMessages = {
  * @public
  */
 
-export default LocalError;
+export default ControlError;
 
 /**
  * Create local (custom) Error data model.
@@ -42,14 +42,13 @@ export default LocalError;
  * @param lineNumber
  */
 
-function LocalError(message, fileName = null, lineNumber = null) {
-    let instance;
-    instance = new Error(message);
-    instance.name = 'LocalError';
+function ControlError(message, fileName = null, lineNumber = null) {
+    let instance = new Error(message);
+    instance.name = 'ControlError';
     instance.decoded = errorMessages.hasOwnProperty(message) ? errorMessages[message] : errorMessages.default;
     // Object.setPrototypeOf(instance, Object.getPrototypeOf(this));
     if (Error.captureStackTrace) {
-        Error.captureStackTrace(instance, LocalError);
+        Error.captureStackTrace(instance, ControlError);
     }
     return instance;
 }
@@ -58,7 +57,7 @@ function LocalError(message, fileName = null, lineNumber = null) {
  * Inherit methods from Error class.
  */
 
-LocalError.prototype = Object.create(Error.prototype, {
+ControlError.prototype = Object.create(Error.prototype, {
     constructor: {
         value: Error,
         enumerable: false,

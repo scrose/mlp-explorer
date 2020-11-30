@@ -25,6 +25,23 @@ export const findById = `SELECT users.user_id      AS user_id,
                          WHERE users.user_id = $1::varchar`;
 
 /**
+ * Find user by email. Joined with user roles table.
+ */
+
+export const findByEmail = `SELECT users.user_id AS user_id,
+                                user_roles.role_id AS role_id,
+                                user_roles.name AS role,
+                                users.email,
+                                users.reset_password_token,
+                                users.reset_password_expires,
+                                users.created_at,
+                                users.updated_at
+                         FROM users
+                                  LEFT OUTER JOIN user_roles
+                                                  ON users.role_id = user_roles.role_id
+                         WHERE users.email = $1::varchar`;
+
+/**
  * Find all registered users.
  */
 

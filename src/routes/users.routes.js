@@ -11,8 +11,7 @@
 
 import express from 'express'
 import * as users from '../controllers/users.controller.js';
-import db from '../services/database.services.js'
-import LocalError from '../models/error.js';
+import { restrict } from '../lib/permissions.utils.js';
 
 /**
  * Express router
@@ -28,10 +27,35 @@ export default router;
 router.use(users.init)
 
 /**
+ * Login user.
+ */
+
+router.route('/login')
+    .all(function (req, res, next) {
+        restrict(res, next, 'login');
+    })
+    .get(users.login)
+    .post(users.authenticate)
+
+/**
+ * Login user.
+ */
+
+router.route('/logout')
+    .all(function (req, res, next) {
+        restrict(res, next, 'logout');
+    })
+    .post(users.logout)
+
+/**
  * List users
  */
 
-router.get('/users', users.list);
+router.route('/users')
+    .all(function (req, res, next) {
+        restrict(res, next, 'list');
+    })
+    .get(users.list);
 
 /**
  * Register user.
@@ -39,32 +63,37 @@ router.get('/users', users.list);
 
 router.route('/users/register')
     .all(function (req, res, next) {
-        next()
+        restrict(res, next, 'register');
     })
     .get(users.register)
-    .post(users.add)
+    .post(users.create)
 
 /**
- * Login user.
- */
-
-router.route('/login')
-    .all(function (req, res, next) {
-        next()
-    })
-    .get(users.login)
-    .post(users.authenticate)
-
-
-/**
- * Show specified user.
+ * Show user data.
  */
 
 router.route('/users/:user_id')
     .all(function (req, res, next) {
-        next()
+        restrict(res, next, 'show', req.params.user_id);
     })
     .get(users.show)
+    .put(function (req, res, next) {
+        next(new Error('not implemented'))
+    })
+    .delete(function (req, res, next) {
+        next(new Error('not implemented'))
+    })
+
+/**
+ * Edit/update user data.
+ */
+
+router.route('/users/:user_id/edit')
+    .all(function (req, res, next) {
+        restrict(res, next, 'edit', req.params.user_id);
+        next()
+    })
+    .get(users.edit)
     .put(function (req, res, next) {
         next(new Error('not implemented'))
     })
@@ -74,18 +103,18 @@ router.route('/users/:user_id')
     })
 
 /**
- * Delete specified user.
+ * Delete user.
  */
 
-router.route('/users/:user_id/delete')
+router.route('/users/:user_id/remove')
     .all(function (req, res, next) {
-        next()
+        restrict(res, next, 'remove', req.params.user_id);
     })
-    .get(users.confirmRemove)
+    .get(users.remove)
     .put(function (req, res, next) {
         next(new Error('not implemented'))
     })
-    .post(users.remove)
+    .post(users.drop)
     .delete(function (req, res, next) {
         next(new Error('not implemented'))
     })

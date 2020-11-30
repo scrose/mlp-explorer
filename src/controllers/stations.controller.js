@@ -2,7 +2,7 @@
  * Module dependencies.
  */
 
-const db = require('../services/database');
+const db = require('../services/pgdb');
 const path = require('path');
 const modelName = 'stations';
 const surveyors = require('../src/services')({ type: modelName });

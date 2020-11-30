@@ -15,12 +15,7 @@
 import {createModel} from './composer.js';
 import schema from './schemas/roles.schema.js';
 import { defineMethod } from '../lib/object.js';
-import * as queries from './queries/roles.queries.js';
-
-/**
- * Module exports.
- * @public
- */
+import * as queries from '../services/queries/roles.queries.js';
 
 /**
  * Create UserModel data model. Inherit

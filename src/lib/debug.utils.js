@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Utilities.Debug
- * File: /lib/debug.js
+ * File: /lib/debug.utils.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -9,13 +9,12 @@
 
 /**
  * Debug logger.
- * @param type
+ * @param {String} msg
+ * @param {Error} err
  * @private
  */
 
-export default function (type) {
-  return function (msg, err) {
-    if (process.env.DEBUG === 1) console.log(msg);
+export default function (msg, err=null) {
+    if (process.env.DEBUG) console.log(msg);
     if (err) console.log(err);
-  };
 }

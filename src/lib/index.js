@@ -17,6 +17,6 @@ exports.data = require('./data');
 exports.file = require('./file');
 exports.date = require('./date');
 exports.email = require('./email');
-exports.user = require('./permissions');
+exports.user = require('./permissions.utils');
 exports.secure = require('./secure.utils');
 exports.validate = require('./validate.utils');

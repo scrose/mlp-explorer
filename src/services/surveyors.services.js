@@ -16,7 +16,7 @@
 */
 
 utils = require('../lib/data');
-db = require('./database');
+db = require('./pgdb');
 
 let model_schema = {
   attributes: {

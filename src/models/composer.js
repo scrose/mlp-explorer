@@ -7,8 +7,8 @@
 
 'use strict';
 
-import pool from '../lib/database.js';
-import LocalError from './error.js';
+import pool from '../services/pgdb.js';
+import ControlError from './error.models.js';
 
 /**
  * Create derived model through composition. The model schema
@@ -101,7 +101,7 @@ export const setData = function (data) {
         if (typeof data === 'object' && data !== null) {
             const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
             Object.entries(inputData).forEach(([key, field]) => {
-                if (!self.schema.fields.hasOwnProperty(key)) throw LocalError();
+                if (!self.schema.fields.hasOwnProperty(key)) throw ControlError();
                 self.schema.fields[key].value = field
             });
         } else {

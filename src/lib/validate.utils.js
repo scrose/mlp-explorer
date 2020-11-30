@@ -10,7 +10,7 @@
  * @private
  */
 
-import LocalError from '../models/error.js';
+import ControlError from '../models/error.models.js';
 
 /**
  * Export validator instance.
@@ -38,7 +38,7 @@ function Validator() {
  */
 
 Validator.prototype.error = function (code = null) {
-  throw new LocalError(code);
+  throw new ControlError(code);
 };
 
 /**

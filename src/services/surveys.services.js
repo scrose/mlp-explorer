@@ -1,6 +1,6 @@
 params = require('../config');
 utils = require('../lib/data');
-db = require('./database');
+db = require('./pgdb');
 
 // get table schema
 exports.getSchema = (queryText) => {

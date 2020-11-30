@@ -11,7 +11,7 @@
  * Initialize sessions table.
  */
 
-export const initSessions = `CREATE TABLE IF NOT EXISTS sessions (
+export const init = `CREATE TABLE IF NOT EXISTS sessions (
                 id serial NOT NULL PRIMARY KEY,
                 session_id VARCHAR (255) UNIQUE NOT NULL,
                 expires TIMESTAMP,
@@ -21,7 +21,7 @@ export const initSessions = `CREATE TABLE IF NOT EXISTS sessions (
  * Find session by session ID.
  */
 
-export const findBySessionId = `SELECT session_data 
+export const findById = `SELECT session_data 
             FROM sessions 
             WHERE session_id=$1::varchar
               AND expires >= TO_TIMESTAMP($2)`;

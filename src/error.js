@@ -12,7 +12,7 @@
  * @private
  */
 
-import LocalError from './models/error.js';
+import ControlError from './models/error.models.js';
 
 /**
  * Helper function to interpret error code.
@@ -24,7 +24,7 @@ import LocalError from './models/error.js';
 function getMessage(err = null) {
     return (err && err.hasOwnProperty('name') && err.name === 'LocalError')
         ? err.decoded
-        : LocalError('default').decoded;
+        : ControlError('default').decoded;
 }
 
 /**
@@ -55,7 +55,9 @@ function renderMessage(msg) {
 
 export function globalHandler(err, req, res, next) {
     // log error
-    console.error('\n--- %s --- \n%s\n', err.hasOwnProperty('name') ? err.name : 'Validation Error', err, err.stack);
+    console.error('\n--- %s --- \n%s\n', err.hasOwnProperty('name')
+        ? err.name
+        : 'Validation Error', err, err.stack);
 
     res.locals.messages = [getMessage(err)];
     return res.status(500).json(res.locals);
@@ -72,6 +74,6 @@ export function globalHandler(err, req, res, next) {
  */
 
 export function notFoundHandler(req, res, next) {
-    res.locals.messages = [getMessage(LocalError('notfound'))];
-    res.status(404).json(res.locals);
+    res.locals.messages = [getMessage(new ControlError('notfound'))];
+    return res.status(404).json(res.locals);
 }

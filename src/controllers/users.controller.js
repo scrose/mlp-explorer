@@ -10,28 +10,29 @@
  * @private
  */
 
-import User from '../models/user.js';
-import Role from '../models/role.js';
-import LocalError from '../models/error.js';
-import path from 'path';
-import * as config from '../config.js';
-import { restrict } from '../lib/permissions.js';
-import db from '../services/database.services.js';
+import User from '../models/user.models.js';
+import ControlError from '../models/error.models.js';
+import * as db from '../services/db.services.js';
 import valid from '../lib/validate.utils.js'
 
 /**
- * List all users
+ * Initialize users, roles tables and admin user account.
  *
  * @param req
  * @param res
  * @param next
  * @src public
  */
+
 export const init = async (req, res, next) => {
-    await db
+    await db.users
         .init(
-            'users',
-            [process.env.API_USER, process.env.API_EMAIL, process.env.API_HASH, process.env.API_SALT]
+            [
+                process.env.API_USER,
+                process.env.API_EMAIL,
+                process.env.API_HASH,
+                process.env.API_SALT
+            ]
         )
         .then(() => next())
         .catch((err) => next(err));
@@ -46,21 +47,18 @@ export const init = async (req, res, next) => {
  * @src public
  */
 export const list = async (req, res, next) => {
-    // restrict(res, next, 'list');
-    await db
-        .getAll('users')
+    await db.users
+        .getAll()
         .then((data) => {
             res.locals.users = data.rows;
             res.status(200).json(res.locals);
         })
-        .catch((err) => {
-            next(err);
-        });
+        .catch((err) => next(err));
 };
 
 /**
  * Show the user's profile data. Only the profile of the current user
- * is accessible, unless the user has administrator privileges.
+ * is accessible, unless the current user has administrator privileges.
  *
  * @param req
  * @param res
@@ -69,18 +67,17 @@ export const list = async (req, res, next) => {
  */
 
 export const show = async (req, res, next) => {
-    // restrict(res, next, config.roles.Administrator, res.locals.req_id);
-    await db
-        .select('users', req.params.user_id)
+    await db.users
+        .select(req.params.user_id)
         .then((data) => {
-            if (data.rows.length === 0) throw new LocalError('nouser');
+            if (data.rows.length === 0) throw new ControlError('nouser');
             res.status(200).json({ user: data.rows[0] });
         })
         .catch((err) => next(err));
 };
 
 /**
- * UserModel sign-in interface.
+ * User sign-in interface.
  *
  * @param req
  * @param res
@@ -111,33 +108,6 @@ export const login = async (req, res, next) => {
 };
 
 /**
- * Logout current user from session.
- * @param req
- * @param res
- * @param next
- * @src public
- */
-
-export const logout = async (req, res, next) => {
-    try {
-        console.log('Logging out:', req.session.user);
-        if (!req.session.user) throw new LocalError('logoutRedundant');
-        // Regenerate session as anonymous when signing out
-        req.session.regenerate(function(err) {
-            if (err) throw LocalError(err);
-            res.message('Successfully logged out!', 'success');
-            req.session.save(function(err) {
-                if (err) throw LocalError(err);
-                // session saved
-                res.redirect('/');
-            });
-        });
-    } catch (err) {
-        next(err);
-    }
-};
-
-/**
  * Authenticate user credentials.
  * TODO: Include JWT signing (http://jwt.io/)
  *
@@ -153,28 +123,30 @@ export const authenticate = async (req, res, next) => {
     try {
         const { email, password } = req.body;
         reqUser = {
-            email: utils.validate(email).isEmail().data,
-            password: utils.validate(password).isPassword().data,
+            email: valid.load(email).isEmail().data,
+            password: valid.load(password).isPassword().data,
         };
     } catch (err) {
         next(err);
     }
 
-    // confirm user exists
-    await userServices
-        .findByEmail(reqUser.email)
-        .then((result) => {
-            if (result.rows.length === 0) throw LocalError('loginFailure');
+    // Confirm user is registered
+    await db.users
+        .selectByEmail(reqUser.email)
+        .then((data) => {
+            if (data.rows.length === 0)
+                throw ControlError('loginFailure');
 
-            // wrap requested user data for authentication
-            let authUser = new User(result);
+            // Wrap requested user data for authentication
+            let authUser = new User(data);
 
-            // authenticate user credentials
-            if (!authUser.authenticate(reqUser.password)) throw LocalError('login');
+            // Authenticate user credentials
+            if (!authUser.authenticate(reqUser.password))
+                throw ControlError('login');
 
             // Regenerate session when signing in to prevent fixation
             req.session.regenerate(function(err) {
-                if (err) throw LocalError(err);
+                if (err) throw ControlError(err);
                 // Store user object in the session store to be retrieved
                 req.session.user = {
                     id: authUser.getValue('user_id'),
@@ -182,15 +154,39 @@ export const authenticate = async (req, res, next) => {
                 };
                 res.message('Login successful.', 'success');
                 req.session.save(function(err) {
-                    if (err) throw LocalError(err);
+                    if (err) throw ControlError(err);
                     // session saved
-                    res.redirect('/');
+                    res.status(200).json(res.locals);
                 });
             });
         })
-        .catch((err) => {
-            next(err);
+        .catch((err) => next(err));
+};
+
+/**
+ * Logout current user from session. Regenerates
+ * session as anonymous user when signing out.
+ * @param req
+ * @param res
+ * @param next
+ * @src public
+ */
+
+export const logout = async (req, res, next) => {
+    try {
+        console.log('Logging out:', req.session.user);
+        if (!req.session.user) next();
+        req.session.regenerate(function(err) {
+            if (err) throw ControlError(err);
+            res.message('Successfully logged out!', 'success');
+            req.session.save(function(err) {
+                if (err) throw ControlError(err);
+                res.status(200).json(res.locals);
+            });
         });
+    } catch (err) {
+        next(err);
+    }
 };
 
 /**
@@ -206,7 +202,7 @@ export const authenticate = async (req, res, next) => {
 
 export const register = async (req, res, next) => {
     // remove to open to visitors
-    restrict(res, next, config.roles.Administrator);
+    //restrict(res, next, config.roles.Administrator);
 
     try {
         // let args = {
@@ -238,9 +234,7 @@ export const register = async (req, res, next) => {
  * @src public
  */
 
-export const add = async (req, res, next) => {
-    // remove to open up to visitors
-    // restrict(res, next, config.roles.Administrator);
+export const create = async (req, res, next) => {
     let newUser;
     try {
         // validate user input data
@@ -256,20 +250,24 @@ export const add = async (req, res, next) => {
         next(err);
     }
 
-    // insert user in database
-    await newUser
-        .register()
-        .then((result) => {
-            if (result.rows.length === 0) throw new LocalError('register');
-            let user_id = result.rows[0].user_id;
+    // Insert user in database
+    await db.users
+        .insert(newUser)
+        .then((data) => {
+            if (data.rows.length === 0)
+                throw new ControlError('register');
+            let user_id = data.rows[0].user_id;
             // // send confirmation email to user
             // utils.email.send(user.email, "Verify registration.");
             res.message('Registration was successful!', 'success');
-            res.redirect(path.join('/users', user_id));
+            req.session.save(function(err) {
+                res.locals.user_id = user_id;
+                if (err) throw ControlError(err);
+                // res.redirect('/');
+                res.status(200).json(res.locals);
+            });
         })
-        .catch((err) => {
-            next(err);
-        });
+        .catch((err) => next(err));
 };
 
 /**
@@ -283,31 +281,31 @@ export const add = async (req, res, next) => {
 
 export const edit = async (req, res, next) => {
     // retrieve user roles
-    const { roles } = await userRoleServices.findAll().catch((err) => next(err));
+    const { roles } = await db.roles.getAll().catch((err) => next(err));
 
-    await userServices
-        .findById(res.locals.req_id)
-        .then((result) => {
-            if (result.rows.length === 0) throw new LocalError('nouser');
-            let user = new User(result);
+    await db.users
+        .select(res.locals.req_id)
+        .then((data) => {
+            if (data.rows.length === 0) throw new ControlError('nouser');
+            let user = new User(data);
             // add role options to model
-            user.setOptions('role', roles);
-            // assemble build parameters
-            let args = {
-                model: user,
-                view: res.locals.view,
-                method: 'POST',
-                legend: 'Update UserModel Profile',
-                actions: {
-                    submit: { value: 'Update', url: path.join('/users', res.locals.users_id, 'edit') },
-                    cancel: { value: 'Cancel', url: '/' },
-                },
-                restrict: req.session.user || null,
-            };
-            let { form, validator } = builder.form(args);
-            res.locals.form = form;
-            res.locals.validator = validator;
-            res.render('edit');
+            // user.setOptions('role', roles);
+            // // assemble build parameters
+            // let args = {
+            //     model: user,
+            //     view: res.locals.view,
+            //     method: 'POST',
+            //     legend: 'Update UserModel Profile',
+            //     actions: {
+            //         submit: { value: 'Update', url: path.join('/users', res.locals.users_id, 'edit') },
+            //         cancel: { value: 'Cancel', url: '/' },
+            //     },
+            //     restrict: req.session.user || null,
+            // };
+            // let { form, validator } = builder.form(args);
+            // res.locals.form = form;
+            // res.locals.validator = validator;
+            res.status(200).json(res.locals);
         })
         .catch((err) => next(err));
 };
@@ -324,22 +322,21 @@ export const edit = async (req, res, next) => {
 export const update = async (req, res, next) => {
     let user;
     try {
-        // initialize user object
         user = new User(req.body);
     } catch (err) {
         next(err);
     }
     // update user data
-    await userServices
-        .update(user.getData())
-        .then((result) => {
-            if (result.rows.length === 0) throw new LocalError('update');
+    await db.users
+        .update(user)
+        .then((data) => {
+            if (data.rows.length === 0) throw new ControlError('update');
+            console.log(data)
+            res.locals.user = data.rows[0];
             res.message('Update successful!', 'success');
-            res.redirect(path.join('/users', result.rows[0].id));
+            res.status(200).json(res.locals);
         })
-        .catch((err) => {
-            next(err);
-        });
+        .catch((err) => next(err));
 };
 
 /**
@@ -351,12 +348,13 @@ export const update = async (req, res, next) => {
  * @src public
  */
 
-export const confirmRemove = async (req, res, next) => {
-    await db
-        .findById(req.params.user_id)
-        .then((result) => {
-            if (result.rows.length === 0) throw new LocalError('nouser');
-            // let user = new User(result);
+export const remove = async (req, res, next) => {
+    await db.users
+        .select(req.params.user_id)
+        .then((data) => {
+            if (data.rows.length === 0)
+                throw new ControlError('nouser');
+            // let user = new User(data);
             // let { form, validator } = builder.form(
             //     {
             //         view: res.locals.name,
@@ -385,13 +383,14 @@ export const confirmRemove = async (req, res, next) => {
  * @src public
  */
 
-export const remove = async (req, res, next) => {
-    await db
-        .remove('users', req.body.user_id)
-        .then((result) => {
-            if (result.rows.length === 0) throw new LocalError('nouser');
-            res.message('User ${req.body.user_id} successfully deleted.', 'success');
-            res.redirect('/users');
+export const drop = async (req, res, next) => {
+    await db.users
+        .remove(req.params.user_id)
+        .then((data) => {
+            if (data.rows.length === 0) throw new ControlError('nouser');
+            res.locals.user_id = data.rows[0].user_id;
+            res.message('User ${req.locals.user_id} successfully deleted.', 'success');
+            res.status(200).json(res.locals);
         })
         .catch((err) => next(err));
 };

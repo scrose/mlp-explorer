@@ -12,17 +12,15 @@
  * @private
  */
 
-import logger from 'morgan';
 import express from 'express';
 import path from 'path';
 import methodOverride from 'method-override';
 import session from './lib/session.js';
 import { globalHandler, notFoundHandler } from './error.js';
-import { authorize } from './lib/permissions.js';
-import messages from './lib/messages.utils.js';
+import { authorize } from './lib/permissions.utils.js';
 import { general } from './config.js';
 import router from './routes/index.routes.js';
-import db from './services/database.services.js';
+import ControlError from './models/error.models.js';
 
 /**
  * Initialize main Express instance.
@@ -62,13 +60,23 @@ app.use(session);
  * Define session-persistent messenger.
  */
 
-app.use(messages);
+app.use(function(req, res, next) {
+    res.message = function (msg, type='info') {
+        if (!req.hasOwnProperty('session'))
+            throw ControlError('nosession');
+        req.session.messages = req.session.messages || [];
+        req.session.messages.push({ type: type, string: msg, });
+    };
+    next()
+});
 
 /**
  * Define logger for development.
  */
 
-app.use(logger('dev'));
+// app.use(function (req, res, next) {
+//     logger('dev');
+// });
 
 /**
  * Serve static files.
@@ -93,33 +101,40 @@ app.use(methodOverride('_method'));
  * Define view parameters for template rendering (middleware)
  */
 
-app.use(function (req, res, next) {
-  // store response local variables scoped to the request
-  res.locals.general = general;
-  res.locals.view = path.parse(req.originalUrl).base;
-  res.locals.user = req.session.user;
+app.use(function(req, res, next) {
 
-  // check user session data
-  console.log('Session: ', req.session.id);
-  console.log('Active User: ', res.locals.user);
-  console.log('Message Bank: ', res.locals.messages);
+    if (!req.hasOwnProperty('session'))
+        throw ControlError('nosession');
 
-  next();
+    // store response local variables scoped to the request
+    res.locals.general = general;
+    res.locals.model = path.parse(req.originalUrl).base;
+    res.locals.user = req.session.user;
+    res.locals.messages = req.session.messages || [];
+
+    // clear message bank
+    req.session.messages = [];
+
+    // check user session data
+    console.log('Session: ', req.session.id);
+    console.log('Active User: ', res.locals.user);
+    console.log('Message Bank: ', res.locals.messages);
+    next();
 });
 
 /**
  * Restrict access by user permissions.
  */
 
-app.use(function (req, res, next) {
-  authorize(req, res, next);
+app.use(function(req, res, next) {
+    authorize(req, res, next);
 
-  // set navigation menus based on user settings
-  // res.locals.menus = {
-  //     breadcrumb: builder.nav.breadcrumbMenu(req, res),
-  //     user: builder.nav.userMenu(res),
-  //     editor: builder.nav.editorMenu(res),
-  // };
+    // set navigation menus based on user settings
+    // res.locals.menus = {
+    //     breadcrumb: builder.nav.breadcrumbMenu(req, res),
+    //     user: builder.nav.userMenu(res),
+    //     editor: builder.nav.editorMenu(res),
+    // };
 });
 
 /**
@@ -132,7 +147,11 @@ app.use('/', router);
  * Set default global error handlers.
  */
 
-app.use(globalHandler);
-app.use(notFoundHandler);
+app.use(function(err, req, res, next) {
+    return globalHandler(err, req, res, next);
+});
+app.use(function(req, res, next) {
+    return notFoundHandler(req, res, next);
+});
 
 export default app;

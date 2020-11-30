@@ -15,7 +15,7 @@ import mocha from 'mocha';
 import { general } from '../src/config.js'
 
 mocha.describe('Index page test', () => {
-  mocha.it('gets base url', (done) => {
+  mocha.it('Gets base url', (done) => {
     server
       .get(`${BASE_URL}`)
       .expect(200)

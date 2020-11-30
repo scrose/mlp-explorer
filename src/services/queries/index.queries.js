@@ -11,8 +11,8 @@
  * Import queries
  */
 import * as users from './users.queries.js';
-import * as roles from './users.queries.js';
-import * as sessions from './users.queries.js';
+import * as roles from './roles.queries.js';
+import * as sessions from './sessions.queries.js';
 
 /**
  * Index of module exports.
