@@ -11,7 +11,6 @@
  */
 
 import User from '../models/user.models.js';
-import ControlError from '../models/error.models.js';
 import * as db from '../services/db.services.js';
 import valid from '../lib/validate.utils.js'
 
@@ -25,6 +24,14 @@ import valid from '../lib/validate.utils.js'
  */
 
 export const init = async (req, res, next) => {
+
+    // assert.equal(typeof (req), Request,
+    //     "argument req must be a Request");
+    // assert.equal(typeof (res), Response,
+    //     "argument req must be a Response");
+    // assert.equal(typeof (next), Function,
+    //     "argument next must be a callback");
+
     await db.users
         .init(
             [
@@ -70,7 +77,7 @@ export const show = async (req, res, next) => {
     await db.users
         .select(req.params.user_id)
         .then((data) => {
-            if (data.rows.length === 0) throw new ControlError('nouser');
+            if (data.rows.length === 0) throw new Error('nouser');
             res.status(200).json({ user: data.rows[0] });
         })
         .catch((err) => next(err));
@@ -87,6 +94,8 @@ export const show = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
     try {
+        if (req.session.user)
+            throw new Error('loginRedundant');
         // let args = {
         //   model: new UserModel(),
         //   view: res.locals.view,
@@ -127,7 +136,7 @@ export const authenticate = async (req, res, next) => {
             password: valid.load(password).isPassword().data,
         };
     } catch (err) {
-        next(err);
+        next(new Error('login'));
     }
 
     // Confirm user is registered
@@ -135,18 +144,16 @@ export const authenticate = async (req, res, next) => {
         .selectByEmail(reqUser.email)
         .then((data) => {
             if (data.rows.length === 0)
-                throw ControlError('loginFailure');
+                throw Error('login');
 
-            // Wrap requested user data for authentication
+            // Authenticate user
             let authUser = new User(data);
-
-            // Authenticate user credentials
             if (!authUser.authenticate(reqUser.password))
-                throw ControlError('login');
+                throw Error('login');
 
             // Regenerate session when signing in to prevent fixation
             req.session.regenerate(function(err) {
-                if (err) throw ControlError(err);
+                if (err) throw Error(err);
                 // Store user object in the session store to be retrieved
                 req.session.user = {
                     id: authUser.getValue('user_id'),
@@ -154,7 +161,7 @@ export const authenticate = async (req, res, next) => {
                 };
                 res.message('Login successful.', 'success');
                 req.session.save(function(err) {
-                    if (err) throw ControlError(err);
+                    if (err) throw Error(err);
                     // session saved
                     res.status(200).json(res.locals);
                 });
@@ -174,13 +181,13 @@ export const authenticate = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
     try {
-        console.log('Logging out:', req.session.user);
-        if (!req.session.user) next();
+        if (!req.session.user)
+            throw new Error('logoutRedundant');
         req.session.regenerate(function(err) {
-            if (err) throw ControlError(err);
-            res.message('Successfully logged out!', 'success');
+            if (err) throw new Error('logout');
             req.session.save(function(err) {
-                if (err) throw ControlError(err);
+                if (err) throw Error(err);
+                res.message('Successfully logged out!', 'success');
                 res.status(200).json(res.locals);
             });
         });
@@ -255,14 +262,14 @@ export const create = async (req, res, next) => {
         .insert(newUser)
         .then((data) => {
             if (data.rows.length === 0)
-                throw new ControlError('register');
+                throw new Error('register');
             let user_id = data.rows[0].user_id;
             // // send confirmation email to user
             // utils.email.send(user.email, "Verify registration.");
             res.message('Registration was successful!', 'success');
             req.session.save(function(err) {
                 res.locals.user_id = user_id;
-                if (err) throw ControlError(err);
+                if (err) throw Error(err);
                 // res.redirect('/');
                 res.status(200).json(res.locals);
             });
@@ -286,7 +293,7 @@ export const edit = async (req, res, next) => {
     await db.users
         .select(res.locals.req_id)
         .then((data) => {
-            if (data.rows.length === 0) throw new ControlError('nouser');
+            if (data.rows.length === 0) throw new Error('nouser');
             let user = new User(data);
             // add role options to model
             // user.setOptions('role', roles);
@@ -330,8 +337,7 @@ export const update = async (req, res, next) => {
     await db.users
         .update(user)
         .then((data) => {
-            if (data.rows.length === 0) throw new ControlError('update');
-            console.log(data)
+            if (data.rows.length === 0) throw new Error('update');
             res.locals.user = data.rows[0];
             res.message('Update successful!', 'success');
             res.status(200).json(res.locals);
@@ -353,7 +359,7 @@ export const remove = async (req, res, next) => {
         .select(req.params.user_id)
         .then((data) => {
             if (data.rows.length === 0)
-                throw new ControlError('nouser');
+                throw new Error('nouser');
             // let user = new User(data);
             // let { form, validator } = builder.form(
             //     {
@@ -387,9 +393,9 @@ export const drop = async (req, res, next) => {
     await db.users
         .remove(req.params.user_id)
         .then((data) => {
-            if (data.rows.length === 0) throw new ControlError('nouser');
+            if (data.rows.length === 0) throw new Error('nouser');
             res.locals.user_id = data.rows[0].user_id;
-            res.message('User ${req.locals.user_id} successfully deleted.', 'success');
+            res.message('User ' + res.locals.user_id + ' successfully deleted.', 'success');
             res.status(200).json(res.locals);
         })
         .catch((err) => next(err));

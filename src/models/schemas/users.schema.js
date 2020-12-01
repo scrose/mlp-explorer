@@ -1,5 +1,5 @@
 /*!
- * MLP.API.Models.Schemas.UserModel
+ * MLP.API.Models.Schemas.User
  * File: users.schema.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
@@ -8,16 +8,17 @@
 'use strict';
 
 /**
- * Define UserModel data model schema
+ * Define User data model schema
  *
  * @private
  */
+
 export default {
   name: 'users',
-  label: 'UserModel Profile',
+  label: 'User Profile',
   fields: {
     user_id: {
-      label: 'UserModel ID',
+      label: 'User ID',
       type: 'string',
       render: {
         delete: {
@@ -53,7 +54,7 @@ export default {
       },
     },
     role_id: {
-      label: 'UserModel RoleModel ID',
+      label: 'User Role ID',
       type: 'select',
       render: {
         register: {
@@ -73,7 +74,7 @@ export default {
       },
     },
     role: {
-      label: 'UserModel RoleModel',
+      label: 'User Role',
       type: 'string',
       restrict: [3],
     },

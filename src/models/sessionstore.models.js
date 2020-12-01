@@ -13,7 +13,6 @@
  */
 
 import { session as config } from '../config.js';
-import ControlError from './error.models.js';
 import sess from 'express-session';
 import * as db from '../services/db.services.js';
 import cron from 'node-cron';
@@ -133,7 +132,7 @@ SessionStore.prototype.set = function(sid, sess, callback) {
     db.sessions
         .upsert(args)
         .then((data) => {
-            if (data.rows.length === 0) throw ControlError('session');
+            if (data.rows.length === 0) throw Error('session');
             // show session parameters
             debug('SET Session ' + key);
             printSession(sess);
@@ -308,8 +307,6 @@ SessionStore.prototype._getExpires = function(sess) {
  */
 
 function printSession(session) {
-
-    console.log('Print Session', session);
     if (session.cookie) {
         let expires =
             typeof session.cookie.expires === 'string'

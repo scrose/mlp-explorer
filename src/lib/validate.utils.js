@@ -5,12 +5,6 @@
  * MIT Licensed
  */
 
-/**
- * Module dependencies.
- * @private
- */
-
-import ControlError from '../models/error.models.js';
 
 /**
  * Export validator instance.
@@ -38,7 +32,7 @@ function Validator() {
  */
 
 Validator.prototype.error = function (code = null) {
-  throw new ControlError(code);
+  throw new Error(code);
 };
 
 /**

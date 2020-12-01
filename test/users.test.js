@@ -10,74 +10,164 @@
  * @private
  */
 
-import { expect, server, agent, BASE_URL } from './setup.js';
+import { expect, agent, BASE_URL, errors } from './setup.js';
 import mocha from 'mocha';
-
 
 /**
  * List all users (unauthenticated)
  * @private
  */
 
-mocha.describe('Check user restrictions (unauthenticated)', () => {
-    mocha.it('Should get restricted page for list', (done) => {
-        agent
+mocha.describe('Check user permissions (Visitor)', () => {
+    mocha.it('Should deny access to user list', async () => {
+        await agent
             .get(`${BASE_URL}users`)
             .then((res) => {
-                console.log(req)
-                expect(res.status).to.equal(500);
-                done();
+                expect(res).to.have.status(500);
+                expect(res.body).to.equal(errors.restrict);
             })
-            .catch((err) => {
-                console.log(err)
-                done();
-            });
+    })
+
+    mocha.it('Should deny access to other user profile', async () => {
+        await agent
+            .get(`${BASE_URL}users/${admin.user_id}`)
+            .then((res) => {
+                expect(res).to.have.status(500);
+                expect(res.body).to.equal(errors.restrict);
+            })
+    })
+
+    mocha.it('Should deny access to other user updates', async () => {
+        await agent
+            .get(`${BASE_URL}users/${admin.user_id}/edit`)
+            .then((res) => {
+                expect(res).to.have.status(500);
+                expect(res.body).to.equal(errors.restrict);
+            })
+    })
+
+});
+
+
+
+/**
+ * Load admin data.
+ * @private
+ */
+
+let admin = {
+    user_id: process.env.API_USER,
+    email: process.env.API_EMAIL,
+    password: process.env.API_PASS,
+    hash: process.env.API_HASH,
+    salt: process.env.API_SALT,
+    role_id: 5
+}
+
+/**
+ * Sign-in administrator.
+ * @private
+ */
+
+mocha.describe('Login Administrator', () => {
+    mocha.it('Authenticate wrong email should fail', async () => {
+        await agent
+            .post(`${BASE_URL}login`)
+            .set('Accept', 'application/json')
+            .send({
+                email: 'wrong@example.ca',
+                password: admin.password
+            })
+            .then((res) => {
+                expect(res).to.have.status(500);
+                expect(res.body).to.equal(errors.login);
+            })
+    });
+
+    mocha.it('Authenticate wrong password should fail', async () => {
+        await agent
+            .post(`${BASE_URL}login`)
+            .set('Accept', 'application/json')
+            .send({
+                email: admin.email,
+                password: 'WRONG5565lSSR!3323'
+            })
+            .then((res) => {
+                expect(res).to.have.status(500);
+                expect(res.body).to.equal(errors.login);
+            })
+    });
+
+    mocha.it('Authenticate correct credentials', async () => {
+        await agent
+            .post(`${BASE_URL}login`)
+            .set('Accept', 'application/json')
+            .send({
+                email: admin.email,
+                password: admin.password
+            })
+            .then((res) => {
+                expect(res).to.have.status(200);
+                expect(res.body.messages[0].type).to.equal('success');
+                expect(res.body.messages[0].string).to.equal('Login successful.');
+            })
+    });
+
+    mocha.it('Double login', async () => {
+        await agent
+            .get(`${BASE_URL}login`)
+            .set('Accept', 'application/json')
+            .then((res) => {
+                expect(res).to.have.status(500);
+                expect(res.body).to.equal(errors.loginRedundant);
+            })
     })
 });
 
 /**
- * List all users (authenticated)
+ * Test user controllers (authenticated)
  * @private
  */
 
-mocha.describe('List all users', () => {
-  mocha.it('List all users page', (done) => {
-    server
-      .get(`${BASE_URL}users`)
-      .expect(200)
-      .end((err, res) => {
-        expect(res.status).to.equal(200);
-        expect(res.body.users).to.instanceOf(Array);
-        res.body.users.forEach((u) => {
-          expect(u).to.have.property('user_id');
-          expect(u).to.have.property('role_id');
-          expect(u).to.have.property('email');
-          expect(u).to.have.property('created_at');
-          expect(u).to.have.property('updated_at');
-        });
-        done();
-      });
-  });
-});
+mocha.describe('User Controllers', () => {
 
-/**
- * Create new user.
- * @private
- */
+    /**
+     * List registered users.
+     * @private
+     */
 
-let cookies;
-let user = {
-    user_id: null,
-    email: 'user@example.ca',
-    password: '5565lSSR!3323',
-    hash: null,
-    salt: null,
-    role_id: 2
-}
+    mocha.it('List all users page', async () => {
+      await agent
+          .get(`${BASE_URL}users`)
+          .then((res) => {
+              expect(res).to.have.status(200);
+              expect(res.body.users).to.instanceOf(Array);
+              res.body.users.forEach((u) => {
+                  expect(u).to.have.property('user_id');
+                  expect(u).to.have.property('role_id');
+                  expect(u).to.have.property('email');
+                  expect(u).to.have.property('created_at');
+                  expect(u).to.have.property('updated_at');
+              });
+          })
+    });
 
-mocha.describe('Register new user', () => {
-    mocha.it('Insert user data', (done) => {
-        server
+    /**
+     * Create new user.
+     * @private
+     */
+
+    let user = {
+        user_id: null,
+        email: 'user@example.ca',
+        password: '5565lSSR!3323',
+        hash: null,
+        salt: null,
+        role_id: 2
+    }
+
+    mocha.it('Register new user', async () => {
+        await agent
             .post(`${BASE_URL}users/register`)
             .set('Accept', 'application/json')
             .send({
@@ -85,35 +175,25 @@ mocha.describe('Register new user', () => {
                 password: user.password,
                 role_id: user.role_id
             })
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .end((err, res) => {
-                // console.log('Confirm new user:', res.body)
-                expect(res.status).to.equal(200);
-                expect(res.body).to.instanceOf(Object);
-
-                // expect(res.body.messages).to.equal(['user_id']);
-                done();
-                // Save the cookie to use it later to retrieve the session
+            .then((res) => {
+                expect(res).to.have.status(200);
+                expect(res.body.messages[0].type).to.equal('success');
+                expect(res.body.messages[0].string).to.equal('Registration was successful!');
+                expect(res.body.user_id).to.not.equal(null);
                 user.user_id = res.body.user_id;
-                console.log('New user ID:', user.user_id);
-                // Save the cookie to use it later to retrieve the session
-                cookies = res.headers['set-cookie'].pop().split(';')[0];
-            });
+            })
     });
-});
 
-/**
- * Show user data.
- * @private
- */
+    /**
+     * Show user data.
+     * @private
+     */
 
-mocha.describe('Show user profile', () => {
-    mocha.it('Get user data by Id', (done) => {
-        server
+    mocha.it('Show user profile', async () => {
+        await agent
             .get(`${BASE_URL}users/${user.user_id}`)
-            .expect(200)
-            .end((err, res) => {
+            .set('Accept', 'application/json')
+            .then((res) => {
                 expect(res.status).to.equal(200);
                 expect(res.body.user).to.instanceOf(Object);
                 expect(res.body.user).to.have.property('user_id');
@@ -124,30 +204,26 @@ mocha.describe('Show user profile', () => {
                 expect(res.body.user.user_id).to.equal(user.user_id);
                 expect(res.body.user.email).to.equal(user.email);
                 expect(res.body.user.role_id).to.equal(user.role_id);
-                done();
-            });
+            })
     });
-});
 
-/**
- * Update user data.
- * @private
- */
+    /**
+     * Update user data.
+     * @private
+     */
 
-let newEmail = 'new@example.ca';
-let newRoleId = 4;
+    let newEmail = 'new@example.ca';
+    let newRoleId = 4;
 
-mocha.describe('Update user data', () => {
-    mocha.it('Change user email and role', (done) => {
-        server
+    mocha.it('Update user email and role', async () => {
+        await agent
             .post(`${BASE_URL}users/${user.user_id}/edit`)
             .set('Accept', 'application/json')
-            .expect(200)
             .send({
                 email: newEmail,
                 role_id: newRoleId
             })
-            .end((err, res) => {
+            .then((res) => {
                 expect(res.status).to.equal(200);
                 expect(res.body.user).to.instanceOf(Object);
                 expect(res.body.user).to.have.property('user_id');
@@ -158,154 +234,52 @@ mocha.describe('Update user data', () => {
                 expect(res.body.user.user_id).to.equal(user.user_id);
                 expect(res.body.user.email).to.equal(newEmail);
                 expect(res.body.user.role_id).to.equal(newRoleId);
-                done();
-            });
+            })
     });
+
+    /**
+     * Delete new user.
+     * @private
+    */
+
+    mocha.it('Delete created user', async () => {
+        await agent
+            .post(`${BASE_URL}users/${user.user_id}/remove`)
+            .set('Accept', 'application/json')
+            .then((res) => {
+                expect(res).to.have.status(200);
+                expect(res.body.messages[0].type).to.equal('success');
+                expect(res.body.messages[0].string).to.equal(
+                    'User ' + user.user_id + ' successfully deleted.'
+                );
+            })
+    });
+
 });
 
 /**
- * Sign-in/out user.
+ * Sign-out administrator.
  * @private
  */
 
-mocha.describe('Login/Logout user', () => {
-    mocha.it('Authenticate wrong email should fail', (done) => {
-        server
-            .post(`${BASE_URL}login`)
-            .set('Accept', 'application/json')
-            .send({
-                email: 'user@wrong_example.ca',
-                password: user.password
-            })
-            .expect('Content-Type', /json/)
-            .expect(500)
-            .end((err, res) => {
-                // console.log('Confirm new user:', res.body)
-                expect(res.status).to.equal(500);
-                expect(res.body).to.instanceOf(Object);
-                done();
-            });
-    });
-    mocha.it('Authenticate wrong password should fail', (done) => {
-        server
-            .post(`${BASE_URL}login`)
-            .set('Accept', 'application/json')
-            .send({
-                email: user.email,
-                password: 'WRONG_5565lSSR!3323'
-            })
-            .expect('Content-Type', /json/)
-            .expect(500)
-            .end((err, res) => {
-                // console.log('Confirm new user:', res.body)
-                expect(res.status).to.equal(500);
-                expect(res.body).to.instanceOf(Object);
-                done();
-            });
-    });
-    mocha.it('Authenticate correct credentials', (done) => {
-        server
-            .post(`${BASE_URL}login`)
-            .set('Accept', 'application/json')
-            .send({
-                email: 'user@example.ca',
-                password: '5565lSSR!3323'
-            })
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .end((err, res) => {
-                // console.log('Confirm new user:', res.body)
-                expect(res.status).to.equal(200);
-                expect(res.body).to.instanceOf(Object);
-                // expect(res.body.messages).to.equal(['user_id']);
-                done();
-                // Save the cookie to use it later to retrieve the session
-                // Save the cookie to use it later to retrieve the session
-                console.log('User logged in:', res.body.user_id);
-                cookies = res.headers['set-cookie'].pop().split(';')[0];
-            });
-    });
-    mocha.it('Logout user', (done) => {
-        server
+mocha.describe('Logout Administrator', () => {
+    mocha.it('Sign out the admin account', async () => {
+        await agent
             .post(`${BASE_URL}logout`)
             .set('Accept', 'application/json')
-            .send({
-                email: 'user@example.ca',
-                password: '5565lSSR!3323'
+            .then((res) => {
+                expect(res).to.have.status(200);
+                expect(res.body.messages[0].type).to.equal('success');
+                expect(res.body.messages[0].string).to.equal('Successfully logged out!');
             })
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .end((err, res) => {
-                // console.log('Confirm new user:', res.body)
-                expect(res.status).to.equal(200);
-                expect(res.body).to.instanceOf(Object);
-                done();
-                // Save the cookie to use it later to retrieve the session
-                // Save the cookie to use it later to retrieve the session
-                console.log('User logged out:', res.body.user_id);
-                cookies = res.headers['set-cookie'].pop().split(';')[0];
-            });
     });
-});
-
-/**
- *
- * Delete new user.
- * @private
- */
-
-mocha.describe('Remove user', () => {
-    mocha.it('Should delete user data', (done) => {
-        server
-            .post(`${BASE_URL}users/remove`)
+    mocha.it('Second sign out throws error', async () => {
+        await agent
+            .post(`${BASE_URL}logout`)
             .set('Accept', 'application/json')
-            .send({
-                user_id: user.user_id
+            .then((res) => {
+                expect(res).to.have.status(500);
+                expect(res.body).to.equal(errors.logoutRedundant);
             })
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .end((err, res) => {
-                expect(res.status).to.equal(200);
-                expect(res.body.user_id).to.equal(user.user_id);
-                done();
-            });
-    });
+    })
 });
-
-//
-//
-// var Cookies;
-//
-// describe('Functional Test <Sessions>:', function () {
-//     it('should create user session for valid user', function (done) {
-//         request(app)
-//             .post('/v1/sessions')
-//             .set('Accept','application/json')
-//             .send({"email": "user_test@example.com", "password": "123"})
-//             .expect('Content-Type', /json/)
-//             .expect(200)
-//             .end(function (err, res) {
-//                 res.body.id.should.equal('1');
-//                 res.body.short_name.should.equal('Test user');
-//                 res.body.email.should.equal('user_test@example.com');
-//                 // Save the cookie to use it later to retrieve the session
-//                 Cookies = res.headers['set-cookie'].pop().split(';')[0];
-//                 done();
-//             });
-//     });
-//     it('should get user session for current user', function (done) {
-//         var req = request(app).get('/v1/sessions');
-//         // Set cookie to get saved user session
-//         req.cookies = Cookies;
-//         req.set('Accept','application/json')
-//             .expect('Content-Type', /json/)
-//             .expect(200)
-//             .end(function (err, res) {
-//                 res.body.id.should.equal('1');
-//                 res.body.short_name.should.equal('Test user');
-//                 res.body.email.should.equal('user_test@example.com');
-//                 done();
-//             });
-//     });
-// });
-//

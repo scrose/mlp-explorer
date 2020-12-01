@@ -32,7 +32,7 @@ router.use(users.init)
 
 router.route('/login')
     .all(function (req, res, next) {
-        restrict(res, next, 'login');
+        restrict(res, next, {model: 'users', view: 'login'});
     })
     .get(users.login)
     .post(users.authenticate)
@@ -43,7 +43,7 @@ router.route('/login')
 
 router.route('/logout')
     .all(function (req, res, next) {
-        restrict(res, next, 'logout');
+        restrict(res, next, {model: 'users', view: 'logout'});
     })
     .post(users.logout)
 
@@ -53,7 +53,7 @@ router.route('/logout')
 
 router.route('/users')
     .all(function (req, res, next) {
-        restrict(res, next, 'list');
+        restrict(res, next, {model: 'users', view: 'list'});
     })
     .get(users.list);
 
@@ -63,7 +63,7 @@ router.route('/users')
 
 router.route('/users/register')
     .all(function (req, res, next) {
-        restrict(res, next, 'register');
+        restrict(res, next, {model: 'users', view: 'register'});
     })
     .get(users.register)
     .post(users.create)
@@ -74,7 +74,7 @@ router.route('/users/register')
 
 router.route('/users/:user_id')
     .all(function (req, res, next) {
-        restrict(res, next, 'show', req.params.user_id);
+        restrict(res, next, {model: 'users', view: 'show', id: req.params.user_id});
     })
     .get(users.show)
     .put(function (req, res, next) {
@@ -90,8 +90,7 @@ router.route('/users/:user_id')
 
 router.route('/users/:user_id/edit')
     .all(function (req, res, next) {
-        restrict(res, next, 'edit', req.params.user_id);
-        next()
+        restrict(res, next, {model: 'users', view: 'edit', id: req.params.user_id});
     })
     .get(users.edit)
     .put(function (req, res, next) {
@@ -108,7 +107,7 @@ router.route('/users/:user_id/edit')
 
 router.route('/users/:user_id/remove')
     .all(function (req, res, next) {
-        restrict(res, next, 'remove', req.params.user_id);
+        restrict(res, next, {model: 'users', view: 'remove', id: req.params.user_id});
     })
     .get(users.remove)
     .put(function (req, res, next) {

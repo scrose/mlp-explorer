@@ -7,7 +7,6 @@
 
 'use strict';
 
-import ControlError from '../models/error.models.js';
 import * as db from '../services/db.services.js';
 import { roles, permissions } from '../config.js';
 
@@ -20,17 +19,17 @@ import { roles, permissions } from '../config.js';
  * @src public
  */
 
-export function authorize(req, res, next) {
+export const authorize = async (req, res, next) => {
 
     // Anonymous user: set full restrictions to next process
     res.locals.restrict = 0;
     if (typeof res.locals.user === 'undefined') return next();
 
     // Get user role
-    db.users
+    await db.users
         .select(res.locals.user.id)
         .then((result) => {
-            if (result.rows.length === 0) throw new ControlError('nouser');
+            if (result.rows.length === 0) throw new Error('nouser');
             res.locals.restrict = result.rows[0].role_id;
             return next();
         })
@@ -40,22 +39,24 @@ export function authorize(req, res, next) {
 /**
  * Restrict user access based on permissions.
  *
- * @param res
- * @param next
- * @param view
- * @param paramId
+ * @param {Response} res
+ * @param {Function} next
+ * @param {Object} args
  * @src public
  *
  */
 
-export function restrict(res, next, view, paramId = null) {
+export function restrict(res, next, args) {
     try {
-        const restrictedTo = getPermissions(res.locals.view, view);
+        const restrictedTo = getPermissions(args);
         // Allow owners access to own data
-        if (res.locals.user && res.locals.user.id === paramId) next();
+        if (res.locals.user
+            && args.hasOwnProperty('id')
+            && res.locals.user.id === args.id
+        ) next();
         // Deny users with lesser admin privileges
-        if (!res.locals.restrict || res.locals.restrict < restrictedTo) {
-            throw new ControlError('restrict');
+        if (typeof res.locals.restrict === 'undefined' || res.locals.restrict < restrictedTo) {
+            throw new Error('restrict');
         }
         next();
     } catch (err) {
@@ -84,19 +85,19 @@ export function isRestricted(res, view, ownerId = null) {
 /**
  * Get permissions from configuration settings.
  *
- * @param model
- * @param view
+ * @param {Object} args
+ * @return {Integer} permission level
  * @src public
  *
  */
 
-function getPermissions(model, view) {
+function getPermissions(args) {
     // choose defined or default permissions grouping
-    const modelPermissions = permissions.hasOwnProperty(view)
-        ? permissions[view]
+    const modelPermissions = permissions.hasOwnProperty(args.model)
+        ? permissions[args.model]
         : permissions.default;
     // choose defined or default view permissions
-    return modelPermissions.hasOwnProperty(view)
-        ? roles[modelPermissions[view]]
+    return modelPermissions.hasOwnProperty(args.view)
+        ? roles[modelPermissions[args.view]]
         : roles.Visitor;
 }

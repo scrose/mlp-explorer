@@ -75,6 +75,6 @@ function onError (error) {
  */
 function onListening () {
   const addr = server.address()
-  const uri = typeof addr === 'string' ? addr : `localhost:${addr.port}`
+  const uri = typeof addr === 'string' ? addr : `localhost:${addr.port}/api`
   console.log(`Listening on ${uri}`)
 }

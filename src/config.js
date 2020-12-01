@@ -13,47 +13,47 @@ import dotenv from 'dotenv';
  */
 
 let settings = {
-    "general": {
-        "projectName": "Mountain Legacy Project",
-        "appName": "Explorer",
-        "title": "Welcome to the Mountain Legacy Project Explorer"
+    general: {
+        projectName: "Mountain Legacy Project",
+        appName: "Explorer",
+        title: "Welcome to the Mountain Legacy Project Explorer"
     },
-    "admin": {
+    admin: {
 
     },
-    "roles": {
-        "Visitor": 0,
-        "Registered": 1,
-        "Editor": 2,
-        "Contributor": 3,
-        "Administrator": 4,
-        "Super_Administrator": 5
+    roles: {
+        Visitor: 0,
+        Registered: 1,
+        Editor: 2,
+        Contributor: 3,
+        Administrator: 4,
+        Super_Administrator: 5
     },
-    "permissions": {
-        "default": {
-            "show": "Visitor",
-            "list": "Visitor",
-            "edit": "Contributor",
-            "create": "Editor",
-            "remove": "Editor"
+    permissions: {
+        default: {
+            show: "Visitor",
+            list: "Visitor",
+            edit: "Contributor",
+            create: "Editor",
+            remove: "Editor"
         },
-        "users": {
-            "show": "Administrator",
-            "list": "Administrator",
-            "edit": "Administrator",
-            "create": "Administrator",
-            "remove": "Administrator",
-            "register": "Administrator",
-            "login": "Visitor",
-            "logout": "Registered"
+        users: {
+            show: "Administrator",
+            list: "Administrator",
+            edit: "Administrator",
+            create: "Administrator",
+            remove: "Administrator",
+            register: "Administrator",
+            login: "Visitor",
+            logout: "Visitor"
         }
     },
-    "debug": {
-        "sessions": false
+    debug: {
+        sessions: false
     },
-    "session": {
-        "ttl": 3600,
-        "pruneInterval": 10000
+    session: {
+        ttl: 3600,
+        pruneInterval: 10000
     }
 }
 

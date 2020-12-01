@@ -13,14 +13,13 @@
  */
 
 import express from 'express';
-import path from 'path';
+import cors from 'cors';
 import methodOverride from 'method-override';
 import session from './lib/session.js';
 import { globalHandler, notFoundHandler } from './error.js';
 import { authorize } from './lib/permissions.utils.js';
 import { general } from './config.js';
 import router from './routes/index.routes.js';
-import ControlError from './models/error.models.js';
 
 /**
  * Initialize main Express instance.
@@ -45,10 +44,27 @@ app.disable('x-powered-by');
 // app.set('views', path.join(__dirname, 'views'));
 
 /**
- * Set proxy.
+ * Set proxy and cross-origin settings (CORS).
  */
 
 app.set('trust proxy', 1); // trust first proxy
+
+const allowedOrigins = ["http://localhost:3000","http://localhost:3001"];
+
+app.use(
+    cors({
+        origin: function(origin, callback) {
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.indexOf(origin) === -1) {
+                const msg =
+                    "The CORS policy for this site does not " +
+                    "allow access from the specified Origin.";
+                return callback(new Error(msg), false);
+            }
+            return callback(null, true);
+        }
+    })
+);
 
 /**
  * Generate session.
@@ -61,11 +77,14 @@ app.use(session);
  */
 
 app.use(function(req, res, next) {
+    req.session.messages = [];
+    res.locals.messages = []
     res.message = function (msg, type='info') {
         if (!req.hasOwnProperty('session'))
-            throw ControlError('nosession');
+            throw Error('nosession');
         req.session.messages = req.session.messages || [];
         req.session.messages.push({ type: type, string: msg, });
+        res.locals.messages.push({ type: type, string: msg, })
     };
     next()
 });
@@ -104,11 +123,10 @@ app.use(methodOverride('_method'));
 app.use(function(req, res, next) {
 
     if (!req.hasOwnProperty('session'))
-        throw ControlError('nosession');
+        throw Error('nosession');
 
     // store response local variables scoped to the request
     res.locals.general = general;
-    res.locals.model = path.parse(req.originalUrl).base;
     res.locals.user = req.session.user;
     res.locals.messages = req.session.messages || [];
 

@@ -5,14 +5,27 @@
  * MIT Licensed
  */
 
-'use strict';
-
 /**
  * Module dependencies.
  * @private
  */
 
-import ControlError from './models/error.models.js';
+import debug from './lib/debug.utils.js';
+
+'use strict';
+
+export const messages = {
+    23514: 'Email and/or password are empty or invalid.',
+    '42P01': 'Database is misconfigured. Contact the site administrator for assistance.',
+    login: 'Authentication failed. Please check your login credentials.',
+    loginRedundant: 'Authentication failed. Please check your login credentials.',
+    logout: 'Logging out failed. You are no longer signed in.',
+    logoutRedundant: 'User is not signed in.',
+    session: 'Session error. Contact the site administrator for assistance.',
+    default: 'An error occurred. Your request could not be completed. Contact the site administrator for assistance.',
+    restrict: 'Access denied!',
+};
+
 
 /**
  * Helper function to interpret error code.
@@ -22,9 +35,10 @@ import ControlError from './models/error.models.js';
  */
 
 function getMessage(err = null) {
-    return (err && err.hasOwnProperty('name') && err.name === 'LocalError')
-        ? err.decoded
-        : ControlError('default').decoded;
+    return err.hasOwnProperty('message')
+        ? messages.hasOwnProperty(err.message)
+        ? messages[err.message]
+            : messages.default : messages.default;
 }
 
 /**
@@ -54,13 +68,10 @@ function renderMessage(msg) {
  */
 
 export function globalHandler(err, req, res, next) {
-    // log error
-    console.error('\n--- %s --- \n%s\n', err.hasOwnProperty('name')
-        ? err.name
-        : 'Validation Error', err, err.stack);
-
-    res.locals.messages = [getMessage(err)];
-    return res.status(500).json(res.locals);
+    console.log(err)
+    err.message = getMessage(err);
+    debug(err.name, err);
+    return res.status(500).json(err.message);
 }
 
 /**
@@ -74,6 +85,5 @@ export function globalHandler(err, req, res, next) {
  */
 
 export function notFoundHandler(req, res, next) {
-    res.locals.messages = [getMessage(new ControlError('notfound'))];
-    return res.status(404).json(res.locals);
+    return res.status(404).json("Page not found.");
 }
