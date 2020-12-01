@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Models.User
- * File: user.composer.js
+ * File: user.models.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -17,7 +17,7 @@ import { createModel } from './composer.js';
 import { genID, genUUID, encrypt } from '../lib/secure.utils.js'
 
 /**
- * Create UserModel data model. Inherit
+ * Create User data model. Inherit
  * methods, properties from Composer abstract class.
  *
  * @private

@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Models.Composer
- * File: /models/composer.js
+ * File: composer.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */

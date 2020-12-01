@@ -97,10 +97,10 @@ export const login = async (req, res, next) => {
         if (req.session.user)
             throw new Error('loginRedundant');
         // let args = {
-        //   model: new UserModel(),
+        //   model: new User(),
         //   view: res.locals.view,
         //   method: 'POST',
-        //   legend: 'UserModel Sign In',
+        //   legend: 'User Sign In',
         //   actions: {
         //     submit: { value: 'Sign In', url: '/login' },
         //     cancel: { value: 'Cancel', url: '/' },
@@ -197,7 +197,7 @@ export const logout = async (req, res, next) => {
 };
 
 /**
- * UserModel registration interface. Note: registration is currently
+ * User registration interface. Note: registration is currently
  * restricted to Administrators, but can be open to visitors by
  * removing restrict().
  *
@@ -213,10 +213,10 @@ export const register = async (req, res, next) => {
 
     try {
         // let args = {
-        //   model: new UserModel(),
+        //   model: new User(),
         //   view: res.locals.view,
         //   method: 'POST',
-        //   legend: 'UserModel Registration',
+        //   legend: 'User Registration',
         //   actions: {
         //     submit: { value: 'Register', url: '/users/register' },
         //     cancel: { value: 'Cancel', url: '/' },
@@ -302,7 +302,7 @@ export const edit = async (req, res, next) => {
             //     model: user,
             //     view: res.locals.view,
             //     method: 'POST',
-            //     legend: 'Update UserModel Profile',
+            //     legend: 'Update User Profile',
             //     actions: {
             //         submit: { value: 'Update', url: path.join('/users', res.locals.users_id, 'edit') },
             //         cancel: { value: 'Cancel', url: '/' },

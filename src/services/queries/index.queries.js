@@ -13,6 +13,7 @@
 import * as users from './users.queries.js';
 import * as roles from './roles.queries.js';
 import * as sessions from './sessions.queries.js';
+import * as surveyors from './surveyors.queries.js';
 
 /**
  * Index of module exports.
@@ -22,3 +23,4 @@ import * as sessions from './sessions.queries.js';
 export {users};
 export {roles};
 export {sessions};
+export {surveyors};

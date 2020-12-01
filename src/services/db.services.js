@@ -15,6 +15,7 @@
 import * as users from './users.db.services.js';
 import * as roles from './roles.db.services.js';
 import * as sessions from './sessions.db.services.js';
+import * as surveyors from './surveyors.db.services.js';
 
 /**
  * Index of module exports.
@@ -24,4 +25,5 @@ import * as sessions from './sessions.db.services.js';
 export {users};
 export {roles};
 export {sessions};
+export {surveyors};
 
