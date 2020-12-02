@@ -10,12 +10,11 @@
  * @private
  */
 
-import Surveyor from '../models/surveyor.models.js';
 import * as db from '../services/db.services.js';
-import valid from '../lib/validate.utils.js'
+import valid from '../lib/validate.utils.js';
 
 /**
- * Initialize surveyors, roles tables and admin surveyor account.
+ * Initialize controller.
  *
  * @param req
  * @param res
@@ -23,8 +22,14 @@ import valid from '../lib/validate.utils.js'
  * @src public
  */
 
+let Surveyor, services;
+
 export const init = async (req, res, next) => {
-    // not implemented
+    // generate model
+    Surveyor = await db.model.create('surveyors')
+        .catch((err) => next(err));
+    // generate db services
+    services = db.services('surveyors');
 };
 
 /**
@@ -37,7 +42,7 @@ export const init = async (req, res, next) => {
  */
 
 export const list = async (req, res, next) => {
-    await db.surveyors
+    await services
         .getAll()
         .then((data) => {
             res.locals.surveyors = data.rows;
@@ -56,7 +61,7 @@ export const list = async (req, res, next) => {
  */
 
 export const show = async (req, res, next) => {
-    await db.surveyors
+    await services
         .select(req.params.surveyor_id)
         .then((data) => {
             if (data.rows.length === 0) throw new Error('nosurveyor');

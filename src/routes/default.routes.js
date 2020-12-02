@@ -21,6 +21,13 @@ let router = express.Router();
 export default router;
 
 /**
+ * Generate default routes
+ */
+
+let router = express.Router();
+export default router;
+
+/**
  * Initialization middleware.
  */
 

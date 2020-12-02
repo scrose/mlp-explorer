@@ -69,8 +69,7 @@ export const create = async (table) => {
     let schema = {fields:{}};
 
     // generate schema from table column data
-    let data = (async () => {
-        return await getSchema(table)
+    await getSchema(table)
             .then((data) => {
                 // schematize table columns as data fields
                 data.rows
@@ -93,12 +92,7 @@ export const create = async (table) => {
                         };
                     });
             })
-            .catch((err) => {throw new Error('schema')})
-    })()
-
-    console.log('Data', data)
-
-
+            .catch(() => {throw new Error('schema')})
 
     // define model properties
     Object.defineProperties(model.prototype, {
@@ -136,7 +130,6 @@ export const create = async (table) => {
         },
     });
     return model;
-
 };
 
 
@@ -152,7 +145,7 @@ export const setData = function(data) {
     if (typeof data === 'object' && data !== null) {
         const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
         Object.entries(inputData).forEach(([key, field]) => {
-            if (!self.schema.fields.hasOwnProperty(key)) throw Error();
+            if (!self.schema.fields.hasOwnProperty(key)) throw Error('schema');
             self.schema.fields[key].value = field;
         });
     } else {

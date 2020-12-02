@@ -11,45 +11,21 @@
  * Find user by ID. Joined with user roles table.
  */
 
-export const findById = `SELECT users.user_id      AS user_id,
-                                user_roles.role_id AS role_id,
-                                user_roles.name    AS role,
-                                users.email,
-                                users.reset_password_token,
-                                users.reset_password_expires,
-                                users.created_at,
-                                users.updated_at
-                         FROM users
-                                  LEFT OUTER JOIN user_roles
-                                                  ON users.role_id = user_roles.role_id
-                         WHERE users.user_id = $1::varchar`;
+export const findById = `SELECT * FROM users WHERE users.user_id = $1::varchar`;
 
 /**
  * Find user by email. Joined with user roles table.
  */
 
-export const findByEmail = `SELECT users.user_id AS user_id,
-                                user_roles.role_id AS role_id,
-                                user_roles.name AS role,
-                                users.email,
-                                users.password,
-                                users.salt_token,
-                                users.reset_password_token,
-                                users.reset_password_expires,
-                                users.created_at,
-                                users.updated_at
-                         FROM users
-                                  LEFT OUTER JOIN user_roles
-                                                  ON users.role_id = user_roles.role_id
-                         WHERE users.email = $1::varchar`;
+export const findByEmail = `SELECT * FROM users WHERE users.email = $1::varchar`;
 
 /**
  * Find all registered users.
  */
 
-export const findAll = `SELECT users.user_id      AS user_id,
+export const findAll = `SELECT users.user_id AS user_id,
                                user_roles.role_id AS role_id,
-                               user_roles.name    AS role,
+                               user_roles.name AS role,
                                users.email,
                                users.created_at,
                                users.updated_at
@@ -62,11 +38,11 @@ export const findAll = `SELECT users.user_id      AS user_id,
  */
 
 export const update = `UPDATE users
-                       SET email      = $2::text,
-                           role_id    = $3::integer,
+                       SET email = $2::text,
+                           role_id = $3::integer,
                            updated_at = NOW()::timestamp
                        WHERE user_id = $1::varchar
-                         AND role_id != 5
+                         AND role_id < 5
                        RETURNING *`;
 
 /**
@@ -105,7 +81,9 @@ export const remove = `DELETE
  */
 
 export const init = {
-    create: `CREATE OR REPLACE FUNCTION init_users(
+    create: `
+    BEGIN;
+    CREATE OR REPLACE FUNCTION init_users(
     uid varchar, 
     email varchar,
     pw varchar,
@@ -187,7 +165,8 @@ export const init = {
           updated_at = NOW()::timestamp;
         END;
     $$ 
-    LANGUAGE plpgsql;`,
+    LANGUAGE plpgsql;
+    COMMIT;`,
     exec: `SELECT init_users($1::varchar, $2::varchar, $3::varchar, $4::varchar);`
 }
     ;

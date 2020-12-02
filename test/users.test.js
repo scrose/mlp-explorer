@@ -220,6 +220,7 @@ mocha.describe('User Controllers', () => {
             .post(`${BASE_URL}users/${user.user_id}/edit`)
             .set('Accept', 'application/json')
             .send({
+                user_id: user.user_id,
                 email: newEmail,
                 role_id: newRoleId
             })

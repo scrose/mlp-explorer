@@ -57,7 +57,7 @@ export function encrypt(str, salt) {
  */
 
 export function encryptUser(user) {
-    let password = this.getValue('password') || null;
+    let password = user.getValue('password') || null;
     if (!password) return;
 
     // generate unique identifier for user (user_id)
@@ -81,5 +81,5 @@ export function encryptUser(user) {
  */
 
 export function authenticate(user, password) {
-    return user.getValue('password') === encrypt(password, this.getValue('salt_token'));
+    return user.getValue('password') === encrypt(password, user.getValue('salt_token'));
 }

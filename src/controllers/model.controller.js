@@ -1,5 +1,5 @@
 /*!
- * MLP.API.Controllers.Users
+ * MLP.API.Controllers.Model
  * File: users.controller.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
@@ -10,62 +10,50 @@
  * @private
  */
 
-import User from '../models/user.models.js';
 import * as db from '../services/db.services.js';
 import valid from '../lib/validate.utils.js'
 
 /**
- * Initialize users, roles tables and admin user account.
+ * Initialize controller.
  *
  * @param req
  * @param res
  * @param next
  * @src public
  */
+
+let Model, services;
 
 export const init = async (req, res, next) => {
 
-    // assert.equal(typeof (req), Request,
-    //     "argument req must be a Request");
-    // assert.equal(typeof (res), Response,
-    //     "argument req must be a Response");
-    // assert.equal(typeof (next), Function,
-    //     "argument next must be a callback");
-
-    await db.users
-        .init(
-            [
-                process.env.API_USER,
-                process.env.API_EMAIL,
-                process.env.API_HASH,
-                process.env.API_SALT
-            ]
-        )
-        .then(() => next())
+    // generate model
+    Model = await db.model.create(res.locals.model)
         .catch((err) => next(err));
+    // generate db services
+    services = db.services(res.locals.model);
 };
 
 /**
- * List all users
+ * List all.
  *
  * @param req
  * @param res
  * @param next
  * @src public
  */
+
 export const list = async (req, res, next) => {
-    await db.users
+    await services
         .getAll()
         .then((data) => {
-            res.locals.users = data.rows;
+            res.locals.result = data.rows;
             res.status(200).json(res.locals);
         })
         .catch((err) => next(err));
 };
 
 /**
- * Show the user's profile data. Only the profile of the current user
- * is accessible, unless the current user has administrator privileges.
+ * Show record data.
  *
  * @param req
  * @param res
@@ -74,17 +62,17 @@ export const list = async (req, res, next) => {
  */
 
 export const show = async (req, res, next) => {
-    await db.users
-        .select(req.params.user_id)
+    await services
+        .select(req.params.id)
         .then((data) => {
-            if (data.rows.length === 0) throw new Error('nouser');
-            res.status(200).json({ user: data.rows[0] });
+            if (data.rows.length === 0) throw new Error('norecord');
+            res.status(200).json({ data: data.rows[0] });
         })
         .catch((err) => next(err));
 };
 
 /**
- * User sign-in interface.
+ * Add record to database.
  *
  * @param req
  * @param res
@@ -92,140 +80,12 @@ export const show = async (req, res, next) => {
  * @src public
  */
 
-export const login = async (req, res, next) => {
+export const add = async (req, res, next) => {
     try {
-        if (req.session.user)
-            throw new Error('loginRedundant');
-        // let args = {
-        //   model: new User(),
-        //   view: res.locals.view,
-        //   method: 'POST',
-        //   legend: 'User Sign In',
-        //   actions: {
-        //     submit: { value: 'Sign In', url: '/login' },
-        //     cancel: { value: 'Cancel', url: '/' },
-        //   },
-        //   restrict: req.session.user || null,
-        // };
-        // let { form, validator } = builder.form(args);
-        // res.locals.form = form;
-        // res.locals.validator = validator;
-        res.status(200).json(res.locals);
-    } catch (err) {
-        next(err);
-    }
-};
-
-/**
- * Authenticate user credentials.
- * TODO: Include JWT signing (http://jwt.io/)
- *
- * @param req
- * @param res
- * @param next
- * @src public
- */
-
-export const authenticate = async (req, res, next) => {
-    // validate user credentials
-    let reqUser;
-    try {
-        const { email, password } = req.body;
-        reqUser = {
-            email: valid.load(email).isEmail().data,
-            password: valid.load(password).isPassword().data,
+        res.locals.schema = {
+          model: new Model(),
+          view: 'add',
         };
-    } catch (err) {
-        next(new Error('login'));
-    }
-
-    // Confirm user is registered
-    await db.users
-        .selectByEmail(reqUser.email)
-        .then((data) => {
-            if (data.rows.length === 0)
-                throw Error('login');
-
-            // Authenticate user
-            let authUser = new User(data);
-            if (!authUser.authenticate(reqUser.password))
-                throw Error('login');
-
-            // Regenerate session when signing in to prevent fixation
-            req.session.regenerate(function(err) {
-                if (err) throw Error(err);
-                // Store user object in the session store to be retrieved
-                req.session.user = {
-                    id: authUser.getValue('user_id'),
-                    email: authUser.getValue('email'),
-                };
-                res.message('Login successful.', 'success');
-                req.session.save(function(err) {
-                    if (err) throw Error(err);
-                    // session saved
-                    res.status(200).json(res.locals);
-                });
-            });
-        })
-        .catch((err) => next(err));
-};
-
-/**
- * Logout current user from session. Regenerates
- * session as anonymous user when signing out.
- * @param req
- * @param res
- * @param next
- * @src public
- */
-
-export const logout = async (req, res, next) => {
-    try {
-        if (!req.session.user)
-            throw new Error('logoutRedundant');
-        req.session.regenerate(function(err) {
-            if (err) throw new Error('logout');
-            req.session.save(function(err) {
-                if (err) throw Error(err);
-                res.message('Successfully logged out!', 'success');
-                res.status(200).json(res.locals);
-            });
-        });
-    } catch (err) {
-        next(err);
-    }
-};
-
-/**
- * User registration interface. Note: registration is currently
- * restricted to Administrators, but can be open to visitors by
- * removing restrict().
- *
- * @param req
- * @param res
- * @param next
- * @src public
- */
-
-export const register = async (req, res, next) => {
-    // remove to open to visitors
-    //restrict(res, next, config.roles.Administrator);
-
-    try {
-        // let args = {
-        //   model: new User(),
-        //   view: res.locals.view,
-        //   method: 'POST',
-        //   legend: 'User Registration',
-        //   actions: {
-        //     submit: { value: 'Register', url: '/users/register' },
-        //     cancel: { value: 'Cancel', url: '/' },
-        //   },
-        //   restrict: null,
-        // };
-        // let { form, validator } = builder.form(args);
-        // res.locals.form = form;
-        // res.locals.validator = validator;
         res.status(200).json(res.locals);
     } catch (err) {
         next(err);
@@ -233,7 +93,7 @@ export const register = async (req, res, next) => {
 };
 
 /**
- * Add (i.e. register) new user to database.
+ * Insert record in database.
  *
  * @param req
  * @param res
@@ -242,43 +102,28 @@ export const register = async (req, res, next) => {
  */
 
 export const create = async (req, res, next) => {
-    let newUser;
+    let newModel;
     try {
-        // validate user input data
-
-        let { email, password, role_id } = req.body;
-        newUser = new User({
-            email: valid.load(email).isEmail().data,
-            password: valid.load(password).isPassword().data,
-            role_id: role_id,
-        });
-        newUser.encrypt();
+        newModel = new Model(req.body);
     } catch (err) {
         next(err);
     }
 
-    // Insert user in database
-    await db.users
-        .insert(newUser)
+    // Insert in database
+    await services
+        .insert(newModel)
         .then((data) => {
             if (data.rows.length === 0)
-                throw new Error('register');
-            let user_id = data.rows[0].user_id;
-            // // send confirmation email to user
-            // utils.email.send(user.email, "Verify registration.");
-            res.message('Registration was successful!', 'success');
-            req.session.save(function(err) {
-                res.locals.user_id = user_id;
-                if (err) throw Error(err);
-                // res.redirect('/');
-                res.status(200).json(res.locals);
-            });
+                throw new Error('notadded');
+            res.message('Added record to database', 'success');
+            res.locals.result = data;
+            res.status(200).json(res.locals);
         })
         .catch((err) => next(err));
 };
 
 /**
- * Edit the user's profile data.
+ * Edit record data.
  *
  * @param req
  * @param res
@@ -287,11 +132,9 @@ export const create = async (req, res, next) => {
  */
 
 export const edit = async (req, res, next) => {
-    // retrieve user roles
-    const { roles } = await db.roles.getAll().catch((err) => next(err));
 
-    await db.users
-        .select(res.locals.req_id)
+    await services
+        .select(req.params.id)
         .then((data) => {
             if (data.rows.length === 0) throw new Error('nouser');
             let user = new User(data);

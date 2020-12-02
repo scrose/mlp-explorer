@@ -23,6 +23,7 @@ import { authenticate as auth, encryptUser } from '../lib/secure.utils.js';
  * @src public
  */
 
+let User;
 
 export const init = async (req, res, next) => {
 
@@ -43,6 +44,10 @@ export const init = async (req, res, next) => {
             ]
         )
         .then(next())
+        .catch((err) => next(err));
+
+    // generate user model
+    User = await db.model.create('users')
         .catch((err) => next(err));
 };
 
@@ -130,8 +135,8 @@ export const login = async (req, res, next) => {
 export const authenticate = async (req, res, next) => {
     let reqUser, authUser;
     try {
+        // validate submitted user credentials
         const { email, password } = req.body;
-        // set requested user credentials
         reqUser = {
             email: valid.load(email).isEmail().data,
             password: valid.load(password).isPassword().data,
@@ -140,22 +145,17 @@ export const authenticate = async (req, res, next) => {
         next(new Error('login'));
     }
 
-    // get user model
-    let User = await db.model.create('users');
-    console.log(User)
-
     // Confirm user is registered
     await db.users
         .selectByEmail(reqUser.email)
         .then((data) => {
-            if (data.rows.length === 0)
-                throw Error('login');
+
+            // User email not registered
+            if (data.rows.length === 0) throw Error('login');
 
             // Authenticate user
-            console.log(User.schema)
             authUser = new User(data);
-            if (!auth(authUser, reqUser.password))
-                throw Error('login');
+            if (!auth(authUser, reqUser.password)) throw Error('login');
 
             // Regenerate session when signing in to prevent fixation
             req.session.regenerate(function(err) {
@@ -251,8 +251,6 @@ export const create = async (req, res, next) => {
     let newUser;
     try {
         // validate user input data
-        let User = await db.model.create('users');
-
         let { email, password, role_id } = req.body;
         newUser = new User({
             email: valid.load(email).isEmail().data,
@@ -298,7 +296,7 @@ export const edit = async (req, res, next) => {
     const { roles } = await db.roles.getAll().catch((err) => next(err));
 
     await db.users
-        .select(res.locals.req_id)
+        .select(req.params.user_id)
         .then((data) => {
             if (data.rows.length === 0) throw new Error('nouser');
             let user = new User(data);

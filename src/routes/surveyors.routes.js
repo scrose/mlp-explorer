@@ -10,7 +10,7 @@
  */
 
 import express from 'express'
-import * as users from '../controllers/users.controller.js';
+import * as surveyors from '../controllers/surveyors.controller.js';
 import { restrict } from '../lib/permissions.utils.js';
 
 /**
@@ -24,31 +24,10 @@ export default router;
  * Initialization middleware.
  */
 
-router.use(users.init)
+router.use(surveyors.init)
 
 /**
- * Login user.
- */
-
-router.route('/login')
-    .all(function (req, res, next) {
-        restrict(res, next, {model: 'users', view: 'login'});
-    })
-    .get(users.login)
-    .post(users.authenticate)
-
-/**
- * Logout user.
- */
-
-router.route('/logout')
-    .all(function (req, res, next) {
-        restrict(res, next, {model: 'users', view: 'logout'});
-    })
-    .post(users.logout)
-
-/**
- * List users
+ * List
  */
 
 router.route('/users')
