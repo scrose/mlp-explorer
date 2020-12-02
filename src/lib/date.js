@@ -119,5 +119,29 @@ exports.convert = (dateStr) => {
   return new Date(dateStr);
 };
 
+/**
+ * Reformat data according to datatype in schema
+ *
+ * @param {Object} data
+ * @param {Object} schema
+ * @src public
+ */
+
+export function reformat(data, schema) {
+    data.forEach((item) => {
+        for (const [key, field] of Object.entries(item)) {
+            if (!field) continue;
+            const dataType = schema.fields.hasOwnProperty(key) ? schema.fields[key].type : null;
+            switch (dataType) {
+                case 'timestamp':
+                    //"yyyy-MM-dd hh:mm:ss"
+                    item[key] = date.convert(field).toLocaleString();
+                    break;
+            }
+        }
+    });
+    return data;
+};
+
 // export today's date
 exports.now = new Date();

@@ -13,7 +13,7 @@
  */
 
 exports.obj = require('./object');
-exports.data = require('./data');
+exports.data = require('./data.utils');
 exports.file = require('./file');
 exports.date = require('./date');
 exports.email = require('./email');

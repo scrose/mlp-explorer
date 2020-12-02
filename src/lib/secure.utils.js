@@ -49,3 +49,37 @@ export function genID() {
 export function encrypt(str, salt) {
   return crypto.pbkdf2Sync(str, salt, 1000, 64, `sha512`).toString(`hex`);
 }
+
+/**
+ * Encrypt user salt and password
+ *
+ * @public
+ */
+
+export function encryptUser(user) {
+    let password = this.getValue('password') || null;
+    if (!password) return;
+
+    // generate unique identifier for user (user_id)
+    user.setValue('user_id', genUUID());
+    // Generate unique hash and salt tokens
+    let salt_token = genID();
+    let hash_token = encrypt(password, salt_token);
+    // Set values in schema
+    user.setValue('password', hash_token);
+    user.setValue('repeat_password', hash_token);
+    user.setValue('salt_token', salt_token);
+}
+
+/**
+ * Authenticate user password.
+ *
+ * @public
+ * @param {Object} user
+ * @param {String} password
+ * @return {Boolean} response
+ */
+
+export function authenticate(user, password) {
+    return user.getValue('password') === encrypt(password, this.getValue('salt_token'));
+}

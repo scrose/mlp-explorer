@@ -12,6 +12,7 @@
  * @private
  */
 
+import * as model from './composer.services.js';
 import * as users from './users.db.services.js';
 import * as roles from './roles.db.services.js';
 import * as sessions from './sessions.db.services.js';
@@ -22,6 +23,7 @@ import * as surveyors from './surveyors.db.services.js';
  * @public
  */
 
+export {model};
 export {users};
 export {roles};
 export {sessions};

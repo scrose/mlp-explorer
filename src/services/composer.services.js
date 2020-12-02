@@ -1,13 +1,30 @@
 /*!
  * MLP.API.Models.Composer
- * File: composer.js
+ * File: composer.services.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
 
 'use strict';
 
-import pool from '../services/pgdb.js';
+import { humanize } from '../lib/data.utils.js';
+import pool from './pgdb.js';
+import * as queries from './queries/schema.queries.js';
+
+/**
+ * Get table column information.
+ *
+ * @public
+ * @param {String} table
+ * @return {Promise} result
+ */
+
+export async function getSchema(table) {
+    return pool.query(
+        queries.getColumnsInfo,
+        [table],
+    );
+}
 
 /**
  * Create derived model through composition. The model schema
@@ -36,56 +53,91 @@ import pool from '../services/pgdb.js';
     }
  }
  *
- * @param {Object} schema
+ * @param {String} table
  * @src public
  */
 
-export function createModel(schema) {
-    let model = function (data) {
+export const create = async (table) => {
+
+    // initialize model
+    let model = function(data) {
         this.setData = setData;
         this.setData(data);
     };
+
+    // initialize schema
+    let schema = {fields:{}};
+
+    // generate schema from table column data
+    let data = (async () => {
+        return await getSchema(table)
+            .then((data) => {
+                // schematize table columns as data fields
+                data.rows
+                    .forEach((col) => {
+                        schema.fields[col.column_name] = {
+                            label: humanize(col.column_name),
+                            type: col.data_type,
+                            restrict: [],
+                            render: {
+                                create: {
+                                    validation: [],
+                                },
+                                edit: {
+                                    validation: [],
+                                },
+                                remove: {
+                                    validation: [],
+                                },
+                            },
+                        };
+                    });
+            })
+            .catch((err) => {throw new Error('schema')})
+    })()
+
+    console.log('Data', data)
+
+
+
+    // define model properties
     Object.defineProperties(model.prototype, {
         name: {
-            value: schema.name || null,
-            writable: true
+            value: table || null,
+            writable: true,
         },
         label: {
-            value: schema.label || null,
-            writable: true
+            value: humanize(table) || null,
+            writable: true,
         },
         schema: {
             value: schema,
-            writable: true
-        },
-        pool: {
-            value: pool,
-            writable: true
+            writable: true,
         },
         getValue: {
             value: getValue,
-            writable: false
+            writable: false,
         },
         setValue: {
             value: setValue,
-            writable: false
+            writable: false,
         },
         getData: {
             value: getData,
-            writable: false
+            writable: false,
         },
         setDataOptions: {
             value: setDataOptions,
-            writable: false
+            writable: false,
         },
         clear: {
             value: clear,
-            writable: false
-        }
+            writable: false,
+        },
     });
     return model;
-}
 
+};
 
 
 /**
@@ -95,22 +147,21 @@ export function createModel(schema) {
  * @src public
  */
 
-export const setData = function (data) {
-        const self = this;
-        if (typeof data === 'object' && data !== null) {
-            const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
-            Object.entries(inputData).forEach(([key, field]) => {
-                if (!self.schema.fields.hasOwnProperty(key)) throw Error();
-                self.schema.fields[key].value = field
-            });
-        } else {
-            // default constructor
-            Object.entries(self.schema.fields).forEach(([_, field]) => {
-                field.value = '';
-            });
-        }
+export const setData = function(data) {
+    const self = this;
+    if (typeof data === 'object' && data !== null) {
+        const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
+        Object.entries(inputData).forEach(([key, field]) => {
+            if (!self.schema.fields.hasOwnProperty(key)) throw Error();
+            self.schema.fields[key].value = field;
+        });
+    } else {
+        // default constructor
+        Object.entries(self.schema.fields).forEach(([_, field]) => {
+            field.value = '';
+        });
     }
-
+};
 
 
 /**
@@ -121,7 +172,7 @@ export const setData = function (data) {
  * @src public
  */
 
-export const setValue = function (field, value) {
+export const setValue = function(field, value) {
     if (typeof field === 'string' && this.schema.fields.hasOwnProperty(field)) {
         this.schema.fields[field].value = value ? value : null;
     }
@@ -135,7 +186,7 @@ export const setValue = function (field, value) {
  * @src public
  */
 
-export const getValue = function (field) {
+export const getValue = function(field) {
     if (field) return this.schema.fields.hasOwnProperty(field) ? this.schema.fields[field].value : null;
 };
 
@@ -146,7 +197,7 @@ export const getValue = function (field) {
  * @src public
  */
 
-export const getData = function () {
+export const getData = function() {
     let filteredData = {};
     Object.entries(this.schema.fields).forEach(([key, field]) => {
         filteredData[key] = field.value;
@@ -161,7 +212,7 @@ export const getData = function () {
  * @src public
  */
 
-export const clear = function () {
+export const clear = function() {
     if (this.hasOwnProperty('schema')) {
         Object.entries(this.schema.fields).forEach(([_, field]) => {
             field.value = '';
@@ -178,7 +229,7 @@ export const clear = function () {
  * @src public
  */
 
-export const setDataOptions = function (field, options) {
+export const setDataOptions = function(field, options) {
     if (field && this.schema.fields.hasOwnProperty(field) && typeof options === 'object') {
         this.schema.fields[field].options = options ? options : null;
     }

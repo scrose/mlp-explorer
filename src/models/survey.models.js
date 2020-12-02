@@ -13,7 +13,7 @@
  */
 
 import schema from './schemas/surveys.schema.js';
-import { createModel } from './composer.js';
+import { createModel } from './composer.services.js';
 
 /**
  * Create Survey data model. Build by composition.

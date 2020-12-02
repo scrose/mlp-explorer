@@ -10,9 +10,9 @@
  * @private
  */
 
+import User from '../models/user.models.js';
 import * as db from '../services/db.services.js';
-import valid from '../lib/validate.utils.js';
-import { authenticate as auth, encryptUser } from '../lib/secure.utils.js';
+import valid from '../lib/validate.utils.js'
 
 /**
  * Initialize users, roles tables and admin user account.
@@ -22,7 +22,6 @@ import { authenticate as auth, encryptUser } from '../lib/secure.utils.js';
  * @param next
  * @src public
  */
-
 
 export const init = async (req, res, next) => {
 
@@ -42,7 +41,7 @@ export const init = async (req, res, next) => {
                 process.env.API_SALT
             ]
         )
-        .then(next())
+        .then(() => next())
         .catch((err) => next(err));
 };
 
@@ -128,10 +127,10 @@ export const login = async (req, res, next) => {
  */
 
 export const authenticate = async (req, res, next) => {
-    let reqUser, authUser;
+    // validate user credentials
+    let reqUser;
     try {
         const { email, password } = req.body;
-        // set requested user credentials
         reqUser = {
             email: valid.load(email).isEmail().data,
             password: valid.load(password).isPassword().data,
@@ -139,10 +138,6 @@ export const authenticate = async (req, res, next) => {
     } catch (err) {
         next(new Error('login'));
     }
-
-    // get user model
-    let User = await db.model.create('users');
-    console.log(User)
 
     // Confirm user is registered
     await db.users
@@ -152,9 +147,8 @@ export const authenticate = async (req, res, next) => {
                 throw Error('login');
 
             // Authenticate user
-            console.log(User.schema)
-            authUser = new User(data);
-            if (!auth(authUser, reqUser.password))
+            let authUser = new User(data);
+            if (!authUser.authenticate(reqUser.password))
                 throw Error('login');
 
             // Regenerate session when signing in to prevent fixation
@@ -251,7 +245,6 @@ export const create = async (req, res, next) => {
     let newUser;
     try {
         // validate user input data
-        let User = await db.model.create('users');
 
         let { email, password, role_id } = req.body;
         newUser = new User({
@@ -259,7 +252,7 @@ export const create = async (req, res, next) => {
             password: valid.load(password).isPassword().data,
             role_id: role_id,
         });
-        encryptUser(newUser);
+        newUser.encrypt();
     } catch (err) {
         next(err);
     }

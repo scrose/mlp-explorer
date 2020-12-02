@@ -13,7 +13,7 @@
  */
 
 import schema from './schemas/surveyors.schema.js';
-import { createModel } from './composer.js';
+import { createModel } from './composer.services.js';
 
 /**
  * Create Surveyor data model. Build by composition.

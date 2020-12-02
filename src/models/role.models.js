@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Models.UserRoles
- * File: role.composer.js
+ * File: role.composer.services.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -12,7 +12,7 @@
  * @private
  */
 
-import {createModel} from './composer.js';
+import {createModel} from './composer.services.js';
 import schema from './schemas/roles.schema.js';
 import { defineMethod } from '../lib/object.js';
 import * as queries from '../services/queries/roles.queries.js';

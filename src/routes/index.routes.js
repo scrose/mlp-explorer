@@ -18,7 +18,7 @@ import userRoutes from './users.routes.js'
  * Include routers.
  */
 
-router.use('/api', mainRoutes);
-router.use('/api', userRoutes);
+router.use('/', mainRoutes);
+router.use('/', userRoutes);
 
 export default router;

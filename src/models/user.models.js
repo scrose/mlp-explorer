@@ -12,19 +12,17 @@
  * @private
  */
 
-import schema from './schemas/users.schema.js';
-import { createModel } from './composer.js';
+import createModel from './composer.services.js';
 import { genID, genUUID, encrypt } from '../lib/secure.utils.js'
 
 /**
- * Create User data model. Inherit
- * methods, properties from Composer abstract class.
+ * Create User data model.
  *
  * @private
  * @param data
  */
 
-let User = createModel(schema);
+let User = await createModel('users');
 
 /**
  * Module exports.
@@ -33,35 +31,4 @@ let User = createModel(schema);
 
 export default User;
 
-/**
- * Encrypt user salt and password
- *
- * @public
- */
 
-User.prototype.encrypt = function() {
-    let password = this.getValue('password') || null;
-    if (!password) return;
-
-    // generate unique identifier for user (user_id)
-    this.setValue('user_id', genUUID());
-    // Generate unique hash and salt tokens
-    let salt_token = genID();
-    let hash_token = encrypt(password, salt_token);
-    // Set values in schema
-    this.setValue('password', hash_token);
-    this.setValue('repeat_password', hash_token);
-    this.setValue('salt_token', salt_token);
-
-    return this;
-};
-
-/**
- * Authenticate user credentials.
- * @public
- * @param {String} password
- */
-User.prototype.authenticate = function(password) {
-    console.log('Authenticating user %s', this.getValue('email'));
-    return this.getValue('password') === encrypt(password, this.getValue('salt_token'));
-};
