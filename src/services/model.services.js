@@ -1,13 +1,13 @@
 /*!
- * MLP.API.Models.Composer
- * File: composer.services.js
+ * MLP.API.Services.Model
+ * File: model.services.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
 
 'use strict';
 
-import { humanize } from '../lib/data.utils.js';
+import { humanize, sanitize } from '../lib/data.utils.js';
 import pool from './pgdb.js';
 import * as queries from './queries/schema.queries.js';
 
@@ -30,10 +30,7 @@ export async function getSchema(table) {
  * Create derived model through composition. The model schema
  * should have the following properties for fields:
 
- this.schema = {
-    name: '<model_name>,
-    label: '<model_label>',
-    fields: {
+ this.fields: {
         <field name>: {
             label: '<field label>',
             type: '<datatype>',
@@ -61,12 +58,13 @@ export const create = async (table) => {
 
     // initialize model
     let Model = function(data) {
+        this.name = table;
         this.setData = setData;
         this.setData(data);
     };
 
     // initialize schema
-    let schema = {fields:{}};
+    let fields = {};
 
     // generate schema from table column data
     await getSchema(table)
@@ -74,7 +72,7 @@ export const create = async (table) => {
                 // schematize table columns as data fields
                 data.rows
                     .forEach((col) => {
-                        schema.fields[col.column_name] = {
+                        fields[col.column_name] = {
                             label: humanize(col.column_name),
                             type: col.data_type,
                             restrict: [],
@@ -104,8 +102,8 @@ export const create = async (table) => {
             value: humanize(table) || null,
             writable: true,
         },
-        schema: {
-            value: schema,
+        fields: {
+            value: fields,
             writable: true,
         },
         getValue: {
@@ -144,14 +142,14 @@ export const setData = function(data) {
     const self = this;
     if (typeof data === 'object' && data !== null) {
         const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
-        Object.entries(inputData).forEach(([key, field]) => {
-            if (!self.schema.fields.hasOwnProperty(key)) throw Error('schema');
-            self.schema.fields[key].value = field;
+        Object.entries(inputData).forEach(([key, value]) => {
+            if (!self.fields.hasOwnProperty(key)) throw Error('schema');
+            self.fields[key].value = sanitize(value, self.fields[key].type);
         });
     } else {
         // default constructor
-        Object.entries(self.schema.fields).forEach(([_, field]) => {
-            field.value = '';
+        Object.entries(self.fields).forEach(([key, field]) => {
+            field.value = sanitize(null, self.fields[key].type);
         });
     }
 };
@@ -160,14 +158,14 @@ export const setData = function(data) {
 /**
  * Set field value in model schema.
  *
- * @param {String} field
+ * @param {String} key
  * @param {Object} value
  * @src public
  */
 
-export const setValue = function(field, value) {
-    if (typeof field === 'string' && this.schema.fields.hasOwnProperty(field)) {
-        this.schema.fields[field].value = value ? value : null;
+export const setValue = function(key, value) {
+    if (typeof key === 'string' && this.fields.hasOwnProperty(key)) {
+        this.fields[key].value = sanitize(value, this.fields[key].type)
     }
 };
 
@@ -180,7 +178,7 @@ export const setValue = function(field, value) {
  */
 
 export const getValue = function(field) {
-    if (field) return this.schema.fields.hasOwnProperty(field) ? this.schema.fields[field].value : null;
+    if (field) return this.fields.hasOwnProperty(field) ? this.fields[field].value : null;
 };
 
 /**
@@ -192,7 +190,7 @@ export const getValue = function(field) {
 
 export const getData = function() {
     let filteredData = {};
-    Object.entries(this.schema.fields).forEach(([key, field]) => {
+    Object.entries(this.fields).forEach(([key, field]) => {
         filteredData[key] = field.value;
     });
     return filteredData;
@@ -207,7 +205,7 @@ export const getData = function() {
 
 export const clear = function() {
     if (this.hasOwnProperty('schema')) {
-        Object.entries(this.schema.fields).forEach(([_, field]) => {
+        Object.entries(this.fields).forEach(([_, field]) => {
             field.value = '';
         });
     }
@@ -223,8 +221,8 @@ export const clear = function() {
  */
 
 export const setDataOptions = function(field, options) {
-    if (field && this.schema.fields.hasOwnProperty(field) && typeof options === 'object') {
-        this.schema.fields[field].options = options ? options : null;
+    if (field && this.fields.hasOwnProperty(field) && typeof options === 'object') {
+        this.fields[field].options = options ? options : null;
     }
 };
 

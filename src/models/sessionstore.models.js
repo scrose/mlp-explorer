@@ -12,9 +12,9 @@
  * @private
  */
 
-import { session as config } from '../config.js';
+import { session as config } from '../../config.js';
 import sess from 'express-session';
-import * as db from '../services/db.services.js';
+import * as db from '../services/index.services.js';
 import cron from 'node-cron';
 import debug from '../lib/debug.utils.js';
 

@@ -12,7 +12,7 @@
 
 import { expect, server, BASE_URL } from './setup.js';
 import mocha from 'mocha';
-import { general } from '../src/config.js'
+import { general } from '../config.js'
 
 mocha.describe('Index page test', () => {
   mocha.it('Gets base url', (done) => {

@@ -50,18 +50,35 @@ export function removeEmpty(arr) {
 }
 
 /**
- * Sanitize user input data.
- * TODO: Currently sanitize is not implemented.
+ * Sanitize data by PostGreSQL data type.
  *
- * @param {Object} data
+ * @param data
+ * @param {String} datatype
  * @return {Object} cleanData
  * @src public
  */
 
-export function sanitize(data) {
-    let cleanData = data + '';
-    return cleanData;
+export function sanitize (data, datatype) {
+    const drinks = {
+        'boolean': function () {
+            return !!data;
+        },
+        'varying character': function () {
+            return data;
+        },
+        'integer': function () {
+            return parseInt(data);
+        },
+        'float': function () {
+            return parseFloat(data);
+        },
+        'default': function () {
+            return data;
+        }
+    };
+    return (drinks[datatype] || drinks['default'])();
 }
+
 
 /**
  * Make _underscore_ strings readable.

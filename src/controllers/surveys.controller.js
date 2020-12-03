@@ -3,7 +3,7 @@
  */
 
 const models = require('../src/services')({ verbose: true });
-const params = require('../config');
+const params = require('../../config');
 
 exports.engine = 'ejs';
 

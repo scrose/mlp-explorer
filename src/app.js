@@ -18,7 +18,7 @@ import methodOverride from 'method-override';
 import session from './lib/session.js';
 import { globalHandler, notFoundHandler } from './error.js';
 import { authorize } from './lib/permissions.utils.js';
-import { general } from './config.js';
+import { general } from '../config.js';
 import router from './routes/index.routes.js';
 
 /**

@@ -10,10 +10,10 @@
  */
 
 import express from 'express'
-import controller from '../controllers/model.controller.js';
+import Controller from '../controllers/model.controller.js';
 import { restrict } from '../lib/permissions.utils.js';
 import path from "path";
-import {models} from '../config.js'
+import {models} from '../../config.js'
 
 /**
  * Express router
@@ -24,49 +24,52 @@ export default router;
 
 /**
  * Model route constructor
+ *
+ * @param {String} modelName
+ * @public
  */
 
-function Routes(model) {
+function Routes(modelName) {
 
     // create model id key
-    this.key = model + '_id';
+    this.key = modelName + '_id';
 
     // initialize model controller
-    this.controller = controller.create(model);
+    this.controller = new Controller(modelName);
 
-    // add controllers
+    // add controller routes
     this.routes = {
         list: {
             id: null,
-            path: path.join('/', model),
+            path: path.join('/', modelName),
             get: this.controller.list,
             put: null,
             post: null,
             delete: null
         },
-        show: {
-            path: path.join('/', model, '/:' + this.key),
-            get: this.controller.show,
-            put: null,
-            post: null,
-            delete: null
-        },
         add: {
-            path: path.join('/', model, '/:' + this.key + '/add'),
+            path: path.join('/', modelName, 'add'),
             get: this.controller.add,
             put: null,
             post: this.controller.create,
             delete: null
         },
+        show: {
+            path: path.join('/', modelName, '/:' + this.key),
+            get: this.controller.show,
+            put: null,
+            post: null,
+            delete: null
+        },
         edit: {
-            path: path.join('/', model, '/:' + this.key + '/edit'),
+            path: path.join('/', modelName, '/:' + this.key, 'edit'),
             get: this.controller.edit,
             put: null,
             post: this.controller.update,
             delete: null
         },
         remove: {
-            path: path.join('/', model, '/:' + this.key + '/remove'),
+            path: path.join('/', modelName, '/:' + this.key, 'remove'),
             get: this.controller.remove,
             put: null,
             post: this.controller.drop,
@@ -76,7 +79,9 @@ function Routes(model) {
 }
 
 /**
- * Routes initialization.
+ * Routes initialization. Routes are only generated for
+ * models in the configuration settings (config.js).
+ *
  */
 
 Object.entries(models).forEach(([modelName, params]) => {
@@ -89,6 +94,7 @@ Object.entries(models).forEach(([modelName, params]) => {
         Object.entries(routes.routes).forEach(([view, route]) => {
             router.route(route.path)
                 .all(function (req, res, next) {
+
                     // get model ID parameter (if exists)
                     let modelId = req.params.hasOwnProperty(routes.key)
                         ? req.params[routes.key]
@@ -100,18 +106,23 @@ Object.entries(models).forEach(([modelName, params]) => {
                         view: view,
                         id: modelId
                     });
+
                 })
                 .get(function (req, res, next) {
-                    route.get || next(new Error('notImplemented'))
+                    if (!route.get) next(new Error('notImplemented'))
+                    route.get(req, res, next)
                 })
                 .put(function (req, res, next) {
-                    route.put || next(new Error('notImplemented'))
+                    if (!route.put) next(new Error('notImplemented'))
+                    route.put(req, res, next)
                 })
                 .post(function (req, res, next) {
-                    route.post || next(new Error('notImplemented'))
+                    if (!route.post) next(new Error('notImplemented'))
+                    route.post(req, res, next)
                 })
                 .delete(function (req, res, next) {
-                    route.delete || next(new Error('notImplemented'))
+                    if (!route.delete) next(new Error('notImplemented'))
+                    route.delete(req, res, next)
                 })
         });
     }

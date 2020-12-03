@@ -10,7 +10,7 @@
  * @private
  */
 
-import * as db from '../services/db.services.js';
+import * as db from '../services/index.services.js';
 import valid from '../lib/validate.utils.js';
 
 /**

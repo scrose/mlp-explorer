@@ -8,6 +8,14 @@
 'use strict';
 
 /**
+ * Find all survyeors. Joined with surveys table.
+ */
+
+export const findAll = `SELECT * FROM surveyors
+                                 LEFT OUTER JOIN surveys
+                                 ON surveyors.id = surveys.surveyor_id`;
+
+/**
  * Find surveyor by ID.
  */
 
@@ -26,22 +34,14 @@ export const findBySurvey = `SELECT *
                          WHERE surveys.id = $1::integer`;
 
 /**
- * Find all survyeors. Joined with surveys table.
- */
-
-export const findAll = `SELECT * FROM surveyors
-                                 LEFT OUTER JOIN surveys
-                                 ON surveyors.id = surveys.surveyor_id`;
-
-/**
  * Update survey data.
  */
 
 export const update = `UPDATE surveyors
                        SET last_name = $2::text,
                            given_names = $3::text,
-                           short_name = $2::text,
-                           affiliation = $2::text,
+                           short_name = $4::text,
+                           affiliation = $5::text,
                            updated_at = NOW()::timestamp
                        WHERE user_id = $1::integer
                        RETURNING *`;

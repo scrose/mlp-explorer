@@ -15,7 +15,7 @@
 import session from 'express-session';
 import SessionStore from '../models/sessionstore.models.js';
 import { genUUID } from './secure.utils.js';
-import { session as config } from '../config.js';
+import { session as config } from '../../config.js';
 
 /**
  * Initialize session variables and management.

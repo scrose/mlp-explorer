@@ -7,8 +7,8 @@
 
 'use strict';
 
-import * as db from '../services/db.services.js';
-import { roles, permissions } from '../config.js';
+import * as db from '../services/index.services.js';
+import { roles, permissions } from '../../config.js';
 
 /**
  * Set user permissions level by user role.
@@ -40,7 +40,7 @@ export const authorize = async (req, res, next) => {
  * Restrict user access based on permissions.
  *
  * @param {Response} res
- * @param {Function} next
+ * @param {NextFunction} next
  * @param {Object} args
  * @src public
  *
@@ -53,14 +53,14 @@ export function restrict(res, next, args) {
         if (res.locals.user
             && args.hasOwnProperty('id')
             && res.locals.user.id === args.id
-        ) next();
+        ) return next();
         // Deny users with lesser admin privileges
         if (typeof res.locals.restrict === 'undefined' || res.locals.restrict < restrictedTo) {
-            throw new Error('restrict');
+            next(new Error('restrict'));
         }
-        next();
+        return next();
     } catch (err) {
-        next(err);
+        return next(err);
     }
 }
 
