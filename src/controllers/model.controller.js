@@ -10,236 +10,261 @@
  * @private
  */
 
+import Services from '../services/model.db.services.js';
 import * as db from '../services/db.services.js';
-import valid from '../lib/validate.utils.js'
+import {models} from '../config.js';
 
 /**
- * Initialize controller.
+ * Export controller constructor.
  *
- * @param req
- * @param res
- * @param next
+ * @param {String} model
  * @src public
  */
 
-let Model, services;
+export const create = async (model) => {
 
-export const init = async (req, res, next) => {
+    // check model exists
+    if (!models.hasOwnProperty(model))
+        throw new Error('invalidModel')
 
-    // generate model
-    Model = await db.model.create(res.locals.model)
-        .catch((err) => next(err));
-    // generate db services
-    services = db.services(res.locals.model);
-};
+    // generate model constructor
+    let Model = await db.model.create(model)
+        .catch(() => {throw new Error('controller')});
 
-/**
- * List all.
- *
- * @param req
- * @param res
- * @param next
- * @src public
- */
+    // generate db services for model
+    let services = new Services(model);
 
-export const list = async (req, res, next) => {
-    await services
-        .getAll()
-        .then((data) => {
-            res.locals.result = data.rows;
-            res.status(200).json(res.locals);
-        })
-        .catch((err) => next(err));
-};
+    // generate controller constructor
+    return function Controller() {
 
-/**
- * Show record data.
- *
- * @param req
- * @param res
- * @param next
- * @src public
- */
+        // set model name
+        this.modelName = model;
 
-export const show = async (req, res, next) => {
-    await services
-        .select(req.params.id)
-        .then((data) => {
-            if (data.rows.length === 0) throw new Error('norecord');
-            res.status(200).json({ data: data.rows[0] });
-        })
-        .catch((err) => next(err));
-};
+        /**
+         * Initialize the controller.
+         *
+         * @param req
+         * @param res
+         * @param next
+         * @src public
+         */
 
-/**
- * Add record to database.
- *
- * @param req
- * @param res
- * @param next
- * @src public
- */
-
-export const add = async (req, res, next) => {
-    try {
-        res.locals.schema = {
-          model: new Model(),
-          view: 'add',
+        this.init = async (req, res, next) => {
+            next();
         };
-        res.status(200).json(res.locals);
-    } catch (err) {
-        next(err);
+
+        /**
+         * List all records in table.
+         *
+         * @param req
+         * @param res
+         * @param next
+         * @src public
+         */
+
+        this.list = async (req, res, next) => {
+            console.log('!! -- At controller --!!')
+            await services
+                .getAll()
+                .then((data) => {
+                    res.locals.data = data.rows;
+                    res.status(200).json(res.locals);
+                })
+                .catch((err) => next(err));
+        };
+
+        /**
+         * Show record data.
+         *
+         * @param req
+         * @param res
+         * @param next
+         * @src public
+         */
+
+        this.show = async (req, res, next) => {
+            await services
+                .select(req.params.id)
+                .then((data) => {
+                    if (data.rows.length === 0) throw new Error('norecord');
+                    res.locals.data = data.rows[0];
+                    res.status(200).json(res.locals);
+                })
+                .catch((err) => next(err));
+        };
+
+        /**
+         * Add record to database.
+         *
+         * @param req
+         * @param res
+         * @param next
+         * @src public
+         */
+
+        this.add = async (req, res, next) => {
+            try {
+                res.locals.schema = {
+                    model: new Model(),
+                    view: 'add',
+                };
+                res.status(200).json(res.locals);
+            } catch (err) {
+                next(err);
+            }
+        };
+
+        /**
+         * Insert record in database.
+         *
+         * @param req
+         * @param res
+         * @param next
+         * @src public
+         */
+
+        this.create = async (req, res, next) => {
+            let newModel;
+            try {
+                newModel = new Model(req.body);
+            } catch (err) {
+                next(err);
+            }
+
+            // Insert in database
+            await services
+                .insert(newModel)
+                .then((data) => {
+                    if (data.rows.length === 0)
+                        throw new Error('notadded');
+                    res.locals.data = data.rows[0];
+                    res.message('Added record to database', 'success');
+                    res.status(200).json(res.locals);
+                })
+                .catch((err) => next(err));
+        };
+
+        /**
+         * Edit record data.
+         *
+         * @param req
+         * @param res
+         * @param next
+         * @src public
+         */
+
+        this.edit = async (req, res, next) => {
+            await services
+                .select(req.params.id)
+                .then((data) => {
+                    if (data.rows.length === 0) throw new Error('nouser');
+                    let model = new Model(data);
+                    // add role options to model
+                    // user.setOptions('role', roles);
+                    // // assemble build parameters
+                    // let args = {
+                    //     model: user,
+                    //     view: res.locals.view,
+                    //     method: 'POST',
+                    //     legend: 'Update User Profile',
+                    //     actions: {
+                    //         submit: { value: 'Update', url: path.join('/users', res.locals.users_id, 'edit') },
+                    //         cancel: { value: 'Cancel', url: '/' },
+                    //     },
+                    //     restrict: req.session.user || null,
+                    // };
+                    // let { form, validator } = builder.form(args);
+                    // res.locals.form = form;
+                    // res.locals.validator = validator;
+                    res.status(200).json(res.locals);
+                })
+                .catch((err) => next(err));
+        };
+
+        /**
+         * Update record data.
+         *
+         * @param req
+         * @param res
+         * @param next
+         * @src public
+         */
+
+        this.update = async (req, res, next) => {
+            let model;
+            try {
+                model = new Model(req.body);
+            } catch (err) {
+                next(err);
+            }
+            // update user data
+            await services
+                .update(model)
+                .then((data) => {
+                    if (data.rows.length === 0) throw new Error('update');
+                    res.locals.data = data.rows[0];
+                    res.message('Update successful!', 'success');
+                    res.status(200).json(res.locals);
+                })
+                .catch((err) => next(err));
+        };
+
+        /**
+         * Confirm removal of record.
+         *
+         * @param req
+         * @param res
+         * @param next
+         * @src public
+         */
+
+        this.remove = async (req, res, next) => {
+            await services
+                .select(req.params.id)
+                .then((data) => {
+                    if (data.rows.length === 0)
+                        throw new Error('nouser');
+                    // let user = new User(data);
+                    // let { form, validator } = builder.form(
+                    //     {
+                    //         view: res.locals.name,
+                    //         name: 'Delete',
+                    //         method: 'POST',
+                    //         routes: {
+                    //             submit: path.join('/users', res.locals.req_id, 'delete'),
+                    //             cancel: '/users',
+                    //         },
+                    //     },
+                    //     user,
+                    // );
+                    // res.locals.form = form;
+                    // res.locals.validator = validator;
+                    res.status(200).json(res.locals);
+                })
+                .catch((err) => next(err));
+        };
+
+        /**
+         * Delete record.
+         *
+         * @param req
+         * @param res
+         * @param next
+         * @src public
+         */
+
+        this.drop = async (req, res, next) => {
+            await services
+                .remove(req.params.id)
+                .then((data) => {
+                    if (data.rows.length === 0) throw new Error('nouser');
+                    res.locals.data = data.rows[0]
+                    res.message('Record successfully deleted.', 'success');
+                    res.status(200).json(res.locals);
+                })
+                .catch((err) => next(err));
+        };
     }
-};
+}
 
-/**
- * Insert record in database.
- *
- * @param req
- * @param res
- * @param next
- * @src public
- */
 
-export const create = async (req, res, next) => {
-    let newModel;
-    try {
-        newModel = new Model(req.body);
-    } catch (err) {
-        next(err);
-    }
-
-    // Insert in database
-    await services
-        .insert(newModel)
-        .then((data) => {
-            if (data.rows.length === 0)
-                throw new Error('notadded');
-            res.message('Added record to database', 'success');
-            res.locals.result = data;
-            res.status(200).json(res.locals);
-        })
-        .catch((err) => next(err));
-};
-
-/**
- * Edit record data.
- *
- * @param req
- * @param res
- * @param next
- * @src public
- */
-
-export const edit = async (req, res, next) => {
-
-    await services
-        .select(req.params.id)
-        .then((data) => {
-            if (data.rows.length === 0) throw new Error('nouser');
-            let user = new User(data);
-            // add role options to model
-            // user.setOptions('role', roles);
-            // // assemble build parameters
-            // let args = {
-            //     model: user,
-            //     view: res.locals.view,
-            //     method: 'POST',
-            //     legend: 'Update User Profile',
-            //     actions: {
-            //         submit: { value: 'Update', url: path.join('/users', res.locals.users_id, 'edit') },
-            //         cancel: { value: 'Cancel', url: '/' },
-            //     },
-            //     restrict: req.session.user || null,
-            // };
-            // let { form, validator } = builder.form(args);
-            // res.locals.form = form;
-            // res.locals.validator = validator;
-            res.status(200).json(res.locals);
-        })
-        .catch((err) => next(err));
-};
-
-/**
- * Update the user's profile data.
- *
- * @param req
- * @param res
- * @param next
- * @src public
- */
-
-export const update = async (req, res, next) => {
-    let user;
-    try {
-        user = new User(req.body);
-    } catch (err) {
-        next(err);
-    }
-    // update user data
-    await db.users
-        .update(user)
-        .then((data) => {
-            if (data.rows.length === 0) throw new Error('update');
-            res.locals.user = data.rows[0];
-            res.message('Update successful!', 'success');
-            res.status(200).json(res.locals);
-        })
-        .catch((err) => next(err));
-};
-
-/**
- * Confirm removal of user.
- *
- * @param req
- * @param res
- * @param next
- * @src public
- */
-
-export const remove = async (req, res, next) => {
-    await db.users
-        .select(req.params.user_id)
-        .then((data) => {
-            if (data.rows.length === 0)
-                throw new Error('nouser');
-            // let user = new User(data);
-            // let { form, validator } = builder.form(
-            //     {
-            //         view: res.locals.name,
-            //         name: 'Delete',
-            //         method: 'POST',
-            //         routes: {
-            //             submit: path.join('/users', res.locals.req_id, 'delete'),
-            //             cancel: '/users',
-            //         },
-            //     },
-            //     user,
-            // );
-            // res.locals.form = form;
-            // res.locals.validator = validator;
-            res.status(200).json(res.locals);
-        })
-        .catch((err) => next(err));
-};
-
-/**
- * Delete user.
- *
- * @param req
- * @param res
- * @param next
- * @src public
- */
-
-export const drop = async (req, res, next) => {
-    await db.users
-        .remove(req.params.user_id)
-        .then((data) => {
-            if (data.rows.length === 0) throw new Error('nouser');
-            res.locals.user_id = data.rows[0].user_id;
-            res.message('User ' + res.locals.user_id + ' successfully deleted.', 'success');
-            res.status(200).json(res.locals);
-        })
-        .catch((err) => next(err));
-};

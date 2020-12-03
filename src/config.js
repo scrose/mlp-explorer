@@ -21,6 +21,17 @@ let settings = {
     admin: {
 
     },
+    models: {
+        // projects: {},
+        surveyors: {},
+        // surveys: {},
+        // surveySeasons: {},
+        // stations: {},
+        // visits: {},
+        // locations: {},
+        // captures: {},
+        // images: {}
+    },
     roles: {
         Visitor: 0,
         Registered: 1,
@@ -73,6 +84,7 @@ if (result.error) {
  * @public
  */
 export const general = settings.general;
+export const models = settings.models;
 export const roles = settings.roles;
 export const session = settings.session;
 export const permissions = settings.permissions;

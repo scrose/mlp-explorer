@@ -13,6 +13,7 @@ import express from 'express';
 const router = express.Router();
 import mainRoutes from './main.routes.js'
 import userRoutes from './users.routes.js'
+import modelRoutes from './model.routes.js'
 
 /**
  * Include routers.
@@ -20,5 +21,6 @@ import userRoutes from './users.routes.js'
 
 router.use('/', mainRoutes);
 router.use('/', userRoutes);
+router.use('/', modelRoutes);
 
 export default router;
