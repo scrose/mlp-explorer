@@ -31,9 +31,7 @@ export function update(table, data) {
     let query = `UPDATE ${table} SET email = $2::text,
                            role_id = $3::integer,
                            updated_at = NOW()::timestamp`;
-    Object.entries(data).forEach(([key, value]) => {
-        console.log('!!!!!', key, value);
-    })
+
     query += `WHERE user_id = $1::varchar AND role_id < 5 RETURNING *`;
     return query;
 }

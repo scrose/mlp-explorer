@@ -12,7 +12,7 @@
  * @private
  */
 
-import * as queries from './queries/surveyors.queries.js'
+import * as queries from './queries/visits.queries.js'
 import pool from './pgdb.js';
 
 /**

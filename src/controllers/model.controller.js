@@ -157,7 +157,7 @@ export default function Controller(model) {
                 if (data.rows.length === 0)
                     throw new Error('notadded');
                 res.locals.data = data.rows[0];
-                res.message('Added record to database', 'success');
+                res.message(`Added item to ${model}.`, 'success');
                 res.status(200).json(res.locals);
             })
             .catch((err) => next(err));
@@ -210,15 +210,15 @@ export default function Controller(model) {
      */
 
     this.update = async (req, res, next) => {
-        let model;
+        let item;
         try {
-            model = new Model(req.body);
+            item = new Model(req.body);
         } catch (err) {
             next(err);
         }
         // update user data
         await services
-            .update(model)
+            .update(item)
             .then((data) => {
                 if (data.rows.length === 0) throw new Error('update');
                 res.locals.data = data.rows[0];

@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Services.Queries
- * File: database.services.js
+ * File: index.services.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -13,9 +13,9 @@
  */
 
 import * as users from './users.queries.js';
-import * as roles from './roles.queries.js';
 import * as sessions from './sessions.queries.js';
-import * as surveyors from './surveyors.queries.js';
+import * as surveyors from './visits.queries.js';
+import * as defaults from './defaults.queries.js';
 
 /**
  * Index of module exports.
@@ -23,8 +23,8 @@ import * as surveyors from './surveyors.queries.js';
  */
 
 export default {
+    defaults: defaults,
     users: users,
-    roles: roles,
     sessions: sessions,
     surveyors: surveyors
 };

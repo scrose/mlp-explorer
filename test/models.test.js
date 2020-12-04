@@ -120,21 +120,23 @@ Object.entries(models).forEach(([modelName, params]) => {
          * @private
          */
 
-        let data = {
+        let item = {
             id: null,
             given_names: 'Given Names',
             last_name: 'Last Name',
+            short_name: 'TEST',
+            affiliation: "Affiliation"
         }
 
         mocha.it(`Create new ${modelName}`, async () => {
             await agent
                 .post(`${BASE_URL}${modelName}/add`)
                 .set('Accept', 'application/json')
-                .send(data)
+                .send(item)
                 .then((res) => {
                     expect(res).to.have.status(200);
                     expect(res.body.messages[0].type).to.equal('success');
-                    expect(res.body.messages[0].string).to.equal('Item successfully created!');
+                    expect(res.body.messages[0].string).to.equal(`Added item to ${modelName}.`);
                     item.id = res.body.id;
                 })
         });

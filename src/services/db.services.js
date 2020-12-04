@@ -13,7 +13,7 @@
  */
 
 import pool from './pgdb.js';
-import * as queries from './queries/models.queries.js'
+import queries from './queries/index.queries.js';
 
 /**
  * Export services constructor
@@ -23,106 +23,130 @@ import * as queries from './queries/models.queries.js'
  */
 
 export default function Services(model) {
-
     this.model = model;
+    this.queries = {};
 
-        /**
-         * Insert record into table.
-         *
-         * @public
-         * @param {Array} data
-         * @return {Promise} result
-         */
+    // Check for defined queries for model
+    if (typeof queries[model] !== 'undefined') {
+        this.queries = queries[model];
+    }
 
-        this.insert = async function(item) {
-            let data = item.getData();
-            let { query, dataArr } = queries.insert(this.model, data);
-            console.log(query, dataArr, data)
-            return pool.query(query, dataArr);
-        }
+    // include default queries if not defined
+    Object.entries(queries.defaults)
+        .filter(([key, query]) => {
+            console.log(key, query);
+        });
 
-        /**
-         * Update data in existing record.
-         *
-         * @public
-         * @param {Array} data
-         * @return {Promise} result
-         */
+    /**
+     * Insert record into table.
+     *
+     * @public
+     * @param {Array} data
+     * @return {Promise} result
+     */
 
-        this.update = async function(data) {
-            return pool.query(
-                queries.update(this.model.name), data
-            );
-        }
+    this.insert = async function(item) {
+        let data = item.getData();
+        let { query, dataArr } = queries.insert(this.model, data);
+        return pool.query(query, dataArr);
+    };
 
-        /**
-         * Find all records.
-         *
-         * @public
-         * @return {Promise} result
-         */
+    /**
+     * Update data in existing record.
+     *
+     * @public
+     * @param {Array} data
+     * @return {Promise} result
+     */
 
-        this.getAll = async function() {
-            return pool.query(
-                queries.getAll(this.model.name), []
-            );
-        }
+    this.update = async function(data) {
+        return pool.query(
+            queries.update(this.model.name), data,
+        );
+    };
 
-        /**
-         * Find record by ID.
-         *
-         * @public
-         * @param {String} id
-         * @return {Promise} result
-         */
+    /**
+     * Find all records.
+     *
+     * @public
+     * @return {Promise} result
+     */
 
-        this.select = async function(id) {
-            return pool.query(
-                queries.select(this.model.name), [id]
-            );
-        }
+    this.getAll = async function() {
 
-        /**
-         * Remove record.
-         *
-         * @public
-         * @param {String} id
-         * @return {Promise} result
-         */
+        let query = typeof queries.getAll === 'function'
+            ? queries.getAll(model.name)
+            : queries.getAll;
 
-        this.remove = async function(id) {
-            this.verify('remove');
-            return pool.query(queries[this.table].remove, [id]);
-        }
+        return pool.query(
+            query, [],
+        );
+    };
 
-        /**
-         * Initialize table.
-         *
-         * @public
-         * @param {Object} data
-         * @return {Promise} result
-         */
+    /**
+     * Find record by ID.
+     *
+     * @public
+     * @param {String} id
+     * @return {Promise} result
+     */
 
-        this.init = async function(data) {
+    this.select = async function(id) {
+        return pool.query(
+            queries.select(this.model.name), [id],
+        );
+    };
 
-            // create pgsql PL function
-            await pool.query(queries[this.table].init.create, []);
+    /**
+     * Remove record.
+     *
+     * @public
+     * @param {String} id
+     * @return {Promise} result
+     */
 
-            // execute function
-            return pool.query(queries[this.table].init.exec, data);
-        }
+    this.remove = async function(id) {
+        this.verify('remove');
+        return pool.query(queries[this.table].remove, [id]);
+    };
 
-        /**
-         * Verify table/query exists for model. Throws error if not found.
-         *
-         * @public
-         */
+    /**
+     * Initialize table.
+     *
+     * @public
+     * @param {Object} data
+     * @return {Promise} result
+     */
 
-        this.verify = function(key) {
-            if (typeof queries[this.table][key] === 'undefined')
-                throw new Error('noquery')
-        }
+    this.init = async function(data) {
 
+        // create pgsql PL function
+        await pool.query(queries[this.table].init.create, []);
+
+        // execute function
+        return pool.query(queries[this.table].init.exec, data);
+    };
+
+    /**
+     * Verify table/query exists for model. Throws error if not found.
+     *
+     * @public
+     */
+
+    this.verify = function(key) {
+        if (typeof queries[this.table][key] === 'undefined')
+            throw new Error('noquery');
+    };
+
+    /**
+     * Prepare transaction.
+     */
+
+    this.transact = function(data) {
+        let statements = [];
+
+        return `BEGIN; ${statements} COMMIT;`;
+    };
 
 }
 
