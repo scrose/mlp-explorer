@@ -15,7 +15,7 @@
 import * as users from './users.queries.js';
 import * as sessions from './sessions.queries.js';
 import * as surveyors from './visits.queries.js';
-import * as defaults from './defaults.queries.js';
+import * as defaults from '../queries.services.js';
 
 /**
  * Index of module exports.

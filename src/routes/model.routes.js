@@ -85,6 +85,10 @@ function Routes(modelName) {
  */
 
 Object.entries(models).forEach(([modelName, params]) => {
+
+        // TODO: handle dependent models
+        // Object.entries(params).forEach((depModelName) => {}));
+
         let routes = new Routes(modelName);
 
         // controller initialization
@@ -96,7 +100,7 @@ Object.entries(models).forEach(([modelName, params]) => {
                 .all(function (req, res, next) {
 
                     // get model ID parameter (if exists)
-                    let modelId = req.params.hasOwnProperty(routes.key)
+                    let reqId = req.params.hasOwnProperty(routes.key)
                         ? req.params[routes.key]
                         : null;
 
@@ -104,7 +108,7 @@ Object.entries(models).forEach(([modelName, params]) => {
                     restrict(res, next, {
                         model: modelName,
                         view: view,
-                        id: modelId
+                        id: reqId
                     });
 
                 })

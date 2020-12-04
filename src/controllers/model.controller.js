@@ -67,8 +67,12 @@ export default function Controller(model) {
             .catch((err) => next(err));
 
         // generate db services for model
-        services = new Services(new Model());
-
+        try {
+            services = new Services(new Model());
+        }
+        catch (err) {
+            next(err);
+        }
         next();
     };
 

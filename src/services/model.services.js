@@ -56,7 +56,7 @@ export async function getSchema(table) {
 
 export const create = async (table) => {
 
-    // initialize model
+    // initialize model constructor
     let Model = function(data) {
         this.name = table;
         this.setData = setData;
@@ -90,7 +90,7 @@ export const create = async (table) => {
                         };
                     });
             })
-            .catch(() => {throw new Error('schema')})
+            .catch((err) => {throw err;})
 
     // define model properties
     Object.defineProperties(Model.prototype, {

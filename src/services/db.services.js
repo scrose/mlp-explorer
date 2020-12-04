@@ -26,16 +26,17 @@ export default function Services(model) {
     this.model = model;
     this.queries = {};
 
-    // Check for defined queries for model
-    if (typeof queries[model] !== 'undefined') {
-        this.queries = queries[model];
+    // load model queries
+    try {
+        Object.entries(queries[model.name])
+            .forEach(([key, query]) => {
+                console.log(query)
+                this.queries[key] = query(model);
+            });
     }
-
-    // include default queries if not defined
-    Object.entries(queries.defaults)
-        .filter(([key, query]) => {
-            console.log(key, query);
-        });
+    catch (err) {
+        throw err;
+    }
 
     /**
      * Insert record into table.
@@ -46,9 +47,8 @@ export default function Services(model) {
      */
 
     this.insert = async function(item) {
-        let data = item.getData();
-        let { query, dataArr } = queries.insert(this.model, data);
-        return pool.query(query, dataArr);
+        this.verify('insert')
+        return pool.query(this.queries.insert, item.getData());
     };
 
     /**
@@ -59,28 +59,22 @@ export default function Services(model) {
      * @return {Promise} result
      */
 
-    this.update = async function(data) {
-        return pool.query(
-            queries.update(this.model.name), data,
-        );
+    this.update = async function(item) {
+        this.verify('update')
+        return pool.query(this.queries.update, item.getData());
     };
 
     /**
-     * Find all records.
+     * Find all records in table.
      *
      * @public
      * @return {Promise} result
      */
 
     this.getAll = async function() {
-
-        let query = typeof queries.getAll === 'function'
-            ? queries.getAll(model.name)
-            : queries.getAll;
-
-        return pool.query(
-            query, [],
-        );
+        this.verify('getAll');
+        console.log(this.queries.getAll)
+        return pool.query(this.queries.getAll, []);
     };
 
     /**
@@ -92,8 +86,15 @@ export default function Services(model) {
      */
 
     this.select = async function(id) {
+
+        this.verify('select')
+
+        let query = typeof this.queries.select === 'function'
+            ? this.queries.select(model.name)
+            : this.queries.select;
+
         return pool.query(
-            queries.select(this.model.name), [id],
+            query, [id],
         );
     };
 
@@ -134,19 +135,55 @@ export default function Services(model) {
      */
 
     this.verify = function(key) {
-        if (typeof queries[this.table][key] === 'undefined')
+        if (typeof this.queries[key] === 'undefined')
             throw new Error('noquery');
     };
 
     /**
      * Prepare transaction.
+     *
+     * @param {String} statements
+     * @return {String} SQL transaction
      */
 
-    this.transact = function(data) {
-        let statements = [];
-
+    this.transact = function(statements) {
         return `BEGIN; ${statements} COMMIT;`;
     };
+
+    /**
+     * Collate data for INSERT/UPDATE prepared statement.
+     *
+     * @param {Object} data
+     * @return {Object} insertion args
+     */
+
+    this.collate = function(data, ignore=[]) {
+        let i = 1;
+        let cols = []
+        let values = [];
+        // ignore timestamp fields
+        ignore.push('created_at', 'updated_at');
+
+        // filter input data to match insert/update parameters
+        Object.entries(data)
+            .filter(([key, value]) => {
+
+                // throw error if schema does not have expected field
+                if (!model.fields.hasOwnProperty(key)) throw new Error('invalidField');
+
+                // ignore defined fields
+                return !ignore.includes(key);
+            })
+            .forEach(([key, value]) => {
+                const datatype = model.fields[key].type;
+                dataArr.push(data[key])
+                cols.push(`${key}`);
+                values.push(`$${i}::${datatype}`);
+                i++;
+            });
+
+        return {cols: cols, values: values}
+    }
 
 }
 
