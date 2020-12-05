@@ -13,8 +13,8 @@ import { roles, permissions } from '../../config.js';
 /**
  * Set user permissions level by user role.
  *
- * @param req
- * @param res
+ * @param {Request} req
+ * @param {Response} res
  * @param next
  * @src public
  */
@@ -26,7 +26,7 @@ export const authorize = async (req, res, next) => {
     if (typeof res.locals.user === 'undefined') return next();
 
     // Get user role
-    await db.users
+    return await db.users
         .select(res.locals.user.id)
         .then((result) => {
             if (result.rows.length === 0) throw new Error('nouser');
@@ -40,7 +40,7 @@ export const authorize = async (req, res, next) => {
  * Restrict user access based on permissions.
  *
  * @param {Response} res
- * @param {NextFunction} next
+ * @param {Function} next
  * @param {Object} args
  * @src public
  *
@@ -56,7 +56,7 @@ export function restrict(res, next, args) {
         ) return next();
         // Deny users with lesser admin privileges
         if (typeof res.locals.restrict === 'undefined' || res.locals.restrict < restrictedTo) {
-            next(new Error('restrict'));
+            return next(new Error('restrict'));
         }
         return next();
     } catch (err) {

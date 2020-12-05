@@ -145,7 +145,7 @@ app.use(function(req, res, next) {
  */
 
 app.use(function(req, res, next) {
-    authorize(req, res, next);
+    return authorize(req, res, next);
 
     // set navigation menus based on user settings
     // res.locals.menus = {

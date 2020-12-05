@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Controllers.Model
- * File: users.controller.js
+ * File: models.controller.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -177,28 +177,13 @@ export default function Controller(model) {
      */
 
     this.edit = async (req, res, next) => {
+        let id = this.getId(req.params);
         await services
-            .select(req.params.id)
+            .select(id)
             .then((data) => {
-                if (data.rows.length === 0) throw new Error('nouser');
+                if (data.rows.length === 0)
+                    throw new Error('noitem');
                 let model = new Model(data);
-                // add role options to model
-                // user.setOptions('role', roles);
-                // // assemble build parameters
-                // let args = {
-                //     model: user,
-                //     view: res.locals.view,
-                //     method: 'POST',
-                //     legend: 'Update User Profile',
-                //     actions: {
-                //         submit: { value: 'Update', url: path.join('/users', res.locals.users_id, 'edit') },
-                //         cancel: { value: 'Cancel', url: '/' },
-                //     },
-                //     restrict: req.session.user || null,
-                // };
-                // let { form, validator } = builder.form(args);
-                // res.locals.form = form;
-                // res.locals.validator = validator;
                 res.status(200).json(res.locals);
             })
             .catch((err) => next(err));
@@ -220,7 +205,6 @@ export default function Controller(model) {
         } catch (err) {
             next(err);
         }
-        // update user data
         await services
             .update(item)
             .then((data) => {
@@ -242,26 +226,12 @@ export default function Controller(model) {
      */
 
     this.remove = async (req, res, next) => {
+        let id = this.getId(req.params);
         await services
-            .select(req.params.id)
+            .select(id)
             .then((data) => {
                 if (data.rows.length === 0)
-                    throw new Error('nouser');
-                // let user = new User(data);
-                // let { form, validator } = builder.form(
-                //     {
-                //         view: res.locals.name,
-                //         name: 'Delete',
-                //         method: 'POST',
-                //         routes: {
-                //             submit: path.join('/users', res.locals.req_id, 'delete'),
-                //             cancel: '/users',
-                //         },
-                //     },
-                //     user,
-                // );
-                // res.locals.form = form;
-                // res.locals.validator = validator;
+                    throw new Error('noitem');
                 res.status(200).json(res.locals);
             })
             .catch((err) => next(err));
@@ -277,12 +247,13 @@ export default function Controller(model) {
      */
 
     this.drop = async (req, res, next) => {
+        let id = this.getId(req.params);
         await services
-            .remove(req.params.id)
+            .remove(id)
             .then((data) => {
-                if (data.rows.length === 0) throw new Error('nouser');
+                if (data.rows.length === 0) throw new Error('noitem');
                 res.locals.data = data.rows[0];
-                res.message('Record successfully deleted.', 'success');
+                res.message('Item successfully deleted.', 'success');
                 res.status(200).json(res.locals);
             })
             .catch((err) => next(err));

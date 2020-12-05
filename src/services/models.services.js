@@ -68,29 +68,31 @@ export const create = async (table) => {
 
     // generate schema from table column data
     await getSchema(table)
-            .then((data) => {
-                // schematize table columns as data fields
-                data.rows
-                    .forEach((col) => {
-                        fields[col.column_name] = {
-                            label: humanize(col.column_name),
-                            type: col.data_type,
-                            restrict: [],
-                            render: {
-                                create: {
-                                    validation: [],
-                                },
-                                edit: {
-                                    validation: [],
-                                },
-                                remove: {
-                                    validation: [],
-                                },
+        .then((data) => {
+            // schematize table columns as data fields
+            data.rows
+                .forEach((col) => {
+                    fields[col.column_name] = {
+                        label: humanize(col.column_name),
+                        type: col.data_type,
+                        restrict: [],
+                        render: {
+                            create: {
+                                validation: [],
                             },
-                        };
-                    });
-            })
-            .catch((err) => {throw err;})
+                            edit: {
+                                validation: [],
+                            },
+                            remove: {
+                                validation: [],
+                            },
+                        },
+                    };
+                });
+        })
+        .catch((err) => {
+            throw err;
+        });
 
     // define model properties
     Object.defineProperties(Model.prototype, {
@@ -138,7 +140,7 @@ export const create = async (table) => {
  * @src public
  */
 
-export const setData = function(data) {
+function setData(data) {
     const self = this;
     if (typeof data === 'object' && data !== null) {
         const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
@@ -152,8 +154,7 @@ export const setData = function(data) {
             field.value = sanitize(null, self.fields[key].type);
         });
     }
-};
-
+}
 
 /**
  * Set field value in model schema.
@@ -163,11 +164,11 @@ export const setData = function(data) {
  * @src public
  */
 
-export const setValue = function(key, value) {
+function setValue(key, value) {
     if (typeof key === 'string' && this.fields.hasOwnProperty(key)) {
-        this.fields[key].value = sanitize(value, this.fields[key].type)
+        this.fields[key].value = sanitize(value, this.fields[key].type);
     }
-};
+}
 
 /**
  * Get field value from model schema.
@@ -177,9 +178,9 @@ export const setValue = function(key, value) {
  * @src public
  */
 
-export const getValue = function(field) {
+function getValue(field) {
     if (field) return this.fields.hasOwnProperty(field) ? this.fields[field].value : null;
-};
+}
 
 /**
  * Get field value from model schema.
@@ -188,13 +189,13 @@ export const getValue = function(field) {
  * @src public
  */
 
-export const getData = function() {
+function getData() {
     let filteredData = {};
     Object.entries(this.fields).forEach(([key, field]) => {
         filteredData[key] = field.value;
     });
     return filteredData;
-};
+}
 
 /**
  * Clear field values from model schema.
@@ -203,14 +204,14 @@ export const getData = function() {
  * @src public
  */
 
-export const clear = function() {
+function clear() {
     if (this.hasOwnProperty('schema')) {
         Object.entries(this.fields).forEach(([_, field]) => {
             field.value = '';
         });
     }
     return this;
-};
+}
 
 /**
  * Set options of provided schema field.
@@ -220,9 +221,9 @@ export const clear = function() {
  * @src public
  */
 
-export const setDataOptions = function(field, options) {
+function setDataOptions(field, options) {
     if (field && this.fields.hasOwnProperty(field) && typeof options === 'object') {
         this.fields[field].options = options ? options : null;
     }
-};
+}
 

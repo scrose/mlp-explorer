@@ -12,7 +12,7 @@
  * @private
  */
 
-import * as model from './model.services.js';
+import * as model from './models.services.js';
 import Services from './db.services.js';
 import * as users from './users.db.services.js';
 import * as roles from './roles.db.services.js';

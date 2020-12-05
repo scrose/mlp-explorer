@@ -16,7 +16,7 @@ import pool from './pgdb.js';
 import queries from './queries/index.queries.js';
 
 /**
- * Export services constructor
+ * Export database services constructor
  *
  * @public
  * @return {Promise} result
@@ -26,43 +26,17 @@ export default function Services(model) {
     this.model = model;
     this.queries = {};
 
-    // load model queries
+    // load model query strings
     try {
         Object.entries(queries[model.name])
             .forEach(([key, query]) => {
-                console.log(query)
                 this.queries[key] = query(model);
+                console.log(this.queries[key])
             });
     }
     catch (err) {
         throw err;
     }
-
-    /**
-     * Insert record into table.
-     *
-     * @public
-     * @param {Array} data
-     * @return {Promise} result
-     */
-
-    this.insert = async function(item) {
-        this.verify('insert')
-        return pool.query(this.queries.insert, item.getData());
-    };
-
-    /**
-     * Update data in existing record.
-     *
-     * @public
-     * @param {Array} data
-     * @return {Promise} result
-     */
-
-    this.update = async function(item) {
-        this.verify('update')
-        return pool.query(this.queries.update, item.getData());
-    };
 
     /**
      * Find all records in table.
@@ -72,9 +46,8 @@ export default function Services(model) {
      */
 
     this.getAll = async function() {
-        this.verify('getAll');
-        console.log(this.queries.getAll)
-        return pool.query(this.queries.getAll, []);
+        let {sql, data} = this.queries.getAll();
+        return pool.query(sql, data);
     };
 
     /**
@@ -86,16 +59,36 @@ export default function Services(model) {
      */
 
     this.select = async function(id) {
+        let {sql, data} = this.queries.select(id);
+        console.log(sql, data)
+        return pool.query(sql, data);
+    };
 
-        this.verify('select')
+    /**
+     * Insert record into table.
+     *
+     * @public
+     * @param {Array} data
+     * @return {Promise} result
+     */
 
-        let query = typeof this.queries.select === 'function'
-            ? this.queries.select(model.name)
-            : this.queries.select;
+    this.insert = async function(item) {
+        let {sql, data} = this.queries.insert(item);
+        return pool.query(sql, data);
+    };
 
-        return pool.query(
-            query, [id],
-        );
+    /**
+     * Update data in existing record.
+     *
+     * @public
+     * @param {Array} data
+     * @return {Promise} result
+     */
+
+    this.update = async function(item) {
+        let {sql, data} = this.queries.update(item);
+        console.log(sql, data)
+        return pool.query(sql, data);
     };
 
     /**
@@ -107,8 +100,8 @@ export default function Services(model) {
      */
 
     this.remove = async function(id) {
-        this.verify('remove');
-        return pool.query(queries[this.table].remove, [id]);
+        let {sql, data} = this.queries.remove(id);
+        return pool.query(sql, data);
     };
 
     /**
@@ -119,24 +112,9 @@ export default function Services(model) {
      * @return {Promise} result
      */
 
-    this.init = async function(data) {
-
-        // create pgsql PL function
-        await pool.query(queries[this.table].init.create, []);
-
-        // execute function
-        return pool.query(queries[this.table].init.exec, data);
-    };
-
-    /**
-     * Verify table/query exists for model. Throws error if not found.
-     *
-     * @public
-     */
-
-    this.verify = function(key) {
-        if (typeof this.queries[key] === 'undefined')
-            throw new Error('noquery');
+    this.init = async function() {
+        let {sql, data} = this.queries.init();
+        await pool.query(sql, data);
     };
 
     /**
@@ -149,41 +127,6 @@ export default function Services(model) {
     this.transact = function(statements) {
         return `BEGIN; ${statements} COMMIT;`;
     };
-
-    /**
-     * Collate data for INSERT/UPDATE prepared statement.
-     *
-     * @param {Object} data
-     * @return {Object} insertion args
-     */
-
-    this.collate = function(data, ignore=[]) {
-        let i = 1;
-        let cols = []
-        let values = [];
-        // ignore timestamp fields
-        ignore.push('created_at', 'updated_at');
-
-        // filter input data to match insert/update parameters
-        Object.entries(data)
-            .filter(([key, value]) => {
-
-                // throw error if schema does not have expected field
-                if (!model.fields.hasOwnProperty(key)) throw new Error('invalidField');
-
-                // ignore defined fields
-                return !ignore.includes(key);
-            })
-            .forEach(([key, value]) => {
-                const datatype = model.fields[key].type;
-                dataArr.push(data[key])
-                cols.push(`${key}`);
-                values.push(`$${i}::${datatype}`);
-                i++;
-            });
-
-        return {cols: cols, values: values}
-    }
 
 }
 

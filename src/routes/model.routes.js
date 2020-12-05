@@ -10,7 +10,7 @@
  */
 
 import express from 'express'
-import Controller from '../controllers/model.controller.js';
+import Controller from '../controllers/models.controller.js';
 import { restrict } from '../lib/permissions.utils.js';
 import path from "path";
 import {models} from '../../config.js'

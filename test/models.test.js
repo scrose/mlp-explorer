@@ -137,7 +137,7 @@ Object.entries(models).forEach(([modelName, params]) => {
                     expect(res).to.have.status(200);
                     expect(res.body.messages[0].type).to.equal('success');
                     expect(res.body.messages[0].string).to.equal(`Added item to ${modelName}.`);
-                    item.id = res.body.id;
+                    item.id = res.body.data.id;
                 })
         });
 
@@ -160,16 +160,14 @@ Object.entries(models).forEach(([modelName, params]) => {
          * @private
          */
 
-        let newData = {
-            given_names: 'New Given Names',
-            last_name: 'New Last Name',
-        }
+        item.given_names = 'New Given Names';
+        item.last_name = 'New Last Name';
 
         mocha.it('Update item data', async () => {
             await agent
                 .post(`${BASE_URL}${modelName}/${item.id}/edit`)
                 .set('Accept', 'application/json')
-                .send(newData)
+                .send(item)
                 .then((res) => {
                     expect(res.status).to.equal(200);
                 })

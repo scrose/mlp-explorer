@@ -7,35 +7,48 @@
 
 'use strict';
 
-import * as queries from '../queries.services';
+import * as queries from '../queries.services.js';
 
 /**
  * Find surveyor by ID.
  */
 
 export function select(model) {
-    return queries.select(model.name);
+    return queries.select(model);
 }
 
 /**
- * Find all surveys. Joined with surveys table.
+ * Find all surveyors. Joined with surveys table.
  */
 
-export function getAll(model) {
-    return `SELECT * FROM ${model.name} 
-                LEFT OUTER JOIN surveys
-                ON surveys.surveyor_id = surveyors.id`;
+export function getAll(_) {
+    return function () {
+        return {
+            sql:`SELECT * FROM surveyors 
+                LEFT OUTER JOIN surveys ON 
+                    surveys.parent_id = surveyors.id 
+                    AND
+                    surveys.parent_type_id = 
+                    (SELECT id FROM node_types WHERE node_types.name='surveyors')`,
+            data: []
+        };
+    }
 }
 
 /**
  * Find surveyors by survey. Joined with surveys table.
  */
 
-export function getBySurvey(model) {
-    return `SELECT * FROM ${model.name} 
-                LEFT OUTER JOIN surveys
-                ON surveys.surveyor_id = surveyors.id
-                 WHERE surveyors.id = $1::integer`;
+export function getBySurvey(_) {
+    return function () {
+        return {
+            sql:`SELECT * FROM surveyors
+            LEFT OUTER JOIN surveys
+            ON surveys.parent_id = surveyors.id
+            WHERE surveyors.id = $1::integer`,
+            data: []
+        };
+    }
 }
 
 /**
