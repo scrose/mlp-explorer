@@ -1,6 +1,6 @@
 /*!
- * MLP.API.Services.Surveyors
- * File: surveyors.queries.js
+ * MLP.API.Services.SurveySeasons
+ * File: survey_seasons.queries.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -18,38 +18,38 @@ export function select(model) {
 }
 
 /**
- * Find all surveyors. Joined with surveys table.
+ * Find all survey seasons. Joined with surveys table.
  */
 
 export function getAll(_) {
     return function () {
         return {
-            sql:`SELECT *, surveyors.id AS id FROM surveyors 
-                LEFT JOIN surveys ON 
-                    surveys.surveyor_id = surveyors.id;`,
+            sql:`SELECT * FROM survey_seasons 
+                LEFT OUTER JOIN surveys ON
+                survey_seasons.survey_id = surveys.id;`,
             data: []
         };
     }
 }
 
 /**
- * Find surveyors by survey. Joined with surveys table.
+ * Find survey seasons for a survey. Joined with surveys table.
  */
 
 export function getBySurvey(_) {
     return function () {
         return {
-            sql:`SELECT * FROM surveyors
+            sql:`SELECT * FROM survey_seasons
             LEFT OUTER JOIN surveys
-            ON surveys.surveyor_id = surveyors.id
-            WHERE surveyors.id = $1::integer`,
+            ON surveys.id = survey_seasons.survey_id
+            WHERE surveys.id = $1::integer`,
             data: []
         };
     }
 }
 
 /**
- * Update surveyor data.
+ * Update survey season data.
  */
 
 export function update(model) {
@@ -57,7 +57,7 @@ export function update(model) {
 }
 
 /**
- * Insert new surveyor.
+ * Insert new survey season.
  */
 
 export function insert(model) {
@@ -65,7 +65,7 @@ export function insert(model) {
 }
 
 /**
- * Delete surveyor.
+ * Delete survey season.
  */
 
 export function remove(model) {

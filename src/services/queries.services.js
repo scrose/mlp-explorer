@@ -18,7 +18,7 @@
 export function getAll(model) {
     return function () {
         return {
-            sql: `SELECT * FROM ${model.name};`,
+            sql: `SELECT * FROM ${model.table};`,
             data: []
         }
     };
@@ -35,10 +35,12 @@ export function getAll(model) {
 
 export function select(model,args={col: 'id', type:'integer'}) {
     return function (id) {
+        let sql = `SELECT * 
+                FROM ${model.table} 
+                WHERE ${args.col} = $1::${args.type};`;
+        console.log(sql, id);
         return {
-            sql: `SELECT * 
-                FROM ${model.name} 
-                WHERE ${args.col} = $1::${args.type};`,
+            sql: sql,
             data: [id]
         }
     };
@@ -76,7 +78,7 @@ export function insert(
         return `${placeholder}::${model.fields[key].type}`;
     });
 
-    let sql = `INSERT INTO ${model.name} (${cols.join(",")})
+    let sql = `INSERT INTO ${model.table} (${cols.join(",")})
                 VALUES (${vals.join(",")})
                 RETURNING *;`
 
@@ -150,7 +152,7 @@ export function update(
 export function remove(model, args={col: 'id', type:'integer', index:1}) {
     return function (id) {
         return {
-            sql: `DELETE FROM ${model.name} 
+            sql: `DELETE FROM ${model.table} 
             WHERE ${args.col} = $${args.index++}::${args.type}
             RETURNING *;`,
             data: [id]
@@ -210,6 +212,8 @@ function collate(
 
     // reserve first position for where condition
     let data = args.where ? [item.fields[args.where].value] : [];
+
+    console.log(data, item)
 
     // filter input data to match insert/update parameters
     data.push(... Object.keys(item.fields)

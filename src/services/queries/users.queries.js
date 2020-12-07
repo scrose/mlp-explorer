@@ -64,7 +64,7 @@ export const insert =
                  $5::integer,
                  NOW()::timestamp,
                  NOW()::timestamp)
-         RETURNING user_id`;
+         RETURNING user_id, email`;
 
 /**
  * Delete user.

@@ -1,6 +1,6 @@
 /*!
- * MLP.API.Models.SessionModel
- * File: /models/SessionModel.js
+ * MLP.API.Models.Session
+ * File: session.models.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */

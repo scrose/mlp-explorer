@@ -81,7 +81,7 @@ export function sanitize (data, datatype) {
 
 
 /**
- * Make _underscore_ strings readable.
+ * Make snake/camel case strings readable.
  *
  * @param {String} str
  * @return {String} readable string
@@ -89,9 +89,39 @@ export function sanitize (data, datatype) {
  */
 
 export function humanize(str) {
+    str = toSnake(str);
     let i, frags = str.split('_');
     for (i=0; i<frags.length; i++) {
         frags[i] = frags[i].charAt(0).toUpperCase() + frags[i].slice(1);
     }
     return frags.join(' ');
+}
+
+/**
+ * Make snake_case strings camelCase.
+ *
+ * @param {String} str
+ * @return {String} camelCase string
+ * @src public
+ */
+
+export const toCamel = (str) => {
+        return str.replace(/([-_][a-z])/ig, ($1) => {
+            return $1.toUpperCase()
+                .replace('-', '')
+                .replace('_', '');
+        });
+}
+
+/**
+ * Make camelCase strings snake_case.
+ *
+ * @param {String} str
+ * @return {String} snake_case string
+ * @src public
+ */
+
+export const toSnake = (str) => {
+    return str.replace(/[A-Z]/g,
+        (letter) => `_${letter.toLowerCase()}`);
 }

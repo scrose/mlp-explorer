@@ -71,8 +71,8 @@ export const update = `UPDATE sessions
  */
 
 export const remove = `DELETE FROM sessions 
-            WHERE session_id = $1::varchar 
-            RETURNING session_id`;
+            WHERE sessions.session_id = $1::varchar
+            RETURNING sessions.session_id`;
 
 /**
  * Delete all sessions.
@@ -86,4 +86,7 @@ export const removeAll = `DELETE FROM sessions RETURNING session_id`;
  * @public
  */
 
-export const prune = `DELETE FROM sessions WHERE expires < NOW()::timestamp RETURNING session_id`;
+export const prune = `DELETE FROM sessions
+            WHERE expires < NOW()::timestamp
+            RETURNING sessions.session_id`;
+

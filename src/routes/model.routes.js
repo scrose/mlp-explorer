@@ -14,6 +14,7 @@ import Controller from '../controllers/models.controller.js';
 import { restrict } from '../lib/permissions.utils.js';
 import path from "path";
 import {models} from '../../config.js'
+import { toSnake } from '../lib/data.utils.js';
 
 /**
  * Express router
@@ -31,45 +32,46 @@ export default router;
 
 function Routes(modelName) {
 
-    // create model id key
-    this.key = modelName + '_id';
+    // create model identifier key
+    this.modelRoute = toSnake(modelName);
+    this.key = `${toSnake(modelName)}_id`;
 
     // initialize model controller
-    this.controller = new Controller(modelName);
+    this.controller = new Controller(this.modelRoute);
 
     // add controller routes
     this.routes = {
         list: {
             id: null,
-            path: path.join('/', modelName),
+            path: path.join('/', this.modelRoute),
             get: this.controller.list,
             put: null,
             post: null,
             delete: null
         },
         add: {
-            path: path.join('/', modelName, 'add'),
+            path: path.join('/', this.modelRoute, 'add'),
             get: this.controller.add,
             put: null,
             post: this.controller.create,
             delete: null
         },
         show: {
-            path: path.join('/', modelName, '/:' + this.key),
+            path: path.join('/', this.modelRoute, '/:' + this.key),
             get: this.controller.show,
             put: null,
             post: null,
             delete: null
         },
         edit: {
-            path: path.join('/', modelName, '/:' + this.key, 'edit'),
+            path: path.join('/', this.modelRoute, '/:' + this.key, 'edit'),
             get: this.controller.edit,
             put: null,
             post: this.controller.update,
             delete: null
         },
         remove: {
-            path: path.join('/', modelName, '/:' + this.key, 'remove'),
+            path: path.join('/', this.modelRoute, '/:' + this.key, 'remove'),
             get: this.controller.remove,
             put: null,
             post: this.controller.drop,

@@ -7,7 +7,7 @@
 
 'use strict';
 
-import { humanize, sanitize } from '../lib/data.utils.js';
+import { humanize, sanitize, toCamel, toSnake } from '../lib/data.utils.js';
 import pool from './pgdb.js';
 import * as queries from './queries/schema.queries.js';
 
@@ -58,7 +58,9 @@ export const create = async (table) => {
 
     // initialize model constructor
     let Model = function(data) {
-        this.name = table;
+        this.table = table;
+        this.name = toCamel(table);
+        this.label = humanize(table);
         this.setData = setData;
         this.setData(data);
     };
@@ -140,7 +142,7 @@ export const create = async (table) => {
  * @src public
  */
 
-function setData(data) {
+function setData(data=null) {
     const self = this;
     if (typeof data === 'object' && data !== null) {
         const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;

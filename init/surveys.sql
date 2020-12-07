@@ -7,16 +7,15 @@ BEGIN;
 
     DROP FUNCTION init_surveys();
 
-    ALTER TABLE surveyors ADD COLUMN IF NOT EXISTS node_type INT;
-    ALTER TABLE surveyors ALTER COLUMN node_type SET DEFAULT 2;
-    ALTER TABLE surveyors ADD CONSTRAINT fk_node_type
+    ALTER TABLE surveys ADD COLUMN IF NOT EXISTS node_type INT;
+    ALTER TABLE surveys ALTER COLUMN node_type SET DEFAULT 2;
+    ALTER TABLE surveys ADD CONSTRAINT fk_node_type
         FOREIGN KEY(node_type)
           REFERENCES node_types(id);
 
-
-    ALTER TABLE surveys ADD CONSTRAINT fk_surveyor_id
-        FOREIGN KEY(surveyor_id)
-            REFERENCES surveyors(id);
+--     ALTER TABLE surveys ADD CONSTRAINT  fk_surveyor_id
+--         FOREIGN KEY(surveyor_id)
+--             REFERENCES surveyors(id);
 
     END;
     $$

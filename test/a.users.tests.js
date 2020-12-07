@@ -18,7 +18,7 @@ import mocha from 'mocha';
  * @private
  */
 
-mocha.describe('Check user permissions (Visitor)', () => {
+mocha.describe('Check user permissions (visitor)', () => {
     mocha.it('Should deny access to user list', async () => {
         await agent
             .get(`${BASE_URL}users`)
@@ -37,9 +37,45 @@ mocha.describe('Check user permissions (Visitor)', () => {
             })
     })
 
-    mocha.it('Should deny access to other user updates', async () => {
+    mocha.it('Should deny access to user creation', async () => {
         await agent
-            .get(`${BASE_URL}users/${admin.user_id}/edit`)
+            .get(`${BASE_URL}users/add`)
+            .then((res) => {
+                expect(res).to.have.status(500);
+                expect(res.body).to.equal(errors.restrict);
+            })
+        await agent
+            .get(`${BASE_URL}users/create`)
+            .then((res) => {
+                expect(res).to.have.status(500);
+                expect(res.body).to.equal(errors.restrict);
+            })
+    })
+
+    mocha.it('Should deny access to user deletion', async () => {
+        await agent
+            .get(`${BASE_URL}users/787897543543/remove`)
+            .then((res) => {
+                expect(res).to.have.status(500);
+                expect(res.body).to.equal(errors.restrict);
+            })
+        await agent
+            .post(`${BASE_URL}users/787897543543/remove`)
+            .then((res) => {
+                expect(res).to.have.status(500);
+                expect(res.body).to.equal(errors.restrict);
+            })
+    })
+
+    mocha.it('Should deny access to user updates', async () => {
+        await agent
+            .get(`${BASE_URL}users/787897543543/edit`)
+            .then((res) => {
+                expect(res).to.have.status(500);
+                expect(res.body).to.equal(errors.restrict);
+            })
+        await agent
+            .post(`${BASE_URL}users/787897543543/edit`)
             .then((res) => {
                 expect(res).to.have.status(500);
                 expect(res.body).to.equal(errors.restrict);
@@ -113,13 +149,14 @@ mocha.describe('Login Administrator', () => {
             })
     });
 
-    mocha.it('Double login', async () => {
+    mocha.it('Redundant login', async () => {
         await agent
             .get(`${BASE_URL}login`)
             .set('Accept', 'application/json')
             .then((res) => {
-                expect(res).to.have.status(500);
-                expect(res.body).to.equal(errors.loginRedundant);
+                expect(res).to.have.status(200);
+                // TODO: check that page redirected to home on redundant login
+                // expect(res.getHeaders()).to.equal('');
             })
     })
 });
@@ -178,9 +215,9 @@ mocha.describe('User Controllers', () => {
             .then((res) => {
                 expect(res).to.have.status(200);
                 expect(res.body.messages[0].type).to.equal('success');
-                expect(res.body.messages[0].string).to.equal('Registration was successful!');
+                expect(res.body.messages[0].string).to.equal(`Registration successful for user ${user.email}!`);
                 expect(res.body.user_id).to.not.equal(null);
-                user.user_id = res.body.user_id;
+                user.user_id = res.body.data.user_id;
             })
     });
 
@@ -212,8 +249,8 @@ mocha.describe('User Controllers', () => {
      * @private
      */
 
-    let newEmail = 'new@example.ca';
-    let newRoleId = 4;
+    user.email = 'new@example.ca';
+    user.role_id = 4;
 
     mocha.it('Update user email and role', async () => {
         await agent
@@ -221,20 +258,20 @@ mocha.describe('User Controllers', () => {
             .set('Accept', 'application/json')
             .send({
                 user_id: user.user_id,
-                email: newEmail,
-                role_id: newRoleId
+                email: user.email,
+                role_id: user.role_id
             })
             .then((res) => {
                 expect(res.status).to.equal(200);
-                expect(res.body.user).to.instanceOf(Object);
-                expect(res.body.user).to.have.property('user_id');
-                expect(res.body.user).to.have.property('role_id');
-                expect(res.body.user).to.have.property('email');
-                expect(res.body.user).to.have.property('created_at');
-                expect(res.body.user).to.have.property('updated_at');
-                expect(res.body.user.user_id).to.equal(user.user_id);
-                expect(res.body.user.email).to.equal(newEmail);
-                expect(res.body.user.role_id).to.equal(newRoleId);
+                expect(res.body.data).to.instanceOf(Object);
+                expect(res.body.data).to.have.property('user_id');
+                expect(res.body.data).to.have.property('role_id');
+                expect(res.body.data).to.have.property('email');
+                expect(res.body.data).to.have.property('created_at');
+                expect(res.body.data).to.have.property('updated_at');
+                expect(res.body.data.user_id).to.equal(user.user_id);
+                expect(res.body.data.email).to.equal(user.email);
+                expect(res.body.data.role_id).to.equal(user.role_id);
             })
     });
 
@@ -251,7 +288,7 @@ mocha.describe('User Controllers', () => {
                 expect(res).to.have.status(200);
                 expect(res.body.messages[0].type).to.equal('success');
                 expect(res.body.messages[0].string).to.equal(
-                    'User ' + user.user_id + ' successfully deleted.'
+                    `User ${user.email} successfully deleted.`
                 );
             })
     });
@@ -274,13 +311,12 @@ mocha.describe('Logout Administrator', () => {
                 expect(res.body.messages[0].string).to.equal('Successfully logged out!');
             })
     });
-    mocha.it('Second sign out throws error', async () => {
+    mocha.it('Redundant logout', async () => {
         await agent
             .post(`${BASE_URL}logout`)
             .set('Accept', 'application/json')
             .then((res) => {
-                expect(res).to.have.status(500);
-                expect(res.body).to.equal(errors.logoutRedundant);
+                expect(res).to.have.status(200);
             })
     })
 });

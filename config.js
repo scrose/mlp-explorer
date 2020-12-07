@@ -18,14 +18,11 @@ let settings = {
         appName: "Explorer",
         title: "Welcome to the Mountain Legacy Project Explorer"
     },
-    admin: {
-
-    },
     models: {
         // projects: {},
         surveyors: {},
-        // surveys: {},
-        // surveySeasons: {},
+        surveys: {},
+        surveySeasons: {},
         // stations: {},
         // visits: {},
         // locations: {},
@@ -33,30 +30,30 @@ let settings = {
         // images: {}
     },
     roles: {
-        Visitor: 0,
-        Registered: 1,
-        Editor: 2,
-        Contributor: 3,
-        Administrator: 4,
-        Super_Administrator: 5
+        visitor: 0,
+        registered: 1,
+        editor: 2,
+        contributor: 3,
+        administrator: 4,
+        superAdministrator: 5
     },
     permissions: {
         default: {
-            show: "Visitor",
-            list: "Visitor",
-            edit: "Contributor",
-            create: "Editor",
-            remove: "Editor"
+            show: "visitor",
+            list: "visitor",
+            edit: "contributor",
+            create: "editor",
+            remove: "editor"
         },
         users: {
-            show: "Administrator",
-            list: "Administrator",
-            edit: "Administrator",
-            create: "Administrator",
-            remove: "Administrator",
-            register: "Administrator",
-            login: "Visitor",
-            logout: "Visitor"
+            show: "administrator",
+            list: "administrator",
+            edit: "administrator",
+            create: "administrator",
+            remove: "administrator",
+            register: "administrator",
+            login: "visitor",
+            logout: "visitor"
         }
     },
     debug: {

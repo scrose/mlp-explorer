@@ -13,6 +13,7 @@
 import Services from '../services/db.services.js';
 import * as db from '../services/index.services.js';
 import { models } from '../../config.js';
+import { toCamel, toSnake } from '../lib/data.utils.js';
 
 /**
  * Export controller constructor.
@@ -24,16 +25,18 @@ import { models } from '../../config.js';
 let Model, services;
 
 
+
 // generate controller constructor
-export default function Controller(model) {
+export default function Controller(modelRoute) {
 
     // check model exists
-    if (!models.hasOwnProperty(model))
+    if (!models.hasOwnProperty(toCamel(modelRoute)))
         throw new Error('invalidModel');
 
     // set model name/key
-    this.modelName = model;
-    this.modelKey = model + '_id'
+    this.modelName = toCamel(modelRoute);
+    this.table = toSnake(modelRoute)
+    this.modelKey = `${toSnake(modelRoute)}_id`;
 
     /**
      * Get model id value from request parameters.
@@ -63,7 +66,7 @@ export default function Controller(model) {
 
     this.init = async (req, res, next) => {
         // generate model constructor
-        Model = await db.model.create(model)
+        Model = await db.model.create(modelRoute)
             .catch((err) => next(err));
 
         // generate db services for model
@@ -149,6 +152,7 @@ export default function Controller(model) {
     this.create = async (req, res, next) => {
         let item;
         try {
+            console.log(req.body)
             item = new Model(req.body);
         } catch (err) {
             next(err);
@@ -161,7 +165,7 @@ export default function Controller(model) {
                 if (data.rows.length === 0)
                     throw new Error('notadded');
                 res.locals.data = data.rows[0];
-                res.message(`Added item to ${model}.`, 'success');
+                res.message(`Added item to ${modelRoute}.`, 'success');
                 res.status(200).json(res.locals);
             })
             .catch((err) => next(err));

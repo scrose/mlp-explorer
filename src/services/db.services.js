@@ -31,7 +31,6 @@ export default function Services(model) {
         Object.entries(queries[model.name])
             .forEach(([key, query]) => {
                 this.queries[key] = query(model);
-                console.log(this.queries[key])
             });
     }
     catch (err) {
@@ -47,6 +46,7 @@ export default function Services(model) {
 
     this.getAll = async function() {
         let {sql, data} = this.queries.getAll();
+        console.log(sql)
         return pool.query(sql, data);
     };
 
@@ -60,7 +60,6 @@ export default function Services(model) {
 
     this.select = async function(id) {
         let {sql, data} = this.queries.select(id);
-        console.log(sql, data)
         return pool.query(sql, data);
     };
 
@@ -74,6 +73,8 @@ export default function Services(model) {
 
     this.insert = async function(item) {
         let {sql, data} = this.queries.insert(item);
+        console.log(sql, data)
+
         return pool.query(sql, data);
     };
 

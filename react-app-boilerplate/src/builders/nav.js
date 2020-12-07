@@ -82,7 +82,7 @@ module.exports.userMenu = function(res) {
     // user is logged in
     else {
         // extract username from email
-        const userName = !isRestricted(res, config.roles.Super_Administrator)
+        const userName = !isRestricted(res, config.roles.superAdministrator)
             ? res.locals.user.email.replace(/@.*$/,"")
             : 'Super-Admin';
         return  JSON.stringify({ul: {
@@ -109,12 +109,12 @@ module.exports.editorMenu = function(req, res) {
 
     let menu = {ul: { attributes:{ class: 'editor_menu'}, childNodes:[]}};
 
-    if (!isRestricted(res, config.roles.Administrator)) {
+    if (!isRestricted(res, config.roles.administrator)) {
         menu.ul.childNodes.push({li: {a: {attributes: {href: req.uri + '/create'}, textNode: 'New'}}});
         menu.ul.childNodes.push({li: {a: {attributes: {href: req.uri + '/edit'}, textNode: 'Edit'}}});
     }
 
-    if (!isRestricted(res, config.roles.Administrator)) {
+    if (!isRestricted(res, config.roles.administrator)) {
         menu.ul.childNodes.push({li: {a: {attributes: {href: req.uri + '/create'}, textNode: 'New'}}});
         menu.ul.childNodes.push({li: {a: {attributes: {href: req.uri + '/edit'}, textNode: 'Edit'}}});
     }

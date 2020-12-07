@@ -12,7 +12,7 @@
 
 import mocha from 'mocha';
 import { BASE_URL, expect, server } from './setup.js';
-import SessionStore from '../src/models/sessionstore.models.js';
+import SessionStore from '../src/models/session.models.js';
 
 /**
  * Initialize test session.

@@ -40,7 +40,7 @@ export const authorize = async (req, res, next) => {
  * Restrict user access based on permissions.
  *
  * @param {Response} res
- * @param {Function} next
+ * @param {NextFunction} next
  * @param {Object} args
  * @src public
  *
@@ -99,5 +99,5 @@ function getPermissions(args) {
     // choose defined or default view permissions
     return modelPermissions.hasOwnProperty(args.view)
         ? roles[modelPermissions[args.view]]
-        : roles.Visitor;
+        : roles.visitor;
 }

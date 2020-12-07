@@ -1,85 +1,74 @@
 /*!
  * MLP.API.Services.Surveys
- * File: surveys.services.js
+ * File: surveys.queries.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
 
 'use strict';
 
+import * as queries from '../queries.services.js';
+
 /**
  * Find surveyor by ID.
  */
 
-export const findById = `SELECT * 
-                            FROM surveys
-                            WHERE surveys.id = $1::integer`;
+export function select(model) {
+    return queries.select(model);
+}
 
 /**
- * Find surveys by surveyor. Joined with surveys table.
+ * Find all surveyors. Joined with surveys table.
  */
 
-export const findBySurveyor = `SELECT * 
-                            FROM surveys
-                            LEFT OUTER JOIN surveyors
-                            ON surveys.surveyor_id = surveyors.id
-                         WHERE surveys.id = $1::integer`;
+export function getAll(_) {
+    return function () {
+        return {
+            sql:`SELECT * FROM surveys 
+                LEFT OUTER JOIN surveyors ON 
+                    surveys.surveyor_id = surveyors.id;`,
+            data: []
+        };
+    }
+}
 
 /**
- * Find all surveys. Joined with surveys table.
+ * Find surveys by surveyor. Joined with surveyors table.
  */
 
-export const findAll = `SELECT * FROM surveys
-                                 LEFT OUTER JOIN surveys
-                                 ON surveys.id = surveys.surveyor_id`;
+export function getBySurveyor(_) {
+    return function () {
+        return {
+            sql:`SELECT * FROM surveys
+            LEFT OUTER JOIN surveyors
+            ON surveys.surveyor_id = surveyors.id
+            WHERE surveyors.id = $1::integer`,
+            data: []
+        };
+    }
+}
 
 /**
- * Update survey data.
+ * Update surveyor data.
  */
 
-export const update = `UPDATE surveys
-                       SET last_name = $2::text,
-                           given_names = $3::text,
-                           short_name = $2::text,
-                           affiliation = $2::text,
-                           updated_at = NOW()::timestamp
-                       WHERE user_id = $1::integer
-                       RETURNING *`;
+export function update(model) {
+    return queries.update(model);
+}
 
 /**
  * Insert new surveyor.
  */
 
-export const insert =
-        `INSERT INTO surveys(last_name,
-                           given_names,
-                           short_name,
-                           affiliation,
-                           created_at,
-                           updated_at)
-         VALUES ($1::text,
-                 $2::text,
-                 $3::text,
-                 $4::text,
-                 NOW()::timestamp,
-                 NOW()::timestamp)
-         RETURNING id`;
+export function insert(model) {
+    return queries.insert(model);
+}
 
 /**
- * Delete user.
+ * Delete surveyor.
  */
 
-export const remove = `DELETE
-                       FROM surveys
-                       WHERE id = $1::varchar
-                       RETURNING *`;
-
-/**
- * Initialize surveys table
- */
-
-export const init = {
-    create: ``,
-    exec: ``
-};
+export function remove(model) {
+    return queries.remove(model);
+}
 

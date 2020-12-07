@@ -17,9 +17,9 @@ import { authenticate as auth, encryptUser } from '../lib/secure.utils.js';
 /**
  * Initialize users, roles tables and admin user account.
  *
- * @param req
- * @param res
- * @param next
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
  * @src public
  */
 
@@ -52,11 +52,11 @@ export const init = async (req, res, next) => {
 };
 
 /**
- * List all users
+ * List all registered users.
  *
- * @param req
- * @param res
- * @param next
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
  * @src public
  */
 export const list = async (req, res, next) => {
@@ -70,12 +70,12 @@ export const list = async (req, res, next) => {
 };
 
 /**
- * Show the user's profile data. Only the profile of the current user
- * is accessible, unless the current user has administrator privileges.
+ * Show user's profile data. Only the profile of the current user is
+ * accessible, unless the current user has administrator privileges.
  *
- * @param req
- * @param res
- * @param next
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
  * @src public
  */
 
@@ -92,33 +92,19 @@ export const show = async (req, res, next) => {
 /**
  * User sign-in interface.
  *
- * @param req
- * @param res
- * @param next
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
  * @src public
  */
 
 export const login = async (req, res, next) => {
     try {
-        if (req.session.user)
-            throw new Error('loginRedundant');
-        // let args = {
-        //   model: new User(),
-        //   view: res.locals.view,
-        //   method: 'POST',
-        //   legend: 'User Sign In',
-        //   actions: {
-        //     submit: { value: 'Sign In', url: '/login' },
-        //     cancel: { value: 'Cancel', url: '/' },
-        //   },
-        //   restrict: req.session.user || null,
-        // };
-        // let { form, validator } = builder.form(args);
-        // res.locals.form = form;
-        // res.locals.validator = validator;
+        // redirect to home if user already logged in.
+        if (req.session.user) return res.redirect('/');
         res.status(200).json(res.locals);
     } catch (err) {
-        next(err);
+        return next(err);
     }
 };
 
@@ -126,13 +112,17 @@ export const login = async (req, res, next) => {
  * Authenticate user credentials.
  * TODO: Include JWT signing (http://jwt.io/)
  *
- * @param req
- * @param res
- * @param next
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
  * @src public
  */
 
 export const authenticate = async (req, res, next) => {
+
+    // redirect on redundant login
+    if (req.session.user) return res.redirect('/');
+
     let reqUser, authUser;
     try {
         // validate submitted user credentials
@@ -142,7 +132,7 @@ export const authenticate = async (req, res, next) => {
             password: valid.load(password).isPassword().data,
         };
     } catch (err) {
-        next(new Error('login'));
+        return next(new Error('login'));
     }
 
     // Confirm user is registered
@@ -168,7 +158,6 @@ export const authenticate = async (req, res, next) => {
                 res.message('Login successful.', 'success');
                 req.session.save(function(err) {
                     if (err) throw Error(err);
-                    // session saved
                     res.status(200).json(res.locals);
                 });
             });
@@ -177,18 +166,19 @@ export const authenticate = async (req, res, next) => {
 };
 
 /**
- * Logout current user from session. Regenerates
- * session as anonymous user when signing out.
- * @param req
- * @param res
- * @param next
+ * Logout current user from session. Regenerates session as
+ * anonymous user when signing out.
+ *
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
  * @src public
  */
 
 export const logout = async (req, res, next) => {
     try {
-        if (!req.session.user)
-            throw new Error('logoutRedundant');
+        // redirect home if user already logged out
+        if (!req.session.user) res.redirect('/');
         req.session.regenerate(function(err) {
             if (err) throw new Error('logout');
             req.session.save(function(err) {
@@ -198,7 +188,7 @@ export const logout = async (req, res, next) => {
             });
         });
     } catch (err) {
-        next(err);
+        return next(err);
     }
 };
 
@@ -207,31 +197,14 @@ export const logout = async (req, res, next) => {
  * restricted to Administrators, but can be open to visitors by
  * removing restrict().
  *
- * @param req
- * @param res
- * @param next
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
  * @src public
  */
 
 export const register = async (req, res, next) => {
-    // remove to open to visitors
-    //restrict(res, next, config.roles.Administrator);
-
     try {
-        // let args = {
-        //   model: new User(),
-        //   view: res.locals.view,
-        //   method: 'POST',
-        //   legend: 'User Registration',
-        //   actions: {
-        //     submit: { value: 'Register', url: '/users/register' },
-        //     cancel: { value: 'Cancel', url: '/' },
-        //   },
-        //   restrict: null,
-        // };
-        // let { form, validator } = builder.form(args);
-        // res.locals.form = form;
-        // res.locals.validator = validator;
         res.status(200).json(res.locals);
     } catch (err) {
         next(err);
@@ -241,9 +214,9 @@ export const register = async (req, res, next) => {
 /**
  * Add (i.e. register) new user to database.
  *
- * @param req
- * @param res
- * @param next
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
  * @src public
  */
 
@@ -266,16 +239,14 @@ export const create = async (req, res, next) => {
     await db.users
         .insert(newUser)
         .then((data) => {
-            if (data.rows.length === 0)
-                throw new Error('register');
-            let user_id = data.rows[0].user_id;
+            if (data.rows.length === 0) throw new Error('register');
+            let user = data.rows[0];
             // // send confirmation email to user
             // utils.email.send(user.email, "Verify registration.");
-            res.message('Registration was successful!', 'success');
+            res.message(`Registration successful for user ${user.email}!`, 'success');
             req.session.save(function(err) {
-                res.locals.user_id = user_id;
+                res.locals.data = {user_id: user.user_id, email: user.email};
                 if (err) throw Error(err);
-                // res.redirect('/');
                 res.status(200).json(res.locals);
             });
         })
@@ -285,38 +256,20 @@ export const create = async (req, res, next) => {
 /**
  * Edit the user's profile data.
  *
- * @param req
- * @param res
- * @param next
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
  * @src public
  */
 
 export const edit = async (req, res, next) => {
     // retrieve user roles
     const { roles } = await db.roles.getAll().catch((err) => next(err));
-
     await db.users
         .select(req.params.user_id)
         .then((data) => {
             if (data.rows.length === 0) throw new Error('nouser');
-            let user = new User(data);
-            // add role options to model
-            // user.setOptions('role', roles);
-            // // assemble build parameters
-            // let args = {
-            //     model: user,
-            //     view: res.locals.view,
-            //     method: 'POST',
-            //     legend: 'Update User Profile',
-            //     actions: {
-            //         submit: { value: 'Update', url: path.join('/users', res.locals.users_id, 'edit') },
-            //         cancel: { value: 'Cancel', url: '/' },
-            //     },
-            //     restrict: req.session.user || null,
-            // };
-            // let { form, validator } = builder.form(args);
-            // res.locals.form = form;
-            // res.locals.validator = validator;
+            res.locals.data={user:data.rows[0], roles:roles};
             res.status(200).json(res.locals);
         })
         .catch((err) => next(err));
@@ -325,9 +278,9 @@ export const edit = async (req, res, next) => {
 /**
  * Update the user's profile data.
  *
- * @param req
- * @param res
- * @param next
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
  * @src public
  */
 
@@ -343,8 +296,8 @@ export const update = async (req, res, next) => {
         .update(user)
         .then((data) => {
             if (data.rows.length === 0) throw new Error('update');
-            res.locals.user = data.rows[0];
-            res.message('Update successful!', 'success');
+            res.locals.data = data.rows[0];
+            res.message(`Update successful to user ${res.locals.data.email} profile!`, 'success');
             res.status(200).json(res.locals);
         })
         .catch((err) => next(err));
@@ -353,9 +306,9 @@ export const update = async (req, res, next) => {
 /**
  * Confirm removal of user.
  *
- * @param req
- * @param res
- * @param next
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
  * @src public
  */
 
@@ -365,32 +318,18 @@ export const remove = async (req, res, next) => {
         .then((data) => {
             if (data.rows.length === 0)
                 throw new Error('nouser');
-            // let user = new User(data);
-            // let { form, validator } = builder.form(
-            //     {
-            //         view: res.locals.name,
-            //         name: 'Delete',
-            //         method: 'POST',
-            //         routes: {
-            //             submit: path.join('/users', res.locals.req_id, 'delete'),
-            //             cancel: '/users',
-            //         },
-            //     },
-            //     user,
-            // );
-            // res.locals.form = form;
-            // res.locals.validator = validator;
+            res.locals.data = data.rows[0];
             res.status(200).json(res.locals);
         })
         .catch((err) => next(err));
 };
 
 /**
- * Delete user.
+ * Delete user record.
  *
- * @param req
- * @param res
- * @param next
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
  * @src public
  */
 
@@ -398,9 +337,10 @@ export const drop = async (req, res, next) => {
     await db.users
         .remove(req.params.user_id)
         .then((data) => {
-            if (data.rows.length === 0) throw new Error('nouser');
-            res.locals.user_id = data.rows[0].user_id;
-            res.message('User ' + res.locals.user_id + ' successfully deleted.', 'success');
+            if (data.rows.length === 0)
+                throw new Error('nouser');
+            res.locals.data = data.rows[0];
+            res.message('User ' + res.locals.data.email + ' successfully deleted.', 'success');
             res.status(200).json(res.locals);
         })
         .catch((err) => next(err));

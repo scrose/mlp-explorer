@@ -10,10 +10,46 @@
  * @private
  */
 
-import { expect, agent, BASE_URL, errors } from './setup.js';
+import { expect, agent, BASE_URL } from './setup.js';
 import mocha from 'mocha';
 import * as db from '../src/services/index.services.js';
 import { models } from '../config.js';
+import { humanize, toSnake } from '../src/lib/data.utils.js';
+
+/**
+ * Create mock items.
+ * @private
+ */
+
+let mockItems = {
+    surveyors: {
+        id: null,
+        given_names: 'Given Names',
+        last_name: 'Last Name',
+        short_name: 'TEST',
+        affiliation: "Affiliation"
+    },
+    surveys: {
+        id: null,
+        surveyor_id: 16,
+        name: 'Some Name',
+        historical_map_sheet: 'Historical Map Sheet',
+    },
+    surveySeasons: {
+        id: null,
+        survey_id: 16,
+        year: 1933,
+        geographic_coverage: 'TEST',
+        record_id: 'TEST',
+        jurisdiction: 'TEST',
+        affiliation: 'TEST',
+        archive: 'TEST',
+        collection: 'TEST',
+        location: 'TEST',
+        sources: 'TEST',
+        notes: 'TEST'
+    }
+}
 
 /**
  * Compares output data to model schema
@@ -26,7 +62,7 @@ function compare(model, data) {
     data.forEach((item) => {
         // go through model properties
         Object.entries(model.fields)
-            .forEach(([field, value]) => {
+            .forEach(([field, _]) => {
                 expect(item).to.have.property(field);
             });
     });
@@ -35,8 +71,15 @@ function compare(model, data) {
 let Model;
 
 // Test all defined models
-Object.entries(models).forEach(([modelName, params]) => {
-    mocha.describe(`Test ${modelName} model`, () => {
+Object.entries(models).forEach(([modelName, _]) => {
+
+    // convert to snake case
+    let modelRoute = toSnake(modelName);
+    let modelTable = toSnake(modelName);
+    let modelLabel = humanize(modelName);
+
+    // Test model views
+    mocha.describe(`Test ${modelLabel} views`, () => {
 
         // store example record data
         let testItem;
@@ -46,16 +89,19 @@ Object.entries(models).forEach(([modelName, params]) => {
          * @private
          */
 
-        mocha.it(`List all ${modelName} page`, async () => {
+        mocha.it(`List all ${modelLabel}`, async () => {
 
             // generate model constructor
-            Model = await db.model.create(modelName);
+            Model = await db.model.create(modelTable);
             let model = new Model();
 
+            console.log(`${BASE_URL}${modelRoute}`)
+
             await agent
-                .get(`${BASE_URL}${modelName}`)
+                .get(`${BASE_URL}${modelRoute}`)
                 .then((res) => {
                     testItem = res.body.data[0];
+                    console.log(testItem);
                     expect(res).to.have.status(200);
                     expect(res.body.data).to.instanceOf(Array);
                     compare(model, res.body.data);
@@ -67,14 +113,14 @@ Object.entries(models).forEach(([modelName, params]) => {
          * @private
          */
 
-        mocha.it(`Show ${modelName} item data`, async () => {
+        mocha.it(`Show ${modelLabel} item data`, async () => {
 
             // generate model constructor
-            Model = await db.model.create(modelName);
+            Model = await db.model.create(modelTable);
             let model = new Model();
 
             await agent
-                .get(`${BASE_URL}${modelName}/${testItem.id}`)
+                .get(`${BASE_URL}${modelRoute}/${testItem.id}`)
                 .set('Accept', 'application/json')
                 .then((res) => {
                     expect(res.status).to.equal(200);
@@ -98,7 +144,7 @@ Object.entries(models).forEach(([modelName, params]) => {
         role_id: 5
     }
 
-    mocha.describe(`Test ${modelName} edits`, () => {
+    mocha.describe(`Test ${modelLabel} CRUD`, () => {
 
         mocha.it('Authenticate admin', async () => {
             await agent
@@ -116,21 +162,15 @@ Object.entries(models).forEach(([modelName, params]) => {
         });
 
         /**
-         * Create new item.
+         * Get mock item.
          * @private
          */
 
-        let item = {
-            id: null,
-            given_names: 'Given Names',
-            last_name: 'Last Name',
-            short_name: 'TEST',
-            affiliation: "Affiliation"
-        }
+        let item = mockItems[modelName];
 
-        mocha.it(`Create new ${modelName}`, async () => {
+        mocha.it(`Create new ${modelLabel}`, async () => {
             await agent
-                .post(`${BASE_URL}${modelName}/add`)
+                .post(`${BASE_URL}${modelRoute}/add`)
                 .set('Accept', 'application/json')
                 .send(item)
                 .then((res) => {
@@ -148,7 +188,7 @@ Object.entries(models).forEach(([modelName, params]) => {
 
         mocha.it('Show item data', async () => {
             await agent
-                .get(`${BASE_URL}${modelName}/${item.id}`)
+                .get(`${BASE_URL}${modelRoute}/${item.id}`)
                 .set('Accept', 'application/json')
                 .then((res) => {
                     expect(res.status).to.equal(200);
@@ -160,12 +200,9 @@ Object.entries(models).forEach(([modelName, params]) => {
          * @private
          */
 
-        item.given_names = 'New Given Names';
-        item.last_name = 'New Last Name';
-
         mocha.it('Update item data', async () => {
             await agent
-                .post(`${BASE_URL}${modelName}/${item.id}/edit`)
+                .post(`${BASE_URL}${modelRoute}/${item.id}/edit`)
                 .set('Accept', 'application/json')
                 .send(item)
                 .then((res) => {
@@ -180,7 +217,7 @@ Object.entries(models).forEach(([modelName, params]) => {
 
         mocha.it('Delete created item', async () => {
             await agent
-                .post(`${BASE_URL}${modelName}/${item.id}/remove`)
+                .post(`${BASE_URL}${modelRoute}/${item.id}/remove`)
                 .set('Accept', 'application/json')
                 .then((res) => {
                     expect(res).to.have.status(200);

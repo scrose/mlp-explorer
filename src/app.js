@@ -15,11 +15,14 @@
 import express from 'express';
 import cors from 'cors';
 import methodOverride from 'method-override';
-import session from './lib/session.js';
+import session from 'express-session';
+import { genUUID } from './lib/secure.utils.js';
+import SessionStore from './models/session.models.js';
 import { globalHandler, notFoundHandler } from './error.js';
 import { authorize } from './lib/permissions.utils.js';
-import { general } from '../config.js';
+import { general, session as config } from '../config.js';
 import router from './routes/index.routes.js';
+
 
 /**
  * Initialize main Express instance.
@@ -70,7 +73,23 @@ app.use(
  * Generate session.
  */
 
-app.use(session);
+app.use(
+    session({
+        genid: function () {
+            return genUUID(); // use UUIDs for session IDs
+        },
+        store: new SessionStore(),
+        resave: false, // don't save session if unmodified
+        saveUninitialized: false, // don't create session until something stored
+        secret: process.env.SESSION_SECRET,
+        // 'Time-to-live' in milliseconds
+        maxAge: 1000 * config.ttl,
+        cookie: {
+            secure: false,
+            sameSite: true,
+            maxAge: 1000 * config.ttl,
+        },
+}));
 
 /**
  * Define session-persistent messenger.
