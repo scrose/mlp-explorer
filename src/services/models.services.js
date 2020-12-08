@@ -7,7 +7,7 @@
 
 'use strict';
 
-import { humanize, sanitize, toCamel, toSnake } from '../lib/data.utils.js';
+import { humanize, sanitize, toCamel } from '../lib/data.utils.js';
 import pool from './pgdb.js';
 import * as queries from './queries/schema.queries.js';
 

@@ -16,35 +16,28 @@ import * as queries from './queries/users.queries.js'
 import pool from './pgdb.js';
 
 /**
- * Insert user in database.
+ * Find all registered users.
  *
  * @public
- * @param {Object} user
  * @return {Promise} result
  */
 
-export async function insert(user) {
-    let data = user.getData();
-    return pool.query(
-        queries.insert,
-        [data.user_id, data.email, data.password, data.salt_token, data.role_id],
-    );
+export async function getAll() {
+    let { sql, data } = queries.getAll();
+    return pool.query(sql, data);
 }
 
 /**
- * Save user data to existing record in database.
+ * Find user by user ID.
  *
  * @public
- * @param {Object} user
+ * @param {String} user_id
  * @return {Promise} result
  */
 
-export async function update(user) {
-    let data = user.getData();
-    return pool.query(
-        queries.update,
-        [data.user_id, data.email, data.role_id]
-    );
+export async function select(user_id) {
+    let { sql, data } = queries.select(user_id);
+    return pool.query(sql, data);
 }
 
 /**
@@ -56,45 +49,47 @@ export async function update(user) {
  */
 
 export async function selectByEmail(email) {
-    return pool.query(
-        queries.findByEmail,
-        [email]
-    );
+    let { sql, data } = queries.selectByEmail(email);
+    return pool.query(sql, data);
 }
 
 /**
- * Find all registered users.
+ * Insert user in database.
  *
  * @public
+ * @param {Object} user
  * @return {Promise} result
  */
 
-export async function getAll() {
-    return pool.query(queries.findAll, []);
+export async function insert(user) {
+    let { sql, data } = queries.insert(user);
+    return pool.query(sql, data);
 }
 
 /**
- * Find user by user ID.
+ * Save user data to existing record in database.
  *
  * @public
- * @param {String} id
+ * @param {Object} user
  * @return {Promise} result
  */
 
-export async function select(id) {
-    return pool.query(queries.findById, [id]);
+export async function update(user) {
+    let { sql, data } = queries.update(user);
+    return pool.query(sql, data);
 }
 
 /**
  * Remove user.
  *
  * @public
- * @param {String} id
+ * @param {String} user_id
  * @return {Promise} result
  */
 
-export async function remove(id) {
-    return pool.query(queries.remove, [id]);
+export async function remove(user_id) {
+    let { sql, data } = queries.remove(user_id);
+    return pool.query(sql, data);
 }
 
 /**
@@ -105,10 +100,22 @@ export async function remove(id) {
  */
 
 export async function init(data) {
-
-    // create pgsql PL function
-    await pool.query(queries.init.create, []);
-
-    // execute function
-    return pool.query(queries.init.exec, data);
+    let statements = queries.init(data);
+    // note: we don't try/catch this because if connecting throws
+    // an exception we don't need to dispose of the client
+    // (it will be undefined)
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        let res = await Promise.all(statements.map(async (s) => {
+            return await client.query(s.sql, s.data);
+        }));
+        await client.query('COMMIT');
+        return res;
+    } catch (e) {
+        await client.query('ROLLBACK');
+        throw e;
+    } finally {
+        client.release();
+    }
 }

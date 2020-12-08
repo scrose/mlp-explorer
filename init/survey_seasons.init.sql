@@ -7,17 +7,11 @@ BEGIN;
 
     DROP FUNCTION init_survey_seasons();
 
---     ALTER TABLE survey_seasons ADD COLUMN IF NOT EXISTS node_type INT;
---     ALTER TABLE survey_seasons ALTER COLUMN node_type SET DEFAULT 2;
---     ALTER TABLE survey_seasons ADD CONSTRAINT fk_node_type
---         FOREIGN KEY(node_type)
---           REFERENCES node_types(id);
-
-    ALTER TABLE survey_seasons ADD CONSTRAINT  fk_survey_id
+    ALTER TABLE survey_seasons ADD CONSTRAINT IF NOT EXISTS fk_survey_id
         FOREIGN KEY(survey_id)
             REFERENCES surveys(id);
 
-    ALTER TABLE survey_seasons ADD CONSTRAINT  check_year
+    ALTER TABLE survey_seasons ADD CONSTRAINT IF NOT EXISTS check_year
         CHECK (survey_seasons.year > 1700 AND survey_seasons.year <= EXTRACT(YEAR FROM NOW()));
 
     END;

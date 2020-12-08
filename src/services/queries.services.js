@@ -73,7 +73,7 @@ export function find(model,args={col: 'owner_id', owner:null}) {
  *
  * @param {Object} item
  * @param {Object} args
- * @return {function(*): {data: Array, index: number, sql: string}} sql query
+ * @return {Function} query binding function
  * @public
  */
 
@@ -118,21 +118,11 @@ export function insert(
 /**
  * Generate query: Insert new nodes record.
  *
- * @param {Object} args
- * @return {function(*): {data: Array, index: number, sql: string}} sql query
+ * @return {Function} query binding function
  * @public
  */
 
-export function insertNode(
-    args={
-        owner_id: null,
-        owner_type:null,
-        dependent_id:null,
-        dependent_type: null}
-    ) {
-
-    if (!args.owner_id || !args.owner_type || !args.dependent_id || !args.dependent_type)
-        throw Error('sql')
+export function insertNode(_) {
 
     // get columns and prepared value placeholders
     let sql = `INSERT INTO nodes (
@@ -141,19 +131,21 @@ export function insertNode(
                    dependent_id, 
                    dependent_type)
                   VALUES (
-                    ${args.owner_id}, 
-                    ${args.owner_type}, 
-                    ${args.dependent_id}, 
-                    ${args.dependent_type})
+                    $1::integer, 
+                    $2::varchar, 
+                    $3::integer, 
+                    $4::varchar)
                   RETURNING *;`;
 
     // return query function
-    return function (item) {
-        // collate data as value array
+    return function (args={
+        owner_id: null,
+        owner_type:null,
+        dependent_id:null,
+        dependent_type: null}) {
         return {
             sql: sql,
-            data: [args.owner_id, args.owner_type, args.dependent_id, args.dependent_type],
-            index: args.index
+            data: [args.owner_id, args.owner_type, args.dependent_id, args.dependent_type]
         };
     }
 }
@@ -226,42 +218,7 @@ export function remove(model, args={col: 'id', type:'integer', index:1}) {
 }
 
 /**
- * Generate transaction query: Create plpgsql function to
- * run prepared statements.
- *
- * @param {Array} statements
- * @param {Object} args
- * @return {String} sql query
- * @public
- */
-
-export function transact(statements, args) {
-
-    console.log(statements, args);
-
-    // zip params with datatypes
-    let paramsTyped = args.cols.map(
-        function(key, _) {
-        return [key, args.types[key]].join(" ");
-    });
-
-    return `
-            BEGIN;
-            CREATE OR REPLACE FUNCTION ${args.fname}(${paramsTyped.join(",")}) RETURNS void AS 
-            $$
-            BEGIN
-                DROP FUNCTION ${args.fname}(${paramsTyped.types.join(",")};
-                ${statements.join(";\n")};
-            END;
-            $$ 
-            LANGUAGE plpgsql;
-            COMMIT;
-            SELECT ${args.fname}($1::varchar, $2::varchar, $3::varchar, $4::varchar);
-            `
-}
-
-/**
- * Collate item data as array of values.
+ * Collate item data as array of values for prepared sql.
  *
  * @param {Object} item
  * @param {Object} args
@@ -277,7 +234,7 @@ function collate(
         timestamps: ['created_at', 'updated_at']
     }) {
 
-    // reserve first position for where condition
+    // reserve first position for item ID (given where condition)
     let data = args.where ? [item.fields[args.where].value] : [];
 
     console.log(data, item)

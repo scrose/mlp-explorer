@@ -1,5 +1,5 @@
 /*!
- * MLP.API.Services.Surveyors
+ * MLP.API.Services.Queries.Surveyors
  * File: surveyors.queries.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
@@ -11,6 +11,9 @@ import * as queries from '../queries.services.js';
 
 /**
  * Find surveyor by ID.
+ *
+ * @param {Object} model
+ * @return {Function} query function
  */
 
 export function select(model) {
@@ -19,6 +22,8 @@ export function select(model) {
 
 /**
  * Find all surveyors. Joined with surveys table.
+ *
+ *  @return {Function} query function
  */
 
 export function getAll(_) {
@@ -34,6 +39,8 @@ export function getAll(_) {
 
 /**
  * Find surveyors by survey. Joined with surveys table.
+ *
+ * @return {Function} query function
  */
 
 export function getBySurvey(_) {
@@ -50,6 +57,9 @@ export function getBySurvey(_) {
 
 /**
  * Update surveyor data.
+ *
+ * @param {Object} model
+ * @return {Function} query function
  */
 
 export function update(model) {
@@ -57,18 +67,23 @@ export function update(model) {
 }
 
 /**
- * Insert new surveyor.
+ * Insert new surveyor. (Uses transaction)
+ *
+ * @param {Object} model
+ * @return {Array} query functions
  */
 
 export function insert(model) {
-    return queries.insert(model);
+    return [queries.insert(model)];
 }
 
 /**
  * Delete surveyor.
+ *
+ * @param {Object} model
+ * @return {Function} query function
  */
 
 export function remove(model) {
     return queries.remove(model);
 }
-

@@ -35,20 +35,18 @@ export const init = async (req, res, next) => {
     //     "argument next must be a callback");
 
     await db.users
-        .init(
-            [
+        .init([
                 process.env.API_USER,
                 process.env.API_EMAIL,
                 process.env.API_HASH,
-                process.env.API_SALT
-            ]
-        )
-        .then(next())
+                process.env.API_SALT])
         .catch((err) => next(err));
 
     // generate user model
     User = await db.model.create('users')
         .catch((err) => next(err));
+
+    next();
 };
 
 /**

@@ -8,7 +8,7 @@ BEGIN;
     DROP FUNCTION init_surveys();
 
     -- create node mappings
-    ALTER TABLE surveys ADD CONSTRAINT  fk_owner_id
+    ALTER TABLE surveys ADD CONSTRAINT IF NOT EXISTS  fk_owner_id
          FOREIGN KEY(surveyor_id)
              REFERENCES surveyors(id);
 
@@ -24,6 +24,7 @@ BEGIN;
 
     -- reset id auto-increment
     SELECT setval('surveys_id_seq', (SELECT MAX(id) FROM surveys)+1);
+
     SELECT init_surveys();
 
 COMMIT;

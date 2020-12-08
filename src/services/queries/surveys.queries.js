@@ -1,5 +1,5 @@
 /*!
- * MLP.API.Services.Surveys
+ * MLP.API.Services.Queries.Surveys
  * File: surveys.queries.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
@@ -10,7 +10,10 @@
 import * as queries from '../queries.services.js';
 
 /**
- * Find surveyor by ID.
+ * Find survey by ID.
+ *
+ * @param {Object} model
+ * @return {Function} SQL query function
  */
 
 export function select(model) {
@@ -18,7 +21,9 @@ export function select(model) {
 }
 
 /**
- * Find all surveyors. Joined with surveys table.
+ * Find all surveys. Joined with surveyors table.
+ *
+ * @return {Function} SQL query function
  */
 
 export function getAll(_) {
@@ -34,22 +39,27 @@ export function getAll(_) {
 
 /**
  * Find surveys by surveyor. Joined with surveyors table.
+ *
+ * @return {Function} SQL query function
  */
 
 export function getBySurveyor(_) {
-    return function () {
+    return function (id) {
         return {
             sql:`SELECT * FROM surveys
             LEFT OUTER JOIN surveyors
             ON surveys.surveyor_id = surveyors.id
             WHERE surveyors.id = $1::integer`,
-            data: []
+            data: [id]
         };
     }
 }
 
 /**
- * Update surveyor data.
+ * Update survey data.
+ *
+ * @param {Object} model
+ * @return {Function} SQL query function
  */
 
 export function update(model) {
@@ -57,21 +67,26 @@ export function update(model) {
 }
 
 /**
- * Insert new surveyor.
+ * Insert new survey.
+ *
+ * @param {Object} model
+ * @return {Array} SQL statement array
  */
 
 export function insert(model) {
-    let modelSQL = queries.insert(model);
-    let nodeSQL = queries.insertNode({
-        owner_id: model.surveyor_id,
-        owner_type:'surveyors',
-        dependent_id:model.id,
-        dependent_type: 'surveys'});
-    return queries.transact([nodeSQL, modelSQL])
+    return [
+        queries.insertNode({
+
+        }),
+        queries.insert(model)
+    ];
 }
 
 /**
- * Delete surveyor.
+ * Delete survey.
+ *
+ * @param {Object} model
+ * @return {Object} SQL statement array
  */
 
 export function remove(model) {

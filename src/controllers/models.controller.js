@@ -162,9 +162,10 @@ export default function Controller(modelRoute) {
         await services
             .insert(item)
             .then((data) => {
-                if (data.rows.length === 0)
+                if (data.length === 0)
                     throw new Error('notadded');
-                res.locals.data = data.rows[0];
+                // retrieve last response data
+                res.locals.data = data[data.length - 1].rows[0];
                 res.message(`Added item to ${item.label}.`, 'success');
                 res.status(200).json(res.locals);
             })

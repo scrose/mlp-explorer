@@ -7,11 +7,9 @@ BEGIN;
 
     DROP FUNCTION init_stations();
 
-    ALTER TABLE stations ADD CONSTRAINT fk_owner
-        FOREIGN KEY(owner_id, owner_type_id)
-          REFERENCES nodes(owner_id, owner_type_id);
-
-    rename_node_types('stations');
+    ALTER TABLE public.stations ADD CONSTRAINT IF NOT EXISTS fk_owner
+        FOREIGN KEY(owner_id, owner_type)
+          REFERENCES nodes(owner_id, owner_type);
 
     END;
     $$

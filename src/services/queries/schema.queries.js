@@ -10,8 +10,8 @@
  */
 
 export const getColumnsInfo = `SELECT column_name, data_type
-                FROM INFORMATION_SCHEMA.COLUMNS 
-                WHERE TABLE_NAME = $1::varchar`;
+                FROM information_schema.columns 
+                WHERE table_name = $1::varchar`;
 
 /**
  * Get all of the table names in database.
