@@ -61,7 +61,13 @@ export function update(model) {
  */
 
 export function insert(model) {
-    return queries.insert(model);
+    let modelSQL = queries.insert(model);
+    let nodeSQL = queries.insertNode({
+        owner_id: model.surveyor_id,
+        owner_type:'surveyors',
+        dependent_id:model.id,
+        dependent_type: 'surveys'});
+    return queries.transact([nodeSQL, modelSQL])
 }
 
 /**

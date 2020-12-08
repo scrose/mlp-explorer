@@ -165,7 +165,7 @@ export default function Controller(modelRoute) {
                 if (data.rows.length === 0)
                     throw new Error('notadded');
                 res.locals.data = data.rows[0];
-                res.message(`Added item to ${modelRoute}.`, 'success');
+                res.message(`Added item to ${item.label}.`, 'success');
                 res.status(200).json(res.locals);
             })
             .catch((err) => next(err));

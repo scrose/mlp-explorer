@@ -23,7 +23,7 @@ let settings = {
         surveyors: {},
         surveys: {},
         surveySeasons: {},
-        // stations: {},
+        stations: {},
         // visits: {},
         // locations: {},
         // captures: {},

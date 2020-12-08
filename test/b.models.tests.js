@@ -40,7 +40,7 @@ let mockItems = {
         survey_id: 16,
         year: 1933,
         geographic_coverage: 'TEST',
-        record_id: 'TEST',
+        record_id: 0,
         jurisdiction: 'TEST',
         affiliation: 'TEST',
         archive: 'TEST',
@@ -48,6 +48,14 @@ let mockItems = {
         location: 'TEST',
         sources: 'TEST',
         notes: 'TEST'
+    },
+    stations: {
+        name: 'TEST',
+        lat: 'TEST',
+        long: 'TEST',
+        elevation: 'TEST',
+        nts_sheet: 'TEST',
+        published: false
     }
 }
 
@@ -94,8 +102,6 @@ Object.entries(models).forEach(([modelName, _]) => {
             // generate model constructor
             Model = await db.model.create(modelTable);
             let model = new Model();
-
-            console.log(`${BASE_URL}${modelRoute}`)
 
             await agent
                 .get(`${BASE_URL}${modelRoute}`)
@@ -176,7 +182,7 @@ Object.entries(models).forEach(([modelName, _]) => {
                 .then((res) => {
                     expect(res).to.have.status(200);
                     expect(res.body.messages[0].type).to.equal('success');
-                    expect(res.body.messages[0].string).to.equal(`Added item to ${modelName}.`);
+                    expect(res.body.messages[0].string).to.equal(`Added item to ${modelLabel}.`);
                     item.id = res.body.data.id;
                 })
         });

@@ -21,7 +21,7 @@ export function getAll(model) {
             sql: `SELECT * FROM ${model.table};`,
             data: []
         }
-    };
+    }
 }
 
 /**
@@ -33,30 +33,52 @@ export function getAll(model) {
  * @public
  */
 
-export function select(model,args={col: 'id', type:'integer'}) {
+export function select(model, args={col: 'id', type:'integer'}) {
     return function (id) {
         let sql = `SELECT * 
                 FROM ${model.table} 
                 WHERE ${args.col} = $1::${args.type};`;
+        return {
+            sql: sql,
+            data: [id]
+        }
+    }
+}
+
+/**
+ * Generate query: Find records by owner type.
+ *
+ * @param {Object} model
+ * @param {Object} args
+ * @return {Function} query
+ * @public
+ */
+
+export function find(model,args={col: 'owner_id', owner:null}) {
+    return function (id) {
+        let sql = `SELECT * 
+                FROM ${model.table} 
+                LEFT OUTER JOIN ${args.owner} 
+                ON ${model.table}.${args.col} = ${args.owner}.id`;
         console.log(sql, id);
         return {
             sql: sql,
             data: [id]
         }
-    };
+    }
 }
 
 /**
  * Generate query: Insert new record.
  *
- * @param {Object} model
+ * @param {Object} item
  * @param {Object} args
  * @return {function(*): {data: Array, index: number, sql: string}} sql query
  * @public
  */
 
 export function insert(
-    model,
+    item,
     args={
         where: null,
         whereType:null,
@@ -71,23 +93,66 @@ export function insert(
 
     // get columns and prepared value placeholders
     const cols = Object
-        .keys(model.fields)
+        .keys(item.fields)
         .filter((key) => {return !args.ignore.includes(key)});
     const vals = cols.map(function(key, _) {
         let placeholder = args.timestamps.includes(key) ? `NOW()` : `$${args.index++}`;
-        return `${placeholder}::${model.fields[key].type}`;
+        return `${placeholder}::${item.fields[key].type}`;
     });
 
-    let sql = `INSERT INTO ${model.table} (${cols.join(",")})
-                VALUES (${vals.join(",")})
-                RETURNING *;`
+    let sql = `INSERT INTO ${item.table} (${cols.join(",")})
+                        VALUES (${vals.join(",")})
+                        RETURNING *;`;
 
     // return query function
     return function (item) {
         // collate data as value array
         return {
-            sql:sql,
+            sql: sql,
             data: collate(item, args),
+            index: args.index
+        };
+    }
+}
+
+/**
+ * Generate query: Insert new nodes record.
+ *
+ * @param {Object} args
+ * @return {function(*): {data: Array, index: number, sql: string}} sql query
+ * @public
+ */
+
+export function insertNode(
+    args={
+        owner_id: null,
+        owner_type:null,
+        dependent_id:null,
+        dependent_type: null}
+    ) {
+
+    if (!args.owner_id || !args.owner_type || !args.dependent_id || !args.dependent_type)
+        throw Error('sql')
+
+    // get columns and prepared value placeholders
+    let sql = `INSERT INTO nodes (
+                   owner_id, 
+                   owner_type, 
+                   dependent_id, 
+                   dependent_type)
+                  VALUES (
+                    ${args.owner_id}, 
+                    ${args.owner_type}, 
+                    ${args.dependent_id}, 
+                    ${args.dependent_type})
+                  RETURNING *;`;
+
+    // return query function
+    return function (item) {
+        // collate data as value array
+        return {
+            sql: sql,
+            data: [args.owner_id, args.owner_type, args.dependent_id, args.dependent_type],
             index: args.index
         };
     }
@@ -125,7 +190,7 @@ export function update(
         return [cols[index], `${placeholder}::${item.fields[key].type}`].join("=");
     });
 
-    let sql = `UPDATE "${item.name}" 
+    let sql = `UPDATE "${item.table}" 
                 SET ${assignments.join(",")} 
                 WHERE ${args.where} = ${placeholderId}::${args.whereType}
                 RETURNING *;`
@@ -171,6 +236,8 @@ export function remove(model, args={col: 'id', type:'integer', index:1}) {
  */
 
 export function transact(statements, args) {
+
+    console.log(statements, args);
 
     // zip params with datatypes
     let paramsTyped = args.cols.map(

@@ -17,6 +17,7 @@ import * as sessions from './sessions.queries.js';
 import * as surveyors from './surveyors.queries.js';
 import * as surveys from './surveys.queries.js';
 import * as surveySeasons from './survey_seasons.queries.js';
+import * as stations from './stations.queries.js';
 import * as defaults from '../queries.services.js';
 
 /**
@@ -29,6 +30,7 @@ export default {
     users: users,
     sessions: sessions,
     surveyors: surveyors,
+    surveys: surveys,
     surveySeasons: surveySeasons,
-    surveys: surveys
+    stations: stations
 };
