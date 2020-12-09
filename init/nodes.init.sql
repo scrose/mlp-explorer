@@ -1,7 +1,7 @@
 -- ----------------
 -- Node Types Table
 -- ----------------
--- id |       name
+-- id |       type
 -- ----+-------------------
 --  1 | projects
 --  2 | surveyors
@@ -15,25 +15,26 @@
 -- 10 | captures
 
 -- db reset >>> psql -U boutrous mlp2 < /Users/boutrous/Workspace/NodeJS/db/meat.sql
+-- db reset >>> psql -U boutrous mlp2 < /Users/boutrous/Workspace/NodeJS/mlp-db/meat.sql
 
 DROP TABLE IF EXISTS node_types;
 
-CREATE TABLE IF NOT EXISTS node_types (
+CREATE TABLE node_types (
 id serial PRIMARY KEY,
-name VARCHAR (40) UNIQUE NOT NULL,
+type VARCHAR (40) UNIQUE NOT NULL,
 label VARCHAR (40) NOT NULL
 );
 
-INSERT INTO node_types (name, label) VALUES ('projects', 'Project');
-INSERT INTO node_types (name, label) VALUES ('surveyors', 'Surveyor');
-INSERT INTO node_types (name, label) VALUES ('surveys', 'Survey');
-INSERT INTO node_types (name, label) VALUES ('survey_seasons', 'SurveySeason');
-INSERT INTO node_types (name, label) VALUES ('stations', 'Station');
-INSERT INTO node_types (name, label) VALUES ('historic_visits', 'HistoricVisit');
-INSERT INTO node_types (name, label) VALUES ('visits', 'Visit');
-INSERT INTO node_types (name, label) VALUES ('locations', 'Location');
-INSERT INTO node_types (name, label) VALUES ('historic_captures', 'HistoricCapture');
-INSERT INTO node_types (name, label) VALUES ('captures', 'Capture');
+INSERT INTO node_types (type, label) VALUES ('projects', 'Project');
+INSERT INTO node_types (type, label) VALUES ('surveyors', 'Surveyor');
+INSERT INTO node_types (type, label) VALUES ('surveys', 'Survey');
+INSERT INTO node_types (type, label) VALUES ('survey_seasons', 'SurveySeason');
+INSERT INTO node_types (type, label) VALUES ('stations', 'Station');
+INSERT INTO node_types (type, label) VALUES ('historic_visits', 'HistoricVisit');
+INSERT INTO node_types (type, label) VALUES ('visits', 'Visit');
+INSERT INTO node_types (type, label) VALUES ('locations', 'Location');
+INSERT INTO node_types (type, label) VALUES ('historic_captures', 'HistoricCapture');
+INSERT INTO node_types (type, label) VALUES ('captures', 'Capture');
 
 SELECT * FROM node_types;
 
@@ -48,13 +49,10 @@ CREATE TABLE IF NOT EXISTS nodes (
   owner_type VARCHAR (40) NOT NULL,
   dependent_id INT NOT NULL,
   dependent_type VARCHAR (40) NOT NULL,
-  unique (owner_id, owner_type, dependent_id, dependent_type),
-  CONSTRAINT fk_owner_type
-    FOREIGN KEY(owner_type)
-      REFERENCES node_types(name),
-  CONSTRAINT fk_dependent_type
-    FOREIGN KEY(dependent_type)
-      REFERENCES node_types(name)
+  UNIQUE (owner_id, owner_type, dependent_id, dependent_type),
+  CONSTRAINT ck_same_type CHECK (owner_type != dependent_type),
+  CONSTRAINT fk_owner_type FOREIGN KEY(owner_type) REFERENCES node_types(type),
+  CONSTRAINT fk_dependent_type FOREIGN KEY(dependent_type) REFERENCES node_types(type)
 );
 
 CREATE INDEX owner_index ON nodes (owner_id);
@@ -95,60 +93,124 @@ CREATE OR REPLACE FUNCTION rename_owner_types(_tbl regclass) RETURNS void LANGUA
                 -- look up node type name
                 SELECT * FROM node_types WHERE label = r.owner_type INTO node_type;
                 -- only proceed if update already done previously
-                IF node_type.name IS NOT NULL
+                IF node_type.type IS NOT NULL
                 THEN
                     RAISE NOTICE 'Node Type: %', node_type;
-                    EXECUTE format(E'UPDATE %I SET owner_type = \'%s\' WHERE id=%s', _tbl, node_type.name, r.id);
+                    EXECUTE format(E'UPDATE %I SET owner_type = \'%s\' WHERE id=%s', _tbl, node_type.type, r.id);
                 END IF;
         END LOOP;
     END $$;
 
--- create node mappings
+/**
+===========================
+Model schema updates
+===========================
+*/
+
 --    Projects (root owners)
+    SELECT setval('projects_id_seq', (SELECT MAX(id) FROM projects)+1);
+
+
 --    Surveyors (root owners)
     -- update id auto-increment
     SELECT setval('surveyors_id_seq', (SELECT MAX(id) FROM surveyors)+1);
 
+
 --    Surveys  (strictly owned by Surveyors)
     SELECT rename_column('surveys', 'surveyor_id', 'owner_id');
-    SELECT rename_column('stations', 'station_owner_type', 'owner_type');
+    SELECT setval('surveys_id_seq', (SELECT MAX(id) FROM surveys)+1);
+
+    -- Foreign key constraint
+    ALTER TABLE surveys DROP CONSTRAINT IF EXISTS fk_owner_id;
+    ALTER TABLE surveys ADD CONSTRAINT fk_owner_id FOREIGN KEY(owner_id) REFERENCES surveyors(id);
+
 --    Survey Seasons  (strictly owned by Surveys)
+    SELECT rename_column('survey_seasons', 'survey_id', 'owner_id');
+    SELECT setval('survey_seasons_id_seq', (SELECT MAX(id) FROM survey_seasons)+1);
+
+    -- Foreign key constraint
+    ALTER TABLE survey_seasons DROP CONSTRAINT IF EXISTS fk_owner_id;
+    ALTER TABLE survey_seasons ADD CONSTRAINT fk_owner_id FOREIGN KEY(owner_id) REFERENCES surveys(id);
+
+    -- Year constraint
+    ALTER TABLE survey_seasons DROP CONSTRAINT IF EXISTS check_year;
+    ALTER TABLE survey_seasons ADD CONSTRAINT check_year
+    CHECK (survey_seasons.year > 1700 AND survey_seasons.year <= EXTRACT(YEAR FROM NOW()));
+
+
 --    Stations
     SELECT rename_column('stations', 'station_owner_id', 'owner_id');
     SELECT rename_column('stations', 'station_owner_type', 'owner_type');
-    ALTER TABLE stations DROP CONSTRAINT IF EXISTS fk_owner;
+    SELECT rename_owner_types('stations');
+    SELECT setval('stations_id_seq', (SELECT MAX(id) FROM stations)+1);
+
 --     ALTER TABLE stations ADD CONSTRAINT fk_owner
 --         FOREIGN KEY(owner_id, owner_type)
 --         REFERENCES nodes(owner_id, owner_type);
-    SELECT rename_owner_types('stations');
+
+--    Map stations in nodes table
+--    insert into nodes (parent_id, parent_type_id, child_id, child_type_id)
+--      select parent_id, parent_type_id, id, (
+--        select id from node_types where name='surveys'
+--      ) from surveys;
+
+    -- Latitude/Longitude constraints
+--    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_latitude;
+--    ALTER TABLE stations ADD CONSTRAINT check_latitude
+--    CHECK (stations.lat ~* '^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$')
+--
+--    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_longitude;
+--    ALTER TABLE stations ADD CONSTRAINT check_longitude
+--    CHECK (stations.long ~* '^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$')
 
 --    Historic Visits (strictly owned by Stations)
+    SELECT rename_column('historic_visits', 'station_id', 'owner_id');
+    SELECT setval('historic_visits_id_seq', (SELECT MAX(id) FROM historic_visits)+1);
+
+
 --    Visits (strictly owned by Stations)
+    SELECT rename_column('visits', 'station_id', 'owner_id');
+    SELECT setval('visits_id_seq', (SELECT MAX(id) FROM visits)+1);
+
+
 --    Locations (strictly owned by Visits)
+    SELECT rename_column('locations', 'visit_id', 'owner_id');
+    SELECT setval('locations_id_seq', (SELECT MAX(id) FROM locations)+1);
+
 
 --    Historic Captures
     SELECT rename_column('historic_captures', 'capture_owner_id', 'owner_id');
     SELECT rename_column('historic_captures', 'capture_owner_type', 'owner_type');
-    ALTER TABLE historic_captures DROP CONSTRAINT IF EXISTS fk_owner;
---     ALTER TABLE historic_captures ADD CONSTRAINT fk_owner
+
+      -- Foreign key constraint
+--    ALTER TABLE historic_captures DROP CONSTRAINT IF EXISTS fk_owner;
+--    ALTER TABLE historic_captures ADD CONSTRAINT fk_owner
 --         FOREIGN KEY(owner_id, owner_type)
 --             REFERENCES nodes(owner_id, owner_type);
+
     SELECT rename_owner_types('historic_captures');
+    SELECT setval('historic_captures_id_seq', (SELECT MAX(id) FROM historic_captures)+1);
+
 
 --    Captures
     SELECT rename_column('captures', 'capture_owner_id', 'owner_id');
     SELECT rename_column('captures', 'capture_owner_type', 'owner_type');
     SELECT rename_owner_types('captures');
+    SELECT setval('captures_id_seq', (SELECT MAX(id) FROM captures)+1);
+
 
 --    Capture Images (owned by either Captures or Historic Captures)
     SELECT rename_column('capture_images', 'captureable_id', 'owner_id');
     SELECT rename_column('capture_images', 'captureable_type', 'owner_type');
     SELECT rename_owner_types('capture_images');
+    SELECT setval('capture_images_id_seq', (SELECT MAX(id) FROM capture_images)+1);
+
 
 --    Images
     SELECT rename_column('images', 'image_owner_id', 'owner_id');
     SELECT rename_column('images', 'image_owner_type', 'owner_type');
     SELECT rename_owner_types('images');
+    SELECT setval('images_id_seq', (SELECT MAX(id) FROM images)+1);
 
 --    Location Photos
 --    Image States

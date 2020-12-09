@@ -31,7 +31,7 @@ export function getAll(_) {
         return {
             sql:`SELECT *, surveyors.id AS id FROM surveyors 
                 LEFT JOIN surveys ON 
-                    surveys.surveyor_id = surveyors.id;`,
+                    surveys.owner_id = surveyors.id;`,
             data: []
         };
     }
@@ -48,7 +48,7 @@ export function getBySurvey(_) {
         return {
             sql:`SELECT * FROM surveyors
             LEFT OUTER JOIN surveys
-            ON surveys.surveyor_id = surveyors.id
+            ON surveys.owner_id = surveyors.id
             WHERE surveyors.id = $1::integer`,
             data: []
         };
@@ -70,11 +70,11 @@ export function update(model) {
  * Insert new surveyor. (Uses transaction)
  *
  * @param {Object} model
- * @return {Array} query functions
+ * @return {Function} query functions
  */
 
 export function insert(model) {
-    return [queries.insert(model)];
+    return queries.insert(model);
 }
 
 /**

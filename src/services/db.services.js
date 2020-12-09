@@ -71,10 +71,8 @@ export default function Services(model) {
      */
 
     this.insert = async function(item) {
-        // input item data into query functions
-        let statements = this.queries.insert.map(q => q(item));
-        console.log(statements)
-        return this.transact(statements);
+        let statement = this.queries.insert(item);
+        return await this.transact(statement, item, this.queries.attach);
     };
 
     /**
@@ -86,9 +84,8 @@ export default function Services(model) {
      */
 
     this.update = async function(item) {
-        let { sql, data } = this.queries.update(item);
-        console.log(sql, data);
-        return pool.query(sql, data);
+        let statement = this.queries.update(item);
+        return await this.transact(statement, item, this.queries.attach);
     };
 
     /**
@@ -99,9 +96,9 @@ export default function Services(model) {
      * @return {Promise} result
      */
 
-    this.remove = async function(id) {
-        let { sql, data } = this.queries.remove(id);
-        return pool.query(sql, data);
+    this.remove = async function(item) {
+        let statement = this.queries.remove(item);
+        return await this.transact(statement, item, this.queries.detach);
     };
 
     /**
@@ -118,27 +115,38 @@ export default function Services(model) {
     };
 
     /**
-     * Postgres transaction.
+     * Perform transaction.
      *
-     * @param {Array} statements
+     * @param {Object} statement
+     * @param {Object} item
+     * @param {Object} attachment
      * @return {Promise} db response
      */
 
-    this.transact = async function(statements) {
-        // note: we don't try/catch this because if connecting throws
-        // an exception
-        // we don't need to dispose of the client (it will be undefined)
+    this.transact = async function(statement, item, attachment=null) {
+
+        // NOTE: client undefined if connection fails.
         const client = await pool.connect();
+
         try {
             await client.query('BEGIN');
-            let res = await Promise.all(statements.map(async (s) => {
-                return await client.query(s.sql, s.data);
-            }));
+
+            // insert record and record returned ID value
+            let res = await client.query(statement.sql, statement.data);
+            item.setValue('id', res.rows[0].id);
+
+            // attach/detach node to/from owner (if given)
+            if (attachment) {
+                let attachStatement = attachment(item);
+                let n = await client.query(attachStatement.sql, attachStatement.data);
+                console.log(n)
+            }
+
             await client.query('COMMIT');
             return res;
-        } catch (e) {
+        } catch (err) {
             await client.query('ROLLBACK');
-            throw e;
+            throw err;
         } finally {
             client.release();
         }

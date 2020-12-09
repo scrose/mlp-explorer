@@ -11,6 +11,9 @@ import * as queries from '../queries.services.js';
 
 /**
  * Find station by ID.
+ *
+ * @param {Object} model
+ * @return {Function} query binding function
  */
 
 export function select(model) {
@@ -19,6 +22,8 @@ export function select(model) {
 
 /**
  * Find all stations.
+ *
+ * @return {Function} query binding function
  */
 
 export function getAll(_) {
@@ -32,16 +37,19 @@ export function getAll(_) {
 
 /**
  * Find stations by owner.
+ *
+ * @param {Object} owner
+ * @return {Function} query binding function
  */
 
-export function getByOwner(owner, owner_id) {
+export function getByOwner(owner) {
     return function () {
         return {
             sql:`SELECT * FROM stations
             LEFT OUTER JOIN surveyors
-            ON stations.owner_id = ${owner}.id
+            ON stations.owner_id = ${owner.name}.id
             WHERE ${owner}.id = $1::integer`,
-            data: [owner_id]
+            data: [owner.id]
         };
     }
 }
@@ -56,6 +64,9 @@ export function update(model) {
 
 /**
  * Insert new station.
+ *
+ * @param {Object} model
+ * @return {Function} query binding function
  */
 
 export function insert(model) {
@@ -64,9 +75,32 @@ export function insert(model) {
 
 /**
  * Delete station.
+ *
+ * @param {Object} model
+ * @return {Function} query binding function
  */
 
 export function remove(model) {
     return queries.remove(model);
+}
+
+/**
+ * Attach station to owner.
+ *
+ * @return {Function} query binding function
+ */
+
+export function attach() {
+    return queries.attach();
+}
+
+/**
+ * Detach station from owner.
+ *
+ * @return {Function} query binding function
+ */
+
+export function detach() {
+    return queries.detach();
 }
 

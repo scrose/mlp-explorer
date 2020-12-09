@@ -150,10 +150,11 @@ export default function Controller(modelRoute) {
      */
 
     this.create = async (req, res, next) => {
+
         let item;
         try {
-            console.log(req.body)
             item = new Model(req.body);
+            console.log('in controller', item, Model)
         } catch (err) {
             next(err);
         }
@@ -165,7 +166,8 @@ export default function Controller(modelRoute) {
                 if (data.length === 0)
                     throw new Error('notadded');
                 // retrieve last response data
-                res.locals.data = data[data.length - 1].rows[0];
+                console.log(data)
+                res.locals.data = data.rows[0];
                 res.message(`Added item to ${item.label}.`, 'success');
                 res.status(200).json(res.locals);
             })
@@ -253,8 +255,19 @@ export default function Controller(modelRoute) {
 
     this.drop = async (req, res, next) => {
         let id = this.getId(req.params);
+
+        // retrieve item
+        let item = await services
+            .select(id)
+            .then((data) => {
+                if (data.rows.length === 0) throw new Error('norecord');
+                return new Model(data.rows[0]);
+            })
+            .catch((err) => next(err));
+
+        // delete item
         await services
-            .remove(id)
+            .remove(item)
             .then((data) => {
                 if (data.rows.length === 0) throw new Error('noitem');
                 res.locals.data = data.rows[0];

@@ -16,12 +16,12 @@
  */
 
 export function getAll(model) {
-    return function () {
+    return function() {
         return {
             sql: `SELECT * FROM ${model.table};`,
-            data: []
-        }
-    }
+            data: [],
+        };
+    };
 }
 
 /**
@@ -33,16 +33,16 @@ export function getAll(model) {
  * @public
  */
 
-export function select(model, args={col: 'id', type:'integer'}) {
-    return function (id) {
+export function select(model, args = { col: 'id', type: 'integer' }) {
+    return function(id) {
         let sql = `SELECT * 
                 FROM ${model.table} 
                 WHERE ${args.col} = $1::${args.type};`;
         return {
             sql: sql,
-            data: [id]
-        }
-    }
+            data: [id],
+        };
+    };
 }
 
 /**
@@ -54,8 +54,8 @@ export function select(model, args={col: 'id', type:'integer'}) {
  * @public
  */
 
-export function find(model,args={col: 'owner_id', owner:null}) {
-    return function (id) {
+export function find(model, args = { col: 'owner_id', owner: null }) {
+    return function(id) {
         let sql = `SELECT * 
                 FROM ${model.table} 
                 LEFT OUTER JOIN ${args.owner} 
@@ -63,9 +63,9 @@ export function find(model,args={col: 'owner_id', owner:null}) {
         console.log(sql, id);
         return {
             sql: sql,
-            data: [id]
-        }
-    }
+            data: [id],
+        };
+    };
 }
 
 /**
@@ -79,13 +79,14 @@ export function find(model,args={col: 'owner_id', owner:null}) {
 
 export function insert(
     item,
-    args={
+    args = {
         where: null,
-        whereType:null,
-        index:1,
+        whereType: null,
+        index: 1,
         ignore: ['id'],
-        timestamps: ['created_at', 'updated_at']}
-    ) {
+        timestamps: ['created_at', 'updated_at'],
+    },
+) {
 
     // nullify where arguments
     args.where = null;
@@ -94,60 +95,26 @@ export function insert(
     // get columns and prepared value placeholders
     const cols = Object
         .keys(item.fields)
-        .filter((key) => {return !args.ignore.includes(key)});
+        .filter((key) => {
+            return !args.ignore.includes(key);
+        });
     const vals = cols.map(function(key, _) {
         let placeholder = args.timestamps.includes(key) ? `NOW()` : `$${args.index++}`;
         return `${placeholder}::${item.fields[key].type}`;
     });
 
-    let sql = `INSERT INTO ${item.table} (${cols.join(",")})
-                        VALUES (${vals.join(",")})
+    let sql = `INSERT INTO ${item.table} (${cols.join(',')})
+                        VALUES (${vals.join(',')})
                         RETURNING *;`;
 
     // return query function
-    return function (item) {
+    return function(item) {
         // collate data as value array
         return {
             sql: sql,
             data: collate(item, args),
-            index: args.index
         };
-    }
-}
-
-/**
- * Generate query: Insert new nodes record.
- *
- * @return {Function} query binding function
- * @public
- */
-
-export function insertNode(_) {
-
-    // get columns and prepared value placeholders
-    let sql = `INSERT INTO nodes (
-                   owner_id, 
-                   owner_type, 
-                   dependent_id, 
-                   dependent_type)
-                  VALUES (
-                    $1::integer, 
-                    $2::varchar, 
-                    $3::integer, 
-                    $4::varchar)
-                  RETURNING *;`;
-
-    // return query function
-    return function (args={
-        owner_id: null,
-        owner_type:null,
-        dependent_id:null,
-        dependent_type: null}) {
-        return {
-            sql: sql,
-            data: [args.owner_id, args.owner_type, args.dependent_id, args.dependent_type]
-        };
-    }
+    };
 }
 
 /**
@@ -155,19 +122,19 @@ export function insertNode(_) {
  *
  * @param {Object} item
  * @param {Object} args
- * @return {function(*): {data: Array, index: number, sql: string}} sql query
+ * @return {Function} sql query
  * @public
  */
 
 export function update(
     item,
-    args={
+    args = {
         where: 'id',
-        whereType:'integer',
+        whereType: 'integer',
         index: 1,
         ignore: ['id'],
-        timestamps: ['created_at', 'updated_at']
-    }
+        timestamps: ['created_at', 'updated_at'],
+    },
 ) {
 
     // reserve first placeholder index for id value
@@ -176,25 +143,26 @@ export function update(
     // zip values with column names
     const cols = Object
         .keys(item.fields)
-        .filter((key) => {return !args.ignore.includes(key)});
+        .filter((key) => {
+            return !args.ignore.includes(key);
+        });
     const assignments = cols.map(function(key, index) {
         const placeholder = args.timestamps.includes(key) ? `NOW()` : `$${args.index++}`;
-        return [cols[index], `${placeholder}::${item.fields[key].type}`].join("=");
+        return [cols[index], `${placeholder}::${item.fields[key].type}`].join('=');
     });
 
     let sql = `UPDATE "${item.table}" 
-                SET ${assignments.join(",")} 
+                SET ${assignments.join(',')} 
                 WHERE ${args.where} = ${placeholderId}::${args.whereType}
-                RETURNING *;`
+                RETURNING *;`;
 
     // return query function
-    return function (item) {
+    return function(item) {
         return {
-            sql:sql,
+            sql: sql,
             data: collate(item, args),
-            index:args.index
         };
-    }
+    };
 }
 
 /**
@@ -206,15 +174,99 @@ export function update(
  * @public
  */
 
-export function remove(model, args={col: 'id', type:'integer', index:1}) {
-    return function (id) {
+export function remove(model, args = { col: 'id', type: 'integer', index: 1 }) {
+    return function(item) {
+        let data = item.getData();
         return {
             sql: `DELETE FROM ${model.table} 
             WHERE ${args.col} = $${args.index++}::${args.type}
             RETURNING *;`,
-            data: [id]
-        }
-    }
+            data: [data.id],
+        };
+    };
+}
+
+/**
+ * Generate query: Attach node to owner as new nodes record.
+ *
+ * @param {String} ownerTypeConst
+ * @return {Function} query binding function
+ * @public
+ */
+
+export function attach(ownerTypeConst = null) {
+
+    // get columns and prepared value placeholders
+    let sql = `INSERT INTO nodes (owner_id,
+                                  owner_type,
+                                  dependent_id,
+                                  dependent_type)
+               VALUES ($1::integer,
+                       $2::varchar,
+                       $3::integer,
+                       $4::varchar)
+               ON CONFLICT (owner_id, owner_type, dependent_id, dependent_type)
+                   DO UPDATE
+                   SET owner_id       = $1::integer,
+                       owner_type     = $2::varchar,
+                       dependent_id   = $3::integer,
+                       dependent_type = $4::varchar
+               RETURNING *;`;
+
+    // return query function
+    return function(item) {
+        let data = item.getData();
+
+        // check that item has defined owner ID
+        if (!data.hasOwnProperty('owner_id'))
+            throw Error('nodetype');
+
+        // use predefined or item owner type
+        let ownerType = ownerTypeConst || data.owner_type;
+
+        return {
+            sql: sql,
+            data: [data.owner_id, ownerType, data.id, item.table],
+        };
+    };
+}
+
+/**
+ * Generate query: Detach (delete) node from owner.
+ *
+ * @param {String} ownerTypeConst
+ * @return {Function} query binding function
+ * @public
+ */
+
+export function detach(ownerTypeConst = null) {
+
+    // get columns and prepared value placeholders
+    let sql = `DELETE
+               FROM nodes
+               WHERE 
+                owner_id = $1::integer AND
+                owner_type = $2::varchar AND
+                dependent_id = $3::integer AND
+                dependent_type = $4::varchar
+               RETURNING *;`;
+
+    // return query function
+    return function(item) {
+        let data = item.getData();
+
+        // check that item has defined owner ID
+        if (!data.hasOwnProperty('owner_id'))
+            throw Error('nodetype');
+
+        // use predefined or item owner type
+        let ownerType = ownerTypeConst || data.owner_type;
+
+        return {
+            sql: sql,
+            data: [data.owner_id, ownerType, data.id, item.table],
+        };
+    };
 }
 
 /**
@@ -227,20 +279,20 @@ export function remove(model, args={col: 'id', type:'integer', index:1}) {
 
 function collate(
     item,
-    args={
+    args = {
         where: null,
         whereType: null,
-        ignore:[],
-        timestamps: ['created_at', 'updated_at']
+        ignore: [],
+        timestamps: ['created_at', 'updated_at'],
     }) {
 
     // reserve first position for item ID (given where condition)
     let data = args.where ? [item.fields[args.where].value] : [];
 
-    console.log(data, item)
+    console.log(data, item);
 
     // filter input data to match insert/update parameters
-    data.push(... Object.keys(item.fields)
+    data.push(...Object.keys(item.fields)
         .filter((key) => {
             // filter ignored and timestamp fields
             return !args.ignore.includes(key)

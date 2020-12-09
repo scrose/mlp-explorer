@@ -31,13 +31,13 @@ let mockItems = {
     },
     surveys: {
         id: null,
-        surveyor_id: 16,
+        owner_id: 16,
         name: 'Some Name',
         historical_map_sheet: 'Historical Map Sheet',
     },
     surveySeasons: {
         id: null,
-        survey_id: 16,
+        owner_id: 16,
         year: 1933,
         geographic_coverage: 'TEST',
         record_id: 0,
@@ -50,10 +50,12 @@ let mockItems = {
         notes: 'TEST'
     },
     stations: {
+        owner_id: 40,
+        owner_type: 'survey_seasons',
         name: 'TEST',
-        lat: 'TEST',
-        long: 'TEST',
-        elevation: 'TEST',
+        lat: 100.1,
+        long: 100.1,
+        elevation: 100.1,
         nts_sheet: 'TEST',
         published: false
     }

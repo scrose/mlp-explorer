@@ -31,7 +31,7 @@ export function getAll(_) {
         return {
             sql:`SELECT * FROM surveys 
                 LEFT OUTER JOIN surveyors ON 
-                    surveys.surveyor_id = surveyors.id;`,
+                    surveys.owner_id = surveyors.id;`,
             data: []
         };
     }
@@ -48,7 +48,7 @@ export function getBySurveyor(_) {
         return {
             sql:`SELECT * FROM surveys
             LEFT OUTER JOIN surveyors
-            ON surveys.surveyor_id = surveyors.id
+            ON surveys.owner_id = surveyors.id
             WHERE surveyors.id = $1::integer`,
             data: [id]
         };
@@ -59,7 +59,7 @@ export function getBySurveyor(_) {
  * Update survey data.
  *
  * @param {Object} model
- * @return {Function} SQL query function
+ * @return {Function} query binding function
  */
 
 export function update(model) {
@@ -70,26 +70,41 @@ export function update(model) {
  * Insert new survey.
  *
  * @param {Object} model
- * @return {Array} SQL statement array
+ * @return {Function} query binding function
  */
 
 export function insert(model) {
-    return [
-        queries.insertNode({
-
-        }),
-        queries.insert(model)
-    ];
+    return queries.insert(model);
 }
 
 /**
  * Delete survey.
  *
  * @param {Object} model
- * @return {Object} SQL statement array
+ * @return {Function} query binding function
  */
 
 export function remove(model) {
     return queries.remove(model);
+}
+
+/**
+ * Attach survey to surveyor.
+ *
+ * @return {Object} SQL statement array
+ */
+
+export function attach() {
+    return queries.attach('surveyors');
+}
+
+/**
+ * Detach survey to surveyor.
+ *
+ * @return {Object} SQL statement array
+ */
+
+export function detach() {
+    return queries.detach('surveyors');
 }
 

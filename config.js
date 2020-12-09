@@ -24,7 +24,7 @@ let settings = {
         surveys: {},
         surveySeasons: {},
         stations: {},
-        // visits: {},
+        visits: {},
         // locations: {},
         // captures: {},
         // images: {}
