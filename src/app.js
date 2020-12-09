@@ -13,8 +13,8 @@
  */
 
 import express from 'express';
+import helmet from 'helmet';
 import cors from 'cors';
-import methodOverride from 'method-override';
 import session from 'express-session';
 import { genUUID } from './lib/secure.utils.js';
 import SessionStore from './models/session.models.js';
@@ -31,10 +31,25 @@ import router from './routes/index.routes.js';
 const app = express();
 
 /**
+ * Express Security Middleware
+ *
  * Hide Express usage information from public.
+ * Use Helmet for security HTTP headers
+ * - Strict-Transport-Security enforces secure (HTTP over SSL/TLS)
+ *   connections to the server
+ * - X-Frame-Options provides clickjacking protection
+ * - X-XSS-Protection enables the Cross-site scripting (XSS)
+ *   filter built into most recent web browsers
+ * - X-Content-Type-Options prevents browsers from MIME-sniffing
+ *   a response away from the declared content-type
+ *   Content-Security-Policy prevents a wide range of attacks,
+ *   including Cross-site scripting and other cross-site injections
+ *
+ *   Online checker: http://cyh.herokuapp.com/cyh.
  */
 
 app.disable('x-powered-by');
+app.use(helmet());
 
 /**
  * Define the views parameters:
@@ -71,6 +86,7 @@ app.use(
 
 /**
  * Generate session.
+ * TODO: ensure secure is set to true for production server.
  */
 
 app.use(
@@ -85,6 +101,7 @@ app.use(
         // 'Time-to-live' in milliseconds
         maxAge: 1000 * config.ttl,
         cookie: {
+            HttpOnly: true,
             secure: false,
             sameSite: true,
             maxAge: 1000 * config.ttl,
@@ -128,12 +145,6 @@ app.use(express.static('./public'));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-/**
- * Allow overriding methods in query (?_method=put)
- */
-
-app.use(methodOverride('_method'));
 
 /**
  * Define view parameters for template rendering (middleware)

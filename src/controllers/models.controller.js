@@ -150,7 +150,6 @@ export default function Controller(modelRoute) {
      */
 
     this.create = async (req, res, next) => {
-
         let item;
         try {
             item = new Model(req.body);
@@ -166,7 +165,7 @@ export default function Controller(modelRoute) {
                 if (data.length === 0)
                     throw new Error('notadded');
                 // retrieve last response data
-                console.log(data)
+                console.log('Now INSERTED: ', data)
                 res.locals.data = data.rows[0];
                 res.message(`Added item to ${item.label}.`, 'success');
                 res.status(200).json(res.locals);

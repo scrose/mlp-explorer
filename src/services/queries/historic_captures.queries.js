@@ -1,6 +1,6 @@
 /*!
- * MLP.API.Services.Queries.Visits
- * File: visits.queries.js
+ * MLP.API.Services.Queries.HistoricCaptures
+ * File: historic_captures.queries.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -10,7 +10,7 @@
 import * as queries from '../queries.services.js';
 
 /**
- * Find visit by ID.
+ * Find historic capture by ID.
  *
  * @param {Object} model
  * @return {Function} query binding function
@@ -21,7 +21,7 @@ export function select(model) {
 }
 
 /**
- * Find all visits.
+ * Find all historic captures.
  *
  * @return {Function} query binding function
  */
@@ -31,25 +31,25 @@ export function getAll(model) {
 }
 
 /**
- * Find visits by station.
+ * Find historic captures by owner.
  *
- * @param {int} station_id
+ * @param {Object} owner
  * @return {Function} query binding function
  */
 
-export function getByStation(station_id) {
+export function getByOwner(owner) {
     return function () {
         return {
-            sql:`SELECT * FROM visits
-            LEFT OUTER JOIN stations
-            ON visits.owner_id = $1::integer`,
-            data: [station_id]
+            sql:`SELECT * FROM historic_captures
+            LEFT OUTER JOIN ${owner.table}
+            ON historic_captures.owner_id = ${owner.table}.id`,
+            data: [owner.id]
         };
     }
 }
 
 /**
- * Update visit data.
+ * Update historic capture data.
  */
 
 export function update(model) {
@@ -57,7 +57,7 @@ export function update(model) {
 }
 
 /**
- * Insert new visit.
+ * Insert new historic capture.
  *
  * @param {Object} model
  * @return {Function} query binding function
@@ -68,7 +68,7 @@ export function insert(model) {
 }
 
 /**
- * Delete visit.
+ * Delete historic capture.
  *
  * @param {Object} model
  * @return {Function} query binding function
@@ -79,22 +79,22 @@ export function remove(model) {
 }
 
 /**
- * Attach visit to station.
+ * Attach historic capture to owner.
  *
  * @return {Function} query binding function
  */
 
 export function attach() {
-    return queries.attach('stations');
+    return queries.attach();
 }
 
 /**
- * Detach visit from station.
+ * Detach historic capture from owner.
  *
  * @return {Function} query binding function
  */
 
 export function detach() {
-    return queries.detach('stations');
+    return queries.detach();
 }
 

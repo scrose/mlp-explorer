@@ -48,8 +48,7 @@ export function getBySurveyor(_) {
         return {
             sql:`SELECT * FROM surveys
             LEFT OUTER JOIN surveyors
-            ON surveys.owner_id = surveyors.id
-            WHERE surveyors.id = $1::integer`,
+            ON surveys.owner_id = surveyors.id`,
             data: [id]
         };
     }

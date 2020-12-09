@@ -1,6 +1,6 @@
 /*!
- * MLP.API.Services.Queries.Visits
- * File: visits.queries.js
+ * MLP.API.Services.Queries.Captures
+ * File: captures.queries.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -10,7 +10,7 @@
 import * as queries from '../queries.services.js';
 
 /**
- * Find visit by ID.
+ * Find capture by ID.
  *
  * @param {Object} model
  * @return {Function} query binding function
@@ -21,7 +21,7 @@ export function select(model) {
 }
 
 /**
- * Find all visits.
+ * Find all captures.
  *
  * @return {Function} query binding function
  */
@@ -31,25 +31,18 @@ export function getAll(model) {
 }
 
 /**
- * Find visits by station.
+ * Find captures by owner.
  *
- * @param {int} station_id
+ * @param {Object} owner
  * @return {Function} query binding function
  */
 
-export function getByStation(station_id) {
-    return function () {
-        return {
-            sql:`SELECT * FROM visits
-            LEFT OUTER JOIN stations
-            ON visits.owner_id = $1::integer`,
-            data: [station_id]
-        };
-    }
+export function getByOwner(owner) {
+    return queries.findByOwner(model);
 }
 
 /**
- * Update visit data.
+ * Update capture data.
  */
 
 export function update(model) {
@@ -57,7 +50,7 @@ export function update(model) {
 }
 
 /**
- * Insert new visit.
+ * Insert new capture.
  *
  * @param {Object} model
  * @return {Function} query binding function
@@ -68,7 +61,7 @@ export function insert(model) {
 }
 
 /**
- * Delete visit.
+ * Delete capture.
  *
  * @param {Object} model
  * @return {Function} query binding function
@@ -79,22 +72,22 @@ export function remove(model) {
 }
 
 /**
- * Attach visit to station.
+ * Attach capture to owner.
  *
  * @return {Function} query binding function
  */
 
 export function attach() {
-    return queries.attach('stations');
+    return queries.attach();
 }
 
 /**
- * Detach visit from station.
+ * Detach capture from owner.
  *
  * @return {Function} query binding function
  */
 
 export function detach() {
-    return queries.detach('stations');
+    return queries.detach();
 }
 

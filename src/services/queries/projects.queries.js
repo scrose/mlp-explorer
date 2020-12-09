@@ -1,6 +1,6 @@
 /*!
- * MLP.API.Services.Queries.Surveyors
- * File: surveyors.queries.js
+ * MLP.API.Services.Queries.Projects
+ * File: projects.queries.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -10,7 +10,7 @@
 import * as queries from '../queries.services.js';
 
 /**
- * Find surveyor by ID.
+ * Find project by ID.
  *
  * @param {Object} model
  * @return {Function} query function
@@ -21,7 +21,7 @@ export function select(model) {
 }
 
 /**
- * Find all surveyors. Joined with surveys table.
+ * Find all projects. Joined with surveys table.
  *
  *  @return {Function} query function
  */
@@ -29,34 +29,34 @@ export function select(model) {
 export function getAll(_) {
     return function () {
         return {
-            sql:`SELECT *, surveyors.id AS id FROM surveyors 
+            sql:`SELECT *, projects.id AS id FROM projects 
                 LEFT JOIN surveys ON 
-                    surveys.owner_id = surveyors.id;`,
+                    surveys.owner_id = projects.id;`,
             data: []
         };
     }
 }
 
 /**
- * Find surveyors by survey. Joined with surveys table.
+ * Find projects by station. Joined with stations table.
  *
  * @return {Function} query function
  */
 
-export function getBySurvey(_) {
-    return function (survey_id) {
+export function getByStation(_) {
+    return function (station_id) {
         return {
-            sql:`SELECT * FROM surveyors
-            LEFT OUTER JOIN surveys
-            ON surveys.owner_id = surveyors.id
-            WHERE surveys.id = $1::integer`,
-            data: [survey_id]
+            sql:`SELECT * FROM projects
+            LEFT OUTER JOIN stations
+            ON stations.owner_id = projects.id
+            WHERE stations.id = $1::integer`,
+            data: [station_id]
         };
     }
 }
 
 /**
- * Update surveyor data.
+ * Update project data.
  *
  * @param {Object} model
  * @return {Function} query function
@@ -67,7 +67,7 @@ export function update(model) {
 }
 
 /**
- * Insert new surveyor. (Uses transaction)
+ * Insert new project. (Uses transaction)
  *
  * @param {Object} model
  * @return {Function} query functions
@@ -78,7 +78,7 @@ export function insert(model) {
 }
 
 /**
- * Delete surveyor.
+ * Delete project.
  *
  * @param {Object} model
  * @return {Function} query function

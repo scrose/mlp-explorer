@@ -49,21 +49,48 @@ export function select(model, args = { col: 'id', type: 'integer' }) {
  * Generate query: Find records by owner type.
  *
  * @param {Object} model
- * @param {Object} args
- * @return {Function} query
+ * @return {Function} query function
  * @public
  */
 
-export function find(model, args = { col: 'owner_id', owner: null }) {
-    return function(id) {
+export function findByOwner(model) {
+    return function(owner_id, owner_type) {
         let sql = `SELECT * 
                 FROM ${model.table} 
-                LEFT OUTER JOIN ${args.owner} 
-                ON ${model.table}.${args.col} = ${args.owner}.id`;
-        console.log(sql, id);
+                LEFT OUTER JOIN ${owner_type} 
+                ON ${model.table}.owner_id = ${owner_id} 
+                       AND ${model.table}.owner_type = ${owner_type}`;
         return {
             sql: sql,
-            data: [id],
+            data: [owner_id, owner_type],
+        };
+    };
+}
+
+/**
+ * Generate query: Find records by attribute.
+ *
+ * @param {Object} model
+ * @param {String} col
+ * @return {Function} query function
+ * @public
+ */
+
+export function find(model, col) {
+
+    // check that attribute exists in model
+    if (!model.fields.hasOwnProperty(col))
+        throw Error('sql')
+
+    let attr = model.fields[col];
+
+    return function(value) {
+        let sql = `SELECT * 
+                FROM ${model.table} 
+                WHERE ${col} = ${value}::${attr.type}`;
+        return {
+            sql: sql,
+            data: [value],
         };
     };
 }
@@ -110,9 +137,10 @@ export function insert(
     // return query function
     return function(item) {
         // collate data as value array
+        console.log('here!!', item)
         return {
             sql: sql,
-            data: collate(item, args),
+            data: _collate(item, args),
         };
     };
 }
@@ -160,7 +188,7 @@ export function update(
     return function(item) {
         return {
             sql: sql,
-            data: collate(item, args),
+            data: _collate(item, args),
         };
     };
 }
@@ -217,9 +245,13 @@ export function attach(ownerTypeConst = null) {
     return function(item) {
         let data = item.getData();
 
-        // check that item has defined owner ID
+        // check for defined owner ID
         if (!data.hasOwnProperty('owner_id'))
-            throw Error('nodetype');
+            throw Error('missingNodeId');
+
+        // check for defined owner type
+        if (!data.hasOwnProperty('owner_type') && !ownerTypeConst)
+            throw Error('missingNodeType');
 
         // use predefined or item owner type
         let ownerType = ownerTypeConst || data.owner_type;
@@ -270,14 +302,14 @@ export function detach(ownerTypeConst = null) {
 }
 
 /**
- * Collate item data as array of values for prepared sql.
+ * Helper Method: Collate item data as array of values for prepared sql.
  *
  * @param {Object} item
  * @param {Object} args
  * @return {Array} collated model data
  */
 
-function collate(
+function _collate(
     item,
     args = {
         where: null,

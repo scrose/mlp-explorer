@@ -1,6 +1,6 @@
 /*!
- * MLP.API.Services.Queries.Visits
- * File: visits.queries.js
+ * MLP.API.Services.Queries.Locations
+ * File: locations.queries.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -10,7 +10,7 @@
 import * as queries from '../queries.services.js';
 
 /**
- * Find visit by ID.
+ * Find location by ID.
  *
  * @param {Object} model
  * @return {Function} query binding function
@@ -21,7 +21,7 @@ export function select(model) {
 }
 
 /**
- * Find all visits.
+ * Find all locations.
  *
  * @return {Function} query binding function
  */
@@ -31,25 +31,25 @@ export function getAll(model) {
 }
 
 /**
- * Find visits by station.
+ * Find locations by visit.
  *
- * @param {int} station_id
+ * @param {int} visit_id
  * @return {Function} query binding function
  */
 
-export function getByStation(station_id) {
+export function getByVisit(visit_id) {
     return function () {
         return {
-            sql:`SELECT * FROM visits
-            LEFT OUTER JOIN stations
-            ON visits.owner_id = $1::integer`,
-            data: [station_id]
+            sql:`SELECT * FROM locations
+            LEFT OUTER JOIN visits
+            ON locations.owner_id = $1::integer`,
+            data: [visit_id]
         };
     }
 }
 
 /**
- * Update visit data.
+ * Update location data.
  */
 
 export function update(model) {
@@ -57,7 +57,7 @@ export function update(model) {
 }
 
 /**
- * Insert new visit.
+ * Insert new location.
  *
  * @param {Object} model
  * @return {Function} query binding function
@@ -68,7 +68,7 @@ export function insert(model) {
 }
 
 /**
- * Delete visit.
+ * Delete location.
  *
  * @param {Object} model
  * @return {Function} query binding function
@@ -79,7 +79,7 @@ export function remove(model) {
 }
 
 /**
- * Attach visit to station.
+ * Attach location to visit.
  *
  * @return {Function} query binding function
  */
@@ -89,7 +89,7 @@ export function attach() {
 }
 
 /**
- * Detach visit from station.
+ * Detach location from visit.
  *
  * @return {Function} query binding function
  */

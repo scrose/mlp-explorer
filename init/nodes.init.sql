@@ -177,6 +177,14 @@ Model schema updates
     SELECT rename_column('locations', 'visit_id', 'owner_id');
     SELECT setval('locations_id_seq', (SELECT MAX(id) FROM locations)+1);
 
+-- Latitude/Longitude constraints
+--    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_latitude;
+--    ALTER TABLE stations ADD CONSTRAINT check_latitude
+--    CHECK (stations.lat ~* '^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$')
+--
+--    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_longitude;
+--    ALTER TABLE stations ADD CONSTRAINT check_longitude
+--    CHECK (stations.long ~* '^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$')
 
 --    Historic Captures
     SELECT rename_column('historic_captures', 'capture_owner_id', 'owner_id');
@@ -204,6 +212,10 @@ Model schema updates
     SELECT rename_column('capture_images', 'captureable_type', 'owner_type');
     SELECT rename_owner_types('capture_images');
     SELECT setval('capture_images_id_seq', (SELECT MAX(id) FROM capture_images)+1);
+
+--    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_capture_type;
+--    ALTER TABLE stations ADD CONSTRAINT check_capture_type
+--    CHECK (capture_images.owner_type = ANY (ARRAY['captures', 'historic_captures']);)
 
 
 --    Images

@@ -1,5 +1,5 @@
 /*!
- * MLP.API.Services.SurveySeasons
+ * MLP.API.Services.Queries.SurveySeasons
  * File: survey_seasons.queries.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed

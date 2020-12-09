@@ -35,12 +35,13 @@
     "uuid": "^8.3.1"
   },
   "devDependencies": {
-    "chai-http": "^4.3.0",
     "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
     "cors": "^2.8.5",
     "coveralls": "^3.1.0",
     "debug": "~2.6.9",
     "formidable": "^1.2.2",
+    "helmet": "^4.2.0",
     "method-override": "^3.0.0",
     "mocha": "^8.2.1",
     "nodemon": "^2.0.4",

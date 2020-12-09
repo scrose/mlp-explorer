@@ -1,6 +1,6 @@
 /*!
- * MLP.API.Services.Queries.Visits
- * File: visits.queries.js
+ * MLP.API.Services.Queries.HistoricVisits
+ * File: historic_visits.queries.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -10,7 +10,7 @@
 import * as queries from '../queries.services.js';
 
 /**
- * Find visit by ID.
+ * Find historic visit by ID.
  *
  * @param {Object} model
  * @return {Function} query binding function
@@ -21,7 +21,7 @@ export function select(model) {
 }
 
 /**
- * Find all visits.
+ * Find all historic visits.
  *
  * @return {Function} query binding function
  */
@@ -31,7 +31,7 @@ export function getAll(model) {
 }
 
 /**
- * Find visits by station.
+ * Find historic visits by station.
  *
  * @param {int} station_id
  * @return {Function} query binding function
@@ -40,7 +40,7 @@ export function getAll(model) {
 export function getByStation(station_id) {
     return function () {
         return {
-            sql:`SELECT * FROM visits
+            sql:`SELECT * FROM historic_visits
             LEFT OUTER JOIN stations
             ON visits.owner_id = $1::integer`,
             data: [station_id]
@@ -49,7 +49,7 @@ export function getByStation(station_id) {
 }
 
 /**
- * Update visit data.
+ * Update historic visit data.
  */
 
 export function update(model) {
@@ -57,7 +57,7 @@ export function update(model) {
 }
 
 /**
- * Insert new visit.
+ * Insert new historic visit.
  *
  * @param {Object} model
  * @return {Function} query binding function
@@ -68,7 +68,7 @@ export function insert(model) {
 }
 
 /**
- * Delete visit.
+ * Delete historic visit.
  *
  * @param {Object} model
  * @return {Function} query binding function
@@ -79,7 +79,7 @@ export function remove(model) {
 }
 
 /**
- * Attach visit to station.
+ * Attach historic visit to station.
  *
  * @return {Function} query binding function
  */
@@ -89,7 +89,7 @@ export function attach() {
 }
 
 /**
- * Detach visit from station.
+ * Detach historic visit from station.
  *
  * @return {Function} query binding function
  */

@@ -145,9 +145,13 @@ export const create = async (table) => {
 function setData(data=null) {
     const self = this;
     if (typeof data === 'object' && data !== null) {
+        // select either first row of data array or single data object
         const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
         Object.entries(inputData).forEach(([key, value]) => {
-            if (!self.fields.hasOwnProperty(key)) throw Error('schema');
+            console.log(key, value)
+            // check that field exists in model
+            if (!self.fields.hasOwnProperty(key)) throw Error('violatesSchema');
+            // TODO: check that field is correct type
             self.fields[key].value = sanitize(value, self.fields[key].type);
         });
     } else {

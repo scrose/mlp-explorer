@@ -55,6 +55,7 @@ export const init = async (req, res, next) => {
  * @param {Request} req
  * @param {Response} res
  * @param {Function} next
+ * @method get
  * @src public
  */
 export const list = async (req, res, next) => {
@@ -74,6 +75,7 @@ export const list = async (req, res, next) => {
  * @param {Request} req
  * @param {Response} res
  * @param {Function} next
+ * @method get
  * @src public
  */
 
@@ -93,6 +95,7 @@ export const show = async (req, res, next) => {
  * @param {Request} req
  * @param {Response} res
  * @param {Function} next
+ * @method get
  * @src public
  */
 
@@ -113,6 +116,7 @@ export const login = async (req, res, next) => {
  * @param {Request} req
  * @param {Response} res
  * @param {Function} next
+ * @method post
  * @src public
  */
 
@@ -129,6 +133,7 @@ export const authenticate = async (req, res, next) => {
             email: valid.load(email).isEmail().data,
             password: valid.load(password).isPassword().data,
         };
+        // TODO: Implement login rate limiter
     } catch (err) {
         return next(new Error('login'));
     }
@@ -170,6 +175,7 @@ export const authenticate = async (req, res, next) => {
  * @param {Request} req
  * @param {Response} res
  * @param {Function} next
+ * @method get
  * @src public
  */
 
@@ -198,6 +204,7 @@ export const logout = async (req, res, next) => {
  * @param {Request} req
  * @param {Response} res
  * @param {Function} next
+ * @method get
  * @src public
  */
 
@@ -215,6 +222,7 @@ export const register = async (req, res, next) => {
  * @param {Request} req
  * @param {Response} res
  * @param {Function} next
+ * @method post
  * @src public
  */
 
@@ -257,6 +265,7 @@ export const create = async (req, res, next) => {
  * @param {Request} req
  * @param {Response} res
  * @param {Function} next
+ * @method get
  * @src public
  */
 
@@ -279,6 +288,7 @@ export const edit = async (req, res, next) => {
  * @param {Request} req
  * @param {Response} res
  * @param {Function} next
+ * @method post
  * @src public
  */
 
@@ -307,6 +317,7 @@ export const update = async (req, res, next) => {
  * @param {Request} req
  * @param {Response} res
  * @param {Function} next
+ * @method get
  * @src public
  */
 
@@ -328,6 +339,7 @@ export const remove = async (req, res, next) => {
  * @param {Request} req
  * @param {Response} res
  * @param {Function} next
+ * @method post
  * @src public
  */
 

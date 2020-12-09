@@ -196,7 +196,7 @@ mocha.describe('User Controllers', () => {
 
     let user = {
         user_id: null,
-        email: 'user@example.ca',
+        email: 'aaaaaaaaaaaaaaaaaaaaaaa@example.ca',
         password: '5565lSSR!3323',
         hash: null,
         salt: null,

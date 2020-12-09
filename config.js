@@ -19,15 +19,16 @@ let settings = {
         title: "Welcome to the Mountain Legacy Project Explorer"
     },
     models: {
-        // projects: {},
+        projects: {},
         surveyors: {},
         surveys: {},
         surveySeasons: {},
         stations: {},
         visits: {},
-        // locations: {},
-        // captures: {},
-        // images: {}
+        historicVisits: {},
+        locations: {},
+        historicCaptures: {},
+        captures: {},
     },
     roles: {
         visitor: 0,
