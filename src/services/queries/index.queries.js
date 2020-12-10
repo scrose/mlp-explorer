@@ -24,8 +24,8 @@ import * as visits from './visits.queries.js';
 import * as historicVisits from './historic_visits.queries.js';
 import * as locations from './locations.queries.js';
 import * as captures from './captures.queries.js';
-import * as historicCaptures from './historic_captures.queries.js';
-
+import * as captureImages from './capture_images.queries.js';
+import * as images from './images.queries.js';
 
 /**
  * Index of module exports.
@@ -33,7 +33,15 @@ import * as historicCaptures from './historic_captures.queries.js';
  */
 
 export default {
-    defaults: defaults,
+    defaults: {
+        getAll: defaults.getAll,
+        select: defaults.select,
+        insert: defaults.insert,
+        update: defaults.update,
+        remove: defaults.remove,
+        attach: defaults.attach,
+        detach: defaults.detach
+    },
     users: users,
     sessions: sessions,
     projects: projects,
@@ -45,5 +53,6 @@ export default {
     historicVisits: historicVisits,
     locations: locations,
     captures: captures,
-    historicCaptures: historicCaptures
+    captureImages: captureImages,
+    images: images
 };

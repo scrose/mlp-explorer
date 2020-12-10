@@ -19,19 +19,66 @@ let settings = {
         title: "Welcome to the Mountain Legacy Project Explorer"
     },
     models: {
-        projects: {},
-        surveyors: {},
-        surveys: {},
-        surveySeasons: {},
-        stations: {},
-        visits: {},
-        historicVisits: {},
-        locations: {},
-        historicCaptures: {},
-        captures: {},
-        capture_images: {},
-        images: {},
-        location_photos:{}
+        projects: {
+            owner: null
+        },
+        surveyors: {
+            owner: null
+        },
+        surveys: {
+            owner: 'surveyors'
+        },
+        surveySeasons: {
+            owner: 'surveys'
+        },
+        stations: {
+            owner: null
+        },
+        visits: {
+            owner: 'stations'
+        },
+        historicVisits: {
+            owner: 'stations'
+        },
+        locations: {
+            owner: 'stations'
+        },
+        historicCaptures: {
+            owner: null
+        },
+        captures: {
+            owner: null
+        },
+        captureImages: {
+            owner: null
+        },
+        images: {
+            owner: null
+        },
+        cameras: {
+            owner: null
+        },
+        metadataFiles: {
+            owner: null
+        },
+        glassPlateListings: {
+            owner: 'survey_seasons'
+        },
+        maps: {
+            owner: 'survey_seasons'
+        },
+        participants: {
+            owner: null
+        },
+        participantGroups: {
+            owner: 'visits'
+        },
+        shutterSpeed: {
+            owner: null
+        },
+        iso: {
+            owner: null
+        }
     },
     roles: {
         visitor: 0,

@@ -144,7 +144,7 @@ let mockItems = {
     captureImages:{
         id: null,
         owner_id: 3897,
-        owner_type: 'historic_capture',
+        owner_type: 'historic_captures',
         hash_key: 'IDENTIFIER',
         image: 'IDENTIFIER',
         file_size: 5566,
@@ -160,10 +160,9 @@ let mockItems = {
     images: {
         id: null,
         owner_id: 483,
-        owner_type: 'location',
+        owner_type: 'locations',
         hash_key: 'IDENTIFIER',
         image: 'LC2_DSCF0342_011f9804-7099-11e2-a556-c82a14fffed2.JPG',
-        filename: 'IDENTIFIER',
         file_size: 89089504,
         x_dim: 1200,
         y_dim: 1600,
@@ -182,22 +181,46 @@ let mockItems = {
         lens_id: null,
         type: 'location',
         image_tmp: 'IDENTIFIER',
-        image_remote_processing: false,
-        published: false,
+        image_remote_processing: false
     },
-    locationPhotos: {
+    cameras: {
         id: null,
-        type: 'location',
-        owner_id: 483,
-        hash_key: 'IDENTIFIER',
-        image: 'IDENTIFIER',
-        file_size: 6464646,
-        x_dim: 1200,
-        y_dim: 1600,
-        bit_depth: 8,
-        camera_id: 6,
-        capture_datetime: '2014-07-09 16:49:00.572006',
-        image_remote: false
+        make: 'TEXT',
+        model: 'TEXT',
+        unit: 'TEXT',
+        format: 'TEXT'
+    },
+    glass_plate_listings: {
+        owner_id: 93,
+        container: 'TEXT',
+        plates: 'TEXT',
+        notes: 'TEXT'
+    },
+    lens: {
+        brand: 'TEXT',
+        focal_length: 4,
+        max_aperture: 1.11
+    },
+    maps: {
+        owner_id: 36,
+        nts_map: 'TEXT',
+        historic_map: 'TEXT',
+        links: 'TEXT'
+    },
+    metadata_files:{
+        owner_id: 992,
+        owner_type: 'stations',
+        type: 'field_notes',
+        filename: 'PATH/to/FILE'
+    },
+    participants: {
+        last_name: 'TEXT',
+        given_names: 'TEXT'
+    },
+    participant_groups: {
+        owner_id: 23,
+        participant_id: 38,
+        group_type: 'photographers'
     }
 }
 

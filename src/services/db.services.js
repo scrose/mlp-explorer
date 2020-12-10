@@ -28,10 +28,18 @@ export default function Services(model) {
 
     // load query strings for specified model
     try {
-        Object.entries(queries[model.name])
+        // load default queries
+        Object.entries(queries.defaults)
             .forEach(([key, query]) => {
                 this.queries[key] = query(model);
             });
+
+        // override with model-specific queries
+        if (queries.hasOwnProperty(model.name))
+            Object.entries(queries[model.name])
+                .forEach(([key, query]) => {
+                    this.queries[key] = query(model);
+                });
     } catch (err) {
         throw err;
     }
@@ -45,7 +53,6 @@ export default function Services(model) {
 
     this.getAll = async function() {
         let { sql, data } = this.queries.getAll();
-        console.log(sql);
         return pool.query(sql, data);
     };
 
@@ -139,7 +146,6 @@ export default function Services(model) {
             if (attachment) {
                 let attachStatement = attachment(item);
                 let n = await client.query(attachStatement.sql, attachStatement.data);
-                console.log(n)
             }
 
             await client.query('COMMIT');

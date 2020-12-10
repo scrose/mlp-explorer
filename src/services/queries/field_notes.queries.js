@@ -1,6 +1,6 @@
 /*!
- * MLP.API.Services.Queries.HistoricCaptures
- * File: historic_captures.queries.js
+ * MLP.API.Services.Queries.FieldNotes
+ * File: field_notes.queries.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -10,7 +10,7 @@
 import * as queries from '../queries.services.js';
 
 /**
- * Find historic capture by ID.
+ * Find field note by ID.
  *
  * @param {Object} model
  * @return {Function} query binding function
@@ -21,7 +21,7 @@ export function select(model) {
 }
 
 /**
- * Find all historic captures.
+ * Find all field notes.
  *
  * @return {Function} query binding function
  */
@@ -31,25 +31,18 @@ export function getAll(model) {
 }
 
 /**
- * Find historic captures by owner.
+ * Find field notes by owner.
  *
- * @param {Object} owner
+ * @param {Object} model
  * @return {Function} query binding function
  */
 
-export function getByOwner(owner) {
-    return function () {
-        return {
-            sql:`SELECT * FROM historic_captures
-            LEFT OUTER JOIN ${owner.table}
-            ON historic_captures.owner_id = ${owner.table}.id`,
-            data: [owner.id]
-        };
-    }
+export function getByOwner(model) {
+    return queries.findByOwner(model);
 }
 
 /**
- * Update historic capture data.
+ * Update field note data.
  */
 
 export function update(model) {
@@ -57,7 +50,7 @@ export function update(model) {
 }
 
 /**
- * Insert new historic capture.
+ * Insert new field note.
  *
  * @param {Object} model
  * @return {Function} query binding function
@@ -68,7 +61,7 @@ export function insert(model) {
 }
 
 /**
- * Delete historic capture.
+ * Delete field note.
  *
  * @param {Object} model
  * @return {Function} query binding function
@@ -78,23 +71,23 @@ export function remove(model) {
     return queries.remove(model);
 }
 
+
 /**
- * Attach historic capture to owner.
+ * Attach field note to visit.
  *
- * @return {Function} query binding function
+ * @return {Object} SQL statement array
  */
 
 export function attach() {
-    return queries.attach();
+    return queries.attach('survey_seasons');
 }
 
 /**
- * Detach historic capture from owner.
+ * Detach field note to visit.
  *
- * @return {Function} query binding function
+ * @return {Object} SQL statement array
  */
 
 export function detach() {
-    return queries.detach();
+    return queries.detach('survey_seasons');
 }
-

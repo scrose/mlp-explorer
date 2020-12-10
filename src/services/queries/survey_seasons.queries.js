@@ -10,14 +10,6 @@
 import * as queries from '../queries.services.js';
 
 /**
- * Find surveyor by ID.
- */
-
-export function select(model) {
-    return queries.select(model);
-}
-
-/**
  * Find all survey seasons. Joined with surveys table.
  */
 
@@ -46,30 +38,6 @@ export function getBySurvey(_) {
             data: []
         };
     }
-}
-
-/**
- * Update survey season data.
- */
-
-export function update(model) {
-    return queries.update(model);
-}
-
-/**
- * Insert new survey season.
- */
-
-export function insert(model) {
-    return queries.insert(model);
-}
-
-/**
- * Delete survey season.
- */
-
-export function remove(model) {
-    return queries.remove(model);
 }
 
 /**

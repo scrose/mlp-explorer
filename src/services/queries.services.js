@@ -17,6 +17,7 @@ const limit = 100;
  * Generate query: Find all records in table.
  *
  * @param {Object} model
+ * @param {int} offset
  * @return {Function} query
  * @public
  */
@@ -80,21 +81,19 @@ export function findByOwner(model) {
  * Generate query: Find records by attribute.
  *
  * @param {Object} model
- * @param {String} col
  * @return {Function} query function
  * @public
  */
 
-export function find(model, col) {
+export function find(model) {
+    return function(value, col) {
 
-    // check that attribute exists in model
-    if (!model.fields.hasOwnProperty(col))
-        throw Error('sql')
+        // check that attribute exists in model
+        if (!model.fields.hasOwnProperty(col))
+            throw Error('sql')
 
-    let attr = model.fields[col];
-
-    return function(value) {
-        let sql = `SELECT * 
+        const attr = model.fields[col];
+        const sql = `SELECT * 
                 FROM ${model.table} 
                 WHERE ${col} = ${value}::${attr.type}`;
         return {
@@ -226,14 +225,12 @@ export function remove(model, args = { col: 'id', type: 'integer', index: 1 }) {
 /**
  * Generate query: Attach node to owner as new nodes record.
  *
- * @param {String} ownerTypeConst
+ * @param {Object} model
  * @return {Function} query binding function
  * @public
  */
 
-export function attach(ownerTypeConst = null) {
-
-    // get columns and prepared value placeholders
+export function attach(model) {
     let sql = `INSERT INTO nodes (owner_id,
                                   owner_type,
                                   dependent_id,
@@ -252,18 +249,18 @@ export function attach(ownerTypeConst = null) {
 
     // return query function
     return function(item) {
-        let data = item.getData();
+        const data = item.getData();
 
         // check for defined owner ID
         if (!data.hasOwnProperty('owner_id'))
-            throw Error('missingNodeId');
+            throw Error('missingOwnerId');
 
         // check for defined owner type
-        if (!data.hasOwnProperty('owner_type') && !ownerTypeConst)
-            throw Error('missingNodeType');
+        if (!data.hasOwnProperty('owner_type') && !model.owner)
+            throw Error('missingOwnerType');
 
-        // use predefined or item owner type
-        let ownerType = ownerTypeConst || data.owner_type;
+        // use either model-defined or item-defined owner type
+        const ownerType = model.owner || data.owner_type;
 
         return {
             sql: sql,
@@ -275,12 +272,12 @@ export function attach(ownerTypeConst = null) {
 /**
  * Generate query: Detach (delete) node from owner.
  *
- * @param {String} ownerTypeConst
+ * @param {Object} model
  * @return {Function} query binding function
  * @public
  */
 
-export function detach(ownerTypeConst = null) {
+export function detach(model) {
 
     // get columns and prepared value placeholders
     let sql = `DELETE
@@ -294,14 +291,18 @@ export function detach(ownerTypeConst = null) {
 
     // return query function
     return function(item) {
-        let data = item.getData();
+        const data = item.getData();
 
-        // check that item has defined owner ID
+        // check for defined owner ID
         if (!data.hasOwnProperty('owner_id'))
-            throw Error('nodetype');
+            throw Error('missingOwnerId');
 
-        // use predefined or item owner type
-        let ownerType = ownerTypeConst || data.owner_type;
+        // check for defined owner type
+        if (!data.hasOwnProperty('owner_type') && !model.owner)
+            throw Error('missingOwnerType');
+
+        // use either model-defined or item-defined owner type
+        const ownerType = model.owner || data.owner_type;
 
         return {
             sql: sql,

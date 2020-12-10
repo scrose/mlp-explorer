@@ -9,31 +9,6 @@
 
 import * as queries from '../queries.services.js';
 
-/**
- * Find station by ID.
- *
- * @param {Object} model
- * @return {Function} query binding function
- */
-
-export function select(model) {
-    return queries.select(model);
-}
-
-/**
- * Find all stations.
- *
- * @return {Function} query binding function
- */
-
-export function getAll(_) {
-    return function () {
-        return {
-            sql:`SELECT * FROM stations;`,
-            data: []
-        };
-    }
-}
 
 /**
  * Find stations by owner.
@@ -52,36 +27,6 @@ export function getByOwner(owner) {
             data: [owner.id]
         };
     }
-}
-
-/**
- * Update surveyor data.
- */
-
-export function update(model) {
-    return queries.update(model);
-}
-
-/**
- * Insert new station.
- *
- * @param {Object} model
- * @return {Function} query binding function
- */
-
-export function insert(model) {
-    return queries.insert(model);
-}
-
-/**
- * Delete station.
- *
- * @param {Object} model
- * @return {Function} query binding function
- */
-
-export function remove(model) {
-    return queries.remove(model);
 }
 
 /**

@@ -7,19 +7,6 @@
 
 'use strict';
 
-import * as queries from '../queries.services.js';
-
-/**
- * Find project by ID.
- *
- * @param {Object} model
- * @return {Function} query function
- */
-
-export function select(model) {
-    return queries.select(model);
-}
-
 /**
  * Find all projects. Joined with surveys table.
  *
@@ -53,37 +40,4 @@ export function getByStation(_) {
             data: [station_id]
         };
     }
-}
-
-/**
- * Update project data.
- *
- * @param {Object} model
- * @return {Function} query function
- */
-
-export function update(model) {
-    return queries.update(model);
-}
-
-/**
- * Insert new project. (Uses transaction)
- *
- * @param {Object} model
- * @return {Function} query functions
- */
-
-export function insert(model) {
-    return queries.insert(model);
-}
-
-/**
- * Delete project.
- *
- * @param {Object} model
- * @return {Function} query function
- */
-
-export function remove(model) {
-    return queries.remove(model);
 }

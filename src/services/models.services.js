@@ -10,6 +10,7 @@
 import { humanize, sanitize, toCamel } from '../lib/data.utils.js';
 import pool from './pgdb.js';
 import * as queries from './queries/schema.queries.js';
+import { models } from '../../config.js';
 
 /**
  * Get table column information.
@@ -56,9 +57,18 @@ export async function getSchema(table) {
 
 export const create = async (table) => {
 
+    console.log(models, table)
+
+    // confirm model is defined
+    if (!models.hasOwnProperty(table))
+        throw Error('modelNotDefined');
+
     // initialize model constructor
     let Model = function(data) {
         this.table = table;
+        this.owner = models[table].hasOwnProperty('owner')
+            ? models[table].owner
+            : null;
         this.name = toCamel(table);
         this.label = humanize(table);
         this.setData = setData;
