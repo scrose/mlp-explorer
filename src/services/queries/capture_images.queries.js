@@ -33,12 +33,12 @@ export function getAll(model) {
 /**
  * Find capture images by owner.
  *
- * @param {Object} owner
+ * @param {Object} model
  * @return {Function} query binding function
  */
 
-export function getByOwner(owner) {
-    return queries.findByOwner(model, owner);
+export function getByOwner(model) {
+    return queries.findByOwner(model);
 }
 
 /**

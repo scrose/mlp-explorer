@@ -165,16 +165,19 @@ Model schema updates
 
 --    Historic Visits (strictly owned by Stations)
     SELECT rename_column('historic_visits', 'station_id', 'owner_id');
+
     SELECT setval('historic_visits_id_seq', (SELECT MAX(id) FROM historic_visits)+1);
 
 
 --    Visits (strictly owned by Stations)
     SELECT rename_column('visits', 'station_id', 'owner_id');
+
     SELECT setval('visits_id_seq', (SELECT MAX(id) FROM visits)+1);
 
 
 --    Locations (strictly owned by Visits)
     SELECT rename_column('locations', 'visit_id', 'owner_id');
+
     SELECT setval('locations_id_seq', (SELECT MAX(id) FROM locations)+1);
 
 -- Latitude/Longitude constraints
@@ -197,6 +200,7 @@ Model schema updates
 --             REFERENCES nodes(owner_id, owner_type);
 
     SELECT rename_owner_types('historic_captures');
+
     SELECT setval('historic_captures_id_seq', (SELECT MAX(id) FROM historic_captures)+1);
 
 
@@ -204,6 +208,7 @@ Model schema updates
     SELECT rename_column('captures', 'capture_owner_id', 'owner_id');
     SELECT rename_column('captures', 'capture_owner_type', 'owner_type');
     SELECT rename_owner_types('captures');
+
     SELECT setval('captures_id_seq', (SELECT MAX(id) FROM captures)+1);
 
 
@@ -211,6 +216,7 @@ Model schema updates
     SELECT rename_column('capture_images', 'captureable_id', 'owner_id');
     SELECT rename_column('capture_images', 'captureable_type', 'owner_type');
     SELECT rename_owner_types('capture_images');
+
     SELECT setval('capture_images_id_seq', (SELECT MAX(id) FROM capture_images)+1);
 
 --    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_capture_type;
@@ -222,6 +228,7 @@ Model schema updates
     SELECT rename_column('images', 'image_owner_id', 'owner_id');
     SELECT rename_column('images', 'image_owner_type', 'owner_type');
     SELECT rename_owner_types('images');
+
     SELECT setval('images_id_seq', (SELECT MAX(id) FROM images)+1);
 
 --    Location Photos

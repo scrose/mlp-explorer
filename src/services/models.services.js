@@ -148,9 +148,10 @@ function setData(data=null) {
         // select either first row of data array or single data object
         const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
         Object.entries(inputData).forEach(([key, value]) => {
-            console.log(key, value)
+            // console.log(key, value)
             // check that field exists in model
             if (!self.fields.hasOwnProperty(key)) throw Error('violatesSchema');
+            console.log(self.fields[key].type, sanitize(value, self.fields[key].type))
             // TODO: check that field is correct type
             self.fields[key].value = sanitize(value, self.fields[key].type);
         });

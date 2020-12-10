@@ -29,6 +29,9 @@ let settings = {
         locations: {},
         historicCaptures: {},
         captures: {},
+        capture_images: {},
+        images: {},
+        location_photos:{}
     },
     roles: {
         visitor: 0,

@@ -8,6 +8,12 @@
 'use strict';
 
 /**
+ * Database rows limit.
+ */
+
+const limit = 100;
+
+/**
  * Generate query: Find all records in table.
  *
  * @param {Object} model
@@ -15,10 +21,13 @@
  * @public
  */
 
-export function getAll(model) {
+export function getAll(model, offset=0) {
     return function() {
         return {
-            sql: `SELECT * FROM ${model.table};`,
+            sql: `SELECT * 
+                    FROM ${model.table} 
+                    LIMIT ${limit} 
+                    OFFSET ${offset};`,
             data: [],
         };
     };

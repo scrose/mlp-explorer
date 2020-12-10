@@ -22,6 +22,11 @@ import { humanize, toSnake } from '../src/lib/data.utils.js';
  */
 
 let mockItems = {
+    projects: {
+        id: null,
+        name: 'Name Text',
+        description: 'Description Text',
+    },
     surveyors: {
         id: null,
         given_names: 'Given Names',
@@ -50,6 +55,7 @@ let mockItems = {
         notes: 'TEST'
     },
     stations: {
+        id: null,
         owner_id: 40,
         owner_type: 'survey_seasons',
         name: 'TEST',
@@ -60,6 +66,7 @@ let mockItems = {
         published: false
     },
     visits: {
+        id: null,
         owner_id: 61,
         date: '2005-08-19',
         start_time: '14:00:00',
@@ -77,11 +84,13 @@ let mockItems = {
         weather_wb: 22
     },
     historicVisits: {
+        id: null,
         owner_id: 9,
         date: '1927-01-01',
         comments: 'TEXT'
     },
     locations: {
+        id: null,
         owner_id: 23,
         location_narrative: 'TEXT',
         location_identity: 'TEXT',
@@ -93,8 +102,9 @@ let mockItems = {
         published: true
     },
     historicCaptures: {
+        id: null,
         owner_id: 64,
-        owner_type: 'survey_season',
+        owner_type: 'survey_seasons',
         plate_id:'529',
         fn_photo_reference: 'TEXT',
         f_stop: 555,
@@ -114,8 +124,9 @@ let mockItems = {
         comments: 'TEXT'
     },
     captures:{
+        id: null,
         owner_id: 1051,
-        owner_type: 'location',
+        owner_type: 'locations',
         fn_photo_reference: 'IDENTIFIER',
         f_stop: 55,
         shutter_speed: 55,
@@ -131,6 +142,7 @@ let mockItems = {
         alternate: true
     },
     captureImages:{
+        id: null,
         owner_id: 3897,
         owner_type: 'historic_capture',
         hash_key: 'IDENTIFIER',
@@ -146,6 +158,7 @@ let mockItems = {
         image_remote_processing: false
     },
     images: {
+        id: null,
         owner_id: 483,
         owner_type: 'location',
         hash_key: 'IDENTIFIER',
@@ -172,7 +185,8 @@ let mockItems = {
         image_remote_processing: false,
         published: false,
     },
-    location_photos: {
+    locationPhotos: {
+        id: null,
         type: 'location',
         owner_id: 483,
         hash_key: 'IDENTIFIER',

@@ -27,14 +27,7 @@ export function select(model) {
  */
 
 export function getAll(_) {
-    return function () {
-        return {
-            sql:`SELECT *, surveyors.id AS id FROM surveyors 
-                LEFT JOIN surveys ON 
-                    surveys.owner_id = surveyors.id;`,
-            data: []
-        };
-    }
+    return queries.getAll(_);
 }
 
 /**

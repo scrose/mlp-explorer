@@ -92,6 +92,8 @@ export default function Controller(modelRoute) {
         await services
             .getAll()
             .then((data) => {
+
+                console.log('!!!!', data.rows)
                 res.locals.data = data.rows;
                 res.status(200).json(res.locals);
             })

@@ -33,11 +33,11 @@ export function getAll(model) {
 /**
  * Find captures by owner.
  *
- * @param {Object} owner
+ * @param {Object} model
  * @return {Function} query binding function
  */
 
-export function getByOwner(owner) {
+export function getByOwner(model) {
     return queries.findByOwner(model);
 }
 

@@ -64,13 +64,16 @@ export function sanitize (data, datatype) {
             return !!data;
         },
         'varying character': function () {
-            return data;
+            return String(data);
         },
         'integer': function () {
-            return parseInt(data);
+            return isNaN(parseInt(data)) ? null : parseInt(data)
+        },
+        'double precision': function () {
+            return isNaN(parseFloat(data)) ? null : parseFloat(data);
         },
         'float': function () {
-            return parseFloat(data);
+            return isNaN(parseFloat(data)) ? null : parseFloat(data);
         },
         'default': function () {
             return data;
