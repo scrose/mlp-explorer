@@ -9,12 +9,12 @@
  * Module dependencies
  */
 
-import express from 'express'
+import express from 'express';
 import Controller from '../controllers/models.controller.js';
 import { restrict } from '../lib/permissions.utils.js';
-import path from "path";
-import {models} from '../../config.js'
+import path from 'path';
 import { toSnake } from '../lib/data.utils.js';
+import * as schema from '../services/schema.services.js';
 
 /**
  * Express router
@@ -26,15 +26,16 @@ export default router;
 /**
  * Model route constructor
  *
- * @param {String} modelName
+ * @param {String} modelType
  * @public
  */
 
-function Routes(modelName) {
+function Routes(modelType) {
 
     // create model identifier key
-    this.modelRoute = toSnake(modelName);
-    this.key = `${toSnake(modelName)}_id`;
+
+    this.modelRoute = toSnake(modelType);
+    this.key = `${toSnake(modelType)}_id`;
 
     // initialize model controller
     this.controller = new Controller(this.modelRoute);
@@ -47,37 +48,37 @@ function Routes(modelName) {
             get: this.controller.list,
             put: null,
             post: null,
-            delete: null
+            delete: null,
         },
         add: {
             path: path.join('/', this.modelRoute, 'add'),
             get: this.controller.add,
             put: null,
             post: this.controller.create,
-            delete: null
+            delete: null,
         },
         show: {
             path: path.join('/', this.modelRoute, '/:' + this.key),
             get: this.controller.show,
             put: null,
             post: null,
-            delete: null
+            delete: null,
         },
         edit: {
             path: path.join('/', this.modelRoute, '/:' + this.key, 'edit'),
             get: this.controller.edit,
             put: null,
             post: this.controller.update,
-            delete: null
+            delete: null,
         },
         remove: {
             path: path.join('/', this.modelRoute, '/:' + this.key, 'remove'),
             get: this.controller.remove,
             put: null,
             post: this.controller.drop,
-            delete: null
-        }
-    }
+            delete: null,
+        },
+    };
 }
 
 /**
@@ -86,50 +87,55 @@ function Routes(modelName) {
  *
  */
 
-Object.entries(models).forEach(([modelName, params]) => {
+async function initRoutes() {
+    await schema.getTypes()
+        .then((modelTypes) => {
+            modelTypes.forEach(modelType => {
 
-        // TODO: handle dependent models
-        // Object.entries(params).forEach((depModelName) => {}));
+                let routes = new Routes(modelType);
 
-        let routes = new Routes(modelName);
+                // controller initialization
+                router.use(routes.controller.init);
 
-        // controller initialization
-        router.use(routes.controller.init)
+                // add default routes
+                Object.entries(routes.routes).forEach(([view, route]) => {
+                    router.route(route.path)
+                        .all(function(req, res, next) {
 
-        // add default routes
-        Object.entries(routes.routes).forEach(([view, route]) => {
-            router.route(route.path)
-                .all(function (req, res, next) {
+                            // get model ID parameter (if exists)
+                            let reqId = req.params.hasOwnProperty(routes.key)
+                                ? req.params[routes.key]
+                                : null;
 
-                    // get model ID parameter (if exists)
-                    let reqId = req.params.hasOwnProperty(routes.key)
-                        ? req.params[routes.key]
-                        : null;
+                            // restrict user access based on permissions
+                            restrict(res, next, {
+                                model: modelType,
+                                view: view,
+                                id: reqId,
+                            });
 
-                    // restrict user access based on permissions
-                    restrict(res, next, {
-                        model: modelName,
-                        view: view,
-                        id: reqId
-                    });
+                        })
+                        .get(function(req, res, next) {
+                            if (!route.get) next(new Error('notImplemented'));
+                            route.get(req, res, next);
+                        })
+                        .put(function(req, res, next) {
+                            if (!route.put) next(new Error('notImplemented'));
+                            route.put(req, res, next);
+                        })
+                        .post(function(req, res, next) {
+                            if (!route.post) next(new Error('notImplemented'));
+                            route.post(req, res, next);
+                        })
+                        .delete(function(req, res, next) {
+                            if (!route.delete) next(new Error('notImplemented'));
+                            route.delete(req, res, next);
+                        });
+                });
+            });
+        })
+        .catch(err => {throw err});
+}
+initRoutes().catch(err => {throw err});
 
-                })
-                .get(function (req, res, next) {
-                    if (!route.get) next(new Error('notImplemented'))
-                    route.get(req, res, next)
-                })
-                .put(function (req, res, next) {
-                    if (!route.put) next(new Error('notImplemented'))
-                    route.put(req, res, next)
-                })
-                .post(function (req, res, next) {
-                    if (!route.post) next(new Error('notImplemented'))
-                    route.post(req, res, next)
-                })
-                .delete(function (req, res, next) {
-                    if (!route.delete) next(new Error('notImplemented'))
-                    route.delete(req, res, next)
-                })
-        });
-    }
-);
+

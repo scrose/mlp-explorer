@@ -45,7 +45,8 @@ export default {
     schema: {
         getModel: defaults.getModel,
         getModelTypes: defaults.getModelTypes,
-        getTables: defaults.getTables
+        getTables: defaults.getTables,
+        getOwners: defaults.getOwners
     },
     users: users,
     sessions: sessions,

@@ -1,5 +1,5 @@
 /*!
- * MLP.API.Services.Model
+ * MLP.API.Constructor.Model
  * File: model.services.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
@@ -8,8 +8,7 @@
 'use strict';
 
 import { humanize, sanitize, toCamel } from '../lib/data.utils.js';
-import queries from './queries.services.js';
-import { models } from '../../config.js';
+import * as schemaConstructor from './schema.services.js';
 
 /**
  * Create derived model through composition. The model schema
@@ -29,78 +28,46 @@ import { models } from '../../config.js';
                     restrict: [<user role IDs>]
                     options: [<options>]
                 },
-
             }
         }
     }
  }
  *
- * @param {String} table
+ * @param {String} modelType
  * @src public
  */
 
-export const create = async (table) => {
+export const create = async (modelType) => {
 
-    // confirm model is defined
-    let models = await queries.schema.getModelTypes();
-    if (!models.hasOwnProperty(table))
-        throw Error('modelNotDefined');
+    // create model schema
+    let schema = await schemaConstructor.create(modelType);
 
     // initialize model constructor
-    let Model = function(data) {
-        this.table = table;
-        this.owner = models[table].hasOwnProperty('owner')
-            ? models[table].owner
-            : null;
-        this.name = toCamel(table);
-        this.label = humanize(table);
+    let Model = function(attributeValues) {
         this.setData = setData;
-        this.setData(data);
+        this.setData(attributeValues);
     };
-
-    // initialize schema
-    let fields = {};
-
-    // generate schema from table column data
-    await queries.schema.getModel(table)
-        .then((data) => {
-            // schematize table columns as data fields
-            data.rows
-                .forEach((col) => {
-                    fields[col.column_name] = {
-                        label: humanize(col.column_name),
-                        type: col.data_type,
-                        restrict: [],
-                        render: {
-                            create: {
-                                validation: [],
-                            },
-                            edit: {
-                                validation: [],
-                            },
-                            remove: {
-                                validation: [],
-                            },
-                        },
-                    };
-                });
-        })
-        .catch((err) => {
-            throw err;
-        });
 
     // define model properties
     Object.defineProperties(Model.prototype, {
+        table: {
+            value: modelType,
+            writable: true,
+        },
         name: {
-            value: table || null,
+            value: toCamel(modelType),
             writable: true,
         },
         label: {
-            value: humanize(table) || null,
+            value: humanize(modelType),
+            writable: true,
+        },
+        owners: {
+            value: schema.owners,
             writable: true,
         },
         fields: {
-            value: fields,
+            value: schema.attributes,
             writable: true,
         },
         getValue: {

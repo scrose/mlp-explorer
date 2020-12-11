@@ -1,6 +1,6 @@
 /*!
  * MLP.API.DB.Services.Users
- * File: users.db.services.js
+ * File: users.model.services.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */

@@ -1,6 +1,6 @@
 /*!
- * MLP.API.DB.Services
- * File: users.db.services.js
+ * MLP.API.Services.Database
+ * File: model.services.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -16,7 +16,7 @@ import pool from './pgdb.js';
 import queries from './queries/index.queries.js';
 
 /**
- * Export database services constructor
+ * Export database model services constructor
  *
  * @public
  * @return {Promise} result

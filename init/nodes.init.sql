@@ -1,19 +1,8 @@
--- ----------------
--- Node Types Table
--- ----------------
--- id |       type
--- ----+-------------------
---  1 | projects
---  2 | surveyors
---  3 | surveys
---  4 | survey_seasons
---  5 | stations
---  6 | historic_visits
---  7 | visits
---  8 | locations
---  9 | historic_captures
--- 10 | captures
-
+-- -----------------
+-- Model Types Table
+-- -----------------
+-- Restore database to original:
+-- db reset >>> psql -U boutrous mlp2 < path/to/original/meat.sql
 -- db reset >>> psql -U boutrous mlp2 < /Users/boutrous/Workspace/NodeJS/db/meat.sql
 -- db reset >>> psql -U boutrous mlp2 < /Users/boutrous/Workspace/NodeJS/mlp-db/meat.sql
 
@@ -25,6 +14,7 @@ type VARCHAR (40) UNIQUE NOT NULL,
 label VARCHAR (40) UNIQUE NOT NULL
 );
 
+INSERT INTO model_types (type, label) VALUES ('users', 'Users');
 INSERT INTO model_types (type, label) VALUES ('projects', 'Project');
 INSERT INTO model_types (type, label) VALUES ('surveyors', 'Surveyor');
 INSERT INTO model_types (type, label) VALUES ('surveys', 'Survey');
@@ -51,14 +41,14 @@ SELECT * FROM model_types;
 
 CREATE TABLE model_relations (
 id serial PRIMARY KEY,
-dependent_type VARCHAR (40) NOT NULL
+dependent_type VARCHAR (40),
 owner_type VARCHAR (40),
 UNIQUE (owner_type, dependent_type),
 CONSTRAINT ck_same_type CHECK (owner_type != dependent_type),
 CONSTRAINT fk_owner_type FOREIGN KEY(owner_type)
     REFERENCES node_types(type),
 CONSTRAINT fk_dependent_type FOREIGN KEY(dependent_type)
-    REFERENCES node_types(type),
+    REFERENCES node_types(type)
 );
 
 INSERT INTO model_relations (dependent_type, owner_type) VALUES ('projects', NULL);
@@ -109,7 +99,7 @@ CREATE TABLE IF NOT EXISTS models (
   UNIQUE (owner_id, owner_type, dependent_id, dependent_type),
   CONSTRAINT ck_same_type CHECK (owner_type != dependent_type),
   CONSTRAINT fk_model_relation FOREIGN KEY(owner_type, dependent_type)
-    REFERENCES model_relations(owner_type, dependent_type),
+    REFERENCES model_relations(owner_type, dependent_type)
 --  CONSTRAINT fk_owner_type FOREIGN KEY(owner_type)
 --    REFERENCES model_types(type)
 --  CONSTRAINT fk_dependent_type FOREIGN KEY(dependent_type)
@@ -318,16 +308,31 @@ Model schema updates
 */
 
 
+-- =========================================================
 --    Projects (root owners)
+-- =========================================================
+
     SELECT setval('projects_id_seq', (SELECT MAX(id) FROM projects)+1);
 
 
+-- =========================================================
 --    Surveyors (root owners)
+-- =========================================================
+
     -- update id auto-increment
     SELECT setval('surveyors_id_seq', (SELECT MAX(id) FROM surveyors)+1);
 
+    -- Convert published field to boolean
+    ALTER TABLE surveyors ALTER COLUMN published DROP DEFAULT;
+    ALTER TABLE surveyors ALTER published TYPE bool
+        USING CASE WHEN published='t' THEN TRUE ELSE FALSE END;
+    ALTER TABLE surveyors ALTER COLUMN published SET DEFAULT FALSE;
 
+
+-- =========================================================
 --    Surveys  (strictly owned by Surveyors)
+-- =========================================================
+
     SELECT rename_column('surveys', 'surveyor_id', 'owner_id');
     SELECT setval('surveys_id_seq', (SELECT MAX(id) FROM surveys)+1);
 
@@ -335,7 +340,21 @@ Model schema updates
     ALTER TABLE surveys DROP CONSTRAINT IF EXISTS fk_owner_id;
     ALTER TABLE surveys ADD CONSTRAINT fk_owner_id FOREIGN KEY(owner_id) REFERENCES surveyors(id);
 
+    -- Convert published field to boolean
+    ALTER TABLE surveys ALTER COLUMN published DROP DEFAULT;
+    ALTER TABLE surveys ALTER published TYPE bool
+        USING CASE WHEN published='t' THEN TRUE ELSE FALSE END;
+    ALTER TABLE surveys ALTER COLUMN published SET DEFAULT FALSE;
+
+    --    Map surveys in models table
+    INSERT INTO models (owner_id, owner_type, dependent_id, dependent_type)
+    SELECT owner_id, 'surveyors', id, 'surveys' FROM surveys;
+
+
+-- =========================================================
 --    Survey Seasons  (strictly owned by Surveys)
+-- =========================================================
+
     SELECT rename_column('survey_seasons', 'survey_id', 'owner_id');
     SELECT setval('survey_seasons_id_seq', (SELECT MAX(id) FROM survey_seasons)+1);
 
@@ -348,8 +367,21 @@ Model schema updates
     ALTER TABLE survey_seasons ADD CONSTRAINT check_year
     CHECK (survey_seasons.year > 1700 AND survey_seasons.year <= EXTRACT(YEAR FROM NOW()));
 
+    -- Convert published field to boolean
+    ALTER TABLE survey_seasons ALTER COLUMN published DROP DEFAULT;
+    ALTER TABLE survey_seasonss ALTER published TYPE bool
+        USING CASE WHEN published='t' THEN TRUE ELSE FALSE END;
+    ALTER TABLE survey_seasonss ALTER COLUMN published SET DEFAULT FALSE;
 
+    --    Map survey seasons in models table
+    INSERT INTO models (owner_id, owner_type, dependent_id, dependent_type)
+    SELECT owner_id, 'surveys', id, 'survey_seasons' FROM survey_seasons;
+
+
+-- =========================================================
 --    Stations
+-- =========================================================
+
     SELECT rename_column('stations', 'station_owner_id', 'owner_id');
     SELECT rename_column('stations', 'station_owner_type', 'owner_type');
     SELECT rename_owner_types('stations');
@@ -360,10 +392,8 @@ Model schema updates
 --         REFERENCES models(owner_id, owner_type);
 
 --    Map stations in models table
---    insert into models (parent_id, parent_type_id, child_id, child_type_id)
---      select parent_id, parent_type_id, id, (
---        select id from model_types where name='surveys'
---      ) from surveys;
+   INSERT INTO models (owner_id, owner_type, dependent_id, dependent_type)
+     SELECT owner_id, owner_type, id, 'surveys' FROM stations;
 
     -- Latitude/Longitude constraints
 --    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_latitude;
@@ -374,13 +404,31 @@ Model schema updates
 --    ALTER TABLE stations ADD CONSTRAINT check_longitude
 --    CHECK (stations.long ~* '^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$')
 
+    -- Convert published field to boolean
+    ALTER TABLE stations ALTER COLUMN published DROP DEFAULT;
+    ALTER TABLE stations ALTER published TYPE bool
+        USING CASE WHEN published='t' THEN TRUE ELSE FALSE END;
+    ALTER TABLE stations ALTER COLUMN published SET DEFAULT FALSE;
+
+
+-- =========================================================
 --    Historic Visits (strictly owned by Stations)
+-- =========================================================
+
     SELECT rename_column('historic_visits', 'station_id', 'owner_id');
 
     SELECT setval('historic_visits_id_seq', (SELECT MAX(id) FROM historic_visits)+1);
 
 
+    --    Map historic visits in models table
+    INSERT INTO models (owner_id, owner_type, dependent_id, dependent_type)
+    SELECT owner_id, 'stations', id, 'historic_visits' FROM historic_visits;
+
+
+-- =========================================================
 --    Visits (strictly owned by Stations)
+-- =========================================================
+
     SELECT rename_column('visits', 'station_id', 'owner_id');
 
     SELECT setval('visits_id_seq', (SELECT MAX(id) FROM visits)+1);
@@ -400,30 +448,85 @@ Model schema updates
 --    ALTER TABLE stations ADD CONSTRAINT check_longitude
 --    CHECK (stations.long ~* '^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$')
 
+    --    Map visits in models table
+    INSERT INTO models (owner_id, owner_type, dependent_id, dependent_type)
+    SELECT owner_id, 'stations', id, 'visits' FROM visits;
+
+-- =========================================================
 --    Historic Captures
+-- =========================================================
+
     SELECT rename_column('historic_captures', 'capture_owner_id', 'owner_id');
     SELECT rename_column('historic_captures', 'capture_owner_type', 'owner_type');
+    SELECT rename_column('historic_captures', 'camera_id', 'cameras_id');
 
-      -- Foreign key constraint
+    -- Foreign key constraints
+    ALTER TABLE historic_captures DROP CONSTRAINT IF EXISTS fk_shutter_speed;
+    ALTER TABLE historic_captures ADD CONSTRAINT fk_shutter_speed
+        FOREIGN KEY(shutter_speed) REFERENCES shutter_speeds(speed);
+
+    ALTER TABLE historic_captures DROP CONSTRAINT IF EXISTS fk_iso;
+    ALTER TABLE historic_captures ADD CONSTRAINT fk_iso
+        FOREIGN KEY(iso) REFERENCES iso(setting);
+
 --    ALTER TABLE historic_captures DROP CONSTRAINT IF EXISTS fk_owner;
 --    ALTER TABLE historic_captures ADD CONSTRAINT fk_owner
 --         FOREIGN KEY(owner_id, owner_type)
 --             REFERENCES models(owner_id, owner_type);
 
+    -- Latitude/Longitude constraints
+--    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_latitude;
+--    ALTER TABLE stations ADD CONSTRAINT check_latitude
+--    CHECK (stations.lat ~* '^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$')
+--
+--    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_longitude;
+--    ALTER TABLE stations ADD CONSTRAINT check_longitude
+--    CHECK (stations.long ~* '^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$')
+
     SELECT rename_owner_types('historic_captures');
 
     SELECT setval('historic_captures_id_seq', (SELECT MAX(id) FROM historic_captures)+1);
 
+    --    Map historic captures in models table
+    INSERT INTO models (owner_id, owner_type, dependent_id, dependent_type)
+    SELECT owner_id, owner_type, id, 'historic_captures' FROM historic_captures;
 
+-- =========================================================
 --    Captures
+-- =========================================================
+
     SELECT rename_column('captures', 'capture_owner_id', 'owner_id');
     SELECT rename_column('captures', 'capture_owner_type', 'owner_type');
+    SELECT rename_column('captures', 'camera_id', 'cameras_id');
     SELECT rename_owner_types('captures');
 
     SELECT setval('captures_id_seq', (SELECT MAX(id) FROM captures)+1);
 
+    -- Foreign key constraints
+    ALTER TABLE captures DROP CONSTRAINT IF EXISTS fk_shutter_speed;
+    ALTER TABLE captures ADD CONSTRAINT fk_shutter_speed
+        FOREIGN KEY(shutter_speed)
+            REFERENCES shutter_speeds(speed);
 
+    ALTER TABLE captures DROP CONSTRAINT IF EXISTS fk_iso;
+    ALTER TABLE captures ADD CONSTRAINT fk_iso
+        FOREIGN KEY(iso)
+            REFERENCES iso(setting);
+
+    -- Convert alternate field to boolean
+    ALTER TABLE captures ALTER COLUMN alternate DROP DEFAULT;
+    ALTER TABLE captures ALTER alternate TYPE bool
+        USING CASE WHEN alternate='f' THEN FALSE ELSE TRUE END;
+    ALTER TABLE captures ALTER COLUMN alternate SET DEFAULT FALSE;
+
+    --    Map captures in models table
+    INSERT INTO models (owner_id, owner_type, dependent_id, dependent_type)
+    SELECT owner_id, owner_type, id, 'captures' FROM captures;
+
+-- =========================================================
 --    Capture Images (owned by either Captures or Historic Captures)
+-- =========================================================
+
     SELECT rename_column('capture_images', 'captureable_id', 'owner_id');
     SELECT rename_column('capture_images', 'captureable_type', 'owner_type');
     SELECT rename_owner_types('capture_images');
@@ -435,7 +538,10 @@ Model schema updates
 --    CHECK (capture_images.owner_type = ANY (ARRAY['captures', 'historic_captures']);)
 
 
+-- =========================================================
 --    Images
+-- =========================================================
+
     SELECT rename_column('images', 'image_owner_id', 'owner_id');
     SELECT rename_column('images', 'image_owner_type', 'owner_type');
     SELECT rename_owner_types('images');
@@ -453,13 +559,23 @@ Model schema updates
 --    TODO: Image States
 --    TODO: Image Types
 
+-- =========================================================
 --    Cameras
+-- =========================================================
+
 SELECT setval('cameras_id_seq', (SELECT MAX(id) FROM cameras)+1);
 
+
+-- =========================================================
 --    Lens
+-- =========================================================
+
 SELECT setval('lens_id_seq', (SELECT MAX(id) FROM lens)+1);
 
+-- =========================================================
 --    Users (drop)
+-- =========================================================
+
     DROP TABLE IF EXISTS users;
 
 COMMIT;

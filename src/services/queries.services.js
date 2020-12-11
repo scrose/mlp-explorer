@@ -328,6 +328,22 @@ export function getModel(table) {
 }
 
 /**
+ * Get owners for given model type.
+ *
+ * @param {String} modelType
+ * @return {Function} query binding function
+ */
+
+export function getOwners(modelType) {
+    return {
+        sql:`SELECT owner_type
+             FROM model_relations
+             WHERE dependent_type = $1::varchar`,
+        data: [modelType]
+    };
+}
+
+/**
  * Get all node types.
  *
  * @return {Function} query binding function

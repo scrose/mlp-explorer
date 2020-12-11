@@ -13,7 +13,6 @@
 import { expect, agent, BASE_URL } from './setup.js';
 import mocha from 'mocha';
 import * as db from '../src/services/index.services.js';
-import { models } from '../config.js';
 import { humanize, toSnake } from '../src/lib/data.utils.js';
 
 /**

@@ -10,9 +10,8 @@
  * @private
  */
 
-import Services from '../services/db.services.js';
+import Services from '../services/model.services.js';
 import * as db from '../services/index.services.js';
-import { models } from '../../config.js';
 import { toCamel, toSnake } from '../lib/data.utils.js';
 
 /**
@@ -29,9 +28,8 @@ let Model, services;
 // generate controller constructor
 export default function Controller(modelRoute) {
 
-    // check model exists
-    if (!models.hasOwnProperty(toCamel(modelRoute)))
-        throw new Error('invalidModel');
+    // check model not null
+    if (!modelRoute) throw new Error('invalidModel');
 
     // set model name/key
     this.modelName = toCamel(modelRoute);
