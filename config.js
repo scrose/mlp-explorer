@@ -19,6 +19,9 @@ let settings = {
         title: "Welcome to the Mountain Legacy Project Explorer"
     },
     models: {
+        users: {
+            owner: null
+        },
         projects: {
             owner: null
         },

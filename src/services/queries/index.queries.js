@@ -42,6 +42,11 @@ export default {
         attach: defaults.attach,
         detach: defaults.detach
     },
+    schema: {
+        getModel: defaults.getModel,
+        getModelTypes: defaults.getModelTypes,
+        getTables: defaults.getTables
+    },
     users: users,
     sessions: sessions,
     projects: projects,

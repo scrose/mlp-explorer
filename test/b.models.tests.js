@@ -249,7 +249,7 @@ function compare(model, data) {
 let Model;
 
 // Test all defined models
-Object.entries(models).forEach(([modelName, _]) => {
+Object.keys(mockItems).forEach(modelName => {
 
     // convert to snake case
     let modelRoute = toSnake(modelName);

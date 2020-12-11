@@ -17,51 +17,110 @@
 -- db reset >>> psql -U boutrous mlp2 < /Users/boutrous/Workspace/NodeJS/db/meat.sql
 -- db reset >>> psql -U boutrous mlp2 < /Users/boutrous/Workspace/NodeJS/mlp-db/meat.sql
 
-DROP TABLE IF EXISTS node_types;
+DROP TABLE IF EXISTS model_types;
 
-CREATE TABLE node_types (
+CREATE TABLE model_types (
 id serial PRIMARY KEY,
 type VARCHAR (40) UNIQUE NOT NULL,
-label VARCHAR (40) NOT NULL
+label VARCHAR (40) UNIQUE NOT NULL
 );
 
-INSERT INTO node_types (type, label) VALUES ('projects', 'Project');
-INSERT INTO node_types (type, label) VALUES ('surveyors', 'Surveyor');
-INSERT INTO node_types (type, label) VALUES ('surveys', 'Survey');
-INSERT INTO node_types (type, label) VALUES ('survey_seasons', 'SurveySeason');
-INSERT INTO node_types (type, label) VALUES ('stations', 'Station');
-INSERT INTO node_types (type, label) VALUES ('historic_visits', 'HistoricVisit');
-INSERT INTO node_types (type, label) VALUES ('visits', 'Visit');
-INSERT INTO node_types (type, label) VALUES ('locations', 'Location');
-INSERT INTO node_types (type, label) VALUES ('historic_captures', 'HistoricCapture');
-INSERT INTO node_types (type, label) VALUES ('captures', 'Capture');
-INSERT INTO node_types (type, label) VALUES ('capture_images', 'CaptureImage');
-INSERT INTO node_types (type, label) VALUES ('images', 'Image');
+INSERT INTO model_types (type, label) VALUES ('projects', 'Project');
+INSERT INTO model_types (type, label) VALUES ('surveyors', 'Surveyor');
+INSERT INTO model_types (type, label) VALUES ('surveys', 'Survey');
+INSERT INTO model_types (type, label) VALUES ('survey_seasons', 'SurveySeason');
+INSERT INTO model_types (type, label) VALUES ('stations', 'Station');
+INSERT INTO model_types (type, label) VALUES ('historic_visits', 'HistoricVisit');
+INSERT INTO model_types (type, label) VALUES ('visits', 'Visit');
+INSERT INTO model_types (type, label) VALUES ('locations', 'Location');
+INSERT INTO model_types (type, label) VALUES ('historic_captures', 'HistoricCapture');
+INSERT INTO model_types (type, label) VALUES ('captures', 'Capture');
+INSERT INTO model_types (type, label) VALUES ('capture_images', 'CaptureImage');
+INSERT INTO model_types (type, label) VALUES ('images', 'Image');
+INSERT INTO model_types (type, label) VALUES ('glass_plate_listings', 'Glass Plate Listings');
+INSERT INTO model_types (type, label) VALUES ('cameras', 'Camera');
+INSERT INTO model_types (type, label) VALUES ('metadata_files', 'Metadata Files');
+INSERT INTO model_types (type, label) VALUES ('maps', 'Maps');
+INSERT INTO model_types (type, label) VALUES ('participants', 'Participants');
+INSERT INTO model_types (type, label) VALUES ('participant_groups', 'Participant Groups');
+INSERT INTO model_types (type, label) VALUES ('shutter_speed', 'Camera');
+INSERT INTO model_types (type, label) VALUES ('iso', 'ISO Settings');
 
-SELECT * FROM node_types;
+
+SELECT * FROM model_types;
+
+CREATE TABLE model_relations (
+id serial PRIMARY KEY,
+dependent_type VARCHAR (40) NOT NULL
+owner_type VARCHAR (40),
+UNIQUE (owner_type, dependent_type),
+CONSTRAINT ck_same_type CHECK (owner_type != dependent_type),
+CONSTRAINT fk_owner_type FOREIGN KEY(owner_type)
+    REFERENCES node_types(type),
+CONSTRAINT fk_dependent_type FOREIGN KEY(dependent_type)
+    REFERENCES node_types(type),
+);
+
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('projects', NULL);
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('surveyors', NULL);
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('surveys', 'surveyors');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('survey_seasons', 'surveys');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('stations', 'projects');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('stations', 'survey_seasons');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('historic_visits', 'stations');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('visits', 'stations');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('locations', 'visits');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('historic_captures', 'surveys');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('historic_captures', 'survey_seasons');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('historic_captures', 'projects');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('historic_captures', 'historic_visits');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('captures', 'survey_seasons');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('captures', 'visits');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('captures', 'stations');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('captures', 'locations');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('capture_images', 'captures');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('capture_images', 'historic_capture');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('images', 'locations');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('images', 'stations');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('images', 'survey_seasons');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('images', 'surveys');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('images', 'visits');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('glass_plate_listings', 'survey_seasons');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('maps', 'survey_seasons');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('iso', NULL);
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('camera', NULL);
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('shutter_speed', NULL);
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('participants', NULL);
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('participant_groups', 'visits');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('metadata_files', 'visits');
+INSERT INTO model_relations (dependent_type, owner_type) VALUES ('metadata_files', 'stations');
 
 -- ----------------
--- Nodes Table
+-- Models Table
 -- ----------------
 
-DROP TABLE IF EXISTS nodes;
+DROP TABLE IF EXISTS models;
 
-CREATE TABLE IF NOT EXISTS nodes (
+CREATE TABLE IF NOT EXISTS models (
   owner_id INT NOT NULL,
   owner_type VARCHAR (40) NOT NULL,
   dependent_id INT NOT NULL,
   dependent_type VARCHAR (40) NOT NULL,
   UNIQUE (owner_id, owner_type, dependent_id, dependent_type),
   CONSTRAINT ck_same_type CHECK (owner_type != dependent_type),
-  CONSTRAINT fk_owner_type FOREIGN KEY(owner_type) REFERENCES node_types(type),
-  CONSTRAINT fk_dependent_type FOREIGN KEY(dependent_type) REFERENCES node_types(type)
+  CONSTRAINT fk_model_relation FOREIGN KEY(owner_type, dependent_type)
+    REFERENCES model_relations(owner_type, dependent_type),
+--  CONSTRAINT fk_owner_type FOREIGN KEY(owner_type)
+--    REFERENCES model_types(type)
+--  CONSTRAINT fk_dependent_type FOREIGN KEY(dependent_type)
+--    REFERENCES model_types(type)
 );
 
-CREATE INDEX owner_index ON nodes (owner_id);
-CREATE INDEX dependent_index ON nodes (dependent_id);
+CREATE INDEX owner_index ON models (owner_id);
+CREATE INDEX dependent_index ON models (dependent_id);
 
 -- confirm table created
-SELECT * FROM nodes;
+SELECT * FROM models;
 
 -- function: rename column
 BEGIN;
@@ -93,7 +152,7 @@ CREATE OR REPLACE FUNCTION rename_owner_types(_tbl regclass) RETURNS void LANGUA
         LOOP
                 RAISE NOTICE 'Existing ID, Node Type: %', r;
                 -- look up node type name
-                SELECT * FROM node_types WHERE label = r.owner_type INTO node_type;
+                SELECT * FROM model_types WHERE label = r.owner_type INTO node_type;
                 -- only proceed if update already done previously
                 IF node_type.type IS NOT NULL
                 THEN
@@ -200,7 +259,7 @@ Enumerated Types
 
     ALTER TABLE metadata_files DROP CONSTRAINT IF EXISTS fk_metadata_owner_type;
     ALTER TABLE metadata_files ADD CONSTRAINT fk_metadata_owner_type
-        FOREIGN KEY(owner_type) REFERENCES node_types(type);
+        FOREIGN KEY(owner_type) REFERENCES model_types(type);
 
     --    Copy existing field_notes table data into metadata files table
 
@@ -298,12 +357,12 @@ Model schema updates
 
 --     ALTER TABLE stations ADD CONSTRAINT fk_owner
 --         FOREIGN KEY(owner_id, owner_type)
---         REFERENCES nodes(owner_id, owner_type);
+--         REFERENCES models(owner_id, owner_type);
 
---    Map stations in nodes table
---    insert into nodes (parent_id, parent_type_id, child_id, child_type_id)
+--    Map stations in models table
+--    insert into models (parent_id, parent_type_id, child_id, child_type_id)
 --      select parent_id, parent_type_id, id, (
---        select id from node_types where name='surveys'
+--        select id from model_types where name='surveys'
 --      ) from surveys;
 
     -- Latitude/Longitude constraints
@@ -349,7 +408,7 @@ Model schema updates
 --    ALTER TABLE historic_captures DROP CONSTRAINT IF EXISTS fk_owner;
 --    ALTER TABLE historic_captures ADD CONSTRAINT fk_owner
 --         FOREIGN KEY(owner_id, owner_type)
---             REFERENCES nodes(owner_id, owner_type);
+--             REFERENCES models(owner_id, owner_type);
 
     SELECT rename_owner_types('historic_captures');
 

@@ -223,7 +223,7 @@ export function remove(model, args = { col: 'id', type: 'integer', index: 1 }) {
 }
 
 /**
- * Generate query: Attach node to owner as new nodes record.
+ * Generate query: Attach node to owner as new models record.
  *
  * @param {Object} model
  * @return {Function} query binding function
@@ -231,7 +231,7 @@ export function remove(model, args = { col: 'id', type: 'integer', index: 1 }) {
  */
 
 export function attach(model) {
-    let sql = `INSERT INTO nodes (owner_id,
+    let sql = `INSERT INTO models (owner_id,
                                   owner_type,
                                   dependent_id,
                                   dependent_type)
@@ -281,7 +281,7 @@ export function detach(model) {
 
     // get columns and prepared value placeholders
     let sql = `DELETE
-               FROM nodes
+               FROM models
                WHERE 
                 owner_id = $1::integer AND
                 owner_type = $2::varchar AND
@@ -308,6 +308,51 @@ export function detach(model) {
             sql: sql,
             data: [data.owner_id, ownerType, data.id, item.table],
         };
+    };
+}
+
+/**
+ * Get model column information as schema.
+ *
+ * @param {String} table
+ * @return {Function} query binding function
+ */
+
+export function getModel(table) {
+    return {
+        sql:`SELECT column_name, data_type
+             FROM information_schema.columns
+             WHERE table_name = $1::varchar`,
+        data: [table]
+    };
+}
+
+/**
+ * Get all node types.
+ *
+ * @return {Function} query binding function
+ */
+
+export function getModelTypes() {
+    return {
+        sql:`SELECT * FROM model_types;`,
+        data: []
+    };
+}
+
+/**
+ * Get all of the table names in database.
+ *
+ * @return {Function} query binding function
+ */
+
+export function getTables() {
+    return {
+        sql:`SELECT table_name
+             FROM information_schema.tables
+             WHERE table_schema='public'
+               AND table_type='BASE TABLE';`,
+        data: []
     };
 }
 
@@ -347,7 +392,6 @@ function _collate(
 
     return data;
 }
-
 
 
 

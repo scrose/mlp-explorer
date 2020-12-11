@@ -8,24 +8,8 @@
 'use strict';
 
 import { humanize, sanitize, toCamel } from '../lib/data.utils.js';
-import pool from './pgdb.js';
-import * as queries from './queries/schema.queries.js';
+import queries from './queries.services.js';
 import { models } from '../../config.js';
-
-/**
- * Get table column information.
- *
- * @public
- * @param {String} table
- * @return {Promise} result
- */
-
-export async function getSchema(table) {
-    return pool.query(
-        queries.getColumnsInfo,
-        [table],
-    );
-}
 
 /**
  * Create derived model through composition. The model schema
@@ -57,9 +41,8 @@ export async function getSchema(table) {
 
 export const create = async (table) => {
 
-    console.log(models, table)
-
     // confirm model is defined
+    let models = await queries.schema.getModelTypes();
     if (!models.hasOwnProperty(table))
         throw Error('modelNotDefined');
 
@@ -79,7 +62,7 @@ export const create = async (table) => {
     let fields = {};
 
     // generate schema from table column data
-    await getSchema(table)
+    await queries.schema.getModel(table)
         .then((data) => {
             // schematize table columns as data fields
             data.rows
