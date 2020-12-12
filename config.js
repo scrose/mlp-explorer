@@ -64,8 +64,6 @@ if (result.error) {
  * Expose module settings.
  * @public
  */
-export const general = settings.general;
-export const models = settings.models;
 export const roles = settings.roles;
 export const session = settings.session;
 export const permissions = settings.permissions;

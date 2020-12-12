@@ -19,7 +19,7 @@ export function getByStation(station_id) {
         return {
             sql:`SELECT * FROM historic_visits
             LEFT OUTER JOIN stations
-            ON visits.owner_id = $1::integer`,
+            ON historic_visits.owner_id = $1::integer`,
             data: [station_id]
         };
     }

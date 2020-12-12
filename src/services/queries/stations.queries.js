@@ -7,9 +7,6 @@
 
 'use strict';
 
-import * as queries from '../queries.services.js';
-
-
 /**
  * Find stations by owner.
  *
@@ -28,24 +25,3 @@ export function getByOwner(owner) {
         };
     }
 }
-
-/**
- * Attach station to owner.
- *
- * @return {Function} query binding function
- */
-
-export function attach() {
-    return queries.attach();
-}
-
-/**
- * Detach station from owner.
- *
- * @return {Function} query binding function
- */
-
-export function detach() {
-    return queries.detach();
-}
-

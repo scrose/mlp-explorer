@@ -1,5 +1,5 @@
 /*!
- * MLP.API.Models.Sessions.Queries
+ * MLP.API.Models.Queries.Sessions
  * File: sessions.queries.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed

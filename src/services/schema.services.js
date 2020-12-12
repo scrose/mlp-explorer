@@ -27,7 +27,7 @@ export const create = async (modelType) => {
 
     // check model definition
     let modelTypes = await getTypes();
-    console.log(modelTypes, modelType)
+
     if (!modelTypes.includes(modelType))
         throw Error('modelNotDefined');
 
@@ -111,7 +111,7 @@ export const getModel = async function(modelType) {
  */
 
 export const getOwners = async function(model) {
-    let { sql, data } = queries.getOwners(model);
+    let { sql, data } = queries.schema.getOwners(model);
     let owners = await pool.query(sql, data);
     return owners.rows;
 };

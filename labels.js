@@ -5,7 +5,7 @@
  * @private
  */
 
-export const metadata = {
+export default {
     main: {
         projectName: "Mountain Legacy Project",
         appName: "Explorer",

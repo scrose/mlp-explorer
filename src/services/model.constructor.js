@@ -39,8 +39,9 @@ import * as schemaConstructor from './schema.services.js';
 
 export const create = async (modelType) => {
 
-    // create model schema
-    let schema = await schemaConstructor.create(modelType);
+    // generate schema for model type
+    let Schema = await schemaConstructor.create(modelType);
+    const schema = new Schema();
 
     // initialize model constructor
     let Model = function(attributeValues) {
@@ -90,6 +91,12 @@ export const create = async (modelType) => {
             value: clear,
             writable: false,
         },
+        hasOwners: {
+            value: function() {
+                return !!schema.owners.length
+            },
+            writable: false,
+        },
     });
     return Model;
 };
@@ -108,7 +115,7 @@ function setData(data=null) {
         // select either first row of data array or single data object
         const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
         Object.entries(inputData).forEach(([key, value]) => {
-            // console.log(key, value)
+            console.log(self.label, ' field:', key, ', value:', value)
             // check that field exists in model
             if (!self.fields.hasOwnProperty(key)) throw Error('violatesSchema');
             console.log(self.fields[key].type, sanitize(value, self.fields[key].type))

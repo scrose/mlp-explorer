@@ -20,7 +20,8 @@ import { genUUID } from './lib/secure.utils.js';
 import SessionStore from './models/session.models.js';
 import { globalHandler, notFoundHandler } from './error.js';
 import { authorize } from './lib/permissions.utils.js';
-import { general, session as config } from '../config.js';
+import labels from '../labels.js';
+import {session as config} from '../config.js'
 import router from './routes/index.routes.js';
 
 
@@ -156,7 +157,7 @@ app.use(function(req, res, next) {
         throw Error('nosession');
 
     // store response local variables scoped to the request
-    res.locals.general = general;
+    res.locals.labels = labels;
     res.locals.user = req.session.user;
     res.locals.messages = req.session.messages || [];
 

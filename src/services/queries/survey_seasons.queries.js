@@ -7,8 +7,6 @@
 
 'use strict';
 
-import * as queries from '../queries.services.js';
-
 /**
  * Find all survey seasons. Joined with surveys table.
  */
@@ -39,24 +37,3 @@ export function getBySurvey(_) {
         };
     }
 }
-
-/**
- * Attach survey season to survey.
- *
- * @return {Object} SQL statement array
- */
-
-export function attach() {
-    return queries.attach('surveys');
-}
-
-/**
- * Detach survey season from survey.
- *
- * @return {Object} SQL statement array
- */
-
-export function detach() {
-    return queries.detach('surveys');
-}
-

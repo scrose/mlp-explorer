@@ -54,7 +54,7 @@ function SessionStore() {
     db.sessions
         .init()
         .then(() => {
-            debug('Sessions table generated.');
+            console.log('Sessions table generated.');
         })
         .catch((err) => {
             console.error('SESSION INIT Error: ', err);

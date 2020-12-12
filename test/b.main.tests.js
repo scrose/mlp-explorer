@@ -12,7 +12,7 @@
 
 import { expect, server, BASE_URL } from './setup.js';
 import mocha from 'mocha';
-import { general } from '../config.js'
+import labels from '../labels.js'
 
 mocha.describe('Index page test', () => {
   mocha.it('Gets base url', (done) => {
@@ -21,9 +21,9 @@ mocha.describe('Index page test', () => {
       .expect(200)
       .end((err, res) => {
         expect(res.status).to.equal(200);
-        expect(res.body.general.projectName).to.equal(general.projectName);
-        expect(res.body.general.appName).to.equal(general.appName);
-        expect(res.body.general.title).to.equal(general.title);
+        expect(res.body.labels.main.projectName).to.equal(labels.main.projectName);
+        expect(res.body.labels.main.appName).to.equal(labels.main.appName);
+        expect(res.body.labels.main.title).to.equal(labels.main.title);
         done();
       });
   });

@@ -6,25 +6,3 @@
  */
 
 'use strict';
-
-import * as queries from '../queries.services.js';
-
-/**
- * Attach map to survey season.
- *
- * @return {Object} SQL statement array
- */
-
-export function attach() {
-    return queries.attach('survey_seasons');
-}
-
-/**
- * Detach map to survey season.
- *
- * @return {Object} SQL statement array
- */
-
-export function detach() {
-    return queries.detach('survey_seasons');
-}

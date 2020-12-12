@@ -11,74 +11,74 @@
 -- Model Types Table
 -- -------------------------------------------------------------
 
-drop table IF EXISTS model_types;
+drop table if exists node_types CASCADE;
 
-create TABLE model_types
+create TABLE node_types
 (
     id    serial PRIMARY KEY,
     type  VARCHAR(40) UNIQUE NOT NULL,
     label VARCHAR(40) UNIQUE NOT NULL
 );
 
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('users', 'Users');
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('projects', 'Project');
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('surveyors', 'Surveyor');
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('surveys', 'Survey');
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('survey_seasons', 'SurveySeason');
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('stations', 'Station');
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('historic_visits', 'HistoricVisit');
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('visits', 'Visit');
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('locations', 'Location');
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('historic_captures', 'HistoricCapture');
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('captures', 'Capture');
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('capture_images', 'CaptureImage');
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('images', 'Image');
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('glass_plate_listings', 'Glass Plate Listings');
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('cameras', 'Camera');
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('metadata_files', 'Metadata Files');
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('maps', 'Maps');
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('participants', 'Participants');
-insert into model_types (type, label)
+insert into node_types (type, label)
 values ('participant_groups', 'Participant Groups');
-insert into model_types (type, label)
-values ('shutter_speed', 'Camera');
-insert into model_types (type, label)
+insert into node_types (type, label)
+values ('shutter_speed', 'Shutter Speed');
+insert into node_types (type, label)
 values ('iso', 'ISO Settings');
 
 
 select *
-from model_types;
+from node_types;
 
 
 -- -------------------------------------------------------------
 -- Model Relations Table
 -- -------------------------------------------------------------
 
-drop table if exists model_relations;
+drop table if exists node_relations cascade;
 
-create TABLE model_relations
+create TABLE node_relations
 (
     id             serial PRIMARY KEY,
-    dependent_type VARCHAR(40),
-    owner_type     VARCHAR(40),
+    dependent_type VARCHAR(40) NOT NULL,
+    owner_type     VARCHAR(40) NOT NULL,
     UNIQUE (owner_type, dependent_type),
     CONSTRAINT ck_same_type CHECK (owner_type != dependent_type),
     CONSTRAINT fk_owner_type FOREIGN KEY (owner_type)
@@ -87,81 +87,49 @@ create TABLE model_relations
         REFERENCES node_types (type)
 );
 
-insert into model_relations (dependent_type, owner_type)
-values ('projects', null);
-insert into model_relations (dependent_type, owner_type)
-values ('surveyors', null);
-insert into model_relations (dependent_type, owner_type)
-values ('surveys', 'surveyors');
-insert into model_relations (dependent_type, owner_type)
-values ('survey_seasons', 'surveys');
-insert into model_relations (dependent_type, owner_type)
-values ('stations', 'projects');
-insert into model_relations (dependent_type, owner_type)
-values ('stations', 'survey_seasons');
-insert into model_relations (dependent_type, owner_type)
-values ('historic_visits', 'stations');
-insert into model_relations (dependent_type, owner_type)
-values ('visits', 'stations');
-insert into model_relations (dependent_type, owner_type)
-values ('locations', 'visits');
-insert into model_relations (dependent_type, owner_type)
-values ('historic_captures', 'surveys');
-insert into model_relations (dependent_type, owner_type)
-values ('historic_captures', 'survey_seasons');
-insert into model_relations (dependent_type, owner_type)
-values ('historic_captures', 'projects');
-insert into model_relations (dependent_type, owner_type)
-values ('historic_captures', 'historic_visits');
-insert into model_relations (dependent_type, owner_type)
-values ('captures', 'survey_seasons');
-insert into model_relations (dependent_type, owner_type)
-values ('captures', 'visits');
-insert into model_relations (dependent_type, owner_type)
-values ('captures', 'stations');
-insert into model_relations (dependent_type, owner_type)
-values ('captures', 'locations');
-insert into model_relations (dependent_type, owner_type)
-values ('capture_images', 'captures');
-insert into model_relations (dependent_type, owner_type)
-values ('capture_images', 'historic_capture');
-insert into model_relations (dependent_type, owner_type)
-values ('images', 'locations');
-insert into model_relations (dependent_type, owner_type)
-values ('images', 'stations');
-insert into model_relations (dependent_type, owner_type)
-values ('images', 'survey_seasons');
-insert into model_relations (dependent_type, owner_type)
-values ('images', 'surveys');
-insert into model_relations (dependent_type, owner_type)
-values ('images', 'visits');
-insert into model_relations (dependent_type, owner_type)
-values ('glass_plate_listings', 'survey_seasons');
-insert into model_relations (dependent_type, owner_type)
-values ('maps', 'survey_seasons');
-insert into model_relations (dependent_type, owner_type)
-values ('iso', null);
-insert into model_relations (dependent_type, owner_type)
-values ('camera', null);
-insert into model_relations (dependent_type, owner_type)
-values ('shutter_speed', null);
-insert into model_relations (dependent_type, owner_type)
-values ('participants', null);
-insert into model_relations (dependent_type, owner_type)
-values ('participant_groups', 'visits');
-insert into model_relations (dependent_type, owner_type)
-values ('metadata_files', 'visits');
-insert into model_relations (dependent_type, owner_type)
-values ('metadata_files', 'stations');
+insert into node_relations (dependent_type, owner_type) 
+values (null, 'projects'),
+(null, 'surveyors'),
+('surveys', 'surveyors'),
+('survey_seasons', 'surveys'),
+('stations', 'projects'),
+('stations', 'survey_seasons'),
+('historic_visits', 'stations'),
+('visits', 'stations'),
+('locations', 'visits'),
+('historic_captures', 'surveys'),
+('historic_captures', 'survey_seasons'),
+('historic_captures', 'projects'),
+('historic_captures', 'historic_visits'),
+('captures', 'survey_seasons'),
+('captures', 'visits'),
+('captures', 'stations'),
+('captures', 'locations'),
+('capture_images', 'captures'),
+('capture_images', 'historic_captures'),
+('images', 'locations'),
+('images', 'stations'),
+('images', 'survey_seasons'),
+('images', 'surveys'),
+('images', 'visits'),
+('glass_plate_listings', 'survey_seasons'),
+('maps', 'survey_seasons'),
+('iso', null),
+('cameras', null),
+('shutter_speed', null),
+('participants', null),
+('participant_groups', 'visits'),
+('metadata_files', 'visits'),
+('metadata_files', 'stations');
 
 
 -- -------------------------------------------------------------
--- Models Table
+-- Nodes Table
 -- -------------------------------------------------------------
 
-drop table IF EXISTS models;
+drop table if exists nodes cascade;
 
-create TABLE IF NOT EXISTS models
+create TABLE IF NOT EXISTS nodes
 (
     owner_id       INT         NOT NULL,
     owner_type     VARCHAR(40) NOT NULL,
@@ -169,20 +137,20 @@ create TABLE IF NOT EXISTS models
     dependent_type VARCHAR(40) NOT NULL,
     UNIQUE (owner_id, owner_type, dependent_id, dependent_type),
     CONSTRAINT ck_same_type CHECK (owner_type != dependent_type),
-    CONSTRAINT fk_model_relation FOREIGN KEY (owner_type, dependent_type)
-        REFERENCES model_relations (owner_type, dependent_type)
+    CONSTRAINT fk_node_relation FOREIGN KEY (owner_type, dependent_type)
+        REFERENCES node_relations (owner_type, dependent_type)
 --  CONSTRAINT fk_owner_type FOREIGN KEY(owner_type)
---    REFERENCES model_types(type)
+--    REFERENCES node_types(type)
 --  CONSTRAINT fk_dependent_type FOREIGN KEY(dependent_type)
---    REFERENCES model_types(type)
+--    REFERENCES node_types(type)
 );
 
-create INDEX owner_index ON models (owner_id);
-create INDEX dependent_index ON models (dependent_id);
+create INDEX owner_index ON nodes (owner_id);
+create INDEX dependent_index ON nodes (dependent_id);
 
 -- confirm table created
 select *
-from models;
+from nodes;
 
 -- function: rename column
 begin;
@@ -217,7 +185,7 @@ begin
         loop
             raise NOTICE 'Existing ID, Node Type: %', r;
             -- look up node type name
-            select * from model_types where label = r.owner_type INTO node_type;
+            select * from node_types where label = r.owner_type INTO node_type;
             -- only proceed if update already done previously
             IF node_type.type is NOT NULL
             THEN
@@ -237,7 +205,7 @@ $$;
 --    Metadata types
 -- -------------------------------------------------------------
 
-drop table IF EXISTS metadata_types;
+drop table if exists metadata_types cascade;
 
 create TABLE IF NOT EXISTS metadata_types
 (
@@ -254,13 +222,12 @@ values ('field_notes'),
 --    Shutter speeds
 -- -------------------------------------------------------------
 
-drop table IF EXISTS shutter_speeds;
+drop table if exists shutter_speeds cascade;
 
 create TABLE shutter_speeds
 (
     id    SERIAL PRIMARY KEY NOT NULL,
-    speed varchar(40),
-    UNIQUE (speed)
+    speed varchar(40) UNIQUE
 );
 
 insert into shutter_speeds (speed)
@@ -297,12 +264,15 @@ values (null),
        ('1/25'),
        ('1/30'),
        ('1/40'),
+       ('1/45'),
        ('1/50'),
        ('1/60'),
        ('1/80'),
+       ('1/90'),
        ('1/100'),
        ('1/125'),
        ('1/160'),
+       ('1/180'),
        ('1/200'),
        ('1/250'),
        ('1/320'),
@@ -319,17 +289,23 @@ values (null),
        ('1/4000'),
        ('1/8000');
 
+
+-- -------------------------------------------------------------
 --    ISO settings
-drop table IF EXISTS iso;
+-- -------------------------------------------------------------
+
+drop table IF EXISTS iso cascade;
+
 create TABLE IF NOT EXISTS iso
 (
     id      SERIAL PRIMARY KEY NOT NULL,
-    setting INTEGER
+    setting INTEGER UNIQUE
 );
 
 insert into iso (setting)
 values (null),
        (50),
+       (64),
        (100),
        (125),
        (160),
@@ -368,10 +344,12 @@ Model schema updates
 
 
 -- -------------------------------------------------------------
---    Participant Groups
+--    Participant Groups (owned by visits)
 -- -------------------------------------------------------------
 
-drop table IF EXISTS participant_group_types;
+drop table IF EXISTS participant_group_types cascade;
+drop table IF EXISTS participant_groups cascade ;
+
 create TABLE IF NOT EXISTS participant_group_types
 (
     id   SERIAL PRIMARY KEY NOT NULL,
@@ -384,7 +362,6 @@ values ('hiking_party'),
        ('field_notes_authors'),
        ('photographers');
 
-drop table IF EXISTS participant_groups;
 create TABLE IF NOT EXISTS participant_groups
 (
     owner_id       INTEGER     NOT NULL,
@@ -402,30 +379,78 @@ create TABLE IF NOT EXISTS participant_groups
 
 --      fn_authors_visits: {participant_id, visit_id}
 
-insert into participant_groups (owner_id, participant_id, group_type, created_at, updated_at)
-select visit_id, participant_id, 'field_notes_authors', NOW(), NOW()
-from fn_authors_visits
-where participant_id is not null;
 
-drop table fn_authors_visits;
+DO
+$$
+    begin
+        --    Copy existing fn_authors_visits table data into participant groups table
+        IF EXISTS(SELECT *
+                  FROM information_schema.tables
+                  WHERE table_schema = current_schema()
+                    AND table_name = 'fn_authors_visits') THEN
 
---      hiking_parties: {participant_id, visit_id}
+            insert into participant_groups (
+                                            owner_id,
+                                            participant_id,
+                                            group_type,
+                                            created_at,
+                                            updated_at)
+            select visit_id, participant_id, 'field_notes_authors', NOW(), NOW()
+            from fn_authors_visits
+            where participant_id is not null;
 
-insert into participant_groups (owner_id, participant_id, group_type, created_at, updated_at)
-select visit_id, participant_id, 'hiking_party', created_at, updated_at
-from hiking_parties
-where participant_id is not null;
+            drop table fn_authors_visits;
+        end if;
+    end;
+$$;
 
-drop table hiking_parties;
+DO
+$$
+    begin
+        --    Copy existing hiking_parties table data into participant groups table
+        IF EXISTS(SELECT *
+                  FROM information_schema.tables
+                  WHERE table_schema = current_schema()
+                    AND table_name = 'hiking_parties') THEN
 
---      photographers_visits: {participant_id, visit_id}
+            insert into participant_groups (
+                                            owner_id,
+                                            participant_id,
+                                            group_type,
+                                            created_at,
+                                            updated_at)
+            select visit_id, participant_id, 'hiking_party', created_at, updated_at
+            from hiking_parties
+            where participant_id is not null;
 
-insert into participant_groups (owner_id, participant_id, group_type, created_at, updated_at)
-select visit_id, participant_id, 'photographers', NOW(), NOW()
-from photographers_visits
-where participant_id is not null;
+            drop table hiking_parties;
+        end if;
+    end;
+$$;
 
-drop table photographers_visits;
+DO
+$$
+    begin
+        --    Copy existing photographers_visits table data into participant groups table
+        IF EXISTS(SELECT *
+                  FROM information_schema.tables
+                  WHERE table_schema = current_schema()
+                    AND table_name = 'photographers_visits') THEN
+
+            insert into participant_groups (
+                                            owner_id,
+                                            participant_id,
+                                            group_type,
+                                            created_at,
+                                            updated_at)
+            select visit_id, participant_id, 'photographers', NOW(), NOW()
+            from photographers_visits
+            where participant_id is not null;
+
+            drop table photographers_visits;
+        end if;
+    end;
+$$;
 
 
 -- -------------------------------------------------------------
@@ -483,8 +508,8 @@ alter table surveys
 alter table surveys
     alter COLUMN published SET DEFAULT FALSE;
 
---    Map surveys in models table
-insert into models (owner_id, owner_type, dependent_id, dependent_type)
+--    Map surveys in nodes table
+insert into nodes (owner_id, owner_type, dependent_id, dependent_type)
 select owner_id, 'surveyors', id, 'surveys'
 from surveys;
 
@@ -518,8 +543,8 @@ alter table survey_seasons
 alter table survey_seasons
     alter COLUMN published SET DEFAULT FALSE;
 
---    Map survey seasons in models table
-insert into models (owner_id, owner_type, dependent_id, dependent_type)
+--    Map survey seasons in nodes table
+insert into nodes (owner_id, owner_type, dependent_id, dependent_type)
 select owner_id, 'surveys', id, 'survey_seasons'
 from survey_seasons;
 
@@ -542,8 +567,16 @@ alter table stations
 alter table stations
     alter COLUMN published SET DEFAULT FALSE;
 
---    Map stations in models table
-insert into models (owner_id, owner_type, dependent_id, dependent_type)
+---   Foriegn key constraints
+ALTER TABLE stations
+    DROP CONSTRAINT IF EXISTS fk_owner_type;
+ALTER TABLE stations
+    ADD CONSTRAINT fk_owner_type
+        FOREIGN KEY (owner_type)
+            REFERENCES node_types (type);
+
+--    Map stations in nodes table
+insert into nodes (owner_id, owner_type, dependent_id, dependent_type)
 select owner_id, owner_type, id, 'stations'
 from stations;
 
@@ -552,13 +585,10 @@ from stations;
 -- -------------------------------------------------------------
 
 select rename_column('historic_visits', 'station_id', 'owner_id');
-select rename_owner_types('historic_visits');
-
 select setval('historic_visits_id_seq', (select max(id) from historic_visits) + 1);
 
-
---    Map historic visits in models table
-insert into models (owner_id, owner_type, dependent_id, dependent_type)
+--    Map historic visits in nodes table
+insert into nodes (owner_id, owner_type, dependent_id, dependent_type)
 select owner_id, 'stations', id, 'historic_visits'
 from historic_visits;
 
@@ -586,8 +616,8 @@ select setval('locations_id_seq', (select max(id) from locations) + 1);
 --    ALTER TABLE stations ADD CONSTRAINT check_longitude
 --    CHECK (stations.long ~* '^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$')
 
---    Map visits in models table
-insert into models (owner_id, owner_type, dependent_id, dependent_type)
+--    Map visits in nodes table
+insert into nodes (owner_id, owner_type, dependent_id, dependent_type)
 select owner_id, 'stations', id, 'visits'
 from visits;
 
@@ -599,8 +629,10 @@ select rename_column('historic_captures', 'capture_owner_id', 'owner_id');
 select rename_column('historic_captures', 'capture_owner_type', 'owner_type');
 select rename_column('historic_captures', 'camera_id', 'cameras_id');
 
---    Map historic captures in models table
-insert into models (owner_id, owner_type, dependent_id, dependent_type)
+select rename_owner_types('historic_captures');
+
+--    Map historic captures in nodes table
+insert into nodes (owner_id, owner_type, dependent_id, dependent_type)
 select owner_id, owner_type, id, 'historic_captures'
 from historic_captures;
 
@@ -609,33 +641,19 @@ UPDATE historic_captures
 SET shutter_speed=NULL
 where shutter_speed = '';
 
-UPDATE historic_captures
-SET cameras_id=NULL
-where cameras_id = '';
-
-UPDATE historic_captures
-SET lens_id=NULL
-where lens_id = '';
-
 -- Foreign key constraints
-alter table historic_captures
-    drop CONSTRAINT IF EXISTS fk_shutter_speed;
-alter table historic_captures
-    add CONSTRAINT fk_shutter_speed
-        FOREIGN KEY (shutter_speed) REFERENCES shutter_speeds (speed);
-
-alter table historic_captures
-    drop CONSTRAINT IF EXISTS fk_iso;
-alter table historic_captures
-    add CONSTRAINT fk_iso
-        FOREIGN KEY (iso) REFERENCES iso (setting);
+-- alter table historic_captures
+--     drop CONSTRAINT IF EXISTS fk_shutter_speed;
+-- alter table historic_captures
+--     add CONSTRAINT fk_shutter_speed
+--         FOREIGN KEY (shutter_speed) REFERENCES shutter_speeds (speed);
 
 ALTER TABLE historic_captures
-    DROP CONSTRAINT IF EXISTS fk_owner;
+    DROP CONSTRAINT IF EXISTS fk_owner_type;
 ALTER TABLE historic_captures
-    ADD CONSTRAINT fk_owner
-        FOREIGN KEY (owner_id, owner_type)
-            REFERENCES models (owner_id, owner_type);
+    ADD CONSTRAINT fk_owner_type
+        FOREIGN KEY (owner_type)
+            REFERENCES node_types (type);
 
 -- Latitude/Longitude constraints
 --    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_latitude;
@@ -666,25 +684,14 @@ select setval('captures_id_seq', (select max(id) from captures) + 1);
 UPDATE captures
 SET shutter_speed=NULL
 where shutter_speed = '';
-UPDATE captures
-SET iso=NULL
-where iso = '';
-
-UPDATE captures
-SET cameras_id=NULL
-where cameras_id = '';
-
-UPDATE captures
-SET lens_id=NULL
-where lens_id = '';
 
 -- Foreign key constraints
-alter table captures
-    drop CONSTRAINT IF EXISTS fk_shutter_speed;
-alter table captures
-    add CONSTRAINT fk_shutter_speed
-        FOREIGN KEY (shutter_speed)
-            REFERENCES shutter_speeds (speed);
+-- alter table captures
+--     drop CONSTRAINT IF EXISTS fk_shutter_speed;
+-- alter table captures
+--     add CONSTRAINT fk_shutter_speed
+--         FOREIGN KEY (shutter_speed)
+--             REFERENCES shutter_speeds (speed);
 
 alter table captures
     drop CONSTRAINT IF EXISTS fk_iso;
@@ -692,6 +699,13 @@ alter table captures
     add CONSTRAINT fk_iso
         FOREIGN KEY (iso)
             REFERENCES iso (setting);
+
+ALTER TABLE captures
+    DROP CONSTRAINT IF EXISTS fk_owner_type;
+ALTER TABLE captures
+    ADD CONSTRAINT fk_owner_type
+        FOREIGN KEY (owner_type)
+            REFERENCES node_types (type);
 
 -- Convert alternate field to boolean
 alter table captures
@@ -702,8 +716,8 @@ alter table captures
 alter table captures
     alter COLUMN alternate SET DEFAULT FALSE;
 
---    Map captures in models table
-insert into models (owner_id, owner_type, dependent_id, dependent_type)
+--    Map captures in nodes table
+insert into nodes (owner_id, owner_type, dependent_id, dependent_type)
 select owner_id, owner_type, id, 'captures'
 from captures;
 
@@ -718,12 +732,19 @@ select rename_owner_types('capture_images');
 
 select setval('capture_images_id_seq', (select max(id) from capture_images) + 1);
 
+ALTER TABLE capture_images
+    DROP CONSTRAINT IF EXISTS fk_owner_type;
+ALTER TABLE capture_images
+    ADD CONSTRAINT fk_owner_type
+        FOREIGN KEY (owner_type)
+            REFERENCES node_types (type);
+
 --    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_capture_type;
 --    ALTER TABLE stations ADD CONSTRAINT check_capture_type
 --    CHECK (capture_images.owner_type = ANY (ARRAY['captures', 'historic_captures']);)
 
---    Map capture images in models table
-insert into models (owner_id, owner_type, dependent_id, dependent_type)
+--    Map capture images in nodes table
+insert into nodes (owner_id, owner_type, dependent_id, dependent_type)
 select owner_id, owner_type, id, 'capture_images'
 from capture_images;
 
@@ -734,6 +755,7 @@ from capture_images;
 
 select rename_column('images', 'image_owner_id', 'owner_id');
 select rename_column('images', 'image_owner_type', 'owner_type');
+select rename_column('images', 'camera_id', 'cameras_id');
 select rename_owner_types('images');
 
 -- TODO: convert ScenicImage and LocationImage image types to scenic and location
@@ -743,8 +765,16 @@ select rename_owner_types('images');
 
 select setval('images_id_seq', (select max(id) from images) + 1);
 
---    Map images in models table
-insert into models (owner_id, owner_type, dependent_id, dependent_type)
+---   Foriegn key constraints
+ALTER TABLE images
+    DROP CONSTRAINT IF EXISTS fk_owner_type;
+ALTER TABLE images
+    ADD CONSTRAINT fk_owner_type
+        FOREIGN KEY (owner_type)
+            REFERENCES node_types (type);
+
+--    Map images in nodes table
+insert into nodes (owner_id, owner_type, dependent_id, dependent_type)
 select owner_id, owner_type, id, 'images'
 from images;
 
@@ -799,30 +829,40 @@ alter table metadata_files
     drop CONSTRAINT IF EXISTS fk_metadata_owner_type;
 alter table metadata_files
     add CONSTRAINT fk_metadata_owner_type
-        FOREIGN KEY (owner_type) REFERENCES model_types (type);
+        FOREIGN KEY (owner_type) REFERENCES node_types (type);
 
+DO
+$$
+    begin
 --    Copy existing field_notes table data into metadata files table
+        IF EXISTS(SELECT *
+          FROM information_schema.tables
+          WHERE table_schema = current_schema()
+            AND table_name = 'field_notes') THEN
+            insert into metadata_files (owner_id,
+                                        owner_type,
+                                        metadata_type,
+                                        filename,
+                                        created_at,
+                                        updated_at)
+            select visit_id,
+                   'visits',
+                   'field_notes',
+                   field_note_file,
+                   created_at,
+                   updated_at
+            from field_notes;
 
-insert into metadata_files (owner_id,
-                            owner_type,
-                            metadata_type,
-                            filename,
-                            created_at,
-                            updated_at)
-select visit_id,
-       'visits',
-       'field_notes',
-       field_note_file,
-       created_at,
-       updated_at
-from field_notes;
+            drop table field_notes;
+    end if;
+    end;
+$$;
 
-drop table field_notes;
-
---    Map capture images in models table
-insert into models (owner_id, owner_type, dependent_id, dependent_type)
+--    Map capture images in nodes table
+insert into nodes (owner_id, owner_type, dependent_id, dependent_type)
 select owner_id, owner_type, id, 'metadata_files'
 from metadata_files;
+
 
 -- -------------------------------------------------------------
 --    Cameras

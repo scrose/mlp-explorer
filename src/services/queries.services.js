@@ -231,7 +231,14 @@ export function remove(model, args = { col: 'id', type: 'integer', index: 1 }) {
  */
 
 export function attach(model) {
-    let sql = `INSERT INTO models (owner_id,
+
+    console.log(model)
+
+    // return null if model does not have owner
+    if (!model.hasOwners())
+        return null;
+
+    let sql = `INSERT INTO nodes (owner_id,
                                   owner_type,
                                   dependent_id,
                                   dependent_type)
@@ -251,16 +258,18 @@ export function attach(model) {
     return function(item) {
         const data = item.getData();
 
-        // check for defined owner ID
+        // assert defined owner ID
         if (!data.hasOwnProperty('owner_id'))
             throw Error('missingOwnerId');
 
-        // check for defined owner type
-        if (!data.hasOwnProperty('owner_type') && !model.owner)
-            throw Error('missingOwnerType');
+        // assert non-ambiguous owner type
+        if (!data.hasOwnProperty('owner_type') && model.owners.length > 1)
+            throw Error('ambiguousOwnerType');
 
         // use either model-defined or item-defined owner type
-        const ownerType = model.owner || data.owner_type;
+        const ownerType = data.hasOwnProperty('owner_type')
+            ? data.owner_type
+            : model.owners[0].owner_type;
 
         return {
             sql: sql,
@@ -279,9 +288,13 @@ export function attach(model) {
 
 export function detach(model) {
 
+    // return null if model does not have owner
+    if (!model.hasOwners())
+        return null;
+
     // get columns and prepared value placeholders
     let sql = `DELETE
-               FROM models
+               FROM nodes
                WHERE 
                 owner_id = $1::integer AND
                 owner_type = $2::varchar AND
@@ -293,16 +306,18 @@ export function detach(model) {
     return function(item) {
         const data = item.getData();
 
-        // check for defined owner ID
+        // assert defined owner ID
         if (!data.hasOwnProperty('owner_id'))
             throw Error('missingOwnerId');
 
-        // check for defined owner type
-        if (!data.hasOwnProperty('owner_type') && !model.owner)
-            throw Error('missingOwnerType');
+        // assert non-ambiguous owner type
+        if (!data.hasOwnProperty('owner_type') && model.owners.length > 1)
+            throw Error('ambiguousOwnerType');
 
         // use either model-defined or item-defined owner type
-        const ownerType = model.owner || data.owner_type;
+        const ownerType = data.hasOwnProperty('owner_type')
+            ? data.owner_type
+            : model.owners[0].owner_type;
 
         return {
             sql: sql,
@@ -337,7 +352,7 @@ export function getModel(table) {
 export function getOwners(modelType) {
     return {
         sql:`SELECT owner_type
-             FROM model_relations
+             FROM node_relations
              WHERE dependent_type = $1::varchar`,
         data: [modelType]
     };
@@ -351,7 +366,7 @@ export function getOwners(modelType) {
 
 export function getModelTypes() {
     return {
-        sql:`SELECT * FROM model_types;`,
+        sql:`SELECT * FROM node_types;`,
         data: []
     };
 }
