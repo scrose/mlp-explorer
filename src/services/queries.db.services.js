@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Services.Queries
- * File: queries.services.js
+ * File: queries.db.services.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -22,7 +22,7 @@ const limit = 100;
  * @public
  */
 
-export function getAll(model, offset=0) {
+export function getAll(model, offset = 0) {
     return function() {
         return {
             sql: `SELECT * 
@@ -90,7 +90,7 @@ export function find(model) {
 
         // check that attribute exists in model
         if (!model.fields.hasOwnProperty(col))
-            throw Error('sql')
+            throw Error('sql');
 
         const attr = model.fields[col];
         const sql = `SELECT * 
@@ -145,7 +145,6 @@ export function insert(
     // return query function
     return function(item) {
         // collate data as value array
-        console.log('here!!', item)
         return {
             sql: sql,
             data: _collate(item, args),
@@ -182,8 +181,16 @@ export function update(
         .filter((key) => {
             return !args.ignore.includes(key);
         });
+
+    // generate the parameter placeholder assignments
     const assignments = cols.map(function(key, index) {
-        const placeholder = args.timestamps.includes(key) ? `NOW()` : `$${args.index++}`;
+
+        // handle timestamp placeholders defined in arguments
+        const placeholder = args.timestamps.includes(key)
+            ? `NOW()`
+            : `$${args.index++}`;
+
+        // map returns conjoined prepared parameters ordered by position
         return [cols[index], `${placeholder}::${item.fields[key].type}`].join('=');
     });
 
@@ -232,10 +239,8 @@ export function remove(model, args = { col: 'id', type: 'integer', index: 1 }) {
 
 export function attach(model) {
 
-    console.log(model)
-
-    // return null if model does not have owner
-    if (!model.hasOwners())
+    // return null if model does not have defined owner(s)
+    if (!model.hasOwners() || !model.hasOwnerReference())
         return null;
 
     let sql = `INSERT INTO nodes (owner_id,
@@ -288,18 +293,17 @@ export function attach(model) {
 
 export function detach(model) {
 
-    // return null if model does not have owner
-    if (!model.hasOwners())
+    // return null if model does not have defined owner(s)
+    if (!model.hasOwners() || !model.hasOwnerReference())
         return null;
 
     // get columns and prepared value placeholders
     let sql = `DELETE
                FROM nodes
-               WHERE 
-                owner_id = $1::integer AND
-                owner_type = $2::varchar AND
-                dependent_id = $3::integer AND
-                dependent_type = $4::varchar
+               WHERE owner_id = $1::integer
+                 AND owner_type = $2::varchar
+                 AND dependent_id = $3::integer
+                 AND dependent_type = $4::varchar
                RETURNING *;`;
 
     // return query function
@@ -327,63 +331,103 @@ export function detach(model) {
 }
 
 /**
- * Get model column information as schema.
+ * Query: Get model column information as array of model attributes.
  *
  * @param {String} table
- * @return {Function} query binding function
+ * @return {Object} query binding
  */
 
 export function getModel(table) {
     return {
-        sql:`SELECT column_name, data_type
-             FROM information_schema.columns
-             WHERE table_name = $1::varchar`,
-        data: [table]
+        sql: `SELECT column_name, data_type
+              FROM information_schema.columns
+              WHERE table_name = $1::varchar`,
+        data: [table],
     };
 }
 
 /**
- * Get owners for given model type.
+ * Query: Get owner model type(s) for given dependent model type
+ * from the Node Relations lookup table.
  *
- * @param {String} modelType
- * @return {Function} query binding function
+ * @param {String} modelType - dependent model
+ * @return {Object} query binding
  */
 
 export function getOwners(modelType) {
     return {
-        sql:`SELECT owner_type
-             FROM node_relations
-             WHERE dependent_type = $1::varchar`,
-        data: [modelType]
+        sql: `SELECT owner_type
+              FROM node_relations
+              WHERE dependent_type = $1::varchar`,
+        data: [modelType],
     };
 }
 
 /**
- * Get all node types.
+ * Query: Get all node types listed.
  *
- * @return {Function} query binding function
+ * @return {Object} query binding
  */
 
 export function getModelTypes() {
     return {
-        sql:`SELECT * FROM node_types;`,
-        data: []
+        sql: `SELECT *
+              FROM node_types
+              WHERE name != 'default';`,
+        data: [],
     };
 }
 
 /**
- * Get all of the table names in database.
+ * Query: Get all of the table names in the MLP database.
  *
- * @return {Function} query binding function
+ * @return {Object} query binding
  */
 
 export function getTables() {
     return {
-        sql:`SELECT table_name
-             FROM information_schema.tables
-             WHERE table_schema='public'
-               AND table_type='BASE TABLE';`,
-        data: []
+        sql: `SELECT table_name
+              FROM information_schema.tables
+              WHERE table_schema = 'public'
+                AND table_type = 'BASE TABLE';`,
+        data: [],
+    };
+}
+
+/**
+ * Query: Get all foreign key references of table.
+ *
+ * @return {Object} query binding
+ */
+
+export function getReferences(table) {
+    return {
+        sql: `
+            SELECT relname
+            FROM   pg_catalog.pg_class
+            WHERE  oid IN (
+                SELECT confrelid
+                FROM pg_catalog.pg_constraint r
+                WHERE r.conrelid = $1::regclass
+                  AND r.contype = 'f'
+                ORDER BY 1
+            )`,
+        data: [table],
+    };
+}
+
+/**
+ * Query: Get user permissions settings.
+ *
+ * @return {Object} query binding
+ */
+
+export function getPermissions() {
+    return {
+        sql: `
+            SELECT *
+            FROM user_permissions`,
+        data: [],
     };
 }
 
@@ -404,10 +448,8 @@ function _collate(
         timestamps: ['created_at', 'updated_at'],
     }) {
 
-    // reserve first position for item ID (given where condition)
+    // reserve first position for item ID (given 'where' condition)
     let data = args.where ? [item.fields[args.where].value] : [];
-
-    console.log(data, item);
 
     // filter input data to match insert/update parameters
     data.push(...Object.keys(item.fields)

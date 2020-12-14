@@ -1,6 +1,6 @@
 /*!
- * MLP.API.Services.Database
- * File: model.services.js
+ * MLP.API.Services.DB.Model
+ * File: model.db.services.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -65,8 +65,9 @@ export default function Services(model) {
      */
 
     this.select = async function(id) {
-        let { sql, data } = this.queries.select(id);
-        return pool.query(sql, data);
+        const statement = this.queries.select(id);
+        console.log('Attachments: ', this.model.attached)
+        return await this.transact(statement, this.model, null);
     };
 
     /**
@@ -130,7 +131,7 @@ export default function Services(model) {
      * @return {Promise} db response
      */
 
-    this.transact = async function(statement, item, attachment=null) {
+    this.transact = async function(statement, item, attach=null) {
 
         // NOTE: client undefined if connection fails.
         const client = await pool.connect();
@@ -140,11 +141,13 @@ export default function Services(model) {
 
             // insert record and record returned ID value
             let res = await client.query(statement.sql, statement.data);
+
+            // set returned ID value to model instance
             item.setValue('id', res.rows[0].id);
 
             // attach/detach node to/from owner (if given)
-            if (attachment) {
-                let attachStatement = attachment(item);
+            if (attach) {
+                let attachStatement = attach(item);
                 let n = await client.query(attachStatement.sql, attachStatement.data);
             }
 

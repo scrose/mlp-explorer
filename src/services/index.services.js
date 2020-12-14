@@ -12,8 +12,8 @@
  * @private
  */
 
-import * as model from './model.constructor.js';
-import Services from './model.services.js';
+import * as model from './model.construct.services.js';
+import Services from './model.db.services.js';
 import * as users from './users.db.services.js';
 import * as sessions from './sessions.db.services.js';
 

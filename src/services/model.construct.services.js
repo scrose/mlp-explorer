@@ -1,6 +1,6 @@
 /*!
- * MLP.API.Constructor.Model
- * File: model.services.js
+ * MLP.API.Services.Construct.Model
+ * File: model.construct.services.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -8,7 +8,7 @@
 'use strict';
 
 import { humanize, sanitize, toCamel } from '../lib/data.utils.js';
-import * as schemaConstructor from './schema.services.js';
+import * as schemaConstructor from './schema.construct.services.js';
 
 /**
  * Create derived model through composition. The model schema
@@ -53,49 +53,59 @@ export const create = async (modelType) => {
     Object.defineProperties(Model.prototype, {
         table: {
             value: modelType,
-            writable: true,
+            writable: true
         },
         name: {
             value: toCamel(modelType),
-            writable: true,
+            writable: true
         },
         label: {
             value: humanize(modelType),
-            writable: true,
+            writable: true
         },
         owners: {
             value: schema.owners,
-            writable: true,
+            writable: true
         },
         fields: {
             value: schema.attributes,
-            writable: true,
+            writable: true
+        },
+        attached: {
+            value: schema.attached,
+            writable: true
         },
         getValue: {
             value: getValue,
-            writable: false,
+            writable: false
         },
         setValue: {
             value: setValue,
-            writable: false,
+            writable: false
         },
         getData: {
             value: getData,
-            writable: false,
+            writable: false
         },
         setDataOptions: {
             value: setDataOptions,
-            writable: false,
+            writable: false
         },
         clear: {
             value: clear,
-            writable: false,
+            writable: false
         },
         hasOwners: {
             value: function() {
                 return !!schema.owners.length
             },
-            writable: false,
+            writable: false
+        },
+        hasOwnerReference: {
+            value: function() {
+                return schema.attributes.hasOwnProperty('owner_id');
+            },
+            writable: false
         },
     });
     return Model;
@@ -110,16 +120,23 @@ export const create = async (modelType) => {
  */
 
 function setData(data=null) {
+
+    // create context reference
     const self = this;
+
+    // select object-defined data
     if (typeof data === 'object' && data !== null) {
+
         // select either first row of data array or single data object
         const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
+
+        // filter input data fields by model schema attributes
         Object.entries(inputData).forEach(([key, value]) => {
             console.log(self.label, ' field:', key, ', value:', value)
-            // check that field exists in model
+
+            // assert input attribute exists in model
             if (!self.fields.hasOwnProperty(key)) throw Error('violatesSchema');
-            console.log(self.fields[key].type, sanitize(value, self.fields[key].type))
-            // TODO: check that field is correct type
+            // TODO: should also check that input data has correct type
             self.fields[key].value = sanitize(value, self.fields[key].type);
         });
     } else {
@@ -157,7 +174,7 @@ function getValue(field) {
 }
 
 /**
- * Get field value from model schema.
+ * Get field values from model.
  *
  * @return {Object} filtered data
  * @src public

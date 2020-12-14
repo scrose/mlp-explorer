@@ -5,13 +5,16 @@
  * MIT Licensed
  */
 
+
 /**
  * Module dependencies
  */
 
-import express from 'express'
-import * as users from '../controllers/users.controller.js';
+import express from 'express';
+import * as users from '../controllers/users.controller.js'
 import { restrict } from '../lib/permissions.utils.js';
+import path from 'path';
+import * as schema from '../services/schema.construct.services.js';
 
 /**
  * Express router
@@ -21,99 +24,126 @@ let router = express.Router();
 export default router;
 
 /**
- * Initialization middleware.
+ * Model user route constructor
+ *
+ * @public
  */
 
-router.use(users.init)
+function UserRoutes() {
+
+    // create model identifier key
+    this.modelRoute = 'users';
+    this.key = 'user_id';
+
+    // initialize model controller
+    this.controller = users;
+
+    // add controller routes
+    this.routes = {
+        list: {
+            path: path.join('/', this.modelRoute),
+            get: this.controller.list,
+            put: null,
+            post: null,
+            delete: null,
+        },
+        register: {
+            path: path.join('/', this.modelRoute, 'register'),
+            get: this.controller.register,
+            put: null,
+            post: this.controller.create,
+            delete: null,
+        },
+        show: {
+            path: path.join('/', this.modelRoute, '/:' + this.key),
+            get: this.controller.show,
+            put: null,
+            post: null,
+            delete: null,
+        },
+        edit: {
+            path: path.join('/', this.modelRoute, '/:' + this.key, 'edit'),
+            get: this.controller.edit,
+            put: null,
+            post: this.controller.update,
+            delete: null,
+        },
+        remove: {
+            path: path.join('/', this.modelRoute, '/:' + this.key, 'remove'),
+            get: this.controller.remove,
+            put: null,
+            post: this.controller.drop,
+            delete: null,
+        },
+        login: {
+            path: path.join('/login'),
+            get: this.controller.login,
+            put: null,
+            post: this.controller.authenticate,
+            delete: null,
+        },
+        logout: {
+            path: path.join('/logout'),
+            get: this.controller.logout,
+            put: null,
+            post: null,
+            delete: null,
+        }
+    };
+}
 
 /**
- * Login user.
+ * Routes initialization. Routes only generated for
+ * defined models in the node_types relation.
+ *
  */
 
-router.route('/login')
-    .all(function (req, res, next) {
-        restrict(res, next, {model: 'users', view: 'login'});
-    })
-    .get(users.login)
-    .post(users.authenticate)
+async function initRoutes() {
 
-/**
- * Logout user.
- */
+    // create user routes instance
+    let routes = new UserRoutes();
 
-router.route('/logout')
-    .all(function (req, res, next) {
-        restrict(res, next, {model: 'users', view: 'logout'});
-    })
-    .post(users.logout)
+    // get user permissions
+    let permissions = await schema.getPermissions();
 
-/**
- * List users
- */
+    // controller initialization
+    router.use(users.init);
 
-router.route('/users')
-    .all(function (req, res, next) {
-        restrict(res, next, {model: 'users', view: 'list'});
-    })
-    .get(users.list);
+    // add user routes
+    Object.entries(routes.routes).forEach(([view, route]) => {
+        router.route(route.path)
+            .all(function(req, res, next) {
 
-/**
- * Register user.
- */
+                // get model ID parameter (if exists)
+                let reqId = req.params.hasOwnProperty(routes.key)
+                    ? req.params[routes.key]
+                    : null;
 
-router.route('/users/register')
-    .all(function (req, res, next) {
-        restrict(res, next, {model: 'users', view: 'register'});
-    })
-    .get(users.register)
-    .post(users.create)
+                // restrict user access based on permissions
+                restrict(res, next, {
+                    permissions: permissions,
+                    model: 'users',
+                    view: view,
+                    id: reqId,
+                });
 
-/**
- * Show user data.
- */
-
-router.route('/users/:user_id')
-    .all(function (req, res, next) {
-        restrict(res, next, {model: 'users', view: 'show', id: req.params.user_id});
-    })
-    .get(users.show)
-    .put(function (req, res, next) {
-        next(new Error('not implemented'))
-    })
-    .delete(function (req, res, next) {
-        next(new Error('not implemented'))
-    })
-
-/**
- * Edit/update user data.
- */
-
-router.route('/users/:user_id/edit')
-    .all(function (req, res, next) {
-        restrict(res, next, {model: 'users', view: 'edit', id: req.params.user_id});
-    })
-    .get(users.edit)
-    .put(function (req, res, next) {
-        next(new Error('not implemented'))
-    })
-    .post(users.update)
-    .delete(function (req, res, next) {
-        next(new Error('not implemented'))
-    })
-
-/**
- * Delete user.
- */
-
-router.route('/users/:user_id/remove')
-    .all(function (req, res, next) {
-        restrict(res, next, {model: 'users', view: 'remove', id: req.params.user_id});
-    })
-    .get(users.remove)
-    .put(function (req, res, next) {
-        next(new Error('not implemented'))
-    })
-    .post(users.drop)
-    .delete(function (req, res, next) {
-        next(new Error('not implemented'))
-    })
+            })
+            .get(function(req, res, next) {
+                if (!route.get) next(new Error('notImplemented'));
+                route.get(req, res, next);
+            })
+            .put(function(req, res, next) {
+                if (!route.put) next(new Error('notImplemented'));
+                route.put(req, res, next);
+            })
+            .post(function(req, res, next) {
+                if (!route.post) next(new Error('notImplemented'));
+                route.post(req, res, next);
+            })
+            .delete(function(req, res, next) {
+                if (!route.delete) next(new Error('notImplemented'));
+                route.delete(req, res, next);
+            });
+    });
+}
+initRoutes().catch(err => {throw err});

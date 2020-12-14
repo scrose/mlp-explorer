@@ -230,11 +230,11 @@ export const create = async (req, res, next) => {
     let newUser;
     try {
         // validate user input data
-        let { email, password, role_id } = req.body;
+        let { email, password, role } = req.body;
         newUser = new User({
             email: valid.load(email).isEmail().data,
             password: valid.load(password).isPassword().data,
-            role_id: role_id,
+            role: role,
         });
         encryptUser(newUser);
     } catch (err) {

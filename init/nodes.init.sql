@@ -16,52 +16,35 @@ drop table if exists node_types CASCADE;
 create TABLE node_types
 (
     id    serial PRIMARY KEY,
-    type  VARCHAR(40) UNIQUE NOT NULL,
+    name  VARCHAR(40) UNIQUE NOT NULL,
     label VARCHAR(40) UNIQUE NOT NULL
 );
 
-insert into node_types (type, label)
-values ('users', 'Users');
-insert into node_types (type, label)
-values ('projects', 'Project');
-insert into node_types (type, label)
-values ('surveyors', 'Surveyor');
-insert into node_types (type, label)
-values ('surveys', 'Survey');
-insert into node_types (type, label)
-values ('survey_seasons', 'SurveySeason');
-insert into node_types (type, label)
-values ('stations', 'Station');
-insert into node_types (type, label)
-values ('historic_visits', 'HistoricVisit');
-insert into node_types (type, label)
-values ('visits', 'Visit');
-insert into node_types (type, label)
-values ('locations', 'Location');
-insert into node_types (type, label)
-values ('historic_captures', 'HistoricCapture');
-insert into node_types (type, label)
-values ('captures', 'Capture');
-insert into node_types (type, label)
-values ('capture_images', 'CaptureImage');
-insert into node_types (type, label)
-values ('images', 'Image');
-insert into node_types (type, label)
-values ('glass_plate_listings', 'Glass Plate Listings');
-insert into node_types (type, label)
-values ('cameras', 'Camera');
-insert into node_types (type, label)
-values ('metadata_files', 'Metadata Files');
-insert into node_types (type, label)
-values ('maps', 'Maps');
-insert into node_types (type, label)
-values ('participants', 'Participants');
-insert into node_types (type, label)
-values ('participant_groups', 'Participant Groups');
-insert into node_types (type, label)
-values ('shutter_speed', 'Shutter Speed');
-insert into node_types (type, label)
-values ('iso', 'ISO Settings');
+insert into node_types (name, label)
+values
+('default', 'Default Node'),
+('users', 'Users'), 
+('projects', 'Project'), 
+('surveyors', 'Surveyor'), 
+('surveys', 'Survey'), 
+('survey_seasons', 'SurveySeason'), 
+('stations', 'Station'), 
+('historic_visits', 'HistoricVisit'), 
+('visits', 'Visit'), 
+('locations', 'Location'), 
+('historic_captures', 'HistoricCapture'), 
+('captures', 'Capture'), 
+('capture_images', 'CaptureImage'), 
+('images', 'Image'), 
+('glass_plate_listings', 'Glass Plate Listings'), 
+('cameras', 'Cameras'), 
+('lens', 'Lenses'), 
+('metadata_files', 'Metadata Files'), 
+('maps', 'Maps'), 
+('participants', 'Participants'), 
+('participant_groups', 'Participant Groups'), 
+('shutter_speed', 'Shutter Speed'), 
+('iso', 'ISO Settings');
 
 
 select *
@@ -82,14 +65,13 @@ create TABLE node_relations
     UNIQUE (owner_type, dependent_type),
     CONSTRAINT ck_same_type CHECK (owner_type != dependent_type),
     CONSTRAINT fk_owner_type FOREIGN KEY (owner_type)
-        REFERENCES node_types (type),
+        REFERENCES node_types (name),
     CONSTRAINT fk_dependent_type FOREIGN KEY (dependent_type)
-        REFERENCES node_types (type)
+        REFERENCES node_types (name)
 );
 
 insert into node_relations (dependent_type, owner_type) 
-values (null, 'projects'),
-(null, 'surveyors'),
+values
 ('surveys', 'surveyors'),
 ('survey_seasons', 'surveys'),
 ('stations', 'projects'),
@@ -112,12 +94,11 @@ values (null, 'projects'),
 ('images', 'survey_seasons'),
 ('images', 'surveys'),
 ('images', 'visits'),
+('cameras', 'historic_captures'),
+('cameras', 'captures'),
+('cameras', 'images'),
 ('glass_plate_listings', 'survey_seasons'),
 ('maps', 'survey_seasons'),
-('iso', null),
-('cameras', null),
-('shutter_speed', null),
-('participants', null),
 ('participant_groups', 'visits'),
 ('metadata_files', 'visits'),
 ('metadata_files', 'stations');
@@ -139,10 +120,6 @@ create TABLE IF NOT EXISTS nodes
     CONSTRAINT ck_same_type CHECK (owner_type != dependent_type),
     CONSTRAINT fk_node_relation FOREIGN KEY (owner_type, dependent_type)
         REFERENCES node_relations (owner_type, dependent_type)
---  CONSTRAINT fk_owner_type FOREIGN KEY(owner_type)
---    REFERENCES node_types(type)
---  CONSTRAINT fk_dependent_type FOREIGN KEY(dependent_type)
---    REFERENCES node_types(type)
 );
 
 create INDEX owner_index ON nodes (owner_id);
@@ -187,10 +164,10 @@ begin
             -- look up node type name
             select * from node_types where label = r.owner_type INTO node_type;
             -- only proceed if update already done previously
-            IF node_type.type is NOT NULL
+            IF node_type.name is NOT NULL
             THEN
                 RAISE NOTICE 'Converted Node Type: %', node_type;
-                EXECUTE format(E'UPDATE %I SET owner_type = \'%s\' WHERE id=%s', _tbl, node_type.type, r.id);
+                EXECUTE format(E'UPDATE %I SET owner_type = \'%s\' WHERE id=%s', _tbl, node_type.name, r.id);
             END IF;
         END LOOP;
 END
@@ -342,6 +319,11 @@ Model schema updates
 ===========================
 */
 
+-- -------------------------------------------------------------
+--    Participants
+-- -------------------------------------------------------------
+
+select setval('participants_id_seq', (select max(id) from participants) + 1);
 
 -- -------------------------------------------------------------
 --    Participant Groups (owned by visits)
@@ -353,8 +335,7 @@ drop table IF EXISTS participant_groups cascade ;
 create TABLE IF NOT EXISTS participant_group_types
 (
     id   SERIAL PRIMARY KEY NOT NULL,
-    type varchar(40)        NOT NULL,
-    UNIQUE (type)
+    type varchar(40) UNIQUE NOT NULL
 );
 
 insert into participant_group_types (type)
@@ -376,9 +357,6 @@ create TABLE IF NOT EXISTS participant_groups
 );
 
 --    Copy existing participant table data into merged participant groups
-
---      fn_authors_visits: {participant_id, visit_id}
-
 
 DO
 $$
@@ -567,13 +545,13 @@ alter table stations
 alter table stations
     alter COLUMN published SET DEFAULT FALSE;
 
----   Foriegn key constraints
+---   Foreign key constraints
 ALTER TABLE stations
     DROP CONSTRAINT IF EXISTS fk_owner_type;
 ALTER TABLE stations
     ADD CONSTRAINT fk_owner_type
         FOREIGN KEY (owner_type)
-            REFERENCES node_types (type);
+            REFERENCES node_types (name);
 
 --    Map stations in nodes table
 insert into nodes (owner_id, owner_type, dependent_id, dependent_type)
@@ -653,7 +631,8 @@ ALTER TABLE historic_captures
 ALTER TABLE historic_captures
     ADD CONSTRAINT fk_owner_type
         FOREIGN KEY (owner_type)
-            REFERENCES node_types (type);
+            REFERENCES node_types (name)
+;
 
 -- Latitude/Longitude constraints
 --    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_latitude;
@@ -705,7 +684,8 @@ ALTER TABLE captures
 ALTER TABLE captures
     ADD CONSTRAINT fk_owner_type
         FOREIGN KEY (owner_type)
-            REFERENCES node_types (type);
+            REFERENCES node_types (name)
+;
 
 -- Convert alternate field to boolean
 alter table captures
@@ -737,7 +717,8 @@ ALTER TABLE capture_images
 ALTER TABLE capture_images
     ADD CONSTRAINT fk_owner_type
         FOREIGN KEY (owner_type)
-            REFERENCES node_types (type);
+            REFERENCES node_types (name)
+;
 
 --    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_capture_type;
 --    ALTER TABLE stations ADD CONSTRAINT check_capture_type
@@ -771,7 +752,8 @@ ALTER TABLE images
 ALTER TABLE images
     ADD CONSTRAINT fk_owner_type
         FOREIGN KEY (owner_type)
-            REFERENCES node_types (type);
+            REFERENCES node_types (name)
+;
 
 --    Map images in nodes table
 insert into nodes (owner_id, owner_type, dependent_id, dependent_type)
@@ -786,15 +768,16 @@ from images;
 drop table if exists location_photos;
 
 
-
 -- -------------------------------------------------------------
---    Metadata types
+--    Metadata Files
 -- -------------------------------------------------------------
 
 select rename_column('metadata_files', 'metadata_owner_id', 'owner_id');
 select rename_column('metadata_files', 'metadata_owner_type', 'owner_type');
 select rename_column('metadata_files', 'metadata_file', 'filename');
 select rename_owner_types('metadata_files');
+
+-- reset auto-increment
 select setval('metadata_files_id_seq', (select max(id) from metadata_files) + 1);
 
 -- Add metadata type column
@@ -829,12 +812,13 @@ alter table metadata_files
     drop CONSTRAINT IF EXISTS fk_metadata_owner_type;
 alter table metadata_files
     add CONSTRAINT fk_metadata_owner_type
-        FOREIGN KEY (owner_type) REFERENCES node_types (type);
+        FOREIGN KEY (owner_type)
+            REFERENCES node_types (name);
 
+--    Copy existing field_notes table data into metadata files table
 DO
 $$
     begin
---    Copy existing field_notes table data into metadata files table
         IF EXISTS(SELECT *
           FROM information_schema.tables
           WHERE table_schema = current_schema()
@@ -863,6 +847,50 @@ insert into nodes (owner_id, owner_type, dependent_id, dependent_type)
 select owner_id, owner_type, id, 'metadata_files'
 from metadata_files;
 
+
+
+-- -------------------------------------------------------------
+--    Glass Plate Listings
+-- -------------------------------------------------------------
+
+select rename_column('glass_plate_listings', 'survey_season_id', 'owner_id');
+
+select setval('glass_plate_listings_id_seq', (select max(id) from glass_plate_listings) + 1);
+
+---   Foriegn key constraints
+ALTER TABLE glass_plate_listings
+    DROP CONSTRAINT IF EXISTS fk_owner_id;
+ALTER TABLE glass_plate_listings
+    ADD CONSTRAINT fk_owner_id
+        FOREIGN KEY (owner_id)
+            REFERENCES survey_seasons (id);
+
+--    Map glass plates in nodes table
+insert into nodes (owner_id, owner_type, dependent_id, dependent_type)
+select owner_id, 'survey_seasons', id, 'glass_plate_listings'
+from glass_plate_listings;
+
+
+-- -------------------------------------------------------------
+--    Maps
+-- -------------------------------------------------------------
+
+select rename_column('maps', 'survey_season_id', 'owner_id');
+
+select setval('maps_id_seq', (select max(id) from maps) + 1);
+
+---   Foriegn key constraints
+ALTER TABLE maps
+    DROP CONSTRAINT IF EXISTS fk_owner_id;
+ALTER TABLE maps
+    ADD CONSTRAINT fk_owner_id
+        FOREIGN KEY (owner_id)
+            REFERENCES survey_seasons (id);
+
+--    Map glass plates in nodes table
+insert into nodes (owner_id, owner_type, dependent_id, dependent_type)
+select owner_id, 'survey_seasons', id, 'maps'
+from maps;
 
 -- -------------------------------------------------------------
 --    Cameras

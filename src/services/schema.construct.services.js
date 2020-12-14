@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Services.Schema
- * File: users.model.services.js
+ * File: users.model.db.services.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -14,20 +14,24 @@
 
 import pool from './pgdb.js';
 import queries from './queries/index.queries.js';
-import { humanize } from '../lib/data.utils.js';
+import { groupBy, humanize } from '../lib/data.utils.js';
 
 /**
- * Export schema services constructor
+ * Export schema constructor. A schema instance is a
+ * wrapper to serve table information about a model.
  *
  * @public
  * @return {Promise} result
  */
 
 export const create = async (modelType) => {
+    const modelTypes = await getTypes();
+    const permissions = await getPermissions();
+    const attributes = await getModel(modelType);
+    const attached = await getAttached(attributes, modelType);
+    const owners = await getOwners(modelType);
 
     // check model definition
-    let modelTypes = await getTypes();
-
     if (!modelTypes.includes(modelType))
         throw Error('modelNotDefined');
 
@@ -40,15 +44,19 @@ export const create = async (modelType) => {
     Object.defineProperties(Schema.prototype, {
         types: {
             value: modelTypes,
-            writable: true,
+            writable: true
         },
         attributes: {
-            value: await getModel(modelType),
-            writable: false,
+            value: attributes,
+            writable: false
+        },
+        attached: {
+            value: attached,
+            writable: false
         },
         owners: {
-            value: await getOwners(modelType),
-            writable: false,
+            value: owners,
+            writable: false
         },
     });
     return Schema;
@@ -64,11 +72,34 @@ export const create = async (modelType) => {
 export const getTypes = async function() {
     let { sql, data } = queries.schema.getModelTypes();
     let modelTypes = await pool.query(sql, data);
-    return modelTypes.rows.map((modelType) => { return modelType.type });
+
+    // return only model type names as list
+    return modelTypes.rows.map(modelType => { return modelType.name });
 };
 
 /**
- * Find and format model schema.
+ * Get all referenced models.
+ *
+ * @public
+ * @param {Object} attributes
+ * @param {String} modelType
+ * @return {Promise} result
+ */
+
+export const getAttached = async function(attributes, modelType) {
+
+    // get the foreign key references
+    const { sql, data } = queries.schema.getReferences(modelType);
+    const refs = await pool.query(sql, data);
+
+    // filter references to table
+    return refs.rows
+        .filter(ref => {attributes.hasOwnProperty(`${ref.relname}_id`)})
+        .map(ref => {return ref.relname})
+};
+
+/**
+ * Find and format model schema. Extracts
  *
  * @public
  * @param {String} modelType
@@ -114,6 +145,22 @@ export const getOwners = async function(model) {
     let { sql, data } = queries.schema.getOwners(model);
     let owners = await pool.query(sql, data);
     return owners.rows;
+};
+
+/**
+ * Get user permissions. Returns object with user role restrictions
+ * indexed by model type.
+ *
+ * @public
+ * @return {Promise} result
+ */
+
+export const getPermissions = async function() {
+    let { sql, data } = queries.schema.getPermissions();
+    let permissions = await pool.query(sql, data);
+
+    // convert result to object
+    return groupBy(permissions.rows, 'model');
 };
 
 

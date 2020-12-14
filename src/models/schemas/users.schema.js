@@ -53,7 +53,7 @@ export default {
         },
       },
     },
-    role_id: {
+    role: {
       label: 'User Role ID',
       type: 'select',
       render: {

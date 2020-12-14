@@ -7,4 +7,4 @@
 
 'use strict';
 
-import * as queries from '../queries.services.js';
+import * as queries from '../queries.db.services.js';

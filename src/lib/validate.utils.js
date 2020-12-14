@@ -57,7 +57,7 @@ Validator.prototype.load = function (data) {
  */
 
 Validator.prototype.isRequired = function () {
-  if (!!!this.value) this.error('Value is required.');
+  if (!this.value) this.error('Value is required.');
   return this;
 };
 

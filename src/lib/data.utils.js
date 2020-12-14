@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Utilities.Data
- * File: /lib/data.utils.js
+ * File: data.utils.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -8,16 +8,16 @@
 'use strict';
 
 /**
- * Group JSON array rows by common key
+ * Group array rows by common key
  * Reference: https://stackoverflow.com/a/38575908
  *
- * @param {Object} xs
+ * @param {Array} arr
  * @param {String} key
  * @src public
  */
 
-export function groupBy(xs, key) {
-  return xs.reduce(function (rv, x) {
+export function groupBy(arr, key) {
+  return arr.reduce(function (rv, x) {
     (rv[x[key]] = rv[x[key]] || []).push(x);
     return rv;
   }, {});

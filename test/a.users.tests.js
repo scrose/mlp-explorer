@@ -97,7 +97,7 @@ let admin = {
     password: process.env.API_PASS,
     hash: process.env.API_HASH,
     salt: process.env.API_SALT,
-    role_id: 5
+    role: 'super_administrator'
 }
 
 /**
@@ -181,7 +181,7 @@ mocha.describe('User Controllers', () => {
               expect(res.body.users).to.instanceOf(Array);
               res.body.users.forEach((u) => {
                   expect(u).to.have.property('user_id');
-                  expect(u).to.have.property('role_id');
+                  expect(u).to.have.property('role');
                   expect(u).to.have.property('email');
                   expect(u).to.have.property('created_at');
                   expect(u).to.have.property('updated_at');
@@ -200,7 +200,7 @@ mocha.describe('User Controllers', () => {
         password: '5565lSSR!3323',
         hash: null,
         salt: null,
-        role_id: 2
+        role: 'registered'
     }
 
     mocha.it('Register new user', async () => {
@@ -210,9 +210,10 @@ mocha.describe('User Controllers', () => {
             .send({
                 email: user.email,
                 password: user.password,
-                role_id: user.role_id
+                role: user.role
             })
             .then((res) => {
+                console.log(res.body.data)
                 expect(res).to.have.status(200);
                 expect(res.body.messages[0].type).to.equal('success');
                 expect(res.body.messages[0].string).to.equal(`Registration successful for user ${user.email}!`);
@@ -231,16 +232,17 @@ mocha.describe('User Controllers', () => {
             .get(`${BASE_URL}users/${user.user_id}`)
             .set('Accept', 'application/json')
             .then((res) => {
+                console.log(res.body)
                 expect(res.status).to.equal(200);
                 expect(res.body.user).to.instanceOf(Object);
                 expect(res.body.user).to.have.property('user_id');
-                expect(res.body.user).to.have.property('role_id');
+                expect(res.body.user).to.have.property('role');
                 expect(res.body.user).to.have.property('email');
                 expect(res.body.user).to.have.property('created_at');
                 expect(res.body.user).to.have.property('updated_at');
                 expect(res.body.user.user_id).to.equal(user.user_id);
                 expect(res.body.user.email).to.equal(user.email);
-                expect(res.body.user.role_id).to.equal(user.role_id);
+                expect(res.body.user.role).to.equal(user.role);
             })
     });
 
@@ -250,7 +252,7 @@ mocha.describe('User Controllers', () => {
      */
 
     user.email = 'new@example.ca';
-    user.role_id = 4;
+    user.role = 'administrator';
 
     mocha.it('Update user email and role', async () => {
         await agent
@@ -259,19 +261,19 @@ mocha.describe('User Controllers', () => {
             .send({
                 user_id: user.user_id,
                 email: user.email,
-                role_id: user.role_id
+                role: user.role
             })
             .then((res) => {
                 expect(res.status).to.equal(200);
                 expect(res.body.data).to.instanceOf(Object);
                 expect(res.body.data).to.have.property('user_id');
-                expect(res.body.data).to.have.property('role_id');
+                expect(res.body.data).to.have.property('role');
                 expect(res.body.data).to.have.property('email');
                 expect(res.body.data).to.have.property('created_at');
                 expect(res.body.data).to.have.property('updated_at');
                 expect(res.body.data.user_id).to.equal(user.user_id);
                 expect(res.body.data.email).to.equal(user.email);
-                expect(res.body.data.role_id).to.equal(user.role_id);
+                expect(res.body.data.role).to.equal(user.role);
             })
     });
 
@@ -303,7 +305,7 @@ mocha.describe('User Controllers', () => {
 mocha.describe('Logout Administrator', () => {
     mocha.it('Sign out the admin account', async () => {
         await agent
-            .post(`${BASE_URL}logout`)
+            .get(`${BASE_URL}logout`)
             .set('Accept', 'application/json')
             .then((res) => {
                 expect(res).to.have.status(200);
@@ -313,10 +315,10 @@ mocha.describe('Logout Administrator', () => {
     });
     mocha.it('Redundant logout', async () => {
         await agent
-            .post(`${BASE_URL}logout`)
+            .get(`${BASE_URL}logout`)
             .set('Accept', 'application/json')
             .then((res) => {
-                expect(res).to.have.status(200);
+                expect(res).to.have.status(500);
             })
     })
 });

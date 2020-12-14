@@ -13,7 +13,7 @@
  * @private
  */
 export default {
-  role_id: {
+  role: {
     label: 'ID',
     type: 'integer',
   },

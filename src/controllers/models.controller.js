@@ -10,7 +10,7 @@
  * @private
  */
 
-import Services from '../services/model.services.js';
+import Services from '../services/model.db.services.js';
 import * as db from '../services/index.services.js';
 import { toCamel, toSnake } from '../lib/data.utils.js';
 
@@ -90,8 +90,6 @@ export default function Controller(modelRoute) {
         await services
             .getAll()
             .then((data) => {
-
-                console.log('!!!!', data.rows)
                 res.locals.data = data.rows;
                 res.status(200).json(res.locals);
             })

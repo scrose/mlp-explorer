@@ -195,11 +195,11 @@ let mockItems = {
         plates: 'TEXT',
         notes: 'TEXT'
     },
-    lens: {
-        brand: 'TEXT',
-        focal_length: 4,
-        max_aperture: 1.11
-    },
+    // lens: {
+    //     brand: 'TEXT',
+    //     focal_length: 4,
+    //     max_aperture: 1.11
+    // },
     maps: {
         owner_id: 36,
         nts_map: 'TEXT',
@@ -209,18 +209,18 @@ let mockItems = {
     metadata_files:{
         owner_id: 992,
         owner_type: 'stations',
-        type: 'field_notes',
+        metadata_type: 'field_notes',
         filename: 'PATH/to/FILE'
     },
     participants: {
         last_name: 'TEXT',
         given_names: 'TEXT'
     },
-    participant_groups: {
-        owner_id: 23,
-        participant_id: 38,
-        group_type: 'photographers'
-    }
+    // participant_groups: {
+    //     owner_id: 23,
+    //     participant_id: 38,
+    //     group_type: 'photographers_visits'
+    // }
 }
 
 // enumerated types
@@ -292,6 +292,8 @@ Object.keys(mockItems).forEach(modelName => {
             // generate model constructor
             Model = await db.model.create(modelTable);
             let model = new Model();
+
+            console.log(testItem)
 
             await agent
                 .get(`${BASE_URL}${modelRoute}/${testItem.id}`)
@@ -410,7 +412,7 @@ Object.keys(mockItems).forEach(modelName => {
     mocha.describe('Logout Administrator', () => {
         mocha.it('Sign out admin', async () => {
             await agent
-                .post(`${BASE_URL}logout`)
+                .get(`${BASE_URL}logout`)
                 .set('Accept', 'application/json')
                 .then((res) => {
                     expect(res).to.have.status(200);

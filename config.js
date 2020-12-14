@@ -21,25 +21,6 @@ let settings = {
         administrator: 4,
         superAdministrator: 5
     },
-    permissions: {
-        default: {
-            show: "visitor",
-            list: "visitor",
-            edit: "contributor",
-            create: "editor",
-            remove: "editor"
-        },
-        users: {
-            show: "administrator",
-            list: "administrator",
-            edit: "administrator",
-            create: "administrator",
-            remove: "administrator",
-            register: "administrator",
-            login: "visitor",
-            logout: "visitor"
-        }
-    },
     debug: {
         sessions: false
     },

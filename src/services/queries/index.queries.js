@@ -12,7 +12,7 @@
  * @private
  */
 
-import * as defaults from '../queries.services.js';
+import * as defaults from '../queries.db.services.js';
 import * as users from './users.queries.js';
 import * as sessions from './sessions.queries.js';
 import * as projects from './projects.queries.js';
@@ -46,7 +46,9 @@ export default {
         getModel: defaults.getModel,
         getModelTypes: defaults.getModelTypes,
         getTables: defaults.getTables,
-        getOwners: defaults.getOwners
+        getOwners: defaults.getOwners,
+        getReferences: defaults.getReferences,
+        getPermissions: defaults.getPermissions
     },
     users: users,
     sessions: sessions,

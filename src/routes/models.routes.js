@@ -1,6 +1,6 @@
 /*!
- * Core.API.Router.Default
- * File: users.routes.js
+ * Core.API.Router.Models
+ * File: models.routes.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -14,7 +14,7 @@ import Controller from '../controllers/models.controller.js';
 import { restrict } from '../lib/permissions.utils.js';
 import path from 'path';
 import { toSnake } from '../lib/data.utils.js';
-import * as schema from '../services/schema.services.js';
+import * as schema from '../services/schema.construct.services.js';
 
 /**
  * Express router
@@ -33,7 +33,6 @@ export default router;
 function Routes(modelType) {
 
     // create model identifier key
-
     this.modelRoute = toSnake(modelType);
     this.key = `${toSnake(modelType)}_id`;
 
@@ -43,14 +42,13 @@ function Routes(modelType) {
     // add controller routes
     this.routes = {
         list: {
-            id: null,
             path: path.join('/', this.modelRoute),
             get: this.controller.list,
             put: null,
             post: null,
             delete: null,
         },
-        add: {
+        create: {
             path: path.join('/', this.modelRoute, 'add'),
             get: this.controller.add,
             put: null,
@@ -82,16 +80,21 @@ function Routes(modelType) {
 }
 
 /**
- * Routes initialization. Routes are only generated for
- * models in the configuration settings (config.js).
+ * Routes initialization. Routes only generated for
+ * defined models in the node_types relation.
  *
  */
 
 async function initRoutes() {
+
+    // get user permissions
+    let permissions = await schema.getPermissions();
+
     await schema.getTypes()
         .then((modelTypes) => {
             modelTypes.forEach(modelType => {
 
+                // create routes instance
                 let routes = new Routes(modelType);
 
                 // controller initialization
@@ -99,9 +102,9 @@ async function initRoutes() {
 
                 // add default routes
                 Object.entries(routes.routes).forEach(([view, route]) => {
+
                     router.route(route.path)
                         .all(function(req, res, next) {
-
                             // get model ID parameter (if exists)
                             let reqId = req.params.hasOwnProperty(routes.key)
                                 ? req.params[routes.key]
@@ -109,6 +112,7 @@ async function initRoutes() {
 
                             // restrict user access based on permissions
                             restrict(res, next, {
+                                permissions: permissions,
                                 model: modelType,
                                 view: view,
                                 id: reqId,
