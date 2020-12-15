@@ -21,30 +21,29 @@ create TABLE node_types
 );
 
 insert into node_types (name, label)
-values
-('default', 'Default Node'),
-('users', 'Users'), 
-('projects', 'Project'), 
-('surveyors', 'Surveyor'), 
-('surveys', 'Survey'), 
-('survey_seasons', 'SurveySeason'), 
-('stations', 'Station'), 
-('historic_visits', 'HistoricVisit'), 
-('visits', 'Visit'), 
-('locations', 'Location'), 
-('historic_captures', 'HistoricCapture'), 
-('captures', 'Capture'), 
-('capture_images', 'CaptureImage'), 
-('images', 'Image'), 
-('glass_plate_listings', 'Glass Plate Listings'), 
-('cameras', 'Cameras'), 
-('lens', 'Lenses'), 
-('metadata_files', 'Metadata Files'), 
-('maps', 'Maps'), 
-('participants', 'Participants'), 
-('participant_groups', 'Participant Groups'), 
-('shutter_speed', 'Shutter Speed'), 
-('iso', 'ISO Settings');
+values ('default', 'Default Node'),
+       ('users', 'Users'),
+       ('projects', 'Project'),
+       ('surveyors', 'Surveyor'),
+       ('surveys', 'Survey'),
+       ('survey_seasons', 'SurveySeason'),
+       ('stations', 'Station'),
+       ('historic_visits', 'HistoricVisit'),
+       ('visits', 'Visit'),
+       ('locations', 'Location'),
+       ('historic_captures', 'HistoricCapture'),
+       ('captures', 'Capture'),
+       ('capture_images', 'CaptureImage'),
+       ('images', 'Image'),
+       ('glass_plate_listings', 'Glass Plate Listings'),
+       ('cameras', 'Cameras'),
+       ('lens', 'Lenses'),
+       ('metadata_files', 'Metadata Files'),
+       ('maps', 'Maps'),
+       ('participants', 'Participants'),
+       ('participant_groups', 'Participant Groups'),
+       ('shutter_speed', 'Shutter Speed'),
+       ('iso', 'ISO Settings');
 
 
 select *
@@ -70,38 +69,37 @@ create TABLE node_relations
         REFERENCES node_types (name)
 );
 
-insert into node_relations (dependent_type, owner_type) 
-values
-('surveys', 'surveyors'),
-('survey_seasons', 'surveys'),
-('stations', 'projects'),
-('stations', 'survey_seasons'),
-('historic_visits', 'stations'),
-('visits', 'stations'),
-('locations', 'visits'),
-('historic_captures', 'surveys'),
-('historic_captures', 'survey_seasons'),
-('historic_captures', 'projects'),
-('historic_captures', 'historic_visits'),
-('captures', 'survey_seasons'),
-('captures', 'visits'),
-('captures', 'stations'),
-('captures', 'locations'),
-('capture_images', 'captures'),
-('capture_images', 'historic_captures'),
-('images', 'locations'),
-('images', 'stations'),
-('images', 'survey_seasons'),
-('images', 'surveys'),
-('images', 'visits'),
-('cameras', 'historic_captures'),
-('cameras', 'captures'),
-('cameras', 'images'),
-('glass_plate_listings', 'survey_seasons'),
-('maps', 'survey_seasons'),
-('participant_groups', 'visits'),
-('metadata_files', 'visits'),
-('metadata_files', 'stations');
+insert into node_relations (dependent_type, owner_type)
+values ('surveys', 'surveyors'),
+       ('survey_seasons', 'surveys'),
+       ('stations', 'projects'),
+       ('stations', 'survey_seasons'),
+       ('historic_visits', 'stations'),
+       ('visits', 'stations'),
+       ('locations', 'visits'),
+       ('historic_captures', 'surveys'),
+       ('historic_captures', 'survey_seasons'),
+       ('historic_captures', 'projects'),
+       ('historic_captures', 'historic_visits'),
+       ('captures', 'survey_seasons'),
+       ('captures', 'visits'),
+       ('captures', 'stations'),
+       ('captures', 'locations'),
+       ('capture_images', 'captures'),
+       ('capture_images', 'historic_captures'),
+       ('images', 'locations'),
+       ('images', 'stations'),
+       ('images', 'survey_seasons'),
+       ('images', 'surveys'),
+       ('images', 'visits'),
+       ('cameras', 'historic_captures'),
+       ('cameras', 'captures'),
+       ('cameras', 'images'),
+       ('glass_plate_listings', 'survey_seasons'),
+       ('maps', 'survey_seasons'),
+       ('participant_groups', 'visits'),
+       ('metadata_files', 'visits'),
+       ('metadata_files', 'stations');
 
 
 -- -------------------------------------------------------------
@@ -112,24 +110,25 @@ drop table if exists nodes cascade;
 
 create TABLE IF NOT EXISTS nodes
 (
-    owner_id       INT         NOT NULL,
-    owner_type     VARCHAR(40) NOT NULL,
-    dependent_id   INT         NOT NULL,
-    dependent_type VARCHAR(40) NOT NULL,
-    UNIQUE (owner_id, owner_type, dependent_id, dependent_type),
-    CONSTRAINT ck_same_type CHECK (owner_type != dependent_type),
-    CONSTRAINT fk_node_relation FOREIGN KEY (owner_type, dependent_type)
-        REFERENCES node_relations (owner_type, dependent_type)
+    id      serial PRIMARY KEY,
+    node_id integer     not null,
+    type    varchar(40) not null,
+    UNIQUE (node_id, type),
+    CONSTRAINT fk_type FOREIGN KEY (type)
+        REFERENCES node_types (name)
 );
 
-create INDEX owner_index ON nodes (owner_id);
-create INDEX dependent_index ON nodes (dependent_id);
+create INDEX node_index ON nodes (node_id);
 
 -- confirm table created
 select *
 from nodes;
 
--- function: rename column
+
+-- -------------------------------------------------------------
+-- Function: Rename Column
+-- -------------------------------------------------------------
+
 begin;
 create or replace function rename_column(_tbl varchar(40),
                                          _col varchar(40),
@@ -150,8 +149,14 @@ begin
 END
 $$;
 
--- function: rename owner type as table name
-create or replace function rename_owner_types(_tbl regclass) RETURNS void
+
+-- -------------------------------------------------------------
+-- Copy node information from tables to nodes base table
+-- -------------------------------------------------------------
+
+create or replace function update_nodes(_tbl varchar(40),
+                                        _id_col varchar(40),
+                                        _type_col varchar(40)) RETURNS void
     LANGUAGE plpgsql as
 $$
 DECLARE
@@ -163,6 +168,34 @@ begin
             raise NOTICE 'Existing ID, Node Type: %', r;
             -- look up node type name
             select * from node_types where label = r.owner_type INTO node_type;
+            -- only proceed if update already done previously
+            IF node_type.name is NOT NULL
+            THEN
+                RAISE NOTICE 'Converted Node Type: %', node_type;
+                EXECUTE format(E'UPDATE %I SET owner_type = \'%s\' WHERE id=%s', _tbl, node_type.name, r.id);
+            END IF;
+        END LOOP;
+END
+$$;
+
+
+-- -------------------------------------------------------------
+-- Copy node information from tables to nodes base table
+-- -------------------------------------------------------------
+
+create or replace function add_nodes(_tbl varchar(40),
+                                        _id_col varchar(40),
+                                        _type_col varchar(40)) RETURNS void
+    LANGUAGE plpgsql as
+$$
+DECLARE
+    r         RECORD;
+    node_type RECORD;
+begin
+    for r in EXECUTE format('SELECT id FROM %I', _tbl)
+        loop
+            -- look up node type name
+            insert into 
             -- only proceed if update already done previously
             IF node_type.name is NOT NULL
             THEN
@@ -330,7 +363,7 @@ select setval('participants_id_seq', (select max(id) from participants) + 1);
 -- -------------------------------------------------------------
 
 drop table IF EXISTS participant_group_types cascade;
-drop table IF EXISTS participant_groups cascade ;
+drop table IF EXISTS participant_groups cascade;
 
 create TABLE IF NOT EXISTS participant_group_types
 (
@@ -367,8 +400,7 @@ $$
                   WHERE table_schema = current_schema()
                     AND table_name = 'fn_authors_visits') THEN
 
-            insert into participant_groups (
-                                            owner_id,
+            insert into participant_groups (owner_id,
                                             participant_id,
                                             group_type,
                                             created_at,
@@ -391,8 +423,7 @@ $$
                   WHERE table_schema = current_schema()
                     AND table_name = 'hiking_parties') THEN
 
-            insert into participant_groups (
-                                            owner_id,
+            insert into participant_groups (owner_id,
                                             participant_id,
                                             group_type,
                                             created_at,
@@ -415,8 +446,7 @@ $$
                   WHERE table_schema = current_schema()
                     AND table_name = 'photographers_visits') THEN
 
-            insert into participant_groups (
-                                            owner_id,
+            insert into participant_groups (owner_id,
                                             participant_id,
                                             group_type,
                                             created_at,
@@ -445,6 +475,8 @@ alter table projects
         USING CASE WHEN published = 't' THEN TRUE ELSE FALSE END;
 alter table projects
     alter COLUMN published SET DEFAULT FALSE;
+
+select update_nodes('surveyors', 'id', null);
 
 
 -- -------------------------------------------------------------
@@ -679,13 +711,19 @@ alter table captures
         FOREIGN KEY (iso)
             REFERENCES iso (setting);
 
+alter table captures
+    drop CONSTRAINT IF EXISTS fk_camera;
+alter table captures
+    add CONSTRAINT fk_camera
+        FOREIGN KEY (cameras_id)
+            REFERENCES cameras (id);
+
 ALTER TABLE captures
     DROP CONSTRAINT IF EXISTS fk_owner_type;
 ALTER TABLE captures
     ADD CONSTRAINT fk_owner_type
         FOREIGN KEY (owner_type)
-            REFERENCES node_types (name)
-;
+            REFERENCES node_types (name);
 
 -- Convert alternate field to boolean
 alter table captures
@@ -820,9 +858,9 @@ DO
 $$
     begin
         IF EXISTS(SELECT *
-          FROM information_schema.tables
-          WHERE table_schema = current_schema()
-            AND table_name = 'field_notes') THEN
+                  FROM information_schema.tables
+                  WHERE table_schema = current_schema()
+                    AND table_name = 'field_notes') THEN
             insert into metadata_files (owner_id,
                                         owner_type,
                                         metadata_type,
@@ -838,7 +876,7 @@ $$
             from field_notes;
 
             drop table field_notes;
-    end if;
+        end if;
     end;
 $$;
 

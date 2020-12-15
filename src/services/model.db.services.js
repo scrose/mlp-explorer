@@ -28,7 +28,7 @@ export default function Services(model) {
 
     // load query strings for specified model
     try {
-        // load default queries
+        // prepare default queries
         Object.entries(queries.defaults)
             .forEach(([key, query]) => {
                 this.queries[key] = query(model);
@@ -66,8 +66,21 @@ export default function Services(model) {
 
     this.select = async function(id) {
         const statement = this.queries.select(id);
-        console.log('Attachments: ', this.model.attached)
-        return await this.transact(statement, this.model, null);
+        console.log(this.model.attached)
+
+        // create attached statements for references
+        const attachedStmts = this.model.attached
+            .map(a => {
+                return {
+                    query: this.queries.append
+                };
+            });
+
+        return await this.transact(
+            statement,
+            this.model,
+            attachedStmts
+        );
     };
 
     /**
@@ -80,7 +93,7 @@ export default function Services(model) {
 
     this.insert = async function(item) {
         let statement = this.queries.insert(item);
-        return await this.transact(statement, item, this.queries.attach);
+        return await this.transact(statement, item);
     };
 
     /**
@@ -93,7 +106,10 @@ export default function Services(model) {
 
     this.update = async function(item) {
         let statement = this.queries.update(item);
-        return await this.transact(statement, item, this.queries.attach);
+        return await this.transact(
+            statement,
+            item
+        );
     };
 
     /**
@@ -106,7 +122,7 @@ export default function Services(model) {
 
     this.remove = async function(item) {
         let statement = this.queries.remove(item);
-        return await this.transact(statement, item, this.queries.detach);
+        return await this.transact(statement, item);
     };
 
     /**
@@ -127,11 +143,16 @@ export default function Services(model) {
      *
      * @param {Object} statement
      * @param {Object} item
-     * @param {Object} attachment
+     * @param {Object} relation
+     * @param {Array} attachments
      * @return {Promise} db response
      */
 
-    this.transact = async function(statement, item, attach=null) {
+    this.transact = async function(
+        stmt,
+        item,
+        attachedStmts=[]
+    ) {
 
         // NOTE: client undefined if connection fails.
         const client = await pool.connect();
@@ -140,16 +161,17 @@ export default function Services(model) {
             await client.query('BEGIN');
 
             // insert record and record returned ID value
-            let res = await client.query(statement.sql, statement.data);
+            let res = await client.query(stmt.sql, stmt.data);
 
-            // set returned ID value to model instance
-            item.setValue('id', res.rows[0].id);
+            // update item with returned data for further processing
+            item.setData(res.rows[0]);
 
-            // attach/detach node to/from owner (if given)
-            if (attach) {
-                let attachStatement = attach(item);
-                let n = await client.query(attachStatement.sql, attachStatement.data);
-            }
+            // process subordinate statements (e.g. foreign key references)
+            await Promise.all(attachedStmts.map(async (aStmt) => {
+                const val = item.getValue(a.fk_col);
+                const prepStmt = aStmt(item, val);
+                res.attached = await client.query(prepStmt.sql, prepStmt.data);
+            }));
 
             await client.query('COMMIT');
             return res;

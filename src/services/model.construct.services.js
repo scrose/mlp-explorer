@@ -12,9 +12,9 @@ import * as schemaConstructor from './schema.construct.services.js';
 
 /**
  * Create derived model through composition. The model schema
- * should have the following properties for fields:
+ * should have the following properties for attributes:
 
- this.fields: {
+ this.attributes: {
         <field name>: {
             label: '<field label>',
             type: '<datatype>',
@@ -67,7 +67,7 @@ export const create = async (modelType) => {
             value: schema.owners,
             writable: true
         },
-        fields: {
+        attributes: {
             value: schema.attributes,
             writable: true
         },
@@ -113,7 +113,7 @@ export const create = async (modelType) => {
 
 
 /**
- * Set values of model schema fields.
+ * Set values of model schema attributes.
  *
  * @param {Object} data
  * @src public
@@ -130,19 +130,19 @@ function setData(data=null) {
         // select either first row of data array or single data object
         const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
 
-        // filter input data fields by model schema attributes
+        // filter input data attributes by model schema attributes
         Object.entries(inputData).forEach(([key, value]) => {
             console.log(self.label, ' field:', key, ', value:', value)
 
             // assert input attribute exists in model
-            if (!self.fields.hasOwnProperty(key)) throw Error('violatesSchema');
+            if (!self.attributes.hasOwnProperty(key)) throw Error('violatesSchema');
             // TODO: should also check that input data has correct type
-            self.fields[key].value = sanitize(value, self.fields[key].type);
+            self.attributes[key].value = sanitize(value, self.attributes[key].type);
         });
     } else {
         // default constructor
-        Object.entries(self.fields).forEach(([key, field]) => {
-            field.value = sanitize(null, self.fields[key].type);
+        Object.entries(self.attributes).forEach(([key, field]) => {
+            field.value = sanitize(null, self.attributes[key].type);
         });
     }
 }
@@ -156,8 +156,8 @@ function setData(data=null) {
  */
 
 function setValue(key, value) {
-    if (typeof key === 'string' && this.fields.hasOwnProperty(key)) {
-        this.fields[key].value = sanitize(value, this.fields[key].type);
+    if (typeof key === 'string' && this.attributes.hasOwnProperty(key)) {
+        this.attributes[key].value = sanitize(value, this.attributes[key].type);
     }
 }
 
@@ -169,8 +169,10 @@ function setValue(key, value) {
  * @src public
  */
 
-function getValue(field) {
-    if (field) return this.fields.hasOwnProperty(field) ? this.fields[field].value : null;
+function getValue(field=null) {
+    return (field)
+        ? this.attributes[field].value
+        : null;
 }
 
 /**
@@ -182,26 +184,23 @@ function getValue(field) {
 
 function getData() {
     let filteredData = {};
-    Object.entries(this.fields).forEach(([key, field]) => {
+    Object.entries(this.attributes).forEach(([key, field]) => {
         filteredData[key] = field.value;
     });
     return filteredData;
 }
 
 /**
- * Clear field values from model schema.
+ * Clear field values from model attributes.
  *
  * @return {object} for chaining
  * @src public
  */
 
 function clear() {
-    if (this.hasOwnProperty('schema')) {
-        Object.entries(this.fields).forEach(([_, field]) => {
-            field.value = '';
+    Object.entries(this.attributes).map(attr => {
+        attr.value = null;
         });
-    }
-    return this;
 }
 
 /**
@@ -213,8 +212,8 @@ function clear() {
  */
 
 function setDataOptions(field, options) {
-    if (field && this.fields.hasOwnProperty(field) && typeof options === 'object') {
-        this.fields[field].options = options ? options : null;
+    if (field && this.attributes.hasOwnProperty(field) && typeof options === 'object') {
+        this.attributes[field].options = options ? options : null;
     }
 }
 

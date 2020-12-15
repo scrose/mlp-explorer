@@ -238,7 +238,7 @@ const imageStates = ['raw', 'master', 'interim', 'misc', 'gridded'];
 function compare(model, data) {
     data.forEach((item) => {
         // go through model properties
-        Object.entries(model.fields)
+        Object.entries(model.attributes)
             .forEach(([field, _]) => {
                 expect(item).to.have.property(field);
             });

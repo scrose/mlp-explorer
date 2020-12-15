@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Services.Schema
- * File: users.model.db.services.js
+ * File: schema.construct.services.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -28,7 +28,7 @@ export const create = async (modelType) => {
     const modelTypes = await getTypes();
     const permissions = await getPermissions();
     const attributes = await getModel(modelType);
-    const attached = await getAttached(attributes, modelType);
+    const attached = await getAttached(modelType, attributes);
     const owners = await getOwners(modelType);
 
     // check model definition
@@ -58,6 +58,10 @@ export const create = async (modelType) => {
             value: owners,
             writable: false
         },
+        permissions: {
+            value: permissions[modelType],
+            writable: false
+        },
     });
     return Schema;
 };
@@ -81,25 +85,26 @@ export const getTypes = async function() {
  * Get all referenced models.
  *
  * @public
- * @param {Object} attributes
  * @param {String} modelType
+ * @param {Object} attributes
  * @return {Promise} result
  */
 
-export const getAttached = async function(attributes, modelType) {
+export const getAttached = async function(modelType, attributes) {
 
     // get the foreign key references
     const { sql, data } = queries.schema.getReferences(modelType);
     const refs = await pool.query(sql, data);
 
-    // filter references to table
-    return refs.rows
-        .filter(ref => {attributes.hasOwnProperty(`${ref.relname}_id`)})
-        .map(ref => {return ref.relname})
+    // include data type in referenced columns
+    return refs.rows.map(ref => {
+        ref.pk_col_type = attributes[ref.fk_col].type;
+        return ref;
+    });
 };
 
 /**
- * Find and format model schema. Extracts
+ * Find and format model schema.
  *
  * @public
  * @param {String} modelType

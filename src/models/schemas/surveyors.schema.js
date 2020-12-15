@@ -16,7 +16,7 @@
 export default {
     name: 'surveyors',
     label: 'Surveyors',
-    fields: {
+    attributes: {
         id: {
             label: 'ID',
             type: 'string',

@@ -16,7 +16,7 @@
 export default {
   name: 'users',
   label: 'User Profile',
-  fields: {
+  attributes: {
     user_id: {
       label: 'User ID',
       type: 'string',

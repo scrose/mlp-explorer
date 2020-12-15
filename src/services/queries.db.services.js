@@ -7,6 +7,8 @@
 
 'use strict';
 
+import { groupBy } from '../lib/data.utils.js';
+
 /**
  * Database rows limit.
  */
@@ -78,24 +80,21 @@ export function findByOwner(model) {
 }
 
 /**
- * Generate query: Find records by attribute.
+ * Generate query: Append subordinate record by specified table,
+ * column and column value.
  *
- * @param {Object} model
  * @return {Function} query function
  * @public
  */
 
-export function find(model) {
-    return function(value, col) {
-
-        // check that attribute exists in model
-        if (!model.fields.hasOwnProperty(col))
-            throw Error('sql');
-
-        const attr = model.fields[col];
+export function append(model) {
+    // get attachments for model
+    const refs = groupBy(model.attached, 'fk_col');
+    console.log(refs)
+    return function(args, value) {
         const sql = `SELECT * 
-                FROM ${model.table} 
-                WHERE ${col} = ${value}::${attr.type}`;
+                FROM ${args.pk_table} 
+                WHERE ${args.pk_col} = $1::${args.pk_col_type}`;
         return {
             sql: sql,
             data: [value],
@@ -129,13 +128,13 @@ export function insert(
 
     // get columns and prepared value placeholders
     const cols = Object
-        .keys(item.fields)
+        .keys(item.attributes)
         .filter((key) => {
             return !args.ignore.includes(key);
         });
     const vals = cols.map(function(key, _) {
         let placeholder = args.timestamps.includes(key) ? `NOW()` : `$${args.index++}`;
-        return `${placeholder}::${item.fields[key].type}`;
+        return `${placeholder}::${item.attributes[key].type}`;
     });
 
     let sql = `INSERT INTO ${item.table} (${cols.join(',')})
@@ -177,7 +176,7 @@ export function update(
 
     // zip values with column names
     const cols = Object
-        .keys(item.fields)
+        .keys(item.attributes)
         .filter((key) => {
             return !args.ignore.includes(key);
         });
@@ -191,7 +190,7 @@ export function update(
             : `$${args.index++}`;
 
         // map returns conjoined prepared parameters ordered by position
-        return [cols[index], `${placeholder}::${item.fields[key].type}`].join('=');
+        return [cols[index], `${placeholder}::${item.attributes[key].type}`].join('=');
     });
 
     let sql = `UPDATE "${item.table}" 
@@ -230,14 +229,14 @@ export function remove(model, args = { col: 'id', type: 'integer', index: 1 }) {
 }
 
 /**
- * Generate query: Attach node to owner as new models record.
+ * Generate query: Associate node to owner as new model's record.
  *
  * @param {Object} model
  * @return {Function} query binding function
  * @public
  */
 
-export function attach(model) {
+export function associate(model) {
 
     // return null if model does not have defined owner(s)
     if (!model.hasOwners() || !model.hasOwnerReference())
@@ -284,14 +283,14 @@ export function attach(model) {
 }
 
 /**
- * Generate query: Detach (delete) node from owner.
+ * Generate query: Dissociate (delete) node from an owner.
  *
  * @param {Object} model
  * @return {Function} query binding function
  * @public
  */
 
-export function detach(model) {
+export function dissociate(model) {
 
     // return null if model does not have defined owner(s)
     if (!model.hasOwners() || !model.hasOwnerReference())
@@ -331,6 +330,21 @@ export function detach(model) {
 }
 
 /**
+ * Query: Get all node types listed.
+ *
+ * @return {Object} query binding
+ */
+
+export function getModelTypes() {
+    return {
+        sql: `SELECT *
+              FROM node_types
+              WHERE name != 'default';`,
+        data: [],
+    };
+}
+
+/**
  * Query: Get model column information as array of model attributes.
  *
  * @param {String} table
@@ -364,21 +378,6 @@ export function getOwners(modelType) {
 }
 
 /**
- * Query: Get all node types listed.
- *
- * @return {Object} query binding
- */
-
-export function getModelTypes() {
-    return {
-        sql: `SELECT *
-              FROM node_types
-              WHERE name != 'default';`,
-        data: [],
-    };
-}
-
-/**
  * Query: Get all of the table names in the MLP database.
  *
  * @return {Object} query binding
@@ -395,7 +394,9 @@ export function getTables() {
 }
 
 /**
- * Query: Get all foreign key references of table.
+ * Query: Get all foreign key references for table. Selection from
+ * pg_catalog.pg_constraint schema information.
+ * Reference: https://dba.stackexchange.com/questions/36979/retrieving-all-pk-and-fk
  *
  * @return {Object} query binding
  */
@@ -403,15 +404,40 @@ export function getTables() {
 export function getReferences(table) {
     return {
         sql: `
-            SELECT relname
-            FROM   pg_catalog.pg_class
-            WHERE  oid IN (
-                SELECT confrelid
-                FROM pg_catalog.pg_constraint r
-                WHERE r.conrelid = $1::regclass
-                  AND r.contype = 'f'
-                ORDER BY 1
-            )`,
+            SELECT conrelid::regclass                                                       AS fk_table
+                 , CASE
+                       WHEN pg_get_constraintdef(c.oid)
+                           LIKE 'FOREIGN KEY %'
+                           THEN substring(pg_get_constraintdef(c.oid), 14, position(')'
+                                                                                    in pg_get_constraintdef(c.oid)) -
+                                                                           14)
+                END                                                                         AS fk_col
+                 , CASE
+                       WHEN pg_get_constraintdef(c.oid)
+                           LIKE 'FOREIGN KEY %'
+                           THEN substring(pg_get_constraintdef(c.oid), position(' REFERENCES '
+                                                                                in pg_get_constraintdef(c.oid)) + 12,
+                                          position('('
+                                                   in substring(pg_get_constraintdef(c.oid), 14)) -
+                                          position(' REFERENCES '
+                                                   in pg_get_constraintdef(c.oid)) + 1) END AS pk_table
+                 , CASE
+                       WHEN pg_get_constraintdef(c.oid)
+                           LIKE 'FOREIGN KEY %'
+                           THEN substring(pg_get_constraintdef(c.oid), position('('
+                                                                                in
+                                                                                substring(pg_get_constraintdef(c.oid), 14)) +
+                                                                       14, position(')'
+                                                                                    in substring(
+                                                                                        pg_get_constraintdef(c.oid),
+                                                                                        position('(' in substring(pg_get_constraintdef(c.oid), 14)) + 14)) -
+                                                                           1) END           AS pk_col
+            FROM pg_catalog.pg_constraint c
+                     JOIN pg_namespace n ON n.oid = c.connamespace
+            WHERE c.conrelid = $1::regclass
+              AND c.contype = 'f'
+              AND pg_get_constraintdef(c.oid) LIKE 'FOREIGN KEY %'
+            ORDER BY pg_get_constraintdef(c.oid), conrelid::regclass::text, contype DESC;`,
         data: [table],
     };
 }
@@ -449,18 +475,18 @@ function _collate(
     }) {
 
     // reserve first position for item ID (given 'where' condition)
-    let data = args.where ? [item.fields[args.where].value] : [];
+    let data = args.where ? [item.attributes[args.where].value] : [];
 
     // filter input data to match insert/update parameters
-    data.push(...Object.keys(item.fields)
+    data.push(...Object.keys(item.attributes)
         .filter((key) => {
-            // filter ignored and timestamp fields
+            // filter ignored and timestamp attributes
             return !args.ignore.includes(key)
                 && !args.timestamps.includes(key)
                 && key !== args.where;
         })
         .map((key, _) => {
-            return item.fields[key].value;
+            return item.attributes[key].value;
         }));
 
     return data;

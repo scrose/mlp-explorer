@@ -36,11 +36,12 @@ export default {
     defaults: {
         getAll: defaults.getAll,
         select: defaults.select,
+        append: defaults.append,
         insert: defaults.insert,
         update: defaults.update,
         remove: defaults.remove,
-        attach: defaults.attach,
-        detach: defaults.detach
+        associate: defaults.associate,
+        dissociate: defaults.dissociate
     },
     schema: {
         getModel: defaults.getModel,

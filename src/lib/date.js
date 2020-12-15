@@ -131,7 +131,7 @@ export function reformat(data, schema) {
     data.forEach((item) => {
         for (const [key, field] of Object.entries(item)) {
             if (!field) continue;
-            const dataType = schema.fields.hasOwnProperty(key) ? schema.fields[key].type : null;
+            const dataType = schema.attributes.hasOwnProperty(key) ? schema.attributes[key].type : null;
             switch (dataType) {
                 case 'timestamp':
                     //"yyyy-MM-dd hh:mm:ss"
@@ -141,7 +141,7 @@ export function reformat(data, schema) {
         }
     });
     return data;
-};
+}
 
 // export today's date
 exports.now = new Date();

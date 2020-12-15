@@ -51,8 +51,6 @@ export function restrict (res, next, args) {
         // get permissions settings for model and view
         const restrictedTo = getPermissions(args);
 
-        console.log('RESTRICTED TO: ', restrictedTo)
-
         // Allow owners access to own data
         if (res.locals.user
             && args.hasOwnProperty('id')
@@ -88,8 +86,6 @@ function getPermissions(args) {
     let permissions = args.permissions.hasOwnProperty(args.model)
         ? args.permissions[args.model]
         : args.permissions.default;
-
-    console.log(args.view, permissions)
 
     // filter permissions for given view
     return permissions
