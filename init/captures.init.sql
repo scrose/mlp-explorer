@@ -1,70 +1,111 @@
 -- =========================================================
--- Schema Migration script
+-- Schema Migration: Captures
 -- =========================================================
--- Restore database to original:
--- db reset >>> psql -U boutrous mlp2 < path/to/original/meat.sql
--- db reset >>> psql -U boutrous mlp2 < /Users/boutrous/Workspace/NodeJS/db/meat.sql
--- db reset >>> psql -U boutrous mlp2 < /Users/boutrous/Workspace/NodeJS/mlp-db/meat.sql
 
-
--- update owner types
-select rename_owner_types('captures');
+begin;
 
 -- -------------------------------------------------------------
---    Captures
+--    Historic Captures
 -- -------------------------------------------------------------
 
-DROP TABLE IF EXISTS "mlp_captures";
+-- rename table
+ALTER TABLE if exists historic_captures
+    RENAME TO mlp_historic_captures;
 
-CREATE TABLE "public"."mlp_captures" (
-     "id" serial primary key NOT NULL,
-     "owner_id" integer NOT NULL,
-     "fn_photo_reference" character varying(255),
-     "f_stop" double precision,
-     "shutter_speed" integer,
-     "iso" integer,
-     "focal_length" integer,
-     "camera_id" integer,
-     "lens_id" integer,
-     "capture_datetime" timestamp,
-     "lat" double precision,
-     "long" double precision,
-     "elevation" double precision,
-     "azimuth" integer,
-     "comments" character varying(255),
-     "created_at" timestamp NOT NULL,
-     "updated_at" timestamp NOT NULL,
-     "alternate" boolean,
-     "published" boolean
-) WITH (oids = false);
+-- update owner data
+select rename_column('mlp_historic_captures', 'capture_owner_id', 'owner_id');
+select rename_column('mlp_historic_captures', 'capture_owner_type', 'owner_type');
+select rename_column('mlp_historic_captures', 'camera_id', 'cameras_id');
+select rename_owner_types('mlp_historic_captures');
 
-CREATE INDEX "index_mlp_captures_on_owner_id" ON "public"."mlp_captures" USING btree ("owner_id");
+update mlp_historic_captures
+set owner_type=q.name
+from (select * from mlp_node_types) as q
+where mlp_historic_captures.owner_type=q.label;
 
--- Historic Captures
+update mlp_historic_captures
+set owner_id=q.id
+from (select * from mlp_nodes) as q
+where mlp_historic_captures.owner_id=q.old_id
+  and q.type=mlp_historic_captures.owner_type;
 
-DROP TABLE IF EXISTS "mlp_historic_captures";
+-- drop owners type table
+alter table mlp_historic_captures
+    drop column IF EXISTS owner_type;
 
-CREATE TABLE "public"."mlp_historic_captures" (
-      "capture_id" integer primary key NOT NULL,
-      "plate_id" character varying(255),
-      "digitization_location" character varying(255),
-      "digitization_datetime" timestamp,
-      "lac_ecopy" character varying(255),
-      "lac_wo" character varying(255),
-      "lac_collection" character varying(255),
-      "lac_box" character varying(255),
-      "lac_catalogue" character varying(255),
-      "condition" character varying(255),
-      CONSTRAINT fk_node_id FOREIGN KEY (capture_id)
-          REFERENCES mlp_captures (id)
-) WITH (oids = false);
+-- convert empty strings to nulls
+UPDATE mlp_historic_captures
+SET shutter_speed=NULL
+where shutter_speed = '';
 
--- Modern Captures
+-- add cameras reference
+alter table mlp_historic_captures
+    drop CONSTRAINT IF EXISTS fk_camera;
+alter table mlp_historic_captures
+    add CONSTRAINT fk_camera
+        FOREIGN KEY (camera_id)
+            REFERENCES cameras (id);
 
-DROP TABLE IF EXISTS "mlp_modern_captures";
+-- Latitude/Longitude constraints
+--    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_latitude;
+--    ALTER TABLE stations ADD CONSTRAINT check_latitude
+--    CHECK (stations.lat ~* '^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$')
+--
+--    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_longitude;
+--    ALTER TABLE stations ADD CONSTRAINT check_longitude
+--    CHECK (stations.long ~* '^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$')
 
-CREATE TABLE "public"."mlp_modern_captures" (
-      "capture_id" integer primary key NOT NULL,
-      CONSTRAINT fk_node_id FOREIGN KEY (capture_id)
-          REFERENCES mlp_captures (id)
-) WITH (oids = false);
+
+
+-- -------------------------------------------------------------
+--    Modern Captures
+-- -------------------------------------------------------------
+
+-- rename table
+ALTER TABLE if exists captures
+    RENAME TO mlp_modern_captures;
+
+-- update owner data
+select rename_column('mlp_modern_captures', 'capture_owner_id', 'owner_id');
+select rename_column('mlp_modern_captures', 'capture_owner_type', 'owner_type');
+select rename_column('mlp_modern_captures', 'camera_id', 'cameras_id');
+select rename_owner_types('mlp_modern_captures');
+
+update mlp_modern_captures
+set owner_type=q.name
+from (select * from mlp_node_types) as q
+where mlp_modern_captures.owner_type=q.label;
+
+update mlp_modern_captures
+set owner_id=q.id
+from (select * from mlp_nodes) as q
+where mlp_modern_captures.owner_id=q.old_id
+  and q.type=mlp_modern_captures.owner_type;
+
+-- drop owners type table
+alter table mlp_modern_captures
+    drop column IF EXISTS owner_type;
+
+-- convert empty strings to nulls
+UPDATE mlp_modern_captures
+SET shutter_speed=NULL
+where shutter_speed = '';
+
+-- add cameras reference
+alter table mlp_modern_captures
+    drop CONSTRAINT IF EXISTS fk_camera;
+alter table mlp_modern_captures
+    add CONSTRAINT fk_camera
+        FOREIGN KEY (camera_id)
+            REFERENCES cameras (id);
+
+-- Latitude/Longitude constraints
+--    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_latitude;
+--    ALTER TABLE stations ADD CONSTRAINT check_latitude
+--    CHECK (stations.lat ~* '^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$')
+--
+--    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_longitude;
+--    ALTER TABLE stations ADD CONSTRAINT check_longitude
+--    CHECK (stations.long ~* '^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$')
+
+commit;

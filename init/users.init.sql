@@ -1,15 +1,9 @@
 -- =========================================================
--- Schema Migration script: Users
+-- Schema Migration: Users
 -- =========================================================
--- Restore database to original:
--- db reset >>> psql -U boutrous mlp2 < path/to/original/meat.sql
--- db reset >>> psql -U boutrous mlp2 < /Users/boutrous/Workspace/NodeJS/db/meat.sql
--- db reset >>> psql -U boutrous mlp2 < /Users/boutrous/Workspace/NodeJS/mlp-db/meat.sql
-
 
 drop table if exists users CASCADE;
 drop table if exists user_roles CASCADE;
-
 
 -- -------------------------------------------------------------
 -- User Roles Table
