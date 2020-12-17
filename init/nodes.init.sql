@@ -1,10 +1,6 @@
 -- =========================================================
 -- Schema Migration script
 -- =========================================================
--- Restore database to original:
--- db reset >>> psql -U boutrous mlp2 < path/to/original/meat.sql
--- db reset >>> psql -U boutrous mlp2 < /Users/boutrous/Workspace/NodeJS/db/meat.sql
--- db reset >>> psql -U boutrous mlp2 < /Users/boutrous/Workspace/NodeJS/mlp-db/meat.sql
 
 begin;
 
@@ -12,98 +8,98 @@ begin;
 -- Model Types Table
 -- -------------------------------------------------------------
 
-drop table if exists "mlp_node_types" CASCADE;
+drop table if exists "node_types" CASCADE;
 
-create TABLE"public"."mlp_node_types"
+create TABLE"public"."node_types"
 (
     id    serial PRIMARY KEY,
     name  VARCHAR(40) UNIQUE NOT NULL,
     label VARCHAR(40) UNIQUE NOT NULL
 );
 
-insert into "public"."mlp_node_types" (name, label)
-values ('mlp_users', 'Users'),
-       ('mlp_projects', 'Project'),
-       ('mlp_surveyors', 'Surveyor'),
-       ('mlp_surveys', 'Survey'),
-       ('mlp_survey_seasons', 'SurveySeason'),
-       ('mlp_stations', 'Station'),
-       ('mlp_historic_visits', 'HistoricVisit'),
-       ('mlp_modern_visits', 'Visit'),
-       ('mlp_locations', 'Location'),
-       ('mlp_historic_captures', 'HistoricCapture'),
-       ('mlp_modern_captures', 'Capture'),
-       ('mlp_capture_images', 'CaptureImage'),
-       ('mlp_images', 'Image'),
-       ('mlp_glass_plate_listings', 'Glass Plate Listings'),
-       ('mlp_cameras', 'Cameras'),
-       ('mlp_lens', 'Lenses'),
-       ('mlp_metadata_files', 'Metadata Files'),
-       ('mlp_maps', 'Maps'),
-       ('mlp_participants', 'Participants'),
-       ('mlp_participant_groups', 'Participant Groups');
+insert into "public"."node_types" (name, label)
+values ('users', 'Users'),
+       ('projects', 'Project'),
+       ('surveyors', 'Surveyor'),
+       ('surveys', 'Survey'),
+       ('survey_seasons', 'SurveySeason'),
+       ('stations', 'Station'),
+       ('historic_visits', 'HistoricVisit'),
+       ('modern_visits', 'Visit'),
+       ('locations', 'Location'),
+       ('historic_captures', 'HistoricCapture'),
+       ('modern_captures', 'Capture'),
+       ('capture_images', 'CaptureImage'),
+       ('images', 'Image'),
+       ('glass_plate_listings', 'Glass Plate Listings'),
+       ('cameras', 'Cameras'),
+       ('lens', 'Lenses'),
+       ('metadata_files', 'Metadata Files'),
+       ('maps', 'Maps'),
+       ('participants', 'Participants'),
+       ('participant_groups', 'Participant Groups');
 
 
 -- -------------------------------------------------------------
 -- Model Relations Table
 -- -------------------------------------------------------------
 
-drop table if exists "mlp_node_relations" cascade;
+drop table if exists "node_relations" cascade;
 
-create TABLE "mlp_node_relations"
+create TABLE "node_relations"
 (
     "id "            serial PRIMARY KEY,
     "dependent_type" VARCHAR(40) NOT NULL,
     "owner_type"     VARCHAR(40),
     UNIQUE (owner_type, dependent_type),
     CONSTRAINT fk_owner_type FOREIGN KEY (owner_type)
-        REFERENCES "mlp_node_types" (name),
+        REFERENCES "node_types" (name),
     CONSTRAINT fk_dependent_type FOREIGN KEY (dependent_type)
-        REFERENCES "mlp_node_types" (name)
+        REFERENCES "node_types" (name)
 );
 
-insert into "mlp_node_relations" (dependent_type, owner_type)
-values ('mlp_projects', null),
-       ('mlp_surveyors', null),
-       ('mlp_surveys', 'mlp_surveyors'),
-       ('mlp_survey_seasons', 'mlp_surveys'),
-       ('mlp_stations', 'mlp_projects'),
-       ('mlp_stations', 'mlp_survey_seasons'),
-       ('mlp_historic_visits', 'mlp_stations'),
-       ('mlp_modern_visits', 'mlp_stations'),
-       ('mlp_locations', 'mlp_modern_visits'),
-       ('mlp_historic_captures', 'mlp_surveys'),
-       ('mlp_historic_captures', 'mlp_survey_seasons'),
-       ('mlp_historic_captures', 'mlp_projects'),
-       ('mlp_historic_captures', 'mlp_historic_visits'),
-       ('mlp_modern_captures', 'mlp_survey_seasons'),
-       ('mlp_modern_captures', 'mlp_modern_visits'),
-       ('mlp_modern_captures', 'mlp_stations'),
-       ('mlp_modern_captures', 'mlp_locations'),
-       ('mlp_capture_images', 'mlp_modern_captures'),
-       ('mlp_capture_images', 'mlp_historic_captures'),
-       ('mlp_images', 'mlp_locations'),
-       ('mlp_images', 'mlp_stations'),
-       ('mlp_images', 'mlp_survey_seasons'),
-       ('mlp_images', 'mlp_surveys'),
-       ('mlp_images', 'mlp_modern_visits'),
-       ('mlp_cameras', 'mlp_historic_captures'),
-       ('mlp_cameras', 'mlp_modern_captures'),
-       ('mlp_cameras', 'mlp_images'),
-       ('mlp_glass_plate_listings', 'mlp_survey_seasons'),
-       ('mlp_maps', 'mlp_survey_seasons'),
-       ('mlp_participant_groups', 'mlp_modern_visits'),
-       ('mlp_metadata_files', 'mlp_modern_visits'),
-       ('mlp_metadata_files', 'mlp_stations');
+insert into "node_relations" (dependent_type, owner_type)
+values ('projects', null),
+       ('surveyors', null),
+       ('surveys', 'surveyors'),
+       ('survey_seasons', 'surveys'),
+       ('stations', 'projects'),
+       ('stations', 'survey_seasons'),
+       ('historic_visits', 'stations'),
+       ('modern_visits', 'stations'),
+       ('locations', 'modern_visits'),
+       ('historic_captures', 'surveys'),
+       ('historic_captures', 'survey_seasons'),
+       ('historic_captures', 'projects'),
+       ('historic_captures', 'historic_visits'),
+       ('modern_captures', 'survey_seasons'),
+       ('modern_captures', 'modern_visits'),
+       ('modern_captures', 'stations'),
+       ('modern_captures', 'locations'),
+       ('capture_images', 'modern_captures'),
+       ('capture_images', 'historic_captures'),
+       ('images', 'locations'),
+       ('images', 'stations'),
+       ('images', 'survey_seasons'),
+       ('images', 'surveys'),
+       ('images', 'modern_visits'),
+       ('cameras', 'historic_captures'),
+       ('cameras', 'modern_captures'),
+       ('cameras', 'images'),
+       ('glass_plate_listings', 'survey_seasons'),
+       ('maps', 'survey_seasons'),
+       ('participant_groups', 'modern_visits'),
+       ('metadata_files', 'modern_visits'),
+       ('metadata_files', 'stations');
 
 
 -- -------------------------------------------------------------
 -- Nodes Table
 -- -------------------------------------------------------------
 
-drop table if exists mlp_nodes cascade;
+drop table if exists nodes cascade;
 
-create TABLE IF NOT EXISTS "public"."mlp_nodes"
+create TABLE IF NOT EXISTS "public"."nodes"
 (
     "id"      serial PRIMARY KEY,
     "old_id" integer not null,
@@ -116,124 +112,124 @@ create TABLE IF NOT EXISTS "public"."mlp_nodes"
     "legacy_path" text,
     "fs_path" text,
     CONSTRAINT fk_ownerid FOREIGN KEY (owner_id)
-        REFERENCES mlp_nodes (id),
+        REFERENCES nodes (id),
     CONSTRAINT fk_node_relation FOREIGN KEY (type, owner_type)
-        REFERENCES mlp_node_relations (dependent_type, owner_type)
+        REFERENCES node_relations (dependent_type, owner_type)
 );
 
 create INDEX node_index
-    ON "mlp_nodes" (id, type);
+    ON "nodes" (id, type);
 CREATE INDEX "index_nodes_on_legacy_path"
-    ON "public"."mlp_nodes" USING btree ("legacy_path");
+    ON "public"."nodes" USING btree ("legacy_path");
 
 
 -- -------------------------------------------------------------
---    Projects (root owners)
+--    old_projects (root owners)
 -- -------------------------------------------------------------
 
-DROP TABLE IF EXISTS "mlp_projects" cascade;
+DROP TABLE IF EXISTS "projects" cascade;
 
-CREATE TABLE "public"."mlp_projects" (
+CREATE TABLE "public"."projects" (
          "nodes_id" integer primary key,
          "name" character varying(255),
          "description" text,
          CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
-             REFERENCES mlp_nodes (id)
+             REFERENCES nodes (id)
 ) WITH (oids = false);
 
 -- populate the nodes table
-insert into mlp_nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path, fs_path)
-select id, 'mlp_projects', null, null, created_at, updated_at, published, null, fs_path
-from projects order by id;
+insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path, fs_path)
+select id, 'projects', null, null, created_at, updated_at, published, null, fs_path
+from old_projects order by id;
 
-insert into mlp_projects (nodes_id)
-select id from mlp_nodes where type='mlp_projects' order by old_id;
+insert into projects (nodes_id)
+select id from nodes where type='projects' order by old_id;
 
--- populate the projects table
-update  mlp_projects
+-- populate the old_projects table
+update  projects
 set name = q.name,
     description = q.description
-from (select * from projects order by id) as q
-where (select old_id from mlp_nodes where id=mlp_projects.nodes_id) = q.id;
+from (select * from old_projects order by id) as q
+where (select old_id from nodes where id=projects.nodes_id) = q.id;
 
 
 -- -------------------------------------------------------------
 --    Surveyors (root owners)
 -- -------------------------------------------------------------
 
-DROP TABLE IF EXISTS "mlp_surveyors" cascade;
+DROP TABLE IF EXISTS "surveyors" cascade;
 
-CREATE TABLE "public"."mlp_surveyors" (
+CREATE TABLE "public"."surveyors" (
       "nodes_id" integer primary key,
       "last_name" character varying(255),
       "given_names" character varying(255),
       "short_name" character varying(255),
       "affiliation" character varying(255),
       CONSTRAINT "fk_nodes_id" FOREIGN KEY (nodes_id)
-          REFERENCES "mlp_nodes" (id)
+          REFERENCES "nodes" (id)
 ) WITH (oids = false);
 
 -- populate the nodes table
 
-insert into mlp_nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path, fs_path)
-select id, 'mlp_surveyors', null, null, created_at, updated_at, published, null, fs_path
-from surveyors order by id;
+insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path, fs_path)
+select id, 'surveyors', null, null, created_at, updated_at, published, null, fs_path
+from old_surveyors order by id;
 
-insert into mlp_surveyors (nodes_id)
-select id from mlp_nodes where type='mlp_surveyors' order by old_id;
+insert into surveyors (nodes_id)
+select id from nodes where type='surveyors' order by old_id;
 
--- populate the surveyors table
-update  mlp_surveyors
+-- populate the old_surveyors table
+update  surveyors
 set last_name = q.last_name,
     given_names = q.given_names,
     short_name = q.short_name,
     affiliation = q.affiliation
-from (select * from surveyors order by id) as q
-where (select old_id from mlp_nodes where id=mlp_surveyors.nodes_id) = q.id;
+from (select * from old_surveyors order by id) as q
+where (select old_id from nodes where id=surveyors.nodes_id) = q.id;
 
 
 -- -------------------------------------------------------------
---    Surveys  (owned by surveyors)
+--    Surveys  (owned by old_surveyors)
 -- -------------------------------------------------------------
 
-DROP TABLE IF EXISTS "mlp_surveys";
+DROP TABLE IF EXISTS "surveys";
 
-CREATE TABLE "public"."mlp_surveys" (
+CREATE TABLE "public"."surveys" (
         "nodes_id" integer primary key,
         "name" character varying(255),
         "historical_map_sheet" character varying(255),
         CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
-            REFERENCES mlp_nodes (id)
+            REFERENCES nodes (id)
 ) WITH (oids = false);
 
 -- update owner ids
-update surveys set surveyor_id=q.id
-from (select * from mlp_nodes) as q
-where surveys.surveyor_id=q.old_id and q.type='mlp_surveyors';
+update old_surveys set surveyor_id=q.id
+from (select * from nodes) as q
+where old_surveys.surveyor_id=q.old_id and q.type='surveyors';
 
 -- populate the nodes table
-insert into mlp_nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path, fs_path)
-select id, 'mlp_surveys', surveyor_id, 'mlp_surveyors', created_at, updated_at, published, null, fs_path
-from surveys order by id;
+insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path, fs_path)
+select id, 'surveys', surveyor_id, 'surveyors', created_at, updated_at, published, null, fs_path
+from old_surveys order by id;
 
--- populate the projects table
-insert into mlp_surveys (nodes_id)
-select id from mlp_nodes where type='mlp_surveys' order by old_id;
+-- populate the old_projects table
+insert into surveys (nodes_id)
+select id from nodes where type='surveys' order by old_id;
 
-update  mlp_surveys
+update  surveys
 set name = q.name,
     historical_map_sheet = q.historical_map_sheet
-from (select * from surveys order by id) as q
-where (select old_id from mlp_nodes where id=mlp_surveys.nodes_id) = q.id;
+from (select * from old_surveys order by id) as q
+where (select old_id from nodes where id=surveys.nodes_id) = q.id;
 
 
 -- -------------------------------------------------------------
---    Survey Seasons  (owned by surveys)
+--    Survey Seasons  (owned by old_surveys)
 -- -------------------------------------------------------------
 
-DROP TABLE IF EXISTS "mlp_survey_seasons";
+DROP TABLE IF EXISTS "survey_seasons";
 
-CREATE TABLE "public"."mlp_survey_seasons" (
+CREATE TABLE "public"."survey_seasons" (
        "nodes_id" integer primary key,
        "year" integer CHECK (year > 1800 AND year <= EXTRACT(YEAR FROM NOW())),
        "geographic_coverage" character varying(255),
@@ -246,27 +242,27 @@ CREATE TABLE "public"."mlp_survey_seasons" (
        "sources" text,
        "notes" text,
        CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
-           REFERENCES mlp_nodes (id)
+           REFERENCES nodes (id)
 ) WITH (oids = false);
 
-CREATE INDEX if not exists "index_survey_seasons_on_record_id"
-    ON "public"."mlp_survey_seasons" USING btree ("record_id");
+CREATE INDEX if not exists "index_old_survey_seasons_on_record_id"
+    ON "public"."survey_seasons" USING btree ("record_id");
 
 -- update owner ids
-update survey_seasons set survey_id=q.id
-from (select * from mlp_nodes) as q
-where survey_seasons.survey_id=q.old_id and q.type='mlp_surveys';
+update old_survey_seasons set survey_id=q.id
+from (select * from nodes) as q
+where old_survey_seasons.survey_id=q.old_id and q.type='surveys';
 
 -- populate the nodes table
-insert into mlp_nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path, fs_path)
-select id, 'mlp_survey_seasons', survey_id, 'mlp_surveys', created_at, updated_at, published, null, fs_path
-from survey_seasons order by id;
+insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path, fs_path)
+select id, 'survey_seasons', survey_id, 'surveys', created_at, updated_at, published, null, fs_path
+from old_survey_seasons order by id;
 
--- populate the projects table
-insert into mlp_survey_seasons (nodes_id)
-select id from mlp_nodes where type='mlp_survey_seasons' order by old_id;
+-- populate the old_projects table
+insert into survey_seasons (nodes_id)
+select id from nodes where type='survey_seasons' order by old_id;
 
-update  mlp_survey_seasons
+update  survey_seasons
 set year=q.year,
     geographic_coverage=q.geographic_coverage,
     record_id=q.record_id,
@@ -277,17 +273,17 @@ set year=q.year,
     location=q.location,
     sources=q.sources,
     notes=q.notes
-from (select * from survey_seasons order by id) as q
-where (select old_id from mlp_nodes where id=mlp_survey_seasons.nodes_id) = q.id;
+from (select * from old_survey_seasons order by id) as q
+where (select old_id from nodes where id=survey_seasons.nodes_id) = q.id;
 
 
 -- -------------------------------------------------------------
 --    Stations (multiple owners)
 -- -------------------------------------------------------------
 
-DROP TABLE IF EXISTS "mlp_stations";
+DROP TABLE IF EXISTS "stations";
 
-CREATE TABLE "public"."mlp_stations" (
+CREATE TABLE "public"."stations" (
          "nodes_id" integer primary key,
          "name" character varying(255),
          "lat" double precision,
@@ -295,83 +291,83 @@ CREATE TABLE "public"."mlp_stations" (
          "elevation" double precision,
          "nts_sheet" character varying(255),
          CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
-             REFERENCES mlp_nodes (id)
+             REFERENCES nodes (id)
 ) WITH (oids = false);
 
 -- update owner data
-update stations
+update old_stations
 set station_owner_type=q.name
-from (select * from mlp_node_types) as q
-where stations.station_owner_type=q.label;
+from (select * from node_types) as q
+where old_stations.station_owner_type=q.label;
 
-update stations
+update old_stations
 set station_owner_id=q.id
-from (select * from mlp_nodes) as q
-where stations.station_owner_id=q.old_id
-  and q.type=stations.station_owner_type;
+from (select * from nodes) as q
+where old_stations.station_owner_id=q.old_id
+  and q.type=old_stations.station_owner_type;
 
 -- populate the nodes table
-insert into mlp_nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path, fs_path)
-select id, 'mlp_stations', station_owner_id, station_owner_type, created_at, updated_at, published, null, fs_path
-from stations order by id;
+insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path, fs_path)
+select id, 'stations', station_owner_id, station_owner_type, created_at, updated_at, published, null, fs_path
+from old_stations order by id;
 
--- populate the projects table
-insert into mlp_stations (nodes_id)
-select id from mlp_nodes where type='mlp_stations' order by old_id;
+-- populate the old_projects table
+insert into stations (nodes_id)
+select id from nodes where type='stations' order by old_id;
 
-update  mlp_stations
+update  stations
 set name=q.name,
     lat=q.lat,
     long=q.long,
     elevation=q.elevation,
     nts_sheet=q.nts_sheet
-from (select * from stations order by id) as q
-where (select old_id from mlp_nodes where id=mlp_stations.nodes_id) = q.id;
+from (select * from old_stations order by id) as q
+where (select old_id from nodes where id=stations.nodes_id) = q.id;
 
 
 -- -------------------------------------------------------------
---    Historic Visits (owned by stations)
+--    Historic Visits (owned by old_stations)
 -- -------------------------------------------------------------
 
-DROP TABLE IF EXISTS "mlp_historic_visits";
+DROP TABLE IF EXISTS "historic_visits";
 
-CREATE TABLE "public"."mlp_historic_visits" (
+CREATE TABLE "public"."historic_visits" (
         "nodes_id" integer primary key,
         "date" date,
         "comments" text,
         CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
-            REFERENCES mlp_nodes (id)
+            REFERENCES nodes (id)
 ) WITH (oids = false);
 
 -- update owner ids
-update historic_visits set station_id=q.id
-from (select * from mlp_nodes) as q
-where historic_visits.station_id=q.old_id and q.type='mlp_stations';
+update old_historic_visits set station_id=q.id
+from (select * from nodes) as q
+where old_historic_visits.station_id=q.old_id and q.type='stations';
 
 -- populate the nodes table
-insert into mlp_nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path, fs_path)
-select id, 'mlp_historic_visits', station_id, 'mlp_stations', created_at, updated_at, published, null, fs_path
-from historic_visits order by id;
+insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path, fs_path)
+select id, 'historic_visits', station_id, 'stations', created_at, updated_at, published, null, fs_path
+from old_historic_visits order by id;
 
 -- populate the table
-insert into mlp_historic_visits (nodes_id)
-select id from mlp_nodes where type='mlp_historic_visits' order by old_id;
+insert into historic_visits (nodes_id)
+select id from nodes where type='historic_visits' order by old_id;
 
-update  mlp_historic_visits
+update  historic_visits
 set date=q.date,
     comments=q.comments
-from (select * from historic_visits order by id) as q
-where (select old_id from mlp_nodes where id=mlp_historic_visits.nodes_id) = q.id;
+from (select * from old_historic_visits order by id) as q
+where (select old_id from nodes where id=historic_visits.nodes_id) = q.id;
 
 
 
 -- -------------------------------------------------------------
---    Visits (owned by stations)
+--    Visits (owned by old_stations)
 -- -------------------------------------------------------------
 
-DROP TABLE IF EXISTS "mlp_modern_visits";
+DROP TABLE IF EXISTS "modern_visits";
 
-CREATE TABLE "public"."mlp_modern_visits" (
+CREATE TABLE "public"."modern_visits" (
       "nodes_id" integer primary key,
       "date" date,
       "start_time" time without time zone,
@@ -390,24 +386,24 @@ CREATE TABLE "public"."mlp_modern_visits" (
       "fn_physical_location" character varying(255),
       "fn_transcription_comment" text,
       CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
-          REFERENCES mlp_nodes (id)
+          REFERENCES nodes (id)
 ) WITH (oids = false);
 
 -- update owner ids
-update visits set station_id=q.id
-from (select * from mlp_nodes) as q
-where visits.station_id=q.old_id and q.type='mlp_stations';
+update old_visits set station_id=q.id
+from (select * from nodes) as q
+where old_visits.station_id=q.old_id and q.type='stations';
 
 -- populate the nodes table
-insert into mlp_nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path, fs_path)
-select id, 'mlp_modern_visits', station_id, 'mlp_stations', created_at, updated_at, published, null, fs_path
-from visits order by id;
+insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path, fs_path)
+select id, 'modern_visits', station_id, 'stations', created_at, updated_at, published, null, fs_path
+from old_visits order by id;
 
 -- populate the table
-insert into mlp_modern_visits (nodes_id)
-select id from mlp_nodes where type='mlp_modern_visits' order by old_id;
+insert into modern_visits (nodes_id)
+select id from nodes where type='modern_visits' order by old_id;
 
-update  mlp_modern_visits
+update  modern_visits
 set date=q.date,
     start_time=q.start_time,
     finish_time=q.finish_time,
@@ -424,16 +420,16 @@ set date=q.date,
     weather_wb=q.weather_wb,
     fn_physical_location=q.fn_physical_location,
     fn_transcription_comment=q.fn_transcription_comment
-from (select * from visits order by id) as q
-where (select old_id from mlp_nodes where id=mlp_modern_visits.nodes_id) = q.id;
+from (select * from old_visits order by id) as q
+where (select old_id from nodes where id=modern_visits.nodes_id) = q.id;
 
 
 -- -------------------------------------------------------------
---    Locations (owned by visits)
+--    Locations (owned by old_visits)
 -- -------------------------------------------------------------
-DROP TABLE IF EXISTS "mlp_locations";
+DROP TABLE IF EXISTS "locations";
 
-CREATE TABLE "public"."mlp_locations" (
+CREATE TABLE "public"."locations" (
       "nodes_id" integer primary key,
       "location_narrative" text,
       "location_identity" character varying(255),
@@ -443,34 +439,34 @@ CREATE TABLE "public"."mlp_locations" (
       "long" double precision,
       "elevation" double precision,
       CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
-          REFERENCES mlp_nodes (id)
+          REFERENCES nodes (id)
 ) WITH (oids = false);
 
 
 -- Latitude/Longitude constraints
---    ALTER TABLE locations DROP CONSTRAINT IF EXISTS check_latitude;
---    ALTER TABLE locations ADD CONSTRAINT check_latitude
---    CHECK (stations.lat ~* '^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$')
+--    ALTER TABLE old_locations DROP CONSTRAINT IF EXISTS check_latitude;
+--    ALTER TABLE old_locations ADD CONSTRAINT check_latitude
+--    CHECK (old_stations.lat ~* '^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$')
 --
---    ALTER TABLE locations DROP CONSTRAINT IF EXISTS check_longitude;
---    ALTER TABLE locations ADD CONSTRAINT check_longitude
---    CHECK (stations.long ~* '^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$')
+--    ALTER TABLE old_locations DROP CONSTRAINT IF EXISTS check_longitude;
+--    ALTER TABLE old_locations ADD CONSTRAINT check_longitude
+--    CHECK (old_stations.long ~* '^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$')
 
 -- update owner ids
-update locations set visit_id=q.id
-from (select * from mlp_nodes) as q
-where locations.visit_id=q.old_id and q.type='mlp_modern_visits';
+update old_locations set visit_id=q.id
+from (select * from nodes) as q
+where old_locations.visit_id=q.old_id and q.type='modern_visits';
 
 -- populate the nodes table
-insert into mlp_nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path)
-select id, 'mlp_locations', visit_id, 'mlp_modern_visits', created_at, updated_at, published, null
-from locations order by id;
+insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path)
+select id, 'locations', visit_id, 'modern_visits', created_at, updated_at, published, null
+from old_locations order by id;
 
 -- populate the table
-insert into mlp_locations (nodes_id)
-select id from mlp_nodes where type='mlp_locations' order by old_id;
+insert into locations (nodes_id)
+select id from nodes where type='locations' order by old_id;
 
-update  mlp_locations
+update  locations
 set location_narrative=q.location_narrative,
     location_identity=q.location_identity,
     legacy_photos_start=q.legacy_photos_start,
@@ -478,8 +474,8 @@ set location_narrative=q.location_narrative,
     lat=q.lat,
     long=q.long,
     elevation=q.elevation
-from (select * from locations order by id) as q
-where (select old_id from mlp_nodes where id=mlp_locations.nodes_id) = q.id;
+from (select * from old_locations order by id) as q
+where (select old_id from nodes where id=locations.nodes_id) = q.id;
 
 commit;
 

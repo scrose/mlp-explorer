@@ -10,30 +10,6 @@ select rename_column('capture_images', 'captureable_type', 'owner_type');
 select rename_column('images', 'image_owner_id', 'owner_id');
 select rename_column('images', 'image_owner_type', 'owner_type');
 
---    Image States
-
-DO $$ BEGIN
-    CREATE TYPE image_states AS ENUM ('raw', 'interim', 'master', 'misc');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-
--- Image coordinates
-
-DO $$ BEGIN
-    CREATE TYPE coordinate AS (
-                                   lat double precision,
-                                   long double precision,
-                                   elev integer,
-                                   azim double precision
-                               );
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-
-
 -- -------------------------------------------------------------
 -- Function: Rename Column
 -- -------------------------------------------------------------
@@ -48,14 +24,25 @@ $$
 declare
     _r RECORD;
     _id integer;
+    _settings camera_settings;
+    _coord coordinate;
     _owner_id integer;
 begin
     -- iterate over image data
     for _r in EXECUTE format(E'select * from %I where owner_type=\'%s\' order by id', _oldtbl, _owner_type)
         loop
 
-        -- insert record into images table
-        execute 'insert into mlp_images(
+        -- get camera settings (if available)
+
+        -- get coordinates (if available)
+
+
+
+        -- get corresponding owner
+        if _iscap is not null
+        then
+            -- insert record into images table
+            execute 'insert into images(
                                type,
                                file_name,
                                file_size,
@@ -84,32 +71,29 @@ begin
                 $16, $17, $18, $19, $20, $21, $22, $23, $24) returning id' using
                 _newtbl,
                 _r.image,
-                 _r.file_size,
-                 _r.x_dim,
-                 _r.y_dim,
-                 _r.bit_depth,
-                 _r.image_remote,
-                 _r.image_secure_token,
-                 _r.comments,
-                 _r.lat,
-                 _r.long,
-                 _r.elevation,
-                 _r.f_stop,
-                 _r.shutter_speed,
-                 _r.iso,
-                 _r.focal_length,
-                 _r.capture_datetime,
-                 _r.camera_id,
-                 _r.lens_id,
-                 _r.created_at,
-                 _r.updated_at,
-                 _r.fs_path,
-                 _r.legacy_path,
-                 _r.image_tmp into _id;
-
-        -- get corresponding owner
-        if _iscap is not null
-        then
+                _r.file_size,
+                _r.x_dim,
+                _r.y_dim,
+                _r.bit_depth,
+                _r.image_remote,
+                _r.image_secure_token,
+                _r.comments,
+                _r.lat,
+                _r.long,
+                _r.elevation,
+                _r.f_stop,
+                _r.shutter_speed,
+                _r.iso,
+                _r.focal_length,
+                _r.capture_datetime,
+                _r.camera_id,
+                _r.lens_id,
+                _r.created_at,
+                _r.updated_at,
+                _r.fs_path,
+                _r.legacy_path,
+                _r.image_tmp into _id;
+            
             -- insert record into subtable
             execute format(E'insert into %I(
                                image_id,
@@ -121,7 +105,7 @@ begin
                            _r.owner_id,
                            _r.image_state);
         else
-            execute 'select id from mlp_nodes where old_id=$1::integer'
+            execute 'select id from nodes where old_id=$1::integer'
                 using r.owner_id into _owner_id;
             -- insert record into subtable
             execute format(E'insert into %I(image_id, owner_id)
@@ -146,7 +130,7 @@ select rename_owner_types('images');
 --    Historic Images (owned by Historic Captures)
 -- -------------------------------------------------------------
 
-CREATE TABLE "public"."mlp_historic_images" (
+CREATE TABLE "public"."historic_images" (
            "id" serial primary key NOT NULL,
            "owner_id" integer NOT NULL,
            "image_state" image_states,
@@ -161,29 +145,23 @@ CREATE TABLE "public"."mlp_historic_images" (
            "lat" double precision,
            "long" double precision,
            "elevation" double precision,
-           "f_stop" double precision,
-           "shutter_speed" integer,
-           "iso" integer,
-           "focal_length" integer,
-           "capture_datetime" timestamp,
-           "cameras_id" integer,
-           "lens_id" integer,
+           "camera_settings": camera_settings,
            "created_at" timestamp without time zone NOT NULL,
            "updated_at" timestamp without time zone NOT NULL,
            "fs_path" text,
            "legacy_path" text,
            "image_tmp" character varying(255),
         CONSTRAINT fk_owner_id FOREIGN KEY (owner_id)
-            REFERENCES mlp_historic_captures (id)
+            REFERENCES historic_captures (id)
 ) WITH (oids = false);
 
-CREATE INDEX "index_historic_images_on_owner_id" ON "public"."mlp_historic_images" USING btree ("owner_id");
-CREATE INDEX "index_images_on_legacy_path" ON "public"."mlp_historic_images" USING btree ("legacy_path");
+CREATE INDEX "index_historic_images_on_owner_id" ON "public"."historic_images" USING btree ("owner_id");
+CREATE INDEX "index_images_on_legacy_path" ON "public"."historic_images" USING btree ("legacy_path");
 
 -- populate tables
 select add_images(
     'capture_images',
-    'mlp_historic_images',
+    'historic_images',
     'HistoricCapture',
     true);
 
@@ -192,7 +170,7 @@ select add_images(
 --    Modern Images (owned by Modern Captures)
 -- -------------------------------------------------------------
 
-CREATE TABLE "public"."mlp_modern_images" (
+CREATE TABLE "public"."modern_images" (
         "id" serial primary key NOT NULL,
             "owner_id" integer NOT NULL,
             "image_state" image_states,
@@ -220,16 +198,16 @@ CREATE TABLE "public"."mlp_modern_images" (
             "legacy_path" text,
             "image_tmp" character varying(255),
         CONSTRAINT fk_owner_id FOREIGN KEY (owner_id)
-            REFERENCES mlp_modern_captures (id)
+            REFERENCES modern_captures (id)
 ) WITH (oids = false);
 
-CREATE INDEX "index_historic_images_on_owner_id" ON "public"."mlp_modern_images" USING btree ("owner_id");
-CREATE INDEX "index_images_on_legacy_path" ON "public"."mlp_historic_images" USING btree ("legacy_path");
+CREATE INDEX "index_historic_images_on_owner_id" ON "public"."modern_images" USING btree ("owner_id");
+CREATE INDEX "index_images_on_legacy_path" ON "public"."historic_images" USING btree ("legacy_path");
 
 -- populate tables
 select add_images(
                'capture_images',
-               'mlp_modern_images',
+               'modern_images',
                'Capture',
                true);
 
@@ -239,7 +217,7 @@ select add_images(
 --    Scenic Images (multiple owners)
 -- -------------------------------------------------------------
 
-CREATE TABLE "public"."mlp_scenic_images" (
+CREATE TABLE "public"."scenic_images" (
         "id" serial primary key NOT NULL,
         "owner_id" integer NOT NULL,
         "secure_token" character varying(255),
@@ -266,15 +244,15 @@ CREATE TABLE "public"."mlp_scenic_images" (
         "legacy_path" text,
         "image_tmp" character varying(255),
        CONSTRAINT fk_owner_id FOREIGN KEY (owner_id)
-           REFERENCES mlp_nodes (id)
+           REFERENCES nodes (id)
 ) WITH (oids = false);
 
-CREATE INDEX "index_scenic_images_on_owner_id" ON "public"."mlp_scenic_images" USING btree ("owner_id");
+CREATE INDEX "index_scenic_images_on_owner_id" ON "public"."scenic_images" USING btree ("owner_id");
 
 -- populate tables
 select add_images(
                'images',
-               'mlp_scenic_images',
+               'scenic_images',
                'ScenicImage',
                true);
 
@@ -287,7 +265,7 @@ select add_images(
 drop table if exists location_photos;
 
 -- create new table
-CREATE TABLE "public"."mlp_location_images" (
+CREATE TABLE "public"."location_images" (
         "id" serial primary key NOT NULL,
         "owner_id" integer NOT NULL,
         "type" image_types,
@@ -315,15 +293,15 @@ CREATE TABLE "public"."mlp_location_images" (
         "legacy_path" text,
         "image_tmp" character varying(255),
        CONSTRAINT fk_owner_id FOREIGN KEY (owner_id)
-           REFERENCES mlp_nodes (id)
+           REFERENCES nodes (id)
 ) WITH (oids = false);
 
-CREATE INDEX "index_location_images_on_owner_id" ON "public"."mlp_location_images" USING btree ("owner_id");
+CREATE INDEX "index_location_images_on_owner_id" ON "public"."location_images" USING btree ("owner_id");
 
 -- populate tables
 select add_images(
                'images',
-               'mlp_location_images',
+               'location_images',
                'LocationImage',
                true);
 

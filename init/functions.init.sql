@@ -9,6 +9,74 @@
 begin;
 
 -- -------------------------------------------------------------
+-- Enumerate types
+-- -------------------------------------------------------------
+
+--    Image States
+
+DO $$ BEGIN
+    CREATE TYPE image_states AS ENUM ('raw', 'interim', 'master', 'misc');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+
+-- Image coordinates
+
+DO $$ BEGIN
+    CREATE TYPE coordinate AS (
+          lat double precision,
+          long double precision,
+          elev double precision,
+          azim double precision );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+-- Camera settings
+
+DO $$ BEGIN
+    CREATE TYPE camera_settings AS (
+           "f_stop" double precision,
+           "shutter_speed" double precision,
+           "iso" integer,
+           "focal_length" integer);
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+-- -------------------------------------------------------------
+-- Rename old tables
+-- -------------------------------------------------------------
+
+alter table if exists projects
+    rename to "old_projects";
+alter table if exists  surveyors
+    rename to "old_surveyors";
+alter table if exists  surveys
+    rename to "old_surveys";
+alter table if exists  survey_seasons
+    rename to "old_survey_seasons";
+alter table if exists  stations
+    rename to "old_stations";
+alter table if exists  historic_visits
+    rename to "old_historic_visits";
+alter table if exists  visits
+    rename to "old_visits";
+alter table if exists  locations
+    rename to "old_locations";
+alter table if exists  historic_captures
+    rename to "old_historic_captures";
+alter table if exists  captures
+    rename to "old_captures";
+alter table if exists  capture_images
+    rename to "old_capture_images";
+alter table if exists  images
+    rename to "old_images";
+
+
+
+-- -------------------------------------------------------------
 -- Enumerated Types
 -- -------------------------------------------------------------
 
@@ -54,10 +122,10 @@ create or replace function convert_boolean(_tbl varchar(40), _col varchar(40)) R
     LANGUAGE plpgsql as
 $$
 begin
-    execute format(E'alter table %I alter COLUMN %s drop DEFAULT', _tbl, _col);
-    execute format(E'alter table %I alter %s TYPE bool
+    execute format(E'alter table if exists %I alter COLUMN %s drop DEFAULT', _tbl, _col);
+    execute format(E'alter table if exists %I alter %s TYPE bool
             USING CASE WHEN %s = \'t\' THEN TRUE ELSE FALSE END', _tbl, _col, _col);
-    execute format(E'alter table %I alter COLUMN %s SET DEFAULT FALSE;', _tbl, _col);
+    execute format(E'alter table if exists %I alter COLUMN %s SET DEFAULT FALSE;', _tbl, _col);
 END
 $$;
 
@@ -76,7 +144,7 @@ begin
     for r in EXECUTE format('SELECT id, owner_type FROM %I', _tbl)
         loop
             -- look up node type name
-            select * from mlp_node_types where label = r.owner_type INTO node_type;
+            select * from node_types where label = r.owner_type INTO node_type;
             -- only proceed if update already done previously
             IF node_type.name is NOT NULL
             THEN
