@@ -124,7 +124,7 @@ CREATE INDEX "index_nodes_on_legacy_path"
 
 
 -- -------------------------------------------------------------
---    old_projects (root owners)
+--    Projects (root owners)
 -- -------------------------------------------------------------
 
 DROP TABLE IF EXISTS "projects" cascade;
@@ -189,7 +189,7 @@ where (select old_id from nodes where id=surveyors.nodes_id) = q.id;
 
 
 -- -------------------------------------------------------------
---    Surveys  (owned by old_surveyors)
+--    Surveys  (owned by surveyors)
 -- -------------------------------------------------------------
 
 DROP TABLE IF EXISTS "surveys";
@@ -224,7 +224,7 @@ where (select old_id from nodes where id=surveys.nodes_id) = q.id;
 
 
 -- -------------------------------------------------------------
---    Survey Seasons  (owned by old_surveys)
+--    Survey Seasons  (owned by surveys)
 -- -------------------------------------------------------------
 
 DROP TABLE IF EXISTS "survey_seasons";
@@ -286,9 +286,7 @@ DROP TABLE IF EXISTS "stations";
 CREATE TABLE "public"."stations" (
          "nodes_id" integer primary key,
          "name" character varying(255),
-         "lat" double precision,
-         "long" double precision,
-         "elevation" double precision,
+         "coord" coordinate,
          "nts_sheet" character varying(255),
          CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
              REFERENCES nodes (id)
@@ -315,18 +313,16 @@ from old_stations order by id;
 insert into stations (nodes_id)
 select id from nodes where type='stations' order by old_id;
 
-update  stations
+update stations
 set name=q.name,
-    lat=q.lat,
-    long=q.long,
-    elevation=q.elevation,
-    nts_sheet=q.nts_sheet
+    nts_sheet=q.nts_sheet,
+    coord=ROW(q.lat, q.long, q.elevation, null)
 from (select * from old_stations order by id) as q
 where (select old_id from nodes where id=stations.nodes_id) = q.id;
 
 
 -- -------------------------------------------------------------
---    Historic Visits (owned by old_stations)
+--    Historic Visits (owned by stations)
 -- -------------------------------------------------------------
 
 DROP TABLE IF EXISTS "historic_visits";
@@ -362,7 +358,7 @@ where (select old_id from nodes where id=historic_visits.nodes_id) = q.id;
 
 
 -- -------------------------------------------------------------
---    Visits (owned by old_stations)
+--    Visits (owned by stations)
 -- -------------------------------------------------------------
 
 DROP TABLE IF EXISTS "modern_visits";
@@ -425,7 +421,7 @@ where (select old_id from nodes where id=modern_visits.nodes_id) = q.id;
 
 
 -- -------------------------------------------------------------
---    Locations (owned by old_visits)
+--    Locations (owned by visits)
 -- -------------------------------------------------------------
 DROP TABLE IF EXISTS "locations";
 
@@ -435,22 +431,10 @@ CREATE TABLE "public"."locations" (
       "location_identity" character varying(255),
       "legacy_photos_start" integer,
       "legacy_photos_end" integer,
-      "lat" double precision,
-      "long" double precision,
-      "elevation" double precision,
+      "coord" coordinate,
       CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
           REFERENCES nodes (id)
 ) WITH (oids = false);
-
-
--- Latitude/Longitude constraints
---    ALTER TABLE old_locations DROP CONSTRAINT IF EXISTS check_latitude;
---    ALTER TABLE old_locations ADD CONSTRAINT check_latitude
---    CHECK (old_stations.lat ~* '^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$')
---
---    ALTER TABLE old_locations DROP CONSTRAINT IF EXISTS check_longitude;
---    ALTER TABLE old_locations ADD CONSTRAINT check_longitude
---    CHECK (old_stations.long ~* '^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$')
 
 -- update owner ids
 update old_locations set visit_id=q.id
@@ -471,11 +455,19 @@ set location_narrative=q.location_narrative,
     location_identity=q.location_identity,
     legacy_photos_start=q.legacy_photos_start,
     legacy_photos_end=q.legacy_photos_end,
-    lat=q.lat,
-    long=q.long,
-    elevation=q.elevation
+    coord=ROW(q.lat, q.long, q.elevation, null)
 from (select * from old_locations order by id) as q
 where (select old_id from nodes where id=locations.nodes_id) = q.id;
+
+
+-- Latitude/Longitude constraints
+--    ALTER TABLE old_locations DROP CONSTRAINT IF EXISTS check_latitude;
+--    ALTER TABLE old_locations ADD CONSTRAINT check_latitude
+--    CHECK (old_stations.lat ~* '^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$')
+--
+--    ALTER TABLE old_locations DROP CONSTRAINT IF EXISTS check_longitude;
+--    ALTER TABLE old_locations ADD CONSTRAINT check_longitude
+--    CHECK (old_stations.long ~* '^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$')
 
 commit;
 

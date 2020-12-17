@@ -14,36 +14,76 @@ begin;
 
 --    Image States
 
-DO $$ BEGIN
-    CREATE TYPE image_states AS ENUM ('raw', 'interim', 'master', 'misc');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+DO
+$$
+    BEGIN
+        CREATE TYPE image_states AS ENUM ('raw', 'interim', 'master', 'misc', 'gridded');
+    EXCEPTION
+        WHEN duplicate_object THEN null;
+    END
+$$;
 
+--    Other Image Types
+
+DO
+$$
+    BEGIN
+        CREATE TYPE image_types AS ENUM ('scenic', 'location');
+    EXCEPTION
+        WHEN duplicate_object THEN null;
+    END
+$$;
+
+
+-- Image dimensions
+
+DO
+$$
+    BEGIN
+        CREATE TYPE dims AS
+        (
+            "x" integer,
+            "y" integer,
+            "bit_depth" integer
+        );
+    EXCEPTION
+        WHEN duplicate_object THEN null;
+    END
+$$;
 
 -- Image coordinates
 
-DO $$ BEGIN
-    CREATE TYPE coordinate AS (
-          lat double precision,
-          long double precision,
-          elev double precision,
-          azim double precision );
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+DO
+$$
+    BEGIN
+        CREATE TYPE coordinate AS
+        (
+            lat  double precision,
+            long double precision,
+            elev double precision,
+            azim double precision
+        );
+    EXCEPTION
+        WHEN duplicate_object THEN null;
+    END
+$$;
 
 -- Camera settings
 
-DO $$ BEGIN
-    CREATE TYPE camera_settings AS (
-           "f_stop" double precision,
-           "shutter_speed" double precision,
-           "iso" integer,
-           "focal_length" integer);
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+DO
+$$
+    BEGIN
+        CREATE TYPE camera_settings AS
+        (
+            "f_stop"        double precision,
+            "shutter_speed" double precision,
+            "iso"           integer,
+            "focal_length"  integer
+        );
+    EXCEPTION
+        WHEN duplicate_object THEN null;
+    END
+$$;
 
 -- -------------------------------------------------------------
 -- Rename old tables
@@ -51,27 +91,27 @@ END $$;
 
 alter table if exists projects
     rename to "old_projects";
-alter table if exists  surveyors
+alter table if exists surveyors
     rename to "old_surveyors";
-alter table if exists  surveys
+alter table if exists surveys
     rename to "old_surveys";
-alter table if exists  survey_seasons
+alter table if exists survey_seasons
     rename to "old_survey_seasons";
-alter table if exists  stations
+alter table if exists stations
     rename to "old_stations";
-alter table if exists  historic_visits
+alter table if exists historic_visits
     rename to "old_historic_visits";
-alter table if exists  visits
+alter table if exists visits
     rename to "old_visits";
-alter table if exists  locations
+alter table if exists locations
     rename to "old_locations";
-alter table if exists  historic_captures
+alter table if exists historic_captures
     rename to "old_historic_captures";
-alter table if exists  captures
+alter table if exists captures
     rename to "old_captures";
-alter table if exists  capture_images
+alter table if exists capture_images
     rename to "old_capture_images";
-alter table if exists  images
+alter table if exists images
     rename to "old_images";
 
 
@@ -82,11 +122,14 @@ alter table if exists  images
 
 --    Metadata Types
 
-DO $$ BEGIN
-    CREATE TYPE metadata_types AS ENUM ('field_notes', 'ancillary');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+DO
+$$
+    BEGIN
+        CREATE TYPE metadata_types AS ENUM ('field_notes', 'ancillary');
+    EXCEPTION
+        WHEN duplicate_object THEN null;
+    END
+$$;
 
 
 -- -------------------------------------------------------------
@@ -130,6 +173,7 @@ END
 $$;
 
 
+
 -- -------------------------------------------------------------
 -- Function: Rename owner types to corresponding table names
 -- -------------------------------------------------------------
@@ -166,7 +210,7 @@ CREATE OR REPLACE FUNCTION add_node()
 AS
 $$
 DECLARE
-        r RECORD;
+    r RECORD;
 BEGIN
 
     RAISE NOTICE 'Arguments: %s', TG_ARGV;
