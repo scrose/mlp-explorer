@@ -12,23 +12,25 @@ begin;
 -- Enumerate types
 -- -------------------------------------------------------------
 
---    Image States
+--    Image states
 
 DO
 $$
     BEGIN
-        CREATE TYPE image_states AS ENUM ('raw', 'interim', 'master', 'misc', 'gridded');
+        CREATE TYPE image_states
+            AS ENUM ('raw', 'interim', 'master', 'misc', 'gridded');
     EXCEPTION
         WHEN duplicate_object THEN null;
     END
 $$;
 
---    Other Image Types
+--    Supplemental image types
 
 DO
 $$
     BEGIN
-        CREATE TYPE image_types AS ENUM ('scenic', 'location');
+        CREATE TYPE image_types
+            AS ENUM ('scenic', 'location');
     EXCEPTION
         WHEN duplicate_object THEN null;
     END
@@ -85,52 +87,78 @@ $$
     END
 $$;
 
--- -------------------------------------------------------------
--- Rename old tables
--- -------------------------------------------------------------
-
-alter table if exists projects
-    rename to "old_projects";
-alter table if exists surveyors
-    rename to "old_surveyors";
-alter table if exists surveys
-    rename to "old_surveys";
-alter table if exists survey_seasons
-    rename to "old_survey_seasons";
-alter table if exists stations
-    rename to "old_stations";
-alter table if exists historic_visits
-    rename to "old_historic_visits";
-alter table if exists visits
-    rename to "old_visits";
-alter table if exists locations
-    rename to "old_locations";
-alter table if exists historic_captures
-    rename to "old_historic_captures";
-alter table if exists captures
-    rename to "old_captures";
-alter table if exists capture_images
-    rename to "old_capture_images";
-alter table if exists images
-    rename to "old_images";
-
-
-
--- -------------------------------------------------------------
--- Enumerated Types
--- -------------------------------------------------------------
-
---    Metadata Types
+--    Metadata types
 
 DO
 $$
     BEGIN
-        CREATE TYPE metadata_types AS ENUM ('field_notes', 'ancillary');
+        CREATE TYPE metadata_types
+            AS ENUM ('field_notes', 'ancillary');
     EXCEPTION
         WHEN duplicate_object THEN null;
     END
 $$;
 
+--    Participant group types
+
+DO
+$$
+    BEGIN
+        CREATE TYPE participant_group_types
+            AS ENUM ('hiking_party', 'field_notes_authors', 'photographers');
+    EXCEPTION
+        WHEN duplicate_object THEN null;
+    END
+$$;
+
+--    Model views
+
+DO
+$$
+    BEGIN
+        CREATE TYPE views
+            AS ENUM ('list', 'show', 'edit', 'create', 'remove', 'login', 'logout', 'register');
+    EXCEPTION
+        WHEN duplicate_object THEN null;
+    END
+$$;
+
+
+-- -------------------------------------------------------------
+-- Rename old tables
+-- -------------------------------------------------------------
+
+DO
+$$
+    BEGIN
+        alter table if exists projects
+            rename to "old_projects";
+        alter table if exists surveyors
+            rename to "old_surveyors";
+        alter table if exists surveys
+            rename to "old_surveys";
+        alter table if exists survey_seasons
+            rename to "old_survey_seasons";
+        alter table if exists stations
+            rename to "old_stations";
+        alter table if exists historic_visits
+            rename to "old_historic_visits";
+        alter table if exists visits
+            rename to "old_visits";
+        alter table if exists locations
+            rename to "old_locations";
+        alter table if exists historic_captures
+            rename to "old_historic_captures";
+        alter table if exists captures
+            rename to "old_captures";
+        alter table if exists capture_images
+            rename to "old_capture_images";
+        alter table if exists images
+            rename to "old_images";
+    EXCEPTION
+        WHEN duplicate_table THEN null;
+    END
+$$;
 
 -- -------------------------------------------------------------
 -- Function: Rename Column

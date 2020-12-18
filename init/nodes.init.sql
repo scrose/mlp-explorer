@@ -196,9 +196,12 @@ DROP TABLE IF EXISTS "surveys";
 
 CREATE TABLE "public"."surveys" (
         "nodes_id" integer primary key,
+        "owner_id" integer not null,
         "name" character varying(255),
         "historical_map_sheet" character varying(255),
         CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
+            REFERENCES nodes (id),
+        CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
             REFERENCES nodes (id)
 ) WITH (oids = false);
 
@@ -212,11 +215,11 @@ insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, p
 select id, 'surveys', surveyor_id, 'surveyors', created_at, updated_at, published, null, fs_path
 from old_surveys order by id;
 
--- populate the old_projects table
-insert into surveys (nodes_id)
-select id from nodes where type='surveys' order by old_id;
+-- populate the surveys table
+insert into surveys (nodes_id, owner_id)
+select id, owner_id from nodes where type='surveys' order by old_id;
 
-update  surveys
+update surveys
 set name = q.name,
     historical_map_sheet = q.historical_map_sheet
 from (select * from old_surveys order by id) as q
@@ -231,6 +234,7 @@ DROP TABLE IF EXISTS "survey_seasons";
 
 CREATE TABLE "public"."survey_seasons" (
        "nodes_id" integer primary key,
+       "owner_id" integer not null,
        "year" integer CHECK (year > 1800 AND year <= EXTRACT(YEAR FROM NOW())),
        "geographic_coverage" character varying(255),
        "record_id" integer,
@@ -242,6 +246,8 @@ CREATE TABLE "public"."survey_seasons" (
        "sources" text,
        "notes" text,
        CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
+           REFERENCES nodes (id),
+       CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
            REFERENCES nodes (id)
 ) WITH (oids = false);
 
@@ -258,11 +264,11 @@ insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, p
 select id, 'survey_seasons', survey_id, 'surveys', created_at, updated_at, published, null, fs_path
 from old_survey_seasons order by id;
 
--- populate the old_projects table
-insert into survey_seasons (nodes_id)
-select id from nodes where type='survey_seasons' order by old_id;
+-- populate the survey_seasons table
+insert into survey_seasons (nodes_id, owner_id)
+select id, owner_id from nodes where type='survey_seasons' order by old_id;
 
-update  survey_seasons
+update survey_seasons
 set year=q.year,
     geographic_coverage=q.geographic_coverage,
     record_id=q.record_id,
@@ -285,10 +291,13 @@ DROP TABLE IF EXISTS "stations";
 
 CREATE TABLE "public"."stations" (
          "nodes_id" integer primary key,
+         "owner_id" integer not null,
          "name" character varying(255),
          "coord" coordinate,
          "nts_sheet" character varying(255),
          CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
+             REFERENCES nodes (id),
+         CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
              REFERENCES nodes (id)
 ) WITH (oids = false);
 
@@ -309,9 +318,9 @@ insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, p
 select id, 'stations', station_owner_id, station_owner_type, created_at, updated_at, published, null, fs_path
 from old_stations order by id;
 
--- populate the old_projects table
-insert into stations (nodes_id)
-select id from nodes where type='stations' order by old_id;
+-- populate the stations table
+insert into stations (nodes_id, owner_id)
+select id, owner_id from nodes where type='stations' order by old_id;
 
 update stations
 set name=q.name,
@@ -329,9 +338,12 @@ DROP TABLE IF EXISTS "historic_visits";
 
 CREATE TABLE "public"."historic_visits" (
         "nodes_id" integer primary key,
+        "owner_id" integer not null,
         "date" date,
         "comments" text,
         CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
+            REFERENCES nodes (id),
+        CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
             REFERENCES nodes (id)
 ) WITH (oids = false);
 
@@ -345,9 +357,9 @@ insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, p
 select id, 'historic_visits', station_id, 'stations', created_at, updated_at, published, null, fs_path
 from old_historic_visits order by id;
 
--- populate the table
-insert into historic_visits (nodes_id)
-select id from nodes where type='historic_visits' order by old_id;
+-- populate the historic_visits table
+insert into historic_visits (nodes_id, owner_id)
+select id, owner_id from nodes where type='historic_visits' order by old_id;
 
 update  historic_visits
 set date=q.date,
@@ -365,6 +377,7 @@ DROP TABLE IF EXISTS "modern_visits";
 
 CREATE TABLE "public"."modern_visits" (
       "nodes_id" integer primary key,
+      "owner_id" integer not null,
       "date" date,
       "start_time" time without time zone,
       "finish_time" time without time zone,
@@ -382,6 +395,8 @@ CREATE TABLE "public"."modern_visits" (
       "fn_physical_location" character varying(255),
       "fn_transcription_comment" text,
       CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
+          REFERENCES nodes (id),
+      CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
           REFERENCES nodes (id)
 ) WITH (oids = false);
 
@@ -395,9 +410,9 @@ insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, p
 select id, 'modern_visits', station_id, 'stations', created_at, updated_at, published, null, fs_path
 from old_visits order by id;
 
--- populate the table
-insert into modern_visits (nodes_id)
-select id from nodes where type='modern_visits' order by old_id;
+-- populate the modern_visits table
+insert into modern_visits (nodes_id, owner_id)
+select id, owner_id from nodes where type='modern_visits' order by old_id;
 
 update  modern_visits
 set date=q.date,
@@ -427,12 +442,15 @@ DROP TABLE IF EXISTS "locations";
 
 CREATE TABLE "public"."locations" (
       "nodes_id" integer primary key,
+      "owner_id" integer not null,
       "location_narrative" text,
       "location_identity" character varying(255),
       "legacy_photos_start" integer,
       "legacy_photos_end" integer,
       "coord" coordinate,
       CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
+          REFERENCES nodes (id),
+      CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
           REFERENCES nodes (id)
 ) WITH (oids = false);
 
@@ -446,9 +464,9 @@ insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, p
 select id, 'locations', visit_id, 'modern_visits', created_at, updated_at, published, null
 from old_locations order by id;
 
--- populate the table
-insert into locations (nodes_id)
-select id from nodes where type='locations' order by old_id;
+-- populate the locations table
+insert into locations (nodes_id, owner_id)
+select id, owner_id from nodes where type='locations' order by old_id;
 
 update  locations
 set location_narrative=q.location_narrative,

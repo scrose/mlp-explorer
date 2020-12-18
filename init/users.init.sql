@@ -4,6 +4,7 @@
 
 drop table if exists users CASCADE;
 drop table if exists user_roles CASCADE;
+drop table if exists user_permissions CASCADE;
 
 -- -------------------------------------------------------------
 -- User Roles Table
@@ -92,14 +93,11 @@ VALUES ('visitor', 'Visitor'),
 --    Permissions
 -- -------------------------------------------------------------
 
---    Initialize view types
-CREATE TYPE views AS ENUM ('list', 'show', 'edit', 'create', 'remove', 'login', 'logout', 'register');
-
 --    Create permissions table
 CREATE TABLE IF NOT EXISTS user_permissions
 (
     id         serial PRIMARY KEY,
-    model      VARCHAR(40)  NOT NULL,
+    model      VARCHAR(40),
     view       views,
     role       VARCHAR(512) NOT NULL,
     created_at TIMESTAMP,
@@ -115,28 +113,28 @@ CREATE TABLE IF NOT EXISTS user_permissions
 -- -------------------------------------------------------------
 
 INSERT INTO user_permissions (model, view, role, created_at, updated_at)
-VALUES ('default', 'list', 'visitor', now(), now()),
-       ('default', 'list', 'registered', now(), now()),
-       ('default', 'list', 'contributor', now(), now()),
-       ('default', 'list', 'editor', now(), now()),
-       ('default', 'list', 'administrator', now(), now()),
-       ('default', 'list', 'super_administrator', now(), now()),
-       ('default', 'show', 'visitor', now(), now()),
-       ('default', 'show', 'registered', now(), now()),
-       ('default', 'show', 'contributor', now(), now()),
-       ('default', 'show', 'editor', now(), now()),
-       ('default', 'show', 'administrator', now(), now()),
-       ('default', 'show', 'super_administrator', now(), now()),
-       ('default', 'edit', 'contributor', now(), now()),
-       ('default', 'edit', 'editor', now(), now()),
-       ('default', 'edit', 'administrator', now(), now()),
-       ('default', 'edit', 'super_administrator', now(), now()),
-       ('default', 'create', 'editor', now(), now()),
-       ('default', 'create', 'administrator', now(), now()),
-       ('default', 'create', 'super_administrator', now(), now()),
-       ('default', 'remove', 'editor', now(), now()),
-       ('default', 'remove', 'administrator', now(), now()),
-       ('default', 'remove', 'super_administrator', now(), now()),
+VALUES (null, 'list', 'visitor', now(), now()),
+       (null, 'list', 'registered', now(), now()),
+       (null, 'list', 'contributor', now(), now()),
+       (null, 'list', 'editor', now(), now()),
+       (null, 'list', 'administrator', now(), now()),
+       (null, 'list', 'super_administrator', now(), now()),
+       (null, 'show', 'visitor', now(), now()),
+       (null, 'show', 'registered', now(), now()),
+       (null, 'show', 'contributor', now(), now()),
+       (null, 'show', 'editor', now(), now()),
+       (null, 'show', 'administrator', now(), now()),
+       (null, 'show', 'super_administrator', now(), now()),
+       (null, 'edit', 'contributor', now(), now()),
+       (null, 'edit', 'editor', now(), now()),
+       (null, 'edit', 'administrator', now(), now()),
+       (null, 'edit', 'super_administrator', now(), now()),
+       (null, 'create', 'editor', now(), now()),
+       (null, 'create', 'administrator', now(), now()),
+       (null, 'create', 'super_administrator', now(), now()),
+       (null, 'remove', 'editor', now(), now()),
+       (null, 'remove', 'administrator', now(), now()),
+       (null, 'remove', 'super_administrator', now(), now()),
        ('users', 'list', 'administrator', now(), now()),
        ('users', 'list', 'super_administrator', now(), now()),
        ('users', 'show', 'administrator', now(), now()),

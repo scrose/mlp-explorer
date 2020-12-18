@@ -115,6 +115,7 @@ export const getModel = async function(modelType) {
     let attributes = {};
     let { sql, data } = queries.schema.getModel(modelType);
     let result = await pool.query(sql, data);
+
     // generate schema from table column data
     result.rows
         .forEach((col) => {

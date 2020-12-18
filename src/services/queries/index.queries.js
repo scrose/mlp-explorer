@@ -40,8 +40,10 @@ export default {
         insert: defaults.insert,
         update: defaults.update,
         remove: defaults.remove,
-        associate: defaults.associate,
-        dissociate: defaults.dissociate
+        getNode: defaults.getNode,
+        insertNode: defaults.insertNode,
+        updateNode: defaults.updateNode,
+        removeNode: defaults.removeNode
     },
     schema: {
         getModel: defaults.getModel,

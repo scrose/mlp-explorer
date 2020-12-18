@@ -80,6 +80,101 @@ export function findByOwner(model) {
 }
 
 /**
+ * Generate query: Retrieve node entry for given item
+ *
+ * @param {Object} model
+ * @return {Function} query function
+ * @public
+ */
+
+export function getNode(model) {
+    return model.hasNode()
+        ? function(item) {
+            const sql = `SELECT * FROM nodes WHERE id = $1::integer`;
+            return {
+                sql: sql,
+                data: [item.attributes.nodes_id],
+            }
+        }
+        : function(_) {return null;}
+}
+
+/**
+ * Generate query: Insert node entry for given item
+ *
+ * @param {Object} model
+ * @return {Function} query function
+ * @public
+ */
+
+export function insertNode(model) {
+    return model.hasNode()
+        ? function(item) {
+            insert({
+                table: 'nodes',
+                attributes: {
+                    nodes_id: item.nodes_id,
+                    type: model.table,
+                    owner_id: item.owner_id,
+                    created_at: null,
+                    updated_at: null
+                }
+            })
+        }
+        : function(_) {return null;}
+}
+
+/**
+ * Generate query: Update node entry for given item
+ *
+ * @param {Object} model
+ * @return {Function} query function
+ * @public
+ */
+
+export function updateNode(model) {
+    return model.hasNode()
+        ? function(item) {
+            update({
+                table: 'nodes',
+                attributes: {
+                    nodes_id: item.nodes_id,
+                    type: model.table,
+                    owner_id: item.owner_id,
+                    created_at: null,
+                    updated_at: null
+                }
+            })
+        }
+        : function(_) {return null;}
+}
+
+/**
+ * Generate query: Delete node entry for given item
+ *
+ * @param {Object} model
+ * @return {Function} query function
+ * @public
+ */
+
+export function removeNode(model) {
+    return model.hasNode()
+        ? function(item) {
+            remove({
+                table: 'nodes',
+                attributes: {
+                    nodes_id: item.nodes_id,
+                    type: model.table,
+                    owner_id: item.owner_id,
+                    created_at: null,
+                    updated_at: null
+                }
+            })
+        }
+        : function(_) {return null;}
+}
+
+/**
  * Generate query: Append subordinate record by specified table,
  * column and column value.
  *
@@ -114,29 +209,27 @@ export function append(model) {
 export function insert(
     item,
     args = {
-        where: null,
-        whereType: null,
-        index: 1,
         ignore: ['id'],
         timestamps: ['created_at', 'updated_at'],
     },
 ) {
+    // return null if instance is null
+    if (!item) return null;
 
-    // nullify where arguments
-    args.where = null;
-    args.whereType = null;
-
-    // get columns and prepared value placeholders
+    // filter ignored columns
     const cols = Object
         .keys(item.attributes)
         .filter((key) => {
             return !args.ignore.includes(key);
         });
-    const vals = cols.map(function(key, _) {
-        let placeholder = args.timestamps.includes(key) ? `NOW()` : `$${args.index++}`;
+
+    // generate prepared sql
+    const vals = cols.map(function(key, index) {
+        let placeholder = args.timestamps.includes(key) ? `NOW()` : `$${index}`;
         return `${placeholder}::${item.attributes[key].type}`;
     });
 
+    // construct prepared statement
     let sql = `INSERT INTO ${item.table} (${cols.join(',')})
                         VALUES (${vals.join(',')})
                         RETURNING *;`;
@@ -228,106 +321,6 @@ export function remove(model, args = { col: 'id', type: 'integer', index: 1 }) {
     };
 }
 
-/**
- * Generate query: Associate node to owner as new model's record.
- *
- * @param {Object} model
- * @return {Function} query binding function
- * @public
- */
-
-export function associate(model) {
-
-    // return null if model does not have defined owner(s)
-    if (!model.hasOwners() || !model.hasOwnerReference())
-        return null;
-
-    let sql = `INSERT INTO nodes (owner_id,
-                                  owner_type,
-                                  dependent_id,
-                                  dependent_type)
-               VALUES ($1::integer,
-                       $2::varchar,
-                       $3::integer,
-                       $4::varchar)
-               ON CONFLICT (owner_id, owner_type, dependent_id, dependent_type)
-                   DO UPDATE
-                   SET owner_id       = $1::integer,
-                       owner_type     = $2::varchar,
-                       dependent_id   = $3::integer,
-                       dependent_type = $4::varchar
-               RETURNING *;`;
-
-    // return query function
-    return function(item) {
-        const data = item.getData();
-
-        // assert defined owner ID
-        if (!data.hasOwnProperty('owner_id'))
-            throw Error('missingOwnerId');
-
-        // assert non-ambiguous owner type
-        if (!data.hasOwnProperty('owner_type') && model.owners.length > 1)
-            throw Error('ambiguousOwnerType');
-
-        // use either model-defined or item-defined owner type
-        const ownerType = data.hasOwnProperty('owner_type')
-            ? data.owner_type
-            : model.owners[0].owner_type;
-
-        return {
-            sql: sql,
-            data: [data.owner_id, ownerType, data.id, item.table],
-        };
-    };
-}
-
-/**
- * Generate query: Dissociate (delete) node from an owner.
- *
- * @param {Object} model
- * @return {Function} query binding function
- * @public
- */
-
-export function dissociate(model) {
-
-    // return null if model does not have defined owner(s)
-    if (!model.hasOwners() || !model.hasOwnerReference())
-        return null;
-
-    // get columns and prepared value placeholders
-    let sql = `DELETE
-               FROM nodes
-               WHERE owner_id = $1::integer
-                 AND owner_type = $2::varchar
-                 AND dependent_id = $3::integer
-                 AND dependent_type = $4::varchar
-               RETURNING *;`;
-
-    // return query function
-    return function(item) {
-        const data = item.getData();
-
-        // assert defined owner ID
-        if (!data.hasOwnProperty('owner_id'))
-            throw Error('missingOwnerId');
-
-        // assert non-ambiguous owner type
-        if (!data.hasOwnProperty('owner_type') && model.owners.length > 1)
-            throw Error('ambiguousOwnerType');
-
-        // use either model-defined or item-defined owner type
-        const ownerType = data.hasOwnProperty('owner_type')
-            ? data.owner_type
-            : model.owners[0].owner_type;
-
-        return {
-            sql: sql,
-            data: [data.owner_id, ownerType, data.id, item.table],
-        };
-    };
-}
 
 /**
  * Query: Get all node types listed.

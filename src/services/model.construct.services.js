@@ -75,6 +75,10 @@ export const create = async (modelType) => {
             value: schema.attached,
             writable: true
         },
+        hasNode: {
+            value: hasNode,
+            writable: false
+        },
         getValue: {
             value: getValue,
             writable: false
@@ -159,6 +163,17 @@ function setValue(key, value) {
     if (typeof key === 'string' && this.attributes.hasOwnProperty(key)) {
         this.attributes[key].value = sanitize(value, this.attributes[key].type);
     }
+}
+
+/**
+ * Check if node entry exists for model schema.
+ *
+ * @return {Object} node object
+ * @src public
+ */
+
+function hasNode() {
+    return this.attributes.hasOwnProperty('nodes_id');
 }
 
 /**

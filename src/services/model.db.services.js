@@ -19,6 +19,7 @@ import queries from './queries/index.queries.js';
  * Export database model services constructor
  *
  * @public
+ * @param {Model} model
  * @return {Promise} result
  */
 
@@ -45,6 +46,19 @@ export default function Services(model) {
     }
 
     /**
+     * Initialize table.
+     *
+     * @public
+     * @param {Object} data
+     * @return {Promise} result
+     */
+
+    this.init = async function() {
+        let { sql, data } = this.queries.init();
+        await pool.query(sql, data);
+    };
+
+    /**
      * Find all records in table.
      *
      * @public
@@ -65,22 +79,20 @@ export default function Services(model) {
      */
 
     this.select = async function(id) {
-        const statement = this.queries.select(id);
-        console.log(this.model.attached)
+        const stmts = {
+            model: this.queries.select(id)
+        };
+        // console.log(this.model.attached)
 
-        // create attached statements for references
-        const attachedStmts = this.model.attached
-            .map(a => {
-                return {
-                    query: this.queries.append
-                };
-            });
+        // // create attached statements for references
+        // const attachedStmts = this.model.attached
+        //     .map(a => {
+        //         return {
+        //             query: this.queries.append
+        //         };
+        //     });
 
-        return await this.transact(
-            statement,
-            this.model,
-            attachedStmts
-        );
+        return await this.transact(this.model, stmts);
     };
 
     /**
@@ -92,8 +104,11 @@ export default function Services(model) {
      */
 
     this.insert = async function(item) {
-        let statement = this.queries.insert(item);
-        return await this.transact(statement, item);
+        let stmts = {
+            node: this.queries.insertNode(item),
+            model: this.queries.insert(item)
+        };
+        return await this.transact(item, stmts);
     };
 
     /**
@@ -105,11 +120,11 @@ export default function Services(model) {
      */
 
     this.update = async function(item) {
-        let statement = this.queries.update(item);
-        return await this.transact(
-            statement,
-            item
-        );
+        let stmts = {
+            node: this.queries.updateNode(item),
+            model: this.queries.update(item)
+        };
+        return await this.transact(item, stmts);
     };
 
     /**
@@ -121,21 +136,11 @@ export default function Services(model) {
      */
 
     this.remove = async function(item) {
-        let statement = this.queries.remove(item);
-        return await this.transact(statement, item);
-    };
-
-    /**
-     * Initialize table.
-     *
-     * @public
-     * @param {Object} data
-     * @return {Promise} result
-     */
-
-    this.init = async function() {
-        let { sql, data } = this.queries.init();
-        await pool.query(sql, data);
+        let stmts = {
+            node: this.queries.removeNode(item),
+            model: this.queries.remove(item)
+        };
+        return await this.transact(item, stmts);
     };
 
     /**
@@ -148,11 +153,7 @@ export default function Services(model) {
      * @return {Promise} db response
      */
 
-    this.transact = async function(
-        stmt,
-        item,
-        attachedStmts=[]
-    ) {
+    this.transact = async function(item, stmts) {
 
         // NOTE: client undefined if connection fails.
         const client = await pool.connect();
