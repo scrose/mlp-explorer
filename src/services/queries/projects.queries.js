@@ -8,23 +8,6 @@
 'use strict';
 
 /**
- * Find all projects. Joined with surveys table.
- *
- *  @return {Function} query function
- */
-
-export function getAll(_) {
-    return function () {
-        return {
-            sql:`SELECT *, projects.id AS id FROM projects 
-                LEFT JOIN surveys ON 
-                    surveys.owner_id = projects.id;`,
-            data: []
-        };
-    }
-}
-
-/**
  * Find projects by station. Joined with stations table.
  *
  * @return {Function} query function

@@ -20,12 +20,14 @@ import * as surveyors from './surveyors.queries.js';
 import * as surveys from './surveys.queries.js';
 import * as surveySeasons from './survey_seasons.queries.js';
 import * as stations from './stations.queries.js';
-import * as visits from './visits.queries.js';
+import * as modernVisits from './modern_visits.queries.js';
 import * as historicVisits from './historic_visits.queries.js';
 import * as locations from './locations.queries.js';
-import * as captures from './captures.queries.js';
-import * as captureImages from './capture_images.queries.js';
-import * as images from './images.queries.js';
+import * as historicCaptures from './historic_captures.queries.js';
+import * as modernCaptures from './modern_captures.queries.js';
+import * as historicImages from './historic_images.queries.js';
+import * as modernImages from './modern_images.queries.js';
+import * as supplementalImages from './supplemental_images.queries.js';
 
 /**
  * Index of module exports.
@@ -46,11 +48,9 @@ export default {
         removeNode: defaults.removeNode
     },
     schema: {
-        getModel: defaults.getModel,
-        getModelTypes: defaults.getModelTypes,
+        getModelTypes: defaults.getNodeTypes,
         getTables: defaults.getTables,
-        getOwners: defaults.getOwners,
-        getReferences: defaults.getReferences,
+        getColumns: defaults.getColumns,
         getPermissions: defaults.getPermissions
     },
     users: users,
@@ -60,10 +60,12 @@ export default {
     surveys: surveys,
     surveySeasons: surveySeasons,
     stations: stations,
-    visits: visits,
+    modernVisits: modernVisits,
     historicVisits: historicVisits,
+    modernCaptures: modernCaptures,
+    historicCaptures: historicCaptures,
     locations: locations,
-    captures: captures,
-    captureImages: captureImages,
-    images: images
+    historicImages: historicImages,
+    modernImages: modernImages,
+    supplementalImages: supplementalImages
 };

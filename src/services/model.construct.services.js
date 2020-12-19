@@ -43,6 +43,9 @@ export const create = async (modelType) => {
     let Schema = await schemaConstructor.create(modelType);
     const schema = new Schema();
 
+    console.log('Schema Node: ', schema.node, 'Schema owner: ', schema.owner,
+        'Schema attached: ', schema.attached)
+
     // initialize model constructor
     let Model = function(attributeValues) {
         this.setData = setData;
@@ -63,12 +66,12 @@ export const create = async (modelType) => {
             value: humanize(modelType),
             writable: true
         },
-        owners: {
-            value: schema.owners,
-            writable: true
-        },
         attributes: {
             value: schema.attributes,
+            writable: true
+        },
+        node: {
+            value: schema.node,
             writable: true
         },
         attached: {
@@ -76,7 +79,19 @@ export const create = async (modelType) => {
             writable: true
         },
         hasNode: {
-            value: hasNode,
+            value: !!schema.node,
+            writable: false
+        },
+        getId: {
+            value: getId,
+            writable: false
+        },
+        setId: {
+            value: setId,
+            writable: false
+        },
+        getIdKey: {
+            value: getIdKey,
             writable: false
         },
         getValue: {
@@ -132,6 +147,7 @@ function setData(data=null) {
     if (typeof data === 'object' && data !== null) {
 
         // select either first row of data array or single data object
+        // NOTE: model can only hold data for single record
         const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
 
         // filter input data attributes by model schema attributes
@@ -143,6 +159,16 @@ function setData(data=null) {
             // TODO: should also check that input data has correct type
             self.attributes[key].value = sanitize(value, self.attributes[key].type);
         });
+
+        // set node data (if provided)
+        if (this.hasNode) {
+            this.node.attributes.id.value = this.attributes.nodes_id.value;
+            this.node.attributes.type.value = this.table;
+            this.node.attributes.owner_id.value = this.attributes.hasOwnProperty('owner_id')
+                ? this.attributes.owner_id.value
+                : null;
+        }
+
     } else {
         // default constructor
         Object.entries(self.attributes).forEach(([key, field]) => {
@@ -166,14 +192,42 @@ function setValue(key, value) {
 }
 
 /**
- * Check if node entry exists for model schema.
+ * Get ID value in model schema.
  *
- * @return {Object} node object
  * @src public
  */
 
-function hasNode() {
-    return this.attributes.hasOwnProperty('nodes_id');
+function getId() {
+    return this.hasNode
+        ? this.attributes.nodes_id
+        : this.attributes.id;
+}
+
+/**
+ * Set ID value in model schema.
+ *
+ * @param {integer} id
+ * @src public
+ */
+
+function setId(id) {
+    if (this.hasNode) {
+        this.attributes.nodes_id = id;
+        this.node.attributes.id = id;
+    }
+    else {
+        this.attributes.id = id;
+    }
+}
+
+/**
+ * Get ID key column in model schema.
+ *
+ * @src public
+ */
+
+function getIdKey() {
+    return this.hasNode ? 'nodes_id' : 'id';
 }
 
 /**
@@ -216,6 +270,10 @@ function clear() {
     Object.entries(this.attributes).map(attr => {
         attr.value = null;
         });
+    if (this.hasNode)
+        Object.entries(this.node.attributes).map(attr => {
+            attr.value = null;
+        });
 }
 
 /**
@@ -227,8 +285,9 @@ function clear() {
  */
 
 function setDataOptions(field, options) {
-    if (field && this.attributes.hasOwnProperty(field) && typeof options === 'object') {
+    if (field
+        && this.attributes.hasOwnProperty(field)
+        && typeof options === 'object')
         this.attributes[field].options = options ? options : null;
-    }
 }
 

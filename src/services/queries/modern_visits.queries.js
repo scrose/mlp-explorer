@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Services.Queries.Visits
- * File: visits.queries.js
+ * File: modern_visits.queries.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */

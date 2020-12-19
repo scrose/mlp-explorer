@@ -40,19 +40,18 @@ export function getAll(model, offset = 0) {
  * Generate query: Find record by ID.
  *
  * @param {Object} model
- * @param {Object} args
  * @return {Function} query
  * @public
  */
 
-export function select(model, args = { col: 'id', type: 'integer' }) {
-    return function(id) {
+export function select(model) {
+    return function(item) {
         let sql = `SELECT * 
                 FROM ${model.table} 
-                WHERE ${args.col} = $1::${args.type};`;
+                WHERE ${model.getIdKey()} = $1::integer;`;
         return {
             sql: sql,
-            data: [id],
+            data: [item.getId()],
         };
     };
 }
@@ -80,152 +79,33 @@ export function findByOwner(model) {
 }
 
 /**
- * Generate query: Retrieve node entry for given item
- *
- * @param {Object} model
- * @return {Function} query function
- * @public
- */
-
-export function getNode(model) {
-    return model.hasNode()
-        ? function(item) {
-            const sql = `SELECT * FROM nodes WHERE id = $1::integer`;
-            return {
-                sql: sql,
-                data: [item.attributes.nodes_id],
-            }
-        }
-        : function(_) {return null;}
-}
-
-/**
- * Generate query: Insert node entry for given item
- *
- * @param {Object} model
- * @return {Function} query function
- * @public
- */
-
-export function insertNode(model) {
-    return model.hasNode()
-        ? function(item) {
-            insert({
-                table: 'nodes',
-                attributes: {
-                    nodes_id: item.nodes_id,
-                    type: model.table,
-                    owner_id: item.owner_id,
-                    created_at: null,
-                    updated_at: null
-                }
-            })
-        }
-        : function(_) {return null;}
-}
-
-/**
- * Generate query: Update node entry for given item
- *
- * @param {Object} model
- * @return {Function} query function
- * @public
- */
-
-export function updateNode(model) {
-    return model.hasNode()
-        ? function(item) {
-            update({
-                table: 'nodes',
-                attributes: {
-                    nodes_id: item.nodes_id,
-                    type: model.table,
-                    owner_id: item.owner_id,
-                    created_at: null,
-                    updated_at: null
-                }
-            })
-        }
-        : function(_) {return null;}
-}
-
-/**
- * Generate query: Delete node entry for given item
- *
- * @param {Object} model
- * @return {Function} query function
- * @public
- */
-
-export function removeNode(model) {
-    return model.hasNode()
-        ? function(item) {
-            remove({
-                table: 'nodes',
-                attributes: {
-                    nodes_id: item.nodes_id,
-                    type: model.table,
-                    owner_id: item.owner_id,
-                    created_at: null,
-                    updated_at: null
-                }
-            })
-        }
-        : function(_) {return null;}
-}
-
-/**
- * Generate query: Append subordinate record by specified table,
- * column and column value.
- *
- * @return {Function} query function
- * @public
- */
-
-export function append(model) {
-    // get attachments for model
-    const refs = groupBy(model.attached, 'fk_col');
-    console.log(refs)
-    return function(args, value) {
-        const sql = `SELECT * 
-                FROM ${args.pk_table} 
-                WHERE ${args.pk_col} = $1::${args.pk_col_type}`;
-        return {
-            sql: sql,
-            data: [value],
-        };
-    };
-}
-
-/**
  * Generate query: Insert new record.
  *
  * @param {Object} item
- * @param {Object} args
  * @return {Function} query binding function
  * @public
  */
 
-export function insert(
-    item,
-    args = {
-        ignore: ['id'],
-        timestamps: ['created_at', 'updated_at'],
-    },
-) {
+export function insert(item) {
+
     // return null if instance is null
     if (!item) return null;
 
+    const timestamps = ['created_at', 'updated_at'];
+
+    console.log('INSERT this ITEM: ', item);
+
     // filter ignored columns
+    const ignore = [item.getIdKey()];
     const cols = Object
         .keys(item.attributes)
         .filter((key) => {
-            return !args.ignore.includes(key);
+            return !ignore.includes(key);
         });
 
     // generate prepared sql
     const vals = cols.map(function(key, index) {
-        let placeholder = args.timestamps.includes(key) ? `NOW()` : `$${index}`;
+        let placeholder = timestamps.includes(key) ? `NOW()` : `$${++index}`;
         return `${placeholder}::${item.attributes[key].type}`;
     });
 
@@ -234,12 +114,14 @@ export function insert(
                         VALUES (${vals.join(',')})
                         RETURNING *;`;
 
+    console.log('USING: ', sql);
+
     // return query function
     return function(item) {
         // collate data as value array
         return {
             sql: sql,
-            data: _collate(item, args),
+            data: _collate(item),
         };
     };
 }
@@ -248,54 +130,43 @@ export function insert(
  * Generate query: Update record data in table.
  *
  * @param {Object} item
- * @param {Object} args
  * @return {Function} sql query
  * @public
  */
 
-export function update(
-    item,
-    args = {
-        where: 'id',
-        whereType: 'integer',
-        index: 1,
-        ignore: ['id'],
-        timestamps: ['created_at', 'updated_at'],
-    },
-) {
+export function update(item) {
 
-    // reserve first placeholder index for id value
-    const placeholderId = `$${args.index++}`;
+    const timestamps = ['created_at', 'updated_at'];
 
-    // zip values with column names
+    // filter ignored values
+    const ignore = [item.getIdKey()];
     const cols = Object
         .keys(item.attributes)
         .filter((key) => {
-            return !args.ignore.includes(key);
+            return !ignore.includes(key);
         });
 
-    // generate the parameter placeholder assignments
+    // generate prepared statement value placeholders
     const assignments = cols.map(function(key, index) {
-
         // handle timestamp placeholders defined in arguments
-        const placeholder = args.timestamps.includes(key)
+        const placeholder = timestamps.includes(key)
             ? `NOW()`
-            : `$${args.index++}`;
+            : `$${++index + 1}`;
 
-        // map returns conjoined prepared parameters ordered by position
+        // map returns conjoined prepared parameters in order
         return [cols[index], `${placeholder}::${item.attributes[key].type}`].join('=');
     });
 
     let sql = `UPDATE "${item.table}" 
                 SET ${assignments.join(',')} 
-                WHERE ${args.where} = ${placeholderId}::${args.whereType}
+                WHERE ${item.getIdKey()} = $1::integer
                 RETURNING *;`;
 
     // return query function
     return function(item) {
         return {
             sql: sql,
-            data: _collate(item, args),
+            data: _collate(item),
         };
     };
 }
@@ -321,6 +192,105 @@ export function remove(model, args = { col: 'id', type: 'integer', index: 1 }) {
     };
 }
 
+/**
+ * Generate query: Retrieve node entry for given item
+ *
+ * @param {Object} model
+ * @return {Function} query function
+ * @public
+ */
+
+export function getNode(model) {
+    return model.hasNode
+        ? function(node) {
+            const sql = `SELECT *
+                         FROM nodes
+                         WHERE id = $1::integer`;
+            return {
+                sql: sql,
+                data: [node.attributes.id],
+            };
+        }
+        : function(_) {
+            return null;
+        };
+}
+
+/**
+ * Generate query: Insert node entry for given item
+ *
+ * @param {Object} model
+ * @return {Function} query function
+ * @public
+ */
+
+export function insertNode(model) {
+    return model.hasNode
+        ? function(node) {
+            return insert(node);
+        }
+        : function(_) {
+            return null;
+        };
+}
+
+/**
+ * Generate query: Update node entry for given item
+ *
+ * @param {Object} model
+ * @return {Function} query function
+ * @public
+ */
+
+export function updateNode(model) {
+    return model.hasNode
+        ? function(node) {
+            return update(node);
+        }
+        : function(_) {
+            return null;
+        };
+}
+
+/**
+ * Generate query: Delete node entry for given item
+ *
+ * @param {Object} model
+ * @return {Function} query function
+ * @public
+ */
+
+export function removeNode(model) {
+    return model.hasNode
+        ? function(node) {
+            return remove(node);
+        }
+        : function(_) {
+            return null;
+        };
+}
+
+/**
+ * Generate query: Append subordinate record by specified table,
+ * column and column value.
+ *
+ * @return {Function} query function
+ * @public
+ */
+
+export function append(model) {
+    // get attachments for model
+    const refs = groupBy(model.attached, 'fk_col');
+    return function(args, value) {
+        const sql = `SELECT * 
+                FROM ${args.pk_table} 
+                WHERE ${args.pk_col} = $1::${args.pk_col_type}`;
+        return {
+            sql: sql,
+            data: [value],
+        };
+    };
+}
 
 /**
  * Query: Get all node types listed.
@@ -328,45 +298,12 @@ export function remove(model, args = { col: 'id', type: 'integer', index: 1 }) {
  * @return {Object} query binding
  */
 
-export function getModelTypes() {
+export function getNodeTypes() {
     return {
         sql: `SELECT *
               FROM node_types
               WHERE name != 'default';`,
         data: [],
-    };
-}
-
-/**
- * Query: Get model column information as array of model attributes.
- *
- * @param {String} table
- * @return {Object} query binding
- */
-
-export function getModel(table) {
-    return {
-        sql: `SELECT column_name, data_type
-              FROM information_schema.columns
-              WHERE table_name = $1::varchar`,
-        data: [table],
-    };
-}
-
-/**
- * Query: Get owner model type(s) for given dependent model type
- * from the Node Relations lookup table.
- *
- * @param {String} modelType - dependent model
- * @return {Object} query binding
- */
-
-export function getOwners(modelType) {
-    return {
-        sql: `SELECT owner_type
-              FROM node_relations
-              WHERE dependent_type = $1::varchar`,
-        data: [modelType],
     };
 }
 
@@ -387,51 +324,44 @@ export function getTables() {
 }
 
 /**
- * Query: Get all foreign key references for table. Selection from
- * pg_catalog.pg_constraint schema information.
- * Reference: https://dba.stackexchange.com/questions/36979/retrieving-all-pk-and-fk
+ * Query: Get columns of target table incl. foreign key references.
+ * Selection from pg_catalog.pg_constraint schema information.
+ * Reference: https://stackoverflow.com/a/21125640
+ * col: column name
+ * type: column datatype
+ * fk_table: referenced table
  *
+ * @public
+ * @param {String} targetTable
  * @return {Object} query binding
  */
 
-export function getReferences(table) {
+export function getColumns(targetTable) {
     return {
-        sql: `
-            SELECT conrelid::regclass                                                       AS fk_table
-                 , CASE
-                       WHEN pg_get_constraintdef(c.oid)
-                           LIKE 'FOREIGN KEY %'
-                           THEN substring(pg_get_constraintdef(c.oid), 14, position(')'
-                                                                                    in pg_get_constraintdef(c.oid)) -
-                                                                           14)
-                END                                                                         AS fk_col
-                 , CASE
-                       WHEN pg_get_constraintdef(c.oid)
-                           LIKE 'FOREIGN KEY %'
-                           THEN substring(pg_get_constraintdef(c.oid), position(' REFERENCES '
-                                                                                in pg_get_constraintdef(c.oid)) + 12,
-                                          position('('
-                                                   in substring(pg_get_constraintdef(c.oid), 14)) -
-                                          position(' REFERENCES '
-                                                   in pg_get_constraintdef(c.oid)) + 1) END AS pk_table
-                 , CASE
-                       WHEN pg_get_constraintdef(c.oid)
-                           LIKE 'FOREIGN KEY %'
-                           THEN substring(pg_get_constraintdef(c.oid), position('('
-                                                                                in
-                                                                                substring(pg_get_constraintdef(c.oid), 14)) +
-                                                                       14, position(')'
-                                                                                    in substring(
-                                                                                        pg_get_constraintdef(c.oid),
-                                                                                        position('(' in substring(pg_get_constraintdef(c.oid), 14)) + 14)) -
-                                                                           1) END           AS pk_col
-            FROM pg_catalog.pg_constraint c
-                     JOIN pg_namespace n ON n.oid = c.connamespace
-            WHERE c.conrelid = $1::regclass
-              AND c.contype = 'f'
-              AND pg_get_constraintdef(c.oid) LIKE 'FOREIGN KEY %'
-            ORDER BY pg_get_constraintdef(c.oid), conrelid::regclass::text, contype DESC;`,
-        data: [table],
+        sql: `select
+                  column_name as "col",
+                  data_type as "type",
+                  (select r.relname from pg_class r where r.oid = pc.confrelid)
+                      as "fk_table"
+              from information_schema.columns
+                       full join pg_constraint pc
+                                 on column_name = (select string_agg(attname, ',') from pg_attribute
+                                                   where attrelid = pc.conrelid
+                                                     and ARRAY[attnum] <@ pc.conkey)
+                                     and pc.conrelid = (
+                                         select oid
+                                         from pg_class
+                                         where relname=table_name
+                                     )
+              where table_name = $1
+                and 'public' = (select nspname
+                                from pg_namespace
+                                where oid =
+                                      (select relnamespace
+                                       from pg_class
+                                       where relname = $1)
+              );`,
+        data: [targetTable],
     };
 }
 
@@ -461,22 +391,20 @@ export function getPermissions() {
 function _collate(
     item,
     args = {
-        where: null,
-        whereType: null,
         ignore: [],
         timestamps: ['created_at', 'updated_at'],
     }) {
 
     // reserve first position for item ID (given 'where' condition)
-    let data = args.where ? [item.attributes[args.where].value] : [];
+    let data = [item.getId()];
 
     // filter input data to match insert/update parameters
     data.push(...Object.keys(item.attributes)
         .filter((key) => {
-            // filter ignored and timestamp attributes
+            // filter ignored, timestamp, ID attributes
             return !args.ignore.includes(key)
                 && !args.timestamps.includes(key)
-                && key !== args.where;
+                && key !== item.getIdKey();
         })
         .map((key, _) => {
             return item.attributes[key].value;

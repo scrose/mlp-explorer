@@ -19,7 +19,7 @@ import queries from './queries/index.queries.js';
  * Export database model services constructor
  *
  * @public
- * @param {Model} model
+ * @param {Object} model
  * @return {Promise} result
  */
 
@@ -46,7 +46,7 @@ export default function Services(model) {
     }
 
     /**
-     * Initialize table.
+     * Initialize table. (no transaction)
      *
      * @public
      * @param {Object} data
@@ -59,7 +59,7 @@ export default function Services(model) {
     };
 
     /**
-     * Find all records in table.
+     * Find all records in table. (no transaction)
      *
      * @public
      * @return {Promise} result
@@ -79,8 +79,11 @@ export default function Services(model) {
      */
 
     this.select = async function(id) {
+        this.model.setId(id);
         const stmts = {
-            model: this.queries.select(id)
+            node: null,
+            model: this.queries.select,
+            attached: []
         };
         // console.log(this.model.attached)
 
@@ -91,7 +94,6 @@ export default function Services(model) {
         //             query: this.queries.append
         //         };
         //     });
-
         return await this.transact(this.model, stmts);
     };
 
@@ -105,8 +107,9 @@ export default function Services(model) {
 
     this.insert = async function(item) {
         let stmts = {
-            node: this.queries.insertNode(item),
-            model: this.queries.insert(item)
+            node: this.queries.insertNode,
+            model: this.queries.insert,
+            attached: []
         };
         return await this.transact(item, stmts);
     };
@@ -121,8 +124,9 @@ export default function Services(model) {
 
     this.update = async function(item) {
         let stmts = {
-            node: this.queries.updateNode(item),
-            model: this.queries.update(item)
+            node: this.queries.updateNode,
+            model: this.queries.update,
+            attached: []
         };
         return await this.transact(item, stmts);
     };
@@ -137,19 +141,18 @@ export default function Services(model) {
 
     this.remove = async function(item) {
         let stmts = {
-            node: this.queries.removeNode(item),
-            model: this.queries.remove(item)
+            node: this.queries.removeNode,
+            model: this.queries.remove,
+            attached: []
         };
         return await this.transact(item, stmts);
     };
 
     /**
-     * Perform transaction.
+     * Perform transaction query.
      *
-     * @param {Object} statement
      * @param {Object} item
-     * @param {Object} relation
-     * @param {Array} attachments
+     * @param {Object} statements
      * @return {Promise} db response
      */
 
@@ -161,21 +164,29 @@ export default function Services(model) {
         try {
             await client.query('BEGIN');
 
-            // insert record and record returned ID value
-            let res = await client.query(stmt.sql, stmt.data);
+            // process node query (if provided)
+            if (stmts.node) {
+                const {sql, data} = stmts.node(item.node);
+                const res = await client.query(sql, data);
+                // update item with returned data for further processing
+                item.setId(res.rows[0].id);
+            }
 
-            // update item with returned data for further processing
-            item.setData(res.rows[0]);
+            // process primary model query
+            const {sql, data} = stmts.model(item);
+            console.log('!!!QUERY: ', sql, data)
+            let res = await client.query(sql, data)
 
-            // process subordinate statements (e.g. foreign key references)
-            await Promise.all(attachedStmts.map(async (aStmt) => {
-                const val = item.getValue(a.fk_col);
-                const prepStmt = aStmt(item, val);
-                res.attached = await client.query(prepStmt.sql, prepStmt.data);
+            // process supplemental statements (e.g. foreign key references)
+            await Promise.all(stmts.attached.map(async (stmt) => {
+                const val = item.getValue(item.fk_col);
+                const {sql, data} = stmt(item, val);
+                res.attached = await client.query(sql, data);
             }));
 
             await client.query('COMMIT');
             return res;
+
         } catch (err) {
             await client.query('ROLLBACK');
             throw err;

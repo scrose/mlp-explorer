@@ -17,10 +17,11 @@
  */
 
 export function groupBy(arr, key) {
-  return arr.reduce(function (rv, x) {
-    (rv[x[key]] = rv[x[key]] || []).push(x);
-    return rv;
-  }, {});
+    if (arr == null) return null;
+    return arr.reduce(function(rv, x) {
+        (rv[x[key]] = rv[x[key]] || []).push(x);
+        return rv;
+    }, {});
 }
 
 /**
@@ -32,7 +33,7 @@ export function groupBy(arr, key) {
  */
 
 export function isEmptyObject(obj) {
-  return !Object.keys(obj).length;
+    return !Object.keys(obj).length;
 }
 
 /**
@@ -43,10 +44,10 @@ export function isEmptyObject(obj) {
  */
 
 export function removeEmpty(arr) {
-  // remove "Falsy" elements then null elements
-  return array.filter(Boolean).filter(function (el) {
-    return el != null;
-  });
+    // remove "Falsy" elements then null elements
+    return array.filter(Boolean).filter(function(el) {
+        return el != null;
+    });
 }
 
 /**
@@ -58,26 +59,26 @@ export function removeEmpty(arr) {
  * @src public
  */
 
-export function sanitize (data, datatype) {
+export function sanitize(data, datatype) {
     const drinks = {
-        'boolean': function () {
+        'boolean': function() {
             return !!data;
         },
-        'varying character': function () {
+        'varying character': function() {
             return String(data);
         },
-        'integer': function () {
-            return isNaN(parseInt(data)) ? null : parseInt(data)
+        'integer': function() {
+            return isNaN(parseInt(data)) ? null : parseInt(data);
         },
-        'double precision': function () {
+        'double precision': function() {
             return isNaN(parseFloat(data)) ? null : parseFloat(data);
         },
-        'float': function () {
+        'float': function() {
             return isNaN(parseFloat(data)) ? null : parseFloat(data);
         },
-        'default': function () {
+        'default': function() {
             return data;
-        }
+        },
     };
     return (drinks[datatype] || drinks['default'])();
 }
@@ -94,7 +95,7 @@ export function sanitize (data, datatype) {
 export function humanize(str) {
     str = toSnake(str);
     let i, frags = str.split('_');
-    for (i=0; i<frags.length; i++) {
+    for (i = 0; i < frags.length; i++) {
         frags[i] = frags[i].charAt(0).toUpperCase() + frags[i].slice(1);
     }
     return frags.join(' ');
@@ -109,12 +110,12 @@ export function humanize(str) {
  */
 
 export const toCamel = (str) => {
-        return str.replace(/([-_][a-z])/ig, ($1) => {
-            return $1.toUpperCase()
-                .replace('-', '')
-                .replace('_', '');
-        });
-}
+    return str.replace(/([-_][a-z])/ig, ($1) => {
+        return $1.toUpperCase()
+            .replace('-', '')
+            .replace('_', '');
+    });
+};
 
 /**
  * Make camelCase strings snake_case.
@@ -127,4 +128,4 @@ export const toCamel = (str) => {
 export const toSnake = (str) => {
     return str.replace(/[A-Z]/g,
         (letter) => `_${letter.toLowerCase()}`);
-}
+};
