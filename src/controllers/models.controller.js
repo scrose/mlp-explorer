@@ -12,7 +12,6 @@
 
 import Services from '../services/model.db.services.js';
 import * as db from '../services/index.services.js';
-import { toCamel, toSnake } from '../lib/data.utils.js';
 
 /**
  * Export controller constructor.
@@ -21,7 +20,7 @@ import { toCamel, toSnake } from '../lib/data.utils.js';
  * @src public
  */
 
-let Model, services;
+let Model, model, services;
 
 
 
@@ -31,26 +30,21 @@ export default function Controller(modelRoute) {
     // check model not null
     if (!modelRoute) throw new Error('invalidModel');
 
-    // set model name/key
-    this.modelName = toCamel(modelRoute);
-    this.table = toSnake(modelRoute)
-    this.modelKey = `${toSnake(modelRoute)}_id`;
-
     /**
-     * Get model id value from request parameters.
+     * Get model id value from request parameters. Note: use model
+     * route key (i.e. model.key = '<model_name>_id') to reference route ID.
      *
      * @param {Object} params
      * @return {String} Id
      * @src public
      */
 
-    this.getId = function (params) {
+    this.getId = function (req) {
 
         // Ensure model id key is valid
-        if (typeof params[this.modelKey] === 'undefined')
-            throw new Error('controller')
-
-        return params[this.modelKey];
+        if (req.params[model.key] == null)
+            throw new Error('invalidRouteKey');
+        return req.params[model.key];
     };
 
     /**
@@ -69,6 +63,7 @@ export default function Controller(modelRoute) {
 
         // generate db services for model
         try {
+            model = new Model();
             services = new Services(new Model());
         }
         catch (err) {
@@ -106,7 +101,7 @@ export default function Controller(modelRoute) {
      */
 
     this.show = async (req, res, next) => {
-        let id = this.getId(req.params);
+        let id = this.getId(req);
         await services
             .select(id)
             .then((data) => {
@@ -151,7 +146,6 @@ export default function Controller(modelRoute) {
         let item;
         try {
             item = new Model(req.body);
-            console.log('in controller', item, Model)
         } catch (err) {
             next(err);
         }
@@ -181,7 +175,7 @@ export default function Controller(modelRoute) {
      */
 
     this.edit = async (req, res, next) => {
-        let id = this.getId(req.params);
+        let id = this.getId(req);
         await services
             .select(id)
             .then((data) => {
@@ -230,7 +224,7 @@ export default function Controller(modelRoute) {
      */
 
     this.remove = async (req, res, next) => {
-        let id = this.getId(req.params);
+        let id = this.getId(req);
         await services
             .select(id)
             .then((data) => {

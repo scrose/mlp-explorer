@@ -27,9 +27,7 @@ import { groupBy, humanize } from '../lib/data.utils.js';
 export const create = async (modelType) => {
     const modelTypes = await getTypes();
     const permissions = await getPermissions();
-    const attrs = await getModelAttributes(modelType);
-
-    console.log('Attributes: ', attrs)
+    const refs = await getModelAttributes(modelType);
 
     // check model definition
     if (!modelTypes.includes(modelType))
@@ -47,19 +45,19 @@ export const create = async (modelType) => {
             writable: true
         },
         attributes: {
-            value: attrs.attributes,
-            writable: false
-        },
-        refs: {
-            value: attrs.attached,
+            value: refs.attributes,
             writable: false
         },
         node: {
-            value: attrs.node,
+            value: refs.node,
             writable: false
         },
         owner: {
-            value: attrs.owner,
+            value: refs.owner,
+            writable: false
+        },
+        attached: {
+            value: refs.attached,
             writable: false
         },
         permissions: {
@@ -104,31 +102,30 @@ export const getModelAttributes = async function(modelType) {
         attached: null
     }
 
+    let node = await createNode('nodes_id');
+    const owner_id = 'owner_id';
+
     // get model attributes (table columns)
     let {sql, data} = queries.schema.getColumns(modelType);
     const attrs = await pool.query(sql, data);
 
     // no attributes found
-    if (attrs.rows.length === 0) return attributes;
+    if (attrs.rows.length === 0) return refs;
 
     // filter nodes reference
     attrs.rows
-        .find(attr => {
-            return attr.fk_table === 'nodes' && attr.col === 'nodes_id';
-        })
-        .map(function() {
-            refs.node =  createNode();
-        });
+        .filter(attr => attr.fk_table === node.table
+            && attr.col === node.reference)
+        .map(_ => refs.node = node);
 
     // filter owner reference
     attrs.rows
-        .find(attr => {
-            return attr.fk_table === 'nodes' && attr.col === 'owner_id';
-        })
+        .filter(attr => attr.fk_table === node.table
+            && attr.col === owner_id)
         .map(attr => {
             refs.owner = {
-                id: attr.col,
-                label: humanize(attr.col),
+                id: null,
+                name: attr.col,
                 type: attr.type,
                 reference: attr.fk_table,
             };
@@ -136,34 +133,30 @@ export const getModelAttributes = async function(modelType) {
 
     // filter attached references
     refs.attached = attrs.rows
-        .filter(attr => {
-            return attr.fk_table && attr.fk_table !== 'nodes';
-        })
-        .reduce(function(attr, x) {
-            (attr[x['col']] = {
-                id: attr.col,
-                label: humanize(attr.col),
-                type: attr.type,
-                reference: attr.fk_table,
-            } || []).push(x);
-            return attr;
+        .filter(attr => attr.fk_table && attr.fk_table !== node.table)
+        .reduce(function(rv, x) {
+            (rv[x.col] = {
+                id: null,
+                name: x.col,
+                type: x.type,
+                reference: x.fk_table,
+            } || []);
+            return rv;
         }, {});
 
     // filter non-referenced attributes
     refs.attributes = attrs.rows
-        .filter(attr => {
-            return !attr.fk_table && attr.fk_table !== 'nodes';
-        })
-        .reduce(function(attr, x) {
-            (attr[x['col']] = {
-                id: attr.col,
-                label: humanize(attr.col),
-                type: attr.type,
-                reference: attr.fk_table,
-            } || []).push(x);
-            return attr;
+        .filter(attr => attr.fk_table !== node.table)
+        .reduce(function(rv, x) {
+            (rv[x.col] = {
+                value: null,
+                name: x.col,
+                label: humanize(x.col),
+                type: x.type,
+                reference: x.fk_table,
+            } || []);
+            return rv;
         }, {});
-
     return refs;
 };
 
@@ -171,26 +164,29 @@ export const getModelAttributes = async function(modelType) {
  * Generates simple node object to attach to model schema.
  *
  * @public
- * @params {Object} ref
+ * @params {String} ref
  * @return {Promise} result
  */
 
-export const createNode = async function() {
+export const createNode = async function(ref) {
 
     let node = {
         table:'nodes',
+        reference: ref,
         attributes: {}
     };
 
     // get node schema info
-    let {sql, data} = queries.schema.getModel('nodes');
+    let {sql, data} = queries.schema.getColumns('nodes');
     let nodeSchema = await pool.query(sql, data);
 
     // generate node schema from table column data
     nodeSchema.rows
-        .forEach(col => {
-            node.attributes[col.column_name] = {
-                type: col.data_type,
+        .map(attr => {
+            node.attributes[attr.col] = {
+                name: attr.col,
+                type: attr.type,
+                value: null
             };
         });
 
@@ -201,11 +197,11 @@ export const createNode = async function() {
             writable: false
         },
         getId: {
-            value: function() {return this.attributes.id.value;},
+            value: function() {return this.attributes.id.value},
             writable: false
         },
         setId: {
-            value: function(id) {this.attributes.id.value = id;},
+            value: function(id) {this.attributes.id.value = id},
             writable: false
         }
     });

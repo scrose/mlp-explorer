@@ -43,9 +43,6 @@ export const create = async (modelType) => {
     let Schema = await schemaConstructor.create(modelType);
     const schema = new Schema();
 
-    console.log('Schema Node: ', schema.node, 'Schema owner: ', schema.owner,
-        'Schema attached: ', schema.attached)
-
     // initialize model constructor
     let Model = function(attributeValues) {
         this.setData = setData;
@@ -62,6 +59,10 @@ export const create = async (modelType) => {
             value: toCamel(modelType),
             writable: true
         },
+        key: {
+            value: `${modelType}_id`,
+            writable: true
+        },
         label: {
             value: humanize(modelType),
             writable: true
@@ -74,13 +75,13 @@ export const create = async (modelType) => {
             value: schema.node,
             writable: true
         },
+        owner: {
+            value: schema.owner,
+            writable: true
+        },
         attached: {
             value: schema.attached,
             writable: true
-        },
-        hasNode: {
-            value: !!schema.node,
-            writable: false
         },
         getId: {
             value: getId,
@@ -113,19 +114,7 @@ export const create = async (modelType) => {
         clear: {
             value: clear,
             writable: false
-        },
-        hasOwners: {
-            value: function() {
-                return !!schema.owners.length
-            },
-            writable: false
-        },
-        hasOwnerReference: {
-            value: function() {
-                return schema.attributes.hasOwnProperty('owner_id');
-            },
-            writable: false
-        },
+        }
     });
     return Model;
 };
@@ -150,30 +139,41 @@ function setData(data=null) {
         // NOTE: model can only hold data for single record
         const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
 
-        // filter input data attributes by model schema attributes
-        Object.entries(inputData).forEach(([key, value]) => {
-            console.log(self.label, ' field:', key, ', value:', value)
+        // check attribute exists in model schema
+        Object.keys(inputData)
+            .filter(key => !(
+                (self.node && key === self.node.attribute)
+                || (self.owner && key === self.owner.attribute)
+                || (self.attached && self.attached.hasOwnProperty(key))
+                || (self.attributes && self.attributes.hasOwnProperty(key))
+            ))
+            .map(_ => {throw Error('invalidInputData')});
 
-            // assert input attribute exists in model
-            if (!self.attributes.hasOwnProperty(key)) throw Error('violatesSchema');
-            // TODO: should also check that input data has correct type
-            self.attributes[key].value = sanitize(value, self.attributes[key].type);
-        });
+        // set nodes reference
+        Object.keys(inputData)
+            .filter(key => self.node && key === self.node.attribute)
+            .map(key => {
+                self.node.setId(sanitize(inputData[key], self.node.type));
+            });
 
-        // set node data (if provided)
-        if (this.hasNode) {
-            this.node.attributes.id.value = this.attributes.nodes_id.value;
-            this.node.attributes.type.value = this.table;
-            this.node.attributes.owner_id.value = this.attributes.hasOwnProperty('owner_id')
-                ? this.attributes.owner_id.value
-                : null;
-        }
+        // set owner reference
+        Object.keys(inputData)
+            .filter(key => self.owner && key === self.owner.attribute)
+            .map(key => self.owner.id =
+                sanitize(inputData[key], self.owner.type));
 
-    } else {
-        // default constructor
-        Object.entries(self.attributes).forEach(([key, field]) => {
-            field.value = sanitize(null, self.attributes[key].type);
-        });
+        // set attached references
+        Object.keys(inputData)
+            .filter(key => self.attached && self.attached.hasOwnProperty(key))
+            .map(key => self.attached[key].id =
+                sanitize(inputData[key], self.attached[key].type));
+
+        // set non-referenced attributes
+        Object.keys(inputData)
+            .filter(key => self.attributes && self.attributes.hasOwnProperty(key))
+            .map(key => self.attributes[key].value =
+                sanitize(inputData[key], self.attributes[key].type));
+
     }
 }
 
@@ -198,8 +198,8 @@ function setValue(key, value) {
  */
 
 function getId() {
-    return this.hasNode
-        ? this.attributes.nodes_id
+    return this.node
+        ? this.node.getId()
         : this.attributes.id;
 }
 
@@ -211,13 +211,10 @@ function getId() {
  */
 
 function setId(id) {
-    if (this.hasNode) {
-        this.attributes.nodes_id = id;
-        this.node.attributes.id = id;
-    }
-    else {
+    if (this.node)
+        this.node.setId(id);
+    else
         this.attributes.id = id;
-    }
 }
 
 /**
@@ -227,7 +224,7 @@ function setId(id) {
  */
 
 function getIdKey() {
-    return this.hasNode ? 'nodes_id' : 'id';
+    return this.node ? 'nodes_id' : 'id';
 }
 
 /**

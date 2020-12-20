@@ -30,17 +30,17 @@ export default function Services(model) {
     // load query strings for specified model
     try {
         // prepare default queries
-        Object.entries(queries.defaults)
-            .forEach(([key, query]) => {
-                this.queries[key] = query(model);
-            });
+        Object.keys(queries.defaults)
+            .map(key => { this.queries[key] = queries.defaults[key](model) });
 
         // override with model-specific queries
-        if (queries.hasOwnProperty(model.name))
-            Object.entries(queries[model.name])
-                .forEach(([key, query]) => {
-                    this.queries[key] = query(model);
-                });
+        Object.keys(queries)
+            .filter(key => key === model.name)
+            .map(qKey => {
+                Object.keys(queries[qKey])
+                    .map(key => this.queries[key] = queries[qKey][key](model) )
+            })
+
     } catch (err) {
         throw err;
     }
@@ -80,6 +80,7 @@ export default function Services(model) {
 
     this.select = async function(id) {
         this.model.setId(id);
+        console.log('!!!\n\nModel ID: ', this.model.getId(), this.model.getIdKey())
         const stmts = {
             node: null,
             model: this.queries.select,
@@ -167,6 +168,7 @@ export default function Services(model) {
             // process node query (if provided)
             if (stmts.node) {
                 const {sql, data} = stmts.node(item.node);
+                console.log(stmts.node, item.node, sql, data)
                 const res = await client.query(sql, data);
                 // update item with returned data for further processing
                 item.setId(res.rows[0].id);

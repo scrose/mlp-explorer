@@ -293,7 +293,7 @@ Object.keys(mockItems).forEach(modelName => {
             Model = await db.model.create(modelTable);
             let model = new Model();
 
-            console.log(testItem)
+            console.log('\n\nTEST ITEM:', testItem)
 
             await agent
                 .get(`${BASE_URL}${modelRoute}/${testItem.nodes_id}`)

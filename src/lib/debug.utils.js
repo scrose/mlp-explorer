@@ -15,6 +15,6 @@
  */
 
 export default function (msg, err=null) {
-    if (process.env.DEBUG === 1) console.log(msg);
-    if (err) console.log(err);
+    //if (process.env.DEBUG === 1) console.log(msg);
+    //if (err) console.log(err);
 }

@@ -79,7 +79,7 @@ export function findByOwner(model) {
 }
 
 /**
- * Generate query: Insert new record.
+ * Generate query: Insert new record into database.
  *
  * @param {Object} item
  * @return {Function} query binding function
@@ -92,8 +92,6 @@ export function insert(item) {
     if (!item) return null;
 
     const timestamps = ['created_at', 'updated_at'];
-
-    console.log('INSERT this ITEM: ', item);
 
     // filter ignored columns
     const ignore = [item.getIdKey()];
@@ -114,8 +112,6 @@ export function insert(item) {
                         VALUES (${vals.join(',')})
                         RETURNING *;`;
 
-    console.log('USING: ', sql);
-
     // return query function
     return function(item) {
         // collate data as value array
@@ -127,7 +123,7 @@ export function insert(item) {
 }
 
 /**
- * Generate query: Update record data in table.
+ * Generate query: Update record in table.
  *
  * @param {Object} item
  * @return {Function} sql query
@@ -172,22 +168,20 @@ export function update(item) {
 }
 
 /**
- * Generate query: Delete record.
+ * Generate query: Delete record from database.
  *
  * @param {Object} model
- * @param {Object} args
  * @return {function(*): {data: [*], sql: string}} sql query
  * @public
  */
 
-export function remove(model, args = { col: 'id', type: 'integer', index: 1 }) {
+export function remove(model) {
     return function(item) {
-        let data = item.getData();
         return {
             sql: `DELETE FROM ${model.table} 
-            WHERE ${args.col} = $${args.index++}::${args.type}
+            WHERE ${model.getIdKey()} = $1::integer
             RETURNING *;`,
-            data: [data.id],
+            data: [item.getId()],
         };
     };
 }
@@ -196,12 +190,12 @@ export function remove(model, args = { col: 'id', type: 'integer', index: 1 }) {
  * Generate query: Retrieve node entry for given item
  *
  * @param {Object} model
- * @return {Function} query function
+ * @return {Function} query function / null if no node
  * @public
  */
 
 export function getNode(model) {
-    return model.hasNode
+    return model.node
         ? function(node) {
             const sql = `SELECT *
                          FROM nodes
@@ -211,63 +205,55 @@ export function getNode(model) {
                 data: [node.attributes.id],
             };
         }
-        : function(_) {
-            return null;
-        };
+        : null;
 }
 
 /**
  * Generate query: Insert node entry for given item
  *
  * @param {Object} model
- * @return {Function} query function
+ * @return {Function} query function / null if no node
  * @public
  */
 
 export function insertNode(model) {
-    return model.hasNode
+    return model.node
         ? function(node) {
             return insert(node);
         }
-        : function(_) {
-            return null;
-        };
+        : null;
 }
 
 /**
  * Generate query: Update node entry for given item
  *
  * @param {Object} model
- * @return {Function} query function
+ * @return {Function} query function / null if no node
  * @public
  */
 
 export function updateNode(model) {
-    return model.hasNode
+    return model.node
         ? function(node) {
             return update(node);
         }
-        : function(_) {
-            return null;
-        };
+        : null;
 }
 
 /**
  * Generate query: Delete node entry for given item
  *
  * @param {Object} model
- * @return {Function} query function
+ * @return {Function} query function / null if no node
  * @public
  */
 
 export function removeNode(model) {
-    return model.hasNode
+    return model.node
         ? function(node) {
             return remove(node);
         }
-        : function(_) {
-            return null;
-        };
+        : null;
 }
 
 /**

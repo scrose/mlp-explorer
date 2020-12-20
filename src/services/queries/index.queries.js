@@ -38,7 +38,7 @@ export default {
     defaults: {
         getAll: defaults.getAll,
         select: defaults.select,
-        append: defaults.append,
+        // append: defaults.append,
         insert: defaults.insert,
         update: defaults.update,
         remove: defaults.remove,
