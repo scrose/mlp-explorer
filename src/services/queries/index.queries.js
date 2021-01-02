@@ -42,12 +42,13 @@ export default {
         insert: defaults.insert,
         update: defaults.update,
         remove: defaults.remove,
-        getNode: defaults.getNode,
+        selectNode: defaults.selectNode,
         insertNode: defaults.insertNode,
         updateNode: defaults.updateNode,
         removeNode: defaults.removeNode
     },
     schema: {
+        getNode: defaults.getNode,
         getModelTypes: defaults.getNodeTypes,
         getTables: defaults.getTables,
         getColumns: defaults.getColumns,

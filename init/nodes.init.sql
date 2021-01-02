@@ -29,15 +29,18 @@ values ('users', 'Users'),
        ('locations', 'Location'),
        ('historic_captures', 'HistoricCapture'),
        ('modern_captures', 'Capture'),
-       ('capture_images', 'CaptureImage'),
-       ('images', 'Image'),
+       ('historic_images', 'Historic Image'),
+       ('modern_images', 'Modern Image'),
+       ('supplemental_images', 'Supplemental Images'),
        ('glass_plate_listings', 'Glass Plate Listings'),
        ('cameras', 'Cameras'),
        ('lens', 'Lenses'),
        ('metadata_files', 'Metadata Files'),
+       ('field_notes', 'Field Notes'),
        ('maps', 'Maps'),
        ('participants', 'Participants'),
-       ('participant_groups', 'Participant Groups');
+       ('participant_groups', 'Participant Groups'),
+       ('files', 'Files');
 
 
 -- -------------------------------------------------------------
@@ -76,21 +79,24 @@ values ('projects', null),
        ('modern_captures', 'modern_visits'),
        ('modern_captures', 'stations'),
        ('modern_captures', 'locations'),
-       ('capture_images', 'modern_captures'),
-       ('capture_images', 'historic_captures'),
-       ('images', 'locations'),
-       ('images', 'stations'),
-       ('images', 'survey_seasons'),
-       ('images', 'surveys'),
-       ('images', 'modern_visits'),
+       ('modern_images', 'modern_captures'),
+       ('historic_images', 'historic_captures'),
+       ('supplemental_images', 'locations'),
+       ('supplemental_images', 'stations'),
+       ('supplemental_images', 'survey_seasons'),
+       ('supplemental_images', 'surveys'),
+       ('supplemental_images', 'modern_visits'),
        ('cameras', 'historic_captures'),
        ('cameras', 'modern_captures'),
-       ('cameras', 'images'),
+       ('cameras', 'historic_images'),
+       ('cameras', 'modern_images'),
+       ('cameras', 'supplemental_images'),
        ('glass_plate_listings', 'survey_seasons'),
        ('maps', 'survey_seasons'),
        ('participant_groups', 'modern_visits'),
        ('metadata_files', 'modern_visits'),
-       ('metadata_files', 'stations');
+       ('metadata_files', 'stations'),
+       ('field_notes', 'modern_visits');
 
 
 -- -------------------------------------------------------------
@@ -134,7 +140,7 @@ CREATE TABLE "public"."projects" (
          "name" character varying(255),
          "description" text,
          CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
-             REFERENCES nodes (id)
+             REFERENCES nodes (id) ON DELETE CASCADE
 ) WITH (oids = false);
 
 -- populate the nodes table
@@ -166,7 +172,7 @@ CREATE TABLE "public"."surveyors" (
       "short_name" character varying(255),
       "affiliation" character varying(255),
       CONSTRAINT "fk_nodes_id" FOREIGN KEY (nodes_id)
-          REFERENCES "nodes" (id)
+          REFERENCES "nodes" (id) ON DELETE CASCADE
 ) WITH (oids = false);
 
 -- populate the nodes table
@@ -200,9 +206,9 @@ CREATE TABLE "public"."surveys" (
         "name" character varying(255),
         "historical_map_sheet" character varying(255),
         CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
-            REFERENCES nodes (id),
+            REFERENCES nodes (id) ON DELETE CASCADE,
         CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
-            REFERENCES nodes (id)
+            REFERENCES nodes (id) ON DELETE CASCADE
 ) WITH (oids = false);
 
 -- update owner ids
@@ -246,9 +252,9 @@ CREATE TABLE "public"."survey_seasons" (
        "sources" text,
        "notes" text,
        CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
-           REFERENCES nodes (id),
+           REFERENCES nodes (id) ON DELETE CASCADE,
        CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
-           REFERENCES nodes (id)
+           REFERENCES nodes (id) ON DELETE CASCADE
 ) WITH (oids = false);
 
 CREATE INDEX if not exists "index_old_survey_seasons_on_record_id"
@@ -293,12 +299,15 @@ CREATE TABLE "public"."stations" (
          "nodes_id" integer primary key,
          "owner_id" integer not null,
          "name" character varying(255),
-         "coord" coordinate,
+         lat  double precision,
+         long double precision,
+         elev double precision,
+         azim double precision,
          "nts_sheet" character varying(255),
          CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
-             REFERENCES nodes (id),
+             REFERENCES nodes (id) ON DELETE CASCADE,
          CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
-             REFERENCES nodes (id)
+             REFERENCES nodes (id) ON DELETE CASCADE
 ) WITH (oids = false);
 
 -- update owner data
@@ -325,7 +334,9 @@ select id, owner_id from nodes where type='stations' order by old_id;
 update stations
 set name=q.name,
     nts_sheet=q.nts_sheet,
-    coord=ROW(q.lat, q.long, q.elevation, null)
+    lat=q.lat,
+    long=q.long,
+    elev=q.elevation
 from (select * from old_stations order by id) as q
 where (select old_id from nodes where id=stations.nodes_id) = q.id;
 
@@ -342,9 +353,9 @@ CREATE TABLE "public"."historic_visits" (
         "date" date,
         "comments" text,
         CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
-            REFERENCES nodes (id),
+            REFERENCES nodes (id) ON DELETE CASCADE,
         CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
-            REFERENCES nodes (id)
+            REFERENCES nodes (id) ON DELETE CASCADE
 ) WITH (oids = false);
 
 -- update owner ids
@@ -395,9 +406,9 @@ CREATE TABLE "public"."modern_visits" (
       "fn_physical_location" character varying(255),
       "fn_transcription_comment" text,
       CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
-          REFERENCES nodes (id),
+          REFERENCES nodes (id) ON DELETE CASCADE,
       CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
-          REFERENCES nodes (id)
+          REFERENCES nodes (id) ON DELETE CASCADE
 ) WITH (oids = false);
 
 -- update owner ids
@@ -447,11 +458,14 @@ CREATE TABLE "public"."locations" (
       "location_identity" character varying(255),
       "legacy_photos_start" integer,
       "legacy_photos_end" integer,
-      "coord" coordinate,
+      lat  double precision,
+      long double precision,
+      elev double precision,
+      azim double precision,
       CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
-          REFERENCES nodes (id),
+          REFERENCES nodes (id) ON DELETE CASCADE,
       CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
-          REFERENCES nodes (id)
+          REFERENCES nodes (id) ON DELETE CASCADE
 ) WITH (oids = false);
 
 -- update owner ids
@@ -473,7 +487,9 @@ set location_narrative=q.location_narrative,
     location_identity=q.location_identity,
     legacy_photos_start=q.legacy_photos_start,
     legacy_photos_end=q.legacy_photos_end,
-    coord=ROW(q.lat, q.long, q.elevation, null)
+    lat=q.lat,
+    long=q.long,
+    elev=q.elevation
 from (select * from old_locations order by id) as q
 where (select old_id from nodes where id=locations.nodes_id) = q.id;
 
@@ -486,6 +502,190 @@ where (select old_id from nodes where id=locations.nodes_id) = q.id;
 --    ALTER TABLE old_locations DROP CONSTRAINT IF EXISTS check_longitude;
 --    ALTER TABLE old_locations ADD CONSTRAINT check_longitude
 --    CHECK (old_stations.long ~* '^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$')
+
+
+-- -------------------------------------------------------------
+--    Historic Captures
+-- -------------------------------------------------------------
+
+DROP TABLE IF EXISTS "historic_captures";
+
+CREATE TABLE "public"."historic_captures" (
+      "nodes_id" integer primary key,
+      "owner_id" integer not null,
+      "plate_id" character varying(255),
+      "fn_photo_reference" character varying(255),
+      "f_stop" double precision,
+      "shutter_speed" character varying(255),
+      "focal_length" integer,
+      "cameras_id" integer,
+      "lens_id" integer,
+      "capture_datetime" timestamp,
+      "digitization_location" character varying(255),
+      "digitization_datetime" timestamp,
+      "lac_ecopy" character varying(255),
+      "lac_wo" character varying(255),
+      "lac_collection" character varying(255),
+      "lac_box" character varying(255),
+      "lac_catalogue" character varying(255),
+      "condition" character varying(255),
+      "comments" character varying(255),
+      CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
+          REFERENCES nodes (id) ON DELETE CASCADE,
+      CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
+          REFERENCES nodes (id) ON DELETE CASCADE,
+      CONSTRAINT fk_camera FOREIGN KEY (cameras_id)
+          REFERENCES cameras (id),
+      CONSTRAINT fk_lens FOREIGN KEY (lens_id)
+          REFERENCES lens (id)
+) WITH (oids = false);
+
+-- update owner ids in captures with nodes reference ids
+-- update owner data
+update old_historic_captures
+set capture_owner_type=q.name
+from (select * from node_types) as q
+where old_historic_captures.capture_owner_type=q.label;
+
+update old_historic_captures
+set capture_owner_id=q.id
+from (select * from nodes) as q
+where old_historic_captures.capture_owner_id=q.old_id
+  and q.type=old_historic_captures.capture_owner_type;
+
+-- populate the nodes table with captures
+insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path)
+select id, 'historic_captures', capture_owner_id, capture_owner_type, created_at, updated_at, published, null
+from old_historic_captures order by id;
+
+-- populate the historic_captures table
+insert into historic_captures (nodes_id, owner_id)
+select id, owner_id from nodes where type='historic_captures' order by old_id;
+
+update  historic_captures
+set plate_id = q.plate_id,
+    fn_photo_reference=q.fn_photo_reference,
+    f_stop=q.f_stop,
+    shutter_speed=q.shutter_speed,
+    focal_length=q.focal_length,
+    cameras_id=q.camera_id,
+    lens_id=q.lens_id,
+    capture_datetime=q.capture_datetime,
+    digitization_location=q.digitization_location,
+    digitization_datetime=q.digitization_datetime,
+    lac_ecopy=q.lac_ecopy,
+    lac_wo=q.lac_wo,
+    lac_collection=q.lac_collection,
+    lac_box=q.lac_box,
+    lac_catalogue=q.lac_catalogue,
+    condition=q.condition,
+    comments=q.comments
+from (select * from old_historic_captures order by id) as q
+where (select old_id from nodes where id=historic_captures.nodes_id) = q.id;
+
+
+-- update shutter speed column (convert to float)
+-- convert empty strings to nulls
+UPDATE historic_captures SET shutter_speed=NULL where shutter_speed = '';
+UPDATE historic_captures SET shutter_speed = regexp_replace(shutter_speed, '1/', '');
+ALTER TABLE historic_captures
+    ALTER COLUMN shutter_speed TYPE double precision USING NULLIF(shutter_speed, '')::double precision;
+
+-- Latitude/Longitude constraints
+--    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_latitude;
+--    ALTER TABLE stations ADD CONSTRAINT check_latitude
+--    CHECK (stations.lat ~* '^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$')
+--
+--    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_longitude;
+--    ALTER TABLE stations ADD CONSTRAINT check_longitude
+--    CHECK (stations.long ~* '^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$')
+
+-- -------------------------------------------------------------
+--    Modern Captures
+-- -------------------------------------------------------------
+
+DROP TABLE IF EXISTS "modern_captures";
+
+CREATE TABLE "public"."modern_captures" (
+    "nodes_id" integer primary key,
+    "owner_id" integer not null,
+    "fn_photo_reference" character varying(255),
+    "f_stop" double precision,
+    "shutter_speed" character varying(255),
+    "iso" integer,
+    "focal_length" integer,
+    "cameras_id" integer,
+    "lens_id" integer,
+    "capture_datetime" timestamp,
+    "lat" double precision,
+    "long" double precision,
+    "elev" double precision,
+    "azimuth" integer,
+    "comments" character varying(255),
+    "alternate" boolean,
+    CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
+        REFERENCES nodes (id) ON DELETE CASCADE,
+    CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
+        REFERENCES nodes (id) ON DELETE CASCADE,
+    CONSTRAINT fk_camera FOREIGN KEY (cameras_id)
+        REFERENCES cameras (id),
+    CONSTRAINT fk_lens FOREIGN KEY (lens_id)
+        REFERENCES lens (id)
+) WITH (oids = false);
+
+-- update owner data
+update old_captures
+set capture_owner_type=q.name
+from (select * from node_types) as q
+where old_captures.capture_owner_type=q.label;
+
+update old_captures
+set capture_owner_id=q.id
+from (select * from nodes) as q
+where old_captures.capture_owner_id=q.old_id
+  and q.type=old_captures.capture_owner_type;
+
+-- populate the nodes table with captures
+insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path)
+select id, 'modern_captures', capture_owner_id, capture_owner_type, created_at, updated_at, published, null
+from old_captures order by id;
+
+-- populate the modern_captures table
+insert into modern_captures (nodes_id, owner_id)
+select id, owner_id from nodes where type='modern_captures' order by old_id;
+
+update  modern_captures
+set  fn_photo_reference=q.fn_photo_reference,
+     f_stop=q.f_stop,
+     shutter_speed=q.shutter_speed,
+     focal_length=q.focal_length,
+     cameras_id=q.camera_id,
+     lens_id=q.lens_id,
+     capture_datetime=q.capture_datetime,
+     lat=q.lat,
+     long=q.long,
+     elev=q.elevation,
+     azimuth=q.azimuth,
+     alternate=q.alternate,
+     comments=q.comments
+from (select * from old_captures order by id) as q
+where (select old_id from nodes where id=modern_captures.nodes_id) = q.id;
+
+-- update shutter speed column (convert to float)
+UPDATE modern_captures SET shutter_speed=NULL where shutter_speed = '';
+UPDATE modern_captures SET shutter_speed = regexp_replace(shutter_speed, '1/', '')::double precision;
+ALTER TABLE modern_captures
+    ALTER COLUMN shutter_speed TYPE double precision USING NULLIF(shutter_speed, '')::double precision;
+
+-- Latitude/Longitude constraints
+--    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_latitude;
+--    ALTER TABLE stations ADD CONSTRAINT check_latitude
+--    CHECK (stations.lat ~* '^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)$')
+--
+--    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_longitude;
+--    ALTER TABLE stations ADD CONSTRAINT check_longitude
+--    CHECK (stations.long ~* '^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$')
+
 
 commit;
 

@@ -7,6 +7,31 @@ drop table if exists user_roles CASCADE;
 drop table if exists user_permissions CASCADE;
 
 -- -------------------------------------------------------------
+-- Views
+-- -------------------------------------------------------------
+
+DO
+$$
+    BEGIN
+        CREATE TYPE views
+        AS ENUM (
+            'list',
+            'show',
+            'edit',
+            'create',
+            'remove',
+            'login',
+            'logout',
+            'register',
+            'download',
+            'upload'
+            );
+    EXCEPTION
+        WHEN duplicate_object THEN null;
+    END
+$$;
+
+-- -------------------------------------------------------------
 -- User Roles Table
 -- -------------------------------------------------------------
 
@@ -31,11 +56,11 @@ CREATE TABLE IF NOT EXISTS users
     password               VARCHAR(512)        NOT NULL,
     salt_token             VARCHAR(255)        NOT NULL,
     reset_password_token   VARCHAR(255),
-    reset_password_expires TIMESTAMP,
-    last_sign_in_at        TIMESTAMP,
+    reset_password_expires timestamp without time zone,
+    last_sign_in_at        timestamp without time zone,
     last_sign_in_ip        VARCHAR(255),
-    created_at             TIMESTAMP,
-    updated_at             TIMESTAMP,
+    created_at             timestamp without time zone NOT NULL,
+    updated_at             timestamp without time zone NOT NULL,
     FOREIGN KEY (role) REFERENCES user_roles (name),
     CHECK (email ~* '^[a-zA-Z0-9_+&-]+(?:.[a-zA-Z0-9_+&-]+)*@(?:[a-zA-Z0-9-]+.)+[a-zA-Z]{2,7}$'),
     CHECK (password ~* '^[a-fA-F0-9]+$'),
@@ -100,8 +125,8 @@ CREATE TABLE IF NOT EXISTS user_permissions
     model      VARCHAR(40),
     view       views,
     role       VARCHAR(512) NOT NULL,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
     UNIQUE (model, view, role),
     FOREIGN KEY (model) REFERENCES node_types (name),
     FOREIGN KEY (role) REFERENCES user_roles (name)
@@ -153,8 +178,14 @@ VALUES (null, 'list', 'visitor', now(), now()),
        ('users', 'logout', 'contributor', now(), now()),
        ('users', 'logout', 'editor', now(), now()),
        ('users', 'logout', 'administrator', now(), now()),
-       ('users', 'logout', 'super_administrator', now(), now())
-
+       ('users', 'logout', 'super_administrator', now(), now()),
+       ('files', 'download', 'contributor', now(), now()),
+       ('files', 'download', 'editor', now(), now()),
+       ('files', 'download', 'administrator', now(), now()),
+       ('files', 'download', 'super_administrator', now(), now()),
+       ('files', 'upload', 'editor', now(), now()),
+       ('files', 'upload', 'administrator', now(), now()),
+       ('files', 'upload', 'super_administrator', now(), now())
 
 -- -------------------------------------------------------------
 --    Initialize Super-Administrator user

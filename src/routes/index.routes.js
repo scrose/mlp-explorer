@@ -14,6 +14,7 @@ const router = express.Router();
 import mainRoutes from './main.routes.js'
 import userRoutes from './users.routes.js'
 import modelRoutes from './models.routes.js'
+import uploadRoutes from './files.routes.js'
 
 /**
  * Include routers.
@@ -22,5 +23,6 @@ import modelRoutes from './models.routes.js'
 router.use('/', mainRoutes);
 router.use('/', userRoutes);
 router.use('/', modelRoutes);
+router.use('/', uploadRoutes);
 
 export default router;

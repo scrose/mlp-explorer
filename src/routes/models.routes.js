@@ -97,14 +97,12 @@ async function initRoutes() {
                 // create routes instance
                 let routes = new Routes(modelType);
 
-                // controller initialization
-                router.use(routes.controller.init);
-
                 // add default routes
                 Object.entries(routes.routes).forEach(([view, route]) => {
 
                     router.route(route.path)
                         .all(function(req, res, next) {
+
                             // get model ID parameter (if exists)
                             let reqId = req.params.hasOwnProperty(routes.key)
                                 ? req.params[routes.key]
@@ -119,6 +117,10 @@ async function initRoutes() {
                             });
 
                         })
+                        .all(function(req, res, next) {
+                        // initialize controller
+                        routes.controller.init(req, res, next);
+                    })
                         .get(function(req, res, next) {
                             if (!route.get) next(new Error('notImplemented'));
                             route.get(req, res, next);

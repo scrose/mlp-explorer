@@ -14,6 +14,7 @@
 
 import pool from './pgdb.js';
 import queries from './queries/index.queries.js';
+import { createNode } from './model.construct.services.js';
 
 /**
  * Export database model services constructor
@@ -24,6 +25,7 @@ import queries from './queries/index.queries.js';
  */
 
 export default function Services(model) {
+
     this.model = model;
     this.queries = {};
 
@@ -40,6 +42,8 @@ export default function Services(model) {
                 Object.keys(queries[qKey])
                     .map(key => this.queries[key] = queries[qKey][key](model) )
             })
+
+        console.log('Queries for', model, this.queries)
 
     } catch (err) {
         throw err;
@@ -80,7 +84,6 @@ export default function Services(model) {
 
     this.select = async function(id) {
         this.model.setId(id);
-        console.log('!!!\n\nModel ID: ', this.model.getId(), this.model.getIdKey())
         const stmts = {
             node: null,
             model: this.queries.select,
@@ -149,6 +152,8 @@ export default function Services(model) {
         return await this.transact(item, stmts);
     };
 
+
+
     /**
      * Perform transaction query.
      *
@@ -163,30 +168,41 @@ export default function Services(model) {
         const client = await pool.connect();
 
         try {
+            // transaction result
+            let res;
+
             await client.query('BEGIN');
 
             // process node query (if provided)
             if (stmts.node) {
-                const {sql, data} = stmts.node(item.node);
-                console.log(stmts.node, item.node, sql, data)
-                const res = await client.query(sql, data);
+                // create node from item node reference
+                let node = await createNode(item);
+                // generate prepared statements collated with data
+                const {sql, data} = stmts.node(node);
+                res = await client.query(sql, data);
+
+                console.log('Node getting dropped:', item.attributes, sql, data)
                 // update item with returned data for further processing
                 item.setId(res.rows[0].id);
             }
 
-            // process primary model query
-            const {sql, data} = stmts.model(item);
-            console.log('!!!QUERY: ', sql, data)
-            let res = await client.query(sql, data)
+            // process primary model query (if exists)
+            // process node query (if provided)
+            if (stmts.model) {
+                const { sql, data } = stmts.model(item);
+                res = await client.query(sql, data)
 
-            // process supplemental statements (e.g. foreign key references)
-            await Promise.all(stmts.attached.map(async (stmt) => {
-                const val = item.getValue(item.fk_col);
-                const {sql, data} = stmt(item, val);
-                res.attached = await client.query(sql, data);
-            }));
+                // process supplemental statements (e.g. foreign key references)
+                res.attached = await Promise.all(stmts.attached.map(async (stmt) => {
+                    console.log(stmt);
+                    const val = item.getValue(item.name);
+                    const {sql, data} = stmt(item, val);
+                    return await client.query(sql, data);
+                }));
+            }
 
             await client.query('COMMIT');
+
             return res;
 
         } catch (err) {

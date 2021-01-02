@@ -41,7 +41,7 @@ let mockItems = {
     },
     surveySeasons: {
         nodes_id: null,
-        owner_id: 16,
+        owner_id: 151,
         year: 1933,
         geographic_coverage: 'TEST',
         record_id: 0,
@@ -55,18 +55,22 @@ let mockItems = {
     },
     stations: {
         nodes_id: null,
-        owner_id: 40,
-        owner_type: 'survey_seasons',
+        owner_id: 312,
         name: 'TEST',
         lat: 100.1,
         long: 100.1,
-        elevation: 100.1,
-        nts_sheet: 'TEST',
-        published: false
+        elev: 100.1,
+        nts_sheet: 'TEST'
     },
-    visits: {
+    historicVisits: {
         nodes_id: null,
-        owner_id: 61,
+        owner_id: 805,
+        date: '1927-01-01',
+        comments: 'TEXT'
+    },
+    modernVisits: {
+        nodes_id: null,
+        owner_id: 805,
         date: '2005-08-19',
         start_time: '14:00:00',
         finish_time: '17:00:00',
@@ -82,23 +86,54 @@ let mockItems = {
         weather_rh: 15,
         weather_wb: 22
     },
-    historicVisits: {
-        nodes_id: null,
-        owner_id: 9,
-        date: '1927-01-01',
-        comments: 'TEXT'
-    },
     locations: {
         nodes_id: null,
-        owner_id: 23,
+        owner_id: 6635,
         location_narrative: 'TEXT',
         location_identity: 'TEXT',
         lat: 100.1,
         long: 100.1,
-        elevation: 100.1,
+        elev: 100.1,
         legacy_photos_start: 5,
-        legacy_photos_end: 8,
-        published: true
+        legacy_photos_end: 8
+    },
+    historicCaptures: {
+        nodes_id: null,
+        owner_id: 4328,
+        plate_id:'529',
+        fn_photo_reference: 'TEXT',
+        f_stop: 555,
+        shutter_speed: 34,
+        focal_length: 12,
+        capture_datetime: '2014-07-09 16:49:00.572006',
+        cameras_id: 6,
+        lens_id: null,
+        digitization_location: 'LAC',
+        digitization_datetime: '2014-07-09 16:49:00.572006',
+        lac_ecopy: 'IDENTIFIER',
+        lac_wo: 'IDENTIFIER',
+        lac_collection: 'IDENTIFIER',
+        lac_box: 'IDENTIFIER',
+        lac_catalogue: 'IDENTIFIER',
+        condition: 'DESCRIPTION',
+        comments: 'TEXT'
+    },
+    modernCaptures:{
+        nodes_id: null,
+        owner_id: 7848,
+        fn_photo_reference: 'IDENTIFIER',
+        f_stop: 55,
+        shutter_speed: 55,
+        focal_length: 56,
+        capture_datetime: '2014-07-09 16:49:00.572006',
+        cameras_id: 6,
+        lens_id: null,
+        lat: 100.1,
+        long: 100.1,
+        elev: 100.1,
+        azimuth: 300,
+        comments: 'TEXT',
+        alternate: true
     }
 }
 

@@ -1,14 +1,10 @@
 -- =========================================================
--- Schema Migration script
+-- Schema Migration script: Clean Up
 -- =========================================================
--- Restore database to original:
--- db reset >>> psql -U boutrous mlp2 < path/to/original/meat.sql
--- db reset >>> psql -U boutrous mlp2 < /Users/boutrous/Workspace/NodeJS/db/meat.sql
--- db reset >>> psql -U boutrous mlp2 < /Users/boutrous/Workspace/NodeJS/mlp-db/meat.sql
 
 begin;
 
--- remove old tables
+-- delete old tables
 drop table if exists old_capture_images cascade;
 drop table if exists old_projects cascade;
 drop table if exists old_surveyors cascade;
@@ -22,12 +18,18 @@ drop table if exists old_historic_captures cascade;
 drop table if exists old_captures cascade;
 drop table if exists old_capture_images cascade;
 drop table if exists old_images cascade;
-drop table if exists field_notes cascade;
-drop table if exists hiking_parties cascade;
-drop table if exists photographers_visits cascade;
+drop table if exists old_glass_plate_listings cascade;
+drop table if exists old_maps cascade;
+drop table if exists old_metadata_files cascade;
+drop table if exists old_field_notes cascade;
+drop table if exists old_fn_authors_visits cascade;
+drop table if exists old_hiking_parties cascade;
+drop table if exists old_photographers_visits cascade;
+drop table if exists preferences cascade;
 
--- remove old_id from nodes
+-- remove old_id from nodes, files tables
 alter table nodes drop column old_id;
+alter table files drop column old_id;
 
 -- update labels on node types
 update public.node_types
@@ -37,10 +39,9 @@ set label='Historic Visit' where name='historic_visit';
 update public.node_types
 set label='Historic Capture' where name='historic_captures';
 update public.node_types
-set label='Modern Visit' where name='modern_visits';
+set label='Historic Image' where name='historic_images';
 update public.node_types
-set label='Modern Capture' where name='modern_captures';
-
+set label='Modern Visit' where name='modern_visits';
 
 commit;
 

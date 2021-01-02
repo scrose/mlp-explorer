@@ -9,6 +9,7 @@
 
 import { humanize, sanitize, toCamel } from '../lib/data.utils.js';
 import * as schemaConstructor from './schema.construct.services.js';
+import { getNode } from './schema.construct.services.js';
 
 /**
  * Create derived model through composition. The model schema
@@ -72,28 +73,23 @@ export const create = async (modelType) => {
             writable: true
         },
         node: {
-            value: schema.node,
-            writable: true
+            get: schema.getNode,
         },
         owner: {
-            value: schema.owner,
-            writable: true
+            get: schema.getOwner,
         },
         attached: {
-            value: schema.attached,
-            writable: true
+            get: schema.getAttached,
         },
-        getId: {
-            value: getId,
-            writable: false
+        id: {
+            get: getId,
         },
         setId: {
             value: setId,
             writable: false
         },
-        getIdKey: {
-            value: getIdKey,
-            writable: false
+        idKey: {
+            get: getIdKey,
         },
         getValue: {
             value: getValue,
@@ -129,9 +125,6 @@ export const create = async (modelType) => {
 
 function setData(data=null) {
 
-    // create context reference
-    const self = this;
-
     // select object-defined data
     if (typeof data === 'object' && data !== null) {
 
@@ -139,41 +132,19 @@ function setData(data=null) {
         // NOTE: model can only hold data for single record
         const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
 
-        // check attribute exists in model schema
-        Object.keys(inputData)
-            .filter(key => !(
-                (self.node && key === self.node.attribute)
-                || (self.owner && key === self.owner.attribute)
-                || (self.attached && self.attached.hasOwnProperty(key))
-                || (self.attributes && self.attributes.hasOwnProperty(key))
-            ))
-            .map(_ => {throw Error('invalidInputData')});
+        console.log(this.attributes);
 
-        // set nodes reference
+        // assert attributes exist in model schema
         Object.keys(inputData)
-            .filter(key => self.node && key === self.node.attribute)
-            .map(key => {
-                self.node.setId(sanitize(inputData[key], self.node.type));
-            });
+            .filter(key => !(this.attributes
+                && this.attributes.hasOwnProperty(key)))
+            .map(key => {console.log(key); throw Error('invalidInputData')});
 
-        // set owner reference
+        // set attribute values from data
         Object.keys(inputData)
-            .filter(key => self.owner && key === self.owner.attribute)
-            .map(key => self.owner.id =
-                sanitize(inputData[key], self.owner.type));
-
-        // set attached references
-        Object.keys(inputData)
-            .filter(key => self.attached && self.attached.hasOwnProperty(key))
-            .map(key => self.attached[key].id =
-                sanitize(inputData[key], self.attached[key].type));
-
-        // set non-referenced attributes
-        Object.keys(inputData)
-            .filter(key => self.attributes && self.attributes.hasOwnProperty(key))
-            .map(key => self.attributes[key].value =
-                sanitize(inputData[key], self.attributes[key].type));
-
+            .filter(key => this.attributes && this.attributes.hasOwnProperty(key))
+            .map(key => this.attributes[key].value =
+                sanitize(inputData[key], this.attributes[key].type));
     }
 }
 
@@ -199,12 +170,12 @@ function setValue(key, value) {
 
 function getId() {
     return this.node
-        ? this.node.getId()
-        : this.attributes.id;
+        ? this.attributes.nodes_id.value
+        : this.attributes.id.value;
 }
 
 /**
- * Set ID value in model schema.
+ * Set ID value for model.
  *
  * @param {integer} id
  * @src public
@@ -212,9 +183,9 @@ function getId() {
 
 function setId(id) {
     if (this.node)
-        this.node.setId(id);
+        this.attributes.nodes_id.value = id;
     else
-        this.attributes.id = id;
+        this.attributes.id.value = id;
 }
 
 /**
@@ -228,7 +199,7 @@ function getIdKey() {
 }
 
 /**
- * Get field value from model schema.
+ * Get field value from model attributes.
  *
  * @param {String} field
  * @return {Object} field data
@@ -267,10 +238,6 @@ function clear() {
     Object.entries(this.attributes).map(attr => {
         attr.value = null;
         });
-    if (this.hasNode)
-        Object.entries(this.node.attributes).map(attr => {
-            attr.value = null;
-        });
 }
 
 /**
@@ -287,4 +254,36 @@ function setDataOptions(field, options) {
         && typeof options === 'object')
         this.attributes[field].options = options ? options : null;
 }
+
+
+/**
+ * Generates nodes object from given model instance.
+ *
+ * @public
+ * @params {Object} item
+ * @return {Promise} result
+ */
+
+export const createNode = async function(item) {
+
+    if (!item.node) return null;
+
+    // generate node constructor
+    let Node = await create('nodes');
+
+    // get owner attributes (if exist)
+    let ownerAttrs = item.owner
+        ? await getNode(item.owner.value)
+        : { id: null, type: null }
+
+    // return node instance: set owner attribute values from
+    // retrieved node attributes
+    return new Node({
+        id: item.node.value,
+        type: item.table,
+        owner_id: ownerAttrs.id,
+        owner_type: ownerAttrs.type
+    });
+
+};
 

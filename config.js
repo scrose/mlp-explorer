@@ -13,14 +13,6 @@ import dotenv from 'dotenv';
  */
 
 let settings = {
-    roles: {
-        visitor: 0,
-        registered: 1,
-        editor: 2,
-        contributor: 3,
-        administrator: 4,
-        superAdministrator: 5
-    },
     debug: {
         sessions: false
     },

@@ -21,206 +21,57 @@ import { humanize, toSnake } from '../src/lib/data.utils.js';
  */
 
 let mockItems = {
-    projects: {
+    historicImages:{
         nodes_id: null,
-        name: 'Name Text',
-        description: 'Description Text',
-    },
-    surveyors: {
-        nodes_id: null,
-        given_names: 'Given Names',
-        last_name: 'Last Name',
-        short_name: 'TEST',
-        affiliation: "Affiliation"
-    },
-    surveys: {
-        nodes_id: null,
-        owner_id: 16,
-        name: 'Some Name',
-        historical_map_sheet: 'Historical Map Sheet',
-    },
-    surveySeasons: {
-        nodes_id: null,
-        owner_id: 16,
-        year: 1933,
-        geographic_coverage: 'TEST',
-        record_id: 0,
-        jurisdiction: 'TEST',
-        affiliation: 'TEST',
-        archive: 'TEST',
-        collection: 'TEST',
-        location: 'TEST',
-        sources: 'TEST',
-        notes: 'TEST'
-    },
-    stations: {
-        nodes_id: null,
-        owner_id: 40,
-        owner_type: 'survey_seasons',
-        name: 'TEST',
-        lat: 100.1,
-        long: 100.1,
-        elevation: 100.1,
-        nts_sheet: 'TEST',
-        published: false
-    },
-    visits: {
-        nodes_id: null,
-        owner_id: 61,
-        date: '2005-08-19',
-        start_time: '14:00:00',
-        finish_time: '17:00:00',
-        pilot: 'TEST',
-        rw_call_sign: 'TEXT',
-        visit_narrative: 'TEXT',
-        illustration: false,
-        weather_narrative: 'TEXT',
-        weather_temp: 14,
-        weather_ws: 25,
-        weather_gs: 34,
-        weather_pressure: 101,
-        weather_rh: 15,
-        weather_wb: 22
-    },
-    historicVisits: {
-        nodes_id: null,
-        owner_id: 9,
-        date: '1927-01-01',
-        comments: 'TEXT'
-    },
-    locations: {
-        nodes_id: null,
-        owner_id: 23,
-        location_narrative: 'TEXT',
-        location_identity: 'TEXT',
-        lat: 100.1,
-        long: 100.1,
-        elevation: 100.1,
-        legacy_photos_start: 5,
-        legacy_photos_end: 8,
-        published: true
-    },
-    historicCaptures: {
-        id: null,
-        owner_id: 64,
-        owner_type: 'survey_seasons',
-        plate_id:'529',
-        fn_photo_reference: 'TEXT',
-        f_stop: 555,
-        shutter_speed: 34,
-        focal_length: 12,
-        capture_datetime: '2014-07-09 16:49:00.572006',
-        cameras_id: 6,
-        lens_id: null,
-        digitization_location: 'LAC',
-        digitization_datetime: '2014-07-09 16:49:00.572006',
-        lac_ecopy: 'IDENTIFIER',
-        lac_wo: 'IDENTIFIER',
-        lac_collection: 'IDENTIFIER',
-        lac_box: 'IDENTIFIER',
-        lac_catalogue: 'IDENTIFIER',
-        condition: 'DESCRIPTION',
-        comments: 'TEXT'
-    },
-    captures:{
-        id: null,
-        owner_id: 1051,
-        owner_type: 'locations',
-        fn_photo_reference: 'IDENTIFIER',
-        f_stop: 55,
-        shutter_speed: 55,
-        focal_length: 56,
-        capture_datetime: '2014-07-09 16:49:00.572006',
-        cameras_id: 6,
-        lens_id: null,
-        lat: 100.1,
-        long: 100.1,
-        elevation: 100.1,
-        azimuth: 300,
-        comments: 'TEXT',
-        alternate: true
-    },
-    captureImages:{
-        id: null,
-        owner_id: 3897,
-        owner_type: 'historic_captures',
-        hash_key: 'IDENTIFIER',
-        image: 'IDENTIFIER',
+        owner_id: 9825,
+        filename: 'IDENTIFIER',
         file_size: 5566,
-        x_dim: 1200,
-        y_dim: 1600,
-        image_state: 'MASTER',
-        image_remote: 'IDENTIFIER',
-        image_secure_token: 'IDENTIFIER',
+        x: 1200,
+        y: 1600,
+        image_state: 'master',
+        remote: 'IDENTIFIER',
+        secure_token: 'IDENTIFIER',
         comments: 'TEXT',
-        image_tmp: 'IDENTIFIER',
-        image_remote_processing: false
+        filename_tmp: 'IDENTIFIER'
     },
-    images: {
-        id: null,
-        owner_id: 483,
-        owner_type: 'locations',
-        hash_key: 'IDENTIFIER',
-        image: 'LC2_DSCF0342_011f9804-7099-11e2-a556-c82a14fffed2.JPG',
-        file_size: 89089504,
-        x_dim: 1200,
-        y_dim: 1600,
-        bit_depth: 8,
-        image_remote: 'IDENTIFIER',
-        image_secure_token: 'IDENTIFIER',
+    modernImages:{
+        nodes_id: null,
+        owner_id: 28383,
+        filename: 'IDENTIFIER',
+        file_size: 5566,
+        x: 1200,
+        y: 1600,
+        image_state: 'master',
+        remote: 'IDENTIFIER',
+        secure_token: 'IDENTIFIER',
         comments: 'TEXT',
+        filename_tmp: 'IDENTIFIER'
+    },
+    supplementalImages: {
+        nodes_id: null,
+        owner_id: 7843,
+        image_type: 'location',
+        filename: 'LC2_DSCF0342_011f9804-7099-11e2-a556-c82a14fffed2.JPG',
+        file_size: 78994,
+        x: 899,
+        y: 899,
+        bit_depth: 8,
+        remote: 'REMOTE INFO',
+        secure_token: 'SECURE TOKEN ***&&&',
+        comments: 'COMMENTS TEXT',
         lat: 100.1,
         long: 100.1,
-        f_stop: 55,
-        shutter_speed: 55,
-        focal_length: 56,
-        iso: 50,
+        elev: 3455,
+        azim: 100.1,
+        f_stop: 10,
+        shutter_speed: 0.4,
+        iso: 100,
+        focal_length: 120,
         capture_datetime: '2014-07-09 16:49:00.572006',
-        cameras_id: 6,
+        cameras_id: 9,
         lens_id: null,
-        type: 'location',
-        image_tmp: 'IDENTIFIER',
-        image_remote_processing: false
-    },
-    cameras: {
-        id: null,
-        make: 'TEXT',
-        model: 'TEXT',
-        unit: 'TEXT',
-        format: 'TEXT'
-    },
-    glass_plate_listings: {
-        owner_id: 93,
-        container: 'TEXT',
-        plates: 'TEXT',
-        notes: 'TEXT'
-    },
-    // lens: {
-    //     brand: 'TEXT',
-    //     focal_length: 4,
-    //     max_aperture: 1.11
-    // },
-    maps: {
-        owner_id: 36,
-        nts_map: 'TEXT',
-        historic_map: 'TEXT',
-        links: 'TEXT'
-    },
-    metadata_files:{
-        owner_id: 992,
-        owner_type: 'stations',
-        metadata_type: 'field_notes',
-        filename: 'PATH/to/FILE'
-    },
-    participants: {
-        last_name: 'TEXT',
-        given_names: 'TEXT'
-    },
-    // participant_groups: {
-    //     owner_id: 23,
-    //     participant_id: 38,
-    //     group_type: 'photographers_visits'
-    // }
+        filename_tmp: 'TEMP FILENAME'
+    }
 }
 
 // enumerated types
@@ -293,8 +144,6 @@ Object.keys(mockItems).forEach(modelName => {
             Model = await db.model.create(modelTable);
             let model = new Model();
 
-            console.log('\n\nTEST ITEM:', testItem)
-
             await agent
                 .get(`${BASE_URL}${modelRoute}/${testItem.nodes_id}`)
                 .set('Accept', 'application/json')
@@ -363,6 +212,8 @@ Object.keys(mockItems).forEach(modelName => {
          */
 
         mocha.it('Show item data', async () => {
+
+            console.log('!!!! ---> !!!', item)
             await agent
                 .get(`${BASE_URL}${modelRoute}/${item.nodes_id}`)
                 .set('Accept', 'application/json')

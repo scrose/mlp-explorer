@@ -22,30 +22,11 @@ import * as db from '../services/index.services.js';
 
 let Model, model, services;
 
-
-
 // generate controller constructor
 export default function Controller(modelRoute) {
 
     // check model not null
     if (!modelRoute) throw new Error('invalidModel');
-
-    /**
-     * Get model id value from request parameters. Note: use model
-     * route key (i.e. model.key = '<model_name>_id') to reference route ID.
-     *
-     * @param {Object} params
-     * @return {String} Id
-     * @src public
-     */
-
-    this.getId = function (req) {
-
-        // Ensure model id key is valid
-        if (req.params[model.key] == null)
-            throw new Error('invalidRouteKey');
-        return req.params[model.key];
-    };
 
     /**
      * Initialize the controller.
@@ -57,6 +38,7 @@ export default function Controller(modelRoute) {
      */
 
     this.init = async (req, res, next) => {
+
         // generate model constructor
         Model = await db.model.create(modelRoute)
             .catch((err) => next(err));
@@ -69,7 +51,27 @@ export default function Controller(modelRoute) {
         catch (err) {
             next(err);
         }
+
         next();
+    };
+
+    /**
+     * Get model id value from request parameters. Note: use model
+     * route key (i.e. model.key = '<model_name>_id') to reference route ID.
+     *
+     * @param {Object} params
+     * @return {String} Id
+     * @src public
+     */
+
+    this.getId = function (req) {
+        try {
+            // Throw error if route key is invalid
+            return req.params[model.key];
+        }
+        catch (err) {
+            throw new Error('invalidRouteKey');
+        }
     };
 
     /**
@@ -84,7 +86,7 @@ export default function Controller(modelRoute) {
     this.list = async (req, res, next) => {
         await services
             .getAll()
-            .then((data) => {
+            .then(data => {
                 res.locals.data = data.rows;
                 res.status(200).json(res.locals);
             })
@@ -157,7 +159,6 @@ export default function Controller(modelRoute) {
                 if (data.length === 0)
                     throw new Error('notadded');
                 // retrieve last response data
-                console.log('Now INSERTED: ', data)
                 res.locals.data = data.rows[0];
                 res.message(`Added item to ${item.label}.`, 'success');
                 res.status(200).json(res.locals);
@@ -245,7 +246,7 @@ export default function Controller(modelRoute) {
      */
 
     this.drop = async (req, res, next) => {
-        let id = this.getId(req.params);
+        let id = this.getId(req);
 
         // retrieve item
         let item = await services
@@ -259,7 +260,7 @@ export default function Controller(modelRoute) {
         // delete item
         await services
             .remove(item)
-            .then((data) => {
+            .then(data => {
                 if (data.rows.length === 0) throw new Error('noitem');
                 res.locals.data = data.rows[0];
                 res.message('Item successfully deleted.', 'success');
@@ -268,5 +269,3 @@ export default function Controller(modelRoute) {
             .catch((err) => next(err));
     };
 }
-
-

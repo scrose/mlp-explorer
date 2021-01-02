@@ -58,7 +58,8 @@ export function restrict (res, next, args) {
         ) return next();
 
         // Deny users with lesser admin privileges
-        if (typeof res.locals.restrict === 'undefined' || !restrictedTo.includes(res.locals.restrict) ) {
+        if (typeof res.locals.restrict === 'undefined'
+            || !restrictedTo.includes(res.locals.restrict) ) {
             return next(new Error('restrict'));
         }
         return next();

@@ -48,10 +48,10 @@ export function select(model) {
     return function(item) {
         let sql = `SELECT * 
                 FROM ${model.table} 
-                WHERE ${model.getIdKey()} = $1::integer;`;
+                WHERE ${model.idKey} = $1::integer;`;
         return {
             sql: sql,
-            data: [item.getId()],
+            data: [item.id],
         };
     };
 }
@@ -81,43 +81,57 @@ export function findByOwner(model) {
 /**
  * Generate query: Insert new record into database.
  *
- * @param {Object} item
+ * @param {Object} model
+ * @param {Array} timestamps
  * @return {Function} query binding function
  * @public
  */
 
-export function insert(item) {
+export function insert(
+    model,
+    timestamps = ['created_at', 'updated_at']) {
 
     // return null if instance is null
-    if (!item) return null;
-
-    const timestamps = ['created_at', 'updated_at'];
+    if (!model) return null;
 
     // filter ignored columns
-    const ignore = [item.getIdKey()];
+    const ignore = model.node ? [] : [model.idKey];
     const cols = Object
-        .keys(item.attributes)
+        .keys(model.attributes)
         .filter((key) => {
             return !ignore.includes(key);
         });
 
     // generate prepared sql
-    const vals = cols.map(function(key, index) {
-        let placeholder = timestamps.includes(key) ? `NOW()` : `$${++index}`;
-        return `${placeholder}::${item.attributes[key].type}`;
+    let index = 1;
+    const vals = cols.map(key => {
+        const placeholder = timestamps.includes(key) ? `NOW()` : `$${index++}`;
+        return `${placeholder}::${model.attributes[key].type}`;
     });
 
     // construct prepared statement
-    let sql = `INSERT INTO ${item.table} (${cols.join(',')})
+    let sql = `INSERT INTO ${model.table} (${cols.join(',')})
                         VALUES (${vals.join(',')})
                         RETURNING *;`;
 
     // return query function
     return function(item) {
+        // filter input data to match insert parameters
+        // filters: ignored, timestamp, ID attributes
+        let data = Object.keys(item.attributes)
+            .filter(key =>
+                !ignore.includes(key)
+                && !timestamps.includes(key))
+            .map(key => {
+                return item.attributes[key].value;
+            });
+
+        console.log('Insert query: ', sql, data)
+
         // collate data as value array
         return {
             sql: sql,
-            data: _collate(item),
+            data: data
         };
     };
 }
@@ -125,50 +139,68 @@ export function insert(item) {
 /**
  * Generate query: Update record in table.
  *
- * @param {Object} item
+ * @param {Object} model
+ * @param {Array} timestamps
  * @return {Function} sql query
  * @public
  */
 
-export function update(item) {
+export function update(model, timestamps = ['created_at', 'updated_at']) {
 
-    const timestamps = ['created_at', 'updated_at'];
+    // return null if instance is null
+    if (!model) return null;
 
-    // filter ignored values
-    const ignore = [item.getIdKey()];
+    // filter ignored columns: Do not ignore ID column if using node reference
+    const ignore = model.node ? [] : [model.idKey];
     const cols = Object
-        .keys(item.attributes)
+        .keys(model.attributes)
         .filter((key) => {
             return !ignore.includes(key);
         });
 
     // generate prepared statement value placeholders
-    const assignments = cols.map(function(key, index) {
+    let index = 2;
+    const assignments = cols.map(attr => {
         // handle timestamp placeholders defined in arguments
-        const placeholder = timestamps.includes(key)
+        const placeholder = timestamps.includes(attr)
             ? `NOW()`
-            : `$${++index + 1}`;
+            : `$${index++}`;
 
         // map returns conjoined prepared parameters in order
-        return [cols[index], `${placeholder}::${item.attributes[key].type}`].join('=');
+        return [attr, `${placeholder}::${model.attributes[attr].type}`].join('=');
     });
 
-    let sql = `UPDATE "${item.table}" 
+    let sql = `UPDATE "${model.table}" 
                 SET ${assignments.join(',')} 
-                WHERE ${item.getIdKey()} = $1::integer
+                WHERE ${model.idKey} = $1::integer
                 RETURNING *;`;
 
     // return query function
     return function(item) {
+
+        // place ID value at front of array
+        let data = [item.id];
+
+        // filter input data to match update parameters
+        data.push(...Object.keys(item.attributes)
+            .filter(key =>
+                !ignore.includes(key)
+                && !timestamps.includes(key))
+            .map(key => {
+                console.log(key)
+                return item.attributes[key].value;
+            }));
+
         return {
             sql: sql,
-            data: _collate(item),
+            data: data,
         };
     };
 }
 
 /**
- * Generate query: Delete record from database.
+ * Generate query: Delete record from database. Returns
+ * null if this is a node removal.
  *
  * @param {Object} model
  * @return {function(*): {data: [*], sql: string}} sql query
@@ -176,14 +208,17 @@ export function update(item) {
  */
 
 export function remove(model) {
-    return function(item) {
-        return {
-            sql: `DELETE FROM ${model.table} 
-            WHERE ${model.getIdKey()} = $1::integer
+    return !model.node
+        ? function(item) {
+            console.log('ITEM to be removed:', item.attributes, item.id)
+            return {
+                sql: `DELETE FROM ${model.table} 
+            WHERE ${model.idKey} = $1::integer
             RETURNING *;`,
-            data: [item.getId()],
-        };
-    };
+                data: [item.id],
+            };
+        }
+        : null;
 }
 
 /**
@@ -194,7 +229,7 @@ export function remove(model) {
  * @public
  */
 
-export function getNode(model) {
+export function selectNode(model) {
     return model.node
         ? function(node) {
             const sql = `SELECT *
@@ -219,7 +254,8 @@ export function getNode(model) {
 export function insertNode(model) {
     return model.node
         ? function(node) {
-            return insert(node);
+            let query = insert(node);
+            return query(node);
         }
         : null;
 }
@@ -235,7 +271,8 @@ export function insertNode(model) {
 export function updateNode(model) {
     return model.node
         ? function(node) {
-            return update(node);
+            let query = update(node);
+            return query(node);
         }
         : null;
 }
@@ -251,7 +288,8 @@ export function updateNode(model) {
 export function removeNode(model) {
     return model.node
         ? function(node) {
-            return remove(node);
+            let query = remove(node);
+            return query(node);
         }
         : null;
 }
@@ -294,6 +332,21 @@ export function getNodeTypes() {
 }
 
 /**
+ * Generate query: Retrieve node entry for given ID.
+ *
+ * @param {integer} id
+ * @return {Function} query function / null if no node
+ * @public
+ */
+
+export function getNode(id) {
+    return {
+        sql: `SELECT * FROM nodes WHERE id = $1::integer`,
+        data: [id]
+    }
+}
+
+/**
  * Query: Get all of the table names in the MLP database.
  *
  * @return {Object} query binding
@@ -324,29 +377,30 @@ export function getTables() {
 
 export function getColumns(targetTable) {
     return {
-        sql: `select
-                  column_name as "col",
-                  data_type as "type",
-                  (select r.relname from pg_class r where r.oid = pc.confrelid)
-                      as "fk_table"
+        sql: `WITH fk_cols AS (
+            SELECT
+                col.attname as col,
+                rel_fk.relname as ref_table
+--                 fk_col.attname as ref_id
+            FROM pg_catalog.pg_constraint con
+                     INNER JOIN pg_catalog.pg_class rel
+                                ON rel.oid = con.conrelid
+                     INNER JOIN pg_catalog.pg_class rel_fk
+                                ON rel_fk.oid = con.confrelid
+                     INNER JOIN pg_catalog.pg_namespace nsp
+                                ON nsp.oid = connamespace
+                     INNER JOIN pg_catalog.pg_attribute col
+                                ON (col.attrelid = rel.oid AND ARRAY[col.attnum] <@ con.conkey)
+--                      INNER JOIN pg_catalog.pg_attribute fk_col
+--                                 ON (fk_col.attrelid = rel_fk.oid AND ARRAY[fk_col.attnum] <@ con.confkey)
+            WHERE nsp.nspname = 'public'
+              AND rel.relname = $1::varchar)
+
+              select column_name as col, data_type, fk_cols.ref_table
               from information_schema.columns
-                       full join pg_constraint pc
-                                 on column_name = (select string_agg(attname, ',') from pg_attribute
-                                                   where attrelid = pc.conrelid
-                                                     and ARRAY[attnum] <@ pc.conkey)
-                                     and pc.conrelid = (
-                                         select oid
-                                         from pg_class
-                                         where relname=table_name
-                                     )
-              where table_name = $1
-                and 'public' = (select nspname
-                                from pg_namespace
-                                where oid =
-                                      (select relnamespace
-                                       from pg_class
-                                       where relname = $1)
-              );`,
+                       LEFT JOIN fk_cols ON column_name = fk_cols.col
+              where table_name = $1::varchar
+              order by fk_cols.col;`,
         data: [targetTable],
     };
 }
@@ -365,40 +419,6 @@ export function getPermissions() {
         data: [],
     };
 }
-
-/**
- * Helper Method: Collate item data as array of values for prepared sql.
- *
- * @param {Object} item
- * @param {Object} args
- * @return {Array} collated model data
- */
-
-function _collate(
-    item,
-    args = {
-        ignore: [],
-        timestamps: ['created_at', 'updated_at'],
-    }) {
-
-    // reserve first position for item ID (given 'where' condition)
-    let data = [item.getId()];
-
-    // filter input data to match insert/update parameters
-    data.push(...Object.keys(item.attributes)
-        .filter((key) => {
-            // filter ignored, timestamp, ID attributes
-            return !args.ignore.includes(key)
-                && !args.timestamps.includes(key)
-                && key !== item.getIdKey();
-        })
-        .map((key, _) => {
-            return item.attributes[key].value;
-        }));
-
-    return data;
-}
-
 
 
 

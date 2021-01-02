@@ -51,7 +51,9 @@ export function removeEmpty(arr) {
 }
 
 /**
- * Sanitize data by PostGreSQL data type.
+ * Sanitize data by PostGreSQL data type. Note for composite
+ * user-defined types (i.e. coord, camera_settings, dims) the
+ * data array is converted to a string representation of its tuple.
  *
  * @param data
  * @param {String} datatype
@@ -75,6 +77,9 @@ export function sanitize(data, datatype) {
         },
         'float': function() {
             return isNaN(parseFloat(data)) ? null : parseFloat(data);
+        },
+        'USER-DEFINED': function() {
+            return !Array.isArray(data) ? null : `(${data.join(',')})`;
         },
         'default': function() {
             return data;
