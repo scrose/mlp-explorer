@@ -8,7 +8,7 @@
  | psql -U boutrous mlp2
 
 # restore original schema
-psql -U boutrous mlp2 < /Users/boutrous/Workspace/NodeJS/mlp-explorer/init/meat.sql
+psql -U boutrous mlp2 < /Users/boutrous/Workspace/NodeJS/db/meat.sql
 
 # update existing schema
 psql -U boutrous mlp2 < /Users/boutrous/Workspace/NodeJS/mlp-explorer/init/global.init.sql
