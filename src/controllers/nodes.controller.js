@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Controllers.Model
- * File: models.controller.js
+ * File: nodes.controller.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -10,7 +10,8 @@
  * @private
  */
 
-import Services from '../services/model.db.services.js';
+import DBServices from '../services/db.services.js';
+import FileServices from '../services/files.services.js';
 import * as db from '../services/index.services.js';
 
 /**
@@ -20,10 +21,10 @@ import * as db from '../services/index.services.js';
  * @src public
  */
 
-let Model, model, services;
+let Model, model, dbServices, fileServices;
 
 // generate controller constructor
-export default function Controller(modelRoute) {
+export default function NodesController(modelRoute) {
 
     // check model not null
     if (!modelRoute) throw new Error('invalidModel');
@@ -43,10 +44,11 @@ export default function Controller(modelRoute) {
         Model = await db.model.create(modelRoute)
             .catch((err) => next(err));
 
-        // generate db services for model
+        // generate services for model
         try {
             model = new Model();
-            services = new Services(new Model());
+            dbServices = new DBServices(new Model());
+            fileServices = new FileServices();
         }
         catch (err) {
             next(err);
@@ -84,7 +86,7 @@ export default function Controller(modelRoute) {
      */
 
     this.list = async (req, res, next) => {
-        await services
+        await dbServices
             .getAll()
             .then(data => {
                 res.locals.data = data.rows;
@@ -104,7 +106,7 @@ export default function Controller(modelRoute) {
 
     this.show = async (req, res, next) => {
         let id = this.getId(req);
-        await services
+        await dbServices
             .select(id)
             .then((data) => {
                 if (data.rows.length === 0) throw new Error('norecord');
@@ -126,7 +128,7 @@ export default function Controller(modelRoute) {
     this.add = async (req, res, next) => {
         try {
             res.locals.schema = {
-                model: new Model(),
+                model: model,
                 view: 'add',
             };
             res.status(200).json(res.locals);
@@ -152,8 +154,8 @@ export default function Controller(modelRoute) {
             next(err);
         }
 
-        // Insert in database
-        await services
+        // insert item into database
+        await dbServices
             .insert(item)
             .then((data) => {
                 if (data.length === 0)
@@ -163,6 +165,11 @@ export default function Controller(modelRoute) {
                 res.message(`Added item to ${item.label}.`, 'success');
                 res.status(200).json(res.locals);
             })
+            .catch((err) => next(err));
+
+        // upload files (if required)
+        await fileServices
+            .uploadImages(req.files)
             .catch((err) => next(err));
     };
 
@@ -177,7 +184,7 @@ export default function Controller(modelRoute) {
 
     this.edit = async (req, res, next) => {
         let id = this.getId(req);
-        await services
+        await dbServices
             .select(id)
             .then((data) => {
                 if (data.rows.length === 0)
@@ -204,7 +211,7 @@ export default function Controller(modelRoute) {
         } catch (err) {
             next(err);
         }
-        await services
+        await dbServices
             .update(item)
             .then((data) => {
                 if (data.rows.length === 0) throw new Error('update');
@@ -226,7 +233,7 @@ export default function Controller(modelRoute) {
 
     this.remove = async (req, res, next) => {
         let id = this.getId(req);
-        await services
+        await dbServices
             .select(id)
             .then((data) => {
                 if (data.rows.length === 0)
@@ -249,7 +256,7 @@ export default function Controller(modelRoute) {
         let id = this.getId(req);
 
         // retrieve item
-        let item = await services
+        let item = await dbServices
             .select(id)
             .then((data) => {
                 if (data.rows.length === 0) throw new Error('norecord');
@@ -258,7 +265,7 @@ export default function Controller(modelRoute) {
             .catch((err) => next(err));
 
         // delete item
-        await services
+        await dbServices
             .remove(item)
             .then(data => {
                 if (data.rows.length === 0) throw new Error('noitem');

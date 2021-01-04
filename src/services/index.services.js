@@ -12,10 +12,10 @@
  * @private
  */
 
-import * as model from './model.construct.services.js';
-import Services from './model.db.services.js';
-import * as users from './users.db.services.js';
-import * as sessions from './sessions.db.services.js';
+import * as model from './model.services.js';
+import DBServices from './db.services.js';
+import * as users from './users.services.js';
+import * as sessions from './sessions.services.js';
 
 /**
  * Index of module exports.
@@ -23,7 +23,7 @@ import * as sessions from './sessions.db.services.js';
  */
 
 export {model};
-export {Services};
+export {DBServices};
 export {users};
 export {sessions};
 

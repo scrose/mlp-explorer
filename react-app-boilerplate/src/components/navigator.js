@@ -1,4 +1,5 @@
 import React, {Component} from 'react'
+import Main from './main';
 
 class Navigator extends Component {
 
@@ -10,3 +11,5 @@ class Navigator extends Component {
         )
     }
 }
+
+export default Navigator;

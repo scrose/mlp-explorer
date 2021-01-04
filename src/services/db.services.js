@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Services.DB.Model
- * File: model.db.services.js
+ * File: db.services.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -14,7 +14,7 @@
 
 import pool from './pgdb.js';
 import queries from './queries/index.queries.js';
-import { createNode } from './model.construct.services.js';
+import { createNode, createFile } from './model.services.js';
 
 /**
  * Export database model services constructor
@@ -24,26 +24,26 @@ import { createNode } from './model.construct.services.js';
  * @return {Promise} result
  */
 
-export default function Services(model) {
+export default function DBServices(model) {
 
     this.model = model;
     this.queries = {};
 
-    // load query strings for specified model
+    // initialize query strings for specified model
     try {
         // prepare default queries
         Object.keys(queries.defaults)
-            .map(key => { this.queries[key] = queries.defaults[key](model) });
+            .map(key => {
+                this.queries[key] = queries.defaults[key](model)
+            });
 
-        // override with model-specific queries
+        // override defaults with any model-specific queries
         Object.keys(queries)
             .filter(key => key === model.name)
             .map(qKey => {
                 Object.keys(queries[qKey])
                     .map(key => this.queries[key] = queries[qKey][key](model) )
             })
-
-        console.log('Queries for', model, this.queries)
 
     } catch (err) {
         throw err;
@@ -86,10 +86,10 @@ export default function Services(model) {
         this.model.setId(id);
         const stmts = {
             node: null,
+            file: null,
             model: this.queries.select,
             attached: []
         };
-        // console.log(this.model.attached)
 
         // // create attached statements for references
         // const attachedStmts = this.model.attached
@@ -112,6 +112,7 @@ export default function Services(model) {
     this.insert = async function(item) {
         let stmts = {
             node: this.queries.insertNode,
+            file: this.queries.insertFile,
             model: this.queries.insert,
             attached: []
         };
@@ -129,6 +130,7 @@ export default function Services(model) {
     this.update = async function(item) {
         let stmts = {
             node: this.queries.updateNode,
+            file: this.queries.updateFile,
             model: this.queries.update,
             attached: []
         };
@@ -146,6 +148,7 @@ export default function Services(model) {
     this.remove = async function(item) {
         let stmts = {
             node: this.queries.removeNode,
+            file: this.queries.removeFile,
             model: this.queries.remove,
             attached: []
         };
@@ -175,13 +178,24 @@ export default function Services(model) {
 
             // process node query (if provided)
             if (stmts.node) {
-                // create node from item node reference
+                // create node model from item reference
                 let node = await createNode(item);
                 // generate prepared statements collated with data
                 const {sql, data} = stmts.node(node);
                 res = await client.query(sql, data);
 
-                console.log('Node getting dropped:', item.attributes, sql, data)
+                // update item with returned data for further processing
+                item.setId(res.rows[0].id);
+            }
+
+            // process file query (if provided)
+            if (stmts.file) {
+                // create file model from item reference
+                let file = await createFile(item);
+                // generate prepared statements collated with data
+                const {sql, data} = stmts.file(file);
+                res = await client.query(sql, data);
+
                 // update item with returned data for further processing
                 item.setId(res.rows[0].id);
             }
@@ -194,7 +208,6 @@ export default function Services(model) {
 
                 // process supplemental statements (e.g. foreign key references)
                 res.attached = await Promise.all(stmts.attached.map(async (stmt) => {
-                    console.log(stmt);
                     const val = item.getValue(item.name);
                     const {sql, data} = stmt(item, val);
                     return await client.query(sql, data);

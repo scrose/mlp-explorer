@@ -26,6 +26,23 @@ chai.use(sinonChai);
 chai.use(chaiHttp);
 
 /**
+ * Compares output data to model schema
+ * @param {Object} model
+ * @param {Array} data
+ * @private
+ */
+
+export function compare(model, data) {
+    data.forEach((item) => {
+        // go through model properties
+        Object.entries(model.attributes)
+            .forEach(([field, _]) => {
+                expect(item).to.have.property(field);
+            });
+    });
+}
+
+/**
  * Export test modules.
  */
 

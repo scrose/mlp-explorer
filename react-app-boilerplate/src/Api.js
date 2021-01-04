@@ -1,6 +1,7 @@
 import { Route, Switch } from 'react-router-dom';
-import Header from './components/Header';
-import APIService from './services/APIService'
+import React from 'react';
+import Header from './components/header';
+import APIService from './services/APIService';
 
 class App extends React.Component {
     constructor(props) {
@@ -8,18 +9,18 @@ class App extends React.Component {
         this.state = {
             error: null,
             isLoaded: false,
-            data: {}
+            data: {},
         };
     }
 
     componentDidMount() {
-
-        APIService.fetchFirst((resp1) => {
-            APIService.fetchSecond(resp1.routeid, resp1.stationid, (resp2) => {
-                this.setState({
-                    tube: resp2
-                });
-            });
+        APIService.fetchFirst((res) => {
+            console.log(res)
+            // APIService.fetchSecond(resp1.routeid, resp1.stationid, (resp2) => {
+            //     this.setState({
+            //         tube: resp2,
+            //     });
+            // });
         });
     }
 
@@ -37,4 +38,4 @@ class App extends React.Component {
     }
 }
 
-export default App
+export default App;

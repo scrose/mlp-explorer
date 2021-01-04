@@ -10,38 +10,45 @@
  * Module dependencies
  */
 
-import express from 'express';
-import Uploader from '../controllers/files.controller.js'
-import { restrict } from '../lib/permissions.utils.js';
+import FilesController from '../controllers/files.controller.js'
+import * as schema from '../services/schema.services.js';
+import { toSnake } from '../lib/data.utils.js';
 import path from 'path';
-import * as schema from '../services/schema.construct.services.js';
+
 
 /**
- * Express router
- */
-
-let router = express.Router();
-export default router;
-
-/**
- * Model user route constructor
+ * Files routes constructor
  *
  * @public
  */
 
-function FilesRoutes() {
+function FilesRoutes(modelType) {
 
     // create model identifier key
-    this.modelRoute = 'files';
-    this.key = 'file_id';
+    this.model = toSnake(modelType);
+    this.key = `${toSnake(modelType)}_id`;
 
     // initialize model controller
-    this.controller = new Uploader();
+    this.controller = new FilesController(modelType);
 
     // add controller routes
     this.routes = {
+        list: {
+            path: path.join('/', this.model),
+            get: this.controller.list,
+            put: null,
+            post: null,
+            delete: null,
+        },
+        show: {
+            path: path.join('/', this.model, '/:' + this.key),
+            get: this.controller.show,
+            put: null,
+            post: null,
+            delete: null,
+        },
         upload: {
-            path: path.join('/upload'),
+            path: path.join('/', this.model, '/upload'),
             get: this.controller.browse,
             put: null,
             post: this.controller.upload,
@@ -65,57 +72,19 @@ function FilesRoutes() {
 }
 
 /**
- * Routes initialization. Routes only generated for
- * defined models in the node_types relation.
- *
+ * Files routes initialization. Routes only generated for
+ * defined models in the file_types relation.
  */
 
-async function initRoutes() {
-
-    // create user routes instance
-    let routes = new FilesRoutes();
-
-    // get user permissions
-    let permissions = await schema.getPermissions();
-
-    // controller initialization
-    router.use(routes.controller.init);
-
-    // add user routes
-    Object.entries(routes.routes).forEach(([view, route]) => {
-        router.route(route.path)
-            .all(function(req, res, next) {
-
-                // get model ID parameter (if exists)
-                let reqId = req.params.hasOwnProperty(routes.key)
-                    ? req.params[routes.key]
-                    : null;
-
-                // restrict user access based on permissions
-                restrict(res, next, {
-                    permissions: permissions,
-                    model: 'files',
-                    view: view,
-                    id: reqId,
-                });
-
-            })
-            .get(function(req, res, next) {
-                if (!route.get) next(new Error('notImplemented'));
-                route.get(req, res, next);
-            })
-            .put(function(req, res, next) {
-                if (!route.put) next(new Error('notImplemented'));
-                route.put(req, res, next);
-            })
-            .post(function(req, res, next) {
-                if (!route.post) next(new Error('notImplemented'));
-                route.post(req, res, next);
-            })
-            .delete(function(req, res, next) {
-                if (!route.delete) next(new Error('notImplemented'));
-                route.delete(req, res, next);
+export default async function generate() {
+    let routes = [];
+    await schema.getFileTypes()
+        .then(fileTypes => {
+            fileTypes.map(fileType => {
+                // add routes instance to array
+                routes.push(new FilesRoutes(fileType));
             });
-    });
+        })
+        .catch(err => {throw err});
+    return routes;
 }
-initRoutes().catch(err => {throw err});

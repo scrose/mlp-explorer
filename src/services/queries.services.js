@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Services.Queries
- * File: queries.db.services.js
+ * File: queries.services.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -126,8 +126,6 @@ export function insert(
                 return item.attributes[key].value;
             });
 
-        console.log('Insert query: ', sql, data)
-
         // collate data as value array
         return {
             sql: sql,
@@ -187,7 +185,6 @@ export function update(model, timestamps = ['created_at', 'updated_at']) {
                 !ignore.includes(key)
                 && !timestamps.includes(key))
             .map(key => {
-                console.log(key)
                 return item.attributes[key].value;
             }));
 
@@ -210,7 +207,6 @@ export function update(model, timestamps = ['created_at', 'updated_at']) {
 export function remove(model) {
     return !model.node
         ? function(item) {
-            console.log('ITEM to be removed:', item.attributes, item.id)
             return {
                 sql: `DELETE FROM ${model.table} 
             WHERE ${model.idKey} = $1::integer
@@ -295,6 +291,79 @@ export function removeNode(model) {
 }
 
 /**
+ * Generate query: Retrieve file entry for given item
+ *
+ * @param {Object} model
+ * @return {Function} query function / null if no node
+ * @public
+ */
+
+export function selectFile(model) {
+    return model.file
+        ? function(fileItem) {
+            const sql = `SELECT *
+                         FROM files
+                         WHERE id = $1::integer`;
+            return {
+                sql: sql,
+                data: [fileItem.attributes.id],
+            };
+        }
+        : null;
+}
+
+/**
+ * Generate query: Insert file entry for given item
+ *
+ * @param {Object} model
+ * @return {Function} query function / null if no node
+ * @public
+ */
+
+export function insertFile(model) {
+    return model.file
+        ? function(file) {
+            let query = insert(file);
+            return query(file);
+        }
+        : null;
+}
+
+/**
+ * Generate query: Update file entry for given item
+ *
+ * @param {Object} model
+ * @return {Function} query function / null if no node
+ * @public
+ */
+
+export function updateFile(model) {
+    return model.file
+        ? function(file) {
+            let query = update(file);
+            return query(file);
+        }
+        : null;
+}
+
+/**
+ * Generate query: Delete file entry for given item
+ *
+ * @param {Object} model
+ * @return {Function} query function / null if no node
+ * @public
+ */
+
+export function removeFile(model) {
+    return model.file
+        ? function(file) {
+            let query = remove(file);
+            return query(file);
+        }
+        : null;
+}
+
+/**
  * Generate query: Append subordinate record by specified table,
  * column and column value.
  *
@@ -325,8 +394,7 @@ export function append(model) {
 export function getNodeTypes() {
     return {
         sql: `SELECT *
-              FROM node_types
-              WHERE name != 'default';`,
+              FROM node_types;`,
         data: [],
     };
 }
@@ -344,6 +412,51 @@ export function getNode(id) {
         sql: `SELECT * FROM nodes WHERE id = $1::integer`,
         data: [id]
     }
+}
+
+/**
+ * Query: Get all file types listed.
+ *
+ * @return {Object} query binding
+ */
+
+export function getFileTypes() {
+    return {
+        sql: `SELECT *
+              FROM file_types;`,
+        data: [],
+    };
+}
+
+/**
+ * Generate query: Retrieve file entry for given ID.
+ *
+ * @param {integer} id
+ * @return {Function} query function / null if no node
+ * @public
+ */
+
+export function getFile(id) {
+    return {
+        sql: `SELECT * FROM files WHERE id = $1::integer`,
+        data: [id]
+    }
+}
+
+/**
+ * Generate query: Retrieve file entries attached to given owner
+ *
+ * @return {Function} query function / null if no node
+ * @public
+ */
+
+export function getAttachedFiles(owner_id) {
+    return {
+        sql: `SELECT *
+                 FROM files
+                 WHERE owner_id = $1::integer`,
+        data: [owner_id],
+    };
 }
 
 /**

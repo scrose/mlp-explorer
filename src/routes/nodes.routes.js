@@ -1,40 +1,34 @@
 /*!
- * Core.API.Router.Users
- * File: users.routes.js
+ * Core.API.Router.Nodes
+ * File: nodes.routes.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
-
 
 /**
  * Module dependencies
  */
 
-import * as users from '../controllers/users.controller.js'
+import NodesController from '../controllers/nodes.controller.js';
+import { toSnake } from '../lib/data.utils.js';
+import * as schema from '../services/schema.services.js';
 import path from 'path';
 
 /**
- * Users routes
- * @public
- */
-
-let routes = new UserRoutes();
-export default routes;
-
-/**
- * Model user routes constructor
+ * Nodes routes constructor
  *
+ * @param {String} modelType
  * @public
  */
 
-function UserRoutes() {
+function NodesRoutes(modelType) {
 
     // create model identifier key
-    this.model = 'users';
-    this.key = 'user_id';
+    this.model = toSnake(modelType);
+    this.key = `${toSnake(modelType)}_id`;
 
     // initialize model controller
-    this.controller = users;
+    this.controller = new NodesController(this.model);
 
     // add controller routes
     this.routes = {
@@ -45,9 +39,9 @@ function UserRoutes() {
             post: null,
             delete: null,
         },
-        register: {
-            path: path.join('/', this.model, 'register'),
-            get: this.controller.register,
+        create: {
+            path: path.join('/', this.model, 'add'),
+            get: this.controller.add,
             put: null,
             post: this.controller.create,
             delete: null,
@@ -73,19 +67,25 @@ function UserRoutes() {
             post: this.controller.drop,
             delete: null,
         },
-        login: {
-            path: path.join('/login'),
-            get: this.controller.login,
-            put: null,
-            post: this.controller.authenticate,
-            delete: null,
-        },
-        logout: {
-            path: path.join('/logout'),
-            get: this.controller.logout,
-            put: null,
-            post: null,
-            delete: null,
-        }
     };
 }
+
+/**
+ * Nodes Routes initialization. Routes only generated for
+ * defined models in the node_types relation.
+ */
+
+export default async function generate() {
+    let routes = [];
+    await schema.getNodeTypes()
+        .then(nodeTypes => {
+            nodeTypes.map(nodeType => {
+                // add routes instance to array
+                routes.push(new NodesRoutes(nodeType));
+            });
+        })
+        .catch(err => {throw err});
+    return routes;
+}
+
+

@@ -19,6 +19,14 @@ let settings = {
     session: {
         ttl: 3600,
         pruneInterval: 10000
+    },
+    imageSizes: {
+        thumb: {
+            width: 150
+        },
+        medium: {
+            width: 900
+        }
     }
 }
 
@@ -40,5 +48,6 @@ if (result.error) {
 export const roles = settings.roles;
 export const session = settings.session;
 export const permissions = settings.permissions;
+export const imageSizes = settings.imageSizes;
 
 console.log('Settings loaded.')

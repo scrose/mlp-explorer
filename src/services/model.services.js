@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Services.Construct.Model
- * File: model.construct.services.js
+ * File: model.services.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -8,8 +8,8 @@
 'use strict';
 
 import { humanize, sanitize, toCamel } from '../lib/data.utils.js';
-import * as schemaConstructor from './schema.construct.services.js';
-import { getNode } from './schema.construct.services.js';
+import * as schemaConstructor from './schema.services.js';
+import { getNode } from './schema.services.js';
 
 /**
  * Create derived model through composition. The model schema
@@ -75,21 +75,29 @@ export const create = async (modelType) => {
         node: {
             get: schema.getNode,
         },
+        files: {
+            value: null,
+            writable: true
+        },
+        getAttachedFiles: {
+            value: schema.getAttachedFiles,
+            writable: false
+        },
         owner: {
             get: schema.getOwner,
         },
         attached: {
             get: schema.getAttached,
         },
-        id: {
-            get: getId,
-        },
-        setId: {
-            value: setId,
+        idKey: {
+            value: schema.idKey,
             writable: false
         },
-        idKey: {
-            get: getIdKey,
+        id: {
+            get: getId(schema.idKey),
+        },
+        setId: {
+            value: setId(schema.idKey)
         },
         getValue: {
             value: getValue,
@@ -131,8 +139,8 @@ function setData(data=null) {
         // select either first row of data array or single data object
         // NOTE: model can only hold data for single record
         const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
-
-        console.log(this.attributes);
+        //
+        // console.log(this.attributes);
 
         // assert attributes exist in model schema
         Object.keys(inputData)
@@ -145,6 +153,9 @@ function setData(data=null) {
             .filter(key => this.attributes && this.attributes.hasOwnProperty(key))
             .map(key => this.attributes[key].value =
                 sanitize(inputData[key], this.attributes[key].type));
+
+        // get attached files (if exist)
+        this.files = this.getAttachedFiles(this.getId());
     }
 }
 
@@ -165,37 +176,23 @@ function setValue(key, value) {
 /**
  * Get ID value in model schema.
  *
+ * @param {String} key (identifier key)
  * @src public
  */
 
-function getId() {
-    return this.node
-        ? this.attributes.nodes_id.value
-        : this.attributes.id.value;
+function getId(key) {
+    return function () {return this.attributes[key].value};
 }
 
 /**
  * Set ID value for model.
  *
- * @param {integer} id
+ * @param {String} key (identifier key)
  * @src public
  */
 
-function setId(id) {
-    if (this.node)
-        this.attributes.nodes_id.value = id;
-    else
-        this.attributes.id.value = id;
-}
-
-/**
- * Get ID key column in model schema.
- *
- * @src public
- */
-
-function getIdKey() {
-    return this.node ? 'nodes_id' : 'id';
+function setId(key) {
+    return function (id) {this.attributes[key].value = id};
 }
 
 /**
@@ -207,7 +204,7 @@ function getIdKey() {
  */
 
 function getValue(field=null) {
-    return (field)
+    return field && this.attributes.hasOwnProperty(field)
         ? this.attributes[field].value
         : null;
 }
@@ -221,7 +218,7 @@ function getValue(field=null) {
 
 function getData() {
     let filteredData = {};
-    Object.entries(this.attributes).forEach(([key, field]) => {
+    Object.entries(this.attributes).map(([key, field]) => {
         filteredData[key] = field.value;
     });
     return filteredData;
@@ -235,9 +232,7 @@ function getData() {
  */
 
 function clear() {
-    Object.entries(this.attributes).map(attr => {
-        attr.value = null;
-        });
+    Object.entries(this.attributes).map(attr => { attr.value = null });
 }
 
 /**
@@ -268,8 +263,38 @@ export const createNode = async function(item) {
 
     if (!item.node) return null;
 
+    // generate node model object
+    return await createReference(item.node.value, item, 'nodes');
+};
+
+/**
+ * Generates files object from given model instance.
+ *
+ * @public
+ * @params {Object} item
+ * @return {Promise} result
+ */
+
+export const createFile = async function(item) {
+
+    if (!item.file) return null;
+
+    // generate file model object
+    return await createReference(item.file.value, item, 'files');
+};
+
+/**
+ * Generates reference (lookup) object from given model type.
+ *
+ * @public
+ * @params {Object} item
+ * @return {Promise} result
+ */
+
+export const createReference = async function(id, item, modelType) {
+
     // generate node constructor
-    let Node = await create('nodes');
+    let Reference = await create(modelType);
 
     // get owner attributes (if exist)
     let ownerAttrs = item.owner
@@ -278,12 +303,11 @@ export const createNode = async function(item) {
 
     // return node instance: set owner attribute values from
     // retrieved node attributes
-    return new Node({
-        id: item.node.value,
+    return new Reference({
+        id: id,
         type: item.table,
         owner_id: ownerAttrs.id,
         owner_type: ownerAttrs.type
     });
-
 };
 

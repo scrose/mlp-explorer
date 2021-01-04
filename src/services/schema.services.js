@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Services.Schema
- * File: schema.construct.services.js
+ * File: schema.services.js
  * Copyright(c) 2020 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -25,15 +25,27 @@ import { groupBy, humanize } from '../lib/data.utils.js';
  */
 
 export const create = async (modelType) => {
-    const modelTypes = await getTypes();
+    const nodeTypes = await getNodeTypes();
+    const fileTypes = await getFileTypes();
     const permissions = await getPermissions();
     const attributes = await getModelAttributes(modelType);
 
-    console.log('Create Model', attributes)
+    // check model definition in db. The 'nodes' model includes all
+    // data containers (e.g. historic visits); the 'files'
+    // model handles all nodes attached to files in the library
+    // (e.g. historic images).
 
-    // check model definition
-    if (!(modelTypes.includes(modelType) || modelType === 'nodes'))
+    if (!(nodeTypes.includes(modelType) || fileTypes.includes(modelType)
+        || modelType === 'nodes' || modelType === 'files'))
         throw Error('modelNotDefined');
+
+    // set identifier key based on model attributes.
+    const idKey =
+        (attributes == null || attributes.hasOwnProperty('files_id'))
+            ? 'files_id'
+            : attributes.hasOwnProperty('nodes_id')
+            ? 'nodes_id'
+            : 'id';
 
     // construct schema for model type
     let Schema = function() {
@@ -42,12 +54,20 @@ export const create = async (modelType) => {
 
     // define model properties
     Object.defineProperties(Schema.prototype, {
-        types: {
-            value: modelTypes,
-            writable: true
+        nodeTypes: {
+            value: nodeTypes,
+            writable: false
+        },
+        fileTypes: {
+            value: fileTypes,
+            writable: false
         },
         attributes: {
-            value: attributes,
+            value: attributes || [],
+            writable: true
+        },
+        idKey: {
+            value: idKey,
             writable: false
         },
         getNode: {
@@ -59,12 +79,30 @@ export const create = async (modelType) => {
             },
             writable: false
         },
+        getFile: {
+            value: function() {
+                const file = Object.entries(this.attributes)
+                    .find(([key, _]) => key === 'files_id'
+                        && this.attributes[key].ref);
+                return file == null ? null : file[1];
+            },
+            writable: false
+        },
         getOwner: {
             value: function() {
                 const owner = Object.entries(this.attributes)
                     .find(([key, _]) => key === 'owner_id'
                         && this.attributes[key].ref);
                 return owner == null ? null : owner[1];
+            },
+            writable: false
+        },
+        getAttachedFiles: {
+            value: function() {
+                const attached = Object.entries(this.attributes)
+                    .filter(([key, _]) => this.attributes[key].ref
+                        && this.attributes[key].ref !== 'nodes')
+                return attached.length === 0 ? null : attached;
             },
             writable: false
         },
@@ -92,12 +130,12 @@ export const create = async (modelType) => {
  * @return {Promise} result
  */
 
-export const getTypes = async function() {
-    let { sql, data } = queries.schema.getModelTypes();
-    let modelTypes = await pool.query(sql, data);
+export const getNodeTypes = async function() {
+    let { sql, data } = queries.schema.getNodeTypes();
+    let nodeTypes = await pool.query(sql, data);
 
     // return only model type names as list
-    return modelTypes.rows.map(modelType => { return modelType.name });
+    return nodeTypes.rows.map(nodeType => { return nodeType.name });
 };
 
 /**
@@ -115,6 +153,49 @@ export const getNode = async function(id) {
 };
 
 /**
+ * Get all file types.
+ *
+ * @public
+ * @return {Promise} result
+ */
+
+export const getFileTypes = async function() {
+    let { sql, data } = queries.schema.getFileTypes();
+    let fileTypes = await pool.query(sql, data);
+
+    // return only model type names as list
+    return fileTypes.rows.map(fileType => { return fileType.name });
+};
+
+/**
+ * Get file record by ID. NOTE: returns single object.
+ *
+ * @public
+ * @param {integer} id
+ * @return {Promise} result
+ */
+
+export const getFile = async function(id) {
+    let { sql, data } = queries.schema.getFile(id);
+    let file = await pool.query(sql, data);
+    return file.rows[0];
+};
+
+/**
+ * Get file records attached to node.
+ *
+ * @public
+ * @param {integer} owner_id
+ * @return {Promise} result
+ */
+
+export const getAttachedFiles = async function(owner_id) {
+    let { sql, data } = queries.schema.getAttachedFiles(owner_id);
+    let res = await pool.query(sql, data);
+    return res.rows;
+};
+
+/**
  * Find and format model schema attributes.
  *
  * @public
@@ -123,8 +204,6 @@ export const getNode = async function(id) {
  */
 
 export const getModelAttributes = async function(modelType) {
-
-    console.log('Modeltype:', modelType)
 
     if (modelType == null) return null;
 

@@ -1,23 +1,46 @@
-/*
-  ======================================================
-  Mountain Legacy Project: Explorer Application
-  ------------------------------------------------------
+/*!
+ * MLP.API.Utilities.Files
+ * File: files.utils.js
+ * Copyright(c) 2020 Runtime Software Development Inc.
+ * MIT Licensed
+ */
 
-  ------------------------------------------------------
-  Creator:      Spencer Rose
-  Copyright:    (c) 2020 Runtime Software Development Inc.
-  License:
-  Version:      1.0
-  Last Updated: June 15, 2020
-  ------------------------------------------------------
-  Module:       Core.Uploader
-  Filename:     /file.js
-  ======================================================
-*/
-
-// Initialization
 'use strict';
 
+
+/**
+ * Extract filename from filepath string.
+ *
+ * @param {String} filepath
+ * @return {String} filename
+ * @src public
+ */
+
+export function getFilename(filepath) {
+    return filepath.split(/.*[\/|\\]/)[1];
+}
+
+/**
+ * Extract filenames from filepath array.
+ *
+ * @param {Array} filepaths
+ * @return {Array} filenames
+ * @src public
+ */
+
+export function getFilenames(filepaths) {
+    return filepaths.map(fpath => {
+        return getFilename(fpath);
+    });
+}
+
+/**
+ * Lookup mimetype from header string.
+ *
+ * @param {String} type
+ * @return {String} mimetype
+ * @src public
+ */
 
 export function mime(type) {
 

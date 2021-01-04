@@ -20,7 +20,7 @@ import { genUUID } from './lib/secure.utils.js';
 import SessionStore from './models/session.models.js';
 import { globalHandler, notFoundHandler } from './error.js';
 import { authorize } from './lib/permissions.utils.js';
-import labels from '../labels.js';
+import labels from '../react-app-boilerplate/src/schema.js';
 import {session as config} from '../config.js'
 import router from './routes/index.routes.js';
 

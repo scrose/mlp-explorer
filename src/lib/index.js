@@ -14,7 +14,7 @@
 
 exports.obj = require('./object');
 exports.data = require('./data.utils');
-exports.file = require('./file');
+exports.file = require('./file.utils');
 exports.date = require('./date');
 exports.email = require('./email');
 exports.user = require('./permissions.utils');

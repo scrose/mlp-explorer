@@ -12,7 +12,7 @@
 
 import { expect, server, BASE_URL } from './setup.js';
 import mocha from 'mocha';
-import labels from '../labels.js'
+import labels from '../react-app-boilerplate/src/schema.js'
 
 mocha.describe('Index page test', () => {
   mocha.it('Gets base url', (done) => {

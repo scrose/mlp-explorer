@@ -1,16 +1,16 @@
-import React, {Component} from 'react'
+import {Component} from 'react'
 
 class Header extends Component {
 
     render() {
-        const {headerData} = this.props;
+        console.log('Header data:', this.props.data)
         return (
             <header className="page-header">
             <nav id="user_menu"></nav>
             <h1>
                 <a href="/">
-                    {headerData.general.projectName}:
-                    {headerData.general.appName}
+                    {this.props.data.projectName}:
+                    {this.props.data.appName}
                 </a>
             </h1>
             <nav id="main_menu">

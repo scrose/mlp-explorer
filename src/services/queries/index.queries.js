@@ -12,7 +12,7 @@
  * @private
  */
 
-import * as defaults from '../queries.db.services.js';
+import * as defaults from '../queries.services.js';
 import * as users from './users.queries.js';
 import * as sessions from './sessions.queries.js';
 import * as projects from './projects.queries.js';
@@ -45,11 +45,18 @@ export default {
         selectNode: defaults.selectNode,
         insertNode: defaults.insertNode,
         updateNode: defaults.updateNode,
-        removeNode: defaults.removeNode
+        removeNode: defaults.removeNode,
+        selectFile: defaults.selectFile,
+        insertFile: defaults.insertFile,
+        updateFile: defaults.updateFile,
+        removeFile: defaults.removeFile
     },
     schema: {
         getNode: defaults.getNode,
-        getModelTypes: defaults.getNodeTypes,
+        getNodeTypes: defaults.getNodeTypes,
+        getFile: defaults.getFile,
+        getFileTypes: defaults.getFileTypes,
+        getAttachedFiles: defaults.getAttachedFiles,
         getTables: defaults.getTables,
         getColumns: defaults.getColumns,
         getPermissions: defaults.getPermissions

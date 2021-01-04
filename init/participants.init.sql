@@ -27,7 +27,7 @@ values ('hiking_party', 'Hiking Parties'),
 select setval('participants_id_seq', (select max(id) from participants) + 1);
 
 -- -------------------------------------------------------------
---    Participant Groups (owned by visits)
+--    Participant Groups (owned by modern visits)
 -- -------------------------------------------------------------
 
 drop table IF EXISTS participant_groups cascade;
@@ -42,7 +42,7 @@ create TABLE IF NOT EXISTS participant_groups
     "updated_at" timestamp without time zone NOT NULL,
     UNIQUE (owner_id, participant_id, group_type),
     CONSTRAINT fk_owner_id FOREIGN KEY (owner_id)
-        REFERENCES nodes (id),
+        REFERENCES modern_visits (nodes_id),
     CONSTRAINT fk_participant FOREIGN KEY (participant_id)
         REFERENCES participants (id),
     CONSTRAINT fk_participant_group_type FOREIGN KEY (group_type)
