@@ -1,7 +1,7 @@
 /*!
  * MLP.API.App
  * File: app.js
- * Copyright(c) 2020 Runtime Software Development Inc.
+ * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
@@ -15,15 +15,14 @@
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
+import morgan from 'morgan';
 import session from 'express-session';
 import { genUUID } from './lib/secure.utils.js';
 import SessionStore from './models/session.models.js';
 import { globalHandler, notFoundHandler } from './error.js';
 import { authorize } from './lib/permissions.utils.js';
-import labels from '../react-app-boilerplate/src/schema.js';
 import {session as config} from '../config.js'
 import router from './routes/index.routes.js';
-
 
 /**
  * Initialize main Express instance.
@@ -127,12 +126,20 @@ app.use(function(req, res, next) {
 });
 
 /**
- * Define logger for development.
+ * Morgan Logger
+ *
+ * Whenever a new session is created, regenerated, or destroyed,
+ * it should be logged. Namely, activities like user-role
+ * escalation A typical log should contain the timestamp, client IP,
+ * resource requested, user ID, and session ID.
  */
 
-// app.use(function (req, res, next) {
-//     logger('dev');
-// });
+morgan.token('sessionid', function(req, res, param) {
+    return req.sessionID;
+});
+morgan.token('user', function(req, res, param) {
+    return req.session.user;
+});
 
 /**
  * Serve static files.
@@ -157,7 +164,6 @@ app.use(function(req, res, next) {
         throw Error('nosession');
 
     // store response local variables scoped to the request
-    res.locals.labels = labels;
     res.locals.user = req.session.user;
     res.locals.messages = req.session.messages || [];
 

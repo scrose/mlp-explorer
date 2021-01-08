@@ -1,7 +1,7 @@
 /*!
  * MLP.API.Services.Schema
  * File: schema.services.js
- * Copyright(c) 2020 Runtime Software Development Inc.
+ * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
@@ -222,7 +222,7 @@ export const getModelAttributes = async function(modelType) {
                 key: x.col,
                 label: humanize(x.col),
                 type: x.data_type,
-                ref: x.ref_table,
+                ref: x.ref_table
                 // refId: x.ref_col
             } || []);
             return rv;

@@ -13,12 +13,13 @@
   "repository": "github:scrose/mlp-explorer/",
   "bugs": "https://github.com/scrose/mlp-explorer/issues",
   "scripts": {
-    "startdev": "nodemon ./src/bin/www.js -r dotenv/config config.js",
+    "startdev": "nodemon --experimental-modules ./src/bin/www.js -r dotenv/config config.js",
     "start": "node ./src/bin/www.js -r dotenv/config config.js",
     "serverstart": "DEBUG=mlp-explorer:* npm run devstart",
     "test": "nyc mocha --exit",
     "coverage": "nyc npm run test",
-    "client": "cd react-app-boilerplate && npm start"
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build"
   },
   "dependencies": {
     "dotenv": "^8.2.0",
@@ -26,6 +27,7 @@
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "http-errors": "~1.6.3",
+    "morgan": "^1.10.0",
     "nanoid": "^3.1.16",
     "node-cron": "^2.0.3",
     "node-forge": ">=0.10.0",

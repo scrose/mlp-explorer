@@ -1,7 +1,7 @@
 /*!
  * MLP.API.Models.Queries.Roles
  * File: roles.queries.js
- * Copyright(c) 2020 Runtime Software Development Inc.
+ * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 

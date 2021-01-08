@@ -1,7 +1,7 @@
 /*!
  * MLP.API.Tests.Index
  * File: index.test.js
- * Copyright(c) 2020 Runtime Software Development Inc.
+ * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
@@ -12,7 +12,7 @@
 
 import { expect, server, BASE_URL } from './setup.js';
 import mocha from 'mocha';
-import labels from '../react-app-boilerplate/src/schema.js'
+import labels from '../client/src/schema.js'
 
 mocha.describe('Index page test', () => {
   mocha.it('Gets base url', (done) => {

@@ -1,7 +1,7 @@
 /*!
  * MLP.API.Tests.Users
  * File: users.test.js
- * Copyright(c) 2020 Runtime Software Development Inc.
+ * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
@@ -106,6 +106,18 @@ let admin = {
  */
 
 mocha.describe('Login Administrator', () => {
+
+    mocha.it('Retrieves login form schema', async () => {
+        await agent
+            .get(`${BASE_URL}login`)
+            .set('Accept', 'application/json')
+            .then((res) => {
+                console.log(res.body)
+                expect(res).to.have.status(500);
+                expect(res.body).to.equal(errors.login);
+            })
+    });
+
     mocha.it('Authenticate wrong email should fail', async () => {
         await agent
             .post(`${BASE_URL}login`)

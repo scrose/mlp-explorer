@@ -1,7 +1,7 @@
 /*!
  * MLP.API.Controllers.Files
  * File: files.controller.js
- * Copyright(c) 2020 Runtime Software Development Inc.
+ * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
@@ -53,9 +53,7 @@ export default function FilesController(modelType) {
         try {
             model = new Model();
             services = new DBServices(new Model());
-
-
-            console.log('\n\n\n!!!!!!!\n\n\n', services, '\n\n\n!!!!!!!\n\n\n')
+            // console.log('\n\n\n===SERVICES===\n\n\n', services, '\n\n\n===SERVICES===\n\n\n')
         }
         catch (err) {
             next(err);

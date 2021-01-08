@@ -1,7 +1,7 @@
 /*!
  * MLP.API.Utilities.Error
  * File: error.js
- * Copyright(c) 2020 Runtime Software Development Inc.
+ * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
@@ -42,22 +42,6 @@ function getMessage(err = null) {
 }
 
 /**
- * Create message schema for rendering.
- *
- * @private
- * @param {String} msg
- */
-
-function renderMessage(msg) {
-    return JSON.stringify({
-        div: {
-            attributes: { class: 'msg error' },
-            textNode: msg,
-        },
-    });
-}
-
-/**
  * Global error handler.
  *
  * @public
@@ -68,10 +52,9 @@ function renderMessage(msg) {
  */
 
 export function globalHandler(err, req, res, next) {
-    console.log(err)
-    err.message = getMessage(err);
-    debug(err.name, err);
-    return res.status(500).json(err.message);
+    console.error('\n\nAn error has occurred:\n\n', err)
+    // debug(err.name, err);
+    return res.status(500).json(getMessage(err));
 }
 
 /**

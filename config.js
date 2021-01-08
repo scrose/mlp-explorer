@@ -1,3 +1,10 @@
+/*!
+ * MLP.API.Config
+ * File: config.js
+ * Copyright(c) 2021 Runtime Software Development Inc.
+ * MIT Licensed
+ */
+
 'use strict';
 
 /**
@@ -45,9 +52,7 @@ if (result.error) {
  * Expose module settings.
  * @public
  */
-export const roles = settings.roles;
 export const session = settings.session;
-export const permissions = settings.permissions;
 export const imageSizes = settings.imageSizes;
 
 console.log('Settings loaded.')

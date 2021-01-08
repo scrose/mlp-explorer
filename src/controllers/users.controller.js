@@ -1,7 +1,7 @@
 /*!
  * MLP.API.Controllers.Users
  * File: users.controller.js
- * Copyright(c) 2020 Runtime Software Development Inc.
+ * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
@@ -13,6 +13,7 @@
 import * as db from '../services/index.services.js';
 import valid from '../lib/validate.utils.js';
 import { authenticate as auth, encryptUser } from '../lib/secure.utils.js';
+import { prepare } from '../lib/api.utils.js';
 
 /**
  * Initialize users, roles tables and admin user account.
@@ -101,9 +102,15 @@ export const show = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
     try {
-        // redirect to home if user already logged in.
-        if (req.session.user) return res.redirect('/');
-        res.status(200).json(res.locals);
+        // throw error on redundant login
+        if (req.session.user)
+            return next(new Error('loginRedundant'));
+
+        // create form schema from model
+        const user = new User();
+        res.status(200).json(
+            prepare('users', 'login', user.attributes)
+        );
     } catch (err) {
         return next(err);
     }
@@ -122,8 +129,9 @@ export const login = async (req, res, next) => {
 
 export const authenticate = async (req, res, next) => {
 
-    // redirect on redundant login
-    if (req.session.user) return res.redirect('/');
+    // throw error on redundant login
+    if (req.session.user)
+        return next(new Error('loginRedundant'));
 
     let reqUser, authUser;
     try {
