@@ -11,10 +11,10 @@ import * as utils from '../../utils/router.utils.client';
  * @param id
  */
 
-const Messenger = ({msg}) => {
-    const {type, text} = msg;
+const Messenger = ({message}) => {
+    const {type, msg} = message;
     return (
-        <div className={`msg ${type}`}>{text}</div>
+        <div className={`msg ${type}`}>{msg}</div>
     )
 }
 
@@ -23,28 +23,29 @@ const Messenger = ({msg}) => {
  * Build viewer panel.
  *
  * @public
- * @param params
  */
 
 const Viewer = () => {
 
     const [viewData, setViewData] = React.useState({});
+    const [msgData, setMsgData] = React.useState({});
 
     // Get global data from API
     React.useEffect(() => {
-        api.fetchData(utils.getRoute())
+        api.getData(utils.getRoute())
             .then(data => {
-                console.log('Fetched Data:', data);
-                const { view, model, attributes, message } = data;
-                setViewData({ view, model, attributes, message });
+                const { response } = data
+                const { view, model, attributes, message } = response;
+                setViewData({ view, model, attributes });
+
+                // Add viewer message (if provided)
+                if (message)
+                    setMsgData({ msg: message.msg, type: message.type });
+
             })
-            .catch(err => {
-                setViewData({ err });
-                console.error('Fetch Error:', err)
-            });
     }, []);
 
-    const { view, model, attributes, message } = viewData;
+    const { view, model, attributes } = viewData;
 
     // initialize viewer input data
     const filteredData = _initData(view, model, attributes);
@@ -56,15 +57,20 @@ const Viewer = () => {
     // Is the requested view a form?
     const isForm = filteredData.type === 'form';
 
-    console.log('Form?', isForm)
-
     // render requested view
     return (
+
         <div className={"viewer"}>
-            {message ? <Messenger msg={message} /> : null}
+            { Object.keys(msgData).length > 0 ? <Messenger message={msgData} /> : null }
             {
                 isForm
-                ? <Form msg={message} formData={filteredData} />
+                ? <Form
+                        message={[msgData, setMsgData]}
+                        model={model}
+                        action={filteredData.action}
+                        legend={filteredData.legend}
+                        inputs={filteredData.inputs}
+                        references={filteredData.references} />
                 : <div>Data View</div>
             }
         </div>
@@ -82,8 +88,6 @@ const Viewer = () => {
  */
 
 function _initData(view, model, attributes) {
-
-   console.log('Initialize viewer data:', view, model, attributes)
 
     // Handle form data
     if (schema.hasOwnProperty(view)) {

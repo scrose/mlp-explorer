@@ -10,6 +10,7 @@ import Header from './components/common/Header';
 import Navigator from './components/common/Navigator';
 import Footer from './components/common/Footer';
 import Viewer from './components/common/Viewer';
+import ErrorBoundary from './components/common/ErrorBoundary'
 
 /**
  * Core client application component.
@@ -21,12 +22,14 @@ function App() {
 
     return (
         <div className={"page-content"}>
-            <Header />
-            <main>
-                <Navigator />
-                <Viewer />
-            </main>
-            <Footer />
+            <ErrorBoundary>
+                <Header />
+                <main>
+                    <Navigator />
+                    <Viewer />
+                </main>
+                <Footer />
+            </ErrorBoundary>
         </div>
     );
 }

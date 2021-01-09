@@ -52,9 +52,11 @@ function getMessage(err = null) {
  */
 
 export function globalHandler(err, req, res, next) {
-    console.error('\n\nAn error has occurred:\n\n', err)
-    // debug(err.name, err);
-    return res.status(500).json(getMessage(err));
+    console.warn(err)
+    return res.status(500).json({
+        msg: getMessage(err),
+        type: 'error'
+    });
 }
 
 /**
@@ -68,5 +70,8 @@ export function globalHandler(err, req, res, next) {
  */
 
 export function notFoundHandler(req, res, next) {
-    return res.status(404).json("Page not found.");
+    return res.status(404).json({
+        msg: 'Requested page not found.',
+        type: 'error'
+    });
 }

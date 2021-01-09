@@ -136,6 +136,7 @@ export const authenticate = async (req, res, next) => {
     let reqUser, authUser;
     try {
         // validate submitted user credentials
+        console.log(req.body)
         const { email, password } = req.body;
         reqUser = {
             email: valid.load(email).isEmail().data,
@@ -173,7 +174,7 @@ export const authenticate = async (req, res, next) => {
                 });
             });
         })
-        .catch((err) => next(err));
+        .catch(err => {return next(err)});
 };
 
 /**
@@ -189,8 +190,11 @@ export const authenticate = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
     try {
-        // redirect home if user already logged out
-        if (!req.session.user) res.redirect('/');
+
+        // throw error on redundant logout
+        if (req.session.user)
+            return next(new Error('logoutRedundant'));
+
         req.session.regenerate(function(err) {
             if (err) throw new Error('logout');
             req.session.save(function(err) {

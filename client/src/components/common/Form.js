@@ -8,7 +8,6 @@
 import React from 'react'
 import validator from '../../utils/validator.utils.client';
 import * as api from '../../services/api.services.client';
-import { getRoute } from '../../utils/router.utils.client';
 
 /**
  * Build input help text.
@@ -17,7 +16,7 @@ import { getRoute } from '../../utils/router.utils.client';
  * @param error
  */
 
-const HelpText = ({msg}) => {
+const ValidationMessage = ({msg}) => {
     return (
         <span className='validation error'>{msg}</span>
     )
@@ -85,7 +84,7 @@ const inputElements = {
                 {label}
                 <input key={`key_${name}`} type={"text"}
                        id={name} name={name} value={value||''} onChange={onchange} onBlur={onblur} />
-                {error ? <HelpText msg={error} /> : null}
+                {error ? <ValidationMessage msg={error} /> : null}
             </label>
         )
     },
@@ -105,7 +104,7 @@ const inputElements = {
                 {label}
                 <input key={`key_${name}`} type={"email"}
                        id={name} name={name} value={value||''} onChange={onchange} onBlur={onblur} />
-                {error ? <HelpText msg={error} /> : null}
+                {error ? <ValidationMessage msg={error} /> : null}
             </label>
         )
     },
@@ -115,7 +114,7 @@ const inputElements = {
                 {label}
                 <input key={`key_${name}`} type={"password"}
                        id={name} name={name} value={value||''} onChange={onchange} onBlur={onblur} />
-                {error ? <HelpText msg={error} /> : null}
+                {error ? <ValidationMessage msg={error} /> : null}
             </label>
         )
     },
@@ -221,7 +220,7 @@ class Form extends React.Component {
         console.log('Did Mount:', this.state)
         // set state to form fields (if not yet loaded)
         if ( !this.state.isLoaded ) {
-            const { formData: { references={} } } = this.props;
+            const { references={} } = this.props;
             // load state with form fields
             this.setState({ isLoaded: true, references}, () => {
                 console.log('State fields:', this.state);
@@ -271,24 +270,23 @@ class Form extends React.Component {
     handleSubmit(e) {
 
         const data = new FormData(e.target);
-        const {action, method} = e.target;
-        const { msg: [_, msgDataSet] } = this.props;
+        const jsonData = Object.fromEntries(data.entries());
+        const { action } = e.target;
 
-        console.log('Submission', action, method)
-        for (let pair of data.entries()) {
-            console.log(pair[0] + ': ' + pair[1]);
-        }
+        // get viewer messenger to add API response message
+        const { message: [, setMsgData] } = this.props;
+
+        // stop default form submission
         e.preventDefault();
 
         // submit form data to API
-        api.sendData(action, method, data)
+        api.postData(action, jsonData)
             .then(res => {
-                console.log(res)
-                msgDataSet({msg:"An error has occurred."})
+                setMsgData({ msg: res.response.msg, type: res.response.type });
             })
             .catch(err => {
-                msgDataSet({msg:"An error has occurred."})
-                console.error(err)
+                console.error('Form submission API error:', err)
+                setMsgData({ msg: err, type: 'error' });
             });
     }
 
@@ -300,24 +298,22 @@ class Form extends React.Component {
 
     render() {
         // get data from parent components
-        const { formData: { model, action, legend, inputs } } = this.props;
+        const { model, action, legend, inputs } = this.props;
         const { references={} } = this.state;
         const handlers = {onchange: this.handleChange, onblur: this.handleBlur};
-        const actionURL = getRoute(action.url);
 
         return (
-            <form id={model} name={model} action={actionURL} method={action.method} onSubmit={this.handleSubmit}>
+            <form id={model} name={model} method={action.method} onSubmit={this.handleSubmit}>
                 <Fields
                     model={model}
                     legend={legend}
                     inputs={inputs}
                     references={references}
-                    handlers={handlers}/>
+                    handlers={handlers} />
                 <fieldset>
                     <SubmitButton
                         value={action.label}
-                        name={`submit_${model}`}
-                        handler={this.handleSubmit} />
+                        name={`submit_${model}`} />
                     <CancelButton url={'/'}/>
                 </fieldset>
             </form>

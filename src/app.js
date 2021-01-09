@@ -52,16 +52,6 @@ app.disable('x-powered-by');
 app.use(helmet());
 
 /**
- * Define the views parameters:
- * - View engine: set default template engine to "ejs"
- *   which prevents the need for using file extensions
- * - Views main directory: set views for error and 404 pages
- */
-
-// app.set('view engine', 'ejs');
-// app.set('views', path.join(__dirname, 'views'));
-
-/**
  * Set proxy and cross-origin settings (CORS).
  */
 
@@ -76,7 +66,7 @@ app.use(
             if (allowedOrigins.indexOf(origin) === -1) {
                 const msg =
                     "The CORS policy for this site does not " +
-                    "allow access from the specified Origin.";
+                    "allow access from the specified origin: \n" + origin;
                 return callback(new Error(msg), false);
             }
             return callback(null, true);
@@ -141,11 +131,6 @@ morgan.token('user', function(req, res, param) {
     return req.session.user;
 });
 
-/**
- * Serve static files.
- */
-
-app.use(express.static('./public'));
 
 /**
  * Parse request bodies (req.body)
@@ -203,10 +188,10 @@ app.use('/', router);
  */
 
 app.use(function(err, req, res, next) {
-    return globalHandler(err, req, res, next);
+    globalHandler(err, req, res, next);
 });
 app.use(function(req, res, next) {
-    return notFoundHandler(req, res, next);
+    notFoundHandler(req, res, next);
 });
 
 export default app;
