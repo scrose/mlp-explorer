@@ -11,11 +11,14 @@
  * Initialize sessions table.
  */
 
-export const init = `CREATE TABLE IF NOT EXISTS sessions (
+export const init = `BEGIN;
+                DROP TABLE IF EXISTS sessions;
+                CREATE TABLE IF NOT EXISTS sessions (
                 id serial NOT NULL PRIMARY KEY,
                 session_id VARCHAR (255) UNIQUE NOT NULL,
                 expires TIMESTAMP,
-                session_data json NOT NULL);`;
+                session_data json NOT NULL);
+                COMMIT;`;
 
 /**
  * Find session by session ID.

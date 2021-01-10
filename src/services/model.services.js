@@ -155,7 +155,7 @@ function setData(data=null) {
                 sanitize(inputData[key], this.attributes[key].type));
 
         // get attached files (if exist)
-        this.files = this.getAttachedFiles(this.getId());
+        this.files = this.getAttachedFiles(this.id);
     }
 }
 

@@ -8,20 +8,22 @@
 'use strict';
 
 /**
- * Package JSON data for responses.
+ * Package JSON data for HTTP response.
  *
  * @src public
  * @param model
  * @param view
  * @param attributes
  * @param message
+ * @param user
  */
 
-export function prepare(model, view, attributes={}, message=null) {
+export function prepare({model='', view='', attributes={}, message={}, user={}}) {
     return {
         attributes: attributes,
         model: model,
         view: view,
-        message: null
+        message: message,
+        user: user
     }
 }

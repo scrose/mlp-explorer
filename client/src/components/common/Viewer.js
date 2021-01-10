@@ -1,8 +1,11 @@
 import React from 'react';
 import Form from './Form';
+import Dashboard from '../user/Dashboard'
 import schema from '../../schema';
 import * as api from '../../services/api.services.client';
 import * as utils from '../../utils/router.utils.client';
+import ErrorBoundary from './ErrorBoundary';
+import { getUserSession, setUserSession } from '../../services/session.services.client'
 
 /**
  * Build messages container.
@@ -27,23 +30,44 @@ const Messenger = ({message}) => {
 
 const Viewer = () => {
 
+    const [userData, setUserData] = React.useState(getUserSession());
     const [viewData, setViewData] = React.useState({});
     const [msgData, setMsgData] = React.useState({});
 
+    // component mounted flag
+    const isMountedRef = React.useRef(false);
+
     // Get global data from API
     React.useEffect(() => {
-        api.getData(utils.getRoute())
+        isMountedRef.current = true;
+
+        // get requested route
+        const url = utils.getRoute();
+
+        // fetch API data
+        api.getData(url)
             .then(data => {
-                const { response } = data
-                const { view, model, attributes, message } = response;
-                setViewData({ view, model, attributes });
+                const { view, model, attributes, message, user } = data;
 
-                // Add viewer message (if provided)
-                if (message)
-                    setMsgData({ msg: message.msg, type: message.type });
+                if (isMountedRef.current) {
+                    setViewData({ view, model, attributes });
 
+                    // Set user session data
+                    if (user) {
+                        setUserData(user);
+                    }
+
+                    // Set message (if provided)
+                    if (message) {
+                        setMsgData({ msg: message.msg, type: message.type });
+                    }
+                }
+                return () => isMountedRef.current = false;
             })
-    }, []);
+    }, [setViewData, setUserData, setMsgData]);
+
+    // update user session data
+    React.useEffect(() => {setUserSession(userData);}, [userData]);
 
     const { view, model, attributes } = viewData;
 
@@ -61,11 +85,12 @@ const Viewer = () => {
     return (
 
         <div className={"viewer"}>
-            { Object.keys(msgData).length > 0 ? <Messenger message={msgData} /> : null }
+            <ErrorBoundary>
+            { msgData != null && Object.keys(msgData).length > 0 ? <Messenger message={msgData} /> : null }
             {
                 isForm
                 ? <Form
-                        message={[msgData, setMsgData]}
+                        messages={[msgData, setMsgData]}
                         model={model}
                         action={filteredData.action}
                         legend={filteredData.legend}
@@ -73,6 +98,7 @@ const Viewer = () => {
                         references={filteredData.references} />
                 : <div>Data View</div>
             }
+            </ErrorBoundary>
         </div>
     )
 };

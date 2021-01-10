@@ -19,17 +19,16 @@ import ErrorBoundary from './components/common/ErrorBoundary'
  */
 
 function App() {
-
     return (
         <div className={"page-content"}>
-            <ErrorBoundary>
                 <Header />
                 <main>
                     <Navigator />
-                    <Viewer />
+                    <ErrorBoundary>
+                        <Viewer />
+                    </ErrorBoundary>
                 </main>
                 <Footer />
-            </ErrorBoundary>
         </div>
     );
 }

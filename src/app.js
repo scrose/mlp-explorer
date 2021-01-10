@@ -18,7 +18,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import session from 'express-session';
 import { genUUID } from './lib/secure.utils.js';
-import SessionStore from './models/session.models.js';
+import SessionStore from './services/sessionstore.services.js';
 import { globalHandler, notFoundHandler } from './error.js';
 import { authorize } from './lib/permissions.utils.js';
 import {session as config} from '../config.js'
@@ -99,23 +99,6 @@ app.use(
 }));
 
 /**
- * Define session-persistent messenger.
- */
-
-app.use(function(req, res, next) {
-    req.session.messages = [];
-    res.locals.messages = []
-    res.message = function (msg, type='info') {
-        if (!req.hasOwnProperty('session'))
-            throw Error('nosession');
-        req.session.messages = req.session.messages || [];
-        req.session.messages.push({ type: type, string: msg, });
-        res.locals.messages.push({ type: type, string: msg, })
-    };
-    next()
-});
-
-/**
  * Morgan Logger
  *
  * Whenever a new session is created, regenerated, or destroyed,
@@ -150,15 +133,10 @@ app.use(function(req, res, next) {
 
     // store response local variables scoped to the request
     res.locals.user = req.session.user;
-    res.locals.messages = req.session.messages || [];
-
-    // clear message bank
-    req.session.messages = [];
 
     // check user session data
     console.log('Session: ', req.session.id);
     console.log('Active User: ', res.locals.user);
-    console.log('Message Bank: ', res.locals.messages);
     next();
 });
 

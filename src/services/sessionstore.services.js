@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Models.Session
- * File: session.models.js
+ * File: sessionstore.services.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -14,7 +14,7 @@
 
 import { session as config } from '../../config.js';
 import sess from 'express-session';
-import * as db from '../services/index.services.js';
+import * as db from './index.services.js';
 import cron from 'node-cron';
 import debug from '../lib/debug.utils.js';
 
@@ -57,7 +57,7 @@ function SessionStore() {
             console.log('Sessions table generated.');
         })
         .catch((err) => {
-            console.error('SESSION INIT Error: ', err);
+            console.error('Sessions initialization error: ', err);
         });
 }
 

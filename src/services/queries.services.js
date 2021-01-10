@@ -299,17 +299,17 @@ export function removeNode(model) {
  */
 
 export function selectFile(model) {
-    return model.file
-        ? function(fileItem) {
-            const sql = `SELECT *
-                         FROM files
-                         WHERE id = $1::integer`;
-            return {
-                sql: sql,
-                data: [fileItem.attributes.id],
-            };
-        }
-        : null;
+    // return model.file
+    //     ? function(fileItem) {
+    //         const sql = `SELECT *
+    //                      FROM files
+    //                      WHERE id = $1::integer`;
+    //         return {
+    //             sql: sql,
+    //             data: [fileItem.attributes.id],
+    //         };
+    //     }
+    //     : null;
 }
 
 /**
@@ -532,6 +532,8 @@ export function getPermissions() {
         data: [],
     };
 }
+
+
 
 
 

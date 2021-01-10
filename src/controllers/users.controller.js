@@ -102,14 +102,19 @@ export const show = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
     try {
-        // throw error on redundant login
-        if (req.session.user)
-            return next(new Error('loginRedundant'));
 
-        // create form schema from model
+        // return current user data when session exists (logged-in)
+        if (req.session.user != null) {
+            console.warn('User %s already logged-in.', req.session.email)
+            return res.status(200).json(
+                prepare({user:req.session.user})
+            );
+        }
+
+        // create form schema from user model
         const user = new User();
         res.status(200).json(
-            prepare('users', 'login', user.attributes)
+            prepare({model: 'users', view: 'login', attributes: user.attributes})
         );
     } catch (err) {
         return next(err);
@@ -129,25 +134,29 @@ export const login = async (req, res, next) => {
 
 export const authenticate = async (req, res, next) => {
 
-    // throw error on redundant login
-    if (req.session.user)
-        return next(new Error('loginRedundant'));
+    // return current user data when session exists (logged-in)
+    if (req.session.user != null) {
+        console.warn('User %s already logged-in.', req.session.email)
+        return res.status(200).json(
+            prepare({user:req.session.user})
+        );
+    }
 
+    // authenticate submitted user credentials
+    // TODO: Implement login rate limiter
     let reqUser, authUser;
     try {
-        // validate submitted user credentials
-        console.log(req.body)
+        // validate user credentials
         const { email, password } = req.body;
         reqUser = {
             email: valid.load(email).isEmail().data,
             password: valid.load(password).isPassword().data,
         };
-        // TODO: Implement login rate limiter
     } catch (err) {
         return next(new Error('login'));
     }
 
-    // Confirm user is registered
+    // Confirm user registration
     await db.users
         .selectByEmail(reqUser.email)
         .then((data) => {
@@ -167,10 +176,14 @@ export const authenticate = async (req, res, next) => {
                     id: authUser.getValue('user_id'),
                     email: authUser.getValue('email'),
                 };
-                res.message('Login successful.', 'success');
                 req.session.save(function(err) {
                     if (err) throw Error(err);
-                    res.status(200).json(res.locals);
+                    res.status(200).json(
+                        prepare({
+                            message: {msg: 'Login successful.', type: 'success'},
+                            user: req.session.user
+                        })
+                    );
                 });
             });
         })

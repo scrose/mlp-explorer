@@ -11,6 +11,7 @@
  */
 
 import debug from './lib/debug.utils.js';
+import { prepare } from './lib/api.utils.js';
 
 'use strict';
 
@@ -18,12 +19,13 @@ export const messages = {
     23514: 'Email and/or password are empty or invalid.',
     '42P01': 'Database is misconfigured. Contact the site administrator for assistance.',
     login: 'Authentication failed. Please check your login credentials.',
-    loginRedundant: 'Authentication failed. Please check your login credentials.',
+    loginRedundant: 'You are currently logged in.',
     logout: 'Logging out failed. You are no longer signed in.',
     logoutRedundant: 'User is not signed in.',
     session: 'Session error. Contact the site administrator for assistance.',
-    default: 'An error occurred. Your request could not be completed. Contact the site administrator for assistance.',
+    default: 'Your request could not be completed. Contact the site administrator for assistance.',
     restrict: 'Access denied!',
+    notFound: 'Page not found.'
 };
 
 
@@ -53,10 +55,14 @@ function getMessage(err = null) {
 
 export function globalHandler(err, req, res, next) {
     console.warn(err)
-    return res.status(500).json({
-        msg: getMessage(err),
-        type: 'error'
-    });
+    return res.status(500).json(
+        prepare({
+            message: {
+                msg: getMessage(err),
+                type: 'error'
+            }
+        })
+    );
 }
 
 /**
@@ -70,8 +76,12 @@ export function globalHandler(err, req, res, next) {
  */
 
 export function notFoundHandler(req, res, next) {
-    return res.status(404).json({
-        msg: 'Requested page not found.',
-        type: 'error'
-    });
+    return res.status(404).json(
+        prepare({
+            message: {
+                msg: messages.notFound,
+                type: 'error'
+            }
+        })
+    );
 }

@@ -89,7 +89,11 @@ function handleResponse(res) {
 export async function getData(url='/') {
     return await makeRequest(url, 'GET')
         .then(res => {
-            return res;
+            const { response } = res;
+            // report API errors in console as warning
+            if (!res.success)
+                console.warn(`An API error occurred (${res.statusText}): ${response.message.msg}.`);
+            return response;
         })
         .catch(err => {
             console.error('An API error occurred:', err)
@@ -105,16 +109,13 @@ export async function getData(url='/') {
  */
 
 export async function postData(url='/', data) {
-
-    // show outgoing data
-    console.log(data)
-
     return await makeRequest(url, 'POST', data)
         .then(res => {
+            const { response } = res;
             // report API errors in console as warning
             if (!res.success)
-                console.warn(`An API error occurred (${res.statusText}): ${res.response.msg}.`);
-            return res;
+                console.warn(`An API error occurred (${res.statusText}): ${response.message.msg}`);
+            return response;
         })
         .catch(err => {
             console.error('An API error occurred:', err)

@@ -8,6 +8,7 @@
 import React from 'react'
 import validator from '../../utils/validator.utils.client';
 import * as api from '../../services/api.services.client';
+import { getUserSession, setUserSession } from '../../services/session.services.client'
 
 /**
  * Build input help text.
@@ -171,27 +172,17 @@ const Select = ({name, options}, handler) => {
  * and labels.
  *
  * @public
- * @param model
- * @param fields
+ * @param name
  * @param legend
- * @param handlers
+ * @param inputs
  * @return fieldset element
  */
 
-const Fields = ({model, inputs, legend, references, handlers}) => {
-    const fieldElements =
-        inputs.map(field => {
-        // lookup form input element from type
-        const fieldElement = inputElements[field.type];
-        const ref = references.hasOwnProperty(field.name)
-            ? references[field.name] : {value: null, error: ''};
-        return fieldElement(field, ref, handlers);
-    })
-
+const Fields = ({name, legend, inputs}) => {
     return (
-        <fieldset name={model}>
+        <fieldset name={name}>
             <legend>{legend}</legend>
-            {fieldElements}
+            {inputs}
         </fieldset>
     )
 }
@@ -203,61 +194,43 @@ const Fields = ({model, inputs, legend, references, handlers}) => {
  * @param params
  */
 
-class Form extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            isLoaded: false,
-            references: {}
-        };
-        this.handleChange = this.handleChange.bind(this);
-        this.handleBlur = this.handleBlur.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
-    }
+const Form = ({ model, action, legend, inputs, references={}, messages }) => {
 
-    // state is updated using fetched data
-    componentDidMount() {
-        console.log('Did Mount:', this.state)
-        // set state to form fields (if not yet loaded)
-        if ( !this.state.isLoaded ) {
-            const { references={} } = this.props;
-            // load state with form fields
-            this.setState({ isLoaded: true, references}, () => {
-                console.log('State fields:', this.state);
-            });
-            }
-        }
+    const [refData, setRefData] = React.useState(references);
+    const [, setMsgData] = messages;
+    const [userData, setUserData] = React.useState(getUserSession());
 
     /**
-     * Input on-change handler. Updates state.
+     * Input on-change handler. Updates references state.
      *
      * @public
      * @param {Event} e
      */
 
-    handleChange(e) {
+    const handleChange = e => {
         const { name, value } = e.target;
-        const { references } = this.state;
-        references[name] = {value: value, error: ''};
-        this.setState({references});
-
+        const tmp = refData;
+        console.log('Ref data:', tmp)
+        tmp[name] = {value: value, error:''}
+        console.log('New ref data:', tmp)
+        setRefData(tmp);
     }
 
     /**
-     * Input on-blur handler. Validates input data.
+     * Input on-blur handler. Validates input value(s)
+     * and sets first error message in validation chain.
      *
      * @public
      * @param {Event} e
      */
 
-    handleBlur(e) {
-        const { name, value } = e.target;
-        const { references } = this.state;
-
-        // validate input value(s)
-        const errMsg = inputValidators[name](value);
-        references[name] = {value: value, error: errMsg};
-        this.setState({references});
+    const handleBlur = e => {
+        // const { name, value } = e.target;
+        // const errMsg = inputValidators[name](value);
+        // const tmp = refData;
+        // tmp[name] = {value: value, error:errMsg}
+        // console.log('New ref data:', tmp)
+        // setRefData(tmp);
     }
 
     /**
@@ -267,28 +240,54 @@ class Form extends React.Component {
      * @param e
      */
 
-    handleSubmit(e) {
+    const handleSubmit = e => {
+        try {
+            const data = new FormData(e.target);
+            const jsonData = Object.fromEntries(data.entries());
+            const { action } = e.target;
 
-        const data = new FormData(e.target);
-        const jsonData = Object.fromEntries(data.entries());
-        const { action } = e.target;
+            // stop default form submission
+            e.preventDefault();
 
-        // get viewer messenger to add API response message
-        const { message: [, setMsgData] } = this.props;
+            // submit form data to API
+            api.postData(action, jsonData)
+                .then(data => {
+                    console.warn('Form submission response:', data)
+                    // get response message
+                    const { message } = data;
+                    setMsgData(message);
 
-        // stop default form submission
-        e.preventDefault();
+                    // Set user session data
+                    const { user } = data;
+                    if (user) setUserData(user);
 
-        // submit form data to API
-        api.postData(action, jsonData)
-            .then(res => {
-                setMsgData({ msg: res.response.msg, type: res.response.type });
-            })
-            .catch(err => {
-                console.error('Form submission API error:', err)
-                setMsgData({ msg: err, type: 'error' });
-            });
+                })
+                .catch(err => {
+                    console.error('Form submission API error:', err)
+                    // message.setMsgData({ msg: err, type: 'error' });
+                });
+
+        }
+        catch (err) {
+            console.error(err)
+            e.preventDefault();
+        }
     }
+
+    // update user session data with state
+    React.useEffect(() => {
+        console.log('References after:', refData)
+        setUserSession(userData);
+        }, [userData, refData]);
+
+    const fieldElements =
+        inputs.map(field => {
+            // lookup form input element from type
+            const fieldElement = inputElements[field.type];
+            const ref = references.hasOwnProperty(field.name)
+                ? references[field.name] : {value: '', error: ''};
+            return fieldElement(field, ref, {onchange: handleChange, onblur: handleBlur});
+        })
 
     /**
      * Renders form.
@@ -296,28 +295,17 @@ class Form extends React.Component {
      * @public
      */
 
-    render() {
-        // get data from parent components
-        const { model, action, legend, inputs } = this.props;
-        const { references={} } = this.state;
-        const handlers = {onchange: this.handleChange, onblur: this.handleBlur};
-
-        return (
-            <form id={model} name={model} method={action.method} onSubmit={this.handleSubmit}>
-                <Fields
-                    model={model}
-                    legend={legend}
-                    inputs={inputs}
-                    references={references}
-                    handlers={handlers} />
-                <fieldset>
-                    <SubmitButton
-                        value={action.label}
-                        name={`submit_${model}`} />
-                    <CancelButton url={'/'}/>
-                </fieldset>
-            </form>
-        )};
+    return (
+        <form id={model} name={model} method={action.method} onSubmit={handleSubmit}>
+            <Fields name={model} legend={legend} inputs={fieldElements} />
+            <fieldset>
+                <SubmitButton
+                    value={action.label}
+                    name={`submit_${model}`} />
+                <CancelButton url={'/'}/>
+            </fieldset>
+        </form>
+        );
 }
 
 export default Form;

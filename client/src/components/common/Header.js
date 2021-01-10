@@ -1,12 +1,41 @@
 import schema from '../../schema';
+import React from 'react';
+
+/**
+ * Build messages container.
+ *
+ * @public
+ * @param id
+ */
+
+const NavMenu = ({data}) => {
+    const {email} = data;
+    return (
+        <nav className={`menu user`}>{email}</nav>
+    )
+}
 
 const pageHeading = `${schema.main.appName}: ${schema.main.projectName}`;
 
+/**
+ * Build page header.
+ *
+ * @public
+ */
+
 const Header = () => {
+
+    // get current path
     const rootURL = window.location.href;
+    const [userData, setUserData] = React.useState(
+        sessionStorage.getItem('user') || {}
+    );
+    const {id, email} = userData;
+    console.log('Header:', userData, id, email)
+
     return (
         <header className="page-header">
-            <nav id="user_menu"></nav>
+            <NavMenu data={userData} />
             <h1>
                 <a href="/">{pageHeading}</a>
             </h1>
