@@ -15,17 +15,73 @@ import { prepare } from './lib/api.utils.js';
 
 'use strict';
 
-export const messages = {
-    23514: 'Email and/or password are empty or invalid.',
-    '42P01': 'Database is misconfigured. Contact the site administrator for assistance.',
-    login: 'Authentication failed. Please check your login credentials.',
-    loginRedundant: 'You are currently logged in.',
-    logout: 'Logging out failed. You are no longer signed in.',
-    logoutRedundant: 'User is not signed in.',
-    session: 'Session error. Contact the site administrator for assistance.',
-    default: 'Your request could not be completed. Contact the site administrator for assistance.',
-    restrict: 'Access denied!',
-    notFound: 'Page not found.'
+export const errors = {
+    default: {
+        hint: 'Generic error for server failure.',
+        msg: 'Your request could not be completed. Contact the site administrator for assistance.',
+        status: 500,
+        type: 'error'
+    },
+    failedRegistration: {
+        hint: 'User was not added to the database.',
+        msg: 'Registration failed. Please check your registration details.',
+        status: 401,
+        type: 'error'
+    },
+    invalidLogin: {
+        hint: 'Invalid login credentials.',
+        msg: 'Authentication failed. Please check your login credentials.',
+        status: 401,
+        type: 'error'
+    },
+    failedLogin: {
+        hint: 'Incorrect login credentials.',
+        msg: 'Authentication failed. Please check your login credentials.',
+        status: 401,
+        type: 'error'
+    },
+    redundantLogin: {
+        hint: 'User already logged in.',
+        msg: 'User is already logged in!',
+        status: 403,
+        type: 'warning'
+    },
+    noLogout: {
+        hint: 'Logout failed at controller.',
+        msg: 'Logging out failed. You are no longer signed in.',
+        status: 403,
+        type: 'error'
+    },
+    redundantLogout: {
+        hint: 'User already logged out.',
+        msg: 'User is already logged out!',
+        status: 403,
+        type: 'warning'
+    },
+    restricted: {
+        hint: 'User does not have sufficient admin privileges.',
+        msg: 'Access denied!',
+        status: 403,
+        type: 'error'
+    },
+    noAuth: {
+        hint: 'JWT token is not correct for user.',
+        msg: 'Unauthorized access!',
+        status: 401,
+        type: 'error'
+    },
+    noToken: {
+        hint: 'JWT authorization token was not set.',
+        msg: 'Access denied!',
+        status: 403,
+        type: 'error'
+    },
+    notFound: {
+        hint: 'Route does not exist.',
+        msg: 'Page not found.',
+        status: 404,
+        type: 'error'
+    }
 };
 
 
@@ -36,11 +92,11 @@ export const messages = {
  * @param {Error} err
  */
 
-function getMessage(err = null) {
+function decodeError(err = null) {
     return err.hasOwnProperty('message')
-        ? messages.hasOwnProperty(err.message)
-        ? messages[err.message]
-            : messages.default : messages.default;
+        ? errors.hasOwnProperty(err.message)
+        ? errors[err.message]
+            : errors.default : errors.default;
 }
 
 /**
@@ -54,12 +110,17 @@ function getMessage(err = null) {
  */
 
 export function globalHandler(err, req, res, next) {
-    console.warn(err)
-    return res.status(500).json(
+    const e = decodeError(err);
+
+    // report to logger
+    console.error(`ERROR (${err.message})\t${e.msg}\t${e.status}\t${e.hint}`)
+
+    // send response
+    return res.status(e.status).json(
         prepare({
             message: {
-                msg: getMessage(err),
-                type: 'error'
+                msg: e.msg,
+                type: e.type
             }
         })
     );
@@ -79,7 +140,7 @@ export function notFoundHandler(req, res, next) {
     return res.status(404).json(
         prepare({
             message: {
-                msg: messages.notFound,
+                msg: errors.notFound,
                 type: 'error'
             }
         })

@@ -15,13 +15,7 @@
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
-import morgan from 'morgan';
-import session from 'express-session';
-import { genUUID } from './lib/secure.utils.js';
-import SessionStore from './services/sessionstore.services.js';
 import { globalHandler, notFoundHandler } from './error.js';
-import { authorize } from './lib/permissions.utils.js';
-import {session as config} from '../config.js'
 import router from './routes/index.routes.js';
 
 /**
@@ -59,8 +53,7 @@ app.set('trust proxy', 1); // trust first proxy
 
 const allowedOrigins = ["http://localhost:3000","http://localhost:3001"];
 
-app.use(
-    cors({
+app.use(cors({
         origin: function(origin, callback) {
             if (!origin) return callback(null, true);
             if (allowedOrigins.indexOf(origin) === -1) {
@@ -73,46 +66,6 @@ app.use(
         }
     })
 );
-
-/**
- * Generate session.
- * TODO: ensure secure is set to true for production server.
- */
-
-app.use(
-    session({
-        genid: function () {
-            return genUUID(); // use UUIDs for session IDs
-        },
-        store: new SessionStore(),
-        resave: false, // don't save session if unmodified
-        saveUninitialized: false, // don't create session until something stored
-        secret: process.env.SESSION_SECRET,
-        // 'Time-to-live' in milliseconds
-        maxAge: 1000 * config.ttl,
-        cookie: {
-            HttpOnly: true,
-            secure: false,
-            sameSite: true,
-            maxAge: 1000 * config.ttl,
-        },
-}));
-
-/**
- * Morgan Logger
- *
- * Whenever a new session is created, regenerated, or destroyed,
- * it should be logged. Namely, activities like user-role
- * escalation A typical log should contain the timestamp, client IP,
- * resource requested, user ID, and session ID.
- */
-
-morgan.token('sessionid', function(req, res, param) {
-    return req.sessionID;
-});
-morgan.token('user', function(req, res, param) {
-    return req.session.user;
-});
 
 
 /**
@@ -127,32 +80,11 @@ app.use(express.json());
  */
 
 app.use(function(req, res, next) {
-
-    if (!req.hasOwnProperty('session'))
-        throw Error('nosession');
-
-    // store response local variables scoped to the request
-    res.locals.user = req.session.user;
-
-    // check user session data
-    console.log('Session: ', req.session.id);
-    console.log('Active User: ', res.locals.user);
+    res.header(
+        "Access-Control-Allow-Headers",
+        "x-access-token, Origin, Content-Type, Accept"
+    );
     next();
-});
-
-/**
- * Restrict access by user permissions.
- */
-
-app.use(function(req, res, next) {
-    return authorize(req, res, next);
-
-    // set navigation menus based on user settings
-    // res.locals.menus = {
-    //     breadcrumb: builder.nav.breadcrumbMenu(req, res),
-    //     user: builder.nav.userMenu(res),
-    //     editor: builder.nav.editorMenu(res),
-    // };
 });
 
 /**

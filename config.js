@@ -42,8 +42,7 @@ let settings = {
  * @private
  */
 // require('dotenv').config({ path: '/full/custom/path/to/your/env/vars' })
-const result = dotenv.config()
-
+const result = dotenv.config();
 if (result.error) {
     throw result.error
 }

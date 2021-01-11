@@ -15,7 +15,7 @@ import chai from 'chai';
 import sinonChai from 'sinon-chai';
 import chaiHttp from 'chai-http';
 import app from '../src/app.js';
-import {messages} from '../src/error.js';
+import * as errHandlers from '../src/error.js';
 
 /**
  * HTTP integration testing with Chai assertions.
@@ -50,4 +50,4 @@ export const agent = chai.request.agent(app);
 export const { expect } = chai;
 export const server = supertest.agent(app);
 export const BASE_URL = '/';
-export const errors = messages;
+export const errors = errHandlers.errors;

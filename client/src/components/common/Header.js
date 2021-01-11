@@ -1,5 +1,6 @@
 import schema from '../../schema';
 import React from 'react';
+import { useUserContext } from "../../services/user.services.client";
 
 /**
  * Build messages container.
@@ -27,15 +28,14 @@ const Header = () => {
 
     // get current path
     const rootURL = window.location.href;
-    const [userData, setUserData] = React.useState(
-        sessionStorage.getItem('user') || {}
-    );
-    const {id, email} = userData;
-    console.log('Header:', userData, id, email)
+    const session = useUserContext();
+    const {id, email} = session;
+
+    console.log('Header:', session, id, email)
 
     return (
         <header className="page-header">
-            <NavMenu data={userData} />
+            <NavMenu data={session} />
             <h1>
                 <a href="/">{pageHeading}</a>
             </h1>

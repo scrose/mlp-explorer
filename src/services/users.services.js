@@ -37,7 +37,10 @@ export async function getAll() {
 
 export async function select(user_id) {
     let { sql, data } = queries.select(user_id);
-    return pool.query(sql, data);
+    return await pool.query(sql, data)
+        .then(res => {
+            return res.rows.length === 0 ? null : res.rows[0]
+        });
 }
 
 /**
@@ -50,7 +53,10 @@ export async function select(user_id) {
 
 export async function selectByEmail(email) {
     let { sql, data } = queries.selectByEmail(email);
-    return pool.query(sql, data);
+    return await pool.query(sql, data)
+        .then(res => {
+            return res.rows.length === 0 ? null : res.rows[0]
+        });
 }
 
 /**
@@ -63,7 +69,10 @@ export async function selectByEmail(email) {
 
 export async function insert(user) {
     let { sql, data } = queries.insert(user);
-    return pool.query(sql, data);
+    return await pool.query(sql, data)
+        .then(res => {
+            return res.rows.length === 0 ? null : res.rows[0]
+        });
 }
 
 /**

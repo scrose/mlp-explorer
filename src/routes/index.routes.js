@@ -11,11 +11,12 @@
 
 import express from 'express';
 import * as schema from '../services/schema.services.js';
-import { restrict } from '../lib/permissions.utils.js';
+import * as auth from '../services/auth.services.js'
 import main from './main.routes.js'
 import users from './users.routes.js'
 import nodes from './nodes.routes.js'
 import files from './files.routes.js'
+import { getPermissions } from '../lib/permissions.utils.js';
 
 /**
  * Create base router to add routes.
@@ -45,18 +46,16 @@ async function initRoutes(routes, baseRouter) {
         router.route(route.path)
             .all(function(req, res, next) {
 
-                // get model ID parameter (if exists)
-                let reqId = req.params.hasOwnProperty(routes.key)
-                    ? req.params[routes.key]
-                    : null;
-
-                // restrict user access based on permissions
-                restrict(res, next, {
+                // get permissions settings (allowed user roles) for model, view
+                const allowedRoles = getPermissions({
                     permissions: permissions,
                     model: routes.model,
                     view: view,
-                    id: reqId,
+                    id: req.params.hasOwnProperty(routes.key) ? req.params[routes.key] : null,
                 });
+
+                // authorize user access based on role permissions
+                req.user = auth.authorize(req, res, next, allowedRoles);
 
             })
             .get(function(req, res, next) {

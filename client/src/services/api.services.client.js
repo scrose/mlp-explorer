@@ -7,6 +7,26 @@
  * Reference: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
  */
 
+import { useUserContext } from './user.services.client';
+
+/**
+ * Get authorization header.
+ *
+ * @public
+ */
+
+export default function authHeader() {
+    const session = useUserContext();
+    console.log('Authorization:', session)
+    if (session && session.accessToken) {
+        // for Node.js Express back-end
+        return { 'x-access-token': session.accessToken };
+    } else {
+        return {};
+    }
+}
+
+
 /**
  * Fetch options for JSON API request.
  *
@@ -77,6 +97,27 @@ function handleResponse(res) {
                 response: json
             }
         })
+}
+
+/**
+ * Request wrapper to authenticate user from API.
+ *
+ * @public
+ * @param {Object} data
+ */
+
+export async function auth(data) {
+    return await makeRequest('/authenticate', 'POST', data)
+        .then(res => {
+            const { response } = res;
+            // report API errors in console as warning
+            if (!res.success)
+                console.warn(`An API error occurred (${res.statusText}): ${response.message.msg}.`);
+            return response;
+        })
+        .catch(err => {
+            console.error('An API error occurred:', err)
+        });
 }
 
 /**

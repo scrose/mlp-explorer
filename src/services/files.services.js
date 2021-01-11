@@ -19,8 +19,8 @@ import util from 'util';
 import path from 'path';
 import { Transform, PassThrough, Writable, Duplex } from 'stream';
 import { getFilename } from '../lib/file.utils.js';
-import { genUUID } from '../lib/secure.utils.js';
 import { imageSizes } from '../../config.js';
+import { genUUID } from './auth.services.js';
 
 
 /**

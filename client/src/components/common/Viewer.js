@@ -1,11 +1,9 @@
 import React from 'react';
 import Form from './Form';
-import Dashboard from '../user/Dashboard'
 import schema from '../../schema';
 import * as api from '../../services/api.services.client';
 import * as utils from '../../utils/router.utils.client';
-import ErrorBoundary from './ErrorBoundary';
-import { getUserSession, setUserSession } from '../../services/session.services.client'
+import { getUserSession, setUserSession, useUserContext } from '../../services/user.services.client';
 
 /**
  * Build messages container.
@@ -30,7 +28,6 @@ const Messenger = ({message}) => {
 
 const Viewer = () => {
 
-    const [userData, setUserData] = React.useState(getUserSession());
     const [viewData, setViewData] = React.useState({});
     const [msgData, setMsgData] = React.useState({});
 
@@ -39,6 +36,7 @@ const Viewer = () => {
 
     // Get global data from API
     React.useEffect(() => {
+        console.warn('Getting View')
         isMountedRef.current = true;
 
         // get requested route
@@ -53,9 +51,8 @@ const Viewer = () => {
                     setViewData({ view, model, attributes });
 
                     // Set user session data
-                    if (user) {
-                        setUserData(user);
-                    }
+                    console.log('Viewer session:', user, data)
+                    if (user) setUserSession(user);
 
                     // Set message (if provided)
                     if (message) {
@@ -64,10 +61,7 @@ const Viewer = () => {
                 }
                 return () => isMountedRef.current = false;
             })
-    }, [setViewData, setUserData, setMsgData]);
-
-    // update user session data
-    React.useEffect(() => {setUserSession(userData);}, [userData]);
+    }, [setViewData, setMsgData]);
 
     const { view, model, attributes } = viewData;
 
@@ -85,20 +79,18 @@ const Viewer = () => {
     return (
 
         <div className={"viewer"}>
-            <ErrorBoundary>
             { msgData != null && Object.keys(msgData).length > 0 ? <Messenger message={msgData} /> : null }
             {
                 isForm
                 ? <Form
-                        messages={[msgData, setMsgData]}
                         model={model}
                         action={filteredData.action}
                         legend={filteredData.legend}
-                        inputs={filteredData.inputs}
-                        references={filteredData.references} />
+                        fields={filteredData.fields}
+                        messenger={[msgData, setMsgData]}
+                    />
                 : <div>Data View</div>
             }
-            </ErrorBoundary>
         </div>
     )
 };
@@ -115,6 +107,8 @@ const Viewer = () => {
 
 function _initData(view, model, attributes) {
 
+    const session = useUserContext();
+
     // Handle form data
     if (schema.hasOwnProperty(view)) {
         const viewSchema = schema[view];
@@ -127,8 +121,10 @@ function _initData(view, model, attributes) {
         // lookup field labels for model (default schema)
         const labels = schema.labels[model];
 
+        console.log('User Session:', session, getUserSession())
+
         // create form input elements based on schema
-        const formInputs =
+        const fields =
             Object.keys(modelSchema)
                 // .filter(key => {
                 //     return modelSchema[key].hasOwnProperty('restrict')
@@ -141,32 +137,22 @@ function _initData(view, model, attributes) {
                         label: labels[key],
                         type: modelSchema[key].hasOwnProperty('render')
                             ? modelSchema[key].render
-                            : modelSchema.field.render[attributes[key].type].render
+                            : modelSchema.field.render[attributes[key].type].render,
+                        value: attributes[key].value || ''
                     };
                 });
-
-        // input value/error references
-        const references = formInputs
-            .reduce((obj, item) => {
-                obj[item.name] = {
-                    value: attributes[item.name].value,
-                    error: ''
-                }
-                return obj
-            }, {});
 
         // return schema data for requested form
         return {
             type: 'form',
-            model: model,
+            name: model,
             action: {
                 method: viewSchema.attributes.method,
                 url: viewSchema.attributes.submit.url,
                 label: viewSchema.attributes.submit.label,
             },
             legend: viewSchema.attributes.label,
-            inputs: formInputs,
-            references: references
+            fields: fields
         };
     }
     return null;

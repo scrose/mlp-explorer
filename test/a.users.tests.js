@@ -23,8 +23,8 @@ mocha.describe('Check user permissions (visitor)', () => {
         await agent
             .get(`${BASE_URL}users`)
             .then((res) => {
-                expect(res).to.have.status(500);
-                expect(res.body).to.equal(errors.restrict);
+                expect(res).to.have.status(403);
+                expect(res.body.message.msg).to.equal(errors.restricted.msg);
             })
     })
 
@@ -32,8 +32,8 @@ mocha.describe('Check user permissions (visitor)', () => {
         await agent
             .get(`${BASE_URL}users/${admin.user_id}`)
             .then((res) => {
-                expect(res).to.have.status(500);
-                expect(res.body).to.equal(errors.restrict);
+                expect(res).to.have.status(403);
+                expect(res.body.message.msg).to.equal(errors.restricted.msg);
             })
     })
 
@@ -41,14 +41,14 @@ mocha.describe('Check user permissions (visitor)', () => {
         await agent
             .get(`${BASE_URL}users/add`)
             .then((res) => {
-                expect(res).to.have.status(500);
-                expect(res.body).to.equal(errors.restrict);
+                expect(res).to.have.status(403);
+                expect(res.body.message.msg).to.equal(errors.restricted.msg);
             })
         await agent
             .get(`${BASE_URL}users/create`)
             .then((res) => {
-                expect(res).to.have.status(500);
-                expect(res.body).to.equal(errors.restrict);
+                expect(res).to.have.status(403);
+                expect(res.body.message.msg).to.equal(errors.restricted.msg);
             })
     })
 
@@ -56,14 +56,14 @@ mocha.describe('Check user permissions (visitor)', () => {
         await agent
             .get(`${BASE_URL}users/787897543543/remove`)
             .then((res) => {
-                expect(res).to.have.status(500);
-                expect(res.body).to.equal(errors.restrict);
+                expect(res).to.have.status(403);
+                expect(res.body.message.msg).to.equal(errors.restricted.msg);
             })
         await agent
             .post(`${BASE_URL}users/787897543543/remove`)
             .then((res) => {
-                expect(res).to.have.status(500);
-                expect(res.body).to.equal(errors.restrict);
+                expect(res).to.have.status(403);
+                expect(res.body.message.msg).to.equal(errors.restricted.msg);
             })
     })
 
@@ -71,14 +71,14 @@ mocha.describe('Check user permissions (visitor)', () => {
         await agent
             .get(`${BASE_URL}users/787897543543/edit`)
             .then((res) => {
-                expect(res).to.have.status(500);
-                expect(res.body).to.equal(errors.restrict);
+                expect(res).to.have.status(403);
+                expect(res.body.message.msg).to.equal(errors.restricted.msg);
             })
         await agent
             .post(`${BASE_URL}users/787897543543/edit`)
             .then((res) => {
-                expect(res).to.have.status(500);
-                expect(res.body).to.equal(errors.restrict);
+                expect(res).to.have.status(403);
+                expect(res.body.message.msg).to.equal(errors.restricted.msg);
             })
     })
 
@@ -100,6 +100,12 @@ let admin = {
     role: 'super_administrator'
 }
 
+let user = {
+    id: null,
+    email: null,
+    token: null
+}
+
 /**
  * Sign-in administrator.
  * @private
@@ -112,9 +118,9 @@ mocha.describe('Login Administrator', () => {
             .get(`${BASE_URL}login`)
             .set('Accept', 'application/json')
             .then((res) => {
-                console.log(res.body)
-                expect(res).to.have.status(500);
-                expect(res.body).to.equal(errors.login);
+                expect(res).to.have.status(200);
+                expect(res.body.attributes.hasOwnProperty('email')).to.equal(true);
+                expect(res.body.attributes.hasOwnProperty('password')).to.equal(true);
             })
     });
 
@@ -127,8 +133,8 @@ mocha.describe('Login Administrator', () => {
                 password: admin.password
             })
             .then((res) => {
-                expect(res).to.have.status(500);
-                expect(res.body).to.equal(errors.login);
+                expect(res).to.have.status(401);
+                expect(res.body.message.msg).to.equal(errors.invalidLogin.msg);
             })
     });
 
@@ -141,8 +147,8 @@ mocha.describe('Login Administrator', () => {
                 password: 'WRONG5565lSSR!3323'
             })
             .then((res) => {
-                expect(res).to.have.status(500);
-                expect(res.body).to.equal(errors.login);
+                expect(res).to.have.status(401);
+                expect(res.body.message.msg).to.equal(errors.failedLogin.msg);
             })
     });
 
@@ -155,9 +161,10 @@ mocha.describe('Login Administrator', () => {
                 password: admin.password
             })
             .then((res) => {
+                admin.token = res.body.user.token;
+                console.log(res.body)
                 expect(res).to.have.status(200);
-                expect(res.body.messages[0].type).to.equal('success');
-                expect(res.body.messages[0].string).to.equal('Login successful.');
+                expect(res.body.message.msg).to.equal('Login successful!');
             })
     });
 
@@ -165,10 +172,10 @@ mocha.describe('Login Administrator', () => {
         await agent
             .get(`${BASE_URL}login`)
             .set('Accept', 'application/json')
+            .set('x-access-token', admin.token)
             .then((res) => {
-                expect(res).to.have.status(200);
-                // TODO: check that page redirected to home on redundant login
-                // expect(res.getHeaders()).to.equal('');
+                expect(res).to.have.status(403);
+                expect(res.body.message.msg).to.equal(errors.redundantLogin.msg);
             })
     })
 });
@@ -186,12 +193,16 @@ mocha.describe('User Controllers', () => {
      */
 
     mocha.it('List all users page', async () => {
+
       await agent
           .get(`${BASE_URL}users`)
+          .set('Accept', 'application/json')
+          .set('x-access-token', admin.token)
           .then((res) => {
+              console.log(res.body)
               expect(res).to.have.status(200);
-              expect(res.body.users).to.instanceOf(Array);
-              res.body.users.forEach((u) => {
+              expect(res.body.data).to.instanceOf(Array);
+              res.body.data.forEach((u) => {
                   expect(u).to.have.property('user_id');
                   expect(u).to.have.property('role');
                   expect(u).to.have.property('email');
@@ -219,6 +230,7 @@ mocha.describe('User Controllers', () => {
         await agent
             .post(`${BASE_URL}users/register`)
             .set('Accept', 'application/json')
+            .set('x-access-token', admin.token)
             .send({
                 email: user.email,
                 password: user.password,

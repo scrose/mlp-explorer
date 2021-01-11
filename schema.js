@@ -10,7 +10,7 @@
  * @private
  */
 
-const schema = {
+export default {
     main: {
         projectName: "Mountain Legacy Project",
         appName: "Explorer",
@@ -69,10 +69,25 @@ const schema = {
         users: {
             email: {
                 render: 'email',
-                restrict: null
+                restrict: ['visitor']
             },
             password: {
                 render: 'password',
+                restrict: ['visitor']
+            }
+        }
+    },
+    dashboard: {
+        attributes: {
+            label: 'Dashboard',
+        },
+        users: {
+            email: {
+                render: 'readonly',
+                restrict: null
+            },
+            role: {
+                render: 'readonly',
                 restrict: null
             }
         }
@@ -262,5 +277,3 @@ const schema = {
         }
     }
 }
-
-export default schema;

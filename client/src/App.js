@@ -10,7 +10,9 @@ import Header from './components/common/Header';
 import Navigator from './components/common/Navigator';
 import Footer from './components/common/Footer';
 import Viewer from './components/common/Viewer';
-import ErrorBoundary from './components/common/ErrorBoundary'
+import ErrorBoundary from './components/common/ErrorBoundary';
+import { getUserSession, setUserSession, UserContext } from './services/user.services.client';
+
 
 /**
  * Core client application component.
@@ -19,17 +21,26 @@ import ErrorBoundary from './components/common/ErrorBoundary'
  */
 
 function App() {
+
+    // create user data state for context
+    const [session, setSession] = React.useState(getUserSession());
+
+    // store user data in JS session storage
+    React.useEffect(() => { console.log('App session:',session); setUserSession(getUserSession()) }, [session]);
+
     return (
-        <div className={"page-content"}>
-                <Header />
-                <main>
-                    <Navigator />
-                    <ErrorBoundary>
-                        <Viewer />
-                    </ErrorBoundary>
-                </main>
-                <Footer />
-        </div>
+        <UserContext.Provider value={session}>
+            <div className={"page-content"}>
+                    <Header />
+                    <main>
+                        <Navigator />
+                        <ErrorBoundary>
+                            <Viewer />
+                        </ErrorBoundary>
+                    </main>
+                    <Footer />
+            </div>
+        </UserContext.Provider>
     );
 }
 

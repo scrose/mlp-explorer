@@ -15,15 +15,24 @@
  * @param view
  * @param attributes
  * @param message
+ * @param data
  * @param user
  */
 
-export function prepare({model='', view='', attributes={}, message={}, user={}}) {
+export function prepare({
+                            model='',
+                            view='',
+                            attributes={},
+                            message={},
+                            data={},
+                            user={}
+}) {
     return {
         attributes: attributes,
         model: model,
         view: view,
         message: message,
+        data: data,
         user: user
     }
 }

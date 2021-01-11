@@ -11,6 +11,16 @@
  * @public
  */
 
+import React from "react";
+
+
+
+/**
+ * Initialize user data session storage.
+ *
+ * @public
+ */
+
 export const initUserSessionData = () => {
     sessionStorage.setItem('userID', '');
     sessionStorage.setItem('userEmail', '');
@@ -41,3 +51,11 @@ export const getUserSession = () => {
         email: sessionStorage.getItem('userEmail') || ''
     }
 }
+
+export const UserContext = React.createContext(getUserSession());
+
+export function useUserContext() {
+    return React.useContext(UserContext);
+}
+
+

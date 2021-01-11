@@ -12,8 +12,8 @@
 
 import * as db from '../services/index.services.js';
 import valid from '../lib/validate.utils.js';
-import { authenticate as auth, encryptUser } from '../lib/secure.utils.js';
 import { prepare } from '../lib/api.utils.js';
+import * as auth from '../services/auth.services.js'
 
 /**
  * Initialize users, roles tables and admin user account.
@@ -28,13 +28,7 @@ let User;
 
 export const init = async (req, res, next) => {
 
-    // assert.equal(typeof (req), Request,
-    //     "argument req must be a Request");
-    // assert.equal(typeof (res), Response,
-    //     "argument req must be a Response");
-    // assert.equal(typeof (next), Function,
-    //     "argument next must be a callback");
-
+    // initialize users database
     await db.users
         .init([
                 process.env.API_USER,
@@ -62,11 +56,10 @@ export const init = async (req, res, next) => {
 export const list = async (req, res, next) => {
     await db.users
         .getAll()
-        .then((data) => {
-            res.locals.users = data.rows;
-            res.status(200).json(res.locals);
+        .then(data => {
+            res.status(200).json(prepare({data: data.rows}));
         })
-        .catch((err) => next(err));
+        .catch(err => next(err));
 };
 
 /**
@@ -85,7 +78,7 @@ export const show = async (req, res, next) => {
         .select(req.params.user_id)
         .then((data) => {
             if (data.rows.length === 0) throw new Error('nouser');
-            res.status(200).json({ user: data.rows[0] });
+            res.status(200).json({user: data.rows[0] });
         })
         .catch((err) => next(err));
 };
@@ -103,13 +96,11 @@ export const show = async (req, res, next) => {
 export const login = async (req, res, next) => {
     try {
 
-        // return current user data when session exists (logged-in)
-        if (req.session.user != null) {
-            console.warn('User %s already logged-in.', req.session.email)
-            return res.status(200).json(
-                prepare({user:req.session.user})
-            );
-        }
+        // check if user is currently logged-in
+        const isAuth = await auth.check(req);
+        console.log('Is authenticated:', isAuth)
+        if (isAuth)
+            return next(new Error('redundantLogin'));
 
         // create form schema from user model
         const user = new User();
@@ -123,7 +114,6 @@ export const login = async (req, res, next) => {
 
 /**
  * Authenticate user credentials.
- * TODO: Include JWT signing (http://jwt.io/)
  *
  * @param {Request} req
  * @param {Response} res
@@ -134,13 +124,10 @@ export const login = async (req, res, next) => {
 
 export const authenticate = async (req, res, next) => {
 
-    // return current user data when session exists (logged-in)
-    if (req.session.user != null) {
-        console.warn('User %s already logged-in.', req.session.email)
-        return res.status(200).json(
-            prepare({user:req.session.user})
-        );
-    }
+    // check if user is currently logged-in
+    const isAuth = await auth.check(req);
+    if (isAuth)
+        return next(new Error('redundantLogin'));
 
     // authenticate submitted user credentials
     // TODO: Implement login rate limiter
@@ -153,39 +140,33 @@ export const authenticate = async (req, res, next) => {
             password: valid.load(password).isPassword().data,
         };
     } catch (err) {
-        return next(new Error('login'));
+        return next(new Error('invalidLogin'));
     }
 
     // Confirm user registration
     await db.users
         .selectByEmail(reqUser.email)
-        .then((data) => {
+        .then(userData => {
 
-            // User email not registered
-            if (data.rows.length === 0) throw Error('login');
+            // User not registered
+            if (!userData) throw Error('failedLogin');
 
             // Authenticate user
-            authUser = new User(data);
-            if (!auth(authUser, reqUser.password)) throw Error('login');
+            authUser = new User(userData);
 
-            // Regenerate session when signing in to prevent fixation
-            req.session.regenerate(function(err) {
-                if (err) throw Error(err);
-                // Store user object in the session store to be retrieved
-                req.session.user = {
-                    id: authUser.getValue('user_id'),
-                    email: authUser.getValue('email'),
-                };
-                req.session.save(function(err) {
-                    if (err) throw Error(err);
-                    res.status(200).json(
-                        prepare({
-                            message: {msg: 'Login successful.', type: 'success'},
-                            user: req.session.user
-                        })
-                    );
-                });
-            });
+            const token = auth.authenticate(authUser, reqUser.password)
+            if (!token) throw Error('failedLogin');
+
+            // successful login
+            res.status(200).json(
+                prepare({
+                    message: {msg: 'Login successful!', type: 'success'},
+                    user: {
+                        id: authUser.getValue('user_id'),
+                        email: authUser.getValue('email'),
+                        token: token
+                    }})
+            );
         })
         .catch(err => {return next(err)});
 };
@@ -235,7 +216,11 @@ export const logout = async (req, res, next) => {
 
 export const register = async (req, res, next) => {
     try {
-        res.status(200).json(res.locals);
+        // create form schema from user model
+        const user = new User();
+        res.status(200).json(
+            prepare({model: 'users', view: 'register', attributes: user.attributes})
+        );
     } catch (err) {
         next(err);
     }
@@ -261,7 +246,7 @@ export const create = async (req, res, next) => {
             password: valid.load(password).isPassword().data,
             role: role,
         });
-        encryptUser(newUser);
+        auth.encryptUser(newUser);
     } catch (err) {
         next(err);
     }
@@ -269,19 +254,23 @@ export const create = async (req, res, next) => {
     // Insert user in database
     await db.users
         .insert(newUser)
-        .then((data) => {
-            if (data.rows.length === 0) throw new Error('register');
-            let user = data.rows[0];
-            // // send confirmation email to user
+        .then(user => {
+            if (!user) throw new Error('failedRegistration');
+
+            // send confirmation email to user
             // utils.email.send(user.email, "Verify registration.");
-            res.message(`Registration successful for user ${user.email}!`, 'success');
-            req.session.save(function(err) {
-                res.locals.data = {user_id: user.user_id, email: user.email};
-                if (err) throw Error(err);
-                res.status(200).json(res.locals);
-            });
+
+            // successful registration
+            res.status(200).json(
+                prepare({
+                    message: {msg: `Registration successful for user ${user.email}!`, type: 'success'},
+                    user: {
+                        email: user.email,
+                        role: user.role
+                    }})
+            );
         })
-        .catch((err) => next(err));
+        .catch(err => next(err));
 };
 
 /**
@@ -380,3 +369,31 @@ export const drop = async (req, res, next) => {
         })
         .catch((err) => next(err));
 };
+
+
+/**
+ * Authenticate user credentials.
+ * TODO: Include JWT signing (http://jwt.io/)
+ *
+ * @param {Request} req
+ * @param {Response} res
+ * @param {Function} next
+ * @method post
+ * @src public
+ */
+
+export const check = (req, res, next) => {
+
+    // return current user data when session exists (logged-in)
+    if (req.session.user != null) {
+        const { id, email } = req.session.user;
+        return res.status(200).json(
+            prepare({
+                view: 'dashboard',
+                user: req.session.user,
+                message: { msg: `User ${email} is logged in.`, type: 'warning' }
+            })
+        );
+    }
+    next()
+}
