@@ -111,8 +111,8 @@ export const create = async (modelType) => {
             value: getData,
             writable: false
         },
-        setDataOptions: {
-            value: setDataOptions,
+        setOptions: {
+            value: setOptions,
             writable: false
         },
         clear: {
@@ -146,7 +146,7 @@ function setData(data=null) {
         Object.keys(inputData)
             .filter(key => !(this.attributes
                 && this.attributes.hasOwnProperty(key)))
-            .map(key => {console.log(key); throw Error('invalidInputData')});
+            .map(key => {console.log(key); throw Error('schemaMismatch')});
 
         // set attribute values from data
         Object.keys(inputData)
@@ -210,18 +210,20 @@ function getValue(field=null) {
 }
 
 /**
- * Get field values from model.
+ * Get field values from model. Optional filter array
+ * omits select attributes from result.
  *
  * @return {Object} filtered data
+ * @param {Array} filter
  * @src public
  */
 
-function getData() {
-    let filteredData = {};
-    Object.entries(this.attributes).map(([key, field]) => {
-        filteredData[key] = field.value;
-    });
-    return filteredData;
+function getData(filter=[]) {
+    return Object.keys(this.attributes)
+        .filter(key => !filter.includes(key))
+        .reduce((o, key) => {
+            o[key] = this.attributes[key].value; return o
+        }, {});
 }
 
 /**
@@ -238,16 +240,16 @@ function clear() {
 /**
  * Set options of provided schema field.
  *
- * @param {String} field
+ * @param {String} key
  * @param {Array} options
  * @src public
  */
 
-function setDataOptions(field, options) {
-    if (field
-        && this.attributes.hasOwnProperty(field)
+function setOptions(key, options=[]) {
+    if (key
+        && this.attributes.hasOwnProperty(key)
         && typeof options === 'object')
-        this.attributes[field].options = options ? options : null;
+        this.attributes[key].options = options;
 }
 
 

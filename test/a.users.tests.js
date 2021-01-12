@@ -118,9 +118,10 @@ mocha.describe('Login Administrator', () => {
             .get(`${BASE_URL}login`)
             .set('Accept', 'application/json')
             .then((res) => {
+                const attrs = res.body.model.attributes;
                 expect(res).to.have.status(200);
-                expect(res.body.attributes.hasOwnProperty('email')).to.equal(true);
-                expect(res.body.attributes.hasOwnProperty('password')).to.equal(true);
+                expect(attrs.hasOwnProperty('email')).to.equal(true);
+                expect(attrs.hasOwnProperty('password')).to.equal(true);
             })
     });
 
@@ -237,12 +238,12 @@ mocha.describe('User Controllers', () => {
                 role: user.role
             })
             .then((res) => {
-                console.log(res.body.data)
-                expect(res).to.have.status(200);
-                expect(res.body.messages[0].type).to.equal('success');
-                expect(res.body.messages[0].string).to.equal(`Registration successful for user ${user.email}!`);
-                expect(res.body.user_id).to.not.equal(null);
+                console.log(res.body)
                 user.user_id = res.body.data.user_id;
+                expect(res).to.have.status(200);
+                expect(res.body.message.type).to.equal('success');
+                expect(res.body.message.msg).to.equal(`Registration successful for user ${user.email}!`);
+                expect(res.body.data.email).to.equal(user.email);
             })
     });
 
@@ -255,18 +256,55 @@ mocha.describe('User Controllers', () => {
         await agent
             .get(`${BASE_URL}users/${user.user_id}`)
             .set('Accept', 'application/json')
+            .set('x-access-token', admin.token)
             .then((res) => {
-                console.log(res.body)
+                console.log('Response:', res.body);
                 expect(res.status).to.equal(200);
-                expect(res.body.user).to.instanceOf(Object);
-                expect(res.body.user).to.have.property('user_id');
-                expect(res.body.user).to.have.property('role');
-                expect(res.body.user).to.have.property('email');
-                expect(res.body.user).to.have.property('created_at');
-                expect(res.body.user).to.have.property('updated_at');
-                expect(res.body.user.user_id).to.equal(user.user_id);
-                expect(res.body.user.email).to.equal(user.email);
-                expect(res.body.user.role).to.equal(user.role);
+                expect(res.body.data).to.instanceOf(Object);
+                expect(res.body.data).to.have.property('user_id');
+                expect(res.body.data).to.have.property('role');
+                expect(res.body.data).to.have.property('email');
+                expect(res.body.data).to.have.property('created_at');
+                expect(res.body.data).to.have.property('updated_at');
+                expect(res.body.data.user_id).to.equal(user.user_id);
+                expect(res.body.data.email).to.equal(user.email);
+                expect(res.body.data.role).to.equal(user.role);
+            })
+    });
+
+    /**
+     * Get user edit form.
+     * @private
+     */
+
+    mocha.it('Request user edit form', async () => {
+        await agent
+            .get(`${BASE_URL}users/${user.user_id}/edit`)
+            .set('Accept', 'application/json')
+            .set('x-access-token', admin.token)
+            .then((res) => {
+                console.log('Response', res.body)
+                const attrs = res.body.model.attributes;
+
+                expect(res.status).to.equal(200);
+
+                // form attributes
+                expect(attrs).to.have.property('user_id');
+                expect(attrs).to.have.property('email');
+                expect(attrs).to.have.property('role');
+
+                // check role options
+                console.log('Roles', attrs.role.options)
+                expect(attrs.role.options.length).to.have.greaterThan(0);
+
+                // form data
+                expect(res.body.data).to.instanceOf(Object);
+                expect(res.body.data).to.have.property('user_id');
+                expect(res.body.data).to.have.property('role');
+                expect(res.body.data).to.have.property('email');
+                expect(res.body.data.user_id).to.equal(user.user_id);
+                expect(res.body.data.email).to.equal(user.email);
+                expect(res.body.data.role).to.equal(user.role);
             })
     });
 
@@ -282,12 +320,14 @@ mocha.describe('User Controllers', () => {
         await agent
             .post(`${BASE_URL}users/${user.user_id}/edit`)
             .set('Accept', 'application/json')
+            .set('x-access-token', admin.token)
             .send({
                 user_id: user.user_id,
                 email: user.email,
                 role: user.role
             })
             .then((res) => {
+                console.log('Response:', res.body)
                 expect(res.status).to.equal(200);
                 expect(res.body.data).to.instanceOf(Object);
                 expect(res.body.data).to.have.property('user_id');
@@ -310,39 +350,15 @@ mocha.describe('User Controllers', () => {
         await agent
             .post(`${BASE_URL}users/${user.user_id}/remove`)
             .set('Accept', 'application/json')
+            .set('x-access-token', admin.token)
             .then((res) => {
+                console.log('Response:', res.body)
                 expect(res).to.have.status(200);
-                expect(res.body.messages[0].type).to.equal('success');
-                expect(res.body.messages[0].string).to.equal(
+                expect(res.body.message.type).to.equal('success');
+                expect(res.body.message.msg).to.equal(
                     `User ${user.email} successfully deleted.`
                 );
             })
     });
 
-});
-
-/**
- * Sign-out administrator.
- * @private
- */
-
-mocha.describe('Logout Administrator', () => {
-    mocha.it('Sign out the admin account', async () => {
-        await agent
-            .get(`${BASE_URL}logout`)
-            .set('Accept', 'application/json')
-            .then((res) => {
-                expect(res).to.have.status(200);
-                expect(res.body.messages[0].type).to.equal('success');
-                expect(res.body.messages[0].string).to.equal('Successfully logged out!');
-            })
-    });
-    mocha.it('Redundant logout', async () => {
-        await agent
-            .get(`${BASE_URL}logout`)
-            .set('Accept', 'application/json')
-            .then((res) => {
-                expect(res).to.have.status(500);
-            })
-    })
 });

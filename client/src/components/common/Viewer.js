@@ -5,6 +5,35 @@ import * as api from '../../services/api.services.client';
 import * as utils from '../../utils/router.utils.client';
 import { getUserSession, setUserSession, useUserContext } from '../../services/user.services.client';
 
+
+/**
+ * Select and render view component.
+ *
+ * @public
+ * @param type
+ * @param params
+ */
+
+const renderView = (type, params={}) => {
+
+    const {name, action, label, fields, data, messenger} = params;
+
+    switch(type){
+        case 'form':
+            return <Form
+                name={name}
+                action={action}
+                legend={label}
+                fields={fields}
+                messenger={messenger} />;
+        case 'item':
+            return <div>Item View</div>;
+        case 'list':
+            return <div>List View</div>;
+        default: return <div>No data</div>
+    }
+}
+
 /**
  * Build messages container.
  *
@@ -21,6 +50,56 @@ const Messenger = ({message}) => {
 
 
 /**
+ * Build requested view from API data.
+ *
+ * @public
+ * @param id
+ */
+
+const View = ({updater, params, messenger}) => {
+
+    const { model, view, data } = params;
+
+    // lookup view in schema
+    if ( !schema.hasOwnProperty(view) )
+        return (<div className={'waiting'}>Loading Viewer...</div>);
+
+    const viewSchema = schema[view];
+    const { type, method, label } = viewSchema.attributes;
+    const action = {method: method, legend: label};
+    const { name, attributes } = model;
+
+    // lookup model in form schema view (or select default)
+    const modelSchema = viewSchema.hasOwnProperty(name)
+        ? viewSchema[name]
+        : viewSchema.default;
+
+    // lookup field labels for model (default schema)
+    const labels = schema.labels[name];
+
+    // create renderable elements based on schema:
+    // selects render type based on schema or
+    // (if omitted in schema) default based on data type.
+    const fields =
+        Object.keys(modelSchema)
+            .map(key => {
+                return {
+                    name: key,
+                    label: labels[key],
+                    type: modelSchema[key].hasOwnProperty('render')
+                        ? modelSchema[key].render
+                        : modelSchema.field.render[attributes[key].type].render,
+                    value: attributes[key].value || ''
+                };
+            });
+
+    return (
+        <>{ renderView(type, {name, action, label, fields, data, messenger}) }</>
+    );
+}
+
+
+/**
  * Build viewer panel.
  *
  * @public
@@ -28,8 +107,8 @@ const Messenger = ({message}) => {
 
 const Viewer = () => {
 
-    const [viewData, setViewData] = React.useState({});
-    const [msgData, setMsgData] = React.useState({});
+    const [viewData, setView] = React.useState({});
+    const [msgData, setMsg] = React.useState({});
 
     // component mounted flag
     const isMountedRef = React.useRef(false);
@@ -44,118 +123,32 @@ const Viewer = () => {
 
         // fetch API data
         api.getData(url)
-            .then(data => {
-                const { view, model, attributes, message, user } = data;
+            .then(res => {
+                // get response data
+                const { model, view, data, message } = res;
+                console.log(message, data)
 
                 if (isMountedRef.current) {
-                    setViewData({ view, model, attributes });
-
-                    // Set user session data
-                    console.log('Viewer session:', user, data)
-                    if (user) setUserSession(user);
+                    setView({ model, view, data });
 
                     // Set message (if provided)
                     if (message) {
-                        setMsgData({ msg: message.msg, type: message.type });
+                        setMsg({ msg: message.msg, type: message.type });
                     }
                 }
                 return () => isMountedRef.current = false;
             })
-    }, [setViewData, setMsgData]);
-
-    const { view, model, attributes } = viewData;
-
-    // initialize viewer input data
-    const filteredData = _initData(view, model, attributes);
-
-    // wait on API fetch
-    if ( !filteredData )
-        return (<div>Loading Viewer...</div>)
-
-    // Is the requested view a form?
-    const isForm = filteredData.type === 'form';
+    }, [setView, setMsg]);
 
     // render requested view
     return (
-
         <div className={"viewer"}>
-            { msgData != null && Object.keys(msgData).length > 0 ? <Messenger message={msgData} /> : null }
-            {
-                isForm
-                ? <Form
-                        model={model}
-                        action={filteredData.action}
-                        legend={filteredData.legend}
-                        fields={filteredData.fields}
-                        messenger={[msgData, setMsgData]}
-                    />
-                : <div>Data View</div>
-            }
+            { msgData != null && Object.keys(msgData).length > 0
+                ? <Messenger message={msgData} />
+                : null }
+            <View updater={setView} params={viewData} messenger={setMsg} />
         </div>
     )
 };
-
-/**
- * Initialize input data for viewer.
- *
- * @public
- * @param attributes
- * @param model
- * @param view
- * @return {Object} formData
- */
-
-function _initData(view, model, attributes) {
-
-    const session = useUserContext();
-
-    // Handle form data
-    if (schema.hasOwnProperty(view)) {
-        const viewSchema = schema[view];
-
-        // lookup model in form schema view (or select default)
-        const modelSchema = viewSchema.hasOwnProperty(model)
-            ? viewSchema[model]
-            : viewSchema.default;
-
-        // lookup field labels for model (default schema)
-        const labels = schema.labels[model];
-
-        console.log('User Session:', session, getUserSession())
-
-        // create form input elements based on schema
-        const fields =
-            Object.keys(modelSchema)
-                // .filter(key => {
-                //     return modelSchema[key].hasOwnProperty('restrict')
-                //         ? !modelSchema[key].restrict || modelSchema[key].restrict.includes(restrict)
-                //         : false;
-                // })
-                .map(key => {
-                    return {
-                        name: key,
-                        label: labels[key],
-                        type: modelSchema[key].hasOwnProperty('render')
-                            ? modelSchema[key].render
-                            : modelSchema.field.render[attributes[key].type].render,
-                        value: attributes[key].value || ''
-                    };
-                });
-
-        // return schema data for requested form
-        return {
-            type: 'form',
-            name: model,
-            action: {
-                method: viewSchema.attributes.method,
-                url: viewSchema.attributes.submit.url,
-                label: viewSchema.attributes.submit.label,
-            },
-            legend: viewSchema.attributes.label,
-            fields: fields
-        };
-    }
-    return null;
-}
 
 export default Viewer;

@@ -255,11 +255,9 @@ const Form = ({ name, action, legend, fields, messenger }) => {
     const [isDisabled, setDisabled] = React.useState(false);
     const session = useUserContext();
 
-
     const handleSubmit = e => {
         try {
             e.preventDefault();
-            const [, setMsgData] = messenger;
 
             // collect form data -> JSON content type
             const data = new FormData(e.target);
@@ -269,10 +267,11 @@ const Form = ({ name, action, legend, fields, messenger }) => {
             // submit form data to API
             api.postData(action, jsonData)
                 .then(data => {
+
                     console.warn('Form submission response:', data)
                     // get response message
                     const { message } = data;
-                    setMsgData(message);
+                    messenger(message);
 
                     // Set user session data
                     const { user } = data;

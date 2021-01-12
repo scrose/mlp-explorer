@@ -76,6 +76,18 @@ export const errors = {
         status: 403,
         type: 'error'
     },
+    noRecord: {
+        hint: 'Record is missing in database. Likely an incorrect identifier.',
+        msg: 'Record not found!',
+        status: 403,
+        type: 'error'
+    },
+    schemaMismatch: {
+        hint: 'User input data found to be invalid for a given model schema. Check setData() method in constructor.',
+        msg: 'Input data does not match model schema.',
+        status: 403,
+        type: 'error'
+    },
     notFound: {
         hint: 'Route does not exist.',
         msg: 'Page not found.',

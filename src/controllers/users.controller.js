@@ -11,9 +11,15 @@
  */
 
 import * as db from '../services/index.services.js';
+import * as auth from '../services/auth.services.js';
 import valid from '../lib/validate.utils.js';
 import { prepare } from '../lib/api.utils.js';
-import * as auth from '../services/auth.services.js'
+
+/**
+ create array of sensitive attributes to filter from responses.
+*/
+
+const filter = ['password', 'salt_token', 'reset_password_token']
 
 /**
  * Initialize users, roles tables and admin user account.
@@ -47,9 +53,9 @@ export const init = async (req, res, next) => {
 /**
  * List all registered users.
  *
- * @param {Request} req
- * @param {Response} res
- * @param {Function} next
+ * @param req
+ * @param res
+ * @param next
  * @method get
  * @src public
  */
@@ -57,7 +63,12 @@ export const list = async (req, res, next) => {
     await db.users
         .getAll()
         .then(data => {
-            res.status(200).json(prepare({data: data.rows}));
+            res.status(200).json(
+                prepare({
+                    view: 'list',
+                    model: new User(),
+                    data: data
+                }));
         })
         .catch(err => next(err));
 };
@@ -66,28 +77,39 @@ export const list = async (req, res, next) => {
  * Show user's profile data. Only the profile of the current user is
  * accessible, unless the current user has administrator privileges.
  *
- * @param {Request} req
- * @param {Response} res
- * @param {Function} next
+ * @param req
+ * @param res
+ * @param next
  * @method get
  * @src public
  */
 
 export const show = async (req, res, next) => {
+
+    // get requested user ID
+    const { user_id } = req.params;
+
     await db.users
-        .select(req.params.user_id)
-        .then((data) => {
-            if (data.rows.length === 0) throw new Error('nouser');
-            res.status(200).json({user: data.rows[0] });
+        .select(user_id)
+        .then(userData => {
+
+            // User does not exist
+            if (!userData) throw Error('noRecord');
+
+            res.status(200).json(prepare({
+                    model: new User(userData),
+                    view: 'show',
+                    filter: filter
+            }));
         })
-        .catch((err) => next(err));
+        .catch(err => next(err));
 };
 
 /**
  * User sign-in interface.
  *
- * @param {Request} req
- * @param {Response} res
+ * @param req
+ * @param res
  * @param {Function} next
  * @method get
  * @src public
@@ -96,17 +118,17 @@ export const show = async (req, res, next) => {
 export const login = async (req, res, next) => {
     try {
 
-        // check if user is currently logged-in
+        // check if user is already logged-in
         const isAuth = await auth.check(req);
-        console.log('Is authenticated:', isAuth)
         if (isAuth)
             return next(new Error('redundantLogin'));
 
-        // create form schema from user model
-        const user = new User();
-        res.status(200).json(
-            prepare({model: 'users', view: 'login', attributes: user.attributes})
-        );
+        res.status(200).json(prepare({
+            model: new User(),
+            view: 'login',
+            filter: filter
+        }));
+
     } catch (err) {
         return next(err);
     }
@@ -115,8 +137,8 @@ export const login = async (req, res, next) => {
 /**
  * Authenticate user credentials.
  *
- * @param {Request} req
- * @param {Response} res
+ * @param req
+ * @param res
  * @param {Function} next
  * @method post
  * @src public
@@ -172,55 +194,23 @@ export const authenticate = async (req, res, next) => {
 };
 
 /**
- * Logout current user from session. Regenerates session as
- * anonymous user when signing out.
- *
- * @param {Request} req
- * @param {Response} res
- * @param {Function} next
- * @method get
- * @src public
- */
-
-export const logout = async (req, res, next) => {
-    try {
-
-        // throw error on redundant logout
-        if (req.session.user)
-            return next(new Error('logoutRedundant'));
-
-        req.session.regenerate(function(err) {
-            if (err) throw new Error('logout');
-            req.session.save(function(err) {
-                if (err) throw Error(err);
-                res.message('Successfully logged out!', 'success');
-                res.status(200).json(res.locals);
-            });
-        });
-    } catch (err) {
-        return next(err);
-    }
-};
-
-/**
  * User registration interface. Note: registration is currently
  * restricted to Administrators, but can be open to visitors by
  * removing restrict().
  *
- * @param {Request} req
- * @param {Response} res
- * @param {Function} next
+ * @param req
+ * @param res
+ * @param next
  * @method get
  * @src public
  */
 
 export const register = async (req, res, next) => {
     try {
-        // create form schema from user model
-        const user = new User();
-        res.status(200).json(
-            prepare({model: 'users', view: 'register', attributes: user.attributes})
-        );
+        res.status(200).json(prepare({
+            model: new User(),
+            view: 'register'
+        }));
     } catch (err) {
         next(err);
     }
@@ -229,9 +219,9 @@ export const register = async (req, res, next) => {
 /**
  * Add (i.e. register) new user to database.
  *
- * @param {Request} req
- * @param {Response} res
- * @param {Function} next
+ * @param req
+ * @param res
+ * @param next
  * @method post
  * @src public
  */
@@ -246,16 +236,21 @@ export const create = async (req, res, next) => {
             password: valid.load(password).isPassword().data,
             role: role,
         });
+
+        // encrypt user password and generate salt token
         auth.encryptUser(newUser);
+
     } catch (err) {
         next(err);
     }
 
-    // Insert user in database
+    // Insert user record into database
     await db.users
         .insert(newUser)
-        .then(user => {
-            if (!user) throw new Error('failedRegistration');
+        .then(userData => {
+
+            // user record could not be inserted
+            if (!userData) throw new Error('failedRegistration');
 
             // send confirmation email to user
             // utils.email.send(user.email, "Verify registration.");
@@ -263,137 +258,168 @@ export const create = async (req, res, next) => {
             // successful registration
             res.status(200).json(
                 prepare({
-                    message: {msg: `Registration successful for user ${user.email}!`, type: 'success'},
-                    user: {
-                        email: user.email,
-                        role: user.role
-                    }})
+                    model: new User(userData),
+                    message: {
+                        msg: `Registration successful for user ${userData.email}!`,
+                        type: 'success'
+                    },
+                })
             );
         })
         .catch(err => next(err));
 };
 
 /**
- * Edit the user's profile data.
+ * Request model to edit the user's profile data.
  *
- * @param {Request} req
- * @param {Response} res
- * @param {Function} next
+ * @param req
+ * @param res
+ * @param next
  * @method get
  * @src public
  */
 
 export const edit = async (req, res, next) => {
+
     // retrieve user roles
-    const { roles } = await db.roles.getAll().catch((err) => next(err));
+    const roles = await db.users.getRoles()
+        .catch(err => {return next(err)});
+    if (!roles) throw new Error();
+
+    // get requested user ID
+    const { user_id } = req.params;
+
+    // return edit schema
     await db.users
-        .select(req.params.user_id)
-        .then((data) => {
-            if (data.rows.length === 0) throw new Error('nouser');
-            res.locals.data={user:data.rows[0], roles:roles};
-            res.status(200).json(res.locals);
+        .select(user_id)
+        .then(userData => {
+
+            // user not found
+            if (!userData) throw new Error();
+
+            const user = new User(userData);
+
+            // if admin user, include role options in model
+            if (auth.isAuthorized(req, ['administrator', 'super_administrator']))
+                user.setOptions('role', roles);
+
+            // return model data
+            res.status(200).json(
+                prepare({
+                    model: user,
+                    view: 'edit'
+                })
+            );
         })
-        .catch((err) => next(err));
+        .catch(err => next(err));
 };
 
 /**
  * Update the user's profile data.
  *
- * @param {Request} req
- * @param {Response} res
- * @param {Function} next
+ * @param req
+ * @param res
+ * @param next
  * @method post
  * @src public
  */
 
 export const update = async (req, res, next) => {
+
+    // initialize user data in model
     let user;
     try {
         user = new User(req.body);
     } catch (err) {
         next(err);
     }
+
     // update user data
     await db.users
         .update(user)
-        .then((data) => {
-            if (data.rows.length === 0) throw new Error('update');
-            res.locals.data = data.rows[0];
-            res.message(`Update successful to user ${res.locals.data.email} profile!`, 'success');
-            res.status(200).json(res.locals);
+        .then(userData => {
+
+            // user not found
+            if (!userData) throw new Error();
+
+            // return model data
+            res.status(200).json(
+                prepare({
+                    model: user,
+                    view: 'edit',
+                    message: {msg: `User record updated.`, type: 'success'}
+                })
+            );
         })
-        .catch((err) => next(err));
+        .catch(err => next(err));
 };
 
 /**
  * Confirm removal of user.
  *
- * @param {Request} req
- * @param {Response} res
+ * @param req
+ * @param res
  * @param {Function} next
  * @method get
  * @src public
  */
 
 export const remove = async (req, res, next) => {
+
+    // get requested user ID
+    const { user_id } = req.params;
+
+    // remove user record
     await db.users
-        .select(req.params.user_id)
-        .then((data) => {
-            if (data.rows.length === 0)
-                throw new Error('nouser');
-            res.locals.data = data.rows[0];
-            res.status(200).json(res.locals);
+        .select(user_id)
+        .then(userData => {
+
+            // user not found
+            if (!userData) throw new Error();
+
+            // return model data
+            res.status(200).json(
+                prepare({
+                    model: new User(userData),
+                    view: 'remove'
+                })
+            );
         })
-        .catch((err) => next(err));
+        .catch(err => next(err));
 };
 
 /**
  * Delete user record.
  *
- * @param {Request} req
- * @param {Response} res
- * @param {Function} next
+ * @param req
+ * @param res
+ * @param next
  * @method post
  * @src public
  */
 
 export const drop = async (req, res, next) => {
+
+    // get requested user ID
+    const { user_id } = req.params;
+
     await db.users
-        .remove(req.params.user_id)
-        .then((data) => {
-            if (data.rows.length === 0)
-                throw new Error('nouser');
-            res.locals.data = data.rows[0];
-            res.message('User ' + res.locals.data.email + ' successfully deleted.', 'success');
-            res.status(200).json(res.locals);
+        .remove(user_id)
+        .then(userData => {
+
+            // user not found
+            if (!userData) throw new Error();
+
+            console.log(userData)
+
+            // return model data
+            res.status(200).json(
+                prepare({
+                    message: {msg: `User ${userData.email} successfully deleted.`, type: 'success'},
+                    model: new User(userData),
+                    view: 'remove'
+                })
+            );
         })
-        .catch((err) => next(err));
+        .catch(err => next(err));
 };
-
-
-/**
- * Authenticate user credentials.
- * TODO: Include JWT signing (http://jwt.io/)
- *
- * @param {Request} req
- * @param {Response} res
- * @param {Function} next
- * @method post
- * @src public
- */
-
-export const check = (req, res, next) => {
-
-    // return current user data when session exists (logged-in)
-    if (req.session.user != null) {
-        const { id, email } = req.session.user;
-        return res.status(200).json(
-            prepare({
-                view: 'dashboard',
-                user: req.session.user,
-                message: { msg: `User ${email} is logged in.`, type: 'warning' }
-            })
-        );
-    }
-    next()
-}

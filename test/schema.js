@@ -104,7 +104,33 @@ export default {
             }
         }
     },
-    edit: {},
+    edit: {
+        users: {
+            email: {
+                label: 'Email',
+                render: 'email',
+                restrict: [
+                    'administrator',
+                    'super_administrator',
+                ]
+            },
+            roles: {
+                render: 'select',
+                restrict: [
+                    'administrator',
+                    'super_administrator',
+                ]
+            },
+            password: {
+                label: 'Reset Password',
+                render: 'link',
+                restrict: [
+                    'administrator',
+                    'super_administrator',
+                ]
+            }
+        }
+    },
     remove: {},
     labels: {
         users: {

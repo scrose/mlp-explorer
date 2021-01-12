@@ -12,7 +12,6 @@
  * @private
  */
 
-import { prepare } from '../lib/api.utils.js';
 import jwt from "jsonwebtoken";
 import * as db from './index.services.js';
 import crypto from 'crypto';
@@ -120,13 +119,14 @@ export const verifyToken = (req, res, next) => {
  * @public
  * @return {Boolean} result
  * @param req
+ * @param allowedRoles
  */
 
-export const check = async (req) => {
+export const check = async (req, allowedRoles=[]) => {
+
+    // get JWT token from request headers
     let token = req.headers["x-access-token"];
     let secret = process.env.SESSION_SECRET;
-
-    console.log('token:', token)
 
     if (!token) return false;
 
@@ -144,18 +144,19 @@ export const check = async (req) => {
  */
 
 export const genToken = (userId) => {
+    const ttl = 86400;
     let secret = process.env.SESSION_SECRET;
     return jwt.sign({ id: userId }, secret, {
-        expiresIn: 86400 // 24 hours
+        expiresIn: ttl // 24 hours
     });
 }
 
 /**
  * Authorize user access based on permissions set for user role.
  *
- * @param {Request} req
- * @param {Response} res
- * @param {NextFunction} next
+ * @param req
+ * @param res
+ * @param {Function} next
  * @param {Array} allowedRoles
  * @src public
  */
@@ -182,7 +183,7 @@ export const authorize = async (req, res, next, allowedRoles) => {
     if ( userId == null ) next(new Error('restricted'));
 
     // get current user role and check authorization
-    await db.users
+    req.user = await db.users
         .select(userId)
         .then(user => {
 
@@ -211,4 +212,24 @@ export const authorize = async (req, res, next, allowedRoles) => {
         .catch(err => next(err));
 
     next();
+}
+
+
+/**
+ * Check if user has access based on permissions set for user role.
+ *
+ * @param req
+ * @param {Array} allowedRoles
+ * @src public
+ */
+
+export const isAuthorized = async (req, allowedRoles=[]) => {
+
+    // authorize all for 'visitor' restrictions
+    if ( allowedRoles.includes('visitor') ) return true;
+
+    // get current user role
+    const { role } = req.user;
+
+    return allowedRoles.includes(role);
 }

@@ -24,7 +24,10 @@ import pool from './pgdb.js';
 
 export async function getAll() {
     let { sql, data } = queries.getAll();
-    return pool.query(sql, data);
+    return await pool.query(sql, data)
+        .then(res => {
+            return res.rows.length === 0 ? null : res.rows
+        });
 }
 
 /**
@@ -85,7 +88,10 @@ export async function insert(user) {
 
 export async function update(user) {
     let { sql, data } = queries.update(user);
-    return pool.query(sql, data);
+    return await pool.query(sql, data)
+        .then(res => {
+            return res.rows.length === 0 ? null : res.rows[0]
+        });
 }
 
 /**
@@ -98,7 +104,25 @@ export async function update(user) {
 
 export async function remove(user_id) {
     let { sql, data } = queries.remove(user_id);
-    return pool.query(sql, data);
+    return await pool.query(sql, data)
+        .then(res => {
+            return res.rows.length === 0 ? null : res.rows[0]
+        });
+}
+
+/**
+ * Get user roles.
+ *
+ * @public
+ * @return {Promise} result
+ */
+
+export async function getRoles() {
+    let { sql, data } = queries.getRoles();
+    return await pool.query(sql, data)
+        .then(res => {
+            return res.rows.length === 0 ? null : res.rows;
+        });
 }
 
 /**

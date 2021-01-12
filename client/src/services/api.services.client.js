@@ -7,25 +7,24 @@
  * Reference: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
  */
 
-import { useUserContext } from './user.services.client';
+import { getUserSession, useUserContext } from './user.services.client';
 
 /**
- * Get authorization header.
+ * Get authorization header. Inserts JWT token into request headers.
  *
  * @public
  */
 
-export default function authHeader() {
-    const session = useUserContext();
-    console.log('Authorization:', session)
-    if (session && session.accessToken) {
-        // for Node.js Express back-end
-        return { 'x-access-token': session.accessToken };
+export function authHeader() {
+    const user = getUserSession();
+    const jsonType = {'Content-Type': 'application/json'};
+    console.log('Authorization:', user)
+    if (user && user.token) {
+        return { 'x-access-token': user.token };
     } else {
         return {};
     }
 }
-
 
 /**
  * Fetch options for JSON API request.
@@ -41,11 +40,7 @@ const getFetchOptions = (data=null, method) => {
             mode: 'cors', // no-cors, *cors, same-origin
             cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
             credentials: 'same-origin', // include, *same-origin, omit
-            headers: {
-                'Content-Type': 'application/json',
-                // 'Content-Type': 'multipart/form-data'
-                // 'Content-Type': 'application/x-www-form-urlencoded',
-            },
+            headers: authHeader(),
             redirect: 'follow', // manual, *follow, error
             referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
         }

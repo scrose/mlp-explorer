@@ -11,28 +11,39 @@
  * Package JSON data for HTTP response.
  *
  * @src public
- * @param model
+ * @param {Object} model
  * @param view
- * @param attributes
  * @param message
- * @param data
  * @param user
+ * @param data
+ * @param filter
  */
 
 export function prepare({
-                            model='',
+                            model={},
                             view='',
-                            attributes={},
                             message={},
-                            data={},
-                            user={}
+                            user={},
+                            data=null,
+                            filter = []
 }) {
+
+    // get model attributes
+    const {name={}, attributes={}} = model;
+
+    // get submission data
+    const submissionData = data
+        ? data
+        : Object.keys(model).length > 0 ? model.getData(filter) : {};
+
     return {
-        attributes: attributes,
-        model: model,
+        model: {
+            name: name,
+            attributes: attributes
+        },
         view: view,
         message: message,
-        data: data,
+        data: submissionData,
         user: user
     }
 }
