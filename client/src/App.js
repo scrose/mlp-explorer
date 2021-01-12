@@ -11,7 +11,7 @@ import Navigator from './components/common/Navigator';
 import Footer from './components/common/Footer';
 import Viewer from './components/common/Viewer';
 import ErrorBoundary from './components/common/ErrorBoundary';
-import { getUserSession, setUserSession, UserContext } from './services/user.services.client';
+import { getUserSession, setUserSession, UserContext } from './services/session.services.client';
 
 
 /**

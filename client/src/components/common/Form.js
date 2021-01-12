@@ -8,8 +8,7 @@
 import React from 'react'
 import validator from '../../utils/validator.utils.client';
 import * as api from '../../services/api.services.client';
-import { setUserSession, useUserContext } from '../../services/user.services.client';
-
+import { setUserSession, useUserContext } from '../../services/session.services.client';
 
 /**
  * Build input help text.
@@ -262,7 +261,9 @@ const Form = ({ name, action, legend, fields, messenger }) => {
             // collect form data -> JSON content type
             const data = new FormData(e.target);
             const jsonData = Object.fromEntries(data.entries());
-            const { action } = e.target;
+            const action = api.getRoute();
+
+            console.log('Form action:',action, data)
 
             // submit form data to API
             api.postData(action, jsonData)

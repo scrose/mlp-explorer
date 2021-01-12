@@ -7,7 +7,28 @@
  * Reference: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
  */
 
-import { getUserSession, useUserContext } from './user.services.client';
+import { getUserSession, useUserContext } from './session.services.client';
+
+/**
+ * Root API url.
+ *
+ * @private
+ */
+
+const _API = 'http://localhost:3001';
+
+/**
+ * Get current client URL.
+ *
+ * @private
+ * @param {String} uri
+ * @return {String} url
+ */
+
+export function getRoute(uri=null) {
+    const route = uri ? uri : window.location.pathname;
+    return `${_API}${route}`
+}
 
 /**
  * Get authorization header. Inserts JWT token into request headers.
@@ -16,14 +37,19 @@ import { getUserSession, useUserContext } from './user.services.client';
  */
 
 export function authHeader() {
+    // default json content type
+    const headers = {'Content-Type': 'application/json'}
+
+    // get user session data
     const user = getUserSession();
-    const jsonType = {'Content-Type': 'application/json'};
+
     console.log('Authorization:', user)
-    if (user && user.token) {
-        return { 'x-access-token': user.token };
-    } else {
-        return {};
-    }
+
+    // include JWT token (if exists)
+    if (user && user.hasOwnProperty('token'))
+        headers['x-access-token'] = user.token;
+
+    return headers;
 }
 
 /**

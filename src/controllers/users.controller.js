@@ -157,6 +157,7 @@ export const authenticate = async (req, res, next) => {
     try {
         // validate user credentials
         const { email, password } = req.body;
+        console.log(req.body)
         reqUser = {
             email: valid.load(email).isEmail().data,
             password: valid.load(password).isPassword().data,

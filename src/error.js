@@ -105,10 +105,8 @@ export const errors = {
  */
 
 function decodeError(err = null) {
-    return err.hasOwnProperty('message')
-        ? errors.hasOwnProperty(err.message)
-        ? errors[err.message]
-            : errors.default : errors.default;
+    const { message } = err;
+    return errors.hasOwnProperty(message) ? errors[message] : errors.default;
 }
 
 /**
@@ -151,8 +149,9 @@ export function globalHandler(err, req, res, next) {
 export function notFoundHandler(req, res, next) {
     return res.status(404).json(
         prepare({
+            view: 'notFound',
             message: {
-                msg: errors.notFound,
+                msg: errors.notFound.msg,
                 type: 'error'
             }
         })

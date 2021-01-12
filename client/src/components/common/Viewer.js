@@ -2,8 +2,6 @@ import React from 'react';
 import Form from './Form';
 import schema from '../../schema';
 import * as api from '../../services/api.services.client';
-import * as utils from '../../utils/router.utils.client';
-import { getUserSession, setUserSession, useUserContext } from '../../services/user.services.client';
 
 
 /**
@@ -94,7 +92,9 @@ const View = ({updater, params, messenger}) => {
             });
 
     return (
-        <>{ renderView(type, {name, action, label, fields, data, messenger}) }</>
+        <div className={'view'}>
+            { renderView(type, {name, action, label, fields, data, messenger}) }
+        </div>
     );
 }
 
@@ -115,28 +115,18 @@ const Viewer = () => {
 
     // Get global data from API
     React.useEffect(() => {
-        console.warn('Getting View')
-        isMountedRef.current = true;
 
         // get requested route
-        const url = utils.getRoute();
+        const url = api.getRoute();
 
         // fetch API data
         api.getData(url)
             .then(res => {
-                // get response data
+                // set view and message data in state
                 const { model, view, data, message } = res;
-                console.log(message, data)
-
-                if (isMountedRef.current) {
-                    setView({ model, view, data });
-
-                    // Set message (if provided)
-                    if (message) {
-                        setMsg({ msg: message.msg, type: message.type });
-                    }
-                }
-                return () => isMountedRef.current = false;
+                setView({ model, view, data });
+                console.log(message)
+                setMsg(message);
             })
     }, [setView, setMsg]);
 
