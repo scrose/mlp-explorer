@@ -12,13 +12,13 @@ import {MsgProvider} from './msg.context.client'
 
 function AppProviders({children}) {
     return (
-        <AuthProvider>
-            <UserProvider>
-                <MsgProvider>
-                    {children}
-                </MsgProvider>
-            </UserProvider>
-        </AuthProvider>
+        <MsgProvider>
+            <AuthProvider>
+                <UserProvider>
+                        {children}
+                </UserProvider>
+            </AuthProvider>
+        </MsgProvider>
     )
 }
 

@@ -1,6 +1,6 @@
 /*!
  * MLP.Client.Components.User.Dashboard
- * File: Dashboard.js
+ * File: dashboard.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */

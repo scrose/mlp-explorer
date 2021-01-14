@@ -7,9 +7,8 @@
 
 import React from 'react'
 import validator from '../../utils/validator.utils.client';
-import * as api from '../../services/api.services.client';
-import { useUser } from '../../context/user.context.client';
 import { useMsg } from '../../context/msg.context.client';
+import { postData } from '../../services/api.services.client';
 
 /**
  * Build input help text.
@@ -158,6 +157,7 @@ const inputValidators = {
  */
 
 const Select = ({name, options}, handler) => {
+    console.log(name, options)
     const optionElements = options
         .map(key => <option id={key}>{options[key]}</option>);
     return (
@@ -178,7 +178,6 @@ const Select = ({name, options}, handler) => {
  */
 
 const Fields = ({labels, fields, init, valid, disabled}) => {
-
 
     // initialize input values (in state)
     const [values, setValues] = React.useState(init.values);
@@ -216,7 +215,7 @@ const Fields = ({labels, fields, init, valid, disabled}) => {
     const fieldElements =
         fields.map(field => {
             // lookup form input element for data type
-            const fieldElement = inputElements[field.type];
+            const fieldElement = inputElements[field.render];
             // get current input values in state
             const inputValue = values.hasOwnProperty(field.name)
                 ? values[field.name] : '';
@@ -227,7 +226,7 @@ const Fields = ({labels, fields, init, valid, disabled}) => {
         })
 
     return (
-        <fieldset name={labels.name} disabled={disabled}>
+        <fieldset name={`fieldset_${labels.name}`} disabled={disabled}>
             <legend>{labels.legend}</legend>
             {fieldElements}
             <div>
@@ -244,42 +243,27 @@ const Fields = ({labels, fields, init, valid, disabled}) => {
  * Build HTML form.
  *
  * @public
- * @param params
+ * @param { route, params, data, callback }
  */
 
-const Form = ({ route, formData, callback }) => {
+const Form = ({ route, props, callback=postData }) => {
+
+    console.log('Form params:', props)
 
     const [isValid, setValid] = React.useState(false);
     const [isDisabled, setDisabled] = React.useState(false);
 
     // destructure form parameters and data
-    const { schema={}, data={} } = formData;
-    const {attributes, model, fields} = schema;
-    const {legend='', method='POST', submitLabel='Submit'} = attributes;
-
-    // create renderable elements based on schema:
-    // selects render type based on schema or
-    // (if omitted in schema) default based on data type.
-    // const fields =
-    //     Object.keys(modelSchema)
-    //         .map(key => {
-    //             return {
-    //                 name: key,
-    //                 label: labels[key],
-    //                 type: modelSchema[key].hasOwnProperty('render')
-    //                     ? modelSchema[key].render
-    //                     : modelSchema.field.render[attributes[key].type].render,
-    //                 value: attributes.hasOwnProperty()attributes[key].value || ''
-    //             };
-    //         });
-
-    const messenger = useMsg();
+    const { schema, data, model} = props;
+    const { name, fields, attributes } = schema;
+    const {legend='', method='POST', submit='Submit'} = attributes;
 
     const handleSubmit = e => {
         e.preventDefault();
         try {
-            callback(route, e);
-            messenger.setMsg('message!!');
+            // convert submitted form data to JSON
+            const formData = new FormData(e.target);
+            callback(route, Object.fromEntries(formData));
         }
         catch (err) {
             console.error(err)
@@ -299,9 +283,9 @@ const Form = ({ route, formData, callback }) => {
      */
 
     return (
-        <form id={model} name={model} method={method} onSubmit={handleSubmit}>
+        <form id={name} name={name} method={method} onSubmit={handleSubmit}>
             <Fields
-                labels={{name: model, legend: legend, submit: submitLabel}}
+                labels={{name: name, legend: legend, submit: submit}}
                 fields={fields}
                 init={initValues}
                 valid={isValid}

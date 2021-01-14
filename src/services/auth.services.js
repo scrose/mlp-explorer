@@ -104,11 +104,13 @@ export const verify = (req, res, next) => {
     let token = req.headers["x-access-token"];
     let secret = process.env.SESSION_SECRET;
 
-    if (!token) next(new Error('noToken'));
+    console.log(token)
+
+    if (!token) return next(new Error('noToken'));
 
     jwt.verify(token, secret, (err, decoded) => {
-        if (err) next(new Error('noAuth'));
-        req.userId = decoded.id;
+        if (err) return next(new Error('noAuth'));
+        req.userId = decoded ? decoded.id : null;
     });
 };
 

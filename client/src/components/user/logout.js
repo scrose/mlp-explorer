@@ -1,21 +1,25 @@
 /*!
  * MLP.Client.Components.User.Logout
- * File: Logout.js
+ * File: logout.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
 import React from "react";
 import { removeSession } from '../../services/session.services.client';
+import { useAuth } from '../../context/auth.context.client';
+import { getPath, getURL } from '../../services/api.services.client';
 
 const Logout = () => {
 
+    const auth = useAuth();
+
     // Delete session data
-    React.useEffect(() => { removeSession() }, []);
+    React.useEffect(() => { auth.logout() }, []);
 
     return (
         <div>
-            <p>User has logged out.</p>
+            <p>Would you like to <a href={getURL('/login')}>Sign In</a> again?</p>
         </div>
     );
 }

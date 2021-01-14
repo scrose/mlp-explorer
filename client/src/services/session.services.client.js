@@ -6,24 +6,15 @@
  */
 
 /**
- * Initialize user data session storage.
+ * Update user data session storage. Important that default is an
+ * empty string.
  *
  * @public
- */
-
-import React from "react";
-
-/**
- * Update user data session storage.
- *
- * @public
- * @param userData
+ * @param {Object} userData
  */
 
 export const setSession = (userData) => {
-    if (userData == null) return;
-    const {id='', email='', token=''} = userData;
-    console.log(userData)
+    const { id='', email='', token='' } = userData;
     sessionStorage.setItem('userId', id);
     sessionStorage.setItem('userEmail', email);
     sessionStorage.setItem('userToken', token);
@@ -36,27 +27,21 @@ export const setSession = (userData) => {
  */
 
 export const getSession = () => {
-
-    // load session values
-    const id = sessionStorage.getItem('userId') || '';
-    const email = sessionStorage.getItem('userEmail') || '';
-    const token = sessionStorage.getItem('userToken') || '';
-
-    // check if session is empty
-    return { id: id, email: email, token: token };
+    return {
+        id: sessionStorage.getItem('userId') || '',
+        email: sessionStorage.getItem('userEmail') || '',
+        token: sessionStorage.getItem('userToken') || ''
+    };
 }
 
 /**
- * Retrieve user JWT token from session storage.
+ * Retrieve user data from session storage.
  *
  * @public
  */
 
 export const getSessionToken = () => {
-
-    // load session values
-    return sessionStorage.getItem('userToken') || null;
-
+    return sessionStorage.getItem('userToken') || '';
 }
 
 /**

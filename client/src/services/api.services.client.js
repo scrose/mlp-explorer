@@ -17,6 +17,17 @@ const _API = 'http://localhost:3001';
 const _CLIENT = 'http://localhost:3000';
 
 /**
+ * Get full client URL from path.
+ *
+ * @param {String} path
+ * @public
+ */
+
+export function getURL(path) {
+    return `${_CLIENT}${path}`;
+}
+
+/**
  * Get current client pathname.
  *
  * @public
@@ -55,14 +66,16 @@ export function getRoute(uri=null) {
  * @public
  */
 
-export function authHeader(token=null) {
+export function authHeader(token='') {
     // default json content type
     const headers = {'Content-Type': 'application/json'}
 
-    console.log('Authorization token:', token)
+    console.log('Header x-access token:', typeof token)
 
     // include JWT token (if exists)
     if (token) headers['x-access-token'] = token;
+
+    console.log('HEaders:', headers)
 
     return headers;
 }
@@ -90,6 +103,7 @@ const getFetchOptions = ({ data=null, method='POST', token=null }) => {
         // body data type must match "Content-Type" header
         if (data) opts.body = JSON.stringify(data)
 
+        console.log('Options:', opts)
     return opts
 }
 
@@ -140,9 +154,11 @@ function handleResponse(res) {
  * @param {String} token
  */
 
-export async function auth(token) {
+export async function auth(token='') {
 
-    return await makeRequest({ url: '/authenticate', method: 'GET', token: token })
+    console.log('Auth:', typeof token)
+
+    return await makeRequest({ url: '/auth', method: 'POST', token: token })
         .then(res => {
             const { response } = res;
             // report API errors in console as warning
@@ -160,10 +176,10 @@ export async function auth(token) {
  *
  * @public
  * @param {String} url
- * @param {string} token
+ * @param {String} token
  */
 
-export async function getData(url='/', token) {
+export async function getData(url='/', token='') {
     return await makeRequest({url: url, method:'GET', token: token})
         .then(res => {
             const { response } = res;
@@ -187,7 +203,7 @@ export async function getData(url='/', token) {
  * @param token
  */
 
-export async function postData(url='/', data, token) {
+export async function postData(url='/', data, token='') {
     return await makeRequest({url: url, method:'POST', data: data, token: token})
         .then(res => {
             const { response } = res;

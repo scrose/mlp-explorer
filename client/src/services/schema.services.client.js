@@ -16,55 +16,71 @@ import { schema } from '../schema';
  */
 
 export const getStaticView = (route) => {
-    // get static routes
-    const {router} = schema;
 
-    if (!router.hasOwnProperty(route))
+    // get static routes
+    const {routes} = schema;
+
+    if (!routes.hasOwnProperty(route))
         return null;
 
-    return router[route];
+    return routes[route];
 }
 
 /**
- * Load view settings for view, model.
+ * Load view settings for model.
+ *
+ * @public
+ * @param {String} view
+ * @return {String} view type
+ */
+
+export const getViewType = (view) => {
+    return schema.views.hasOwnProperty(view)
+            ? schema.views[view].render : null;
+}
+
+/**
+ * Load view settings for model.
  *
  * @public
  * @param {String} view
  * @param {String} model
- * @return {view, model, labels}
+ * @param {Object} data
+ * @return {{name: String, attributes: *, fields: {name: *, label: *, render: *|string, value: *|string}[]}}
  */
 
-export const getSchema = (view, model=null) => {
+export const getSchema = (view, model, data=null) => {
 
-    console.log('Getting view:', view, model)
+    const modelSchema = schema.models.hasOwnProperty(model)
+        ? schema.models[model] : {};
+    const viewSchema = schema.views.hasOwnProperty(view)
+        ? schema.views[view] : {};
 
-    // assert view is in schema
-    if (!schema.hasOwnProperty(view)) {
-        return null;
-    }
-
-    // select view from app schema
-    const viewSchema = schema[view];
-    const viewAttributes = viewSchema.hasOwnProperty('attributes')
-        ? viewSchema.attributes
-        : {};
-
-    // select model from view schema
-    const modelName = model ? model : 'default';
-    const modelSchema = viewSchema.hasOwnProperty(modelName)
-        ? viewSchema[modelName]
-        : {};
-
-    // lookup field labels for model
-    const labels = schema.labels.hasOwnProperty(modelName)
-        ? schema.labels[modelName]
-        : {};
+    // create renderable elements based on schema
+    // Filters out omitted fields (array) for view.
+    // (Optional) load initial values from input data
+    const fields =
+        Object.keys(modelSchema)
+            .filter(key =>
+                !( modelSchema[key].hasOwnProperty('omit')
+                    && modelSchema[key].omit.includes(view) )
+            )
+            .map(key => {
+                return {
+                    name: key,
+                    label: modelSchema[key].label,
+                    render: modelSchema[key].hasOwnProperty('render')
+                        ? modelSchema[key].render
+                        : 'text',
+                    value: data && data.hasOwnProperty(key)
+                        ? data[key].value
+                        : ''
+                };
+            });
 
     return {
-        view: view,
-        model: modelName,
-        attributes: viewAttributes,
-        schema: modelSchema,
-        labels: labels
+        name: model,
+        attributes: viewSchema,
+        fields: fields
     }
 }

@@ -13,10 +13,10 @@ const MsgContext = React.createContext({})
 function MsgProvider(props) {
 
     // messenger state
-    const [msg, setMsg] = React.useState({});
+    const [data, setMessage] = React.useState({});
 
     return (
-        <MsgContext.Provider value={{msg, setMsg}} {...props} />
+        <MsgContext.Provider value={{data, setMessage}} {...props} />
     )
 
 }

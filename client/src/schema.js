@@ -16,128 +16,69 @@ export const schema = {
         appName: "Explorer",
         title: "Welcome to the Mountain Legacy Project Explorer"
     },
-    register: {
-        attributes: {
-            type: 'form',
+    routes: {
+        '/': 'dashboard',
+        '/logout': 'logout',
+        '/login': 'login'
+    },
+    errors: {
+        formValidation: {
+            isRequired: 'This field is required.',
+            isEmail: 'Not a valid email address.',
+            isPassword: 'Passwords must have a minimum eight and maximum 20 characters, at least one uppercase letter, one lowercase letter, one number and one special character',
+            isValidForm: 'Form not valid.',
+            isRepeatPassword: 'Passwords do not match.'
+        }
+    },
+    views: {
+        login: {
+            render: 'login',
+            legend: 'User Sign In',
+            submit: 'Sign In',
+            method: 'POST'
+        },
+        register : {
+            render: 'register',
             legend: 'User Registration',
-            method: 'post'
+            submit: 'Register',
+            method: 'POST'
         },
-        default: {
-            email: {
-                label: 'Email',
-                render: 'email',
-                restrict: [
-                    'administrator',
-                    'super_administrator'
-                ]
-            },
-            password: {
-                render: 'password',
-                restrict: [
-                    'administrator',
-                    'super_administrator'
-                ]
-            },
-            repeat_password: {
-                render: 'password',
-                restrict: [
-                    'administrator',
-                    'super_administrator'
-                ]
-            },
-            role: {
-                render: 'select',
-                restrict: [
-                    'administrator',
-                    'super_administrator'
-                ]
-            }
+        add: {
+            render: 'form'
+        },
+        edit: {
+            render: 'form'
+        },
+        remove: {
+            render: 'form'
+        },
+        list: {
+            render: 'list'
+        },
+        show: {
+            render: 'item'
         }
     },
-    login: {
-        attributes: {
-            type: 'form',
-            legend: 'User Login',
-            method: 'post',
-            submitLabel: 'Sign In'
-        },
-        default: {
-            email: {
-                render: 'email',
-                restrict: ['visitor']
-            },
-            password: {
-                render: 'password',
-                restrict: ['visitor']
-            }
-        }
-    },
-    dashboard: {
-        attributes: {
-            type: 'form',
-            label: 'Dashboard',
-        },
-        users: {
-            email: {
-                render: 'readonly',
-                restrict: null
-            },
-            role: {
-                render: 'readonly',
-                restrict: null
-            }
-        }
-    },
-    add: {
-        attributes: {
-            type: 'form',
-            legend: 'Create',
-            method: 'post'
-        },
-        default: {
-            field: {
-                render: {
-                    'integer': 'integer',
-                    'text': 'text',
-                    'varchar': 'text'
-                },
-                restrict: ['contributor', 'editor', 'administrator', 'super_administrator']
-            }
-        }
-    },
-    edit: {
-        attributes: {
-            type: 'form',
-            legend: 'Update',
-            method: 'post'
-        },
+    models: {
         users: {
             email: {
                 label: 'Email',
                 render: 'email'
             },
-            role: {
-                render: 'select'
-            },
             password: {
-                label: 'Reset Password',
-                render: 'link'
+                label: 'Password',
+                render: 'password'
+            },
+            repeat_password: {
+                label: 'Repeat Password',
+                render: 'password',
+                omit: ['login']
+            },
+            role: {
+                label: 'User Role',
+                render: 'select',
+                omit: ['login']
             }
-        }
-    },
-    remove: {
-        attributes: {
-            type: 'form',
-            legend: 'Delete',
-            method: 'post'
-        }
-    },
-    labels: {
-        users: {
-            email: 'Email',
-            password: 'Password',
-            repeat_password: 'Repeat Password',
-            role: 'User Role'
         },
         projects: {
             name: 'Project Name',
@@ -291,20 +232,6 @@ export const schema = {
             group_type: {
                 'photographers': 'Photographers'
             }
-        }
-    },
-    router: {
-        '/': 'dashboard',
-        '/logout': 'logout',
-        '/login': 'login'
-    },
-    errors: {
-        formValidation: {
-            isRequired: 'This field is required.',
-            isEmail: 'Not a valid email address.',
-            isPassword: 'Passwords must have a minimum eight and maximum 20 characters, at least one uppercase letter, one lowercase letter, one number and one special character',
-            isValidForm: 'Form not valid.',
-            isRepeatPassword: 'Passwords do not match.'
         }
     }
 }
