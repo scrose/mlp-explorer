@@ -106,36 +106,7 @@ export const show = async (req, res, next) => {
 };
 
 /**
- * User sign-in interface.
- *
- * @param req
- * @param res
- * @param {Function} next
- * @method get
- * @src public
- */
-
-export const login = async (req, res, next) => {
-    try {
-
-        // check if user is already logged-in
-        const isAuth = await auth.check(req);
-        if (isAuth)
-            return next(new Error('redundantLogin'));
-
-        res.status(200).json(prepare({
-            model: new User(),
-            view: 'login',
-            filter: filter
-        }));
-
-    } catch (err) {
-        return next(err);
-    }
-};
-
-/**
- * Authenticate user credentials.
+ * User sign-in using email and password.
  *
  * @param req
  * @param res
@@ -144,10 +115,11 @@ export const login = async (req, res, next) => {
  * @src public
  */
 
-export const authenticate = async (req, res, next) => {
+export const login = async (req, res, next) => {
 
     // check if user is currently logged-in
     const isAuth = await auth.check(req);
+    console.log('Authenticated?', isAuth, req.headers)
     if (isAuth)
         return next(new Error('redundantLogin'));
 
@@ -188,6 +160,43 @@ export const authenticate = async (req, res, next) => {
                         id: authUser.getValue('user_id'),
                         email: authUser.getValue('email'),
                         token: token
+                    }})
+            );
+        })
+        .catch(err => {return next(err)});
+};
+
+/**
+ * Authenticate user token.
+ *
+ * @param req
+ * @param res
+ * @param {Function} next
+ * @method get
+ * @src public
+ */
+
+export const authenticate = async (req, res, next) => {
+
+    // decode JWT token -> user_id
+    await auth.verify(req, res, next);
+    const {userId} = req;
+    console.log('User ID:', userId)
+
+    // confirm user registration
+    await db.users
+        .select(userId)
+        .then(userData => {
+
+            // User not registered
+            if (!userData) throw Error('noAuth');
+
+            // successful login
+            res.status(200).json(
+                prepare({
+                    user: {
+                        id: userData.user_id,
+                        email: userData.email
                     }})
             );
         })

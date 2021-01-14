@@ -23,7 +23,7 @@ export function prepare({
                             model={},
                             view='',
                             message={},
-                            user={},
+                            user=null,
                             data=null,
                             filter = []
 }) {

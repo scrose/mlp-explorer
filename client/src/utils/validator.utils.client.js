@@ -5,7 +5,7 @@
  * MIT Licensed
  */
 
-import schema from '../schema';
+import {schema} from '../schema';
 
 /**
  * Export validator instance.

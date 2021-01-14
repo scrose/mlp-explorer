@@ -1,6 +1,6 @@
 import { Route, Switch } from 'react-router-dom';
 import React from 'react';
-import Header from './components/common/Header';
+import Header from './components/common/header';
 import APIService from './services/api.services.client';
 
 class App extends React.Component {

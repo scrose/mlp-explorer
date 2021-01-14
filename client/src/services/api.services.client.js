@@ -7,47 +7,62 @@
  * Reference: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
  */
 
-import { getUserSession, useUserContext } from './session.services.client';
-
 /**
- * Root API url.
+ * Root API/Client urls.
  *
  * @private
  */
 
 const _API = 'http://localhost:3001';
+const _CLIENT = 'http://localhost:3000';
+
+/**
+ * Get current client pathname.
+ *
+ * @public
+ */
+
+export function getPath() {
+    return window.location.pathname;
+}
+
+/**
+ * Get current client pathname.
+ *
+ * @public
+ */
+
+export function getRoot() {
+    return _CLIENT;
+}
 
 /**
  * Get current client URL.
  *
- * @private
  * @param {String} uri
- * @return {String} url
+ * @public
  */
 
 export function getRoute(uri=null) {
-    const route = uri ? uri : window.location.pathname;
+    const route = uri ? uri : getPath();
     return `${_API}${route}`
 }
 
 /**
  * Get authorization header. Inserts JWT token into request headers.
  *
+ * @param {Object} token
  * @public
  */
 
-export function authHeader() {
+export function authHeader(token=null) {
     // default json content type
     const headers = {'Content-Type': 'application/json'}
 
-    // get user session data
-    const user = getUserSession();
-
-    console.log('Authorization:', user)
+    console.log('Authorization token:', token)
 
     // include JWT token (if exists)
-    if (user && user.hasOwnProperty('token'))
-        headers['x-access-token'] = user.token;
+    if (token) headers['x-access-token'] = token;
 
     return headers;
 }
@@ -56,17 +71,17 @@ export function authHeader() {
  * Fetch options for JSON API request.
  *
  * @public
- * @param {Object} data
- * @param {String} method
+ * @param {data, method, token}
+ * @param token
  */
 
-const getFetchOptions = (data=null, method) => {
+const getFetchOptions = ({ data=null, method='POST', token=null }) => {
     const opts = {
             method: method, // *GET, POST, PUT, DELETE, etc.
             mode: 'cors', // no-cors, *cors, same-origin
             cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
             credentials: 'same-origin', // include, *same-origin, omit
-            headers: authHeader(),
+            headers: authHeader(token),
             redirect: 'follow', // manual, *follow, error
             referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
         }
@@ -82,17 +97,15 @@ const getFetchOptions = (data=null, method) => {
  * Make request to API.
  *
  * @public
- * @param {String} url
- * @param {String} method
- * @param {Object} data
+ * @param {url, data, method, token}
  */
 
-export async function makeRequest(url='/', method='POST', data=null)  {
+export async function makeRequest({ url='/', data=null, method='POST', token=null })  {
 
-    const opts = getFetchOptions(data, method);
+    // compose request headers/options
+    const opts = getFetchOptions({data, method, token});
 
-    console.log(opts)
-
+    // send request to API
     return await fetch(url, opts)
             .then(handleResponse)
             .catch(err => {
@@ -121,14 +134,15 @@ function handleResponse(res) {
 }
 
 /**
- * Request wrapper to authenticate user from API.
+ * Request wrapper to authenticate user token from API.
  *
  * @public
- * @param {Object} data
+ * @param {String} token
  */
 
-export async function auth(data) {
-    return await makeRequest('/authenticate', 'POST', data)
+export async function auth(token) {
+
+    return await makeRequest({ url: '/authenticate', method: 'GET', token: token })
         .then(res => {
             const { response } = res;
             // report API errors in console as warning
@@ -146,15 +160,17 @@ export async function auth(data) {
  *
  * @public
  * @param {String} url
+ * @param {string} token
  */
 
-export async function getData(url='/') {
-    return await makeRequest(url, 'GET')
+export async function getData(url='/', token) {
+    return await makeRequest({url: url, method:'GET', token: token})
         .then(res => {
             const { response } = res;
             // report API errors in console as warning
-            if (!res.success)
+            if (!res.success) {
                 console.warn(`An API error occurred (${res.statusText}): ${response.message.msg}.`);
+            }
             return response;
         })
         .catch(err => {
@@ -168,10 +184,11 @@ export async function getData(url='/') {
  * @public
  * @param {String} url
  * @param {Object} data
+ * @param token
  */
 
-export async function postData(url='/', data) {
-    return await makeRequest(url, 'POST', data)
+export async function postData(url='/', data, token) {
+    return await makeRequest({url: url, method:'POST', data: data, token: token})
         .then(res => {
             const { response } = res;
             // report API errors in console as warning

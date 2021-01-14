@@ -8,7 +8,8 @@
 import React from 'react'
 import validator from '../../utils/validator.utils.client';
 import * as api from '../../services/api.services.client';
-import { setUserSession, useUserContext } from '../../services/session.services.client';
+import { useUser } from '../../context/user.context.client';
+import { useMsg } from '../../context/msg.context.client';
 
 /**
  * Build input help text.
@@ -134,7 +135,7 @@ const inputValidators = {
     text: (value) => {
         return validator.load(value).isRequired().end();
     },
-    checkbox: (value)  => {
+    checkbox: ()  => {
         return '';
     },
     email: (value) => {
@@ -143,7 +144,7 @@ const inputValidators = {
     password: (value)  => {
         return validator.load(value).isPassword().end();
     },
-    select: (value)  => {
+    select: ()  => {
         return '';
     }
 }
@@ -172,9 +173,7 @@ const Select = ({name, options}, handler) => {
  * and labels.
  *
  * @public
- * @param name
- * @param labels
- * @param inputs
+ * @param params
  * @return fieldset element
  */
 
@@ -248,46 +247,42 @@ const Fields = ({labels, fields, init, valid, disabled}) => {
  * @param params
  */
 
-const Form = ({ name, action, legend, fields, messenger }) => {
+const Form = ({ route, formData, callback }) => {
 
     const [isValid, setValid] = React.useState(false);
     const [isDisabled, setDisabled] = React.useState(false);
-    const session = useUserContext();
+
+    // destructure form parameters and data
+    const { schema={}, data={} } = formData;
+    const {attributes, model, fields} = schema;
+    const {legend='', method='POST', submitLabel='Submit'} = attributes;
+
+    // create renderable elements based on schema:
+    // selects render type based on schema or
+    // (if omitted in schema) default based on data type.
+    // const fields =
+    //     Object.keys(modelSchema)
+    //         .map(key => {
+    //             return {
+    //                 name: key,
+    //                 label: labels[key],
+    //                 type: modelSchema[key].hasOwnProperty('render')
+    //                     ? modelSchema[key].render
+    //                     : modelSchema.field.render[attributes[key].type].render,
+    //                 value: attributes.hasOwnProperty()attributes[key].value || ''
+    //             };
+    //         });
+
+    const messenger = useMsg();
 
     const handleSubmit = e => {
+        e.preventDefault();
         try {
-            e.preventDefault();
-
-            // collect form data -> JSON content type
-            const data = new FormData(e.target);
-            const jsonData = Object.fromEntries(data.entries());
-            const action = api.getRoute();
-
-            console.log('Form action:',action, data)
-
-            // submit form data to API
-            api.postData(action, jsonData)
-                .then(data => {
-
-                    console.warn('Form submission response:', data)
-                    // get response message
-                    const { message } = data;
-                    messenger(message);
-
-                    // Set user session data
-                    const { user } = data;
-                    if (user) setUserSession(user);
-
-                })
-                .catch(err => {
-                    console.error('Form submission API error:', err)
-                    // message.setMsgData({ msg: err, type: 'error' });
-                });
-
+            callback(route, e);
+            messenger.setMsg('message!!');
         }
         catch (err) {
             console.error(err)
-            e.preventDefault();
         }
     }
 
@@ -298,15 +293,15 @@ const Form = ({ name, action, legend, fields, messenger }) => {
     }
 
     /**
-     * Renders form.
+     * Render form.
      *
      * @public
      */
 
     return (
-        <form id={name} name={name} method={action.method} onSubmit={handleSubmit}>
+        <form id={model} name={model} method={method} onSubmit={handleSubmit}>
             <Fields
-                labels={{name: name, legend: legend, submit: action.label}}
+                labels={{name: model, legend: legend, submit: submitLabel}}
                 fields={fields}
                 init={initValues}
                 valid={isValid}

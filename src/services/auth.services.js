@@ -99,7 +99,7 @@ export function authenticate(user, password) {
  * @param next
  */
 
-export const verifyToken = (req, res, next) => {
+export const verify = (req, res, next) => {
 
     let token = req.headers["x-access-token"];
     let secret = process.env.SESSION_SECRET;
@@ -109,7 +109,6 @@ export const verifyToken = (req, res, next) => {
     jwt.verify(token, secret, (err, decoded) => {
         if (err) next(new Error('noAuth'));
         req.userId = decoded.id;
-        next();
     });
 };
 

@@ -20,8 +20,10 @@ import React from "react";
  * @param userData
  */
 
-export const setUserSession = (userData) => {
-    const {id, email, token} = userData;
+export const setSession = (userData) => {
+    if (userData == null) return;
+    const {id='', email='', token=''} = userData;
+    console.log(userData)
     sessionStorage.setItem('userId', id);
     sessionStorage.setItem('userEmail', email);
     sessionStorage.setItem('userToken', token);
@@ -33,17 +35,28 @@ export const setUserSession = (userData) => {
  * @public
  */
 
-export const getUserSession = () => {
+export const getSession = () => {
 
     // load session values
-    const id = sessionStorage.getItem('userId') || false;
-    const email = sessionStorage.getItem('userEmail') || false;
-    const token = sessionStorage.getItem('userToken') || false
+    const id = sessionStorage.getItem('userId') || '';
+    const email = sessionStorage.getItem('userEmail') || '';
+    const token = sessionStorage.getItem('userToken') || '';
 
     // check if session is empty
-    return (id && email && token)
-        ? { id: id, email: email, token: token }
-        : {};
+    return { id: id, email: email, token: token };
+}
+
+/**
+ * Retrieve user JWT token from session storage.
+ *
+ * @public
+ */
+
+export const getSessionToken = () => {
+
+    // load session values
+    return sessionStorage.getItem('userToken') || null;
+
 }
 
 /**
@@ -52,14 +65,8 @@ export const getUserSession = () => {
  * @public
  */
 
-export const removeUserSession = () => {
+export const removeSession = () => {
     sessionStorage.removeItem('userId');
     sessionStorage.removeItem('userEmail');
     sessionStorage.removeItem('userToken');
-}
-
-export const UserContext = React.createContext(getUserSession());
-
-export function useUserContext() {
-    return React.useContext(UserContext);
 }

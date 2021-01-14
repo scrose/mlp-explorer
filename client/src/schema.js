@@ -6,11 +6,11 @@
  */
 
 /**
- * Rendering settings
+ * Rendering schema.
  * @private
  */
 
-export default {
+export const schema = {
     main: {
         projectName: "Mountain Legacy Project",
         appName: "Explorer",
@@ -19,10 +19,10 @@ export default {
     register: {
         attributes: {
             type: 'form',
-            label: 'User Registration',
+            legend: 'User Registration',
             method: 'post'
         },
-        users: {
+        default: {
             email: {
                 label: 'Email',
                 render: 'email',
@@ -57,10 +57,11 @@ export default {
     login: {
         attributes: {
             type: 'form',
-            label: 'User Login',
-            method: 'post'
+            legend: 'User Login',
+            method: 'post',
+            submitLabel: 'Sign In'
         },
-        users: {
+        default: {
             email: {
                 render: 'email',
                 restrict: ['visitor']
@@ -90,7 +91,7 @@ export default {
     add: {
         attributes: {
             type: 'form',
-            label: 'Create',
+            legend: 'Create',
             method: 'post'
         },
         default: {
@@ -107,7 +108,7 @@ export default {
     edit: {
         attributes: {
             type: 'form',
-            label: 'Update',
+            legend: 'Update',
             method: 'post'
         },
         users: {
@@ -127,7 +128,7 @@ export default {
     remove: {
         attributes: {
             type: 'form',
-            label: 'Delete',
+            legend: 'Delete',
             method: 'post'
         }
     },
@@ -291,6 +292,11 @@ export default {
                 'photographers': 'Photographers'
             }
         }
+    },
+    router: {
+        '/': 'dashboard',
+        '/logout': 'logout',
+        '/login': 'login'
     },
     errors: {
         formValidation: {
