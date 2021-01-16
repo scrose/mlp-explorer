@@ -155,11 +155,13 @@ export const login = async (req, res, next) => {
             // successful login
             res.status(200).json(
                 prepare({
-                    message: {msg: 'Login successful!', type: 'success'},
+                    message: {msg: 'LoginUser successful!', type: 'success'},
                     user: {
                         id: authUser.getValue('user_id'),
                         email: authUser.getValue('email'),
-                        token: token
+                        token: token,
+                        role: authUser.getValue('role'),
+                        label: userData.label
                     }})
             );
         })
@@ -180,8 +182,8 @@ export const authenticate = async (req, res, next) => {
 
     // decode JWT token -> user_id
     await auth.verify(req, res, next);
-    const {userId} = req;
-    console.log('User ID:', userId)
+    const {userId, token} = req;
+    console.log('User ID, token:', userId)
 
     // confirm user registration
     await db.users
@@ -196,7 +198,10 @@ export const authenticate = async (req, res, next) => {
                 prepare({
                     user: {
                         id: userData.user_id,
-                        email: userData.email
+                        email: userData.email,
+                        token: token,
+                        role: userData.role,
+                        label: userData.label
                     }})
             );
         })

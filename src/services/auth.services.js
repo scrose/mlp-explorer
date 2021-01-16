@@ -104,13 +104,12 @@ export const verify = (req, res, next) => {
     let token = req.headers["x-access-token"];
     let secret = process.env.SESSION_SECRET;
 
-    console.log(token)
-
     if (!token) return next(new Error('noToken'));
 
     jwt.verify(token, secret, (err, decoded) => {
         if (err) return next(new Error('noAuth'));
         req.userId = decoded ? decoded.id : null;
+        req.token = token;
     });
 };
 
@@ -145,7 +144,7 @@ export const check = async (req, allowedRoles=[]) => {
  */
 
 export const genToken = (userId) => {
-    const ttl = 86400;
+    const ttl = 86400; // time to live
     let secret = process.env.SESSION_SECRET;
     return jwt.sign({ id: userId }, secret, {
         expiresIn: ttl // 24 hours
@@ -214,7 +213,6 @@ export const authorize = async (req, res, next, allowedRoles) => {
 
     next();
 }
-
 
 /**
  * Check if user has access based on permissions set for user role.

@@ -1,7 +1,7 @@
 import { Route, Switch } from 'react-router-dom';
 import React from 'react';
-import Header from './components/common/header';
-import APIService from './services/api.services.client';
+import Icons from './_components/common/icon';
+import APIService from './_services/api.services.client';
 
 class App extends React.Component {
     constructor(props) {
@@ -32,7 +32,7 @@ class App extends React.Component {
             return <div>Loading...</div>;
         } else {
             return (
-                <Header headerData={data} />
+                <Icons headerData={data} />
             );
         }
     }

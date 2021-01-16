@@ -15,9 +15,7 @@ code {
 }
 
 /*
-=================================
 Page Layout
-=================================
 */
 
 * {
@@ -52,9 +50,7 @@ body {
 
 
 /*
-=================================
 Page Elements
-=================================
 */
 
 a {
@@ -135,11 +131,20 @@ table.records tfoot td {
     background-color: #f1f1f1;
 }
 
+/*
+Page Header
+*/
+
+header {
+    clear: both;
+}
+
+header h1 {
+    width: 70%;
+}
 
 /*
-=================================
 Data Elements
-=================================
 */
 
 time {
@@ -147,14 +152,16 @@ time {
 }
 
 /*
-=================================
 Menus
-=================================
 */
+
+nav {
+    width: auto;
+}
 
 /* Main Navigation Menu */
 
-ul.main_menu {
+nav.main ul {
     list-style-type: none;
     margin: 0;
     padding: 0;
@@ -164,11 +171,11 @@ ul.main_menu {
     border-radius: 20px;
 }
 
-ul.main_menu li {
+nav.main ul li {
     float: left;
 }
 
-ul.main_menu li a {
+nav.main ul li a {
     display: block;
     color: white;
     text-align: center;
@@ -176,93 +183,91 @@ ul.main_menu li a {
     text-decoration: none;
 }
 
-ul.main_menu li a:hover {
+nav.main ul li a:hover {
     background-color: #111111;
 }
 
-/* Editor Navigation Menu */
+/* Editor Tool Menu */
 
-ul.editor_menu {
+nav.editor ul {
     list-style-type: none;
     padding: 0;
     overflow: hidden;
-    background-color: #666666;
-    border-radius: 20px;
-    margin:5px;
+    background-color: #E1E6F9;
+    margin: 5px 20px;
 }
 
-ul.editor_menu li {
+nav.editor ul li {
     float: left;
 }
 
-ul.editor_menu li a {
+nav.editor ul li a {
     display: block;
-    color: white;
+    color: #888888;
     text-align: center;
     padding: 16px;
     text-decoration: none;
 }
 
-ul.editor_menu li a:hover {
-    background-color: #111111;
+nav.editor ul li a:hover {
+    background-color: #cccccc;
 }
 
 
 /* Breadcrumb Navigation Menu */
 
-ul.breadcrumb_menu {
+nav.breadcrumb ul {
     padding: 10px 16px;
     list-style: none;
     background-color: #eee;
 }
 
 /* Display list items side by side */
-ul.breadcrumb_menu li {
+nav.breadcrumb ul li {
     display: inline;
     font-size: 18px;
 }
 
 /* Add a slash symbol (/) before/behind each list item */
-ul.breadcrumb_menu li+li:before {
+nav.breadcrumb ul li+li:before {
     padding: 8px;
     color: black;
     content: "/\00a0";
 }
 
 /* Add a color to all links inside the list */
-ul.breadcrumb_menu li a {
+nav.breadcrumb ul li a {
     color: #0275d8;
     text-decoration: none;
 }
 
 /* Add a color on mouse-over */
-ul.breadcrumb_menu li a:hover {
+nav.breadcrumb ul li a:hover {
     color: #01447e;
     text-decoration: underline;
 }
 
 /* Use home icon for frontpage link */
-ul.breadcrumb_menu li a.home {
+nav.breadcrumb ul li a.home {
     content:'\f015';
 }
 
 /* UserModel Navigation Menu */
 
-ul.user_menu {
-    float: right;
+nav.user ul {
+    position: absolute;
+    top: 0;
+    right:0;
     list-style-type: none;
     padding: 0;
     overflow: hidden;
-    background-color: #666666;
-    border-radius: 20px;
-    margin:5px;
 }
 
-ul.user_menu li {
+nav.user ul li {
     float: left;
 }
 
-ul.user_menu li a {
+nav.user ul li a {
     display: block;
     text-align: center;
     padding: 16px;
@@ -270,19 +275,17 @@ ul.user_menu li a {
     text-decoration: none;
 }
 
-ul.user_menu li a:hover {
+nav.user ul li a:hover {
     color: beige;
     text-decoration: none;
 }
 
 /*
-=================================
 Forms
-=================================
 */
 
 /* Add a background color and some padding around the form */
-.form_container {
+.form.container {
     border-radius: 5px;
     background-color: #f2f2f2;
     padding: 20px;
@@ -413,11 +416,10 @@ input[type=submit].disabled, input[type=submit].disabled:hover {
 }
 
 /* HREF form button */
-a.form_button {
+button {
     margin: 5px;
-    text-transform: capitalize;
-    background-color: #00529B;
-    text-decoration: none;
+    font-family: 'Inter', Arial, sans-serif;
+    background-color: #4CAF50;
     color: white;
     padding: 12px 20px;
     border: none;
@@ -426,19 +428,13 @@ a.form_button {
     font-size: medium;
 }
 
-a.form_button:hover {
-    background-color: #555;
+button:hover {
+    background-color: #9CFF90; /* Green */
+    color: #666666;
 }
-
-a.form_button:active {
-    background-color: black;
-}
-
 
 /*
-=================================
 Messages
-=================================
 */
 .msg {
     padding:10px;

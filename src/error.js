@@ -47,7 +47,7 @@ export const errors = {
         type: 'warning'
     },
     noLogout: {
-        hint: 'Logout failed at controller.',
+        hint: 'LogoutUser failed at controller.',
         msg: 'Logging out failed. You are no longer signed in.',
         status: 403,
         type: 'error'
@@ -89,8 +89,8 @@ export const errors = {
         type: 'error'
     },
     notFound: {
-        hint: 'Route does not exist.',
-        msg: 'Page not found.',
+        hint: 'Route is not implemented in the router.',
+        msg: 'Requested route not found.',
         status: 404,
         type: 'error'
     }
@@ -124,6 +124,7 @@ export function globalHandler(err, req, res, next) {
 
     // report to logger
     console.error(`ERROR (${err.message})\t${e.msg}\t${e.status}\t${e.hint}`)
+    console.error(`Details:\n\n${err}\n\n`)
 
     // send response
     return res.status(e.status).json(

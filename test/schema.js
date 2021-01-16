@@ -59,7 +59,7 @@ export default {
     },
     login: {
         attributes: {
-            label: 'User Login',
+            label: 'User LoginUser',
             method: 'post',
             submit: {
                 url: '/login',

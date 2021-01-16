@@ -111,7 +111,7 @@ let user = {
  * @private
  */
 
-mocha.describe('Login Administrator', () => {
+mocha.describe('LoginUser Administrator', () => {
 
     mocha.it('Retrieves login form schema', async () => {
         await agent
@@ -165,7 +165,7 @@ mocha.describe('Login Administrator', () => {
                 admin.token = res.body.user.token;
                 console.log(res.body)
                 expect(res).to.have.status(200);
-                expect(res.body.message.msg).to.equal('Login successful!');
+                expect(res.body.message.msg).to.equal('LoginUser successful!');
             })
     });
 

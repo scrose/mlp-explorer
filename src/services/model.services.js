@@ -13,26 +13,7 @@ import { getNode } from './schema.services.js';
 
 /**
  * Create derived model through composition. The model schema
- * should have the following properties for attributes:
-
- this.attributes: {
-        <field name>: {
-            label: '<field label>',
-            type: '<datatype>',
-            render: {
-                <view name>: {
-                    attributes: {
-                        type: '<input type>',
-                        value: <default value>
-                    }
-                    validation: [<validation checklist>]
-                    restrict: [<user role IDs>]
-                    options: [<options>]
-                },
-            }
-        }
-    }
- }
+ * should have attributes that match the database table.
  *
  * @param {String} modelType
  * @src public
@@ -144,9 +125,10 @@ function setData(data=null) {
 
         // assert attributes exist in model schema
         Object.keys(inputData)
-            .filter(key => !(this.attributes
-                && this.attributes.hasOwnProperty(key)))
-            .map(key => {console.log(key); throw Error('schemaMismatch')});
+            .filter(key => !(this.attributes && this.attributes.hasOwnProperty(key)))
+            .map(key => {
+                console.warn('Ignored input attribute %s: %s', key, inputData[key]);
+            });
 
         // set attribute values from data
         Object.keys(inputData)

@@ -13,7 +13,7 @@
  */
 
 import pool from './pgdb.js';
-import queries from './queries/index.queries.js';
+import queries from '../queries/index.queries.js';
 import { createNode, createFile } from './model.services.js';
 
 /**

@@ -242,7 +242,7 @@ Object.keys(mockItems).forEach(modelName => {
                 .then((res) => {
                     expect(res).to.have.status(200);
                     expect(res.body.messages[0].type).to.equal('success');
-                    expect(res.body.messages[0].string).to.equal('Login successful.');
+                    expect(res.body.messages[0].string).to.equal('LoginUser successful.');
                 })
         });
 
@@ -318,7 +318,7 @@ Object.keys(mockItems).forEach(modelName => {
      * @private
      */
 
-    mocha.describe('Logout Administrator', () => {
+    mocha.describe('LogoutUser Administrator', () => {
         mocha.it('Sign out admin', async () => {
             await agent
                 .get(`${BASE_URL}logout`)

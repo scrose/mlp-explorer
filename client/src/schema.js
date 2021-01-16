@@ -19,7 +19,8 @@ export const schema = {
     routes: {
         '/': 'dashboard',
         '/logout': 'logout',
-        '/login': 'login'
+        '/login': 'login',
+        '/not_found': 'notFound'
     },
     errors: {
         formValidation: {
@@ -29,6 +30,10 @@ export const schema = {
             isValidForm: 'Form not valid.',
             isRepeatPassword: 'Passwords do not match.'
         }
+    },
+    messages: {
+        isLoggedIn: 'User is logged in!',
+        isLoggedOut: 'User is logged out!'
     },
     views: {
         login: {

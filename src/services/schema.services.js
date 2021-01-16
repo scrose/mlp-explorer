@@ -13,7 +13,7 @@
  */
 
 import pool from './pgdb.js';
-import queries from './queries/index.queries.js';
+import queries from '../queries/index.queries.js';
 import { groupBy, humanize } from '../lib/data.utils.js';
 
 /**
