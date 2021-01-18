@@ -6,9 +6,11 @@
  */
 
 import * as React from 'react'
-import { getSession, getSessionToken, removeSession, setSession } from '../_services/session.services.client';
-import { getData, makeRequest, postData } from '../_services/api.services.client';
+import { getSession, getSessionToken, clearSession, setSession, addMsg } from '../_services/session.services.client';
+import { makeRequest } from '../_services/data.services.client';
 import { useMsg } from './msg.provider.client';
+import { useData } from './data.provider.client';
+import { redirect } from '../_utils/paths.utils.client';
 
 /**
  * Global authentication context.
@@ -28,14 +30,10 @@ const AuthContext = React.createContext({})
 
 function AuthProvider(props) {
 
-    // loaded status
     let [data, setData] = React.useState(getSession());
 
-    // Pre-load user session data
-    console.log('Data, Token:', data);
-
-    // get messenger
-    const messenger = useMsg();
+    // get providers
+    const api = useData();
 
     /*
       Post-pone rendering any of the children until after we've
@@ -46,41 +44,38 @@ function AuthProvider(props) {
 
     React.useEffect(() => {
         const token = getSessionToken();
-        if (token)
-            auth()
-                .then(res => {
-                    if (!res) return;
-                    const {user} = res;
-                    if (user) setSession(user);
-                });
+        // if (token)
+        //     auth().then(res => {
+        //             if (!res) return;
+        //             const {user=null} = res;
+        //             if (user) setSession(user);
+        //         });
     });
 
-    // LoginUser request
+    // user login request
     const login = (route, credentials) => {
-        postData(route, credentials)
+        api.post(route, credentials)
             .then(res => {
-                const {user, message} = res;
+                // create user session
+                const {user} = res;
                 if (user) setSession(user);
-                console.log('New Session:', getSession())
-                setData(user)
-                messenger.setMessage(message)
+                setData(user);
+                return redirect('/');
             })
     }
 
-    // registration request
+    // user registration request
     const register = (route) => {
-        getData(route)
+        api.get(route)
             .then(res => {
-                const {message} = res;
-                messenger.setMessage(message)
+                console.log('Register Response:', res)
             })
     }
 
     // register the user
     const logout = () => {
-        removeSession();
-        setData(null);
-        messenger.setMessage({msg:'User is logged out.', type:'info'})
+        clearSession();
+        addMsg({ msg: 'Logged out successfully!', type: 'success' });
     }
 
     /**

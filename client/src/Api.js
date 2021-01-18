@@ -1,7 +1,7 @@
 import { Route, Switch } from 'react-router-dom';
 import React from 'react';
 import Icons from './_components/common/icon';
-import APIService from './_services/api.services.client';
+import APIService from './_services/data.services.client';
 
 class App extends React.Component {
     constructor(props) {

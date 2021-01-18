@@ -7,10 +7,12 @@
 
 import React from "react";
 import Form from '../common/form';
+import Loading from '../common/loading';
 import { getSchema } from '../../_services/schema.services.client';
 import { useUser } from '../../_providers/user.provider.client';
 import { useAuth } from '../../_providers/auth.provider.client';
 import { redirect } from '../../_utils/paths.utils.client';
+import { addMsg } from '../../_services/session.services.client';
 
 const LoginUser = () => {
 
@@ -21,11 +23,14 @@ const LoginUser = () => {
 
     // Redirect to dashboard if logged in
     React.useEffect(() => {
-        if (user) redirect('/?msg=isLoggedIn');
+        if (user) {
+            addMsg({msg:'User is logged in.', type:'info'});
+            redirect('/');
+        }
     }, []);
 
     return user
-        ? <div><p>User is logged in. Redirecting...</p></div>
+        ? <Loading />
         : <Form route={'/login'} props={loginProps} callback={auth.login} />
 }
 

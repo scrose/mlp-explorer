@@ -155,7 +155,7 @@ export const login = async (req, res, next) => {
             // successful login
             res.status(200).json(
                 prepare({
-                    message: {msg: 'LoginUser successful!', type: 'success'},
+                    message: {msg: 'Login successful!', type: 'success'},
                     user: {
                         id: authUser.getValue('user_id'),
                         email: authUser.getValue('email'),
@@ -221,9 +221,19 @@ export const authenticate = async (req, res, next) => {
  */
 
 export const register = async (req, res, next) => {
+
+    // retrieve user roles
+    const roles = await db.users.getRoles()
+        .catch(err => {return next(err)});
+    if (!roles) throw new Error();
+
+    // create user model, include role options
+    const user = new User();
+    user.setOptions('role', roles);
+
     try {
         res.status(200).json(prepare({
-            model: new User(),
+            model: user,
             view: 'register'
         }));
     } catch (err) {

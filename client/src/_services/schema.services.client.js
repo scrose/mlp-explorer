@@ -27,6 +27,22 @@ export const getStaticView = (route) => {
 }
 
 /**
+ * Get error message based on error type and key.
+ *
+ * @param {String} key
+ * @param {String} type
+ * @public
+ */
+
+export const getError = (key, type) => {
+    const errorSchema = schema.errors.hasOwnProperty(type)
+        ? schema.errors[type] : '';
+    return errorSchema
+        ? errorSchema.hasOwnProperty(key)
+            ? errorSchema[key] : '' : '';
+}
+
+/**
  * Get top application page heading.
  *
  * @public
@@ -53,12 +69,14 @@ export const getViewType = (view) => {
  * Get local client message.
  *
  * @public
- * @return {String} key
+ * @param {String} key
+ * @param {String} type
+ * @return {Object} message
  */
 
-export const getLocalMsg = (key='') => {
+export const getLocalMsg = (key='', type='info') => {
     return schema.messages.hasOwnProperty(key)
-        ? { msg: schema.messages[key], type: 'info' }
+        ? { msg: schema.messages[key], type: type }
         : {};
 }
 
@@ -89,15 +107,24 @@ export const getSchema = (view, model, data=null) => {
                     && modelSchema[key].omit.includes(view) )
             )
             .map(key => {
+                const {value='', options=''} = data && data.hasOwnProperty(key)
+                    ? data[key]
+                    : {};
+
                 return {
                     name: key,
                     label: modelSchema[key].label,
+                    value: value || '',
+                    options: options,
                     render: modelSchema[key].hasOwnProperty('render')
                         ? modelSchema[key].render
                         : 'text',
-                    value: data && data.hasOwnProperty(key)
-                        ? data[key].value
-                        : ''
+                    validate:modelSchema[key].hasOwnProperty('validate')
+                        ? modelSchema[key].validate
+                        : [],
+                    refs: modelSchema[key].hasOwnProperty('refs')
+                        ? modelSchema[key].refs
+                        : []
                 };
             });
 

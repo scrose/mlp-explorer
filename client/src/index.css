@@ -312,6 +312,7 @@ fieldset div.buttons {
 }
 
 /* Labels */
+
 label {
     display: block;
     font-weight: bold;
@@ -320,18 +321,23 @@ label {
 label.checkbox {
     float:right;
 }
-/* Field Validation */
-label span.validation {
+
+/* Field Validation errors */
+
+ul.validation {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+/* Display list items side by side */
+ul.validation li {
     font-size: small;
-}
-label span.validation.success {
-    color:darkgreen;
-}
-label span.validation.error {
     color:crimson;
 }
 
 /* Style inputs with type="text", select elements and textareas */
+
 input[type=text], select, textarea {
     width: 100%; /* Full width */
     padding: 12px; /* Some padding */

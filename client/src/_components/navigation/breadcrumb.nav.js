@@ -21,7 +21,8 @@ const _getBreadcrumbs = function(user) {
     const home = <a href={getRoot()}><Icon type={'home'} /></a>;
     const breadcrumbs = getPath()
         .split("/")
-        .filter(item => item !== '');
+        .filter(item => item !== '')
+        .filter(item => item !== 'not_found');
 
     // hide breadcrumb menu on front page
     if (breadcrumbs.length === 0) return null;
@@ -29,12 +30,8 @@ const _getBreadcrumbs = function(user) {
     // reformat user email to extract user-id (if exists)
     const userName = user ? user.email.replace(/@.*$/,"") : 'UserID';
 
-    // add home item to breadcrumbs components
-    let breadcrumbComponents = [home];
-
-    // convert breadcrumbs -> components array and add to array
-    breadcrumbComponents.push(
-        breadcrumbs
+    // convert breadcrumbs -> components and extend array
+    let breadcrumbComponents = breadcrumbs
         .map((item, i) => {
             // build accumulative url
             const uri = breadcrumbs
@@ -47,10 +44,13 @@ const _getBreadcrumbs = function(user) {
 
             // render last item without link
             return i !== breadcrumbs.length - 1
-                ? <a key={`bnav${i}`} href={`${getRoot()}/${uri}`}>{label}</a>
-                : <span key={`bnav${i}`} >{label}</span>
+                ? <a key={`bnav_${i}`} href={`${getRoot()}/${uri}`}>{label}</a>
+                : <span key={`bnav_${i}`} >{label}</span>
         })
-    );
+
+    // add home item to breadcrumbs components
+    breadcrumbComponents.unshift(home);
+
     return breadcrumbComponents;
 };
 

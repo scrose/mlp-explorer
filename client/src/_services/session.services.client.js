@@ -6,6 +6,8 @@
  */
 
 
+import { getQuery } from '../_utils/paths.utils.client';
+
 /**
  * Retrieve user data from session storage.
  *
@@ -59,10 +61,46 @@ export const getSessionToken = () => {
  * @public
  */
 
-export const removeSession = () => {
+export const clearSession = () => {
     sessionStorage.removeItem('userId');
     sessionStorage.removeItem('userEmail');
     sessionStorage.removeItem('userRole');
     sessionStorage.removeItem('userRoleLabel');
     sessionStorage.removeItem('userToken');
+}
+
+/**
+ * Retrieve messages from session storage.
+ *
+ * @public
+ */
+
+export const getMsg = () => {
+    const msgJSON = sessionStorage.getItem('statusMsg') || ''
+    return msgJSON ? JSON.parse(msgJSON) : [];
+}
+
+/**
+ * Add message to session storage.
+ *
+ * @public
+ */
+
+export const addMsg = (msg) => {
+    const messages = getMsg();
+    messages.push(msg);
+    sessionStorage.setItem('statusMsg', JSON.stringify(messages || []));
+}
+
+/**
+ * Pop messages from session storage.
+ *
+ * @public
+ */
+
+export const popMsg = () => {
+    // delete messages if status query parameter is set
+    const messages = getMsg();
+    sessionStorage.removeItem('statusMsg');
+    return messages;
 }

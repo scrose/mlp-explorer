@@ -11,6 +11,7 @@ import Footer from '../common/footer';
 import React from 'react';
 import Editor from '../editor/editor';
 import HeaderEditor from '../editor/header.editor';
+import Messenger from '../common/messenger';
 
 /**
  * Main app component for unauthenticated users.
@@ -24,6 +25,7 @@ const AuthenticatedApp = () => {
             <HeaderEditor />
             <main>
                 <Navigator/>
+                <Messenger />
                 <BoundaryError>
                     <Editor/>
                 </BoundaryError>

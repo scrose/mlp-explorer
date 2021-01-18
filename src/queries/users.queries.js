@@ -166,7 +166,7 @@ export function init(data) {
 
 
 /**
- * Get all user roles.
+ * Get all user roles (except Super Administrator).
  *
  * @return {Function} SQL query function
  */
@@ -175,7 +175,8 @@ export function getRoles() {
     return {
         sql: `SELECT *
               FROM user_roles
-              ORDER BY name`,
+              WHERE name != 'super_administrator'
+              ORDER BY id`,
         data: [],
     };
 }

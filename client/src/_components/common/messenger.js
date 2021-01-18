@@ -6,8 +6,7 @@
  */
 
 import React from 'react';
-import { useMsg } from '../../_providers/msg.provider.client';
-import MenuEditor from '../editor/menu.editor';
+import { getMsg, popMsg } from '../../_services/session.services.client';
 
 /**
  * Messenger component.
@@ -16,12 +15,22 @@ import MenuEditor from '../editor/menu.editor';
  */
 
 const Messenger = () => {
-    const messenger = useMsg();
-    const {msg, type} = messenger.data;
+
+    // initialize message with session storage
+    const [messages, setMessages] = React.useState(getMsg());
+
+    // load messages in state (if available) or storage and clear
+    React.useEffect(() => {
+        setMessages(popMsg());
+    }, [setMessages]);
+
     return (
-        <>
-            { msg && type ? <div className={`msg ${type}`}>{msg}</div> : '' }
-        </>
+        <div className={'msgs'}>
+            {messages.map((message, index) => {
+                const {msg='', type=''} = message;
+                return (msg && type ? <div className={`msg ${type}`} key={`msg_${index}`}>{msg}</div> : '')
+            })}
+        </div>
     )
 }
 

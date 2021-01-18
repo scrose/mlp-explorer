@@ -1,125 +1,109 @@
 /*!
  * MLP.Client.Utilities.Validator
- * File: validator.js
+ * File: validator.utils.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
-import {schema} from '../schema';
+import { getError } from '../_services/schema.services.client';
 
 /**
  * Export validator instance.
  */
 
-export default new Validator();
-
+export default Validator;
 
 /**
- * Create Validator object.
+ * Create input data validator.
  *
+ * @param {Array} validations
+ * @param {Array} refs
  * @public
  */
 
-function Validator() {
-  this.data = {};
-  this.error = '';
+function Validator(validations, refs={}) {
+    validations = ( typeof validations !== "undefined" ) ? validations : [];
+
+    // resolve validation methods
+    this.checks = validations.map(check => {
+        return _inputValidations.hasOwnProperty(check)
+          ? {
+                name: check,
+                run: _inputValidations[check]
+            }
+          : {
+                name: check,
+                run: () => {}
+            };
+    });
+
+    // input references
+    this.refs = refs;
 }
 
 /**
- * End validation train.
+ * Apply validation checks to value and return any errors
+ * on failure.
  *
- * @private
- * @param {String} code
- * @throws {Error} validation error
+ * @public
+ * @param {String} val1
+ * @param {String} val2 (Optional)
+ * @return {String} error
  */
 
-Validator.prototype.end = function () {
-    const msg = this.error;
-    this.error = '';
-    return msg;
-};
+Validator.prototype.check = function check(val1, val2='') {
+    return this.checks
+            .filter(check => !check.run(val1, val2))
+            .map(check => {
+                return getError(check.name, 'validation')
+            })
+}
 
 /**
- * Stores validation error. Returns first error in
- * validation chain.
+ * Validation functions.
  *
  * @private
- * @param {String} err
- * @throws {Error} validation error
  */
 
-Validator.prototype.setError = function (err = null) {
-    console.warn(err);
-    this.error = err && this.error === '' ? err : this.error;
-};
+const _inputValidations =
+    {
+        /**
+         * Validate required input.
+         */
 
-/**
- * Initialize validateUtils.
- *
- * @private
- * @param {Object} data
- * @return {Validator} validateUtils instance
- */
+        isRequired: (value) => {
+            return value;
+        },
 
-Validator.prototype.load = function (data) {
-  this.data = data;
-  return this;
-};
+        /**
+         * Validate email address.
+         */
 
-/**
- * Validate required input.
- *
- * @private
- * @param {String} value
- * @return {Boolean} validation result
- */
+        isEmail: (value) => {
+            return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+$/.test(value);
+        },
 
-Validator.prototype.isRequired = function () {
-  if (!this.data)
-      this.setError(schema.errors.formValidation.isRequired);
-  return this;
-};
+        /**
+         * Validate password value. Uses format: Minimum eight and maximum
+         * 10 characters, at least one uppercase letter, one lowercase letter,
+         * one number and one special character
+         */
 
-/**
- * Validate email address.
- *
- * @private
- * @param {String} value
- * @return {Boolean} validation result
- */
+        isPassword: (value) => {
+            return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/.test(value);
+        },
 
-Validator.prototype.isEmail = function () {
-  if (!/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+$/.test(this.data))
-      this.setError(schema.errors.formValidation.isEmail);
-  return this;
-};
+        /**
+         * Validate repeated password matches the password in the immediate
+         * fieldset. Retrieves password value from reference callback.
+         */
 
-/**
- * Validate password value. Uses format: Minimum eight and maximum
- * 10 characters, at least one uppercase letter, one lowercase letter,
- * one number and one special character
- *
- * @private
- * @param {String} value
- * @return {Boolean} validation result
- */
+        isRepeatPassword: (repeatPassword='') => {
 
-Validator.prototype.isPassword = function () {
-  if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/.test(this.data))
-      this.setError(schema.errors.formValidation.isPassword);
-  return this;
-};
+            if (typeof this === 'undefined') return '';
+            console.log('Passwords:', this.refs.password, repeatPassword)
 
-/**
- * Validate that repeat password matches password.
- *
- * @private
- * @param {String} value
- * @return {Boolean} validation result
- */
-
-Validator.prototype.isRepeatPassword = function (password) {
-  if (password !== this.data)
-      this.setError(schema.errors.formValidation.isRepeatPassword);
-  return this;
-};
+            return this.refs.hasOwnProperty('password')
+                ? this.refs.password === repeatPassword : '';
+        }
+    }

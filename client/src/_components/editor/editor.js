@@ -7,17 +7,15 @@
 
 import React from 'react';
 import Form from '../common/form';
-import * as api from '../../_services/api.services.client';
-import { postData } from '../../_services/api.services.client';
 import Notfound from '../error/notfound';
 import { getSchema, getStaticView, getViewType } from '../../_services/schema.services.client';
-import { useMsg } from '../../_providers/msg.provider.client';
 import LoginUser from '../user/login.user';
 import LogoutUser from '../user/logout.user';
-import { useUser } from '../../_providers/user.provider.client';
-import { getPath, getQuery } from '../../_utils/paths.utils.client';
-import Messenger from '../common/messenger';
+import { getPath } from '../../_utils/paths.utils.client';
 import DashboardEditor from './dashboard.editor';
+import List from '../common/list';
+import { useData } from '../../_providers/data.provider.client';
+import Loading from '../common/loading';
 
 /**
  * Render non-static view component.
@@ -27,12 +25,11 @@ import DashboardEditor from './dashboard.editor';
  * @return {React.Component}
  */
 
-const renderView = ({ route, viewType, viewData, callback=postData }) => {
+const renderView = ({ route, viewType, viewData, callback }) => {
     const viewComponents = {
-        'empty': () => <div className={'empty'} />,
         'form': () => <Form route={route} props={viewData} callback={callback} />,
         'item': () => <div>Item View</div>,
-        'list': () => <div>List View</div>,
+        'list': () => <List items={viewData} />,
         "dashboard": () => <DashboardEditor />,
         "login": () => <LoginUser />,
         "logout": () => <LogoutUser />,
@@ -41,7 +38,7 @@ const renderView = ({ route, viewType, viewData, callback=postData }) => {
 
     return viewComponents.hasOwnProperty(viewType)
         ? viewComponents[viewType]()
-        : <div className={'waiting'}>Loading Viewer...</div>
+        : <Loading />
 }
 
 /**
@@ -52,7 +49,6 @@ const renderView = ({ route, viewType, viewData, callback=postData }) => {
  */
 
 const Static = ({type}) => {
-
     return (
         <>
             { renderView({viewType: type}) }
@@ -72,39 +68,28 @@ const Data = ({route}) => {
     // create dynamic view state
     const [viewData, setView] = React.useState({});
     const [viewType, setViewType] = React.useState('');
-    const messenger = useMsg();
+    const api = useData();
 
-    // post carried message (if exists)
-    const msgCarried = getQuery('status');
-    if (msgCarried) messenger.setMessage(msgCarried);
-
-    // Get global data from API
+    // non-static views: fetch API data and set view data in state
     React.useEffect(() => {
-
-        // non-static views: fetch API data and set view data in state
-        api.getData(route)
+        api.get(route)
             .then(res => {
-                console.log('API Response:', res)
-
-                // Handle errors
-                const { view, model, data, message } = res;
-
                 // lookup view in schema
+                const { view='', model={}, data={} } = res || {};
+                const { name='', attributes={} } = model;
+
+                console.log('API Response:', res)
                 setView({
-                    schema: getSchema(view, model),
+                    schema: getSchema(view, name, attributes),
                     data: data,
-                    model: model
+                    model: model.name
                 });
                 setViewType(getViewType(view));
-
-                // post message
-                messenger.setMessage(message);
-
             })
-    }, [route, setView, setViewType, viewType, messenger]);
+    }, [api, route, setView, setViewType, viewType]);
 
     // select default callback for view
-    const callback = postData;
+    const callback = api.post;
 
     return (
         <div className={'view'}>
@@ -124,7 +109,6 @@ const Editor = () => {
     const staticType = getStaticView(route);
     return (
         <div className={'editor'}>
-            <Messenger />
             { staticType ? <Static type={staticType} /> : <Data route={route} /> }
         </div>
     )

@@ -11,12 +11,13 @@ import React from 'react';
  * List component.
  *
  * @param {Array} items
+ * @param {String} classname
  * @public
  */
 
-const List = ({ items }) => {
+const List = ({ items, classname='' }) => {
     return (
-        <ul>
+        <ul className={classname}>
             {items.map((item, index) => {
                 return (<li key={index}>{item}</li>)
             })}

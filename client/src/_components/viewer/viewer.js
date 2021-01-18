@@ -7,16 +7,15 @@
 
 import React from 'react';
 import Form from '../common/form';
-import * as api from '../../_services/api.services.client';
-import { postData } from '../../_services/api.services.client';
 import Notfound from '../error/notfound';
-import { getMessage, getSchema, getStaticView, getViewType } from '../../_services/schema.services.client';
-import { useMsg } from '../../_providers/msg.provider.client';
-import { getPath, getQuery } from '../../_utils/paths.utils.client';
+import { getSchema, getStaticView, getViewType } from '../../_services/schema.services.client';
+import { getPath, redirect } from '../../_utils/paths.utils.client';
 import DashboardViewer from './dashboard.viewer';
 import List from '../common/list';
-import Messenger from '../common/messenger';
 import LoginUser from '../user/login.user';
+import { useData } from '../../_providers/data.provider.client';
+import LogoutUser from '../user/logout.user';
+import Loading from '../common/loading';
 
 /**
  * Render non-static view component.
@@ -26,20 +25,21 @@ import LoginUser from '../user/login.user';
  * @return {React.Component}
  */
 
-const renderView = ({ route, viewType, viewData, callback=postData }) => {
+const renderView = ({ route, viewType, viewData, callback }) => {
     const viewComponents = {
-        'empty': () =>      <div className={'empty'} />,
-        'form': () =>       <Form route={route} props={viewData} callback={callback} />,
-        'item': () =>       <div>Item View</div>,
-        'list': () =>       <List items={viewData} />,
-        "dashboard": () =>  <DashboardViewer />,
+        'empty': () => <Loading />,
+        'form': () => <Form route={route} props={viewData} callback={callback} />,
+        'item': () => <div>Item View</div>,
+        'list': () => <List items={viewData} />,
+        "dashboard": () => <DashboardViewer />,
         "login": () => <LoginUser />,
-        'notFound': () =>   <Notfound />
+        "logout": () => <LogoutUser />,
+        'notFound': () => <Notfound />
     };
 
     return viewComponents.hasOwnProperty(viewType)
         ? viewComponents[viewType]()
-        : <div className={'waiting'}>Loading Viewer...</div>
+        : <Notfound />
 }
 
 /**
@@ -70,17 +70,17 @@ const Data = ({route}) => {
     // create dynamic view state
     const [viewData, setView] = React.useState({});
     const [viewType, setViewType] = React.useState('');
-    const messenger = useMsg();
+
+    const api = useData();
 
     // Get global data from API
     React.useEffect(() => {
 
         // non-static views: fetch API data and set view data in state
-        api.getData(route)
+        api.get(route)
             .then(res => {
                 console.log('API Response:', res)
-                const { view, model, data, message } = res;
-
+                const { view, model, data } = res;
                 // lookup view in schema
                 setView({
                     schema: getSchema(view, model),
@@ -88,15 +88,11 @@ const Data = ({route}) => {
                     model: model
                 });
                 setViewType(getViewType(view));
-
-                // post message
-                messenger.setMessage(message);
-
             })
-    }, [route, setView, setViewType, viewType, messenger]);
+    }, [route, setView, setViewType, viewType]);
 
     // select default callback for view
-    const callback = postData;
+    const callback = api.post;
 
     return (
         <div className={'view'}>
@@ -119,7 +115,6 @@ const Viewer = () => {
 
     return (
         <div className={"viewer"}>
-            <Messenger />
             { staticType ? <Static type={staticType} /> : <Data route={route} /> }
         </div>
     )

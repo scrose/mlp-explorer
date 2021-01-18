@@ -23,7 +23,7 @@ export const schema = {
         '/not_found': 'notFound'
     },
     errors: {
-        formValidation: {
+        validation: {
             isRequired: 'This field is required.',
             isEmail: 'Not a valid email address.',
             isPassword: 'Passwords must have a minimum eight and maximum 20 characters, at least one uppercase letter, one lowercase letter, one number and one special character',
@@ -33,7 +33,8 @@ export const schema = {
     },
     messages: {
         isLoggedIn: 'User is logged in!',
-        isLoggedOut: 'User is logged out!'
+        isLoggedOut: 'User is logged out!',
+        unauthorized: 'Access Denied!'
     },
     views: {
         login: {
@@ -43,7 +44,7 @@ export const schema = {
             method: 'POST'
         },
         register : {
-            render: 'register',
+            render: 'form',
             legend: 'User Registration',
             submit: 'Register',
             method: 'POST'
@@ -68,21 +69,26 @@ export const schema = {
         users: {
             email: {
                 label: 'Email',
-                render: 'email'
+                render: 'email',
+                validate: ['isRequired', 'isEmail']
             },
             password: {
                 label: 'Password',
-                render: 'password'
+                render: 'password',
+                validate: ['isRequired', 'isPassword']
             },
             repeat_password: {
                 label: 'Repeat Password',
                 render: 'password',
-                omit: ['login']
+                omit: ['login'],
+                refs: ['password'],
+                validate: ['isRequired', 'isRepeatPassword']
             },
             role: {
                 label: 'User Role',
                 render: 'select',
-                omit: ['login']
+                omit: ['login'],
+                validate: []
             }
         },
         projects: {

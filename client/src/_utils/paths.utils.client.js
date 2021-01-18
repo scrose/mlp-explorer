@@ -81,5 +81,5 @@ export function getRoute(uri=null) {
 
 export function redirect(uri=null) {
     const route = uri ? uri : getPath();
-    return window.location.replace(`${_CLIENT}${route}`);
+    return window.location.href = `${_CLIENT}${route}`;
 }

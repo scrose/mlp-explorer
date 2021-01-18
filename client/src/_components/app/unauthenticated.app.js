@@ -11,6 +11,7 @@ import Viewer from '../viewer/viewer';
 import Footer from '../common/footer';
 import React from 'react';
 import HeaderViewer from '../viewer/header.viewer';
+import Messenger from '../common/messenger';
 
 /**
  * Main app component for unauthenticated users.
@@ -24,6 +25,7 @@ const UnauthenticatedApp = () => {
             <HeaderViewer/>
             <main>
                 <Navigator/>
+                <Messenger />
                 <BoundaryError>
                     <Viewer/>
                 </BoundaryError>

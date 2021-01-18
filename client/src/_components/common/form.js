@@ -6,20 +6,19 @@
  */
 
 import React from 'react'
-import validator from '../../_utils/validator.utils.client';
-import { useMsg } from '../../_providers/msg.provider.client';
-import { postData } from '../../_services/api.services.client';
+import Validator from '../../_utils/validator.utils.client';
+import List from './list';
 
 /**
- * Build input help text.
+ * Build input help text (error messages).
  *
  * @public
  * @param error
  */
 
-const ValidationMessage = ({msg}) => {
+const ValidationMessages = ({msg}) => {
     return (
-        <span className='validation error'>{msg}</span>
+        <List items={msg} classname={'validation'} />
     )
 }
 
@@ -70,9 +69,10 @@ const SubmitButton = ({name, value='Submit'}) => {
  * <input type="time">
  * <input type="url">
  * <input type="week">
+ * <select>
  */
 
-const inputElements = {
+const _inputElements = {
     hidden: ({name, value}) => {
         return(
             <input readOnly={true} key={`key_${name}`} type={"hidden"}
@@ -85,7 +85,7 @@ const inputElements = {
                 {label}
                 <input key={`key_${name}`} type={"text"}
                        id={name} name={name} value={value || ''} onChange={onchange} onBlur={onblur} />
-                {error ? <ValidationMessage msg={error} /> : null}
+                {error ? <ValidationMessages msg={error} /> : null}
             </label>
         )
     },
@@ -105,7 +105,7 @@ const inputElements = {
                 {label}
                 <input key={`key_${name}`} type={"email"}
                        id={name} name={name} value={value || ''} onChange={onchange} onBlur={onblur} />
-                {error ? <ValidationMessage msg={error} /> : null}
+                {error ? <ValidationMessages msg={error} /> : null}
             </label>
         )
     },
@@ -115,56 +115,30 @@ const inputElements = {
                 {label}
                 <input key={`key_${name}`} type={"password"}
                        id={name} name={name} value={value || ''} onChange={onchange} onBlur={onblur} />
-                {error ? <ValidationMessage msg={error} /> : null}
+                {error ? <ValidationMessages msg={error} /> : null}
             </label>
         )
     },
-    select: ({name, options}, {error, value}, {onchange})  => {
-        return( <Select key={`key_${name}`}
-                        id={name} name={name} options={options} onChange={onchange} />)
+    select: ({name, label, options}, value, error, {onchange, onblur})  => {
+        return (
+            <label key={`label_${name}`} htmlFor={name}>
+                {label}
+                <select key={`key_${name}`} id={name} name={name} onChange={onchange} onBlur={onblur}>
+                    {options
+                        .map(opt =>
+                            <option key={`${name}_${opt.id}`}
+                                    id={`${name}_${opt.id}`}
+                                    name={`${name}_${opt.id}`}
+                                    value={opt.value}>
+                                {opt.label}
+                            </option>
+                        )
+                    }
+                </select>
+                {error ? <ValidationMessages msg={error} /> : null}
+            </label>
+        )
     }
-}
-
-
-/**
- * Form input validation.
- */
-
-const inputValidators = {
-    text: (value) => {
-        return validator.load(value).isRequired().end();
-    },
-    checkbox: ()  => {
-        return '';
-    },
-    email: (value) => {
-        return validator.load(value).isEmail().end();
-    },
-    password: (value)  => {
-        return validator.load(value).isPassword().end();
-    },
-    select: ()  => {
-        return '';
-    }
-}
-
-/**
- * Build form selection element.
- *
- * @public
- * @param params
- * @param handler
- */
-
-const Select = ({name, options}, handler) => {
-    console.log(name, options)
-    const optionElements = options
-        .map(key => <option id={key}>{options[key]}</option>);
-    return (
-        <select name={name} onChange={handler}>
-            {optionElements}
-        </select>
-    )
 }
 
 /**
@@ -177,12 +151,24 @@ const Select = ({name, options}, handler) => {
  * @return fieldset element
  */
 
-const Fields = ({labels, fields, init, valid, disabled}) => {
+const Fieldset = ({labels, fields, init, valid, disabled}) => {
 
-    // initialize input values (in state)
+    // initialize input values, errors (in state)
     const [values, setValues] = React.useState(init.values);
-    // initialize error values (in state)
     const [errors, setErrors] = React.useState(init.errors);
+
+    /**
+     * Handle references between input elements.
+     *
+     * @public
+     * @param {Object} ref
+     */
+
+    const handleReference = (ref) => {
+        return (elem) => {
+            ref = elem;
+        }
+    }
 
     /**
      * Input on-change handler. Updates references state.
@@ -202,33 +188,58 @@ const Fields = ({labels, fields, init, valid, disabled}) => {
      * and sets first error message in validation chain.
      *
      * @public
-     * @param {Object} e
+     * @param validator
      */
 
-    const handleBlur = e => {
-        const { name, value } = e.target;
-        const errMsg = inputValidators[name](value);
-        e.persist();
-        setErrors(errors => ({...errors, [name]: errMsg}));
+    const handleBlur = validator => {
+
+        // wrap validator in event handler
+        return (e) => {
+            const { name, value } = e.target;
+            e.persist();
+            setErrors(errors => ({
+                ...errors,
+                [name]: validator.check(value)
+            }));
+        }
+
     }
 
-    const fieldElements =
-        fields.map(field => {
-            // lookup form input element for data type
-            const fieldElement = inputElements[field.render];
-            // get current input values in state
-            const inputValue = values.hasOwnProperty(field.name)
-                ? values[field.name] : '';
-            // get current input values in state
-            const inputError = errors.hasOwnProperty(field.name)
-                ? errors[field.name] : '';
-            return fieldElement(field, inputValue, inputError, {onchange: handleChange, onblur: handleBlur});
-        })
-
+    // render fieldset component
     return (
-        <fieldset name={`fieldset_${labels.name}`} disabled={disabled}>
+        <fieldset key={`fset_${labels.name}`} name={`fset_${labels.name}`} disabled={disabled}>
             <legend>{labels.legend}</legend>
-            {fieldElements}
+            {fields.map(field => {
+
+                const { name='', render='', refs=[], validate=[] } = field;
+
+                // lookup form input element for data type
+                const _fieldElem = _inputElements.hasOwnProperty(render)
+                    ? _inputElements[render]
+                    : {};
+
+                // get form schema for requested model
+                const _value = values.hasOwnProperty(name) ? values[name] : '';
+                const _error = errors.hasOwnProperty(name) ? errors[name] : '';
+                const _references = refs.reduce((o, ref) => {
+                    o[ref] = values.hasOwnProperty(ref) ? values[ref] : '';
+                    return o;
+                    }, {});
+
+                // create validator from schema
+                const _validator = new Validator(validate, _references);
+
+                // render element
+                return _fieldElem (
+                    field,
+                    _value,
+                    _error,
+                    {
+                        onchange: handleChange,
+                        onblur: handleBlur(_validator)
+                    }
+                    );
+            })}
             <div>
                 <SubmitButton
                     value={labels.submit}
@@ -246,7 +257,7 @@ const Fields = ({labels, fields, init, valid, disabled}) => {
  * @param { route, params, data, callback }
  */
 
-const Form = ({ route, props, callback=postData }) => {
+const Form = ({ route, props, callback }) => {
 
     console.log('Form params:', props)
 
@@ -270,7 +281,7 @@ const Form = ({ route, props, callback=postData }) => {
         }
     }
 
-    // create field value/error initialization states
+    // create field value/error/references initialization states
     const initValues = {
         values: fields.reduce((o, f) => {o[f.name] = f.value; return o}, {}),
         errors: fields.reduce((o, f) => {o[f.name] = ''; return o}, {})
@@ -284,7 +295,7 @@ const Form = ({ route, props, callback=postData }) => {
 
     return (
         <form id={name} name={name} method={method} onSubmit={handleSubmit}>
-            <Fields
+            <Fieldset
                 labels={{name: name, legend: legend, submit: submit}}
                 fields={fields}
                 init={initValues}
