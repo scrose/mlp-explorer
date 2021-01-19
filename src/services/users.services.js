@@ -26,7 +26,9 @@ export async function getAll() {
     let { sql, data } = queries.getAll();
     return await pool.query(sql, data)
         .then(res => {
-            return res.rows.length === 0 ? null : res.rows
+            return res.rows.map(item => {
+                return {'item': item }
+            })
         });
 }
 

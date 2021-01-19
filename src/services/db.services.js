@@ -167,6 +167,8 @@ export default function DBServices(model) {
 
     this.transact = async function(item, stmts) {
 
+        console.log(stmts)
+
         // NOTE: client undefined if connection fails.
         const client = await pool.connect();
 

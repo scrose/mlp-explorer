@@ -53,16 +53,15 @@ export const getPageHeading = () => {
 }
 
 /**
- * Load view settings for model.
+ * Load render settings for view/model.
  *
  * @public
  * @param {String} view
  * @return {String} view type
  */
 
-export const getViewType = (view) => {
-    return schema.views.hasOwnProperty(view)
-            ? schema.views[view].render : null;
+export const getRenderType = (view) => {
+    return schema.views.hasOwnProperty(view) ? schema.views[view].render : null;
 }
 
 /**

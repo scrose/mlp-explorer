@@ -166,8 +166,8 @@ Object.keys(mockItems).forEach(modelName => {
                 })
                 .then((res) => {
                     expect(res).to.have.status(200);
-                    expect(res.body.messages[0].type).to.equal('success');
-                    expect(res.body.messages[0].string).to.equal('LoginUser successful.');
+                    expect(res.body.message.type).to.equal('success');
+                    expect(res.body.message.msg).to.equal('Login successful!');
                 })
         });
 

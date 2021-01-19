@@ -8,15 +8,17 @@
 import React from 'react';
 
 /**
- * Select icon class.
+ * Select icon class. Uses FontAwesome icon library.
+ * Reference: https://fontawesome.com/
  *
  * @public
  */
 
 const getIconClass = (iconType) => {
     const iconComponents = {
-        home: 'fa fa-lg fa-home',
-        default: 'fa fa-lg fa-square'
+        home: 'fas fa-lg fa-home',
+        user: 'fas fa-3x fa-user-circle',
+        default: 'fas fa-lg fa-square'
     };
     return iconComponents.hasOwnProperty(iconType)
         ? iconComponents[iconType]

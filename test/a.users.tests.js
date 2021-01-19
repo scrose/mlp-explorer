@@ -111,19 +111,7 @@ let user = {
  * @private
  */
 
-mocha.describe('LoginUser Administrator', () => {
-
-    mocha.it('Retrieves login form schema', async () => {
-        await agent
-            .get(`${BASE_URL}login`)
-            .set('Accept', 'application/json')
-            .then((res) => {
-                const attrs = res.body.model.attributes;
-                expect(res).to.have.status(200);
-                expect(attrs.hasOwnProperty('email')).to.equal(true);
-                expect(attrs.hasOwnProperty('password')).to.equal(true);
-            })
-    });
+mocha.describe('Login Administrator', () => {
 
     mocha.it('Authenticate wrong email should fail', async () => {
         await agent
@@ -165,20 +153,25 @@ mocha.describe('LoginUser Administrator', () => {
                 admin.token = res.body.user.token;
                 console.log(res.body)
                 expect(res).to.have.status(200);
-                expect(res.body.message.msg).to.equal('LoginUser successful!');
+                expect(res.body.message.msg).to.equal('Login successful!');
             })
     });
 
     mocha.it('Redundant login', async () => {
         await agent
-            .get(`${BASE_URL}login`)
+            .post(`${BASE_URL}login`)
             .set('Accept', 'application/json')
             .set('x-access-token', admin.token)
-            .then((res) => {
-                expect(res).to.have.status(403);
-                expect(res.body.message.msg).to.equal(errors.redundantLogin.msg);
+            .send({
+                email: admin.email,
+                password: admin.password
             })
-    })
+            .then((res) => {
+                console.log(res.body)
+                expect(res).to.have.status(403);
+                expect(res.body.message.msg).to.equal('User is already logged in!');
+            })
+    });
 });
 
 /**

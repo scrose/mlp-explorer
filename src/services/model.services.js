@@ -125,9 +125,11 @@ function setData(data=null) {
 
         // assert attributes exist in model schema
         Object.keys(inputData)
-            .filter(key => !(this.attributes && this.attributes.hasOwnProperty(key)))
+            .filter(key => !(this.attributes
+                && this.attributes.hasOwnProperty(key)))
             .map(key => {
-                console.warn('Ignored input attribute %s: %s', key, inputData[key]);
+                console.error(`Attribute key \'${key}\' was not found in model schema.`);
+                throw Error('schemaMismatch')
             });
 
         // set attribute values from data

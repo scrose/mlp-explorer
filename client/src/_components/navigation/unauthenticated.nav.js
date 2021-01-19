@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { redirect } from '../../_utils/paths.utils.client';
+import Icon from '../common/icon';
 
 
 /**
@@ -18,13 +19,13 @@ import { redirect } from '../../_utils/paths.utils.client';
 const UnauthenticatedNav = () => {
     return (
         <nav className={'user'}>
-            <ul>
-                <li>
+            <div className={'menu'}>
+                <div>
                     <button onClick={() => redirect("/login")}>
-                        <span>Login</span>
+                        <span>Logout</span>
                     </button>
-                </li>
-            </ul>
+                </div>
+            </div>
         </nav>
     );
 }

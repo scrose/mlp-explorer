@@ -18,9 +18,12 @@ import React from 'react';
 const List = ({ items, classname='' }) => {
     return (
         <ul className={classname}>
-            {items.map((item, index) => {
-                return (<li key={index}>{item}</li>)
-            })}
+            {
+                Array.isArray(items) && items.length > 0
+                    ? items.map((item, index) => {
+                        return (<li key={index}>{item}</li>)})
+                    : <li key={0}>{'No items found.'}</li>
+            }
         </ul>
     )
 }

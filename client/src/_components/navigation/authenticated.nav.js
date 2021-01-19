@@ -8,6 +8,7 @@
 import React from 'react';
 import { redirect } from '../../_utils/paths.utils.client';
 import { useUser } from '../../_providers/user.provider.client';
+import Icon from '../common/icon';
 
 /**
  * User navigation menu (authenticated).
@@ -19,17 +20,22 @@ const AuthenticatedNav = () => {
     const user = useUser();
     return (
         <nav className={'user'}>
-            <dl>
-                <dt>
-                    <button onClick={() => redirect("/logout")}>
+            <div className={'menu'}>
+                <div className={'icon'} >
+                    <a href={`/profile`} title={'View user profile.'}>
+                        <Icon type={'user'} />
+                    </a>
+                </div>
+                <div className={'info'}>
+                    <p><a href={`/profile`} title={'View user profile.'}>{user.email}</a></p>
+                    <p title={'User Role'}>{user.label}</p>
+                </div>
+                <div>
+                    <button title={'Logout of session.'} onClick={() => redirect("/logout")}>
                         <span>Logout</span>
                     </button>
-                </dt>
-                <dt>User</dt>
-                <dd><a href={`/profile`}>{user.email}</a></dd>
-                <dt>Role</dt>
-                <dd>{user.label}</dd>
-            </dl>
+                </div>
+            </div>
         </nav>
     );
 }

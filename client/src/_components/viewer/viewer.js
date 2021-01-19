@@ -8,7 +8,7 @@
 import React from 'react';
 import Form from '../common/form';
 import Notfound from '../error/notfound';
-import { getSchema, getStaticView, getViewType } from '../../_services/schema.services.client';
+import { getSchema, getStaticView, getRenderType } from '../../_services/schema.services.client';
 import { getPath, redirect } from '../../_utils/paths.utils.client';
 import DashboardViewer from './dashboard.viewer';
 import List from '../common/list';
@@ -39,7 +39,7 @@ const renderView = ({ route, viewType, viewData, callback }) => {
 
     return viewComponents.hasOwnProperty(viewType)
         ? viewComponents[viewType]()
-        : <Notfound />
+        : <Loading />
 }
 
 /**
@@ -87,7 +87,7 @@ const Data = ({route}) => {
                     data: data,
                     model: model
                 });
-                setViewType(getViewType(view));
+                setViewType(getRenderType(view));
             })
     }, [route, setView, setViewType, viewType]);
 

@@ -1,4 +1,11 @@
-@import url('https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');
+/*!
+ * MLP.Client.CSS
+ * File: index.css
+ * Copyright(c) 2021 Runtime Software Development Inc.
+ * MIT Licensed
+
+ TODO: Replace CSS with Sass preprocessor scripting language
+ */
 
 body {
   margin: 0;
@@ -168,7 +175,6 @@ nav.main ul {
     overflow: hidden;
     background-color: #0B6FA4;
     width:100%;
-    border-radius: 20px;
 }
 
 nav.main ul li {
@@ -193,8 +199,7 @@ nav.editor ul {
     list-style-type: none;
     padding: 0;
     overflow: hidden;
-    background-color: #E1E6F9;
-    margin: 5px 20px;
+    border-bottom: 1px solid #888;
 }
 
 nav.editor ul li {
@@ -254,30 +259,34 @@ nav.breadcrumb ul li a.home {
 
 /* UserModel Navigation Menu */
 
-nav.user ul {
+nav.user div.menu {
     position: absolute;
     top: 0;
     right:0;
-    list-style-type: none;
     padding: 0;
     overflow: hidden;
 }
 
-nav.user ul li {
-    float: left;
+nav.user div.menu div {
+    padding-left:10px;
+    display: inline-table;
+    vertical-align: middle;
+    padding-right: 10px;
+    height: 60px;
 }
 
-nav.user ul li a {
-    display: block;
+nav.user div.menu div.icon {
+    display: inline-table;
+    vertical-align: middle;
+    height: 100%;
+    color: #0B6FA4;
     text-align: center;
-    padding: 16px;
-    color: white;
-    text-decoration: none;
+    padding:0;
+    margin: 15px;
 }
 
-nav.user ul li a:hover {
-    color: beige;
-    text-decoration: none;
+nav.user div.menu div.info {
+    font-size: 80%;
 }
 
 /*
@@ -286,7 +295,6 @@ Forms
 
 /* Add a background color and some padding around the form */
 .form.container {
-    border-radius: 5px;
     background-color: #f2f2f2;
     padding: 20px;
 }
@@ -425,7 +433,7 @@ input[type=submit].disabled, input[type=submit].disabled:hover {
 button {
     margin: 5px;
     font-family: 'Inter', Arial, sans-serif;
-    background-color: #4CAF50;
+    background-color: #888;
     color: white;
     padding: 12px 20px;
     border: none;

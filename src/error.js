@@ -10,7 +10,6 @@
  * @private
  */
 
-import debug from './lib/debug.utils.js';
 import { prepare } from './lib/api.utils.js';
 
 'use strict';
@@ -47,13 +46,13 @@ export const errors = {
         type: 'warning'
     },
     noLogout: {
-        hint: 'LogoutUser failed at controller.',
+        hint: 'Logout failed at controller.',
         msg: 'Logging out failed. You are no longer signed in.',
         status: 403,
         type: 'error'
     },
     redundantLogout: {
-        hint: 'User already logged out.',
+        hint: 'User token not found in request to logout.',
         msg: 'User is already logged out!',
         status: 403,
         type: 'warning'

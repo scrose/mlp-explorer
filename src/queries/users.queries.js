@@ -16,10 +16,8 @@
 
 export function select(user_id) {
     return {
-        sql: `SELECT user_roles.name, *
+        sql: `SELECT *
               FROM users
-              LEFT OUTER JOIN user_roles
-                  ON user_roles.name = users.role
               WHERE users.user_id = $1::varchar`,
         data: [user_id],
     };
@@ -36,8 +34,6 @@ export function selectByEmail(email) {
     return {
         sql: `SELECT *
               FROM users
-              LEFT OUTER JOIN user_roles 
-                  ON users.role = user_roles.name
               WHERE users.email = $1::varchar`,
         data: [email],
     };
@@ -51,15 +47,12 @@ export function selectByEmail(email) {
 
 export function getAll() {
     return {
-        sql: `SELECT users.user_id       AS user_id,
-                     user_roles.name     AS role,
-                     user_roles.label    AS role_label,
+        sql: `SELECT users.user_id,
                      users.email,
+                     users.role,
                      users.created_at,
                      users.updated_at
-              FROM users
-                       LEFT OUTER JOIN user_roles
-                                       ON users.role = user_roles.name`,
+              FROM users`,
         data: [],
     };
 }

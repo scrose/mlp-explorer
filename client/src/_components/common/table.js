@@ -1,40 +1,83 @@
-import React, {Component} from 'react'
+/*!
+ * MLP.Client.Components.Common.Table
+ * File: editor.js
+ * Copyright(c) 2021 Runtime Software Development Inc.
+ * MIT Licensed
+ */
 
-const TableHeader = () => {
-    return (
-        <thead>
+import React from 'react';
+import Loading from './loading';
+
+/**
+ * Render table header.
+ *
+ * @public
+ * @param { rows }
+ * @return {React.Component}
+ */
+
+const TableHeader = ({ headings }) => {
+    console.log(headings)
+    return <thead>
         <tr>
-            <th>Name</th>
-            <th>Job</th>
+        {
+            Object.keys(headings).map((key, index) => {
+                return <th key={index}>{key}</th>
+            })
+        }
         </tr>
-        </thead>
-    )
+    </thead>
 }
 
-const TableBody = (props) => {
-    const rows = props.characterData.map((row, index) => {
-        return (
-            <tr key={index}>
-                <td>{row.name}</td>
-                <td>{row.job}</td>
-            </tr>
-        )
-    })
+/**
+ * Render table body.
+ *
+ * @public
+ * @param { rows }
+ * @return {React.Component}
+ */
 
-    return <tbody>{rows}</tbody>
+const TableBody = ({ rows }) => {
+    return <tbody>{
+        rows.map(({item}, index) => {
+            console.log('Item:', item)
+            return (
+                <tr key={index}>
+                    {
+                        // iterate over row columns
+                        Object.values(item).map((val, index) => {
+                            return (<td key={index}>val</td>);
+                        })
+                    }
+                </tr>
+            );
+        })
+    }</tbody>
 }
 
-class Table extends Component {
-    render() {
-        const {characterData} = this.props
+/**
+ * Render table component.
+ *
+ * @public
+ * @param { rows }
+ * @return {React.Component}
+ */
 
-        return (
+const Table = ({ rows, cols }) => {
+
+    // get column attributes
+    const { attributes=null } = cols || {};
+    console.log('Rows:', rows)
+
+    // ensure data has been retrieved
+    return rows && cols
+        ?
             <table>
-                <TableHeader />
-                <TableBody characterData={characterData} />
+                <TableHeader headings={attributes}/>
+                <TableBody rows={rows}/>
             </table>
-        )
-    }
+        :
+            <Loading/>
 }
 
 export default Table

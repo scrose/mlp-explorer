@@ -8,7 +8,7 @@
 import React from 'react';
 import Form from '../common/form';
 import Notfound from '../error/notfound';
-import { getSchema, getStaticView, getViewType } from '../../_services/schema.services.client';
+import { getSchema, getStaticView, getRenderType } from '../../_services/schema.services.client';
 import LoginUser from '../user/login.user';
 import LogoutUser from '../user/logout.user';
 import { getPath } from '../../_utils/paths.utils.client';
@@ -16,6 +16,7 @@ import DashboardEditor from './dashboard.editor';
 import List from '../common/list';
 import { useData } from '../../_providers/data.provider.client';
 import Loading from '../common/loading';
+import Table from '../common/table';
 
 /**
  * Render non-static view component.
@@ -25,11 +26,12 @@ import Loading from '../common/loading';
  * @return {React.Component}
  */
 
-const renderView = ({ route, viewType, viewData, callback }) => {
+const renderView = ({ route, viewType, schemaData, apiData, callback }) => {
+    // extract data
     const viewComponents = {
-        'form': () => <Form route={route} props={viewData} callback={callback} />,
+        'form': () => <Form route={route} schema={schemaData} callback={callback} />,
         'item': () => <div>Item View</div>,
-        'list': () => <List items={viewData} />,
+        'list': () => <Table rows={apiData} cols={schemaData} />,
         "dashboard": () => <DashboardEditor />,
         "login": () => <LoginUser />,
         "logout": () => <LogoutUser />,
@@ -63,10 +65,11 @@ const Static = ({type}) => {
  * @public
  */
 
-const Data = ({route}) => {
+const Data = ({ route}) => {
 
     // create dynamic view state
-    const [viewData, setView] = React.useState({});
+    const [schemaData, setSchema] = React.useState(null);
+    const [apiData, setAPIData] = React.useState(null);
     const [viewType, setViewType] = React.useState('');
     const api = useData();
 
@@ -75,27 +78,31 @@ const Data = ({route}) => {
         api.get(route)
             .then(res => {
                 // lookup view in schema
-                const { view='', model={}, data={} } = res || {};
-                const { name='', attributes={} } = model;
+                const { view = '', model = {}, data = {} } = res || {};
+                const { name = '', attributes = {} } = model;
 
-                console.log('API Response:', res)
-                setView({
-                    schema: getSchema(view, name, attributes),
-                    data: data,
-                    model: model.name
-                });
-                setViewType(getViewType(view));
-            })
-    }, [api, route, setView, setViewType, viewType]);
+                setViewType(getRenderType(view));
+
+                console.log('API Response:', res);
+                console.log('API Data:', data)
+
+                setSchema(getSchema(view, name, attributes));
+                console.log('Schema:', getSchema(view, name, attributes))
+                setAPIData(data);
+
+
+            });
+    }, [api, route, setSchema, setAPIData, setViewType, viewType]);
 
     // select default callback for view
     const callback = api.post;
 
     return (
         <div className={'view'}>
-            { renderView({ route, viewType, viewData, callback }) }
+            {renderView({ route, viewType, schemaData, apiData, callback })}
         </div>
     );
+
 }
 
 /**
