@@ -21,7 +21,8 @@ export default Validator;
  * @public
  */
 
-function Validator(validations, refs={}) {
+function Validator(validations, refs=[]) {
+    console.log('Refs:', refs)
     validations = ( typeof validations !== "undefined" ) ? validations : [];
 
     // resolve validation methods
@@ -52,6 +53,7 @@ function Validator(validations, refs={}) {
  */
 
 Validator.prototype.check = function check(val1, val2='') {
+    console.log('Check:', val1, val2)
     return this.checks
             .filter(check => !check.run(val1, val2))
             .map(check => {
@@ -100,10 +102,11 @@ const _inputValidations =
 
         isRepeatPassword: (repeatPassword='') => {
 
-            if (typeof this === 'undefined') return '';
+            if (typeof this === 'undefined') return true;
             console.log('Passwords:', this.refs.password, repeatPassword)
 
             return this.refs.hasOwnProperty('password')
-                ? this.refs.password === repeatPassword : '';
+                ? this.refs.password === repeatPassword
+                : true;
         }
     }

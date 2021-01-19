@@ -7,7 +7,6 @@
 
 import * as React from 'react'
 import { makeRequest } from '../_services/data.services.client';
-import { useMsg } from './msg.provider.client';
 import { redirect } from '../_utils/paths.utils.client';
 import { addMsg } from '../_services/session.services.client';
 
@@ -82,18 +81,24 @@ function DataProvider(props) {
      *
      * @public
      * @param {String} route
-     * @param {Object} data
+     * @param {Object} payload
      */
 
-    const post = async function(route, data) {
-        return await makeRequest({url: route, method:'POST', data: data})
+    const post = async function(route, payload) {
+        return await makeRequest({url: route, method:'POST', data: payload})
             .then(res => {
                 const { response } = res;
+
                 // add messages to storage
                 addMsg(response.message)
+
+                // put response data in state
+                setResData(response);
+
                 // handle exceptions
                 if (!res.success)
                     return errorRouter(res.status);
+
                 return response;
             })
             .catch(err => {
@@ -102,7 +107,7 @@ function DataProvider(props) {
     }
 
     return (
-        <DataContext.Provider value={{data, get, post}} {...props} />
+        <DataContext.Provider value={{data, setData, get, post}} {...props} />
     )
 
 }

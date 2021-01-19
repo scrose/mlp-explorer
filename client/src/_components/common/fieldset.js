@@ -113,7 +113,7 @@ const _inputElements = {
         return(
             <label key={`label_${name}`} htmlFor={name}>
                 {label}
-                <input key={`key_${name}`} type={"password"}
+                <input key={`key_${name}`} type={"password"} autoComplete={'new-password'}
                        id={name} name={name} value={value || ''} onChange={onchange} onBlur={onblur} />
                 {error ? <ValidationMessages msg={error} /> : null}
             </label>
@@ -129,7 +129,7 @@ const _inputElements = {
                             <option key={`${name}_${opt.id}`}
                                     id={`${name}_${opt.id}`}
                                     name={`${name}_${opt.id}`}
-                                    value={opt.value}>
+                                    value={opt.name}>
                                 {opt.label}
                             </option>
                         )
@@ -179,7 +179,6 @@ const Fieldset = ({labels, fields, init, valid, disabled}) => {
      */
 
     const handleBlur = validator => {
-
         // wrap validator in event handler
         return (e) => {
             const { name, value } = e.target;
@@ -208,6 +207,8 @@ const Fieldset = ({labels, fields, init, valid, disabled}) => {
                 // get form schema for requested model
                 const _value = values.hasOwnProperty(name) ? values[name] : '';
                 const _error = errors.hasOwnProperty(name) ? errors[name] : '';
+
+                // TODO: Fix references between values in state
                 const _references = refs.reduce((o, ref) => {
                     o[ref] = values.hasOwnProperty(ref) ? values[ref] : '';
                     return o;

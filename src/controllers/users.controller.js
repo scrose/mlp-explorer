@@ -255,18 +255,29 @@ export const create = async (req, res, next) => {
     let newUser;
     try {
         // validate user input data
-        let { email, password, role } = req.body;
+        const { email, password, role } = req.body;
+
+        console.log(email, password, role, req.body)
+
+
+        console.log(valid.load(email).isRequired().isEmail().data,
+            valid.load(password).isRequired().isPassword().data,
+            valid.load(role).isRequired().data)
+
         newUser = new User({
-            email: valid.load(email).isEmail().data,
-            password: valid.load(password).isPassword().data,
-            role: role,
+            email: valid.load(email).isRequired().isEmail().data,
+            password: valid.load(password).isRequired().isPassword().data,
+            role: valid.load(role).isRequired().data
         });
 
         // encrypt user password and generate salt token
         auth.encryptUser(newUser);
 
+        console.log(req.body)
+
     } catch (err) {
-        next(err);
+        console.error(err)
+        return next(new Error('invalidData'));
     }
 
     // Insert user record into database

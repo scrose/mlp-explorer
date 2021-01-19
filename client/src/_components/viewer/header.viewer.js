@@ -20,10 +20,12 @@ import Brand from '../common/brand';
 const HeaderViewer = () => {
     return (
         <header className="page header">
-            <UnauthenticatedNav />
-            <Brand />
-            <MainNav />
-            <BreadcrumbNav />
+            <div className="banner">
+                <Brand />
+                <UnauthenticatedNav />
+                <MainNav />
+                <BreadcrumbNav />
+            </div>
         </header>
     );
 }

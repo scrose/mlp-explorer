@@ -23,7 +23,7 @@ const Form = ({ route, schema, callback }) => {
     const [isDisabled, setDisabled] = React.useState(false);
 
     // destructure form properties
-    const { name, fields, attributes } = schema;
+    const { name='', fields=[], attributes={} } = schema || {};
     const { legend='', method='POST', submit='Submit' } = attributes;
 
     const handleSubmit = e => {

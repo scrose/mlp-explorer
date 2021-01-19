@@ -20,11 +20,9 @@ const UnauthenticatedNav = () => {
     return (
         <nav className={'user'}>
             <div className={'menu'}>
-                <div>
-                    <button onClick={() => redirect("/login")}>
-                        <span>Logout</span>
-                    </button>
-                </div>
+                <button onClick={() => redirect("/login")}>
+                    <span>Login</span>
+                </button>
             </div>
         </nav>
     );

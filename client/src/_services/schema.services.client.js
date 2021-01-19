@@ -49,7 +49,7 @@ export const getError = (key, type) => {
  */
 
 export const getPageHeading = () => {
-    return `${schema.main.appName}: ${schema.main.projectName}`;
+    return `${schema.main.appName}`;
 }
 
 /**

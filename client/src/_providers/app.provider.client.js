@@ -9,11 +9,9 @@ import React from 'react';
 import {AuthProvider} from './auth.provider.client'
 import {DataProvider} from './data.provider.client'
 import {UserProvider} from './user.provider.client'
-import {MsgProvider} from './msg.provider.client'
 
 function AppProviders({children}) {
     return (
-        <MsgProvider>
             <DataProvider>
                 <AuthProvider>
                     <UserProvider>
@@ -21,8 +19,6 @@ function AppProviders({children}) {
                     </UserProvider>
                 </AuthProvider>
             </DataProvider>
-
-        </MsgProvider>
     )
 }
 

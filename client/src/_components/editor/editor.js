@@ -13,10 +13,10 @@ import LoginUser from '../user/login.user';
 import LogoutUser from '../user/logout.user';
 import { getPath } from '../../_utils/paths.utils.client';
 import DashboardEditor from './dashboard.editor';
-import List from '../common/list';
 import { useData } from '../../_providers/data.provider.client';
 import Loading from '../common/loading';
 import Table from '../common/table';
+import Messenger from '../common/messenger';
 
 /**
  * Render non-static view component.
@@ -26,12 +26,12 @@ import Table from '../common/table';
  * @return {React.Component}
  */
 
-const renderView = ({ route, viewType, schemaData, apiData, callback }) => {
+const renderView = ({ route, viewType, schemaData, apiData: data, callback }) => {
     // extract data
     const viewComponents = {
         'form': () => <Form route={route} schema={schemaData} callback={callback} />,
         'item': () => <div>Item View</div>,
-        'list': () => <Table rows={apiData} cols={schemaData} />,
+        'list': () => <Table rows={data} cols={schemaData} />,
         "dashboard": () => <DashboardEditor />,
         "login": () => <LoginUser />,
         "logout": () => <LogoutUser />,
@@ -73,6 +73,8 @@ const Data = ({ route}) => {
     const [viewType, setViewType] = React.useState('');
     const api = useData();
 
+    console.log('Re-renderings...')
+
     // non-static views: fetch API data and set view data in state
     React.useEffect(() => {
         api.get(route)
@@ -88,18 +90,18 @@ const Data = ({ route}) => {
 
                 setSchema(getSchema(view, name, attributes));
                 console.log('Schema:', getSchema(view, name, attributes))
-                setAPIData(data);
-
+                api.setData(data);
 
             });
-    }, [api, route, setSchema, setAPIData, setViewType, viewType]);
+    }, [api, route, setSchema, setViewType, viewType]);
 
     // select default callback for view
     const callback = api.post;
+    const { data } = api;
 
     return (
         <div className={'view'}>
-            {renderView({ route, viewType, schemaData, apiData, callback })}
+            {renderView({ route, viewType, schemaData, data, callback })}
         </div>
     );
 
@@ -116,6 +118,7 @@ const Editor = () => {
     const staticType = getStaticView(route);
     return (
         <div className={'editor'}>
+            <Messenger />
             { staticType ? <Static type={staticType} /> : <Data route={route} /> }
         </div>
     )

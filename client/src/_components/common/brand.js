@@ -8,6 +8,7 @@
 import React from 'react';
 import { getRoot } from '../../_utils/paths.utils.client';
 import { getPageHeading } from '../../_services/schema.services.client';
+import Icon from './icon';
 
 /**
  * Render branding heading.
@@ -17,9 +18,16 @@ import { getPageHeading } from '../../_services/schema.services.client';
 
 const Brand = () => {
     return (
-        <h1>
-            <a href={getRoot()}>{getPageHeading()}</a>
-        </h1>
+        <div className={'banner'}>
+            <div className={'logo'}>
+                <a href={ getRoot() }>
+                    <Icon type={'logo'} />
+                </a>
+            </div>
+            <h1>
+                <a href={ getRoot() }>{ getPageHeading() }</a>
+            </h1>
+        </div>
     );
 }
 

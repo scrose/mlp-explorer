@@ -27,6 +27,12 @@ export const errors = {
         status: 401,
         type: 'error'
     },
+    invalidData: {
+        hint: 'Invalid input data (generic).',
+        msg: 'Invalid data. Please check the data fields for errors.',
+        status: 422,
+        type: 'error'
+    },
     invalidLogin: {
         hint: 'Invalid login credentials.',
         msg: 'Authentication failed. Please check your login credentials.',

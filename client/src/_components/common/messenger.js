@@ -21,6 +21,7 @@ const Messenger = () => {
 
     // load messages in state (if available) or storage and clear
     React.useEffect(() => {
+
         setMessages(popMsg());
     }, [setMessages]);
 

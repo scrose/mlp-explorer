@@ -8,7 +8,6 @@
 import * as React from 'react'
 import { getSession, getSessionToken, clearSession, setSession, addMsg } from '../_services/session.services.client';
 import { makeRequest } from '../_services/data.services.client';
-import { useMsg } from './msg.provider.client';
 import { useData } from './data.provider.client';
 import { redirect } from '../_utils/paths.utils.client';
 
@@ -56,19 +55,15 @@ function AuthProvider(props) {
     const login = (route, credentials) => {
         api.post(route, credentials)
             .then(res => {
-                // create user session
                 const {user} = res;
-                if (user) setSession(user);
-                setData(user);
-                return redirect('/');
-            })
-    }
 
-    // user registration request
-    const register = (route) => {
-        api.get(route)
-            .then(res => {
-                console.log('Register Response:', res)
+                // create user session on success
+                if (user) {
+                    setSession(user);
+                    setData(user);
+                    return redirect('/');
+                }
+                return redirect('/login');
             })
     }
 
@@ -105,7 +100,7 @@ function AuthProvider(props) {
     */
 
     return (
-        <AuthContext.Provider value={{data, login, logout, register}} {...props} />
+        <AuthContext.Provider value={{data, login, logout}} {...props} />
     )
 
 }

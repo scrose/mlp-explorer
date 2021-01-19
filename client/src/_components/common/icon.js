@@ -18,6 +18,7 @@ const getIconClass = (iconType) => {
     const iconComponents = {
         home: 'fas fa-lg fa-home',
         user: 'fas fa-3x fa-user-circle',
+        logo: 'fas fa-2x fa-mountain',
         default: 'fas fa-lg fa-square'
     };
     return iconComponents.hasOwnProperty(iconType)

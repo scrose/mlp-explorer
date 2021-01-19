@@ -16,6 +16,7 @@ import LoginUser from '../user/login.user';
 import { useData } from '../../_providers/data.provider.client';
 import LogoutUser from '../user/logout.user';
 import Loading from '../common/loading';
+import Messenger from '../common/messenger';
 
 /**
  * Render non-static view component.
@@ -115,6 +116,7 @@ const Viewer = () => {
 
     return (
         <div className={"viewer"}>
+            <Messenger />
             { staticType ? <Static type={staticType} /> : <Data route={route} /> }
         </div>
     )

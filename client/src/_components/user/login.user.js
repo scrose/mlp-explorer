@@ -17,7 +17,6 @@ import { addMsg } from '../../_services/session.services.client';
 const LoginUser = () => {
 
     // lookup view in schema
-    const loginProps = { schema: getSchema('login', 'users') };
     const user = useUser();
     const auth = useAuth();
 
@@ -31,7 +30,10 @@ const LoginUser = () => {
 
     return user
         ? <Loading />
-        : <Form route={'/login'} props={loginProps} callback={auth.login} />
+        : <Form
+            route={'/login'}
+            schema={getSchema('login', 'users')}
+            callback={auth.login} />
 }
 
 export default LoginUser;
