@@ -40,7 +40,7 @@ function NodesRoutes(modelType) {
             delete: null,
         },
         create: {
-            path: path.join('/', this.model, 'add'),
+            path: path.join('/', this.model, 'new'),
             get: this.controller.add,
             put: null,
             post: this.controller.create,

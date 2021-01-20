@@ -16,7 +16,6 @@ import React from 'react';
  */
 
 const List = ({ items, classname='' }) => {
-    console.log(items)
     return (
         <ul className={classname}>
             {

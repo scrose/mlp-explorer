@@ -8,13 +8,13 @@
 import React from 'react';
 import Form from '../common/form';
 import Notfound from '../error/notfound';
-import { getSchema, getStaticView, getRenderType } from '../../_services/schema.services.client';
+import { genSchema, getStaticView, getRenderType } from '../../_services/schema.services.client';
 import { getPath, redirect } from '../../_utils/paths.utils.client';
 import DashboardViewer from './dashboard.viewer';
 import List from '../common/list';
-import LoginUser from '../user/login.user';
+import LoginUser from '../users/login.users';
 import { useData } from '../../_providers/data.provider.client';
-import LogoutUser from '../user/logout.user';
+import LogoutUsers from '../users/logout.users';
 import Loading from '../common/loading';
 import Messenger from '../common/messenger';
 
@@ -34,7 +34,7 @@ const renderView = ({ route, viewType, viewData, callback }) => {
         'list': () => <List items={viewData} />,
         "dashboard": () => <DashboardViewer />,
         "login": () => <LoginUser />,
-        "logout": () => <LogoutUser />,
+        "logout": () => <LogoutUsers />,
         'notFound': () => <Notfound />
     };
 
@@ -84,7 +84,7 @@ const Data = ({route}) => {
                 const { view, model, data } = res;
                 // lookup view in schema
                 setView({
-                    schema: getSchema(view, model),
+                    schema: genSchema(view, model),
                     data: data,
                     model: model
                 });
@@ -101,7 +101,6 @@ const Data = ({route}) => {
         </div>
     );
 }
-
 
 /**
  * Build viewer panel.

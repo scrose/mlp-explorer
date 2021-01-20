@@ -6,25 +6,28 @@
  */
 
 import React from 'react';
+import { getURL } from '../../_utils/paths.utils.client';
 
 /**
- * Breadcrumb navigation menu component.
+ * Editor menu component.
  *
  * @public
  */
 
-const MenuEditor = () => {
-    const rootURL = '#'
+const MenuEditor = ({model, view}) => {
+    const currentPath = getURL();
     return (
+        view ?
         <nav className={'editor'}>
             <ul>
-                <li><a href={rootURL}>New</a></li>
-                <li><a href={rootURL}>Edit</a></li>
-                <li><a href={rootURL}>Delete</a></li>
-                <li><a href={rootURL}>Move</a></li>
-                <li><a href={rootURL}>Merge</a></li>
+                <li><a href={`${currentPath}/new`}>New</a></li>
+                {view !== 'list' ? <li><a href={`${currentPath}/edit`}>Edit</a></li> : ''}
+                {view !== 'list' ? <li><a href={`${currentPath}/remove`}>Delete</a></li> : ''}
+                {/*<li><a href={`${currentPath}/#`}>Move</a></li>*/}
+                {/*<li><a href={`${currentPath}/#`}>Merge</a></li>*/}
             </ul>
         </nav>
+            : ''
     )
 }
 

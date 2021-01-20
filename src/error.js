@@ -70,7 +70,7 @@ export const errors = {
         type: 'error'
     },
     noAuth: {
-        hint: 'JWT token is not correct for user.',
+        hint: 'JWT token is expired or invalid for user.',
         msg: 'Unauthorized access!',
         status: 401,
         type: 'error'

@@ -8,7 +8,7 @@
 import * as React from 'react'
 import { makeRequest } from '../_services/data.services.client';
 import { redirect } from '../_utils/paths.utils.client';
-import { addMsg } from '../_services/session.services.client';
+import { addMsg, clearSession, getMsg } from '../_services/session.services.client';
 
 /**
  * Global authentication context.
@@ -28,8 +28,6 @@ const DataContext = React.createContext({})
 
 function DataProvider(props) {
 
-    let [data, setData] = React.useState({});
-
     /**
      * Error router.
      *
@@ -43,9 +41,11 @@ function DataProvider(props) {
                 return redirect('/not_found')
             },
             '401': () => {
+                clearSession();
                 return redirect('/login')
             },
             '403': () => {
+                clearSession();
                 return redirect('/login')
             }
         }
@@ -92,9 +92,6 @@ function DataProvider(props) {
                 // add messages to storage
                 addMsg(response.message)
 
-                // put response data in state
-                setResData(response);
-
                 // handle exceptions
                 if (!res.success)
                     return errorRouter(res.status);
@@ -107,7 +104,7 @@ function DataProvider(props) {
     }
 
     return (
-        <DataContext.Provider value={{data, setData, get, post}} {...props} />
+        <DataContext.Provider value={{get, post}} {...props} />
     )
 
 }

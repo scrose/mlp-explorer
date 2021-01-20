@@ -175,7 +175,7 @@ export const authorize = async (req, res, next, allowedRoles) => {
     if (token == null) return next(new Error('noToken'));
 
     const userId = await jwt.verify(token, secret, (err, decoded) => {
-        if (err) next(new Error('noAuth'));
+        if (err) return next(new Error('noAuth'));
         return decoded.id;
     });
 

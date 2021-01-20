@@ -22,9 +22,9 @@ const Form = ({ route, schema, callback }) => {
     const [isValid, setValid] = React.useState(false);
     const [isDisabled, setDisabled] = React.useState(false);
 
-    // destructure form properties
+    // destructure form properties from schema
     const { name='', fields=[], attributes={} } = schema || {};
-    const { legend='', method='POST', submit='Submit' } = attributes;
+    const { label='', method='POST', submit='Submit' } = attributes;
 
     const handleSubmit = e => {
         e.preventDefault();
@@ -53,7 +53,7 @@ const Form = ({ route, schema, callback }) => {
     return (
         <form id={name} name={name} method={method} onSubmit={handleSubmit}>
             <Fieldset
-                labels={{name: name, legend: legend, submit: submit}}
+                labels={{name: name, legend: label, submit: submit}}
                 fields={fields}
                 init={initValues}
                 valid={isValid}

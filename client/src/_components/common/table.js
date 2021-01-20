@@ -16,15 +16,12 @@ import Loading from './loading';
  * @return {React.Component}
  */
 
-const TableHeader = ({ headings }) => {
-    console.log(headings)
+const TableHeader = ({ cols }) => {
     return <thead>
         <tr>
-        {
-            Object.keys(headings).map((key, index) => {
-                return <th key={index}>{key}</th>
-            })
-        }
+            {
+                cols.map((col, index) => <th key={index}>{col}</th>)
+            }
         </tr>
     </thead>
 }
@@ -33,25 +30,28 @@ const TableHeader = ({ headings }) => {
  * Render table body.
  *
  * @public
- * @param { rows }
+ * @param {Array} rows
+ * @param cols
  * @return {React.Component}
  */
 
-const TableBody = ({ rows }) => {
+const TableBody = ({rows, cols}) => {
+    console.log('Table rows/cols:', rows, cols)
     return <tbody>{
-        rows.map(({item}, index) => {
-            console.log('Item:', item)
-            return (
-                <tr key={index}>
-                    {
-                        // iterate over row columns
-                        Object.values(item).map((val, index) => {
-                            return (<td key={index}>val</td>);
-                        })
-                    }
-                </tr>
-            );
-        })
+            rows.map(({item}, index) => {
+                return (
+                    <tr key={index}>
+                        {
+                            // filter column values not defined in column array
+                            Object.keys(item)
+                                .filter(key => cols.includes(key))
+                                .map((key, index) => {
+                                return (<td key={index}>{item[key]}</td>);
+                            })
+                        }
+                    </tr>
+                );
+            })
     }</tbody>
 }
 
@@ -59,22 +59,19 @@ const TableBody = ({ rows }) => {
  * Render table component.
  *
  * @public
- * @param { rows }
+ * @param {Array} rows
+ * @param {Array} cols
  * @return {React.Component}
  */
 
 const Table = ({ rows, cols }) => {
 
-    // get column attributes
-    const { attributes=null } = cols || {};
-    console.log('Rows:', rows)
-
     // ensure data has been retrieved
-    return rows && cols
+    return Array.isArray(rows) && Array.isArray(cols)
         ?
             <table>
-                <TableHeader headings={attributes}/>
-                <TableBody rows={rows}/>
+                <TableHeader cols={cols} />
+                <TableBody rows={rows} cols={cols} />
             </table>
         :
             <Loading/>

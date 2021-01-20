@@ -37,36 +37,53 @@ export const schema = {
         unauthorized: 'Access Denied!'
     },
     views: {
-        login: {
-            render: 'login',
-            legend: 'User Sign In',
-            submit: 'Sign In',
-            method: 'POST'
-        },
-        register : {
-            render: 'form',
-            legend: 'User Registration',
-            submit: 'Register',
-            method: 'POST'
+        users: {
+            login: {
+                label: 'User Sign In',
+                submit: 'Sign In',
+                method: 'POST',
+                render: 'login'
+            },
+            register : {
+                label: 'User Registration',
+                submit: 'Register',
+                method: 'POST',
+                render: 'form'
+            },
+            list: {
+                label: 'Listing',
+                render: 'listUsers'
+            }
         },
         add: {
+            label: 'Create New',
             render: 'form'
         },
         edit: {
+            label: 'Update',
             render: 'form'
         },
         remove: {
+            label: 'Delete',
             render: 'form'
         },
         list: {
+            label: 'Listing',
             render: 'list'
         },
         show: {
+            label: 'View',
             render: 'item'
         }
     },
     models: {
         users: {
+            user_id: {
+                label: 'User ID',
+                render: 'hidden',
+                validate: [],
+                omit: ['login', 'register'],
+            },
             email: {
                 label: 'Email',
                 render: 'email',
@@ -80,7 +97,7 @@ export const schema = {
             repeat_password: {
                 label: 'Repeat Password',
                 render: 'password',
-                omit: ['login'],
+                omit: ['login', 'list'],
                 refs: ['password'],
                 validate: ['isRequired', 'isRepeatPassword']
             },

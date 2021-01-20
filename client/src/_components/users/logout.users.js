@@ -12,7 +12,7 @@ import Loading from '../common/loading';
 import { useUser } from '../../_providers/user.provider.client';
 import { addMsg } from '../../_services/session.services.client';
 
-const LogoutUser = () => {
+const LogoutUsers = () => {
 
     const auth = useAuth();
     const user = useUser();
@@ -31,4 +31,4 @@ const LogoutUser = () => {
     return <Loading />;
 }
 
-export default LogoutUser;
+export default LogoutUsers;

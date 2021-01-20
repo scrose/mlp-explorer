@@ -25,7 +25,6 @@ const UnauthenticatedApp = () => {
             <HeaderViewer/>
             <main>
                 <Navigator/>
-                <Messenger />
                 <BoundaryError>
                     <Viewer/>
                 </BoundaryError>

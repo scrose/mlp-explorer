@@ -23,8 +23,8 @@ const _CLIENT = 'http://localhost:3000';
  * @public
  */
 
-export function getURL(path) {
-    return `${_CLIENT}${path}`;
+export function getURL() {
+    return `${_CLIENT}${getPath()}`;
 }
 
 /**

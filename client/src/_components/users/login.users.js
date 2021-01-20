@@ -8,13 +8,13 @@
 import React from "react";
 import Form from '../common/form';
 import Loading from '../common/loading';
-import { getSchema } from '../../_services/schema.services.client';
+import { genSchema } from '../../_services/schema.services.client';
 import { useUser } from '../../_providers/user.provider.client';
 import { useAuth } from '../../_providers/auth.provider.client';
 import { redirect } from '../../_utils/paths.utils.client';
 import { addMsg } from '../../_services/session.services.client';
 
-const LoginUser = () => {
+const LoginUsers = () => {
 
     // lookup view in schema
     const user = useUser();
@@ -32,8 +32,8 @@ const LoginUser = () => {
         ? <Loading />
         : <Form
             route={'/login'}
-            schema={getSchema('login', 'users')}
+            schema={genSchema('login', 'users')}
             callback={auth.login} />
 }
 
-export default LoginUser;
+export default LoginUsers;

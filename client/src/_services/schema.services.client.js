@@ -53,15 +53,21 @@ export const getPageHeading = () => {
 }
 
 /**
- * Load render settings for view/model.
+ * Returns render code for view/model. Model and view labels
+ * must be unique.
  *
  * @public
  * @param {String} view
+ * @param {String} model
  * @return {String} view type
  */
 
-export const getRenderType = (view) => {
-    return schema.views.hasOwnProperty(view) ? schema.views[view].render : null;
+export const getRenderType = (view, model) => {
+
+    // destructure the render property from the schema
+    const { render=null } = _getViewAttributes(view, model);
+
+    return render;
 }
 
 /**
@@ -86,15 +92,13 @@ export const getLocalMsg = (key='', type='info') => {
  * @param {String} view
  * @param {String} model
  * @param {Object} data
- * @return {{name: String, attributes: *, fields: {name: *, label: *, render: *|string, value: *|string}[]}}
+ * @return {{model: String, attributes: *, fields: {name: *, label: *, render: *|string, value: *|string}[]}}
  */
 
-export const getSchema = (view, model, data=null) => {
+export const genSchema = (view, model, data=null) => {
 
-    const modelSchema = schema.models.hasOwnProperty(model)
-        ? schema.models[model] : {};
-    const viewSchema = schema.views.hasOwnProperty(view)
-        ? schema.views[view] : {};
+    const modelSchema = schema.models.hasOwnProperty(model) ? schema.models[model] : {};
+    const viewAttributes = _getViewAttributes(view, model);
 
     // create renderable elements based on schema
     // Filters out omitted fields (array) for view.
@@ -128,8 +132,36 @@ export const getSchema = (view, model, data=null) => {
             });
 
     return {
-        name: model,
-        attributes: viewSchema,
+        model: model,
+        view: view,
+        attributes: viewAttributes,
         fields: fields
     }
+}
+
+/**
+ * Returns schema attributes for view/model. Model and view labels
+ * must be unique.
+ *
+ * @public
+ * @param {String} view
+ * @param {String} model
+ * @return {Object} view attributes
+ */
+
+const _getViewAttributes = (view, model) => {
+
+    // check if model has specified view
+    const modelView = schema.views.hasOwnProperty(model)
+        ? schema.views[model].hasOwnProperty(view)
+            ? schema.views[model][view]
+            : null
+        : null;
+
+    // Otherwise use default view
+    const defaultView = schema.views.hasOwnProperty(view)
+        ? schema.views[view]
+        : null;
+
+    return modelView || defaultView || {}
 }

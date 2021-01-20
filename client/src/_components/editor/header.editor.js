@@ -10,7 +10,6 @@ import MainNav from '../navigation/main.nav';
 import BreadcrumbNav from '../navigation/breadcrumb.nav';
 import AuthenticatedNav from '../navigation/authenticated.nav';
 import Brand from '../common/brand';
-import MenuEditor from './menu.editor';
 
 /**
  * Page header component.
@@ -25,7 +24,6 @@ const HeaderEditor = () => {
             <Brand />
             <MainNav />
             <BreadcrumbNav />
-            <MenuEditor />
         </header>
     );
 }

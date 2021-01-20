@@ -81,6 +81,16 @@ export const getMsg = () => {
 }
 
 /**
+ * Check if messages are in storage.
+ *
+ * @public
+ */
+
+export const checkMsg = () => {
+    return !!getMsg().length;
+}
+
+/**
  * Add message to session storage.
  *
  * @public

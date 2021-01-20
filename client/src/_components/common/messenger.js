@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { getMsg, popMsg } from '../../_services/session.services.client';
+import { checkMsg, getMsg, popMsg } from '../../_services/session.services.client';
 
 /**
  * Messenger component.
@@ -21,8 +21,7 @@ const Messenger = () => {
 
     // load messages in state (if available) or storage and clear
     React.useEffect(() => {
-
-        setMessages(popMsg());
+        if (checkMsg()) setMessages(popMsg());
     }, [setMessages]);
 
     return (

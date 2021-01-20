@@ -46,7 +46,7 @@ function UserRoutes() {
             delete: null,
         },
         register: {
-            path: path.join('/', this.model, 'register'),
+            path: path.join('/', this.model, 'new'),
             get: this.controller.register,
             put: null,
             post: this.controller.create,
