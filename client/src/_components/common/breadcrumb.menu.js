@@ -1,14 +1,15 @@
 /*!
  * MLP.Client.Components.Navigation.Breadcrumb
- * File: breadcrumb.nav.js
+ * File: breadcrumb.menu.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
 import React from 'react';
-import Icon from '../common/icon';
+import Icon from './icon';
 import { getPath, getRoot } from '../../_utils/paths.utils.client';
-import List from '../common/list';
+import List from './list';
+import { getEmailUser } from '../../_utils/data.utils.client';
 
 /**
  * Build 'breadcrumb' navigation menu.
@@ -28,7 +29,7 @@ const _getBreadcrumbs = function(user) {
     if (breadcrumbs.length === 0) return null;
 
     // reformat user email to extract user-id (if exists)
-    const userName = user ? user.email.replace(/@.*$/,"") : 'UserID';
+    const userName = user ? getEmailUser(user.email) : 'UserID';
 
     // convert breadcrumbs -> components and extend array
     let breadcrumbComponents = breadcrumbs
@@ -60,11 +61,11 @@ const _getBreadcrumbs = function(user) {
  * @public
  */
 
-const BreadcrumbNav = ({user}) => {
+const BreadcrumbMenu = ({user}) => {
     const breadcrumbs = _getBreadcrumbs(user);
     return breadcrumbs
         ? <nav className={'breadcrumb'}><List items={breadcrumbs}/></nav>
         : <></>
 }
 
-export default BreadcrumbNav;
+export default BreadcrumbMenu;

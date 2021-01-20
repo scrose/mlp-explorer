@@ -5,13 +5,12 @@
  * MIT Licensed
  */
 
-import Navigator from '../common/navigator';
+import Navigator from '../navigator/navigator';
 import BoundaryError from '../error/boundary.error';
 import Footer from '../common/footer';
 import React from 'react';
 import Editor from '../editor/editor';
 import HeaderEditor from '../editor/header.editor';
-import Messenger from '../common/messenger';
 
 /**
  * Main app component for unauthenticated users.

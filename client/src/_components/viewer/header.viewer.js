@@ -6,25 +6,44 @@
  */
 
 import React from 'react';
-import BreadcrumbNav from '../navigation/breadcrumb.nav';
-import MainNav from '../navigation/main.nav';
-import UnauthenticatedNav from '../navigation/unauthenticated.nav';
-import Brand from '../common/brand';
+import BreadcrumbMenu from '../common/breadcrumb.menu';
+import MainMenu from '../common/main.menu';
+import Logo from '../common/logo';
+import { redirect } from '../../_utils/paths.utils.client';
 
 /**
- * Page header component.
+ * User navigation menu (unauthenticated).
+ *
+ * @public
+ */
+
+const UserMenu = () => {
+    return (
+        <nav className={'user'}>
+            <ul>
+                <li>
+                    <button onClick={() => redirect("/login")}>
+                        <span>Login</span>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    );
+}
+
+/**
+ * Page header component (unauthenticated).
  *
  * @public
  */
 
 const HeaderViewer = () => {
     return (
-        <header className="page header">
-            <div className="banner">
-                <Brand />
-                <UnauthenticatedNav />
-                <MainNav />
-                <BreadcrumbNav />
+        <header>
+            <div className={'navbar'}>
+                <Logo />
+                <MainMenu />
+                <UserMenu />
             </div>
         </header>
     );

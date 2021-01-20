@@ -48,101 +48,30 @@ body {
 
 div.navigator {
     display:inline-block;
-    height: 80vh;
+    height: 85vh;
     width: 35%;
-    background-color: blue;
+    background-color: #D0E4F5;
     overflow: scroll;
+    text-align: center;
 }
 
 /* Viewer/Editor Panel */
 
 div.viewer, div.editor {
     display:inline-block;
-    height: 100vh;
+    height: 85vh;
     width: 65%;
     background-color: white;
     overflow: scroll;
+    padding: 5px;
 }
 
 /*
-Page Elements
+DOM Elements
 */
 
 a {
     color: #00B7FF;
-}
-
-/* Tables */
-
-table.records {
-    border: 1px solid #FFFFFF;
-    width: 100%;
-    text-align: left;
-    border-collapse: collapse;
-}
-table.records td, table.records th {
-    border: 1px solid #FFFFFF;
-    padding: 3px 2px;
-}
-table.records tbody td {
-    font-size: 13px;
-}
-table.records tr:nth-child(even) {
-    background: #D0E4F5;
-}
-table.records thead {
-    background: #0B6FA4;
-    border-bottom: 5px solid #FFFFFF;
-}
-table.records thead th {
-    font-size: 17px;
-    font-weight: bold;
-    color: #FFFFFF;
-    text-align: center;
-    border-left: 2px solid #FFFFFF;
-}
-table.records thead th:first-child {
-    border-left: none;
-}
-
-table.records tfoot {
-    font-size: 14px;
-    font-weight: bold;
-    color: #333333;
-    background: #D0E4F5;
-    border-top: 3px solid #444444;
-}
-table.records tfoot td {
-    font-size: 14px;
-}
-
-
-/* Collapsible Containers */
-
-/* Style the button that is used to open and close the collapsible content */
-.collapsible {
-    background-color: transparent;
-    color: #444;
-    cursor: pointer;
-    width: 100%;
-    border: none;
-    text-align: center;
-    outline: none;
-}
-
-/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
-.collapsible.active, .collapsible:hover {
-    background-color: #ccc;
-}
-
-/* Style the collapsible content. Note: hidden by default */
-.collapsible.content {
-    position: absolute;
-    width:85%;
-    padding: 0 18px;
-    display: none;
-    overflow: hidden;
-    background-color: #f1f1f1;
 }
 
 /*
@@ -154,37 +83,111 @@ header {
     background-color: #D0E4F5;
 }
 
-header h1 {
-    display: inline-table;
-    height: 100%;
-    vertical-align: middle;
-    font-size: 2em;
-}
+/*
+Top Banner
+*/
 
-header h1 a {
-    color: #00529B;
-    text-decoration: none;
+header .navbar {
+    height: 60px;
+    min-height: 60px;
+    background-color: #333333;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    overflow: hidden;
 }
 
 /*
-Brand
+Logo
 */
 
-header {
-    /*overflow: hidden;*/
-    /*position: fixed; !* Set the navbar to fixed position *!*/
-    top: 0; /* Position the navbar at the top of the page */
-    width: 100%; /* Full width */
+header .navbar .logo {
+    padding: 0 15px;
+    color: white;
 }
 
-header .banner .logo {
-    display: inline-table;
+header .navbar .logo a {
+    color: white;
+    flex-grow: 0;
+    display:inline-block;
+    align-items: center;
     vertical-align: middle;
-    height: 100%;
-    color: #00529B;
-    text-align: center;
-    padding:0;
-    margin: 15px;
+    height: 60px;
+    width:auto;
+    text-decoration: none;
+}
+
+header .navbar .logo a h1 {
+    font-size: 1.4em;
+    color: white;
+    display:inline-block;
+    align-items: center;
+    vertical-align: middle;
+    height: 60px;
+    width:auto;
+}
+
+/*
+Main Navigation Menu
+*/
+
+.navbar nav.main div {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+    padding: 0 10px;
+}
+
+.navbar nav.main div ul {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar nav.main div ul li a {
+    text-decoration: none;
+    color: #999999;
+    font-size: 14px;
+    text-transform: uppercase;
+    display: block;
+    height: 60px;
+    line-height: 60px;
+    cursor: pointer;
+    padding: 0 10px;
+}
+
+.navbar nav.main div ul li a:hover {
+    color: #ffffff;
+    background-color: rgba(23, 23, 23, 0.9);
+}
+
+.navbar nav.main div ul .close {
+    display: none;
+    text-align: right;
+    padding: 10px;
+}
+
+.navbar nav.main div ul .close span {
+    font-size: 40px;
+    display: inline-block;
+    border: 1px solid #cccccc;
+    padding: 0 10px;
+    cursor: pointer;
 }
 
 /*
@@ -199,60 +202,134 @@ time {
 Menus
 */
 
-nav {
-    width: auto;
+/* User Navigation Menu */
+
+.navbar nav.user div {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+    padding: 0 10px;
 }
 
-/* Main Navigation Menu */
-
-nav.main ul {
-    list-style-type: none;
+.navbar nav.user div ul {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    list-style: none;
     margin: 0;
     padding: 0;
-    overflow: hidden;
-    background-color: #0B6FA4;
-    width:100%;
 }
 
-nav.main ul li {
-    float: left;
-}
-
-nav.main ul li a {
+.navbar nav.user div ul li {
+    font-size: 14px;
     display: block;
-    color: white;
-    text-align: center;
-    padding: 16px;
-    text-decoration: none;
+    height: 60px;
+    line-height: 60px;
+    cursor: pointer;
 }
 
-nav.main ul li a:hover {
-    background-color: #111111;
+.navbar nav.user div ul li a {
+    text-decoration: none;
+    color: #999999;
+    font-size: 14px;
+    display: block;
+    height: 60px;
+    line-height: 60px;
+    cursor: pointer;
+    padding: 0 10px;
+}
+
+.navbar nav.user div ul li a:hover {
+    color: #ffffff;
+    background-color: rgba(23, 23, 23, 0.9);
+}
+
+.navbar nav.user div ul .close {
+    display: none;
+    text-align: right;
+    padding: 10px;
+}
+
+.navbar nav.user div ul .close span {
+    font-size: 40px;
+    display: inline-block;
+    border: 1px solid #cccccc;
+    padding: 0 10px;
+    cursor: pointer;
 }
 
 /* Editor Tool Menu */
 
-nav.editor ul {
-    list-style-type: none;
+.editor .menu {
+    float: right;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+    padding: 0 10px;
+}
+
+.editor .menu ul {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 0;
     padding: 0;
-    overflow: hidden;
-    border-bottom: 1px solid #888;
+    height: 35px;
 }
 
-nav.editor ul li {
-    float: left;
-}
-
-nav.editor ul li a {
+.editor .menu ul li {
+    font-size: 14px;
     display: block;
-    color: #888888;
-    text-align: center;
-    padding: 16px;
-    text-decoration: none;
+    height: 60px;
+    line-height: 60px;
+    cursor: pointer;
 }
 
-nav.editor ul li a:hover {
-    background-color: #cccccc;
+.editor .menu ul li button {
+    background-color: #D0E4F5;
+    color: #0B6FA4;
+}
+
+.editor .menu ul .close {
+    display: none;
+    text-align: right;
+    padding: 10px;
+}
+
+.editor .menu ul .close span {
+    font-size: 40px;
+    display: inline-block;
+    border: 1px solid #cccccc;
+    padding: 0 10px;
+    cursor: pointer;
+}
+
+.editor .menu ul li h4 {
+    display: inline-block;
+    vertical-align: middle;
+    padding:0;
+    margin:3px;
+    height: 35px;
+    line-height: 35px;
+    color: #666;
 }
 
 
@@ -260,6 +337,7 @@ nav.editor ul li a:hover {
 
 nav.breadcrumb ul {
     padding: 10px 16px;
+    margin:0;
     list-style: none;
     background-color: #eee;
 }
@@ -294,46 +372,149 @@ nav.breadcrumb ul li a.home {
     content:'\f015';
 }
 
-/* UserModel Navigation Menu */
+/* Breadcrumb Navigation Menu */
 
-nav.user div.menu {
-    position: absolute;
-    top: 0;
-    right:0;
+nav.breadcrumb ul {
+    padding: 10px 16px;
+    list-style: none;
+    background-color: #eee;
+}
+
+/* Display list items side by side */
+nav.breadcrumb ul li {
+    display: inline;
+    font-size: 18px;
+}
+
+/* Add a slash symbol (/) before/behind each list item */
+nav.breadcrumb ul li+li:before {
+    padding: 8px;
+    color: black;
+    content: "/\00a0";
+}
+
+/* Add a color to all links inside the list */
+nav.breadcrumb ul li a {
+    color: #0275d8;
+    text-decoration: none;
+}
+
+/* Add a color on mouse-over */
+nav.breadcrumb ul li a:hover {
+    color: #01447e;
+    text-decoration: underline;
+}
+
+/* Item Edit Menu */
+
+.records > .menu ul {
+    list-style-type: none;
     padding: 0;
+    margin:0;
     overflow: hidden;
 }
 
-nav.user div.menu div {
-    padding-left:10px;
-    display: inline-table;
-    vertical-align: middle;
-    padding-right: 10px;
-    height: 60px;
+.records > .menu ul li {
+    float: left;
 }
 
-nav.user div.menu div.icon {
-    display: inline-table;
-    vertical-align: middle;
-    height: 100%;
-    color: #00529B;
+.records > .menu ul li a {
+    display: block;
+    color: #0B6FA4;
     text-align: center;
-    padding:0;
-    margin: 15px;
+    padding: 16px;
+    text-decoration: none;
 }
 
-nav.user div.menu div.info {
-    font-size: 80%;
+.records .menu ul li a:hover {
+    background-color: #cccccc;
 }
 
-nav.user div.menu button {
-    background-color: #00529B;
-    color: white;
+/*
+Page Footer
+*/
+
+.footer {
+    font-size: 1em;
+    text-align: center;
+    padding: 20px;
 }
 
-nav.user div.menu button:hover {
-    background-color: #5599cc;
-    color: white;
+/* Tables */
+
+table.records {
+    border: 1px solid #FFFFFF;
+    width: 100%;
+    text-align: left;
+    border-collapse: collapse;
+    color: #444;
+}
+table.records td, table.records th {
+    border: 1px solid #FFFFFF;
+    padding: 3px 2px;
+    margin:0;
+}
+table.records tbody td {
+    font-size: 0.8em;
+}
+table.records tr:nth-child(even) {
+    background: #D0E4F5;
+}
+table.records thead {
+    background: #0B6FA4;
+    border-bottom: 5px solid #FFFFFF;
+}
+table.records thead th {
+    font-size: 0.8em;
+    font-weight: bold;
+    color: #FFFFFF;
+    text-align: center;
+    border-left: 2px solid #FFFFFF;
+}
+table.records thead th:first-child {
+    border-left: none;
+}
+
+table.records tfoot {
+    font-size: 0.8em;
+    font-weight: bold;
+    color: #333333;
+    background: #D0E4F5;
+    border-top: 3px solid #444444;
+}
+table.records tfoot td {
+    font-size: 0.8em;
+}
+
+
+/* Collapsible Containers */
+
+/* Style the button that is used to open and close the collapsible content */
+.collapsible {
+    background-color: transparent;
+    color: #444;
+    cursor: pointer;
+    width: 100%;
+    border: none;
+    text-align: center;
+    outline: none;
+}
+
+/* Add a background color to the button if it is clicked on
+(add the .active class with JS), and when you move the mouse
+over it (hover) */
+.collapsible.active, .collapsible:hover {
+    background-color: #ccc;
+}
+
+/* Style the collapsible content. Note: hidden by default */
+.collapsible.content {
+    position: absolute;
+    width:85%;
+    padding: 0 18px;
+    display: none;
+    overflow: hidden;
+    background-color: #f1f1f1;
 }
 
 /*
@@ -478,15 +659,15 @@ input[type=submit].disabled, input[type=submit].disabled:hover {
 
 /* HREF form button */
 button {
-    margin: 5px;
+    margin: auto;
     font-family: 'Inter', Arial, sans-serif;
     background-color: #888;
     color: white;
-    padding: 12px 20px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: medium;
+    padding: 10px;
 }
 
 button:hover {
@@ -503,7 +684,7 @@ Messages
 
 }
 .msg:before {
-    font-family:FontAwesome;
+    font-family: FontAwesome;
     font-style:normal;
     font-weight:400;
     speak:none;

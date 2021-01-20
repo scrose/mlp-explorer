@@ -19,7 +19,6 @@ const _CLIENT = 'http://localhost:3000';
 /**
  * Get full client URL from path.
  *
- * @param {String} path
  * @public
  */
 

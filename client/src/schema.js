@@ -29,6 +29,9 @@ export const schema = {
             isPassword: 'Passwords must have a minimum eight and maximum 20 characters, at least one uppercase letter, one lowercase letter, one number and one special character',
             isValidForm: 'Form not valid.',
             isRepeatPassword: 'Passwords do not match.'
+        },
+        authentication: {
+            noAuth: 'Authentication failed. Please contact the site administrator.'
         }
     },
     messages: {
@@ -92,7 +95,8 @@ export const schema = {
             password: {
                 label: 'Password',
                 render: 'password',
-                validate: ['isRequired', 'isPassword']
+                validate: ['isRequired', 'isPassword'],
+                omit: ['list', 'show', 'edit']
             },
             repeat_password: {
                 label: 'Repeat Password',

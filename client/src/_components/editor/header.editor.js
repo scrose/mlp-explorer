@@ -6,10 +6,40 @@
  */
 
 import React from 'react';
-import MainNav from '../navigation/main.nav';
-import BreadcrumbNav from '../navigation/breadcrumb.nav';
-import AuthenticatedNav from '../navigation/authenticated.nav';
-import Brand from '../common/brand';
+import MainMenu from '../common/main.menu';
+import Logo from '../common/logo';
+import { useUser } from '../../_providers/user.provider.client';
+import Icon from '../common/icon';
+import { redirect } from '../../_utils/paths.utils.client';
+import { getEmailUser } from '../../_utils/data.utils.client';
+
+/**
+ * User navigation menu (authenticated).
+ *
+ * @public
+ */
+
+const UserMenu = () => {
+    const user = useUser();
+    return (
+        <nav className={'user'}>
+            <div>
+                <ul>
+                    <li>
+                        <a href={`/profile`} title={'View user profile.'}>
+                            <Icon type={'user'} /> {getEmailUser(user.email)} {user.label}
+                        </a>
+                    </li>
+                    <li>
+                        <button title={'Logout of session.'} onClick={() => redirect("/logout")}>
+                            <span>Logout</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    );
+}
 
 /**
  * Page header component.
@@ -19,11 +49,12 @@ import Brand from '../common/brand';
 
 const HeaderEditor = () => {
     return (
-        <header className="page header">
-            <AuthenticatedNav />
-            <Brand />
-            <MainNav />
-            <BreadcrumbNav />
+        <header>
+            <div className={'navbar'}>
+                <Logo />
+                <MainMenu />
+                <UserMenu />
+            </div>
         </header>
     );
 }

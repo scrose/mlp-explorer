@@ -81,7 +81,7 @@ const Data = ({route}) => {
         api.get(route)
             .then(res => {
                 console.log('API Response:', res)
-                const { view, model, data } = res;
+                const { view, model, data } = res || {};
                 // lookup view in schema
                 setView({
                     schema: genSchema(view, model),

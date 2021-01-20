@@ -20,6 +20,7 @@ import Messenger from '../common/messenger';
 import Heading from '../common/heading';
 import MenuEditor from './menu.editor';
 import ListUsers from '../users/list.users';
+import BreadcrumbMenu from '../common/breadcrumb.menu';
 
 /**
  * Render non-static view component.
@@ -29,22 +30,17 @@ import ListUsers from '../users/list.users';
  * @return {React.Component}
  */
 
-const renderView = ({ route, renderType, schema, apiData, callback }) => {
+const renderView = ({ route, renderType, schema, values, callback }) => {
 
     // destructure data fields from schema (Optional)
     const { fields = [] } = schema || {};
-
-    // create column labels from field attributes
-    const cols = fields
-        .filter(field => field.render !== 'hidden' )
-        .map(field => field.label);
 
     // view components indexed by render type
     const viewComponents = {
         'form': () => <Form route={route} schema={schema} callback={callback} />,
         'item': () => <div>Item View</div>,
-        'list': () => <Table rows={apiData} cols={cols} />,
-        'listUsers': () => <ListUsers rows={apiData} cols={cols} />,
+        'list': () => <Table rows={values || []} cols={fields || []} />,
+        'listUsers': () => <ListUsers rows={values || []} cols={fields || []} />,
         "dashboard": () => <DashboardEditor />,
         "login": () => <LoginUsers />,
         "logout": () => <LogoutUsers />,
@@ -82,7 +78,7 @@ const Data = ({ route}) => {
 
     // create dynamic view state
     const [schema, setSchema] = React.useState(null);
-    const [apiData, setAPIData] = React.useState({});
+    const [values, setValues] = React.useState({});
     const [renderType, setRenderType] = React.useState('');
 
     // get data API provider
@@ -103,7 +99,7 @@ const Data = ({ route}) => {
 
                 setSchema(genSchema(view, name, attributes));
                 console.log('Schema:', genSchema(view, name, attributes))
-                setAPIData(data);
+                setValues(data);
 
             });
     }, [api, route, setSchema, setRenderType, renderType]);
@@ -117,9 +113,10 @@ const Data = ({ route}) => {
 
     return (
         <div className={'view'}>
+            <BreadcrumbMenu />
             <MenuEditor model={model} view={view} />
             <Heading model={model} text={label} />
-            {renderView({ route, renderType, schema, apiData, callback })}
+            {renderView({ route, renderType, schema, values, callback })}
         </div>
     );
 

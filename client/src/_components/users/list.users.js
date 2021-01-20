@@ -6,13 +6,8 @@
  */
 
 import React from "react";
-import Form from '../common/form';
 import Loading from '../common/loading';
-import { genSchema } from '../../_services/schema.services.client';
-import { useUser } from '../../_providers/user.provider.client';
-import { useAuth } from '../../_providers/auth.provider.client';
-import { getURL, redirect } from '../../_utils/paths.utils.client';
-import { addMsg } from '../../_services/session.services.client';
+import { getRoot } from '../../_utils/paths.utils.client';
 import Table from '../common/table';
 import Icon from '../common/icon';
 
@@ -20,58 +15,64 @@ import Icon from '../common/icon';
  * Inline menu component to edit records.
  *
  * @public
- * @param { rows }
- * @return {React.Component}
+ * @param {String} id
+ * @param {String} model
+ * @return {JSX.Element}
  */
 
 const ItemEditMenu = ({id, model}) => {
     return (
-        <ul>
-            <li>
-                <a title={`View ${model}.`} href={`${getURL()}/${model}/${id}`}>
-                    <Icon type={"home"} />
-                </a>
-            </li>
-            <li>
-                <a title={`Edit ${model} data.`} href={`${getURL()}/${model}/${id}/edit`}>
-                    <Icon type={"home"} />
-                </a>
-            </li>
-            <li>
-                <a title={`Delete ${model} record.`} href={`${getURL()}/${model}/${id}/remove`}>
-                    <Icon type={"home"} />
-                </a>
-            </li>
-        </ul>
+        <div className={"menu"}>
+            <ul>
+                <li>
+                    <a title={`View ${model}.`} href={`${getRoot()}/${model}/${id}`}>
+                        <Icon type={"info"} />
+                    </a>
+                </li>
+                <li>
+                    <a title={`Edit ${model} data.`} href={`${getRoot()}/${model}/${id}/edit`}>
+                        <Icon type={"edit"} />
+                    </a>
+                </li>
+                <li>
+                    <a title={`Delete ${model} record.`} href={`${getRoot()}/${model}/${id}/remove`}>
+                        <Icon type={"delete"} />
+                    </a>
+                </li>
+            </ul>
+        </div>
     )
 }
 
-const ListUsers = ({rows, cols}) => {
+/**
+ * User list component to view/edit/delete records.
+ *
+ * @public
+ * @param {Array} rows
+ * @param {Array} cols
+ * @return {JSX.Element}
+ */
 
-    // prepare row data for listing
+const ListUsers = ({ rows=[], cols=[] }) => {
+
+    // append editor functionality to each row
     const filterRows = () => {
-        // apply user data filters:
-        // - append editor functionality to each row
         return rows
-            .map(({item}, index) => {
-
-            // append inline edit menu
-            item.editor = <ItemEditMenu id={item.user_id} model={'users'} />;
-
-            return {item};
-        });
+            .map(item => {
+                // append inline edit menu
+                item.editor = <ItemEditMenu id={item.user_id} model={'users'} />;
+                return item;
+            });
     }
 
-    // prepare column data for listing
+    // omit hidden fields from rendering
     const filterCols = () => {
-        // apply user data filters:
-        // - omit hidden fields from rendering
         return cols.filter(col => col.render !== 'hidden');
     }
 
-    return Array.isArray(rows) && Array.isArray(rows)
+    return Array.isArray(rows) && Array.isArray(cols)
         ?
-        <Table rows={filterRows()} cols={filterCols()} />
+        <Table rows={ filterRows() } cols={ filterCols() } classname={'records'} />
         :
         <Loading/>
 

@@ -17,8 +17,12 @@ import React from 'react';
 const getIconClass = (iconType) => {
     const iconComponents = {
         home: 'fas fa-lg fa-home',
-        user: 'fas fa-3x fa-user-circle',
-        logo: 'fas fa-2x fa-mountain',
+        user: 'fas fa-lg fa-user-circle',
+        info: 'fas fa-lg fa-info-circle',
+        edit: 'fas fa-lg fa-edit',
+        delete: 'fas fa-lg fa-trash-alt',
+        logo: 'fas fa-mountain',
+        navigator: 'fas fa-lg fa-map-marked-alt',
         default: 'fas fa-lg fa-square'
     };
     return iconComponents.hasOwnProperty(iconType)

@@ -10,6 +10,7 @@ import { getSession, getSessionToken, clearSession, setSession, addMsg } from '.
 import { makeRequest } from '../_services/data.services.client';
 import { useData } from './data.provider.client';
 import { redirect } from '../_utils/paths.utils.client';
+import { getError } from '../_services/schema.services.client';
 
 /**
  * Global authentication context.
@@ -55,7 +56,7 @@ function AuthProvider(props) {
     const login = (route, credentials) => {
         api.post(route, credentials)
             .then(res => {
-                const {user} = res;
+                const {user} = res || {};
 
                 // create user session on success
                 if (user) {
@@ -63,6 +64,7 @@ function AuthProvider(props) {
                     setData(user);
                     return redirect('/');
                 }
+                addMsg({msg: getError('noAuth', 'authentication'), type: 'error'})
                 return redirect('/login');
             })
     }

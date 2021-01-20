@@ -13,17 +13,17 @@ import Loading from './loading';
  *
  * @public
  * @param { rows }
- * @return {React.Component}
+ * @return {JSX.Element}
  */
 
 const TableHeader = ({ cols }) => {
-    return <thead>
-        <tr>
-            {
-                cols.map((col, index) => <th key={index}>{col}</th>)
-            }
-        </tr>
-    </thead>
+    return  <thead>
+                <tr>
+                    {
+                        cols.map((col, index) => <th key={index}>{col.label}</th>)
+                    }
+                </tr>
+            </thead>
 }
 
 /**
@@ -31,20 +31,25 @@ const TableHeader = ({ cols }) => {
  *
  * @public
  * @param {Array} rows
- * @param cols
- * @return {React.Component}
+ * @param {Array} cols
+ * @return {JSX.Element}
  */
 
 const TableBody = ({rows, cols}) => {
-    console.log('Table rows/cols:', rows, cols)
+    const reserved = ['editor'];
     return <tbody>{
-            rows.map(({item}, index) => {
+            rows.map((item, index) => {
                 return (
                     <tr key={index}>
                         {
-                            // filter column values not defined in column array
+                            // filter item values not defined in column array
+                            // - use column names as keys
+                            // - check any reserved keys for inclusion
                             Object.keys(item)
-                                .filter(key => cols.includes(key))
+                                .filter(key => cols
+                                    .map(cols => cols.name)
+                                    .includes(key) || reserved.includes(key)
+                                )
                                 .map((key, index) => {
                                 return (<td key={index}>{item[key]}</td>);
                             })
@@ -61,15 +66,18 @@ const TableBody = ({rows, cols}) => {
  * @public
  * @param {Array} rows
  * @param {Array} cols
- * @return {React.Component}
+ * @param {String} classname
+ * @return {JSX.Element}
  */
 
-const Table = ({ rows, cols }) => {
+const Table = ({ rows, cols, classname=''}) => {
+
+    console.log('Table for users:', rows, cols)
 
     // ensure data has been retrieved
     return Array.isArray(rows) && Array.isArray(cols)
         ?
-            <table>
+            <table className={classname}>
                 <TableHeader cols={cols} />
                 <TableBody rows={rows} cols={cols} />
             </table>

@@ -6,7 +6,9 @@
  */
 
 import React from 'react';
-import { getURL } from '../../_utils/paths.utils.client';
+import { getRoot, redirect } from '../../_utils/paths.utils.client';
+import { capitalize } from '../../_utils/data.utils.client';
+import Icon from '../common/icon';
 
 /**
  * Editor menu component.
@@ -15,18 +17,46 @@ import { getURL } from '../../_utils/paths.utils.client';
  */
 
 const MenuEditor = ({model, view}) => {
-    const currentPath = getURL();
+    const rootURL = getRoot();
     return (
         view ?
-        <nav className={'editor'}>
+        <div className={'menu'}>
             <ul>
-                <li><a href={`${currentPath}/new`}>New</a></li>
-                {view !== 'list' ? <li><a href={`${currentPath}/edit`}>Edit</a></li> : ''}
-                {view !== 'list' ? <li><a href={`${currentPath}/remove`}>Delete</a></li> : ''}
-                {/*<li><a href={`${currentPath}/#`}>Move</a></li>*/}
-                {/*<li><a href={`${currentPath}/#`}>Merge</a></li>*/}
+                <li>
+                    <h4>
+                        {`${capitalize(model)} Menu`}
+                    </h4>
+                </li>
+                <li>
+                    <button
+                        title={`Add new ${model} item.`}
+                        onClick={() => redirect(`${rootURL}/${model}/new`)}
+                    >
+                        <span>New</span>
+                    </button>
+                </li>
+                {view !== 'list' ?
+                    <li>
+                        <button
+                            title={`Edit this ${model} item.`}
+                            onClick={() => redirect(`${rootURL}/${model}/edit`)}
+                        >
+                            <span>Edit</span>
+                        </button>
+                    </li> : ''
+                }
+                {view !== 'list' ?
+                    <li>
+                        <button
+                            title={`Delete this ${model} item.`}
+                            onClick={() => redirect(`${rootURL}/${model}/remove`)}
+                        >
+                            <span>Delete</span>
+                        </button>
+                    </li> : ''
+                }
             </ul>
-        </nav>
+        </div>
             : ''
     )
 }
