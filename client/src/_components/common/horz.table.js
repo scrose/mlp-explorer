@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Common.Table
+ * MLP.Client.Components.Common.HorzTable
  * File: editor.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
@@ -67,12 +67,13 @@ const TableBody = ({rows, cols}) => {
  * @param {Array} rows
  * @param {Array} cols
  * @param {String} classname
+ * @param {String} orientation
  * @return {JSX.Element}
  */
 
-const Table = ({ rows, cols, classname=''}) => {
+const HorzTable = ({ rows, cols, classname=''}) => {
 
-    console.log('Table for users:', rows, cols)
+    console.log('HorzTable for users:', rows, cols)
 
     // ensure data has been retrieved
     return Array.isArray(rows) && Array.isArray(cols)
@@ -85,4 +86,4 @@ const Table = ({ rows, cols, classname=''}) => {
             <Loading/>
 }
 
-export default Table
+export default HorzTable

@@ -71,6 +71,23 @@ export const getRenderType = (view, model) => {
 }
 
 /**
+ * Get field settings from schema.
+ *
+ * @public
+ * @param {String} key
+ * @param {String} type
+ * @return {Object} message
+ */
+
+export const getField = (key='', type='common') => {
+    const modelSchema = schema.models.hasOwnProperty(type)
+        ? schema.models[type] : '';
+    return modelSchema
+        ? modelSchema.hasOwnProperty(key)
+            ? modelSchema[key] : '' : '';
+}
+
+/**
  * Get local client message.
  *
  * @public
@@ -97,17 +114,39 @@ export const getLocalMsg = (key='', type='info') => {
 
 export const genSchema = (view, model, data=null) => {
 
-    const modelSchema = schema.models.hasOwnProperty(model) ? schema.models[model] : {};
+    const modelSchema = schema.models.hasOwnProperty(model)
+        ? schema.models[model]
+        : {};
     const viewAttributes = _getViewAttributes(view, model);
+
+    // include common fields
+
+
 
     // create renderable elements based on schema
     // Filters out omitted fields (array) for view.
+    // - set in schema 'restrict' settings (list of
+    //   views restricted for showing the field).
+    // - when 'restrict' is absent, all views show
+    //   the field.
+    // - an empty 'restrict' array omits the field
+    //   from all views.
     // (Optional) load initial values from input data
+
     const fields =
         Object.keys(modelSchema)
             .filter(key =>
-                !( modelSchema[key].hasOwnProperty('omit')
-                    && modelSchema[key].omit.includes(view) )
+                !modelSchema[key].hasOwnProperty('restrict')
+                ||
+                (
+                    modelSchema[key].hasOwnProperty('restrict')
+                    && modelSchema[key].restrict.includes(view)
+                )
+                // ||
+                // (
+                //     schema.models.common[key].hasOwnProperty('restrict')
+                //     && schema.models.common[key].restrict.includes(view)
+                // )
             )
             .map(key => {
                 const {value='', options=''} = data && data.hasOwnProperty(key)
@@ -130,6 +169,8 @@ export const genSchema = (view, model, data=null) => {
                         : []
                 };
             });
+
+    console.log('schema fields:', fields)
 
     return {
         model: model,

@@ -6,75 +6,24 @@
  */
 
 import React from 'react';
-import Form from '../common/form';
-import Notfound from '../error/notfound';
 import { genSchema, getStaticView, getRenderType } from '../../_services/schema.services.client';
-import LogoutUsers from '../users/logout.users';
-import LoginUsers from '../users/login.users';
 import { getPath } from '../../_utils/paths.utils.client';
-import DashboardEditor from './dashboard.editor';
 import { useData } from '../../_providers/data.provider.client';
-import Loading from '../common/loading';
-import Table from '../common/table';
 import Messenger from '../common/messenger';
 import Heading from '../common/heading';
 import MenuEditor from './menu.editor';
-import ListUsers from '../users/list.users';
 import BreadcrumbMenu from '../common/breadcrumb.menu';
+import View from '../common/view';
+import MenuViewer from '../viewer/menu.viewer';
 
 /**
- * Render non-static view component.
- *
- * @public
- * @param { route, viewType, viewData, callback }
- * @return {React.Component}
- */
-
-const renderView = ({ route, renderType, schema, values, callback }) => {
-
-    // destructure data fields from schema (Optional)
-    const { fields = [] } = schema || {};
-
-    // view components indexed by render type
-    const viewComponents = {
-        'form': () => <Form route={route} schema={schema} callback={callback} />,
-        'item': () => <div>Item View</div>,
-        'list': () => <Table rows={values || []} cols={fields || []} />,
-        'listUsers': () => <ListUsers rows={values || []} cols={fields || []} />,
-        "dashboard": () => <DashboardEditor />,
-        "login": () => <LoginUsers />,
-        "logout": () => <LogoutUsers />,
-        'notFound': () => <Notfound />
-    };
-
-    return viewComponents.hasOwnProperty(renderType)
-        ? viewComponents[renderType]()
-        : <Loading />
-}
-
-/**
- * Build requested view from API data.
+ * Build requested editor panel from API data.
  *
  * @param {String} route
  * @public
  */
 
-const Static = ({type}) => {
-    return (
-        <>
-            { renderView({renderType: type}) }
-        </>
-    );
-}
-
-/**
- * Build requested view from API data.
- *
- * @param {String} route
- * @public
- */
-
-const Data = ({ route}) => {
+const DataView = ({ route}) => {
 
     // create dynamic view state
     const [schema, setSchema] = React.useState(null);
@@ -111,31 +60,13 @@ const Data = ({ route}) => {
     const { view='', model={}, attributes={} } = schema || {};
     const { label='View' } = attributes || {};
 
-    return (
-        <div className={'view'}>
-            <BreadcrumbMenu />
-            <MenuEditor model={model} view={view} />
-            <Heading model={model} text={label} />
-            {renderView({ route, renderType, schema, values, callback })}
-        </div>
-    );
+    return <View
+        route={route}
+        type={renderType}
+        schema={schema}
+        data={values}
+        callback={callback} />
 
-}
-
-/**
- * View component.
- *
- * @param {String} route
- * @public
- */
-
-const View = ({route}) => {
-    const staticType = getStaticView(route);
-
-    // render static / non-static view
-    return staticType
-        ? <Static type={staticType} />
-        : <Data route={route} />;
 }
 
 /**
@@ -146,11 +77,18 @@ const View = ({route}) => {
 
 const Editor = () => {
     const route = getPath();
+    const staticType = getStaticView(route);
 
     return (
         <div className={'editor'}>
+            <BreadcrumbMenu />
             <Messenger />
-            <View route={route} />
+            <MenuViewer />
+            {
+                staticType
+                    ? <View type={staticType}/>
+                    : <DataView route={route}/>
+            }
         </div>
     )
 };

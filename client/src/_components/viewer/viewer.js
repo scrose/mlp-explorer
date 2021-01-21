@@ -6,42 +6,14 @@
  */
 
 import React from 'react';
-import Form from '../common/form';
-import Notfound from '../error/notfound';
 import { genSchema, getStaticView, getRenderType } from '../../_services/schema.services.client';
-import { getPath, redirect } from '../../_utils/paths.utils.client';
-import DashboardViewer from './dashboard.viewer';
-import List from '../common/list';
-import LoginUser from '../users/login.users';
+import { getPath } from '../../_utils/paths.utils.client';
 import { useData } from '../../_providers/data.provider.client';
-import LogoutUsers from '../users/logout.users';
-import Loading from '../common/loading';
 import Messenger from '../common/messenger';
-
-/**
- * Render non-static view component.
- *
- * @public
- * @param { route, viewType, viewData, callback }
- * @return {React.Component}
- */
-
-const renderView = ({ route, viewType, viewData, callback }) => {
-    const viewComponents = {
-        'empty': () => <Loading />,
-        'form': () => <Form route={route} props={viewData} callback={callback} />,
-        'item': () => <div>Item View</div>,
-        'list': () => <List items={viewData} />,
-        "dashboard": () => <DashboardViewer />,
-        "login": () => <LoginUser />,
-        "logout": () => <LogoutUsers />,
-        'notFound': () => <Notfound />
-    };
-
-    return viewComponents.hasOwnProperty(viewType)
-        ? viewComponents[viewType]()
-        : <Loading />
-}
+import BreadcrumbMenu from '../common/breadcrumb.menu';
+import Heading from '../common/heading';
+import MenuViewer from './menu.viewer';
+import View from '../common/view';
 
 /**
  * Build requested view from API data.
@@ -50,56 +22,40 @@ const renderView = ({ route, viewType, viewData, callback }) => {
  * @public
  */
 
-const Static = ({type}) => {
-
-    return (
-        <>
-            { renderView({viewType: type}) }
-        </>
-    );
-}
-
-/**
- * Build requested view from API data.
- *
- * @param {String} route
- * @public
- */
-
-const Data = ({route}) => {
+const DataView = ({route}) => {
 
     // create dynamic view state
-    const [viewData, setView] = React.useState({});
-    const [viewType, setViewType] = React.useState('');
+    const [schema, setSchema] = React.useState(null);
+    const [values, setValues] = React.useState({});
+    const [renderType, setRenderType] = React.useState('');
 
+    // get data API provider
     const api = useData();
 
-    // Get global data from API
+    // non-static views: fetch API data and set view data in state
     React.useEffect(() => {
-
-        // non-static views: fetch API data and set view data in state
         api.get(route)
             .then(res => {
-                console.log('API Response:', res)
-                const { view, model, data } = res || {};
                 // lookup view in schema
-                setView({
-                    schema: genSchema(view, model),
-                    data: data,
-                    model: model
-                });
-                setViewType(getRenderType(view));
-            })
-    }, [route, setView, setViewType, viewType]);
+                const { view = '', model = {}, data = {} } = res || {};
+                const { name = '', attributes = {} } = model;
+
+                setRenderType(getRenderType(view, name));
+                console.log('Render Type:', getRenderType(view, model));
+                console.log('API Response:', res);
+                console.log('API Data:', data)
+
+                setSchema(genSchema(view, name, attributes));
+                console.log('Schema:', genSchema(view, name, attributes))
+                setValues(data);
+
+            });
+    }, [api, route, setSchema, setRenderType, renderType]);
 
     // select default callback for view
     const callback = api.post;
 
-    return (
-        <div className={'view'}>
-            { renderView({ route, viewType, viewData, callback }) }
-        </div>
-    );
+    return <View route={route} type={renderType} schema={schema} data={values} callback={callback} />
 }
 
 /**
@@ -108,15 +64,26 @@ const Data = ({route}) => {
  * @public
  */
 
-const Viewer = () => {
+/**
+ * Render editor panel component (authenticated).
+ *
+ * @public
+ */
 
+const Viewer = () => {
     const route = getPath();
     const staticType = getStaticView(route);
 
     return (
-        <div className={"viewer"}>
+        <div className={'editor'}>
+            <BreadcrumbMenu />
             <Messenger />
-            { staticType ? <Static type={staticType} /> : <Data route={route} /> }
+            <MenuViewer />
+            {
+                staticType
+                ? <View type={staticType} />
+                : <DataView route={route}/>
+            }
         </div>
     )
 };

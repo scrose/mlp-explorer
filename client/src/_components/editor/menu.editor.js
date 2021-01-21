@@ -17,10 +17,11 @@ import Icon from '../common/icon';
  */
 
 const MenuEditor = ({model, view}) => {
-    const rootURL = getRoot();
+    const menuExclude = ['login', 'register']
+    const editExclude = ['list', 'register'];
     return (
-        view ?
-        <div className={'menu'}>
+        !menuExclude.includes(view) ?
+        <div className={'editor-tools h-menu'}>
             <ul>
                 <li>
                     <h4>
@@ -30,28 +31,28 @@ const MenuEditor = ({model, view}) => {
                 <li>
                     <button
                         title={`Add new ${model} item.`}
-                        onClick={() => redirect(`${rootURL}/${model}/new`)}
+                        onClick={() => redirect(`/${model}/new`)}
                     >
-                        <span>New</span>
+                        <Icon type={'add'} /> <span>Add New</span>
                     </button>
                 </li>
-                {view !== 'list' ?
+                {!editExclude.includes(view) ?
                     <li>
                         <button
                             title={`Edit this ${model} item.`}
-                            onClick={() => redirect(`${rootURL}/${model}/edit`)}
+                            onClick={() => redirect(`/${model}/edit`)}
                         >
-                            <span>Edit</span>
+                            <Icon type={'edit'} /> <span>Edit</span>
                         </button>
                     </li> : ''
                 }
-                {view !== 'list' ?
+                {!editExclude.includes(view) ?
                     <li>
                         <button
                             title={`Delete this ${model} item.`}
-                            onClick={() => redirect(`${rootURL}/${model}/remove`)}
+                            onClick={() => redirect(`/${model}/remove`)}
                         >
-                            <span>Delete</span>
+                            <Icon type={'delete'} /> <span>Delete</span>
                         </button>
                     </li> : ''
                 }

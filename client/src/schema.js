@@ -80,12 +80,27 @@ export const schema = {
         }
     },
     models: {
+        common: {
+            id: {
+                restrict: []
+            },
+            created_at: {
+                label: 'User Role',
+                render: 'timestamp',
+                restrict: ['login', 'register', 'edit', 'add']
+            },
+            updated_at: {
+                label: 'Created At',
+                render: 'timestamp',
+                restrict: ['login', 'register', 'edit', 'add']
+            }
+        },
         users: {
             user_id: {
                 label: 'User ID',
                 render: 'hidden',
                 validate: [],
-                omit: ['login', 'register'],
+                restrict: ['edit', 'delete', 'show'],
             },
             email: {
                 label: 'Email',
@@ -96,20 +111,30 @@ export const schema = {
                 label: 'Password',
                 render: 'password',
                 validate: ['isRequired', 'isPassword'],
-                omit: ['list', 'show', 'edit']
+                restrict: ['login', 'register']
             },
             repeat_password: {
                 label: 'Repeat Password',
                 render: 'password',
-                omit: ['login', 'list'],
+                restrict: ['login'],
                 refs: ['password'],
                 validate: ['isRequired', 'isRepeatPassword']
             },
             role: {
                 label: 'User Role',
                 render: 'select',
-                omit: ['login'],
+                restrict: ['edit', 'delete', 'show'],
                 validate: []
+            },
+            created_at: {
+                label: 'Created At',
+                render: 'timestamp',
+                restrict: ['edit', 'show', 'list']
+            },
+            updated_at: {
+                label: 'Updated At',
+                render: 'timestamp',
+                restrict: ['edit', 'show', 'list']
             }
         },
         projects: {

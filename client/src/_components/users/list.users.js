@@ -8,7 +8,7 @@
 import React from "react";
 import Loading from '../common/loading';
 import { getRoot } from '../../_utils/paths.utils.client';
-import Table from '../common/table';
+import HorzTable from '../common/horz.table';
 import Icon from '../common/icon';
 
 /**
@@ -22,7 +22,7 @@ import Icon from '../common/icon';
 
 const ItemEditMenu = ({id, model}) => {
     return (
-        <div className={"menu"}>
+        <div className={"item h-menu"}>
             <ul>
                 <li>
                     <a title={`View ${model}.`} href={`${getRoot()}/${model}/${id}`}>
@@ -67,12 +67,15 @@ const ListUsers = ({ rows=[], cols=[] }) => {
 
     // omit hidden fields from rendering
     const filterCols = () => {
-        return cols.filter(col => col.render !== 'hidden');
+        const fCols = cols.filter(col => col.render !== 'hidden')
+        // include column heading for editor item tools
+        fCols.push({name: 'editor', label: 'Edit'})
+        return fCols;
     }
 
     return Array.isArray(rows) && Array.isArray(cols)
         ?
-        <Table rows={ filterRows() } cols={ filterCols() } classname={'records'} />
+        <HorzTable rows={ filterRows() } cols={ filterCols() } classname={'items'} />
         :
         <Loading/>
 

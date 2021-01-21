@@ -20,13 +20,15 @@ import { redirect } from '../../_utils/paths.utils.client';
 const UserMenu = () => {
     return (
         <nav className={'user'}>
-            <ul>
-                <li>
-                    <button onClick={() => redirect("/login")}>
-                        <span>Login</span>
-                    </button>
-                </li>
-            </ul>
+            <div>
+                <ul>
+                    <li>
+                        <button onClick={() => redirect("/login")}>
+                            <span>Login</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
         </nav>
     );
 }

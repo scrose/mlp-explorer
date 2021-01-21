@@ -5,7 +5,7 @@
 begin;
 
 -- -------------------------------------------------------------
--- Model Types Table
+-- Model Types HorzTable
 -- -------------------------------------------------------------
 
 drop table if exists "node_types" CASCADE;
@@ -33,7 +33,7 @@ values ('users', 'Users'),
 
 
 -- -------------------------------------------------------------
--- Model Relations Table
+-- Model Relations HorzTable
 -- -------------------------------------------------------------
 
 drop table if exists "node_relations" cascade;
@@ -71,7 +71,7 @@ values ('projects', null),
 
 
 -- -------------------------------------------------------------
--- Nodes Table
+-- Nodes HorzTable
 -- -------------------------------------------------------------
 
 drop table if exists nodes cascade;

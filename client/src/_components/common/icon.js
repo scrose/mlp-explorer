@@ -19,6 +19,7 @@ const getIconClass = (iconType) => {
         home: 'fas fa-lg fa-home',
         user: 'fas fa-lg fa-user-circle',
         info: 'fas fa-lg fa-info-circle',
+        add: 'fas fa-lg fa-plus',
         edit: 'fas fa-lg fa-edit',
         delete: 'fas fa-lg fa-trash-alt',
         logo: 'fas fa-mountain',
