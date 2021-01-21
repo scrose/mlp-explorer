@@ -6,8 +6,8 @@
  */
 
 import React from 'react';
-import BreadcrumbMenu from '../common/breadcrumb.menu';
-import MainMenu from '../common/main.menu';
+import BreadcrumbMenu from '../menus/breadcrumb.menu';
+import MainMenu from '../menus/main.menu';
 import Logo from '../common/logo';
 import { redirect } from '../../_utils/paths.utils.client';
 

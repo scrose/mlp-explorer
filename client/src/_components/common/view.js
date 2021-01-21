@@ -57,7 +57,7 @@ const View = ({route, type, schema, data, callback}) => {
             }
             {
                 views.hasOwnProperty(type) ? views[type]() : <Loading/>
-            };
+            }
         </div>
     )
 }

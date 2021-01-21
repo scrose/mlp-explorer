@@ -27,7 +27,7 @@ const Messenger = () => {
     return (
         <div className={'msgs'}>
             {messages.map((message, index) => {
-                const {msg='', type=''} = message;
+                const {msg='', type=''} = message || {};
                 return (msg && type ? <div className={`msg ${type}`} key={`msg_${index}`}>{msg}</div> : '')
             })}
         </div>

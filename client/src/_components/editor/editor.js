@@ -10,11 +10,9 @@ import { genSchema, getStaticView, getRenderType } from '../../_services/schema.
 import { getPath } from '../../_utils/paths.utils.client';
 import { useData } from '../../_providers/data.provider.client';
 import Messenger from '../common/messenger';
-import Heading from '../common/heading';
 import MenuEditor from './menu.editor';
-import BreadcrumbMenu from '../common/breadcrumb.menu';
+import BreadcrumbMenu from '../menus/breadcrumb.menu';
 import View from '../common/view';
-import MenuViewer from '../viewer/menu.viewer';
 
 /**
  * Build requested editor panel from API data.
@@ -56,10 +54,6 @@ const DataView = ({ route}) => {
     // select default callback for view
     const callback = api.post;
 
-    // get view, model settings from schema
-    const { view='', model={}, attributes={} } = schema || {};
-    const { label='View' } = attributes || {};
-
     return <View
         route={route}
         type={renderType}
@@ -83,7 +77,7 @@ const Editor = () => {
         <div className={'editor'}>
             <BreadcrumbMenu />
             <Messenger />
-            <MenuViewer />
+            <MenuEditor />
             {
                 staticType
                     ? <View type={staticType}/>

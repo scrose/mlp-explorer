@@ -7,6 +7,7 @@
 
 import React from 'react';
 import Loading from './loading';
+import Data from './data';
 
 /**
  * Render table header.
@@ -37,21 +38,34 @@ const TableHeader = ({ cols }) => {
 
 const TableBody = ({rows, cols}) => {
     const reserved = ['editor'];
+
+
+    // filter item values not defined in column array
+    // - use column names as keys
+    // - check any reserved keys for inclusion
+    const filterItem = (key) => {
+        return cols
+                .map(cols => cols.name)
+                .includes(key)
+            || reserved.includes(key)
+    }
+
+    // Apply data processing based on schema
+    const filterData = (item, key) => {
+        const url = '';
+
+        return <Data render={renderSettings[key]} value={item[key]} href={url} />
+    }
+
     return <tbody>{
             rows.map((item, index) => {
                 return (
                     <tr key={index}>
                         {
-                            // filter item values not defined in column array
-                            // - use column names as keys
-                            // - check any reserved keys for inclusion
                             Object.keys(item)
-                                .filter(key => cols
-                                    .map(cols => cols.name)
-                                    .includes(key) || reserved.includes(key)
-                                )
+                                .filter(filterItem)
                                 .map((key, index) => {
-                                return (<td key={index}>{item[key]}</td>);
+                                return <td key={index}>{filterData(item, key)}</td>;
                             })
                         }
                     </tr>

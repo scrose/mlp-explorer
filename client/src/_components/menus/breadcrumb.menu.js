@@ -6,9 +6,9 @@
  */
 
 import React from 'react';
-import Icon from './icon';
+import Icon from '../common/icon';
 import { getPath, getRoot } from '../../_utils/paths.utils.client';
-import List from './list';
+import List from '../common/list';
 import { getEmailUser } from '../../_utils/data.utils.client';
 
 /**

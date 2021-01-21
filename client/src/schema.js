@@ -80,9 +80,12 @@ export const schema = {
         }
     },
     models: {
-        common: {
+        default: {
             id: {
                 restrict: []
+            },
+            nodes_id: {
+                render: 'hidden'
             },
             created_at: {
                 label: 'User Role',
@@ -142,10 +145,18 @@ export const schema = {
             description: 'Project Description'
         },
         surveyors: {
-            given_names: 'Given Names',
-            last_name: 'Last Name',
-            short_name: 'Short Name',
-            affiliation: 'Affiliation'
+            given_names: {
+                label: 'Given Names'
+            },
+            last_name: {
+                label: 'Last Name'
+            },
+            short_name: {
+                label: 'Short Name'
+            },
+            affiliation: {
+                label: 'Affiliation'
+            }
         },
         surveys: {
             name: 'Survey Name',

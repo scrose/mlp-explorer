@@ -71,7 +71,10 @@ export default function DBServices(model) {
 
     this.getAll = async function() {
         let { sql, data } = this.queries.getAll();
-        return pool.query(sql, data);
+        return await pool.query(sql, data)
+            .then(res => {
+                return res.rows
+            });
     };
 
     /**

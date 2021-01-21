@@ -13,6 +13,7 @@
 import DBServices from '../services/db.services.js';
 import FileServices from '../services/files.services.js';
 import * as db from '../services/index.services.js';
+import { prepare } from '../lib/api.utils.js';
 
 /**
  * Export controller constructor.
@@ -89,10 +90,15 @@ export default function NodesController(modelRoute) {
         await dbServices
             .getAll()
             .then(data => {
-                res.locals.data = data.rows;
-                res.status(200).json(res.locals);
+                console.log(data)
+                res.status(200).json(
+                    prepare({
+                        view: 'list',
+                        model: model,
+                        data: data
+                    }));
             })
-            .catch((err) => next(err));
+            .catch(err => next(err));
     };
 
     /**

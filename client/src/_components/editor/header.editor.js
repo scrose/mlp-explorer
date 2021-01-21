@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import MainMenu from '../common/main.menu';
+import MainMenu from '../menus/main.menu';
 import Logo from '../common/logo';
 import { useUser } from '../../_providers/user.provider.client';
 import Icon from '../common/icon';

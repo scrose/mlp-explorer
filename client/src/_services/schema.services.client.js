@@ -119,9 +119,15 @@ export const genSchema = (view, model, data=null) => {
         : {};
     const viewAttributes = _getViewAttributes(view, model);
 
-    // include common fields
-
-
+    // include any default (common) fields to model schema
+    // - for example, ID fields (e.g. nodes_id) and timestamps
+    //   (e.g. created_at).
+    Object.keys(data)
+        .filter(key => schema.models.default.hasOwnProperty(key))
+        .reduce((o, key) => {
+            o[key] = schema.models.default[key];
+            return o;
+        }, modelSchema)
 
     // create renderable elements based on schema
     // Filters out omitted fields (array) for view.
@@ -142,21 +148,16 @@ export const genSchema = (view, model, data=null) => {
                     modelSchema[key].hasOwnProperty('restrict')
                     && modelSchema[key].restrict.includes(view)
                 )
-                // ||
-                // (
-                //     schema.models.common[key].hasOwnProperty('restrict')
-                //     && schema.models.common[key].restrict.includes(view)
-                // )
             )
             .map(key => {
-                const {value='', options=''} = data && data.hasOwnProperty(key)
+                const {value='', options='', label=''} = data && data.hasOwnProperty(key)
                     ? data[key]
                     : {};
 
                 return {
                     name: key,
-                    label: modelSchema[key].label,
-                    value: value || '',
+                    label: modelSchema[key].label || label,
+                    value: value,
                     options: options,
                     render: modelSchema[key].hasOwnProperty('render')
                         ? modelSchema[key].render
@@ -169,8 +170,6 @@ export const genSchema = (view, model, data=null) => {
                         : []
                 };
             });
-
-    console.log('schema fields:', fields)
 
     return {
         model: model,

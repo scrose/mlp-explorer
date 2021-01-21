@@ -10,8 +10,7 @@ import { genSchema, getStaticView, getRenderType } from '../../_services/schema.
 import { getPath } from '../../_utils/paths.utils.client';
 import { useData } from '../../_providers/data.provider.client';
 import Messenger from '../common/messenger';
-import BreadcrumbMenu from '../common/breadcrumb.menu';
-import Heading from '../common/heading';
+import BreadcrumbMenu from '../menus/breadcrumb.menu';
 import MenuViewer from './menu.viewer';
 import View from '../common/view';
 

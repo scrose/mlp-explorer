@@ -10,23 +10,30 @@ import Loading from '../common/loading';
 import HorzTable from '../common/horz.table';
 import ItemMenu from '../menus/item.menu';
 
+
 /**
  * User list component to view/edit/delete records.
  *
  * @public
  * @param {Array} rows
  * @param {Array} cols
+ * @param model
  * @return {JSX.Element}
  */
 
-const ListUsers = ({ rows=[], cols=[] }) => {
+const ListNodes = ({ rows=[], cols=[], model='' }) => {
+
+    const renderSettings = cols.reduce((o, col) => {
+        o[col.name] = col.render;
+        return o;
+    }, {})
 
     // append editor functionality to each row
     const filterRows = () => {
         return rows
             .map(item => {
                 // append inline edit menu
-                item.editor = <ItemMenu id={item.user_id} model={'users'} />;
+                item.editor = <ItemMenu id={item.nodes_id} model={model} />;
                 return item;
             });
     }
@@ -47,4 +54,4 @@ const ListUsers = ({ rows=[], cols=[] }) => {
 
 }
 
-export default ListUsers;
+export default ListNodes;
