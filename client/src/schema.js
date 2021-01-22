@@ -70,10 +70,6 @@ export const schema = {
             label: 'Delete',
             render: 'form'
         },
-        list: {
-            label: 'Listing',
-            render: 'list'
-        },
         show: {
             label: 'View',
             render: 'item'
@@ -119,14 +115,14 @@ export const schema = {
             repeat_password: {
                 label: 'Repeat Password',
                 render: 'password',
-                restrict: ['login'],
+                restrict: ['register'],
                 refs: ['password'],
                 validate: ['isRequired', 'isRepeatPassword']
             },
             role: {
                 label: 'User Role',
                 render: 'select',
-                restrict: ['edit', 'delete', 'show'],
+                restrict: ['list', 'edit', 'delete', 'show'],
                 validate: []
             },
             created_at: {

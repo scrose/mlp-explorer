@@ -6,6 +6,7 @@
  */
 
 import React from 'react'
+import Heading from '../common/heading';
 
 const UserManager = () => {
     return (
@@ -22,6 +23,7 @@ const UserManager = () => {
 const DashboardEditor = () => {
     return (
         <div className="dashboard">
+            <Heading text={'Editor Dashboard'}/>
             <UserManager />
         </div>
     );

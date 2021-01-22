@@ -7,8 +7,10 @@
 
 import React from "react";
 import Loading from '../common/loading';
-import HorzTable from '../common/horz.table';
+import Table from '../common/table';
 import ItemMenu from '../menus/item.menu';
+import { useUser } from '../../_providers/user.provider.client';
+import Data from '../common/data';
 
 /**
  * User list component to view/edit/delete records.
@@ -21,27 +23,66 @@ import ItemMenu from '../menus/item.menu';
 
 const ListUsers = ({ rows=[], cols=[] }) => {
 
-    // append editor functionality to each row
+    console.log('Users:', rows, cols)
+
+    const user = useUser();
+
+    // rename value from indexed options
+    const renameOption = (row, cols, key) => {
+        const optKey = row[key];
+        let label = optKey;
+        cols
+            .filter(col => col.name === key)
+            .filter(col => col.hasOwnProperty('options'))
+            .filter(col => col.options
+                .filter(opt => opt.name === optKey)
+                .map(opt => {label = opt.label})
+            )
+        return label;
+    }
+
+    // prepare row data for table
     const filterRows = () => {
         return rows
-            .map(item => {
-                // append inline edit menu
-                item.editor = <ItemMenu id={item.user_id} model={'users'} />;
-                return item;
+            .map(row => {
+
+                // append inline edit menu (if authenticated)
+                // disallow super-administrator account updates
+                if (user)
+                    row.editor = <ItemMenu id={row.user_id} model={'users'} />;
+
+                // convert user role ID to label
+                row.role = renameOption(row, cols, 'role');
+
+                // set render option for item fields
+                // returns row object indexed by field name
+                return Object.keys(row).reduce((o, key) => {
+                    const url = '';
+                    const renderSetting = cols
+                        .filter(col => key === col.name).render;
+                    o[key] = <Data render={renderSetting} value={row[key]} href={url}/>
+                    return o;
+                }, {})
             });
     }
 
-    // omit hidden fields from rendering
+    // prepare column data for table
     const filterCols = () => {
-        const fCols = cols.filter(col => col.render !== 'hidden')
-        // include column heading for editor item tools
-        fCols.push({name: 'editor', label: 'Edit'})
+
+        // omit hidden elements
+        const fCols = cols
+            .filter(col => col.render !== 'hidden')
+
+        // include column heading for editor item tools (authenticated)
+        if (user)
+            fCols.push({name: 'editor', label: 'Edit'})
+
         return fCols;
     }
 
     return Array.isArray(rows) && Array.isArray(cols)
         ?
-        <HorzTable rows={ filterRows() } cols={ filterCols() } classname={'items'} />
+        <Table rows={ filterRows() } cols={ filterCols() } classname={'items'} />
         :
         <Loading/>
 

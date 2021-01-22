@@ -38,12 +38,6 @@ const Form = ({ route, schema, callback }) => {
         }
     }
 
-    // create field value/error/references initialization states
-    const initValues = {
-        values: fields.reduce((o, f) => {o[f.name] = f.value; return o}, {}),
-        errors: fields.reduce((o, f) => {o[f.name] = ''; return o}, {})
-    }
-
     /**
      * Render form.
      *
@@ -55,7 +49,6 @@ const Form = ({ route, schema, callback }) => {
             <Fieldset
                 labels={{name: name, legend: label, submit: submit}}
                 fields={fields}
-                init={initValues}
                 valid={isValid}
                 disabled={isDisabled}
             />

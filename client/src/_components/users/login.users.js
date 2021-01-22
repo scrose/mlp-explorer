@@ -13,6 +13,7 @@ import { useUser } from '../../_providers/user.provider.client';
 import { useAuth } from '../../_providers/auth.provider.client';
 import { redirect } from '../../_utils/paths.utils.client';
 import { addMsg } from '../../_services/session.services.client';
+import Heading from '../common/heading';
 
 const LoginUsers = () => {
 
@@ -30,10 +31,10 @@ const LoginUsers = () => {
 
     return user
         ? <Loading />
-        : <Form
-            route={'/login'}
-            schema={genSchema('login', 'users')}
-            callback={auth.login} />
+        : <>
+            <Heading model={''} text={'Sign In'}/>
+            <Form route={'/login'} schema={genSchema('login', 'users')} callback={auth.login} />
+          </>
 }
 
 export default LoginUsers;

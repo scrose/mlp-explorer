@@ -20,6 +20,7 @@ const Data = ({ render='default', value='', href='', label='' }) => {
     /**
      * Data elements.
      */
+    // console.log('DATA:', value)
 
     const _dataElements = {
         link: ({value, href, label}) => {

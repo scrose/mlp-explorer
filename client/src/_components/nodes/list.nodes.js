@@ -7,8 +7,10 @@
 
 import React from "react";
 import Loading from '../common/loading';
-import HorzTable from '../common/horz.table';
+import Table from '../common/table';
 import ItemMenu from '../menus/item.menu';
+import Data from '../common/data';
+import { useUser } from '../../_providers/user.provider.client';
 
 
 /**
@@ -23,32 +25,48 @@ import ItemMenu from '../menus/item.menu';
 
 const ListNodes = ({ rows=[], cols=[], model='' }) => {
 
-    const renderSettings = cols.reduce((o, col) => {
-        o[col.name] = col.render;
-        return o;
-    }, {})
+    console.log('Nodes:', rows, cols)
 
-    // append editor functionality to each row
+    const user = useUser();
+
+    // prepare row data for table
     const filterRows = () => {
         return rows
             .map(item => {
-                // append inline edit menu
-                item.editor = <ItemMenu id={item.nodes_id} model={model} />;
-                return item;
+
+                // append inline edit menu (authenticated)
+                if (user)
+                    item.editor = <ItemMenu id={item.nodes_id} model={model} />;
+
+                // set render option for item fields
+                // returns row object indexed by field name
+                return Object.keys(item).reduce((o, key) => {
+                    const url = '';
+                    const renderSetting = cols
+                        .filter(col => key === col.name).render;
+                    o[key] = <Data render={renderSetting} value={item[key]} href={url}/>
+                    return o;
+                }, {})
             });
     }
 
-    // omit hidden fields from rendering
+    // prepare column data for table
     const filterCols = () => {
-        const fCols = cols.filter(col => col.render !== 'hidden')
-        // include column heading for editor item tools
-        fCols.push({name: 'editor', label: 'Edit'})
+
+        // omit hidden elements
+        const fCols = cols
+            .filter(col => col.render !== 'hidden')
+
+        // include column heading for editor item tools (authenticated)
+        if (user)
+            fCols.push({name: 'editor', label: 'Edit'})
+
         return fCols;
     }
 
     return Array.isArray(rows) && Array.isArray(cols)
         ?
-        <HorzTable rows={ filterRows() } cols={ filterCols() } classname={'items'} />
+        <Table rows={ filterRows() } cols={ filterCols() } classname={'items'} />
         :
         <Loading/>
 

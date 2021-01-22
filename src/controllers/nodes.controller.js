@@ -93,7 +93,7 @@ export default function NodesController(modelRoute) {
                 console.log(data)
                 res.status(200).json(
                     prepare({
-                        view: 'list',
+                        view: 'listNodes',
                         model: model,
                         data: data
                     }));

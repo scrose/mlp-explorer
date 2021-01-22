@@ -16,7 +16,7 @@ import React from 'react';
 
 const MenuViewer = () => {
     return (
-        <nav className={'viewer'}>NavViewer</nav>
+        <nav className={'viewer'}>{''}</nav>
     )
 }
 

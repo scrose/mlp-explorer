@@ -8,14 +8,15 @@
 import { schema } from '../schema';
 
 /**
- * Load static view index.
+ * Load static view render index from given route. Unlike data
+ * views, static views do not require input data from API requests.
  *
  * @public
- * @return {view, model, labels}
- * @param route
+ * @param {String} route
+ * @return {String} render type
  */
 
-export const getStaticView = (route) => {
+export const getStaticRenderType = (route) => {
 
     // get static routes
     const {routes} = schema;
@@ -65,8 +66,7 @@ export const getPageHeading = () => {
 export const getRenderType = (view, model) => {
 
     // destructure the render property from the schema
-    const { render=null } = _getViewAttributes(view, model);
-
+    const { render=view } = _getViewAttributes(view, model);
     return render;
 }
 
@@ -112,7 +112,7 @@ export const getLocalMsg = (key='', type='info') => {
  * @return {{model: String, attributes: *, fields: {name: *, label: *, render: *|string, value: *|string}[]}}
  */
 
-export const genSchema = (view, model, data=null) => {
+export const genSchema = (view, model, data={}) => {
 
     const modelSchema = schema.models.hasOwnProperty(model)
         ? schema.models[model]

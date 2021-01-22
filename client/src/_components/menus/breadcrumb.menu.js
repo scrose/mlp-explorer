@@ -29,7 +29,7 @@ const _getBreadcrumbs = function(user) {
     if (breadcrumbs.length === 0) return null;
 
     // reformat user email to extract user-id (if exists)
-    const userName = user ? getEmailUser(user.email) : 'UserID';
+    const placeholder = user ? getEmailUser(user.email) : '...';
 
     // convert breadcrumbs -> components and extend array
     let breadcrumbComponents = breadcrumbs
@@ -37,11 +37,15 @@ const _getBreadcrumbs = function(user) {
             // build accumulative url
             const uri = breadcrumbs
                 .filter((item, j) => i === j )
-                .reduce((o, item) => {o.push(item); return o}, [])
+                .reduce((o, item) => {
+                    o.push(item);
+                    return o;
+                }, [])
                 .join('/');
 
-            // create label text
-            const label = item.split('_').join(' ').toLowerCase();
+            // create label text: use placeholder for very long slugs
+            const slug = item.length > 15 ? placeholder : item;
+            const label = slug.split('_').join(' ').toLowerCase();
 
             // render last item without link
             return i !== breadcrumbs.length - 1

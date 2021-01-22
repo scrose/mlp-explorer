@@ -21,52 +21,36 @@ const TableHeader = ({ cols }) => {
     return  <thead>
                 <tr>
                     {
-                        cols.map((col, index) => <th key={index}>{col.label}</th>)
+                        cols.map((col, index) =>
+                            <th key={index}>{col.label}</th>
+                        )
                     }
                 </tr>
             </thead>
 }
 
 /**
- * Render table body.
+ * Render table body. Filters item values not defined in
+ * column array using column/item names as keys.
  *
  * @public
- * @param {Array} rows
- * @param {Array} cols
+ * @param {Array} rows: [{name: NAME, data: DATA}]
+ * @param {Array} cols: [{name: NAME, label: DATA}]
  * @return {JSX.Element}
  */
 
 const TableBody = ({rows, cols}) => {
-    const reserved = ['editor'];
-
-
-    // filter item values not defined in column array
-    // - use column names as keys
-    // - check any reserved keys for inclusion
-    const filterItem = (key) => {
-        return cols
-                .map(cols => cols.name)
-                .includes(key)
-            || reserved.includes(key)
-    }
-
-    // Apply data processing based on schema
-    const filterData = (item, key) => {
-        const url = '';
-
-        return <Data render={renderSettings[key]} value={item[key]} href={url} />
-    }
 
     return <tbody>{
-            rows.map((item, index) => {
+            rows.map((row, index) => {
                 return (
                     <tr key={index}>
                         {
-                            Object.keys(item)
-                                .filter(filterItem)
-                                .map((key, index) => {
-                                return <td key={index}>{filterData(item, key)}</td>;
-                            })
+                            cols
+                                .filter(col => row.hasOwnProperty(col.name))
+                                .map((col, index) =>
+                                    <td key={index}>{row[col.name]}</td>
+                                )
                         }
                     </tr>
                 );
@@ -80,14 +64,13 @@ const TableBody = ({rows, cols}) => {
  * @public
  * @param {Array} rows
  * @param {Array} cols
- * @param {String} classname
- * @param {String} orientation
+ * @param {String} classname (Optional)
  * @return {JSX.Element}
  */
 
-const HorzTable = ({ rows, cols, classname=''}) => {
+const Table = ({ rows, cols, classname=''}) => {
 
-    console.log('HorzTable for users:', rows, cols)
+    // console.log('Table Input:', rows, cols)
 
     // ensure data has been retrieved
     return Array.isArray(rows) && Array.isArray(cols)
@@ -100,4 +83,4 @@ const HorzTable = ({ rows, cols, classname=''}) => {
             <Loading/>
 }
 
-export default HorzTable
+export default Table

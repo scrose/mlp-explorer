@@ -8,7 +8,7 @@
 import React from 'react';
 import Form from './form';
 import Item from './item';
-import HorzTable from './horz.table';
+import Table from './table';
 import ListUsers from '../users/list.users';
 import DashboardEditor from '../editor/dashboard.editor';
 import LoginUsers from '../users/login.users';
@@ -16,7 +16,7 @@ import LogoutUsers from '../users/logout.users';
 import Notfound from '../error/notfound';
 import Loading from './loading';
 import DashboardViewer from '../viewer/dashboard.viewer';
-import Heading from './heading';
+import ListNodes from '../nodes/list.nodes';
 
 
 /**
@@ -29,10 +29,6 @@ import Heading from './heading';
 const View = ({route, type, schema, data, callback}) => {
     console.log('View schema:', schema)
 
-    // get view, model settings from schema
-    const { view='', model={}, attributes={} } = schema || {};
-    const { label='' } = attributes || {};
-
     // destructure data fields from schema (Optional)
     const { fields = [] } = schema || {};
 
@@ -40,8 +36,9 @@ const View = ({route, type, schema, data, callback}) => {
     const views = {
         'form': () => <Form route={route} schema={schema} callback={callback} />,
         'item': () => <Item values={data || {}} fields={fields || []} />,
-        'list': () => <HorzTable rows={data || []} cols={fields || []} />,
+        'list': () => <Table rows={data || []} cols={fields || []} />,
         'listUsers': () => <ListUsers rows={data || []} cols={fields || []} />,
+        'listNodes': () => <ListNodes rows={data || []} cols={fields || []} />,
         "dashboardView": () => <DashboardViewer />,
         "dashboardEdit": () => <DashboardEditor />,
         "login": () => <LoginUsers />,
@@ -52,9 +49,6 @@ const View = ({route, type, schema, data, callback}) => {
     // render view component
     return (
         <div className={'view'}>
-            {
-                model && label ? <Heading model={model} text={label}/> : ''
-            }
             {
                 views.hasOwnProperty(type) ? views[type]() : <Loading/>
             }

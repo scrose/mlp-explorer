@@ -6,13 +6,14 @@
  */
 
 import React from 'react';
-import { genSchema, getStaticView, getRenderType } from '../../_services/schema.services.client';
+import { genSchema, getStaticRenderType, getRenderType } from '../../_services/schema.services.client';
 import { getPath } from '../../_utils/paths.utils.client';
 import { useData } from '../../_providers/data.provider.client';
 import Messenger from '../common/messenger';
 import MenuEditor from './menu.editor';
 import BreadcrumbMenu from '../menus/breadcrumb.menu';
 import View from '../common/view';
+import Heading from '../common/heading';
 
 /**
  * Build requested editor panel from API data.
@@ -54,13 +55,16 @@ const DataView = ({ route}) => {
     // select default callback for view
     const callback = api.post;
 
-    return <View
-        route={route}
-        type={renderType}
-        schema={schema}
-        data={values}
-        callback={callback} />
+    // get view, model settings from schema
+    const { model={}, attributes={} } = schema || {};
+    const { label='' } = attributes || {};
 
+    return (
+        <>
+            <Heading model={model} text={label}/>
+            <View route={route} type={renderType} schema={schema} data={values} callback={callback} />
+        </>
+    )
 }
 
 /**
@@ -71,7 +75,11 @@ const DataView = ({ route}) => {
 
 const Editor = () => {
     const route = getPath();
-    const staticType = getStaticView(route);
+
+    // Lookup static view in schema
+    const staticType = getStaticRenderType(route) === 'dashboard'
+        ? 'dashboardEdit'
+        : getStaticRenderType(route);
 
     return (
         <div className={'editor'}>

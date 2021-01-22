@@ -17,10 +17,10 @@ import Icon from '../common/icon';
  */
 
 const MenuEditor = ({model, view}) => {
-    const menuExclude = ['login', 'register']
-    const editExclude = ['list', 'register'];
+    const menuExclude = ['dashboard', 'login', 'register']
+    const editExclude = ['dashboard', 'list', 'register'];
     return (
-        !menuExclude.includes(view) ?
+        view && !menuExclude.includes(view) ?
         <div className={'editor-tools h-menu'}>
             <ul>
                 <li>

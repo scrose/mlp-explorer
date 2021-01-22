@@ -30,7 +30,7 @@ const filter = ['password', 'salt_token', 'reset_password_token']
  * @src public
  */
 
-let User;
+let User, roles;
 
 export const init = async (req, res, next) => {
 
@@ -47,6 +47,11 @@ export const init = async (req, res, next) => {
     User = await db.model.create('users')
         .catch((err) => next(err));
 
+    // retrieve user roles
+    roles = await db.users.getRoles()
+        .catch(err => {return next(err)});
+    if (!roles) throw new Error();
+
     next();
 };
 
@@ -60,13 +65,19 @@ export const init = async (req, res, next) => {
  * @src public
  */
 export const list = async (req, res, next) => {
+
+    // create user model, include role options in model
+    const user = new User()
+    if (roles)
+        user.setOptions('role', roles);
+
     await db.users
         .getAll()
         .then(data => {
             res.status(200).json(
                 prepare({
                     view: 'list',
-                    model: new User(),
+                    model: user,
                     data: data
                 }));
         })
@@ -183,7 +194,7 @@ export const authenticate = async (req, res, next) => {
     // decode JWT token -> user_id
     await auth.verify(req, res, next);
     const {userId, token} = req;
-    console.log('User ID, token:', userId)
+    console.log('Authenticating UserID:', userId)
 
     // confirm user registration
     await db.users
@@ -316,11 +327,6 @@ export const create = async (req, res, next) => {
  */
 
 export const edit = async (req, res, next) => {
-
-    // retrieve user roles
-    const roles = await db.users.getRoles()
-        .catch(err => {return next(err)});
-    if (!roles) throw new Error();
 
     // get requested user ID
     const { user_id } = req.params;

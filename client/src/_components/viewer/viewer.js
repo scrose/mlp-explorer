@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { genSchema, getStaticView, getRenderType } from '../../_services/schema.services.client';
+import { genSchema, getStaticRenderType, getRenderType } from '../../_services/schema.services.client';
 import { getPath } from '../../_utils/paths.utils.client';
 import { useData } from '../../_providers/data.provider.client';
 import Messenger from '../common/messenger';
@@ -39,15 +39,16 @@ const DataView = ({route}) => {
                 const { view = '', model = {}, data = {} } = res || {};
                 const { name = '', attributes = {} } = model;
 
-                setRenderType(getRenderType(view, name));
-                console.log('Render Type:', getRenderType(view, model));
-                console.log('API Response:', res);
-                console.log('API Data:', data)
+                // get the view render type defined in schema
+                const rType = getRenderType(view, name);
+                setRenderType(rType);
 
+                // set the requested view schema
                 setSchema(genSchema(view, name, attributes));
-                console.log('Schema:', genSchema(view, name, attributes))
                 setValues(data);
 
+                console.log('Data View: \n Render Type: %s\nAPI Response: %s', getRenderType(view, model), res);
+                console.log('Schema:', genSchema(view, name, attributes))
             });
     }, [api, route, setSchema, setRenderType, renderType]);
 
@@ -71,7 +72,11 @@ const DataView = ({route}) => {
 
 const Viewer = () => {
     const route = getPath();
-    const staticType = getStaticView(route);
+
+    // Lookup static view in schema
+    const staticType = getStaticRenderType(route) === 'dashboard'
+        ? 'dashboardView'
+        : getStaticRenderType(route);
 
     return (
         <div className={'editor'}>

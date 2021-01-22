@@ -14,9 +14,10 @@ import { capitalize } from '../../_utils/data.utils.client';
  * @public
  */
 
-const Heading = ({model='Records', text = 'View'}) => {
+const Heading = ({model='', text = ''}) => {
+    const prefix = model ? `${capitalize(model)}: ` : '';
 
-    return <h3>{`${text}: ${capitalize(model)}`}</h3>
+    return <h3>{`${prefix}${text}`}</h3>
 }
 
 export default Heading;

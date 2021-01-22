@@ -34,7 +34,8 @@ export function selectByEmail(email) {
     return {
         sql: `SELECT *
               FROM users
-              WHERE users.email = $1::varchar`,
+              WHERE users.email = $1::varchar 
+                AND users.role != 'super_administrator'`,
         data: [email],
     };
 }
@@ -52,7 +53,8 @@ export function getAll() {
                      users.role,
                      users.created_at,
                      users.updated_at
-              FROM users`,
+              FROM users
+              WHERE users.role != 'super_administrator'`,
         data: [],
     };
 }

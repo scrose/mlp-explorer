@@ -72,73 +72,101 @@ const SubmitButton = ({name, value='Submit'}) => {
  * <select>
  */
 
-const _inputElements = {
-    hidden: ({name, value}) => {
-        return(
-            <input readOnly={true} key={`key_${name}`} type={"hidden"}
-                   id={name} name={name} value={value||''} />
-        )
-    },
-    text: ({name, label}, value, error, {onchange, onblur}) => {
-        return(
-            <label key={`label_${name}`} htmlFor={name}>
-                {label}
-                <input key={`key_${name}`} type={"text"}
-                       id={name} name={name} value={value || ''} onChange={onchange} onBlur={onblur} />
-                {error ? <ValidationMessages msg={error} /> : null}
-            </label>
-        )
-    },
-    checkbox: ({name, label}, value, error, {onchange})  => {
-        const isChecked = (value && value === true);
-        return(
-            <label key={`label_${name}`} htmlFor={name}>
-                {label}
-                <input key={`key_${name}`} type={"checkbox"}
-                       id={name} name={name} checked={isChecked} onChange={onchange} />
-            </label>
-        )
-    },
-    email: ({name, label}, value, error, {onchange, onblur}) => {
-        return(
-            <label key={`label_${name}`} htmlFor={name}>
-                {label}
-                <input key={`key_${name}`} type={"email"}
-                       id={name} name={name} value={value || ''} onChange={onchange} onBlur={onblur} />
-                {error ? <ValidationMessages msg={error} /> : null}
-            </label>
-        )
-    },
-    password: ({name, label}, value, error, {onchange, onblur})  => {
-        return(
-            <label key={`label_${name}`} htmlFor={name}>
-                {label}
-                <input key={`key_${name}`} type={"password"} autoComplete={'new-password'}
-                       id={name} name={name} value={value || ''} onChange={onchange} onBlur={onblur} />
-                {error ? <ValidationMessages msg={error} /> : null}
-            </label>
-        )
-    },
-    select: ({name, label, options}, value, error, {onchange, onblur})  => {
-        return (
-            <label key={`label_${name}`} htmlFor={name}>
-                {label}
-                <select key={`key_${name}`} id={name} name={name} onChange={onchange} onBlur={onblur}>
-                    {options
-                        .map(opt =>
-                            <option key={`${name}_${opt.id}`}
-                                    id={`${name}_${opt.id}`}
-                                    name={`${name}_${opt.id}`}
-                                    value={opt.name}>
-                                {opt.label}
-                            </option>
-                        )
-                    }
-                </select>
-                {error ? <ValidationMessages msg={error} /> : null}
-            </label>
-        )
+const Input = ({type, name, label, value, error, refs}) => {
+
+    const _inputElements = {
+        hidden: ({ name, value }) => {
+            return (
+                <input readOnly={true} key={`key_${name}`} type={"hidden"}
+                       id={name} name={name} value={value || ''}/>
+            )
+        },
+        text: ({ name, label }, value, error, { onchange, onblur }) => {
+            return (
+                <label key={`label_${name}`} htmlFor={name}>
+                    {label}
+                    <input key={`key_${name}`} type={"text"}
+                           id={name} name={name} value={value || ''} onChange={onchange} onBlur={onblur}/>
+                    {error ? <ValidationMessages msg={error}/> : null}
+                </label>
+            )
+        },
+        checkbox: ({ name, label }, value, error, { onchange }) => {
+            const isChecked = (value && value === true);
+            return (
+                <label key={`label_${name}`} htmlFor={name}>
+                    {label}
+                    <input key={`key_${name}`} type={"checkbox"}
+                           id={name} name={name} checked={isChecked} onChange={onchange}/>
+                </label>
+            )
+        },
+        email: ({ name, label }, value, error, { onchange, onblur }) => {
+            return (
+                <label key={`label_${name}`} htmlFor={name}>
+                    {label}
+                    <input key={`key_${name}`} type={"email"}
+                           id={name} name={name} value={value || ''} onChange={onchange} onBlur={onblur}/>
+                    {error ? <ValidationMessages msg={error}/> : null}
+                </label>
+            )
+        },
+        password: ({ name, label }, value, error, { onchange, onblur }) => {
+            return (
+                <label key={`label_${name}`} htmlFor={name}>
+                    {label}
+                    <input key={`key_${name}`} type={"password"} autoComplete={'new-password'}
+                           id={name} name={name} value={value || ''} onChange={onchange} onBlur={onblur}/>
+                    {error ? <ValidationMessages msg={error}/> : null}
+                </label>
+            )
+        },
+        select: ({ name, label, options }, value, error, { onchange, onblur }) => {
+            return (
+                <label key={`label_${name}`} htmlFor={name}>
+                    {label}
+                    <select key={`key_${name}`} id={name} name={name} onChange={onchange} onBlur={onblur}>
+                        {options
+                            .map(opt =>
+                                <option key={`${name}_${opt.id}`}
+                                        id={`${name}_${opt.id}`}
+                                        name={`${name}_${opt.id}`}
+                                        value={opt.name}>
+                                    {opt.label}
+                                </option>
+                            )
+                        }
+                    </select>
+                    {error ? <ValidationMessages msg={error}/> : null}
+                </label>
+            )
+        }
     }
+
+    // lookup form input element for data type
+    const _fieldElem = _inputElements.hasOwnProperty(type)
+        ? _inputElements[type]
+        : () => {};
+
+    // TODO: Fix references between values in state
+    const _references = refs.reduce((o, ref) => {
+        o[ref] = values.hasOwnProperty(ref) ? values[ref] : '';
+        return o;
+    }, {});
+
+    // create validator from schema
+    const _validator = new Validator(validate, _references);
+
+    // render element
+    return _fieldElem (
+        field,
+        value,
+        error,
+        {
+            onchange: handleChange,
+            onblur: handleBlur(_validator)
+        }
+    );
 }
 
 /**
@@ -151,7 +179,13 @@ const _inputElements = {
  * @return fieldset element
  */
 
-const Fieldset = ({labels, fields, init, valid, disabled}) => {
+const Fieldset = ({labels, fields, valid, disabled}) => {
+
+    // create field value/error/references initialization states
+    const init = {
+        values: fields.reduce((o, f) => {o[f.name] = f.value; return o}, {}),
+        errors: fields.reduce((o, f) => {o[f.name] = ''; return o}, {})
+    }
 
     // initialize input values, errors (in state)
     const [values, setValues] = React.useState(init.values);
@@ -198,35 +232,22 @@ const Fieldset = ({labels, fields, init, valid, disabled}) => {
             {fields.map(field => {
 
                 const { name='', render='', refs=[], validate=[] } = field;
-
-                // lookup form input element for data type
-                const _fieldElem = _inputElements.hasOwnProperty(render)
-                    ? _inputElements[render]
-                    : {};
-
                 // get form schema for requested model
                 const _value = values.hasOwnProperty(name) ? values[name] : '';
                 const _error = errors.hasOwnProperty(name) ? errors[name] : '';
 
-                // TODO: Fix references between values in state
-                const _references = refs.reduce((o, ref) => {
-                    o[ref] = values.hasOwnProperty(ref) ? values[ref] : '';
-                    return o;
-                }, {});
+                return (
+                    <Input
+                        type={render}
+                        name={name}
+                        label={name}
+                        value={_value}
+                        error={_error}
+                        validate={validate}
+                        ref={refs}
+                    />
+                )
 
-                // create validator from schema
-                const _validator = new Validator(validate, _references);
-
-                // render element
-                return _fieldElem (
-                    field,
-                    _value,
-                    _error,
-                    {
-                        onchange: handleChange,
-                        onblur: handleBlur(_validator)
-                    }
-                );
             })}
             <div>
                 <SubmitButton
