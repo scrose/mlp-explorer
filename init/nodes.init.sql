@@ -5,7 +5,7 @@
 begin;
 
 -- -------------------------------------------------------------
--- Model Types HorzTable
+-- Model Types Table
 -- -------------------------------------------------------------
 
 drop table if exists "node_types" CASCADE;
@@ -33,7 +33,7 @@ values ('users', 'Users'),
 
 
 -- -------------------------------------------------------------
--- Model Relations HorzTable
+-- Model Relations Table
 -- -------------------------------------------------------------
 
 drop table if exists "node_relations" cascade;
@@ -71,7 +71,7 @@ values ('projects', null),
 
 
 -- -------------------------------------------------------------
--- Nodes HorzTable
+-- Nodes Table
 -- -------------------------------------------------------------
 
 drop table if exists nodes cascade;
@@ -110,6 +110,7 @@ CREATE TABLE "public"."projects" (
          "nodes_id" integer primary key,
          "name" character varying(255),
          "description" text,
+         UNIQUE (name),
          CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
              REFERENCES nodes (id) ON DELETE CASCADE
 ) WITH (oids = false);
@@ -129,6 +130,9 @@ set name = q.name,
 from (select * from old_projects order by id) as q
 where (select old_id from nodes where id=projects.nodes_id) = q.id;
 
+-- add non-empty constraint
+ALTER TABLE projects
+    ALTER COLUMN "name" SET NOT NULL;
 
 -- -------------------------------------------------------------
 --    Surveyors (root owners)
@@ -142,6 +146,7 @@ CREATE TABLE "public"."surveyors" (
       "given_names" character varying(255),
       "short_name" character varying(255),
       "affiliation" character varying(255),
+      UNIQUE (last_name, given_names, short_name, affiliation),
       CONSTRAINT "fk_nodes_id" FOREIGN KEY (nodes_id)
           REFERENCES "nodes" (id) ON DELETE CASCADE
 ) WITH (oids = false);
@@ -164,6 +169,14 @@ set last_name = q.last_name,
 from (select * from old_surveyors order by id) as q
 where (select old_id from nodes where id=surveyors.nodes_id) = q.id;
 
+-- add non-empty constraint
+ALTER TABLE surveyors
+ADD CONSTRAINT chk_not_empty CHECK (
+    last_name IS NOT NULL
+        OR given_names IS NOT NULL
+        OR short_name IS NOT NULL
+        OR affiliation IS NOT NULL);
+
 
 -- -------------------------------------------------------------
 --    Surveys  (owned by surveyors)
@@ -176,6 +189,7 @@ CREATE TABLE "public"."surveys" (
         "owner_id" integer not null,
         "name" character varying(255),
         "historical_map_sheet" character varying(255),
+        UNIQUE (owner_id, name),
         CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
             REFERENCES nodes (id) ON DELETE CASCADE,
         CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
@@ -202,6 +216,10 @@ set name = q.name,
 from (select * from old_surveys order by id) as q
 where (select old_id from nodes where id=surveys.nodes_id) = q.id;
 
+-- add non-empty constraint
+ALTER TABLE surveys
+    ADD CONSTRAINT chk_not_empty CHECK (
+            "name" IS NOT NULL);
 
 -- -------------------------------------------------------------
 --    Survey Seasons  (owned by surveys)
@@ -222,6 +240,7 @@ CREATE TABLE "public"."survey_seasons" (
        "location" text,
        "sources" text,
        "notes" text,
+       UNIQUE (owner_id, year),
        CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
            REFERENCES nodes (id) ON DELETE CASCADE,
        CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
@@ -259,6 +278,9 @@ set year=q.year,
 from (select * from old_survey_seasons order by id) as q
 where (select old_id from nodes where id=survey_seasons.nodes_id) = q.id;
 
+-- add non-empty constraint
+ALTER TABLE survey_seasons
+    ALTER COLUMN "year" SET NOT NULL;
 
 -- -------------------------------------------------------------
 --    Stations (multiple owners)
@@ -275,6 +297,7 @@ CREATE TABLE "public"."stations" (
          elev double precision,
          azim double precision,
          "nts_sheet" character varying(255),
+         UNIQUE (owner_id, name),
          CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
              REFERENCES nodes (id) ON DELETE CASCADE,
          CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
@@ -311,6 +334,9 @@ set name=q.name,
 from (select * from old_stations order by id) as q
 where (select old_id from nodes where id=stations.nodes_id) = q.id;
 
+-- add non-empty constraint
+ALTER TABLE stations
+    ALTER COLUMN "name" SET NOT NULL;
 
 -- -------------------------------------------------------------
 --    Historic Visits (owned by stations)
@@ -348,8 +374,6 @@ set date=q.date,
     comments=q.comments
 from (select * from old_historic_visits order by id) as q
 where (select old_id from nodes where id=historic_visits.nodes_id) = q.id;
-
-
 
 -- -------------------------------------------------------------
 --    Visits (owned by stations)
@@ -416,6 +440,9 @@ set date=q.date,
 from (select * from old_visits order by id) as q
 where (select old_id from nodes where id=modern_visits.nodes_id) = q.id;
 
+-- add non-empty constraint
+ALTER TABLE modern_visits
+    ALTER COLUMN "date" SET NOT NULL;
 
 -- -------------------------------------------------------------
 --    Locations (owned by visits)

@@ -1,6 +1,6 @@
 /*!
- * MLP.API.Library.Database
- * File: database.js
+ * MLP.API.Services.PostGresDB
+ * File: pgdb.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */

@@ -5,7 +5,7 @@
 begin;
 
 -- -------------------------------------------------------------
--- File Types HorzTable
+-- File Types Table
 -- -------------------------------------------------------------
 
 drop table if exists "file_types" CASCADE;
@@ -26,7 +26,7 @@ values ('historic_images', 'Historic Image'),
 
 
 -- -------------------------------------------------------------
--- File Relations HorzTable
+-- File Relations Table
 -- -------------------------------------------------------------
 
 drop table if exists "file_relations" cascade;
@@ -57,7 +57,7 @@ values ('modern_images', 'modern_captures'),
 
 
 -- -------------------------------------------------------------
--- Files HorzTable
+-- Files Table
 -- -------------------------------------------------------------
 
 drop table if exists files cascade;

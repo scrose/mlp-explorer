@@ -31,20 +31,32 @@ export function authHeader(ctype='application/json') {
 
 /**
  * Fetch options for JSON API request.
+ * Options:
+ * - method: *GET, POST only
+ * - cors: no-cors, *cors, same-origin
+ * - cache: *default, no-cache, reload, force-cache, only-if-cached
+ * - credentials: include, *same-origin, omit
+ * - headers: (see authHeader)
+ * - redirect: manual, *follow, error
+ * - referralPolicy:
+ *      no-referrer, *no-referrer-when-downgrade, origin,
+ *      origin-when-cross-origin, same-origin, strict-origin,
+ *      strict-origin-when-cross-origin, unsafe-url
  *
  * @public
  * @params {data, method, ctype}
  */
 
 const getFetchOptions = ({ data=null, method='POST', ctype='application/json'}) => {
+
     const opts = {
-            method: method, // *GET, POST, PUT, DELETE, etc.
-            mode: 'cors', // no-cors, *cors, same-origin
-            cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-            credentials: 'same-origin', // include, *same-origin, omit
+            method: method,
+            mode: 'cors',
+            cache: 'no-cache',
+            credentials: 'same-origin',
             headers: authHeader(ctype),
-            redirect: 'follow', // manual, *follow, error
-            referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+            redirect: 'follow',
+            referrerPolicy: 'no-referrer'
         }
 
         // include form data in body for posts

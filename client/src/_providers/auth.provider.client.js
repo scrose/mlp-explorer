@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react'
-import { getSession, getSessionToken, clearSession, setSession, addMsg } from '../_services/session.services.client';
+import { getSession, getSessionToken, clearSession, setSession, addSessionMsg } from '../_services/session.services.client';
 import { makeRequest } from '../_services/data.services.client';
 import { useData } from './data.provider.client';
 import { redirect } from '../_utils/paths.utils.client';
@@ -53,26 +53,30 @@ function AuthProvider(props) {
     });
 
     // user login request
-    const login = (route, credentials) => {
-        api.post(route, credentials)
+    const login = async function(route, credentials) {
+        return await api.post(route, credentials)
             .then(res => {
                 const {user} = res || {};
+                console.log('Logged in user:', user)
 
                 // create user session on success
                 if (user) {
                     setSession(user);
                     setData(user);
-                    return redirect('/');
+                    return (res)
+
+                    // return redirect('/');
                 }
-                addMsg({msg: getError('noAuth', 'authentication'), type: 'error'})
-                return redirect('/login');
+                console.error({msg: getError('noAuth', 'authentication'), type: 'error'})
+                addSessionMsg({msg: getError('noAuth', 'authentication'), type: 'error'})
+                //return redirect('/login');
             })
     }
 
     // register the user
     const logout = () => {
         clearSession();
-        addMsg({ msg: 'Logged out successfully!', type: 'success' });
+        addSessionMsg({ msg: 'Logged out successfully!', type: 'success' });
     }
 
     /**

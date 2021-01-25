@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Common.HorzTable
+ * MLP.Client.Components.Common.Table
  * File: editor.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
@@ -22,8 +22,12 @@ const TableHeader = ({ cols }) => {
                 <tr>
                     {
                         cols.map((col, index) =>
-                            <th key={index}>{col.label}</th>
-                        )
+                            <th
+                                key={index}
+                                className={col.class}
+                            >
+                                {col.label}
+                            </th>)
                     }
                 </tr>
             </thead>

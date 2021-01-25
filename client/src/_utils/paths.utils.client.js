@@ -66,7 +66,7 @@ export function getRoot() {
  * @public
  */
 
-export function getRoute(uri=null) {
+export function getAPIURL(uri=null) {
     const route = uri ? uri : getPath();
     return `${_API}${route}`
 }
@@ -81,4 +81,17 @@ export function getRoute(uri=null) {
 export function redirect(uri=null) {
     const route = uri ? uri : getPath();
     return window.location.href = `${_CLIENT}${route}`;
+}
+
+/**
+ * Create node path for requested model, view, id.
+ *
+ * @public
+ */
+
+export function getNodeURI(model, view='', id='') {
+    const modelSlug = model !== '' ? `/${model}` : '';
+    const viewSlug = view !== 'show' ? `/${view}` : '';
+    const idSlug = id !== '' ? `/${id}` : '';
+    return `${modelSlug}${idSlug}${viewSlug}`;
 }

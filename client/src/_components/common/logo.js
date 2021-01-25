@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { getRoot } from '../../_utils/paths.utils.client';
-import { getPageHeading } from '../../_services/schema.services.client';
+import { getAppTitle } from '../../_services/schema.services.client';
 import Icon from './icon';
 
 /**
@@ -20,7 +20,7 @@ const Logo = () => {
     return (
         <div className={'logo'}>
             <a href={ getRoot() }>
-                <h1><Icon type={'logo'} /> { getPageHeading() }</h1>
+                <h1><Icon type={'logo'} /> { getAppTitle() }</h1>
             </a>
         </div>
     );

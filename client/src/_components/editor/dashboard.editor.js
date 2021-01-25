@@ -8,9 +8,16 @@
 import React from 'react'
 import Heading from '../common/heading';
 
-const UserManager = () => {
+/**
+ * User management panel.
+ *
+ * @public
+ * @return {Promise} result
+ */
+
+const UserPanel = () => {
     return (
-        <nav className={'manager'}>
+        <nav className={'panel'}>
             <h4>User Management</h4>
             <ul>
                 <li><a href={'/users'}>List users</a></li>
@@ -20,11 +27,38 @@ const UserManager = () => {
     );
 }
 
+/**
+ * Node management panel.
+ *
+ * @public
+ * @return {Promise} result
+ */
+
+const NodePanel = () => {
+    return (
+        <nav className={'panel'}>
+            <h4>User Management</h4>
+            <ul>
+                <li><a href={'/surveyors'}>Surveyors</a></li>
+                <li><a href={'/surveys/'}>Surveys</a></li>
+            </ul>
+        </nav>
+    );
+}
+
+/**
+ * Editor dashboard component
+ *
+ * @public
+ * @return {Promise} result
+ */
+
 const DashboardEditor = () => {
     return (
         <div className="dashboard">
             <Heading text={'Editor Dashboard'}/>
-            <UserManager />
+            <UserPanel />
+            <NodePanel />
         </div>
     );
 }

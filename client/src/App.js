@@ -7,8 +7,8 @@
 
 import React from 'react';
 import {useUser} from './_providers/user.provider.client';
-import AuthenticatedApp from './_components/app/authenticated.app';
-import UnauthenticatedApp from './_components/app/unauthenticated.app';
+import EditorApp from './_components/app/editor.app';
+import ViewerApp from './_components/app/viewer.app';
 
 /**
  * Core client application component.
@@ -18,7 +18,7 @@ import UnauthenticatedApp from './_components/app/unauthenticated.app';
 
 function App() {
     const user = useUser();
-    return user ? <AuthenticatedApp /> : <UnauthenticatedApp />
+    return user ? <EditorApp /> : <ViewerApp />
 }
 
 export default App;

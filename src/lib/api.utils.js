@@ -16,6 +16,8 @@
  * @param message
  * @param user
  * @param data
+ * @param path
+ * @param dependent
  * @param filter
  */
 
@@ -25,11 +27,13 @@ export function prepare({
                             message={},
                             user=null,
                             data=null,
+                            path={},
+                            dependents = {},
                             filter = []
 }) {
 
     // get model attributes
-    const {name={}, attributes={}} = model;
+    const { name={}, attributes={} } = model;
 
     // get submission data
     const submissionData = data
@@ -41,9 +45,11 @@ export function prepare({
             name: name,
             attributes: attributes
         },
+        path: path,
         view: view,
         message: message,
         data: submissionData,
+        dependents: dependents,
         user: user
     }
 }

@@ -24,7 +24,7 @@ const UserMenu = () => {
                 <ul>
                     <li>
                         <button onClick={() => redirect("/login")}>
-                            <span>Login</span>
+                            <span>Sign In</span>
                         </button>
                     </li>
                 </ul>

@@ -24,6 +24,7 @@ const getIconClass = (iconType) => {
         delete: 'fas fa-lg fa-trash-alt',
         logo: 'fas fa-mountain',
         navigator: 'fas fa-lg fa-map-marked-alt',
+        down: 'fas fa-lg fa-chevron-circle-down',
         default: 'fas fa-lg fa-square'
     };
     return iconComponents.hasOwnProperty(iconType)

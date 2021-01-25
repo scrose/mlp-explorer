@@ -72,35 +72,35 @@ export const create = async (modelType) => {
         },
         getNode: {
             value: function() {
-                const node = Object.entries(this.attributes)
-                    .find(([key, _]) => key === 'nodes_id'
+                const node = Object.keys(this.attributes)
+                    .find(key => key === 'nodes_id'
                         && this.attributes[key].ref);
-                return node == null ? null : node[1];
+                return node == null ? null : this.attributes[node];
             },
             writable: false
         },
         getFile: {
             value: function() {
-                const file = Object.entries(this.attributes)
-                    .find(([key, _]) => key === 'files_id'
+                const file = Object.keys(this.attributes)
+                    .find(key => key === 'files_id'
                         && this.attributes[key].ref);
-                return file == null ? null : file[1];
+                return file == null ? null : this.attributes[file];
             },
             writable: false
         },
         getOwner: {
             value: function() {
-                const owner = Object.entries(this.attributes)
-                    .find(([key, _]) => key === 'owner_id'
+                const owner = Object.keys(this.attributes)
+                    .find(key => key === 'owner_id'
                         && this.attributes[key].ref);
-                return owner == null ? null : owner[1];
+                return owner == null ? null : this.attributes[owner];
             },
             writable: false
         },
         getAttachedFiles: {
             value: function() {
-                const attached = Object.entries(this.attributes)
-                    .filter(([key, _]) => this.attributes[key].ref
+                const attached = Object.keys(this.attributes)
+                    .filter(key => this.attributes[key].ref
                         && this.attributes[key].ref !== 'nodes')
                 return attached.length === 0 ? null : attached;
             },
@@ -108,8 +108,8 @@ export const create = async (modelType) => {
         },
         getAttached: {
             value: function() {
-                const attached = Object.entries(this.attributes)
-                    .filter(([key, _]) => this.attributes[key].ref
+                const attached = Object.keys(this.attributes)
+                    .filter(key => this.attributes[key].ref
                         && this.attributes[key].ref !== 'nodes')
                 return attached.length === 0 ? null : attached;
             },
@@ -136,20 +136,6 @@ export const getNodeTypes = async function() {
 
     // return only model type names as list
     return nodeTypes.rows.map(nodeType => { return nodeType.name });
-};
-
-/**
- * Get node by ID. NOTE: returns single object.
- *
- * @public
- * @param {integer} id
- * @return {Promise} result
- */
-
-export const getNode = async function(id) {
-    let { sql, data } = queries.schema.getNode(id);
-    let node = await pool.query(sql, data);
-    return node.rows[0];
 };
 
 /**

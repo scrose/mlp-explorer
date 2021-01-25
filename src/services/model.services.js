@@ -9,7 +9,7 @@
 
 import { humanize, sanitize, toCamel } from '../lib/data.utils.js';
 import * as schemaConstructor from './schema.services.js';
-import { getNode } from './schema.services.js';
+import { getNode } from './nodes.services.js';
 
 /**
  * Create derived model through composition. The model schema
@@ -138,18 +138,8 @@ function setData(data=null) {
             .map(key => this.attributes[key].value =
                 sanitize(inputData[key], this.attributes[key].type));
 
-        // set option values (if exist)
-        // this.attributes
-        //     .filter(attr => attr.hasOwnProperty('options'))
-        //     .map(attr => {
-        //         attr.label = attr.options
-        //             .filter(opt => opt.name === attr.name)
-        //             .map(opt => {return opt.label});
-        //         return attr;
-        //     });
-
         // get attached files (if exist)
-        this.files = this.getAttachedFiles(this.id);
+        this.files = this.getAttachedFiles(this.id) || {};
     }
 }
 
@@ -228,7 +218,8 @@ function getData(filter=[]) {
  */
 
 function clear() {
-    Object.entries(this.attributes).map(attr => { attr.value = null });
+    Object.entries(this.attributes)
+        .map(attr => { attr.value = null });
 }
 
 /**
@@ -306,4 +297,3 @@ export const createReference = async function(id, item, modelType) {
         owner_type: ownerAttrs.type
     });
 };
-

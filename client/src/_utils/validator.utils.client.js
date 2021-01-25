@@ -22,7 +22,6 @@ export default Validator;
  */
 
 function Validator(validations, refs=[]) {
-    console.log('Refs:', refs)
     validations = ( typeof validations !== "undefined" ) ? validations : [];
 
     // resolve validation methods

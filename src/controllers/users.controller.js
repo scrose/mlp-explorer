@@ -167,6 +167,7 @@ export const login = async (req, res, next) => {
             res.status(200).json(
                 prepare({
                     message: {msg: 'Login successful!', type: 'success'},
+                    view: 'login',
                     user: {
                         id: authUser.getValue('user_id'),
                         email: authUser.getValue('email'),
@@ -268,13 +269,7 @@ export const create = async (req, res, next) => {
         // validate user input data
         const { email, password, role } = req.body;
 
-        console.log(email, password, role, req.body)
-
-
-        console.log(valid.load(email).isRequired().isEmail().data,
-            valid.load(password).isRequired().isPassword().data,
-            valid.load(role).isRequired().data)
-
+        // create new user instance
         newUser = new User({
             email: valid.load(email).isRequired().isEmail().data,
             password: valid.load(password).isRequired().isPassword().data,
@@ -283,8 +278,6 @@ export const create = async (req, res, next) => {
 
         // encrypt user password and generate salt token
         auth.encryptUser(newUser);
-
-        console.log(req.body)
 
     } catch (err) {
         console.error(err)

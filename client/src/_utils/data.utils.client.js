@@ -31,4 +31,25 @@ export const getEmailUser = (email) => {
     return email.replace(/@.*$/,"")
 }
 
+/**
+ * Convert a `Map` to a standard
+ * JS object recursively.
+ *
+ * @param {Map} map to convert.
+ * @returns {Object} converted object.
+ */
+
+export const mapToObj = (map) => {
+    const out = Object.create(null);
+    map.forEach((value, key) => {
+        if (value instanceof Map) {
+            out[key] = mapToObj(value)
+        }
+        else {
+            out[key] = value
+        }
+    })
+    return out
+}
+
 

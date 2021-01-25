@@ -38,12 +38,13 @@ async function initRoutes(routes, baseRouter) {
     // get user permission settings
     let permissions = await schema.getPermissions();
 
-    // apply controller initialization
-    router.use(routes.controller.init);
-
     // add routes
     Object.entries(routes.routes).forEach(([view, route]) => {
         router.route(route.path)
+            .all(function(req, res, next) {
+                // initialize controller
+                routes.controller.init(req, res, next);
+            })
             .all(function(req, res, next) {
 
                 // get permissions settings (allowed user roles) for model, view
@@ -86,8 +87,9 @@ async function initRoutes(routes, baseRouter) {
 
 async function initRouter() {
 
-    // initialize main route
-    baseRouter.use('/', main);
+    // initialize main routes
+    initRoutes(main, baseRouter)
+        .catch(err => {throw err});
 
     // initialize user routes
     initRoutes(users, baseRouter)

@@ -7,8 +7,8 @@
 
 import * as React from 'react'
 import { makeRequest } from '../_services/data.services.client';
-import { redirect } from '../_utils/paths.utils.client';
-import { addMsg, clearSession, getMsg } from '../_services/session.services.client';
+import { getAPIURL, redirect } from '../_utils/paths.utils.client';
+import { addSessionMsg, clearSession } from '../_services/session.services.client';
 
 /**
  * Global authentication context.
@@ -32,25 +32,36 @@ function DataProvider(props) {
      * Error router.
      *
      * @public
-     * @param {String} status
+     * @param status
+     * @param response
      */
 
-    const errorRouter = (status) => {
+    const errorRouter = (status, response) => {
         const routes = {
             '404': () => {
+                clearSession();
+                addSessionMsg(response.message)
                 return redirect('/not_found')
             },
             '401': () => {
                 clearSession();
+                addSessionMsg(response.message)
                 return redirect('/login')
             },
             '403': () => {
                 clearSession();
+                addSessionMsg(response.message)
                 return redirect('/login')
+            },
+            '500': () => {
+                clearSession();
+                addSessionMsg(response.message)
+                return redirect('/')
             }
         }
-
-        return routes.hasOwnProperty(status) ? routes[status]() : null;
+        return routes.hasOwnProperty(status)
+            ? routes[status]()
+            : response;
     }
 
     /**
@@ -58,18 +69,16 @@ function DataProvider(props) {
      *
      * @public
      * @param {String} route
-
      */
     const get = async function(route) {
-        return await makeRequest({url: route, method:'GET'})
+        return await makeRequest({url: getAPIURL(route), method:'GET'})
             .then(res => {
                 const { response } = res;
-                // add messages to storage
-                addMsg(response.message)
                 // handle exceptions
                 if (!res.success)
-                    return errorRouter(res.status);
+                    return errorRouter(res.status, response);
                 return response;
+
             })
             .catch(err => {
                 console.error('An API error occurred:', err)
@@ -87,16 +96,14 @@ function DataProvider(props) {
     const post = async function(route, payload) {
         return await makeRequest({url: route, method:'POST', data: payload})
             .then(res => {
+                // get content portion of fetched response data
                 const { response } = res;
-
-                // add messages to storage
-                addMsg(response.message)
-
                 // handle exceptions
                 if (!res.success)
-                    return errorRouter(res.status);
+                    return errorRouter(res.status, response);
 
                 return response;
+
             })
             .catch(err => {
                 console.error('An API error occurred:', err)
@@ -104,7 +111,12 @@ function DataProvider(props) {
     }
 
     return (
-        <DataContext.Provider value={{get, post}} {...props} />
+        <DataContext.Provider value={
+            {
+                get,
+                post
+            }
+        } {...props} />
     )
 
 }

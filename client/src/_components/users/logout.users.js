@@ -10,7 +10,7 @@ import { useAuth } from '../../_providers/auth.provider.client';
 import { redirect } from '../../_utils/paths.utils.client';
 import Loading from '../common/loading';
 import { useUser } from '../../_providers/user.provider.client';
-import { addMsg } from '../../_services/session.services.client';
+import { addSessionMsg } from '../../_services/session.services.client';
 
 const LogoutUsers = () => {
 
@@ -23,7 +23,7 @@ const LogoutUsers = () => {
             auth.logout();
         }
         else {
-            addMsg({msg:'User is logged out.', type:'info'})
+            addSessionMsg({msg:'User is logged out.', type:'info'})
         }
         return redirect('/');
     }, []);

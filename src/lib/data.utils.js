@@ -25,6 +25,27 @@ export function groupBy(arr, key) {
 }
 
 /**
+ * Convert a `Map` to a standard
+ * JS object recursively.
+ *
+ * @param {Map} map to convert.
+ * @returns {Object} converted object.
+ */
+
+export const mapToObj = (map) => {
+    const out = Object.create(null);
+    map.forEach((value, key) => {
+        if (value instanceof Map) {
+            out[key] = mapToObj(value)
+        }
+        else {
+            out[key] = value
+        }
+    })
+    return out
+}
+
+/**
  * Check if object is empty. NOTE: This should
  * work in ES5 compliant implementations.
  *
@@ -54,6 +75,8 @@ export function removeEmpty(arr) {
  * Sanitize data by PostGreSQL data type. Note for composite
  * user-defined types (i.e. coord, camera_settings, dims) the
  * data array is converted to a string representation of its tuple.
+ * Empty strings are converted to NULL to trigger postgres non-empty
+ * constraints.
  *
  * @param data
  * @param {String} datatype
@@ -62,12 +85,12 @@ export function removeEmpty(arr) {
  */
 
 export function sanitize(data, datatype) {
-    const drinks = {
+    const sanitizers = {
         'boolean': function() {
             return !!data;
         },
         'varying character': function() {
-            return String(data);
+            return data === '' ? null : String(data);
         },
         'integer': function() {
             return isNaN(parseInt(data)) ? null : parseInt(data);
@@ -82,10 +105,10 @@ export function sanitize(data, datatype) {
             return !Array.isArray(data) ? null : `(${data.join(',')})`;
         },
         'default': function() {
-            return data;
+            return data === '' ? null : data;
         },
     };
-    return (drinks[datatype] || drinks['default'])();
+    return (sanitizers[datatype] || sanitizers['default'])();
 }
 
 

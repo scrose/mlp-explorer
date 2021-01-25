@@ -13,17 +13,19 @@ import Editor from '../editor/editor';
 import HeaderEditor from '../editor/header.editor';
 
 /**
- * Main app component for unauthenticated users.
+ * Main app component for authenticated users.
  *
  * @public
  */
 
-const AuthenticatedApp = () => {
+const EditorApp = () => {
     return (
         <div className={"page-content"}>
             <HeaderEditor />
             <main>
-                <Navigator/>
+                <BoundaryError>
+                    <Navigator/>
+                </BoundaryError>
                 <BoundaryError>
                     <Editor/>
                 </BoundaryError>
@@ -33,4 +35,4 @@ const AuthenticatedApp = () => {
     );
 }
 
-export default AuthenticatedApp;
+export default EditorApp;

@@ -6,87 +6,98 @@
  */
 
 import React from 'react';
-import { genSchema, getStaticRenderType, getRenderType } from '../../_services/schema.services.client';
+import { genSchema, getRenderType, getStaticRenderType } from '../../_services/schema.services.client';
 import { getPath } from '../../_utils/paths.utils.client';
-import { useData } from '../../_providers/data.provider.client';
 import Messenger from '../common/messenger';
 import BreadcrumbMenu from '../menus/breadcrumb.menu';
-import MenuViewer from './menu.viewer';
-import View from '../common/view';
+import ViewerMenu from '../menus/viewer.menu';
+import DataView from '../views/data.view';
+import StaticView from '../views/static.view';
+import { useData } from '../../_providers/data.provider.client';
+import Heading from '../common/heading';
 
 /**
- * Build requested view from API data.
- *
- * @param {String} route
- * @public
- */
-
-const DataView = ({route}) => {
-
-    // create dynamic view state
-    const [schema, setSchema] = React.useState(null);
-    const [values, setValues] = React.useState({});
-    const [renderType, setRenderType] = React.useState('');
-
-    // get data API provider
-    const api = useData();
-
-    // non-static views: fetch API data and set view data in state
-    React.useEffect(() => {
-        api.get(route)
-            .then(res => {
-                // lookup view in schema
-                const { view = '', model = {}, data = {} } = res || {};
-                const { name = '', attributes = {} } = model;
-
-                // get the view render type defined in schema
-                const rType = getRenderType(view, name);
-                setRenderType(rType);
-
-                // set the requested view schema
-                setSchema(genSchema(view, name, attributes));
-                setValues(data);
-
-                console.log('Data View: \n Render Type: %s\nAPI Response: %s', getRenderType(view, model), res);
-                console.log('Schema:', genSchema(view, name, attributes))
-            });
-    }, [api, route, setSchema, setRenderType, renderType]);
-
-    // select default callback for view
-    const callback = api.post;
-
-    return <View route={route} type={renderType} schema={schema} data={values} callback={callback} />
-}
-
-/**
- * Build viewer panel.
- *
- * @public
- */
-
-/**
- * Render editor panel component (authenticated).
+ * Render viewer panel component (unauthenticated).
  *
  * @public
  */
 
 const Viewer = () => {
+
+    // create dynamic view state
+    const [values, setValues] = React.useState({});
+    const [nodePath, setNodePath] = React.useState({});
+    const [schema, setSchema] = React.useState(null);
+    const [render, setRender] = React.useState('');
+    const [view, setView] = React.useState('');
+    const [model, setModel] = React.useState('');
+    const [id, setIDValue] = React.useState('');
+
     const route = getPath();
+    const api = useData();
 
     // Lookup static view in schema
-    const staticType = getStaticRenderType(route) === 'dashboard'
+    const staticRenderType = getStaticRenderType(route) === 'dashboard'
         ? 'dashboardView'
         : getStaticRenderType(route);
 
+    /**
+     * Set current Item ID value. Retrieves ID value
+     * from API data (if exists).
+     *
+     * @public
+     * @param {Object} data
+     */
+
+    const setID = (data) => {
+        const { nodes_id='', users_id='' } = data;
+        const idValue = nodes_id ? nodes_id : users_id ? users_id : '';
+        setIDValue(idValue);
+    }
+
+    // non-static views: fetch API data and set view data in state
+    React.useEffect(() => {
+        api.get(route)
+            .then(res => {
+                console.log('API Response:', res);
+
+                // update state with response data
+                const { view = '', model={}, data={}, path={} } = res || {};
+                const { name = '', attributes = {} } = model;
+                setRender(getRenderType(view, name));
+                setView(view);
+                setModel(name);
+                setID(data)
+                setValues(data);
+                setNodePath(path)
+
+                // lookup view in schema
+                setSchema(genSchema(view, name, attributes));
+
+            });
+    }, [api, route]);
+
     return (
         <div className={'editor'}>
-            <BreadcrumbMenu />
-            <Messenger />
-            <MenuViewer />
+            <div className={'header'}>
+                <BreadcrumbMenu path={nodePath} />
+                <Messenger />
+                <Heading path={nodePath} />
+                <ViewerMenu id={id} model={model} view={view} />
+            </div>
             {
-                staticType
-                ? <View type={staticType} />
-                : <DataView route={route}/>
+                staticRenderType
+                ? <StaticView type={staticRenderType} />
+                : <DataView
+                        route={route}
+                        id={id}
+                        view={view}
+                        model={model}
+                        values={values}
+                        setValues={setValues}
+                        schema={schema}
+                        render={render}
+                    />
             }
         </div>
     )

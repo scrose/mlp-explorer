@@ -12,7 +12,8 @@
 
 import DBServices from '../services/db.services.js';
 import FileServices from '../services/files.services.js';
-import * as db from '../services/index.services.js';
+import * as modelServices from '../services/model.services.js';
+import * as ns from '../services/nodes.services.js'
 import { prepare } from '../lib/api.utils.js';
 
 /**
@@ -22,7 +23,7 @@ import { prepare } from '../lib/api.utils.js';
  * @src public
  */
 
-let Model, model, dbServices, fileServices;
+let Model, model, db, filer;
 
 // generate controller constructor
 export default function NodesController(modelRoute) {
@@ -42,20 +43,23 @@ export default function NodesController(modelRoute) {
     this.init = async (req, res, next) => {
 
         // generate model constructor
-        Model = await db.model.create(modelRoute)
-            .catch((err) => next(err));
+        Model = await modelServices
+            .create(modelRoute)
+            .catch(err => {
+                return next(err);
+            });
 
         // generate services for model
         try {
             model = new Model();
-            dbServices = new DBServices(new Model());
-            fileServices = new FileServices();
+            db = new DBServices(new Model());
+            filer = new FileServices();
         }
         catch (err) {
-            next(err);
+            console.error('Services generator error.')
+            return next(err);
         }
-
-        next();
+        return next();
     };
 
     /**
@@ -87,18 +91,20 @@ export default function NodesController(modelRoute) {
      */
 
     this.list = async (req, res, next) => {
-        await dbServices
+        await db
             .getAll()
             .then(data => {
-                console.log(data)
                 res.status(200).json(
                     prepare({
                         view: 'listNodes',
                         model: model,
-                        data: data
+                        data: data,
+                        path: model
                     }));
             })
-            .catch(err => next(err));
+            .catch(err => {
+                return next(err);
+            });
     };
 
     /**
@@ -111,15 +117,34 @@ export default function NodesController(modelRoute) {
      */
 
     this.show = async (req, res, next) => {
-        let id = this.getId(req);
-        await dbServices
-            .select(id)
-            .then((data) => {
-                if (data.rows.length === 0) throw new Error('norecord');
-                res.locals.data = data.rows[0];
-                res.status(200).json(res.locals);
-            })
-            .catch((err) => next(err));
+
+        try {
+            // get requested node ID
+            let id = this.getId(req);
+
+            // get record data for node
+            const data = await db.select(id)
+            const item = new Model(data);
+
+            // get path of node in hierarchy
+            const path = await ns.getNodePath(item);
+
+            // get linked data referenced in node tree
+            await ns.getDependents(item)
+                .then(dependents => {
+                    res.status(200).json(
+                        prepare({
+                            view: 'show',
+                            model: model,
+                            data: data,
+                            path: path,
+                            dependents: dependents
+                        }));
+                })
+        } catch (err) {
+            console.error(err)
+            return next(err);
+        }
     };
 
     /**
@@ -133,13 +158,13 @@ export default function NodesController(modelRoute) {
 
     this.add = async (req, res, next) => {
         try {
-            res.locals.schema = {
-                model: model,
-                view: 'add',
-            };
-            res.status(200).json(res.locals);
+            res.status(200).json(
+                prepare({
+                    view: 'add',
+                    model: model
+                }));
         } catch (err) {
-            next(err);
+            return next(err);
         }
     };
 
@@ -161,22 +186,21 @@ export default function NodesController(modelRoute) {
         }
 
         // insert item into database
-        await dbServices
+        await db
             .insert(item)
-            .then((data) => {
-                if (data.length === 0)
-                    throw new Error('notadded');
-                // retrieve last response data
-                res.locals.data = data.rows[0];
-                res.message(`Added item to ${item.label}.`, 'success');
-                res.status(200).json(res.locals);
+            .then(data => {
+                res.status(200).json(
+                    prepare({
+                        view: 'create',
+                        model: model,
+                        data: data,
+                        message: {
+                            msg: `New record added successfully!`,
+                            type: 'success'
+                        }
+                    }));
             })
-            .catch((err) => next(err));
-
-        // upload files (if required)
-        await fileServices
-            .uploadImages(req.files)
-            .catch((err) => next(err));
+            .catch(err => next(err));
     };
 
     /**
@@ -190,15 +214,17 @@ export default function NodesController(modelRoute) {
 
     this.edit = async (req, res, next) => {
         let id = this.getId(req);
-        await dbServices
+        await db
             .select(id)
-            .then((data) => {
-                if (data.rows.length === 0)
-                    throw new Error('noitem');
-                let model = new Model(data);
-                res.status(200).json(res.locals);
+            .then(data => {
+                res.status(200).json(
+                    prepare({
+                        view: 'edit',
+                        model: model,
+                        data: data
+                    }));
             })
-            .catch((err) => next(err));
+            .catch(err => next(err));
     };
 
     /**
@@ -211,21 +237,31 @@ export default function NodesController(modelRoute) {
      */
 
     this.update = async (req, res, next) => {
+
+        // create model instance
         let item;
         try {
             item = new Model(req.body);
         } catch (err) {
             next(err);
         }
-        await dbServices
+
+        // update record
+        await db
             .update(item)
-            .then((data) => {
-                if (data.rows.length === 0) throw new Error('update');
-                res.locals.data = data.rows[0];
-                res.message('Update successful!', 'success');
-                res.status(200).json(res.locals);
+            .then(data => {
+                res.status(200).json(
+                    prepare({
+                        view: 'update',
+                        model: model,
+                        data: data,
+                        message: {
+                            msg: `Update successful!`,
+                            type: 'success'
+                        }
+                    }));
             })
-            .catch((err) => next(err));
+            .catch(err => next(err));
     };
 
     /**
@@ -239,7 +275,7 @@ export default function NodesController(modelRoute) {
 
     this.remove = async (req, res, next) => {
         let id = this.getId(req);
-        await dbServices
+        await db
             .select(id)
             .then((data) => {
                 if (data.rows.length === 0)
@@ -262,7 +298,7 @@ export default function NodesController(modelRoute) {
         let id = this.getId(req);
 
         // retrieve item
-        let item = await dbServices
+        let item = await db
             .select(id)
             .then((data) => {
                 if (data.rows.length === 0) throw new Error('norecord');
@@ -271,7 +307,7 @@ export default function NodesController(modelRoute) {
             .catch((err) => next(err));
 
         // delete item
-        await dbServices
+        await db
             .remove(item)
             .then(data => {
                 if (data.rows.length === 0) throw new Error('noitem');

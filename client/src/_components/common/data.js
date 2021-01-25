@@ -38,7 +38,7 @@ const Data = ({ render='default', value='', href='', label='' }) => {
             )
         },
         default: ({value}) => {
-            return <span>{value}</span>
+            return <div>{value}</div>
         }
     }
 

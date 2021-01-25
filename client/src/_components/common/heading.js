@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import { getPageHeading } from '../../_services/schema.services.client';
 import { capitalize } from '../../_utils/data.utils.client';
 
 /**
@@ -14,10 +15,21 @@ import { capitalize } from '../../_utils/data.utils.client';
  * @public
  */
 
-const Heading = ({model='', text = ''}) => {
-    const prefix = model ? `${capitalize(model)}: ` : '';
+const Heading = ({path='', prefix='', text = ''}) => {
 
-    return <h3>{`${prefix}${text}`}</h3>
+    // filter root path from node path data
+    const rootPathData = Object.keys(path)
+        .filter(key => key === '0')
+        .reduce((o, key) => {
+            return path[key]
+        }, {})
+
+    // text attribute overrides computed heading
+    const heading = path && typeof path === 'object'
+        ? getPageHeading(rootPathData)
+        : path;
+
+    return <h3>{prefix ? `${capitalize(prefix)}:` : ''}{text ? text : heading}</h3>
 }
 
 export default Heading;

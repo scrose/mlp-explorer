@@ -49,7 +49,7 @@ export const getError = (key, type) => {
  * @public
  */
 
-export const getPageHeading = () => {
+export const getAppTitle = () => {
     return `${schema.main.appName}`;
 }
 
@@ -88,6 +88,61 @@ export const getField = (key='', type='common') => {
 }
 
 /**
+ * Get label keys assigned for given model.
+ *
+ * @public
+ * @param {String} model
+ * @return {Object} message
+ */
+
+export const getLabelKeys = (model) => {
+    return schema.models.hasOwnProperty(model)
+        ? Object.keys(schema.models[model])
+            .filter(attr => schema.models[model][attr].key)
+        : [];
+}
+
+/**
+ * Get label assigned for given model field.
+ *
+ * @public
+ * @param {String} model
+ * @param {String} field
+ * @return {Object} message
+ */
+
+export const getFieldLabel = (model, field) => {
+    const modelSchema = schema.models.hasOwnProperty(model)
+        ? schema.models[model]
+        : {};
+    const fieldSchema = schema.models.hasOwnProperty(field)
+        ? modelSchema[field]
+        : {};
+    const {label=field} = fieldSchema;
+    return label;
+}
+
+/**
+ * Compute heading for given item from path data.
+ *
+ * @public
+ * @param pathData
+ * @return {String} heading
+ */
+
+export const getPageHeading = (pathData) => {
+    console.log('Heading:', pathData)
+    const {type='', data={}} = pathData || {};
+    // iterate over label keys assigned in schema
+    return getLabelKeys(type)
+        .filter(key => data.hasOwnProperty(key) && data[key])
+        .map(key => {
+            return data[key];
+        })
+        .join(' ');
+}
+
+/**
  * Get local client message.
  *
  * @public
@@ -108,11 +163,11 @@ export const getLocalMsg = (key='', type='info') => {
  * @public
  * @param {String} view
  * @param {String} model
- * @param {Object} data
+ * @param {Object} modelAttributes
  * @return {{model: String, attributes: *, fields: {name: *, label: *, render: *|string, value: *|string}[]}}
  */
 
-export const genSchema = (view, model, data={}) => {
+export const genSchema = (view, model, modelAttributes={}) => {
 
     const modelSchema = schema.models.hasOwnProperty(model)
         ? schema.models[model]
@@ -122,7 +177,7 @@ export const genSchema = (view, model, data={}) => {
     // include any default (common) fields to model schema
     // - for example, ID fields (e.g. nodes_id) and timestamps
     //   (e.g. created_at).
-    Object.keys(data)
+    Object.keys(modelAttributes)
         .filter(key => schema.models.default.hasOwnProperty(key))
         .reduce((o, key) => {
             o[key] = schema.models.default[key];
@@ -150,8 +205,8 @@ export const genSchema = (view, model, data={}) => {
                 )
             )
             .map(key => {
-                const {value='', options='', label=''} = data && data.hasOwnProperty(key)
-                    ? data[key]
+                const {value='', options=[], label=''} = modelAttributes && modelAttributes.hasOwnProperty(key)
+                    ? modelAttributes[key]
                     : {};
 
                 return {

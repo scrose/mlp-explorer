@@ -1,173 +1,13 @@
 /*!
  * MLP.Client.Components.Common.Fieldset
- * File: Form.js
+ * File: fieldset.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
 import React from 'react'
 import Validator from '../../_utils/validator.utils.client';
-import List from './list';
-
-/**
- * Build input help text (error messages).
- *
- * @public
- * @param error
- */
-
-const ValidationMessages = ({msg}) => {
-    return (
-        <List items={msg} classname={'validation'} />
-    )
-}
-
-/**
- * Build form cancel button.
- *
- * @public
- * @param id
- */
-
-const CancelButton = ({url, label='Cancel'}) => {
-    return (
-        <a className={"button"} href={url}>{label}</a>
-    )
-}
-
-/**
- * Build form submit button.
- *
- * @public
- * @param id
- */
-
-const SubmitButton = ({name, value='Submit'}) => {
-    return (
-        <input type={"submit"} name={name} value={value} />
-    )
-}
-
-/**
- * Form input elements.
- *
- * <input type="button">
- * <input type="checkbox">
- * <input type="date">
- * <input type="datetime-local">
- * <input type="email">
- * <input type="file">
- * <input type="hidden">
- * <input type="image">
- * <input type="month">
- * <input type="number">
- * <input type="password">
- * <input type="radio">
- * <input type="reset">
- * <input type="search">
- * <input type="text">
- * <input type="time">
- * <input type="url">
- * <input type="week">
- * <select>
- */
-
-const Input = ({type, name, label, value, error, refs}) => {
-
-    const _inputElements = {
-        hidden: ({ name, value }) => {
-            return (
-                <input readOnly={true} key={`key_${name}`} type={"hidden"}
-                       id={name} name={name} value={value || ''}/>
-            )
-        },
-        text: ({ name, label }, value, error, { onchange, onblur }) => {
-            return (
-                <label key={`label_${name}`} htmlFor={name}>
-                    {label}
-                    <input key={`key_${name}`} type={"text"}
-                           id={name} name={name} value={value || ''} onChange={onchange} onBlur={onblur}/>
-                    {error ? <ValidationMessages msg={error}/> : null}
-                </label>
-            )
-        },
-        checkbox: ({ name, label }, value, error, { onchange }) => {
-            const isChecked = (value && value === true);
-            return (
-                <label key={`label_${name}`} htmlFor={name}>
-                    {label}
-                    <input key={`key_${name}`} type={"checkbox"}
-                           id={name} name={name} checked={isChecked} onChange={onchange}/>
-                </label>
-            )
-        },
-        email: ({ name, label }, value, error, { onchange, onblur }) => {
-            return (
-                <label key={`label_${name}`} htmlFor={name}>
-                    {label}
-                    <input key={`key_${name}`} type={"email"}
-                           id={name} name={name} value={value || ''} onChange={onchange} onBlur={onblur}/>
-                    {error ? <ValidationMessages msg={error}/> : null}
-                </label>
-            )
-        },
-        password: ({ name, label }, value, error, { onchange, onblur }) => {
-            return (
-                <label key={`label_${name}`} htmlFor={name}>
-                    {label}
-                    <input key={`key_${name}`} type={"password"} autoComplete={'new-password'}
-                           id={name} name={name} value={value || ''} onChange={onchange} onBlur={onblur}/>
-                    {error ? <ValidationMessages msg={error}/> : null}
-                </label>
-            )
-        },
-        select: ({ name, label, options }, value, error, { onchange, onblur }) => {
-            return (
-                <label key={`label_${name}`} htmlFor={name}>
-                    {label}
-                    <select key={`key_${name}`} id={name} name={name} onChange={onchange} onBlur={onblur}>
-                        {options
-                            .map(opt =>
-                                <option key={`${name}_${opt.id}`}
-                                        id={`${name}_${opt.id}`}
-                                        name={`${name}_${opt.id}`}
-                                        value={opt.name}>
-                                    {opt.label}
-                                </option>
-                            )
-                        }
-                    </select>
-                    {error ? <ValidationMessages msg={error}/> : null}
-                </label>
-            )
-        }
-    }
-
-    // lookup form input element for data type
-    const _fieldElem = _inputElements.hasOwnProperty(type)
-        ? _inputElements[type]
-        : () => {};
-
-    // TODO: Fix references between values in state
-    const _references = refs.reduce((o, ref) => {
-        o[ref] = values.hasOwnProperty(ref) ? values[ref] : '';
-        return o;
-    }, {});
-
-    // create validator from schema
-    const _validator = new Validator(validate, _references);
-
-    // render element
-    return _fieldElem (
-        field,
-        value,
-        error,
-        {
-            onchange: handleChange,
-            onblur: handleBlur(_validator)
-        }
-    );
-}
+import Input from './input';
 
 /**
  * Build form fieldset element with inputs. 'Fields' are defined
@@ -179,17 +19,32 @@ const Input = ({type, name, label, value, error, refs}) => {
  * @return fieldset element
  */
 
-const Fieldset = ({labels, fields, valid, disabled}) => {
+const Fieldset = ({
+                      model,
+                      legend,
+                      fields,
+                      data,
+                      setData,
+                      valid,
+                      disabled}
+                  ) => {
 
-    // create field value/error/references initialization states
-    const init = {
-        values: fields.reduce((o, f) => {o[f.name] = f.value; return o}, {}),
-        errors: fields.reduce((o, f) => {o[f.name] = ''; return o}, {})
+    // initialize state for input parameters
+    const [errors, setErrors] = React.useState({});
+    const [readonly, setReadonly] = React.useState({});
+
+    /**
+     * Input on-change handler. Updates references state.
+     *
+     * @public
+     * @param {Object} e
+     */
+
+    const isDisabled = e => {
+        const { name, value } = e.target;
+        e.persist(); // not used in ReactJS v.17
+        setData(data => ({...data, [name]: value}));
     }
-
-    // initialize input values, errors (in state)
-    const [values, setValues] = React.useState(init.values);
-    const [errors, setErrors] = React.useState(init.errors);
 
     /**
      * Input on-change handler. Updates references state.
@@ -200,8 +55,8 @@ const Fieldset = ({labels, fields, valid, disabled}) => {
 
     const handleChange = e => {
         const { name, value } = e.target;
-        e.persist();
-        setValues(values => ({...values, [name]: value}));
+        e.persist(); // not used in ReactJS v.17
+        setData(data => ({...data, [name]: value}));
     }
 
     /**
@@ -216,45 +71,54 @@ const Fieldset = ({labels, fields, valid, disabled}) => {
         // wrap validator in event handler
         return (e) => {
             const { name, value } = e.target;
-            e.persist();
+            e.persist(); // not used in ReactJS v.17
             setErrors(errors => ({
                 ...errors,
                 [name]: validator.check(value)
             }));
         }
-
     }
 
     // render fieldset component
     return (
-        <fieldset key={`fset_${labels.name}`} name={`fset_${labels.name}`} disabled={disabled}>
-            <legend>{labels.legend}</legend>
-            {fields.map(field => {
+        <fieldset key={`fset_${model}`} name={`fset_${model}`} disabled={disabled}>
+            <legend>{legend}</legend>
+            {
+                // insert input fields
+                (fields || []).map(field => {
 
-                const { name='', render='', refs=[], validate=[] } = field;
                 // get form schema for requested model
-                const _value = values.hasOwnProperty(name) ? values[name] : '';
-                const _error = errors.hasOwnProperty(name) ? errors[name] : '';
+                const { name='', label='', render='', refs=[], validate=[], options=[]} = field;
+                const _value = (data || []).hasOwnProperty(name) ? data[name] : '';
+                const _error = (errors || []).hasOwnProperty(name) ? errors[name] : '';
+                const _readonly = (readonly || []).hasOwnProperty(name) ? readonly[name] : false;
+
+                // TODO: Fix references between values in state
+                const _references = refs.reduce((o, ref) => {
+                    o[ref] = data.hasOwnProperty(ref) ? data[ref] : '';
+                    return o;
+                }, {});
+
+                // create validator from schema
+                const _validator = new Validator(validate, _references);
 
                 return (
                     <Input
+                        key={`key_${name}`}
                         type={render}
                         name={name}
-                        label={name}
+                        label={label}
                         value={_value}
                         error={_error}
+                        options={options}
                         validate={validate}
-                        ref={refs}
+                        readonly={_readonly}
+                        onchange={handleChange}
+                        onblur={handleBlur(_validator)}
                     />
                 )
 
             })}
-            <div>
-                <SubmitButton
-                    value={labels.submit}
-                    name={`submit_${labels.name}`} />
-                <CancelButton url={'/'}/>
-            </div>
         </fieldset>
     )
 }

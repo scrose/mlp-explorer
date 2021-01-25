@@ -75,7 +75,7 @@ export const clearSession = () => {
  * @public
  */
 
-export const getMsg = () => {
+export const getSessionMsg = () => {
     const msgJSON = sessionStorage.getItem('statusMsg') || ''
     return msgJSON ? JSON.parse(msgJSON) : [];
 }
@@ -86,8 +86,8 @@ export const getMsg = () => {
  * @public
  */
 
-export const checkMsg = () => {
-    return !!getMsg().length;
+export const checkSessionMsg = () => {
+    return !!getSessionMsg().length;
 }
 
 /**
@@ -96,8 +96,8 @@ export const checkMsg = () => {
  * @public
  */
 
-export const addMsg = (msg) => {
-    const messages = getMsg();
+export const addSessionMsg = (msg) => {
+    const messages = getSessionMsg();
     messages.push(msg);
     sessionStorage.setItem('statusMsg', JSON.stringify(messages || []));
 }
@@ -108,9 +108,10 @@ export const addMsg = (msg) => {
  * @public
  */
 
-export const popMsg = () => {
+export const popSessionMsg = () => {
     // delete messages if status query parameter is set
-    const messages = getMsg();
+    const messages = getSessionMsg();
+    sessionStorage.setItem('statusMsg', JSON.stringify([]));
     sessionStorage.removeItem('statusMsg');
     return messages;
 }

@@ -34,8 +34,7 @@ export function selectByEmail(email) {
     return {
         sql: `SELECT *
               FROM users
-              WHERE users.email = $1::varchar 
-                AND users.role != 'super_administrator'`,
+              WHERE users.email = $1::varchar`,
         data: [email],
     };
 }

@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { checkMsg, getMsg, popMsg } from '../../_services/session.services.client';
+import { checkSessionMsg, getSessionMsg, popSessionMsg } from '../../_services/session.services.client';
 
 /**
  * Messenger component.
@@ -16,21 +16,26 @@ import { checkMsg, getMsg, popMsg } from '../../_services/session.services.clien
 
 const Messenger = () => {
 
-    // initialize message with session storage
-    const [messages, setMessages] = React.useState(getMsg());
+    // initialize view messages with session storage
+    const [messages, setMessages] = React.useState([]);
 
-    // load messages in state (if available) or storage and clear
+    // update message from session storage
     React.useEffect(() => {
-        if (checkMsg()) setMessages(popMsg());
+        console.log(getSessionMsg())
+        if (checkSessionMsg())
+                setMessages(popSessionMsg())
+
     }, [setMessages]);
 
     return (
-        <div className={'msgs'}>
+        Array.isArray(messages)
+            ? <div className={'msgs'}>
             {messages.map((message, index) => {
                 const {msg='', type=''} = message || {};
                 return (msg && type ? <div className={`msg ${type}`} key={`msg_${index}`}>{msg}</div> : '')
             })}
         </div>
+            : ''
     )
 }
 

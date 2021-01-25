@@ -9,18 +9,37 @@
  * Module dependencies
  */
 
-import express from 'express'
 import * as main from '../controllers/main.controller.js';
 
 /**
  * Express router
  */
-
-let router = express.Router();
-export default router;
+let routes = new MainRoutes();
+export default routes;
 
 /**
  * Frontpage.
  */
 
-router.get('/', main.index);
+/**
+ * Default routes constructor
+ *
+ * @public
+ */
+
+function MainRoutes() {
+
+    // initialize model controller
+    this.controller = main;
+
+    // add controller routes
+    this.routes = {
+        show: {
+            path: '/',
+            get: this.controller.show,
+            put: null,
+            post: null,
+            delete: null,
+        }
+    }
+}

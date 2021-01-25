@@ -1,5 +1,5 @@
 /*!
- * MLP.API.Services.DB.Model
+ * MLP.API.Services.Database
  * File: db.services.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
@@ -14,7 +14,7 @@
 
 import pool from './pgdb.js';
 import queries from '../queries/index.queries.js';
-import { createNode, createFile } from './model.services.js';
+import { createNode } from './model.services.js';
 
 /**
  * Export database model services constructor
@@ -89,19 +89,16 @@ export default function DBServices(model) {
         this.model.setId(id);
         const stmts = {
             node: null,
-            file: null,
             model: this.queries.select,
             attached: []
         };
 
-        // // create attached statements for references
-        // const attachedStmts = this.model.attached
-        //     .map(a => {
-        //         return {
-        //             query: this.queries.append
-        //         };
-        //     });
-        return await this.transact(this.model, stmts);
+        // execute transaction
+        return await this.transact(this.model, stmts)
+            .then(res => {
+                return res.hasOwnProperty('rows')
+                        && res.rows.length > 0 ? res.rows[0] : null;
+        });
     };
 
     /**
@@ -115,11 +112,16 @@ export default function DBServices(model) {
     this.insert = async function(item) {
         let stmts = {
             node: this.queries.insertNode,
-            file: this.queries.insertFile,
             model: this.queries.insert,
             attached: []
         };
-        return await this.transact(item, stmts);
+
+        // execute transaction
+        return await this.transact(item, stmts)
+            .then(res => {
+                return res.hasOwnProperty('rows')
+                && res.rows.length > 0 ? res.rows[0] : null;
+            });
     };
 
     /**
@@ -133,11 +135,16 @@ export default function DBServices(model) {
     this.update = async function(item) {
         let stmts = {
             node: this.queries.updateNode,
-            file: this.queries.updateFile,
             model: this.queries.update,
             attached: []
         };
-        return await this.transact(item, stmts);
+
+        // execute transaction
+        return await this.transact(item, stmts)
+            .then(res => {
+                return res.hasOwnProperty('rows')
+                && res.rows.length > 0 ? res.rows[0] : null;
+            });
     };
 
     /**
@@ -151,14 +158,17 @@ export default function DBServices(model) {
     this.remove = async function(item) {
         let stmts = {
             node: this.queries.removeNode,
-            file: this.queries.removeFile,
             model: this.queries.remove,
             attached: []
         };
-        return await this.transact(item, stmts);
+
+        // execute transaction
+        return await this.transact(item, stmts)
+            .then(res => {
+                return res.hasOwnProperty('rows')
+                && res.rows.length > 0 ? res.rows[0] : null;
+            });
     };
-
-
 
     /**
      * Perform transaction query.
@@ -169,8 +179,6 @@ export default function DBServices(model) {
      */
 
     this.transact = async function(item, stmts) {
-
-        console.log(stmts)
 
         // NOTE: client undefined if connection fails.
         const client = await pool.connect();
@@ -187,18 +195,6 @@ export default function DBServices(model) {
                 let node = await createNode(item);
                 // generate prepared statements collated with data
                 const {sql, data} = stmts.node(node);
-                res = await client.query(sql, data);
-
-                // update item with returned data for further processing
-                item.setId(res.rows[0].id);
-            }
-
-            // process file query (if provided)
-            if (stmts.file) {
-                // create file model from item reference
-                let file = await createFile(item);
-                // generate prepared statements collated with data
-                const {sql, data} = stmts.file(file);
                 res = await client.query(sql, data);
 
                 // update item with returned data for further processing
@@ -231,4 +227,3 @@ export default function DBServices(model) {
         }
     };
 }
-

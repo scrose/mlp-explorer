@@ -51,7 +51,7 @@ div.navigator {
     height: 85vh;
     width: 35%;
     background-color: #D0E4F5;
-    overflow: scroll;
+    overflow: visible;
     text-align: center;
 }
 
@@ -59,11 +59,24 @@ div.navigator {
 
 div.viewer, div.editor {
     display:inline-block;
+    vertical-align: top;
     height: 85vh;
     width: 65%;
     background-color: white;
+    overflow:visible;
+    padding: 0 10px;
+}
+
+.view .data {
+    display:inline-block;
+    height: 70vh;
+    width: 100%;
     overflow: scroll;
     padding: 5px;
+}
+
+.view h3 {
+    padding: 0 5px;
 }
 
 /*
@@ -270,6 +283,9 @@ Menus
 
 /* Breadcrumb Navigation Menu */
 
+nav.breadcrumb div {
+    position: fixed;
+}
 nav.breadcrumb ul {
     padding: 10px 16px;
     margin:0;
@@ -351,7 +367,7 @@ nav.breadcrumb ul li a:hover {
     -webkit-box-flex: 1;
     -ms-flex: 1;
     flex: 1;
-    padding: 0 10px;
+    padding: 0 5px;
 }
 
 .h-menu ul {
@@ -372,7 +388,7 @@ nav.breadcrumb ul li a:hover {
     height: 60px;
     line-height: 60px;
     cursor: pointer;
-    padding: 0px 6px;
+    padding: 0;
 }
 
 .h-menu ul li a {
@@ -389,6 +405,7 @@ nav.breadcrumb ul li a:hover {
 .h-menu ul li button {
     background-color: #D0E4F5;
     color: #0B6FA4;
+    margin: 0 4px;
 }
 
 .h-menu ul .close {
@@ -426,6 +443,7 @@ nav.breadcrumb ul li a:hover {
 }
 
 .editor-tools.h-menu ul li {
+    line-height: normal;
 }
 
 .editor-tools.h-menu ul li button {
@@ -448,15 +466,19 @@ nav.breadcrumb ul li a:hover {
 /* Item Edit Menu */
 
 .item.h-menu {
+    margin:auto;
+    width: 100%;
     text-align: center;
 }
 
 .item.h-menu ul {
+    margin:auto;
     text-align: center;
 }
 
 .item.h-menu ul li {
-
+    height: auto;
+    line-height: normal;
 }
 
 .item.h-menu ul li a {
@@ -480,6 +502,8 @@ nav.breadcrumb ul li a:hover {
 /*
   Tables
 */
+
+/* multiple items list */
 
 table.items {
     border: 1px solid #FFFFFF;
@@ -523,6 +547,68 @@ table.items tfoot {
 }
 table.items tfoot td {
     font-size: small;
+}
+
+/* single item view */
+
+table.item {
+    border: 1px solid #FFFFFF;
+    width: 100%;
+    text-align: left;
+    border-collapse: collapse;
+    color: #444;
+}
+table.item td, table.item th {
+    border: 1px solid #FFFFFF;
+    padding: 3px 2px;
+    margin:0;
+}
+
+table.item tbody td {
+    font-size: small;
+}
+
+table.item thead {
+    background: lightslategray;
+    border-bottom: 5px solid #FFFFFF;
+}
+
+table.item thead th {
+    background: lightslategray;
+    font-size: small;
+    font-weight: bold;
+    color: #FFFFFF;
+    text-align: center;
+    border-left: 2px solid #FFFFFF;
+}
+
+table.item tbody th {
+    width: 25%;
+    background: #FFFFFF;
+    font-size: small;
+    font-weight: bold;
+    color: #444444;
+    text-align: left;
+    border-left: 2px solid #FFFFFF;
+}
+
+table.item tfoot {
+    font-size: small;
+    font-weight: bold;
+    color: #333333;
+    background: #D0E4F5;
+    border-top: 3px solid #444444;
+}
+
+table.item tfoot td {
+    font-size: small;
+}
+
+/* Heading for editor tools */
+
+th.editor {
+    width: 25%;
+    background-color: #01447e;
 }
 
 
@@ -578,6 +664,12 @@ fieldset div {
     margin :10px;
     height:100%;
     line-height:2em;
+}
+
+fieldset.submit {
+    padding: 0;
+    margin: 0 0 0 15px;
+    border: none;
 }
 
 /* Labels */
@@ -690,7 +782,7 @@ input[type=submit].disabled, input[type=submit].disabled:hover {
     cursor: default;
 }
 
-/* HREF form button */
+/* HTML button */
 button {
     margin: auto;
     font-family: 'Inter', Arial, sans-serif;
@@ -705,7 +797,19 @@ button {
 
 button:hover {
     background-color: #9CFF90; /* Green */
-    color: #666666;
+}
+
+/* form cancel button */
+
+button.cancel {
+    margin: 5px;
+    padding: 12px 20px;
+    border-radius: 4px;
+    font-size: medium;
+}
+
+button.cancel:hover {
+    background-color: #666666;
 }
 
 /*

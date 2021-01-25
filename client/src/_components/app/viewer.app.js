@@ -18,12 +18,14 @@ import HeaderViewer from '../viewer/header.viewer';
  * @public
  */
 
-const UnauthenticatedApp = () => {
+const ViewerApp = () => {
     return (
         <div className={"page-content"}>
             <HeaderViewer/>
             <main>
-                <Navigator/>
+                <BoundaryError>
+                    <Navigator/>
+                </BoundaryError>
                 <BoundaryError>
                     <Viewer/>
                 </BoundaryError>
@@ -33,4 +35,4 @@ const UnauthenticatedApp = () => {
     );
 }
 
-export default UnauthenticatedApp;
+export default ViewerApp;

@@ -5,11 +5,37 @@
  * MIT Licensed
  */
 
-// Render main page / dashboard for logged-in users
-export const index = async (req, res, next) => {
+import { prepare } from '../lib/api.utils.js';
+
+/**
+ * Controller initialization.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @src public
+ */
+
+export const init = async (req, res, next) => {
+    return next();
+};
+
+/**
+ * Default request controller.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @src public
+ */
+
+export const show = async (req, res, next) => {
   try {
-    res.status(200).json(res.locals);
+      res.status(200).json(
+          prepare({
+              view: 'dashboard'
+          }));
   } catch (err) {
-    next(err);
+    return next(err);
   }
 };

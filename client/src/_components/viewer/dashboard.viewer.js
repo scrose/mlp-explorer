@@ -8,6 +8,33 @@
 import React from 'react'
 import Heading from '../common/heading';
 
+/**
+ * Node management panel.
+ *
+ * @public
+ * @return {Promise} result
+ */
+
+const NodePanel = () => {
+    return (
+        <nav className={'panel'}>
+            <h4>Views</h4>
+            <ul>
+                <li><a href={'/surveyors'}>Surveyors</a></li>
+                <li><a href={'/surveys/'}>Surveys</a></li>
+                <li><a href={'/stations/'}>Stations</a></li>
+            </ul>
+        </nav>
+    );
+}
+
+/**
+ * Viewer dashboard component
+ *
+ * @public
+ * @return {Promise} result
+ */
+
 const DashboardViewer = () => {
 
     return (
@@ -21,6 +48,7 @@ const DashboardViewer = () => {
                 Find out about our research and how we turn remarkable photos into
                 real-world solutions for understanding climate change, ecological
                 processes, and strategies for ecological restoration.</p>
+            <NodePanel />
         </div>
     );
 }

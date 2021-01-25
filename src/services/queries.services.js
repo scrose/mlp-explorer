@@ -20,15 +20,21 @@ const limit = 100;
  *
  * @param {Object} model
  * @param {int} offset
+ * @param order
  * @return {Function} query
  * @public
  */
 
-export function getAll(model, offset = 0) {
+export function getAll(model, offset = 0, order='') {
+
+    // (optional) order by attribute
+    const orderby = order ? `ORDER BY ${order}` : '';
+
     return function() {
         return {
             sql: `SELECT * 
                     FROM ${model.table} 
+                    ${orderby}
                     LIMIT ${limit} 
                     OFFSET ${offset};`,
             data: [],
@@ -89,7 +95,8 @@ export function findByOwner(model) {
 
 export function insert(
     model,
-    timestamps = ['created_at', 'updated_at']) {
+    timestamps = ['created_at', 'updated_at']
+) {
 
     // return null if instance is null
     if (!model) return null;
@@ -215,6 +222,24 @@ export function remove(model) {
             };
         }
         : null;
+}
+
+/**
+ * Generate query: Find record by Node entry.
+ *
+ * @param {Object} node
+ * @return {Function} query
+ * @public
+ */
+
+export function selectByNode(node) {
+    let sql = `SELECT * 
+            FROM ${node.type} 
+            WHERE nodes_id = $1::integer;`;
+    return {
+        sql: sql,
+        data: [node.id],
+    };
 }
 
 /**
@@ -364,16 +389,38 @@ export function removeFile(model) {
 }
 
 /**
- * Generate query: Append subordinate record by specified table,
+ * Generate query: Append child nodes by specified table,
  * column and column value.
  *
  * @return {Function} query function
  * @public
  */
 
-export function append(model) {
-    // get attachments for model
+export function getChildNodes(id) {
+    const sql = `SELECT * 
+            FROM nodes 
+            WHERE owner_id = $1::integer`;
+    return {
+        sql: sql,
+        data: [id],
+    };
+}
+
+/**
+ * Generate query: Append child nodes by specified table,
+ * column and column value.
+ *
+ * @return {Function} query function
+ * @public
+ */
+
+export function getAttached(model) {
+
+    console.log(model.attached)
+
+    // get child references for model
     const refs = groupBy(model.attached, 'fk_col');
+
     return function(args, value) {
         const sql = `SELECT * 
                 FROM ${args.pk_table} 

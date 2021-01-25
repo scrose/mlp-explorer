@@ -1,13 +1,12 @@
 /*!
  * MLP.Client.Components.Editor.Menu
- * File: menu.editor.js
+ * File: editor.menu.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
 import React from 'react';
-import { getRoot, redirect } from '../../_utils/paths.utils.client';
-import { capitalize } from '../../_utils/data.utils.client';
+import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
 import Icon from '../common/icon';
 
 /**
@@ -16,41 +15,36 @@ import Icon from '../common/icon';
  * @public
  */
 
-const MenuEditor = ({model, view}) => {
+const EditorMenu = ({model, id=null, view}) => {
     const menuExclude = ['dashboard', 'login', 'register']
-    const editExclude = ['dashboard', 'list', 'register'];
+    const toolExclude = ['dashboard', 'list', 'register'];
     return (
         view && !menuExclude.includes(view) ?
         <div className={'editor-tools h-menu'}>
             <ul>
                 <li>
-                    <h4>
-                        {`${capitalize(model)} Menu`}
-                    </h4>
-                </li>
-                <li>
                     <button
                         title={`Add new ${model} item.`}
-                        onClick={() => redirect(`/${model}/new`)}
+                        onClick={() => redirect(getNodeURI(model, 'new'))}
                     >
                         <Icon type={'add'} /> <span>Add New</span>
                     </button>
                 </li>
-                {!editExclude.includes(view) ?
+                {id && !toolExclude.includes(view) ?
                     <li>
                         <button
                             title={`Edit this ${model} item.`}
-                            onClick={() => redirect(`/${model}/edit`)}
+                            onClick={() => redirect(getNodeURI(model, 'edit', id))}
                         >
                             <Icon type={'edit'} /> <span>Edit</span>
                         </button>
                     </li> : ''
                 }
-                {!editExclude.includes(view) ?
+                {id && !toolExclude.includes(view) ?
                     <li>
                         <button
                             title={`Delete this ${model} item.`}
-                            onClick={() => redirect(`/${model}/remove`)}
+                            onClick={() => redirect(getNodeURI(model, 'remove', id))}
                         >
                             <Icon type={'delete'} /> <span>Delete</span>
                         </button>
@@ -62,4 +56,4 @@ const MenuEditor = ({model, view}) => {
     )
 }
 
-export default MenuEditor;
+export default EditorMenu;

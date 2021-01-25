@@ -1,16 +1,17 @@
 /*!
- * MLP.Client.Components.User.List
- * File: list.users.js
+ * MLP.Client.Components.Nodes.List
+ * File: list.nodes.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
 import React from "react";
 import Loading from '../common/loading';
-import Table from '../common/table';
 import ItemMenu from '../menus/item.menu';
 import Data from '../common/data';
-import { useUser } from '../../_providers/user.provider.client';
+import List from '../common/list';
+import Item from '../common/item';
+import { getLabelKeys } from '../../_services/schema.services.client';
 
 
 /**
@@ -25,50 +26,44 @@ import { useUser } from '../../_providers/user.provider.client';
 
 const ListNodes = ({ rows=[], cols=[], model='' }) => {
 
-    console.log('Nodes:', rows, cols)
-
-    const user = useUser();
-
-    // prepare row data for table
-    const filterRows = () => {
-        return rows
-            .map(item => {
-
-                // append inline edit menu (authenticated)
-                if (user)
-                    item.editor = <ItemMenu id={item.nodes_id} model={model} />;
-
-                // set render option for item fields
-                // returns row object indexed by field name
-                return Object.keys(item).reduce((o, key) => {
-                    const url = '';
-                    const renderSetting = cols
-                        .filter(col => key === col.name).render;
-                    o[key] = <Data render={renderSetting} value={item[key]} href={url}/>
-                    return o;
-                }, {})
-            });
+    // prepare column data for table
+    // - omit hidden elements
+    const filterCols = () => {
+        return cols
+            .filter(col => col.render !== 'hidden')
+            .map(col => {col.class=''; return col})
     }
 
-    // prepare column data for table
-    const filterCols = () => {
-
-        // omit hidden elements
-        const fCols = cols
-            .filter(col => col.render !== 'hidden')
-
-        // include column heading for editor item tools (authenticated)
-        if (user)
-            fCols.push({name: 'editor', label: 'Edit'})
-
-        return fCols;
+    // prepare item data for list
+    // - set render option for each item data field
+    // - return complete node item for each list element
+    const filterItems = () => {
+        return rows.map((row, index) => {
+            const fields = filterCols();
+            const item = Object.keys(fields).reduce((o, key) => {
+                const url = '';
+                const renderSetting = fields[key].render;
+                const fieldName = fields[key].name;
+                o[fieldName] = <Data render={renderSetting} value={row[fieldName]} href={url} />;
+                return o;
+            }, {})
+            return (
+                <div className={'node'}>
+                    <span>{index + 1} {model}</span>
+                        {
+                            <ItemMenu id={row.nodes_id} model={model} />
+                        }
+                    <div className={'collapsible'}>
+                        <Item values={item} fields={fields} />
+                    </div>
+                </div>
+            )
+        });
     }
 
     return Array.isArray(rows) && Array.isArray(cols)
-        ?
-        <Table rows={ filterRows() } cols={ filterCols() } classname={'items'} />
-        :
-        <Loading/>
+        ? <List items={ filterItems() } classname={'items'} />
+        : <Loading/>
 
 }
 

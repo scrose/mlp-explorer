@@ -31,8 +31,8 @@ const UserMenu = () => {
                         </a>
                     </li>
                     <li>
-                        <button title={'Logout of session.'} onClick={() => redirect("/logout")}>
-                            <span>Logout</span>
+                        <button title={'Sign out of session.'} onClick={() => redirect("/logout")}>
+                            <span>Sign Out</span>
                         </button>
                     </li>
                 </ul>

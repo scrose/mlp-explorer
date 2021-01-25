@@ -60,24 +60,27 @@ export const schema = {
         },
         add: {
             label: 'Create New',
-            render: 'form'
+            render: 'form',
+            review: 'show'
         },
         edit: {
             label: 'Update',
-            render: 'form'
+            render: 'form',
+            review: 'show'
         },
         remove: {
             label: 'Delete',
             render: 'form'
         },
         show: {
-            label: 'View',
+            label: 'Item',
             render: 'item'
         }
     },
     models: {
         default: {
             id: {
+                render: 'hidden',
                 restrict: []
             },
             nodes_id: {
@@ -142,9 +145,11 @@ export const schema = {
         },
         surveyors: {
             given_names: {
+                key: true,
                 label: 'Given Names'
             },
             last_name: {
+                key: true,
                 label: 'Last Name'
             },
             short_name: {
@@ -155,27 +160,65 @@ export const schema = {
             }
         },
         surveys: {
-            name: 'Survey Name',
-            historical_map_sheet: 'Historical Map Sheet',
+            name: {
+                key: true,
+                label: 'Survey Name'
+            },
+            historical_map_sheet: {
+                key: true,
+                label: 'Historical Map Sheet'
+            },
         },
-        surveySeasons: {
-            year: 'Year',
-            geographic_coverage: 'Geographic Coverage',
-            jurisdiction: 'Jurisdiction',
-            affiliation: 'Affiliation',
-            archive: 'Archive',
-            collection: 'Collection',
-            location: 'Location',
-            sources: 'Sources',
-            notes: 'Notes'
+        survey_seasons: {
+            year: {
+                key: true,
+                label: 'Year'
+            },
+            geographic_coverage: {
+                label: 'Geographic Coverage'
+            },
+            jurisdiction: {
+                label: 'Jurisdiction'
+            },
+            affiliation: {
+                label: 'Affiliation'
+            },
+            archive: {
+                label: 'Archive'
+            },
+            collection: {
+                label: 'Collection'
+            },
+            location: {
+                label: 'Location'
+            },
+            sources: {
+                label: 'Sources'
+            },
+            notes: {
+                label: 'Notes'
+            }
         },
         stations: {
-            name: 'Station Name',
-            lat: 'Latitude',
-            long: 'Longitude',
-            elevation: 'Elevation',
-            nts_sheet: 'NTS Sheet',
-            published: 'Published'
+            name: {
+                key: true,
+                label: 'Station Name'
+            },
+            lat: {
+                label: 'Latitude'
+            },
+            long: {
+                label: 'Longitude'
+            },
+            elevation: {
+                label: 'Elevation'
+            },
+            nts_sheet: {
+                label: 'NTS Sheet'
+            },
+            published: {
+                label: 'Published'
+            }
         },
         visits: {
             date: 'Visit Date',
