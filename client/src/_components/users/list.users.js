@@ -60,7 +60,7 @@ const ListUsers = ({ rows=[], cols=[] }) => {
                     const url = '';
                     const renderSetting = cols
                         .filter(col => key === col.name).render;
-                    o[key] = <Data render={renderSetting} value={row[key]} href={url}/>
+                    o[key] = <Data key={`_${key}`} render={renderSetting} value={row[key]} href={url}/>
                     return o;
                 }, {})
             });

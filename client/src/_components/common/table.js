@@ -23,7 +23,7 @@ const TableHeader = ({ cols }) => {
                     {
                         cols.map((col, index) =>
                             <th
-                                key={index}
+                                key={`h_${index}`}
                                 className={col.class}
                             >
                                 {col.label}
@@ -53,7 +53,7 @@ const TableBody = ({rows, cols}) => {
                             cols
                                 .filter(col => row.hasOwnProperty(col.name))
                                 .map((col, index) =>
-                                    <td key={index}>{row[col.name]}</td>
+                                    <td key={`td_${col.name}`}>{row[col.name]}</td>
                                 )
                         }
                     </tr>

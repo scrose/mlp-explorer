@@ -57,9 +57,6 @@ export const list = async (req, res, next) => {
         const projects = await ns.getNodes('projects');
         const surveyors = await ns.getNodes('surveyors');
 
-        // // get path of node in hierarchy
-        // const path = await ns.getNodePath(item);
-        //
         // // get linked data referenced in node tree
         // await ns.getDependents(item)
         //     .then(dependents => {

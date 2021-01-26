@@ -31,7 +31,7 @@ export const getNode = async (id) => {
 };
 
 /**
- * Get all nodes for given model.
+ * Get all nodes for given model. Includes dependents data.
  *
  * @public
  * @param {String} model
@@ -39,11 +39,38 @@ export const getNode = async (id) => {
  */
 
 export const getNodes = async function(model) {
-    let { sql, data } = queries.nodes.getNodes(model);
-    console.log(model, sql, data)
-    let nodes = await pool.query(sql, data);
-    const { rows=[] } = nodes || {}
-    return rows;
+
+    // NOTE: client undefined if connection fails.
+    const client = await pool.connect();
+
+    try {
+
+        // start transaction
+        await client.query('BEGIN');
+
+        // get all nodes for model
+        let { sql, data } = queries.nodes.getNodes(model);
+        const { rows=[] } = await pool.query(sql, data) || {}
+
+        // get full data for dependent nodes
+        let nodes = await Promise.all(rows.map(async (node) => {
+            node.data = await selectByNode(node);
+            node.dependents = await getDependentNodes({id: node.id});
+            return node;
+        }));
+
+        // end transaction
+        await client.query('COMMIT');
+
+        // return nodes
+        return nodes;
+
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
+    }
 };
 
 /**
@@ -199,4 +226,3 @@ export const getNodePath = async (item) => {
         client.release();
     }
 };
-

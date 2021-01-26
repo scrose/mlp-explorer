@@ -74,8 +74,8 @@ const _parseNodes = function(path) {
 
             // render last item without link
             return key !== '0'
-                ? <a key={index} href={href}>{menuText}</a>
-                : <span key={index}>{menuText}</span>
+                ? <a key={`menu_${index}`} href={href}>{menuText}</a>
+                : <span key={`menu_${index}`}>{menuText}</span>
     })
 };
 

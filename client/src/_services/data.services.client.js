@@ -61,7 +61,7 @@ const getFetchOptions = ({ data=null, method='POST', ctype='application/json'}) 
 
         // include form data in body for posts
         // body data type must match "Content-Type" header
-        if (data) opts.body = JSON.stringify(data)
+        if (data) opts.body = JSON.stringify(data);
 
     return opts
 }
@@ -80,28 +80,18 @@ export async function makeRequest({ url='/', data=null, method='POST'})  {
 
     // send request to API
     return await fetch(url, opts)
-            .then(handleResponse)
+            .then(res => {
+                // Modify response to include status ok, success, and status text
+                return {
+                    success: res.ok,
+                    status: res.status,
+                    statusText: res.statusText
+                        ? res.statusText
+                        : res.json.message || '',
+                    response: res.json()
+                }
+            })
             .catch(err => {
                 console.error('A fetch error has occurred:', err)
             })
-}
-
-/**
- * Handle response to API request.
- *
- * @public
- * @param {Object} res
- */
-
-function handleResponse(res) {
-    return res.json()
-        .then(json => {
-            // Modify response to include status ok, success, and status text
-            return {
-                success: res.ok,
-                status: res.status,
-                statusText: res.statusText ? res.statusText : json.message || '',
-                response: json
-            }
-        })
 }

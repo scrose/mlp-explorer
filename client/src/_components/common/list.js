@@ -21,7 +21,7 @@ const List = ({ items, classname='' }) => {
             {
                 Array.isArray(items) && items.length > 0
                     ? items.map((item, index) => {
-                        return (<li key={index}>{item}</li>)})
+                        return (<li key={`item_${index}`}>{item}</li>)})
                     : <li key={0}>{''}</li>
             }
         </ul>

@@ -151,6 +151,7 @@ const Input = ({
                     {options
                         .map(opt =>
                             <option
+                                key={`${name}_${opt.id}`}
                                 id={`${name}_${opt.id}`}
                                 name={`${name}_${opt.id}`}
                                 value={opt.name}

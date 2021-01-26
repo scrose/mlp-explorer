@@ -69,8 +69,10 @@ function DataProvider(props) {
      *
      * @public
      * @param {String} route
+     *
      */
-    const get = async function(route) {
+    const get = React.useCallback(async (route) => {
+
         return await makeRequest({url: getAPIURL(route), method:'GET'})
             .then(res => {
                 const { response } = res;
@@ -83,7 +85,8 @@ function DataProvider(props) {
             .catch(err => {
                 console.error('An API error occurred:', err)
             });
-    }
+
+    }, [makeRequest]);
 
     /**
      * Request method to post data from API.

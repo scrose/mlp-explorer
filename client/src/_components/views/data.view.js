@@ -41,6 +41,8 @@ const DataView = ({
                       render
 }) => {
 
+    console.log(values)
+
     // select default callback for view
     const api = useData();
     const callback = api.post;

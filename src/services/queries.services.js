@@ -235,7 +235,7 @@ export function remove(model) {
 export function selectByNode(node) {
     let sql = `SELECT * 
             FROM ${node.type} 
-            WHERE 'nodes_id' = $1::integer;`;
+            WHERE nodes_id = $1::integer;`;
     return {
         sql: sql,
         data: [node.id],

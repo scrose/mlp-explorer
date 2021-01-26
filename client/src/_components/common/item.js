@@ -7,8 +7,6 @@
 
 import React from 'react'
 import Loading from './loading';
-import { getField } from '../../_services/schema.services.client';
-import ItemMenu from '../menus/item.menu';
 import Data from './data';
 
 /**
@@ -18,14 +16,21 @@ import Data from './data';
  * @return {JSX.Element}
  */
 
-const TableBody = ({values, fields}) => {
+const TableBody = ({data, fields}) => {
     return <tbody>
         {
             fields.map((field, index) => {
                 return (
                     <tr key={`tr_${ index }`}>
-                        <th key={`th_${ index }`} className={field.class}>{field.label}</th>
-                        <td key={`td_${ index }`}>{values[field.name]}</td>
+                        <th key={`h_${ index }`} className={field.class}>{field.label}</th>
+                        <td key={`d_${ index }`}>
+                            <Data
+                                key={`d_${ index }`}
+                                render={data[field.name].render}
+                                value={data[field.name].value}
+                                href={data[field.name].url}
+                            />
+                        </td>
                     </tr>
                 )
             })
@@ -40,7 +45,7 @@ const TableBody = ({values, fields}) => {
  * @param { values, fields }
  */
 
-const Item = ({ values, fields }) => {
+const Item = ({ data, fields }) => {
 
     // prepare column data for table
     // - omit hidden elements
@@ -50,10 +55,10 @@ const Item = ({ values, fields }) => {
             .map(col => {col.class=''; return col})
     }
 
-    return values && Array.isArray(fields)
+    return data && Array.isArray(fields)
         ?
         <table className={'item'}>
-            <TableBody values={ values } fields={ filterFields() } />
+            <TableBody data={ data } fields={ filterFields() } />
         </table>
         :
         <Loading/>

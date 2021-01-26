@@ -25,7 +25,7 @@ const LogoutUsers = () => {
         else {
             addSessionMsg({msg:'User is logged out.', type:'info'})
         }
-        return redirect('/');
+        return () => {};
     }, []);
 
     return <Loading />;

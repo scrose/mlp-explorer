@@ -6,18 +6,11 @@
  */
 
 import React from 'react'
-import { genSchema, getRenderType } from '../../_services/schema.services.client';
 import { useData } from '../../_providers/data.provider.client';
-import List from '../common/list';
 import Loading from '../common/loading';
-import Data from '../common/data';
-import ItemMenu from '../menus/item.menu';
-import Item from '../common/item';
 import { capitalize } from '../../_utils/data.utils.client';
-import { useUser } from '../../_providers/user.provider.client';
 import Icon from '../common/icon';
 import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
-
 
 /**
  * Inline menu component to edit records.
@@ -95,41 +88,55 @@ const TreeNavigator = () => {
     // create dynamic view state
     const [nodeData, setNodeData] = React.useState(null);
     const api = useData();
-
+    const _isMounted = React.useRef(true);
     const treeRoute = '/nodes';
+
 
     // non-static views: fetch API data and set view data in state
     React.useEffect(() => {
-        api.get(treeRoute)
+        let load = async() => {
+            return await api.get(treeRoute)
+                .then(res => {
+                    const { data={} } = res || {};
+                    console.log('Navigator Response:', data)
+                    return data;
+                })
+        }
+        load()
             .then(res => {
-                const { data={} } = res || {};
-                console.log('Navigator Response:', data)
-                setNodeData(data);
-            });
-    }, [api, treeRoute, setNodeData]);
+                // update state with response data
+                if (_isMounted.current) {
+                    setNodeData(res);
+                }
+            })
+            .catch(err => console.error(err));
 
-    // prepare node data for navigator tree
-    // - return complete node item for each list element
-    const filterItems = () => {
-        return Object.keys(nodeData).map(key => {
-            return (
-                <div>
-                    <div>{capitalize(key)}</div>
-                    {
-                        nodeData[key].map((item, index) => {
-                            return (
-                                <TreeNode key={index} data={item} />
-                            )
-                        })
-                    }
-                </div>
-            )
-    })};
+        return () => {_isMounted.current = false; load=null};
+    }, [api]);
 
     return (
         nodeData
         ? <div className={'tree'}>
-            <List items={ filterItems() } classname={'items'} />
+                <ul className={'tree'}>
+                {
+                    Object.keys(nodeData).map((key, index) => {
+                        return (
+                            <li key={`item_${index}`}>
+                                <div>
+                                    <h4>{capitalize(key)}</h4>
+                                    {
+                                        nodeData[key].map((item, index) => {
+                                            return (
+                                                <TreeNode key={`node_${index}`} data={item} />
+                                            )
+                                        })
+                                    }
+                                </div>
+                            </li>
+                        )
+                    })
+                }
+                </ul>
             </div>
         : <Loading/>
     )

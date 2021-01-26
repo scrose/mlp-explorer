@@ -35,6 +35,7 @@ const Viewer = () => {
 
     const route = getPath();
     const api = useData();
+    const _isMounted = React.useRef(true);
 
     // Lookup static view in schema
     const staticRenderType = getStaticRenderType(route) === 'dashboard'
@@ -55,27 +56,43 @@ const Viewer = () => {
         setIDValue(idValue);
     }
 
-    // non-static views: fetch API data and set view data in state
-    React.useEffect(() => {
-        api.get(route)
+    /**
+     * Set current Item ID value. Retrieves ID value
+     * from API data (if exists).
+     *
+     * @public
+     * @param {Object} data
+     */
+
+    const load = async () => {
+        let res = await api.get(route)
             .then(res => {
                 console.log('API Response:', res);
-
-                // update state with response data
-                const { view = '', model={}, data={}, path={} } = res || {};
-                const { name = '', attributes = {} } = model;
-                setRender(getRenderType(view, name));
-                setView(view);
-                setModel(name);
-                setID(data)
-                setValues(data);
-                setNodePath(path)
-
-                // lookup view in schema
-                setSchema(genSchema(view, name, attributes));
-
+                return res;
             });
-    }, [api, route]);
+
+        // update state with response data
+        if (_isMounted.current) {
+            const { view = '', model = {}, data = {}, path = {} } = res || {};
+            const { name = '', attributes = {} } = model;
+            setRender(getRenderType(view, name));
+            setView(view);
+            setModel(name);
+            setID(data);
+            setValues(data);
+            setNodePath(path);
+
+            // lookup view in schema
+            setSchema(genSchema(view, name, attributes));
+        }
+    }
+
+    // non-static views: fetch API data and set view data in state
+    // React.useEffect(() => {
+    //     if (_isMounted.current)
+    //         load(_isMounted).catch(err => console.error(err));
+    //     return () => {_isMounted.current = false;};
+    // }, [load]);
 
     return (
         <div className={'editor'}>

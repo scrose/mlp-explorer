@@ -40,21 +40,25 @@ const ListNodes = ({ rows=[], cols=[], model='' }) => {
     const filterItems = () => {
         return rows.map((row, index) => {
             const fields = filterCols();
-            const item = Object.keys(fields).reduce((o, key) => {
+            const itemData = Object.keys(fields).reduce((o, key) => {
                 const url = '';
                 const renderSetting = fields[key].render;
                 const fieldName = fields[key].name;
-                o[fieldName] = <Data render={renderSetting} value={row[fieldName]} href={url} />;
+                o[fieldName] = {
+                    render: renderSetting,
+                    value: row[fieldName],
+                    href: url
+                };
                 return o;
             }, {})
             return (
-                <div className={'node'}>
+                <div key={`node_${row.nodes_id}`} className={'node'}>
                     <span>{index + 1} {model}</span>
                         {
                             <ItemMenu id={row.nodes_id} model={model} />
                         }
                     <div className={'collapsible'}>
-                        <Item values={item} fields={fields} />
+                        <Item data={itemData} fields={fields} />
                     </div>
                 </div>
             )
@@ -62,7 +66,13 @@ const ListNodes = ({ rows=[], cols=[], model='' }) => {
     }
 
     return Array.isArray(rows) && Array.isArray(cols)
-        ? <List items={ filterItems() } classname={'items'} />
+        ? <ul className={'items'}>
+            {
+                filterItems().map((item, index) => {
+                        return (<li key={`item_${index}`}>{item}</li>)
+                })
+            }
+          </ul>
         : <Loading/>
 
 }
