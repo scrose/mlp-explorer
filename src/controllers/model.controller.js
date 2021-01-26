@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Controllers.Model
- * File: nodes.controller.js
+ * File: model.controller.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -26,7 +26,7 @@ import { prepare } from '../lib/api.utils.js';
 let Model, model, db, filer;
 
 // generate controller constructor
-export default function NodesController(modelRoute) {
+export default function ModelController(modelRoute) {
 
     // check model not null
     if (!modelRoute) throw new Error('invalidModel');

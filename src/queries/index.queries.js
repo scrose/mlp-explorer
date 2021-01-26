@@ -53,8 +53,9 @@ export default {
         updateFile: defaults.updateFile,
         removeFile: defaults.removeFile
     },
-    schema: {
+    nodes: {
         getNode: defaults.getNode,
+        getNodes: defaults.getNodes,
         getNodeTypes: defaults.getNodeTypes,
         getFile: defaults.getFile,
         getFileTypes: defaults.getFileTypes,

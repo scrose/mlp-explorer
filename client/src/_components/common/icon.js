@@ -23,7 +23,9 @@ const getIconClass = (iconType) => {
         edit: 'fas fa-lg fa-edit',
         delete: 'fas fa-lg fa-trash-alt',
         logo: 'fas fa-mountain',
-        navigator: 'fas fa-lg fa-map-marked-alt',
+        map: 'fas fa-lg fa-map-marked-alt',
+        tree: 'fas fa-lg fa-list',
+        up: 'fas fa-lg fa-chevron-circle-up',
         down: 'fas fa-lg fa-chevron-circle-down',
         default: 'fas fa-lg fa-square'
     };

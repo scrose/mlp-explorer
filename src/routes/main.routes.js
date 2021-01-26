@@ -40,6 +40,13 @@ function MainRoutes() {
             put: null,
             post: null,
             delete: null,
+        },
+        list: {
+            path: '/nodes',
+            get: this.controller.list,
+            put: null,
+            post: null,
+            delete: null,
         }
     }
 }

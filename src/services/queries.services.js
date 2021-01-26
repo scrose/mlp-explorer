@@ -235,7 +235,7 @@ export function remove(model) {
 export function selectByNode(node) {
     let sql = `SELECT * 
             FROM ${node.type} 
-            WHERE nodes_id = $1::integer;`;
+            WHERE 'nodes_id' = $1::integer;`;
     return {
         sql: sql,
         data: [node.id],
@@ -429,6 +429,24 @@ export function getAttached(model) {
             sql: sql,
             data: [value],
         };
+    };
+}
+
+/**
+ * Generate query: Find all records in nodes table for
+ * requested model.
+ *
+ * @param {Object} model
+ * @return {Function} query
+ * @public
+ */
+
+export function getNodes(model) {
+    return {
+        sql: `SELECT * 
+                FROM nodes
+                WHERE nodes.type=$1::varchar`,
+        data: [model],
     };
 }
 

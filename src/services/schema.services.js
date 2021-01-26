@@ -131,7 +131,7 @@ export const create = async (modelType) => {
  */
 
 export const getNodeTypes = async function() {
-    let { sql, data } = queries.schema.getNodeTypes();
+    let { sql, data } = queries.nodes.getNodeTypes();
     let nodeTypes = await pool.query(sql, data);
 
     // return only model type names as list
@@ -146,7 +146,7 @@ export const getNodeTypes = async function() {
  */
 
 export const getFileTypes = async function() {
-    let { sql, data } = queries.schema.getFileTypes();
+    let { sql, data } = queries.nodes.getFileTypes();
     let fileTypes = await pool.query(sql, data);
 
     // return only model type names as list
@@ -162,7 +162,7 @@ export const getFileTypes = async function() {
  */
 
 export const getFile = async function(id) {
-    let { sql, data } = queries.schema.getFile(id);
+    let { sql, data } = queries.nodes.getFile(id);
     let file = await pool.query(sql, data);
     return file.rows[0];
 };
@@ -176,7 +176,7 @@ export const getFile = async function(id) {
  */
 
 export const getAttachedFiles = async function(owner_id) {
-    let { sql, data } = queries.schema.getAttachedFiles(owner_id);
+    let { sql, data } = queries.nodes.getAttachedFiles(owner_id);
     let res = await pool.query(sql, data);
     return res.rows;
 };
@@ -194,7 +194,7 @@ export const getModelAttributes = async function(modelType) {
     if (modelType == null) return null;
 
     // get model attributes (table columns)
-    let {sql, data} = queries.schema.getColumns(modelType);
+    let {sql, data} = queries.nodes.getColumns(modelType);
     const attrs = await pool.query(sql, data);
 
     // no attributes found
@@ -225,7 +225,7 @@ export const getModelAttributes = async function(modelType) {
 
 export const getPermissions = async function() {
 
-    let { sql, data } = queries.schema.getPermissions();
+    let { sql, data } = queries.nodes.getPermissions();
     let permissions = await pool.query(sql, data);
 
     // group permissions by model

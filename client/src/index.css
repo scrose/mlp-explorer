@@ -55,6 +55,13 @@ div.navigator {
     text-align: center;
 }
 
+div.navigator .tree {
+    display:inline-block;
+    width: 100%;
+    background-color: #FFFFFF;
+    overflow: scroll;
+}
+
 /* Viewer/Editor Panel */
 
 div.viewer, div.editor {
@@ -463,6 +470,55 @@ nav.breadcrumb ul li a:hover {
 
 }
 
+/* Navigator Tool Menu */
+
+.navigator .h-menu {
+    margin:auto;
+    width: 100%;
+    text-align: center;
+    background-color: #888;
+}
+
+.navigator-tools.h-menu ul {
+    padding: 0;
+    margin:auto;
+    text-align: center;
+    height: auto;
+}
+
+.navigator .h-menu ul li {
+    line-height: 40px;
+    height: 40px;
+    vertical-align: middle;
+    margin: 0 5px;
+}
+
+.navigator .h-menu ul li button {
+    background-color: #888;
+    color: #EEE;
+    border: 2px solid #EEE;
+    margin:0;
+}
+
+.h-menu ul li button:hover {
+    background-color: inherit;
+    color: #CCC;
+    border: 2px solid #CCC;
+    margin:0;
+}
+
+.navigator .h-menu ul .close {
+
+}
+
+.navigator .h-menu ul .close span {
+
+}
+
+.navigator .h-menu ul li h4 {
+
+}
+
 /* Item Edit Menu */
 
 .item.h-menu {
@@ -616,30 +672,17 @@ th.editor {
 
 /* Style the button that is used to open and close the collapsible content */
 .collapsible {
-    background-color: transparent;
-    color: #444;
-    cursor: pointer;
+    display: none;
     width: 100%;
     border: none;
-    text-align: center;
+    text-align: left;
     outline: none;
 }
 
-/* Add a background color to the button if it is clicked on
-(add the .active class with JS), and when you move the mouse
-over it (hover) */
-.collapsible.active, .collapsible:hover {
-    background-color: #ccc;
-}
-
 /* Style the collapsible content. Note: hidden by default */
-.collapsible.content {
-    position: absolute;
-    width:85%;
-    padding: 0 18px;
-    display: none;
+.collapsible.active {
+    display: block;
     overflow: hidden;
-    background-color: #f1f1f1;
 }
 
 /*

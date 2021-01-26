@@ -1,6 +1,6 @@
 /*!
  * Core.API.Router.Nodes
- * File: nodes.routes.js
+ * File: model.routes.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -9,7 +9,7 @@
  * Module dependencies
  */
 
-import NodesController from '../controllers/nodes.controller.js';
+import ModelController from '../controllers/model.controller.js';
 import { toSnake } from '../lib/data.utils.js';
 import * as schema from '../services/schema.services.js';
 import path from 'path';
@@ -21,14 +21,14 @@ import path from 'path';
  * @public
  */
 
-function NodesRoutes(modelType) {
+function ModelRoutes(modelType) {
 
     // create model identifier key
     this.model = toSnake(modelType);
     this.key = `${toSnake(modelType)}_id`;
 
     // initialize model controller
-    this.controller = new NodesController(this.model);
+    this.controller = new ModelController(this.model);
 
     // add controller routes
     this.routes = {
@@ -66,7 +66,7 @@ function NodesRoutes(modelType) {
             put: null,
             post: this.controller.drop,
             delete: null,
-        },
+        }
     };
 }
 
@@ -81,7 +81,7 @@ export default async function generate() {
         .then(nodeTypes => {
             nodeTypes.map(nodeType => {
                 // add routes instance to array
-                routes.push(new NodesRoutes(nodeType));
+                routes.push(new ModelRoutes(nodeType));
             });
         })
         .catch(err => {throw err});

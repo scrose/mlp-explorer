@@ -25,9 +25,25 @@ import { mapToObj } from '../lib/data.utils.js';
  */
 
 export const getNode = async (id) => {
-    let { sql, data } = queries.schema.getNode(id);
+    let { sql, data } = queries.nodes.getNode(id);
     let node = await pool.query(sql, data);
     return node.rows[0];
+};
+
+/**
+ * Get all nodes for given model.
+ *
+ * @public
+ * @param {String} model
+ * @return {Promise} result
+ */
+
+export const getNodes = async function(model) {
+    let { sql, data } = queries.nodes.getNodes(model);
+    console.log(model, sql, data)
+    let nodes = await pool.query(sql, data);
+    const { rows=[] } = nodes || {}
+    return rows;
 };
 
 /**

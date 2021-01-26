@@ -14,7 +14,7 @@ import * as schema from '../services/schema.services.js';
 import * as auth from '../services/auth.services.js'
 import main from './main.routes.js'
 import users from './users.routes.js'
-import nodes from './nodes.routes.js'
+import nodes from './model.routes.js'
 import files from './files.routes.js'
 import { getPermissions } from '../lib/permissions.utils.js';
 

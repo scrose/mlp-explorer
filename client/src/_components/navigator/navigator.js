@@ -7,6 +7,9 @@
 
 import React from 'react'
 import Icon from '../common/icon';
+import NavigatorMenu from '../menus/navigator.menu';
+import TreeNavigator from './tree.navigator';
+import MapNavigator from './map.navigator';
 
 /**
  * Map navigator component.
@@ -16,9 +19,14 @@ import Icon from '../common/icon';
  */
 
 const Navigator = () => {
+
+    // initialize navigation view
+    const [navView, setNavView] = React.useState('tree');
+
     return (
         <div className={'navigator'}>
-            <h3><Icon type={'navigator'} /> Navigator</h3>
+            <NavigatorMenu view={navView} set={setNavView} />
+            {navView === 'tree' ? <TreeNavigator/> : <MapNavigator/>}
         </div>
     )
 }
