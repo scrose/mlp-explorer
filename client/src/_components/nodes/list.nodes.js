@@ -39,6 +39,7 @@ const ListNodes = ({ rows=[], cols=[], model='' }) => {
     // - return complete node item for each list element
     const filterItems = () => {
         return rows.map((row, index) => {
+            console.log(row)
             const fields = filterCols();
             const itemData = Object.keys(fields).reduce((o, key) => {
                 const url = '';
@@ -53,7 +54,7 @@ const ListNodes = ({ rows=[], cols=[], model='' }) => {
             }, {})
             return (
                 <div key={`node_${row.nodes_id}`} className={'node'}>
-                    <span>{index + 1} {model}</span>
+                    <span>{index + 1}</span>
                         {
                             <ItemMenu id={row.nodes_id} model={model} />
                         }

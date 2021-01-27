@@ -140,8 +140,13 @@ export const schema = {
             }
         },
         projects: {
-            name: 'Project Name',
-            description: 'Project Description'
+            name: {
+                key: true,
+                label: 'Project Name'
+            },
+            description: {
+                label: 'Project Description'
+            }
         },
         surveyors: {
             given_names: {

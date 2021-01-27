@@ -23,12 +23,14 @@ const ViewerApp = () => {
         <div className={"page-content"}>
             <HeaderViewer/>
             <main>
-                <BoundaryError>
-                    <Navigator/>
-                </BoundaryError>
-                <BoundaryError>
-                    <Viewer/>
-                </BoundaryError>
+                <div className={'main'}>
+                    <BoundaryError>
+                        <Navigator/>
+                    </BoundaryError>
+                    <BoundaryError>
+                        <Viewer/>
+                    </BoundaryError>
+                </div>
             </main>
             <Footer/>
         </div>

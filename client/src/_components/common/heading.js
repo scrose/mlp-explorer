@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { getPageHeading } from '../../_services/schema.services.client';
+import { getItemLabel } from '../../_services/schema.services.client';
 import { capitalize } from '../../_utils/data.utils.client';
 
 /**
@@ -26,7 +26,7 @@ const Heading = ({path='', prefix='', text = ''}) => {
 
     // text attribute overrides computed heading
     const heading = path && typeof path === 'object'
-        ? getPageHeading(rootPathData)
+        ? getItemLabel(rootPathData)
         : path;
 
     return <h3>{prefix ? `${capitalize(prefix)}:` : ''}{text ? text : heading}</h3>

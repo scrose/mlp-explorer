@@ -51,7 +51,11 @@ app.use(helmet());
 
 app.set('trust proxy', 1); // trust first proxy
 
-const allowedOrigins = ["http://localhost:3000","http://localhost:3001"];
+const allowedOrigins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:5000"
+];
 
 app.use(cors({
         origin: function(origin, callback) {

@@ -19,7 +19,7 @@
     "test": "nyc mocha --exit",
     "coverage": "nyc npm run test",
     "client": "cd client && npm start",
-    "build": "cd client && npm run build"
+    "build": "cd client && npm run build && serve -s build"
   },
   "dependencies": {
     "dotenv": "^8.2.0",

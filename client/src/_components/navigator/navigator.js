@@ -6,7 +6,6 @@
  */
 
 import React from 'react'
-import Icon from '../common/icon';
 import NavigatorMenu from '../menus/navigator.menu';
 import TreeNavigator from './tree.navigator';
 import MapNavigator from './map.navigator';

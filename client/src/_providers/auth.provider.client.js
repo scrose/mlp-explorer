@@ -42,16 +42,6 @@ function AuthProvider(props) {
       information.
      */
 
-    React.useEffect(() => {
-        const token = getSessionToken();
-        // if (token)
-        //     auth().then(res => {
-        //             if (!res) return;
-        //             const {user=null} = res;
-        //             if (user) setSession(user);
-        //         });
-    });
-
     // user login request
     const login = async function(route, credentials) {
         return await api.post(route, credentials)

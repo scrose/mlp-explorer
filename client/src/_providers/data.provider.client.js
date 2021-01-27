@@ -86,7 +86,7 @@ function DataProvider(props) {
                 console.error('An API error occurred:', err)
             });
 
-    }, [makeRequest]);
+    }, []);
 
     /**
      * Request method to post data from API.

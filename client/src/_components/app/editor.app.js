@@ -22,14 +22,16 @@ const EditorApp = () => {
     return (
         <div className={"page-content"}>
             <HeaderEditor />
-            <main>
-                <BoundaryError>
-                    <Navigator/>
-                </BoundaryError>
-                <BoundaryError>
-                    <Editor/>
-                </BoundaryError>
-            </main>
+                <main>
+                    <div className={'main'}>
+                        <BoundaryError>
+                            <Navigator/>
+                        </BoundaryError>
+                        <BoundaryError>
+                            <Editor/>
+                        </BoundaryError>
+                    </div>
+                </main>
             <Footer/>
         </div>
     );

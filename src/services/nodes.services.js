@@ -52,12 +52,22 @@ export const getNodes = async function(model) {
         let { sql, data } = queries.nodes.getNodes(model);
         const { rows=[] } = await pool.query(sql, data) || {}
 
-        // get full data for dependent nodes
+        // get full data for dependent (child) nodes
         let nodes = await Promise.all(rows.map(async (node) => {
             node.data = await selectByNode(node);
             node.dependents = await getDependentNodes({id: node.id});
+
+            // get full data for dependent (child) nodes
+            let nodes = await Promise.all(node.dependents.map(async (child) => {
+                node.data = await selectByNode(node);
+                node.dependents = await getDependentNodes({id: node.id});
+                return node;
+            }));
+
             return node;
         }));
+
+
 
         // end transaction
         await client.query('COMMIT');

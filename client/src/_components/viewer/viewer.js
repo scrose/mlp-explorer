@@ -25,14 +25,8 @@ import Heading from '../common/heading';
 const Viewer = () => {
 
     // create dynamic view state
-    const [values, setValues] = React.useState({});
-    const [nodePath, setNodePath] = React.useState({});
-    const [schema, setSchema] = React.useState(null);
-    const [render, setRender] = React.useState('');
-    const [view, setView] = React.useState('');
-    const [model, setModel] = React.useState('');
-    const [id, setIDValue] = React.useState('');
-
+    const [apiData, setAPIData] = React.useState({});
+    const [values, setValues] = React.useState(null);
     const route = getPath();
     const api = useData();
     const _isMounted = React.useRef(true);
@@ -43,25 +37,9 @@ const Viewer = () => {
         : getStaticRenderType(route);
 
     /**
-     * Set current Item ID value. Retrieves ID value
-     * from API data (if exists).
+     * Load API data.
      *
      * @public
-     * @param {Object} data
-     */
-
-    const setID = (data) => {
-        const { nodes_id='', users_id='' } = data;
-        const idValue = nodes_id ? nodes_id : users_id ? users_id : '';
-        setIDValue(idValue);
-    }
-
-    /**
-     * Set current Item ID value. Retrieves ID value
-     * from API data (if exists).
-     *
-     * @public
-     * @param {Object} data
      */
 
     const load = async () => {
@@ -73,33 +51,34 @@ const Viewer = () => {
 
         // update state with response data
         if (_isMounted.current) {
-            const { view = '', model = {}, data = {}, path = {} } = res || {};
-            const { name = '', attributes = {} } = model;
-            setRender(getRenderType(view, name));
-            setView(view);
-            setModel(name);
-            setID(data);
+            setAPIData(res);
+            const {data={}} = res || {};
+            console.log('Data:', data);
             setValues(data);
-            setNodePath(path);
-
-            // lookup view in schema
-            setSchema(genSchema(view, name, attributes));
         }
     }
 
     // non-static views: fetch API data and set view data in state
-    // React.useEffect(() => {
-    //     if (_isMounted.current)
-    //         load(_isMounted).catch(err => console.error(err));
-    //     return () => {_isMounted.current = false;};
-    // }, [load]);
+    React.useEffect(() => {
+        if (_isMounted.current)
+            load().catch(err => console.error(err));
+        return () => {_isMounted.current = false;};
+    }, [load]);
+
+    // destructure API data for settings
+    const { view = '', model = {}, data = {}, path = {} } = apiData || {};
+    const { name = '', attributes = {} } = model || {};
+    const { nodes_id='', users_id='' } = data;
+    const id = nodes_id ? nodes_id : users_id ? users_id : '';
+
+
 
     return (
         <div className={'editor'}>
             <div className={'header'}>
-                <BreadcrumbMenu path={nodePath} />
+                <BreadcrumbMenu path={path} />
                 <Messenger />
-                <Heading path={nodePath} />
+                <Heading path={path} />
                 <ViewerMenu id={id} model={model} view={view} />
             </div>
             {
@@ -112,8 +91,8 @@ const Viewer = () => {
                         model={model}
                         values={values}
                         setValues={setValues}
-                        schema={schema}
-                        render={render}
+                        schema={genSchema(view, name, attributes)}
+                        render={getRenderType(view, name)}
                     />
             }
         </div>

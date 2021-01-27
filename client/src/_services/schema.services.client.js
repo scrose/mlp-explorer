@@ -123,16 +123,16 @@ export const getFieldLabel = (model, field) => {
 }
 
 /**
- * Compute heading for given item from path data.
+ * Compute label for given item from metadata.
  *
  * @public
- * @param pathData
- * @return {String} heading
+ * @param itemData
+ * @return {String} label
  */
 
-export const getPageHeading = (pathData) => {
-    console.log('Heading:', pathData)
-    const {type='', data={}} = pathData || {};
+export const getItemLabel = (itemData) => {
+    console.log('Heading:', itemData)
+    const {type='', data={}} = itemData || {};
     // iterate over label keys assigned in schema
     return getLabelKeys(type)
         .filter(key => data.hasOwnProperty(key) && data[key])

@@ -11,11 +11,13 @@ import Loading from '../common/loading';
 import { capitalize } from '../../_utils/data.utils.client';
 import Icon from '../common/icon';
 import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
+import { getItemLabel } from '../../_services/schema.services.client';
 
 /**
  * Inline menu component to edit records.
  *
  * @public
+ * @param text
  * @param {boolean} toggle
  * @param {Function} setToggle
  * @param {String} id
@@ -23,7 +25,7 @@ import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
  * @return {JSX.Element}
  */
 
-const TreeNodeMenu = ({ toggle, setToggle, id, model }) => {
+const TreeNodeMenu = ({ text='node', toggle, setToggle, id, model }) => {
     return (
         <div className={'tree-node h-menu'}>
             <ul>
@@ -43,33 +45,67 @@ const TreeNodeMenu = ({ toggle, setToggle, id, model }) => {
                         <Icon type={'info'} />
                     </button>
                 </li>
+                <li>{text}</li>
             </ul>
         </div>
     );
 };
 
 /**
- * Render .page footer
+ * Navigation tree node list component.
+ *
+ * @public
+ * @return {React.Component}
+ */
+
+const TreeNodeList = ({data}) => {
+    console.log('Tree node list:', data)
+    return (
+        <ul>
+            {
+                data.map((item, index) => {
+                    const { data={} } = item || {};
+                    return (
+                        <li key={`${data.nodes_id}`}>
+                            <TreeNode data={item} />
+                        </li>
+                    )
+                })
+            }
+        </ul>
+
+    );
+}
+
+/**
+ * Navigation tree node component.
  *
  * @public
  * @return {React.Component}
  */
 
 const TreeNode = ({data}) => {
+    console.log('Tree node:', data)
     const [toggle, setToggle] = React.useState(false);
+
+    // get any available dependent nodes
+    const { dependents=[] } = data || {};
 
     return (
             <div className={'tree-node'}>
+                <div>
                 {
                     <TreeNodeMenu
+                        text={getItemLabel(data)}
                         toggle={toggle}
                         setToggle={setToggle}
                         id={data.nodes_id}
                         model={data.type}
                     />
                 }
+                </div>
                 <div className={`collapsible${toggle ? ' active' : ''}`}>
-                    {'item data'}
+                    <TreeNodeList data={dependents}/>
                 </div>
             </div>
 
@@ -124,13 +160,7 @@ const TreeNavigator = () => {
                             <li key={`item_${index}`}>
                                 <div>
                                     <h4>{capitalize(key)}</h4>
-                                    {
-                                        nodeData[key].map((item, index) => {
-                                            return (
-                                                <TreeNode key={`node_${index}`} data={item} />
-                                            )
-                                        })
-                                    }
+                                    <TreeNodeList data={nodeData[key]} />
                                 </div>
                             </li>
                         )
