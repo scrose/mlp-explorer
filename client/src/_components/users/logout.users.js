@@ -7,7 +7,7 @@
 
 import React from "react";
 import { useAuth } from '../../_providers/auth.provider.client';
-import { redirect } from '../../_utils/paths.utils.client';
+import { reroute } from '../../_utils/paths.utils.client';
 import Loading from '../common/loading';
 import { useUser } from '../../_providers/user.provider.client';
 import { addSessionMsg } from '../../_services/session.services.client';

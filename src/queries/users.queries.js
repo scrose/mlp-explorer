@@ -8,7 +8,7 @@
 'use strict';
 
 /**
- * Find user by ID. Joined with user roles table.
+ * Find user by user ID.
  *
  * @param {String} user_id
  * @return {Function} SQL query function

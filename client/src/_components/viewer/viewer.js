@@ -6,14 +6,13 @@
  */
 
 import React from 'react';
-import { genSchema, getRenderType, getStaticRenderType } from '../../_services/schema.services.client';
-import { getPath } from '../../_utils/paths.utils.client';
+import { getRenderType, getStaticView } from '../../_services/schema.services.client';
 import Messenger from '../common/messenger';
 import BreadcrumbMenu from '../menus/breadcrumb.menu';
-import ViewerMenu from '../menus/viewer.menu';
+import MenuViewer from './menu.viewer';
 import DataView from '../views/data.view';
 import StaticView from '../views/static.view';
-import { useData } from '../../_providers/data.provider.client';
+import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
 
 /**
@@ -26,15 +25,7 @@ const Viewer = () => {
 
     // create dynamic view state
     const [apiData, setAPIData] = React.useState({});
-    const [values, setValues] = React.useState(null);
-    const route = getPath();
-    const api = useData();
-    const _isMounted = React.useRef(true);
-
-    // Lookup static view in schema
-    const staticRenderType = getStaticRenderType(route) === 'dashboard'
-        ? 'dashboardView'
-        : getStaticRenderType(route);
+    const api = useRouter();
 
     /**
      * Load API data.
@@ -42,56 +33,43 @@ const Viewer = () => {
      * @public
      */
 
-    const load = async () => {
-        let res = await api.get(route)
-            .then(res => {
-                console.log('API Response:', res);
-                return res;
-            });
-
-        // update state with response data
-        if (_isMounted.current) {
-            setAPIData(res);
-            const {data={}} = res || {};
-            console.log('Data:', data);
-            setValues(data);
-        }
-    }
-
     // non-static views: fetch API data and set view data in state
     React.useEffect(() => {
-        if (_isMounted.current)
-            load().catch(err => console.error(err));
-        return () => {_isMounted.current = false;};
-    }, [load]);
+        console.log('Static View:', api.staticView)
+        if (!api.staticView)
+            api.get(api.route)
+                .then(data => {
+                    console.log('API Response:', data);
+                    // update state with response data
+                    setAPIData(data);
+                });
+        return () => {};
+    }, [api]);
 
     // destructure API data for settings
     const { view = '', model = {}, data = {}, path = {} } = apiData || {};
-    const { name = '', attributes = {} } = model || {};
+    const { name = '' } = model || {};
     const { nodes_id='', users_id='' } = data;
     const id = nodes_id ? nodes_id : users_id ? users_id : '';
 
-
-
     return (
-        <div className={'editor'}>
+        <div className={'viewer'}>
             <div className={'header'}>
                 <BreadcrumbMenu path={path} />
                 <Messenger />
                 <Heading path={path} />
-                <ViewerMenu id={id} model={model} view={view} />
+                <MenuViewer id={id} model={model} view={view} />
             </div>
             {
-                staticRenderType
-                ? <StaticView type={staticRenderType} />
+                api.staticView
+                ? <StaticView type={
+                    api.staticView === 'dashboard' ? 'dashboardView' : api.staticView
+                } />
                 : <DataView
-                        route={route}
-                        id={id}
                         view={view}
-                        model={model}
-                        values={values}
-                        setValues={setValues}
-                        schema={genSchema(view, name, attributes)}
+                        model={name}
+                        data={apiData}
+                        setData={setAPIData}
                         render={getRenderType(view, name)}
                     />
             }

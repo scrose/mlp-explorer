@@ -100,12 +100,6 @@ let admin = {
     role: 'super_administrator'
 }
 
-let user = {
-    id: null,
-    email: null,
-    token: null
-}
-
 /**
  * Sign-in administrator.
  * @private
@@ -213,7 +207,7 @@ mocha.describe('User Controllers', () => {
 
     let user = {
         user_id: null,
-        email: 'aaaaaaaaaaaaaaaaaaaaaaa@example.ca',
+        email: 'test@example.ca',
         password: '5565lSSR!3323',
         hash: null,
         salt: null,
@@ -222,7 +216,7 @@ mocha.describe('User Controllers', () => {
 
     mocha.it('Register new user', async () => {
         await agent
-            .post(`${BASE_URL}users/register`)
+            .post(`${BASE_URL}users/new`)
             .set('Accept', 'application/json')
             .set('x-access-token', admin.token)
             .send({

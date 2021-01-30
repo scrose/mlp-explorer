@@ -9,6 +9,8 @@ import React from 'react';
 import {useUser} from './_providers/user.provider.client';
 import EditorApp from './_components/app/editor.app';
 import ViewerApp from './_components/app/viewer.app';
+import { useRouter } from './_providers/router.provider.client';
+import UnavailableError from './_components/error/unavailable.error';
 
 /**
  * Core client application component.
@@ -17,8 +19,15 @@ import ViewerApp from './_components/app/viewer.app';
  */
 
 function App() {
+    const api = useRouter();
     const user = useUser();
-    return user ? <EditorApp /> : <ViewerApp />
+
+    return api.online ? (
+        user
+            ? <EditorApp />
+            : <ViewerApp />
+            )
+        : <UnavailableError/>
 }
 
 export default App;

@@ -7,18 +7,18 @@
 
 import React from 'react';
 import {AuthProvider} from './auth.provider.client'
-import {DataProvider} from './data.provider.client'
+import {RouterProvider} from './router.provider.client'
 import {UserProvider} from './user.provider.client'
 
 function AppProviders({children}) {
     return (
-            <DataProvider>
+            <RouterProvider>
                 <AuthProvider>
                     <UserProvider>
                         {children}
                     </UserProvider>
                 </AuthProvider>
-            </DataProvider>
+            </RouterProvider>
     )
 }
 

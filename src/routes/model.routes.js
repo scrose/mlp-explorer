@@ -10,7 +10,6 @@
  */
 
 import ModelController from '../controllers/model.controller.js';
-import { toSnake } from '../lib/data.utils.js';
 import * as schema from '../services/schema.services.js';
 import path from 'path';
 
@@ -24,8 +23,8 @@ import path from 'path';
 function ModelRoutes(modelType) {
 
     // create model identifier key
-    this.model = toSnake(modelType);
-    this.key = `${toSnake(modelType)}_id`;
+    this.model = modelType;
+    this.key = `${modelType}_id`;
 
     // initialize model controller
     this.controller = new ModelController(this.model);

@@ -85,6 +85,13 @@ function UserRoutes() {
             put: null,
             post: this.controller.authenticate,
             delete: null,
+        },
+        refresh: {
+            path: path.join('/refresh'),
+            get: this.controller.refresh,
+            put: null,
+            post: null,
+            delete: null,
         }
-    };
+    }
 }

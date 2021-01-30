@@ -6,25 +6,33 @@
  */
 
 import { schema } from '../schema';
+import { sanitize } from '../_utils/data.utils.client';
 
 /**
- * Load static view render index from given route. Unlike data
+ * Get static view render index from given route. Unlike data
  * views, static views do not require input data from API requests.
  *
  * @public
  * @param {String} route
- * @return {String} render type
+ * @return {String} static view type
  */
 
-export const getStaticRenderType = (route) => {
+export const getStaticView = (route) => {
+    const { routes={} } = schema || {};
+    return routes.hasOwnProperty(route) ? routes[route].name : null;
+}
 
-    // get static routes
-    const {routes} = schema;
+/**
+ * Get label for static view.
+ *
+ * @public
+ * @param {String} route
+ * @return {String} static view label
+ */
 
-    if (!routes.hasOwnProperty(route))
-        return null;
-
-    return routes[route];
+export const getStaticLabel = (route) => {
+    const { routes={} } = schema || {};
+    return routes.hasOwnProperty(route) ? routes[route].label : '';
 }
 
 /**
@@ -50,7 +58,7 @@ export const getError = (key, type) => {
  */
 
 export const getAppTitle = () => {
-    return `${schema.main.appName}`;
+    return `${schema.app.name}`;
 }
 
 /**
@@ -88,58 +96,110 @@ export const getField = (key='', type='common') => {
 }
 
 /**
- * Get label keys assigned for given model.
+ * Generate lookup table for field key(s) used to assign labels for nodes.
+ * - Selects only fields assigned as label keys.
+ * - Keys are sorted by the order value assigned to 'key' in the field.
+ * - Returns model-index arrays of field settings for each key.
  *
  * @public
- * @param {String} model
- * @return {Object} message
+ */
+
+const labelKeys = Object.keys(schema.models)
+        .reduce((o, model) => {
+            // select keys from fields
+            o[model] = Object.keys(schema.models[model])
+                .filter(field => schema.models[model][field].key || field === 'attributes')
+                .reduce((o, field) => {
+                    // index field labels by position
+                    o[field] = schema.models[model][field];
+                    return o;
+                }, {});
+            return o;
+        }, {});
+
+/**
+ * Retrieve field key(s) used to assign labels for model nodes.
+ *
+ * @public
  */
 
 export const getLabelKeys = (model) => {
-    return schema.models.hasOwnProperty(model)
-        ? Object.keys(schema.models[model])
-            .filter(attr => schema.models[model][attr].key)
-        : [];
+    return labelKeys.hasOwnProperty(model) ? labelKeys[model] : {};
 }
 
 /**
- * Get label assigned for given model field.
+ * Retrieve label for model from schema.
  *
- * @public
  * @param {String} model
- * @param {String} field
- * @return {Object} message
+ * @param {String} type
+ * @return {String} label
+ * @public
  */
 
-export const getFieldLabel = (model, field) => {
-    const modelSchema = schema.models.hasOwnProperty(model)
-        ? schema.models[model]
-        : {};
-    const fieldSchema = schema.models.hasOwnProperty(field)
-        ? modelSchema[field]
-        : {};
-    const {label=field} = fieldSchema;
-    return label;
+export const getModelLabel = (model, type='singular') => {
+    return labelKeys.hasOwnProperty(model)
+        ? labelKeys[model].attributes.hasOwnProperty(type)
+            ? labelKeys[model].attributes[type]
+            : ''
+        : '';
 }
 
+
 /**
- * Compute label for given item from metadata.
+ * Computes label for given node data using data fields.
+ * - looks up fields assigned as key(s) to label node type instance
+ * - sorts key values (integers) to order positions in the label
+ * - joins field values with commas to compose label
  *
  * @public
- * @param itemData
+ * @param {Object} node
  * @return {String} label
  */
 
-export const getItemLabel = (itemData) => {
-    console.log('Heading:', itemData)
-    const {type='', data={}} = itemData || {};
+export const getNodeLabel = (node) => {
+
+    // get label keys for node type from schema
+    const {type='', data={}} = node || {};
+    const lkeys = getLabelKeys(type) || [];
+
+    // get default label
+    const { attributes={singular: ''} } = lkeys || {};
+
     // iterate over label keys assigned in schema
-    return getLabelKeys(type)
-        .filter(key => data.hasOwnProperty(key) && data[key])
-        .map(key => {
-            return data[key];
+    const label = Object.keys(lkeys)
+        .filter(field => data.hasOwnProperty(field) && data[field])
+        .sort(function(fieldA,fieldB) {
+            return lkeys[fieldA].key - lkeys[fieldB].key;
         })
-        .join(' ');
+        .map(field => {
+            return sanitize(
+                data[field],
+                lkeys[field].hasOwnProperty('render')
+                    ? lkeys[field].render
+                    : ''
+            )
+        })
+        .join(', ');
+
+    // Handle empty labels
+    return label ? label : attributes.singular;
+}
+
+/**
+ * Get order of node in tree.
+ *
+ * @public
+ * @param {Object} node
+ * @return {Object} message
+ */
+
+export const getNodeOrder = (node) => {
+    const {type=''} = node;
+    const modelSchema = schema.models.hasOwnProperty(type)
+        ? schema.models[type] : '';
+    const { attributes={} } = modelSchema || {};
+
+    return attributes.hasOwnProperty('order') ? attributes.order : 0;
 }
 
 /**
@@ -176,7 +236,8 @@ export const genSchema = (view, model, modelAttributes={}) => {
 
     // include any default (common) fields to model schema
     // - for example, ID fields (e.g. nodes_id) and timestamps
-    //   (e.g. created_at).
+    //   (e.g. 'created_at' is common to all nodes).
+
     Object.keys(modelAttributes)
         .filter(key => schema.models.default.hasOwnProperty(key))
         .reduce((o, key) => {
@@ -184,24 +245,25 @@ export const genSchema = (view, model, modelAttributes={}) => {
             return o;
         }, modelSchema)
 
-    // create renderable elements based on schema
-    // Filters out omitted fields (array) for view.
-    // - set in schema 'restrict' settings (list of
-    //   views restricted for showing the field).
-    // - when 'restrict' is absent, all views show
-    //   the field.
-    // - an empty 'restrict' array omits the field
-    //   from all views.
-    // (Optional) load initial values from input data
+    /** create renderable elements based on schema
+        Filters out omitted fields (array) for view.
+        - set in schema 'restrict' settings (list of
+          views restricted for showing the field).
+        - when 'restrict' is absent, all views show
+          the field.
+        - an empty 'restrict' array omits the field
+          from all views.
+        (Optional) load initial values from input data
+     */
 
     const fields =
         Object.keys(modelSchema)
             .filter(key =>
-                !modelSchema[key].hasOwnProperty('restrict')
-                ||
+                key !== 'attributes'
+                &&
                 (
-                    modelSchema[key].hasOwnProperty('restrict')
-                    && modelSchema[key].restrict.includes(view)
+                    !modelSchema[key].hasOwnProperty('restrict')
+                    || modelSchema[key].restrict.includes(view)
                 )
             )
             .map(key => {
@@ -224,7 +286,10 @@ export const genSchema = (view, model, modelAttributes={}) => {
                         ? modelSchema[key].refs
                         : []
                 };
-            });
+            }).reduce((o, field) => {
+                o[field.name] = field;
+                return o;
+            }, {});
 
     return {
         model: model,

@@ -85,10 +85,10 @@ const Fieldset = ({
             <legend>{legend}</legend>
             {
                 // insert input fields
-                (fields || []).map(field => {
+                Object.keys(fields || {}).map(key => {
 
                 // get form schema for requested model
-                const { name='', label='', render='', refs=[], validate=[], options=[]} = field;
+                const { name='', label='', render='', refs=[], validate=[], options=[]} = fields[key];
                 const _value = (data || []).hasOwnProperty(name) ? data[name] : '';
                 const _error = (errors || []).hasOwnProperty(name) ? errors[name] : '';
                 const _readonly = (readonly || []).hasOwnProperty(name) ? readonly[name] : false;

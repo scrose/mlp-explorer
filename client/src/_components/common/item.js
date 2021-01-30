@@ -1,67 +1,66 @@
 /*!
  * MLP.Client.Components.Common.Item
- * File: Form.js
+ * File: editor.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
-import React from 'react'
-import Loading from './loading';
-import Data from './data';
+import React from 'react';
+import { genSchema } from '../../_services/schema.services.client';
+import { sanitize } from '../../_utils/data.utils.client';
 
 /**
- * Render item table body.
+ * Render item table component.
  *
  * @public
+ * @param {Array} data
  * @return {JSX.Element}
  */
 
-const TableBody = ({data, fields}) => {
-    return <tbody>
-        {
-            fields.map((field, index) => {
-                return (
-                    <tr key={`tr_${ index }`}>
-                        <th key={`h_${ index }`} className={field.class}>{field.label}</th>
-                        <td key={`d_${ index }`}>
-                            <Data
-                                key={`d_${ index }`}
-                                render={data[field.name].render}
-                                value={data[field.name].value}
-                                href={data[field.name].url}
-                            />
-                        </td>
-                    </tr>
-                )
-            })
-        }
-    </tbody>
-}
+const Item = ({data: apiData, view, model}) => {
 
-/**
- * Data item (record) component.
- *
- * @public
- * @param { values, fields }
- */
+    // prepare data for item table
+    // - sanitize data by render type
+    const filterData = () => {
 
-const Item = ({ data, fields }) => {
+        // extract schema settings from data
+        const { data=[] } = apiData || {};
 
-    // prepare column data for table
-    // - omit hidden elements
-    const filterFields = () => {
-        return fields
-            .filter(col => col.render !== 'hidden')
-            .map(col => {col.class=''; return col})
-    }
+        // generate main schema
+        const { fields={} } = genSchema(view, model)
 
-    return data && Array.isArray(fields)
-        ?
+        // sanitize top-level data
+        return Object.keys(fields)
+            .filter(key => fields[key].render !== 'hidden')
+            .map(key => {
+                const { render='' } = fields[key] || {};
+                const field = {};
+                field.value = sanitize(data[key], render);
+                field.label = fields[key].label;
+                return field;
+            });
+    };
+
+    return <div>
         <table className={'item'}>
-            <TableBody data={ data } fields={ filterFields() } />
+            <tbody>
+            {
+                filterData().map((field, index) => {
+                    return (
+                        <tr key={`tr_${ index }`}>
+                            <th key={`h_${ index }`}>
+                                {field.label}
+                            </th>
+                            <td key={`d_${ index }`}>
+                                {field.value}
+                            </td>
+                        </tr>
+                    )
+                })
+            }
+            </tbody>
         </table>
-        :
-        <Loading/>
+    </div>
 }
 
-export default Item;
+export default Item

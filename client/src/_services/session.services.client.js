@@ -21,8 +21,6 @@ export const getSession = () => {
     const label = sessionStorage.getItem('userRoleLabel') || ''
     const token = sessionStorage.getItem('userToken') || ''
 
-    console.log({id: id, email: email, token: token})
-
     return id && email && role && token
         ? {id: id, email: email, role: role, token: token, label: label}
         : null;
@@ -77,7 +75,7 @@ export const clearSession = () => {
 
 export const getSessionMsg = () => {
     const msgJSON = sessionStorage.getItem('statusMsg') || ''
-    return msgJSON ? JSON.parse(msgJSON) : [];
+    return msgJSON ? JSON.parse(msgJSON) : '';
 }
 
 /**
@@ -97,9 +95,7 @@ export const checkSessionMsg = () => {
  */
 
 export const addSessionMsg = (msg) => {
-    const messages = getSessionMsg();
-    messages.push(msg);
-    sessionStorage.setItem('statusMsg', JSON.stringify(messages || []));
+    sessionStorage.setItem('statusMsg', JSON.stringify(msg));
 }
 
 /**
@@ -110,8 +106,7 @@ export const addSessionMsg = (msg) => {
 
 export const popSessionMsg = () => {
     // delete messages if status query parameter is set
-    const messages = getSessionMsg();
-    sessionStorage.setItem('statusMsg', JSON.stringify([]));
+    const message = getSessionMsg();
     sessionStorage.removeItem('statusMsg');
-    return messages;
+    return message;
 }

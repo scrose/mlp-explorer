@@ -6,8 +6,9 @@
  */
 
 import React from 'react';
-import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
+import { getNodeURI, reroute } from '../../_utils/paths.utils.client';
 import Icon from '../common/icon';
+import { useRouter } from '../../_providers/router.provider.client';
 
 /**
  * Editor menu component.
@@ -15,7 +16,11 @@ import Icon from '../common/icon';
  * @public
  */
 
-const EditorMenu = ({model, id=null, view}) => {
+const MenuEditor = ({model, id=null, view}) => {
+
+    const api = useRouter();
+
+    // visibility settings for menu/menu items
     const menuExclude = ['dashboard', 'login', 'register']
     const toolExclude = ['dashboard', 'list', 'register'];
     return (
@@ -25,7 +30,7 @@ const EditorMenu = ({model, id=null, view}) => {
                 <li>
                     <button
                         title={`Add new ${model} item.`}
-                        onClick={() => redirect(getNodeURI(model, 'new'))}
+                        onClick={() => api.router(getNodeURI(model, 'new'))}
                     >
                         <Icon type={'add'} /> <span>Add New</span>
                     </button>
@@ -34,7 +39,7 @@ const EditorMenu = ({model, id=null, view}) => {
                     <li>
                         <button
                             title={`Edit this ${model} item.`}
-                            onClick={() => redirect(getNodeURI(model, 'edit', id))}
+                            onClick={() => api.router(getNodeURI(model, 'edit', id))}
                         >
                             <Icon type={'edit'} /> <span>Edit</span>
                         </button>
@@ -44,7 +49,7 @@ const EditorMenu = ({model, id=null, view}) => {
                     <li>
                         <button
                             title={`Delete this ${model} item.`}
-                            onClick={() => redirect(getNodeURI(model, 'remove', id))}
+                            onClick={() => api.router(getNodeURI(model, 'remove', id))}
                         >
                             <Icon type={'delete'} /> <span>Delete</span>
                         </button>
@@ -56,4 +61,4 @@ const EditorMenu = ({model, id=null, view}) => {
     )
 }
 
-export default EditorMenu;
+export default MenuEditor;

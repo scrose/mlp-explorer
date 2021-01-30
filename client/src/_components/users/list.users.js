@@ -10,20 +10,22 @@ import Loading from '../common/loading';
 import Table from '../common/table';
 import ItemMenu from '../menus/item.menu';
 import { useUser } from '../../_providers/user.provider.client';
-import Data from '../common/data';
+import { genSchema } from '../../_services/schema.services.client';
+import { sanitize } from '../../_utils/data.utils.client';
 
 /**
  * User list component to view/edit/delete records.
  *
  * @public
- * @param {Array} rows
- * @param {Array} cols
+ * @param {Array} data
  * @return {JSX.Element}
  */
 
-const ListUsers = ({ rows=[], cols=[] }) => {
+const ListUsers = ({ data=[]}) => {
 
-    console.log('Users:', rows, cols)
+    const { fields=[] } = genSchema('list', 'users');
+
+    console.log('Users:', data, fields)
 
     const user = useUser();
 
@@ -31,7 +33,7 @@ const ListUsers = ({ rows=[], cols=[] }) => {
     const renameOption = (row, cols, key) => {
         const optKey = row[key];
         let label = optKey;
-        cols
+        fields
             .filter(col => col.name === key)
             .filter(col => col.hasOwnProperty('options'))
             .filter(col => col.options
@@ -43,7 +45,7 @@ const ListUsers = ({ rows=[], cols=[] }) => {
 
     // prepare row data for table
     const filterRows = () => {
-        return rows
+        return data
             .map(row => {
 
                 // append inline edit menu (if authenticated)
@@ -52,15 +54,14 @@ const ListUsers = ({ rows=[], cols=[] }) => {
                     row.editor = <ItemMenu id={row.user_id} model={'users'} />;
 
                 // convert user role ID to label
-                row.role = renameOption(row, cols, 'role');
+                row.role = renameOption(row, fields, 'role');
 
                 // set render option for item fields
                 // returns row object indexed by field name
                 return Object.keys(row).reduce((o, key) => {
-                    const url = '';
-                    const renderSetting = cols
+                    const renderSetting = fields
                         .filter(col => key === col.name).render;
-                    o[key] = <Data key={`_${key}`} render={renderSetting} value={row[key]} href={url}/>
+                    o[key] = sanitize(row[key], renderSetting)
                     return o;
                 }, {})
             });
@@ -70,7 +71,7 @@ const ListUsers = ({ rows=[], cols=[] }) => {
     const filterCols = () => {
 
         // omit hidden elements
-        const fCols = cols
+        const fCols = fields
             .filter(col => col.render !== 'hidden')
 
         // include column heading for editor item tools (authenticated)
@@ -80,7 +81,7 @@ const ListUsers = ({ rows=[], cols=[] }) => {
         return fCols;
     }
 
-    return Array.isArray(rows) && Array.isArray(cols)
+    return Array.isArray(data) && Array.isArray(fields)
         ?
         <Table rows={ filterRows() } cols={ filterCols() } classname={'items'} />
         :

@@ -28,7 +28,6 @@ export function prepare({
                             user=null,
                             data=null,
                             path={},
-                            dependents = {},
                             filter = []
 }) {
 
@@ -49,7 +48,6 @@ export function prepare({
         view: view,
         message: message,
         data: submissionData,
-        dependents: dependents,
         user: user
     }
 }

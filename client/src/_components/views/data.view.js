@@ -6,88 +6,69 @@
  */
 
 import React from 'react';
-import { useData } from '../../_providers/data.provider.client';
-import Heading from '../common/heading';
+import { useRouter } from '../../_providers/router.provider.client';
 import Form from '../common/form';
-import Item from '../common/item';
+import ItemView from './item.view';
 import Table from '../common/table';
 import ListUsers from '../users/list.users';
 import ListNodes from '../nodes/list.nodes';
-import Notfound from '../error/notfound';
+import NotfoundError from '../error/notfound.error';
 import Loading from '../common/loading';
 
 /**
  * Build requested data view from API data.
  *
- * @param {String} route
- * @param {String} id
- * @param {String} view
  * @param {String} model
+ * @param {String} view
  * @param {String} render
- * @param {Object} values
+ * @param {Object} data
  * @param {Function} setValues
- * @param {Object} schema
  * @public
  */
 
 const DataView = ({
-                      route,
-                      id,
                       view,
                       model,
-                      values,
-                      setValues,
-                      schema,
+                      data,
+                      setData,
                       render
 }) => {
 
-    console.log(values)
-
     // select default callback for view
-    const api = useData();
+    const api = useRouter();
     const callback = api.post;
-
-    // get settings from schema
-    const { attributes={}, fields=[] } = schema || {};
-    const { label='', method='POST', review='' } = attributes || {};
 
     // view components indexed by render type
     const renders = {
-        'form': () => (
+        form: () => (
             <Form
-                action={route}
-                review={review}
+                view={view}
                 model={model}
-                method={method}
-                legend={label}
-                submit={label}
-                fields={fields}
-                data={values}
-                setData={setValues}
+                data={data}
+                setData={setData}
                 callback={callback}
             />),
-        'item': () => (
-            <Item
-                values={values || {}}
-                fields={fields || []}
+        item: () => (
+            <ItemView
+                data={data || {}}
+                view={view || ''}
+                model={model || ''}
             />),
-        'list': () => (
+        list: () => (
             <Table
-                rows={values || []}
-                cols={fields || []}
+                rows={data || []}
+                cols={[]}
             />),
-        'listUsers': () => (
+        listUsers: () => (
             <ListUsers
-                rows={values || []}
-                cols={fields || []}
+                data={data || []}
             />),
-        'listNodes': () => (
+        listNodes: () => (
             <ListNodes
-                rows={values || []}
-                cols={fields || []}
+                data={data || []}
                 model={model}
             />),
-        'notFound': () => <Notfound />
+        notFound: () => <NotfoundError />
     }
 
     // render data view

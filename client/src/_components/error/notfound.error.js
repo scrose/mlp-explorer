@@ -5,8 +5,9 @@
  * MIT Licensed
  */
 
+import React from "react";
 
-const Notfound = () => {
+const NotfoundError = () => {
     return (
         <div className="page-content">
             <h2>404 Page Not Found</h2>
@@ -15,4 +16,4 @@ const Notfound = () => {
     );
 }
 
-export default Notfound;
+export default NotfoundError;

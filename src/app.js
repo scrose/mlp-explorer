@@ -15,6 +15,7 @@
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { globalHandler, notFoundHandler } from './error.js';
 import router from './routes/index.routes.js';
 
@@ -78,6 +79,12 @@ app.use(cors({
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+/**
+ * Parse cookies to store JWT session tokens.
+ */
+
+app.use(cookieParser())
 
 /**
  * Define view parameters for template rendering (middleware)

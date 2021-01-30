@@ -14,6 +14,7 @@
 
 import jwt from "jsonwebtoken";
 import * as db from './index.services.js';
+import * as sessions from './sessions.services.js';
 import crypto from 'crypto';
 import uid from 'uid-safe';
 
@@ -85,7 +86,7 @@ export function encryptUser(user) {
 
 export function authenticate(user, password) {
     return user.getValue('password') === encrypt(password, user.getValue('salt_token'))
-        ? genToken(user.getValue('user_id'))
+        ? genAccessToken(user.getValue('user_id'))
         : null;
 }
 
@@ -136,18 +137,34 @@ export const check = async (req, allowedRoles=[]) => {
 };
 
 /**
- * Generate JWT token.
+ * Generate JWT access token. Access token has short lifespan.
  *
  * @public
  * @return {String} token
  * @param {String} userId
  */
 
-export const genToken = (userId) => {
-    const ttl = 86400; // time to live
-    let secret = process.env.SESSION_SECRET;
+export const genAccessToken = (userId) => {
+    let secret = process.env.ACCESS_TOKEN_SECRET;
     return jwt.sign({ id: userId }, secret, {
-        expiresIn: ttl // 24 hours
+        algorithm: "HS256",
+        expiresIn: process.env.ACCESS_TOKEN_TTL // default: 24 hours
+    });
+}
+
+/**
+ * Generate JWT refresh token. Refresh token has long lifespan.
+ *
+ * @public
+ * @return {String} token
+ * @param {String} userId
+ */
+
+export const genRefreshToken = (userId) => {
+    let secret = process.env.REFRESH_TOKEN_SECRET;
+    return jwt.sign({ id: userId }, secret, {
+        algorithm: "HS256",
+        expiresIn: process.env.REFRESH_TOKEN_TTL // default: 24 hours
     });
 }
 
@@ -169,11 +186,14 @@ export const authorize = async (req, res, next, allowedRoles) => {
     }
 
     // verify JWT authorization token
-    let token = req.headers["x-access-token"];
+    // let token = req.headers["x-access-token"];
+    let token = req.cookies.jwt
     let secret = process.env.SESSION_SECRET;
 
+    // check if token exists
     if (token == null) return next(new Error('noToken'));
 
+    // verify token
     const userId = await jwt.verify(token, secret, (err, decoded) => {
         if (err) return next(new Error('noAuth'));
         return decoded.id;
@@ -190,11 +210,6 @@ export const authorize = async (req, res, next, allowedRoles) => {
             // user ID not found
             if (!user)
                 throw new Error('restricted');
-
-            // Allow owners access to own data
-            // if (req.params.hasOwnProperty('user_id')
-            //     && res.locals.user.id === args.id
-            // ) return next();
 
             // deny users with lesser admin privileges
             if ( !allowedRoles.includes(user.role) )
@@ -231,4 +246,50 @@ export const isAuthorized = async (req, allowedRoles=[]) => {
     const { role } = req.user;
 
     return allowedRoles.includes(role);
+}
+
+/**
+ * Issue refresh token.
+ *
+ * @param req
+ * @param res
+ * @param {Function} next
+ * @src public
+ */
+
+export const refresh = async (req, res, next) => {
+
+    // get JWT authorization token from cookie
+    // let token = req.headers["x-access-token"];
+    let token = req.cookies.jwt;
+
+    // check if token exists
+    if (token == null)
+        return next(new Error('noToken'));
+
+    // use the jwt.verify method to verify the access token
+    // throws an error if the token has expired or has a invalid signature
+    const userId = await jwt.verify(token, process.env.SESSION_SECRET, (err, decoded) => {
+        if (err) return next(new Error('noAuth'));
+        return decoded.id;
+    });
+
+    //retrieve the refresh token from the users array
+    let refreshToken = sessions.select(userId);
+
+    //verify the refresh token
+    await jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
+        if (err) return next(new Error('noAuth'));
+        return decoded.id;
+    });
+
+    let newToken = jwt.sign(userId, process.env.ACCESS_TOKEN_SECRET,
+        {
+            algorithm: "HS256",
+            expiresIn: process.env.ACCESS_TOKEN_TTL
+        })
+
+    res.cookie("jwt", newToken, {secure: true, httpOnly: true})
+    res.send()
+
 }

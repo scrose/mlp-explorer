@@ -130,15 +130,18 @@ export default function ModelController(modelRoute) {
             const path = await ns.getNodePath(item);
 
             // get linked data referenced in node tree
-            await ns.getDependents(item)
+            await ns.getModelDependents(item)
                 .then(dependents => {
+
+                    // append dependent nodes to data
+                    data.dependents = dependents;
+
                     res.status(200).json(
                         prepare({
                             view: 'show',
                             model: model,
                             data: data,
-                            path: path,
-                            dependents: dependents
+                            path: path
                         }));
                 })
         } catch (err) {

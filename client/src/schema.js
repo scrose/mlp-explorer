@@ -11,16 +11,32 @@
  */
 
 export const schema = {
-    main: {
-        projectName: "Mountain Legacy Project",
-        appName: "Explorer",
+    app: {
+        project: "Mountain Legacy Project",
+        name: "Explorer",
         title: "Welcome to the Mountain Legacy Project Explorer"
     },
     routes: {
-        '/': 'dashboard',
-        '/logout': 'logout',
-        '/login': 'login',
-        '/not_found': 'notFound'
+        '/': {
+            name: 'dashboard',
+            label: 'Dashboard'
+        },
+        '/logout': {
+            name: 'logout',
+            label: 'Sign Out'
+        },
+        '/login': {
+            name: 'login',
+            label: 'Sign In'
+        },
+        '/not_found': {
+            name: 'notFound',
+            label: '404 Not Found'
+        },
+        '/unavailable': {
+            name: 'unavailable',
+            label: 'Unavailable'
+        }
     },
     errors: {
         validation: {
@@ -42,38 +58,39 @@ export const schema = {
     views: {
         users: {
             login: {
-                label: 'User Sign In',
+                legend: 'User Authentication',
                 submit: 'Sign In',
                 method: 'POST',
-                render: 'login'
+                render: 'login',
+                buttons: 'bottom'
             },
             register : {
-                label: 'User Registration',
+                legend: 'User Registration',
                 submit: 'Register',
                 method: 'POST',
                 render: 'form'
             },
             list: {
-                label: 'Listing',
+                legend: 'Listing',
                 render: 'listUsers'
             }
         },
         add: {
-            label: 'Create New',
+            legend: 'Create New',
             render: 'form',
             review: 'show'
         },
         edit: {
-            label: 'Update',
+            legend: 'Update',
             render: 'form',
             review: 'show'
         },
         remove: {
-            label: 'Delete',
+            legend: 'Delete',
             render: 'form'
         },
         show: {
-            label: 'Item',
+            legend: 'Item',
             render: 'item'
         }
     },
@@ -87,14 +104,17 @@ export const schema = {
                 render: 'hidden'
             },
             created_at: {
-                label: 'User Role',
+                label: 'Created At',
                 render: 'timestamp',
                 restrict: ['login', 'register', 'edit', 'add']
             },
             updated_at: {
-                label: 'Created At',
+                label: 'Updated At',
                 render: 'timestamp',
                 restrict: ['login', 'register', 'edit', 'add']
+            },
+            published: {
+                label: 'Published'
             }
         },
         users: {
@@ -140,8 +160,13 @@ export const schema = {
             }
         },
         projects: {
+            attributes: {
+                order: 1,
+                label: "Projects",
+                singular: "Project"
+            },
             name: {
-                key: true,
+                key: 1,
                 label: 'Project Name'
             },
             description: {
@@ -149,34 +174,51 @@ export const schema = {
             }
         },
         surveyors: {
+            attributes: {
+                order: 2,
+                label: "Surveyors",
+                singular: "Surveyor"
+            },
             given_names: {
-                key: true,
+                key: 2,
                 label: 'Given Names'
             },
             last_name: {
-                key: true,
+                key: 1,
                 label: 'Last Name'
             },
             short_name: {
+                key: 3,
                 label: 'Short Name'
             },
             affiliation: {
+                key: 4,
                 label: 'Affiliation'
             }
         },
         surveys: {
+            attributes: {
+                order: 3,
+                label: "Surveys",
+                singular: "Survey"
+            },
             name: {
-                key: true,
+                key: 1,
                 label: 'Survey Name'
             },
             historical_map_sheet: {
-                key: true,
+                key: 2,
                 label: 'Historical Map Sheet'
             },
         },
         survey_seasons: {
+            attributes: {
+                order: 4,
+                label: "Survey Seasons",
+                singular: "Survey Season"
+            },
             year: {
-                key: true,
+                key: 1,
                 label: 'Year'
             },
             geographic_coverage: {
@@ -205,9 +247,162 @@ export const schema = {
             }
         },
         stations: {
+            attributes: {
+                order: 5,
+                label: "Stations",
+                singular: "Station"
+            },
             name: {
-                key: true,
-                label: 'Station Name'
+                key: 1,
+                label: 'Station'
+            },
+            lat: {
+                label: 'Latitude'
+            },
+            long: {
+                label: 'Longitude'
+            },
+            elev: {
+                label: 'Elevation'
+            },
+            azim: {
+                label: 'Azimuth'
+            },
+            nts_sheet: {
+                label: 'NTS Sheet'
+            },
+            // published: {
+            //     label: 'Published'
+            // }
+        },
+        historic_visits: {
+            attributes: {
+                order: 6,
+                label: "Historic Visits",
+                singular: "Historic Visit"
+            },
+            date: {
+                key: 1,
+                label: 'Visit Date'
+            },
+            comments: {
+                label: 'Comments'
+            }
+        },
+        modern_visits: {
+            attributes: {
+                order: 7,
+                label: "Modern Visits",
+                singular: "Modern Visit"
+            },
+            date: {
+                key: 1,
+                render: 'date',
+                label: 'Visit Date'
+            },
+            start_time: {
+                label: 'Start Time'
+            },
+            finish_time: {
+                label: 'Finish Time'
+            },
+            pilot: {
+                label: 'Pilot'
+            },
+            rw_call_sign: {
+                label: 'Call Sign'
+            },
+            visit_narrative: {
+                label: 'Narrative'
+            },
+            illustration: {
+                label: 'Illustration'
+            },
+            weather_narrative: {
+                label: 'Weather Description'
+            },
+            weather_temp: {
+                label: 'Temperature'
+            },
+            weather_ws: {
+                label: 'Wind Speed'
+            },
+            weather_gs: {
+                label: 'GS'
+            },
+            weather_pressure: {
+                label: 'Atmospheric Pressure'
+            },
+            weather_rh: {
+                label: 'RH'
+            },
+            weather_wb: {
+                label: 'WB'
+            }
+        },
+        historic_captures: {
+            attributes: {
+                order: 8,
+                label: "Historic Captures",
+                singular: "Historic Capture"
+            },
+            plate_id: {
+                label: 'Plate ID'
+            },
+            fn_photo_reference: {
+                label: 'Field Notes Photo Reference'
+            },
+            f_stop: {
+                label: 'F-stop'
+            },
+            shutter_speed: {
+                label: 'Shutter Speed'
+            },
+            focal_length: {
+                label: 'Focal Length'
+            },
+            capture_datetime: {
+                label: 'Capture Datetime'
+            },
+            camera_id: {
+                label: 'Camera'
+            },
+            lens_id: {
+                label: 'Lens'
+            },
+            digitization_location: {
+                label: 'Digitization Location'
+            },
+            digitization_datetime: {
+                label: 'Digitization Datetime'
+            },
+            lac_ecopy: {
+                label: 'LAC ECopy'
+            },
+            lac_wo: {
+                label: 'LAC WO'
+            },
+            lac_collection: {
+                label: 'LAC Collection'
+            },
+            lac_box: {
+                label: 'LAC box'
+            },
+            lac_catalogue: {
+                label: 'LAC Catalogue'
+            },
+            condition: {
+                label: 'Condition'
+            },
+            comments: {
+                label: 'Comments'
+            }
+        },
+        modern_captures:{
+            attributes: {
+                order: 9,
+                label: "Modern Captures",
+                singular: "Modern Capture"
             },
             lat: {
                 label: 'Latitude'
@@ -218,78 +413,62 @@ export const schema = {
             elevation: {
                 label: 'Elevation'
             },
-            nts_sheet: {
-                label: 'NTS Sheet'
+            fn_photo_reference: {
+                label: 'Field Notes Photo Reference'
             },
-            published: {
-                label: 'Published'
+            f_stop: {
+                label: 'F-stop'
+            },
+            shutter_speed: {
+                label: 'Shutter Speed'
+            },
+            focal_length: {
+                label: 'Focal Length'
+            },
+            capture_datetime: {
+                label: 'Capture Datetime'
+            },
+            camera_id: {
+                label: 'Camera'
+            },
+            lens_id: {
+                label: 'Lens'
+            },
+            azimuth: {
+                label: 'Azimuth'
+            },
+            comments: {
+                label: 'Comments'
+            },
+            alternate: {
+                label: 'Alternate'
             }
         },
-        visits: {
-            date: 'Visit Date',
-            start_time: 'Start Time',
-            finish_time: 'Finishe Time',
-            pilot: 'Pilot',
-            rw_call_sign: 'Call Sign',
-            visit_narrative: 'Narrative',
-            illustration: 'Illustration',
-            weather_narrative: 'Weather Description',
-            weather_temp: 'Temperature',
-            weather_ws: 'Wind Speed',
-            weather_gs: 'GS',
-            weather_pressure: 'Atmospheric Pressure',
-            weather_rh: 'RH',
-            weather_wb: 'WB'
-        },
-        historicVisits: {
-            date: 'Visit Date',
-            comments: 'Comments'
-        },
         locations: {
-            location_narrative: 'Narrative',
-            location_identity: 'Location ID',
-            lat: 'Latitude',
-            long: 'Longitude',
-            elevation: 'Elevation',
-            legacy_photos_start: 'Photo Start Index',
-            legacy_photos_end: 'Photos End Index',
-            published: 'Published'
+            attributes: {
+                order: 10,
+                label: "Locations",
+                singular: "Location"
+            },
+            location_narrative: {
+                label: 'Narrative'
+            },
+            location_identity: {
+                label: 'Location ID'
+            },
+            legacy_photos_start: {
+                label: 'Photo Start Index'
+            },
+            legacy_photos_end: {
+                label: 'Photos End Index'
+            }
         },
-        historicCaptures: {
-            plate_id:'Plate ID',
-            fn_photo_reference: 'Field Notes Photo Reference',
-            f_stop: 'F-stop',
-            shutter_speed: 'Shutter Speed',
-            focal_length: 'Focal Length',
-            capture_datetime: 'Capture Datetime',
-            camera_id: 'Camera',
-            lens_id: 'Lens',
-            digitization_location: 'Digitization Location',
-            digitization_datetime: 'Digitization Datetime',
-            lac_ecopy: 'LAC ECopy',
-            lac_wo: 'LAC WO',
-            lac_collection: 'LAC Collection',
-            lac_box: 'LAC box',
-            lac_catalogue: 'LAC Catalogue',
-            condition: 'Condition',
-            comments: 'comments'
-        },
-        captures:{
-            fn_photo_reference: 'Field Notes Photo Reference',
-            f_stop: 'F-stop',
-            shutter_speed: 'Shutter Speed',
-            focal_length: 'Focal Length',
-            capture_datetime: 'Capture Datetime',
-            camera_id: 'Camera',
-            lens_id: 'Lens',
-            lat: 'Latitude',
-            long: 'Longitude',
-            elevation: 'Elevation',
-            azimuth: 'Azimuth',
-            comments: 'Comments',
-            alternate: 'Alternate'
-        },
-        captureImages:{
+        historic_images:{
+            attributes: {
+                order: 11,
+                label: "Historic Images",
+                singular: "Historic Image"
+            },
             file_size: 'File size',
             x_dim: 'Image Width',
             y_dim: 'Image Height',
@@ -298,7 +477,12 @@ export const schema = {
             comments: 'Comments',
             image_remote_processing: 'Remote Processing'
         },
-        images: {
+        modern_images:{
+            attributes: {
+                order: 12,
+                label: "Modern Images",
+                singular: "Modern Image"
+            },
             file_size: 'File size',
             x_dim: 'Image Width',
             y_dim: 'Image Height',

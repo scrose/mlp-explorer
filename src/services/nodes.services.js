@@ -25,9 +25,39 @@ import { mapToObj } from '../lib/data.utils.js';
  */
 
 export const getNode = async (id) => {
-    let { sql, data } = queries.nodes.getNode(id);
-    let node = await pool.query(sql, data);
-    return node.rows[0];
+
+    // NOTE: client undefined if connection fails.
+    const client = await pool.connect();
+
+    try {
+
+        // start transaction
+        await client.query('BEGIN');
+
+        // get requested node
+        let { sql, data } = queries.nodes.getNode(id);
+        let node = await pool.query(sql, data)
+            .then(res => {
+                return res.hasOwnProperty('rows')
+                    && res.rows.length > 0 ? res.rows[0] : null;
+            });
+
+        // append model data and dependents (child nodes)
+        node.data = await selectByNode(node);
+        node.dependents = await getDependentNodes(node.id);
+
+        // end transaction
+        await client.query('COMMIT');
+
+        // return nodes
+        return node;
+
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
+    }
 };
 
 /**
@@ -52,22 +82,12 @@ export const getNodes = async function(model) {
         let { sql, data } = queries.nodes.getNodes(model);
         const { rows=[] } = await pool.query(sql, data) || {}
 
-        // get full data for dependent (child) nodes
+        // append model data and dependents (child nodes)
         let nodes = await Promise.all(rows.map(async (node) => {
             node.data = await selectByNode(node);
-            node.dependents = await getDependentNodes({id: node.id});
-
-            // get full data for dependent (child) nodes
-            let nodes = await Promise.all(node.dependents.map(async (child) => {
-                node.data = await selectByNode(node);
-                node.dependents = await getDependentNodes({id: node.id});
-                return node;
-            }));
-
+            node.dependents = await getDependentNodes(node.id);
             return node;
         }));
-
-
 
         // end transaction
         await client.query('COMMIT');
@@ -101,31 +121,26 @@ export const selectByNode = async (node) => {
 };
 
 /**
- * Get referenced child node(s) by parent.
+ * Get referenced child node(s) by parent ID value.
+ * Use within a client transaction.
  *
  * @public
- * @param {Object} item
+ * @param {integer} id
  * @return {Promise} result
  */
 
-export const getDependentNodes = async (item) => {
+export const getDependentNodes = async (id) => {
 
-    let { sql, data } = queries.defaults.getChildNodes(item.id);
+    // get dependent nodes for requested owner item
+    let { sql, data } = queries.defaults.getDependentNodes(id);
     let dependents = await pool.query(sql, data)
         .then(res => {
             return res.rows
         });
 
-    // get child nodes for retrieved child nodes
+    // append full data for each dependent node
     dependents = await Promise.all(dependents.map(async (node) => {
-
-        let { sql, data } = queries.defaults.getChildNodes(node.id);
-
-        // attach subdependents to each dependent node
-        node.dependents = await pool.query(sql, data)
-            .then(res => {
-                return res.rows
-            });
+        node.data = await selectByNode(node);
         return node;
     }));
 
@@ -135,14 +150,16 @@ export const getDependentNodes = async (item) => {
 };
 
 /**
- * Get full data of dependent nodes data for given node.
+ * Get full data of dependent node data for given model item.
+ * This call retrieves two levels of dependent nodes as well as
+ * dependent file nodes.
  *
  * @public
  * @param {Object} item
  * @return {Promise} result
  */
 
-export const getDependents = async (item) => {
+export const getModelDependents = async (item) => {
 
     // NOTE: client undefined if connection fails.
     const client = await pool.connect();
@@ -151,11 +168,12 @@ export const getDependents = async (item) => {
         // start transaction
         await client.query('BEGIN');
 
-        let depNodes = await getDependentNodes(item);
+        // get first-level full data for each dependent node
+        let dependents = await getDependentNodes(item.id);
 
-        // get full data for dependent nodes
-        let dependents = await Promise.all(depNodes.map(async (node) => {
-            node.data = await selectByNode(node);
+        // append second-level full data for each sub-dependent node
+        dependents = await Promise.all(dependents.map(async (node) => {
+            node.dependents = await getDependentNodes(node.id);
             return node;
         }));
 

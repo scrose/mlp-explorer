@@ -22,6 +22,7 @@ $$
             'remove',
             'login',
             'auth',
+            'refresh',
             'logout',
             'register',
             'download',
@@ -175,6 +176,7 @@ VALUES (null, 'list', 'visitor', now(), now()),
        ('users', 'register', 'super_administrator', now(), now()),
        ('users', 'login', 'visitor', now(), now()),
        ('users', 'auth', 'visitor', now(), now()),
+       ('users', 'refresh', 'visitor', now(), now()),
        ('users', 'login', 'super_administrator', now(), now()),
        ('users', 'logout', 'registered', now(), now()),
        ('users', 'logout', 'contributor', now(), now()),
@@ -187,7 +189,7 @@ VALUES (null, 'list', 'visitor', now(), now()),
        ('files', 'download', 'super_administrator', now(), now()),
        ('files', 'upload', 'editor', now(), now()),
        ('files', 'upload', 'administrator', now(), now()),
-       ('files', 'upload', 'super_administrator', now(), now())
+       ('files', 'upload', 'super_administrator', now(), now());
 
 -- -------------------------------------------------------------
 --    Initialize Super-Administrator user
@@ -207,3 +209,21 @@ VALUES (null, 'list', 'visitor', now(), now()),
 --         'superadmin',
 --         NOW()::timestamp,
 --         NOW()::timestamp);
+
+-- -------------------------------------------------------------
+--    Initialize Session Table
+-- -------------------------------------------------------------
+
+
+BEGIN;
+DROP TABLE IF EXISTS sessions;
+CREATE TABLE IF NOT EXISTS sessions (
+    id serial NOT NULL PRIMARY KEY,
+    user_id VARCHAR (255) UNIQUE NOT NULL,
+    token VARCHAR (255) UNIQUE NOT NULL,
+    expiry TIMESTAMP);
+COMMIT;
+
+-- -------------------------------------------------------------
+--    End
+-- -------------------------------------------------------------

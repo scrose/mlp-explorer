@@ -66,7 +66,7 @@ export function isEmptyObject(obj) {
 
 export function removeEmpty(arr) {
     // remove "Falsy" elements then null elements
-    return array.filter(Boolean).filter(function(el) {
+    return arr.filter(Boolean).filter(function(el) {
         return el != null;
     });
 }
@@ -128,22 +128,6 @@ export function humanize(str) {
     }
     return frags.join(' ');
 }
-
-/**
- * Make snake_case strings camelCase.
- *
- * @param {String} str
- * @return {String} camelCase string
- * @src public
- */
-
-export const toCamel = (str) => {
-    return str.replace(/([-_][a-z])/ig, ($1) => {
-        return $1.toUpperCase()
-            .replace('-', '')
-            .replace('_', '');
-    });
-};
 
 /**
  * Make camelCase strings snake_case.

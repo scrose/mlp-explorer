@@ -6,12 +6,12 @@
  */
 
 import React from 'react'
-import NavigatorMenu from '../menus/navigator.menu';
+import MenuNavigator from './menu.navigator';
 import TreeNavigator from './tree.navigator';
 import MapNavigator from './map.navigator';
 
 /**
- * Map navigator component.
+ * Main navigator component.
  *
  * @public
  * @return {JSX.Element}
@@ -24,10 +24,10 @@ const Navigator = () => {
 
     return (
         <div className={'navigator'}>
-            <NavigatorMenu view={navView} set={setNavView} />
+            <MenuNavigator view={navView} set={setNavView} />
             {navView === 'tree' ? <TreeNavigator/> : <MapNavigator/>}
         </div>
     )
 }
 
-export default Navigator;
+export default React.memo(Navigator);

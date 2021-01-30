@@ -63,7 +63,8 @@ export default {
             method: 'post',
             submit: {
                 url: '/login',
-                label: 'Sign In'
+                label: 'Sign In',
+                position: 'bottom'
             }
         },
         users: {

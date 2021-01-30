@@ -9,28 +9,66 @@ import React from 'react'
 import Fieldset from './fieldset';
 import Button from './button';
 import { addSessionMsg } from '../../_services/session.services.client';
+import { genSchema } from '../../_services/schema.services.client';
+import { useRouter } from '../../_providers/router.provider.client';
+
+/**
+ * Form submission buttons component.
+ *
+ * @public
+ * @param { model, label }
+ */
+
+const Submit = ({model, label}) => {
+    return (
+        <fieldset className={'submit'}>
+            <Button
+                type={'submit'}
+                label={label}
+                name={`submit_${model}`} />
+            <Button
+                type={'cancel'}
+                label={'Cancel'}
+                name={`cancel_${model}`}
+                url={'/'} />
+        </fieldset>
+    );
+}
 
 /**
  * Build HTML form.
  *
  * @public
- * @param { route, params, data, callback }
+ * @param {String} view
+ * @param {String} model
+ * @param {Object} data
+ * @param {Function} setData
+ * @param {Function} callback
+ * @param {String} action
  */
 
 const Form = ({
-                  action,
+                  view,
                   model,
-                  method,
-                  legend,
-                  submit,
-                  fields,
                   data,
                   setData,
-                  callback
+                  callback,
+                  action='/'
 }) => {
+
+    const api = useRouter();
 
     const [isValid, setValid] = React.useState(false);
     const [isDisabled, setDisabled] = React.useState(false);
+
+    // get settings from schema
+    const { attributes={}, fields=[] } = genSchema(view, model) || {};
+    const {
+        submit='Submit',
+        method='POST',
+        legend='',
+        buttons='top'
+    } = attributes || {};
 
     const handleSubmit = e => {
         e.preventDefault();
@@ -42,16 +80,9 @@ const Form = ({
             callback(action, Object.fromEntries(formData))
                 .then(res => {
                     console.log('Form response:', res);
-                    addSessionMsg(res.message)
+                    addSessionMsg(res.message);
                 })
                 .catch(err => console.error(err))
-                // .then(res => {
-                //     if (review) {
-                //         addSessionMsg(res.message);
-                //         // TODO: create redirection after edits/additions
-                //         // redirect(getNodeURI(model, review, nodes_id));
-                //     }
-                // });
         }
         catch (err) {
             console.error(err)
@@ -72,17 +103,9 @@ const Form = ({
             onSubmit={handleSubmit}
             autoComplete={'chrome-off'}
         >
-            <fieldset className={'submit'}>
-                <Button
-                    type={'submit'}
-                    label={submit}
-                    name={`submit_${model}`} />
-                <Button
-                    type={'cancel'}
-                    label={'Cancel'}
-                    name={`cancel_${model}`}
-                    url={'/'} />
-            </fieldset>
+            {
+                buttons === 'top' ? <Submit model={model} label={submit} /> : ''
+            }
             <Fieldset
                 model={model}
                 legend={legend}
@@ -92,6 +115,9 @@ const Form = ({
                 valid={isValid}
                 disabled={isDisabled}
             />
+            {
+                buttons === 'bottom' ? <Submit model={model} label={submit} /> : ''
+            }
         </form>
         );
 }

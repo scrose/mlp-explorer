@@ -128,10 +128,10 @@ Object.keys(mockItems).forEach(modelName => {
             await agent
                 .get(`${BASE_URL}${modelRoute}`)
                 .then((res) => {
-                    testItem = res.body.data[0];
+                    testItem = res.body.item[0];
                     expect(res).to.have.status(200);
-                    expect(res.body.data).to.instanceOf(Array);
-                    compare(model, res.body.data);
+                    expect(res.body.item).to.instanceOf(Array);
+                    compare(model, res.body.item);
                 })
         });
 
@@ -151,7 +151,7 @@ Object.keys(mockItems).forEach(modelName => {
                 .set('Accept', 'application/json')
                 .then((res) => {
                     expect(res.status).to.equal(200);
-                    compare(model, [res.body.data]);
+                    compare(model, [res.body.item]);
                 })
         });
     });
@@ -207,7 +207,7 @@ Object.keys(mockItems).forEach(modelName => {
                     expect(res).to.have.status(200);
                     expect(res.body.messages[0].type).to.equal('success');
                     expect(res.body.messages[0].string).to.equal(`Added item to ${modelLabel}.`);
-                    item.files_id = res.body.data.files_id;
+                    item.files_id = res.body.item.files_id;
                 })
         });
 

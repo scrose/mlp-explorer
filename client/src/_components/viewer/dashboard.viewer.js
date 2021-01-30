@@ -32,14 +32,13 @@ const NodePanel = () => {
  * Viewer dashboard component
  *
  * @public
- * @return {Promise} result
+ * @return {JSX.Element} result
  */
 
 const DashboardViewer = () => {
 
     return (
-        <div className="dashboard">
-            <Heading model={''} text={'Viewer Dashboard'}/>
+        <div>
             <p>
                 The Mountain Legacy Project explores changes in Canada’s mountain
                 landscapes through the world’s largest collection of systematic

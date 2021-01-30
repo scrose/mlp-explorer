@@ -10,8 +10,8 @@ import DashboardViewer from '../viewer/dashboard.viewer';
 import DashboardEditor from '../editor/dashboard.editor';
 import LoginUsers from '../users/login.users';
 import LogoutUsers from '../users/logout.users';
-import Notfound from '../error/notfound';
-import Heading from '../common/heading';
+import NotfoundError from '../error/notfound.error';
+import UnavailableError from '../error/unavailable.error';
 
 /**
  * Build requested static page view.
@@ -28,11 +28,12 @@ const StaticView = ({ type }) => {
         "dashboardEdit": () => <DashboardEditor />,
         "login": () => <LoginUsers />,
         "logout": () => <LogoutUsers />,
-        'notFound': () => <Notfound />
+        'notFound': () => <NotfoundError />,
+        'unavailable': () => <UnavailableError />
     }
 
     // render static view
-    return renders.hasOwnProperty(type) ? renders[type]() : <Notfound/>
+    return renders.hasOwnProperty(type) ? renders[type]() : <NotfoundError/>
 
 }
 

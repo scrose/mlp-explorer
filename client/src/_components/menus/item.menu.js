@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
+import { getNodeURI, reroute } from '../../_utils/paths.utils.client';
 import Icon from '../common/icon';
 import { useUser } from '../../_providers/user.provider.client';
 
@@ -35,7 +35,7 @@ const ItemMenu = ({ id, model }) => {
                     <li>
                         <button
                             title={`View this ${model} item.`}
-                            onClick={() => redirect(getNodeURI(model, 'show', id))}
+                            onClick={() => reroute(getNodeURI(model, 'show', id))}
                         >
                             <Icon type={'info'} />
                         </button>
@@ -44,7 +44,7 @@ const ItemMenu = ({ id, model }) => {
                     <li>
                         <button
                             title={`Edit this ${model} item.`}
-                            onClick={() => redirect(getNodeURI(model, 'edit', id))}
+                            onClick={() => reroute(getNodeURI(model, 'edit', id))}
                         >
                             <Icon type={'edit'} />
                         </button>
@@ -54,7 +54,7 @@ const ItemMenu = ({ id, model }) => {
                     <li>
                         <button
                             title={`Delete this ${model} item.`}
-                            onClick={() => redirect(getNodeURI(model, 'remove', id))}
+                            onClick={() => reroute(getNodeURI(model, 'remove', id))}
                         >
                             <Icon type={'delete'} />
                         </button>

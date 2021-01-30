@@ -1,58 +1,52 @@
 /*!
- * MLP.Client.Components.User.Login
- * File: login.user.js
+ * MLP.Client.Components.Users.Login
+ * File: login.users.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
 import React from "react";
 import Form from '../common/form';
-import Loading from '../common/loading';
-import { genSchema } from '../../_services/schema.services.client';
 import { useUser } from '../../_providers/user.provider.client';
 import { useAuth } from '../../_providers/auth.provider.client';
-import { redirect } from '../../_utils/paths.utils.client';
-import { addSessionMsg, checkSessionMsg, getSessionMsg, popSessionMsg } from '../../_services/session.services.client';
-import Heading from '../common/heading';
+import { useRouter } from '../../_providers/router.provider.client';
 
-const LoginUsers = ({messenger, setData}) => {
+/**
+ * User sign in form component.
+ *
+ * @public
+ */
+
+const LoginUsers = () => {
 
     // create dynamic view state
-    const [values, setValues] = React.useState({});
-
-    // lookup view in schema
-    const schema = genSchema('login', 'users');
-    console.log(schema)
+    const [data, setData] = React.useState({});
 
     const user = useUser();
     const auth = useAuth();
+    const api = useRouter();
 
     // Redirect to dashboard if logged in
     React.useEffect(() => {
+        console.log(api.route, api.staticView, user)
         if (user) {
-            addSessionMsg({ msg: 'User is logged in.', type: 'info' });
-            redirect('/')
+            // api.setMessage({ msg: 'User is logged in.', type: 'info' });
+            console.log('Logged in Already!', user)
+            // redirect('/');
         }
-    }, [addSessionMsg()]);
+    }, [user, api]);
 
     return user
-        ? <Loading />
-        : <div className={'view'}>
-            <Heading model={'users'} text={'Sign In'}/>
-            <div className={'data'}>
+        ? <div><p>User currently logged in.</p></div>
+        : <div>
                 <Form
-                    action={'/login'}
+                    view={'login'}
                     model={'users'}
-                    legend={'Login'}
-                    submit={'Sign In'}
-                    fields={schema.fields}
-                    data={values}
-                    setData={setValues}
-                    addMessage={messenger}
+                    data={data}
+                    setData={setData}
                     callback={auth.login}
                 />
-            </div>
           </div>
 }
 
-export default LoginUsers;
+export default React.memo(LoginUsers);

@@ -52,4 +52,39 @@ export const mapToObj = (map) => {
     return out
 }
 
+/**
+ * Render datum by render settings.
+ *
+ * @public
+ * @return input element
+ * @param value
+ * @param render
+ * @param href
+ * @param title
+ */
+
+export const sanitize = (value, render='', href='', title='') => {
+    const _dataElements = {
+        date: ({ value }) => {
+            const date = new Date(value);
+            const month = date.toLocaleString('default', { month: 'long' });
+            return `${month} ${date.getDate()}, ${date.getFullYear()}`;
+        },
+        timestamp: ({ value }) => {
+            const date = new Date(value);
+            return `${date.toLocaleString()}`;
+        },
+        text: ({ value }) => {
+            return value != null ? String(value) : '-';
+        },
+        default: ({ value }) => {
+            return value != null ? String(value) : '-';
+        }
+    }
+
+    // render data component
+    return render && _dataElements.hasOwnProperty(render)
+        ? _dataElements[render]({ value, href, title })
+        : _dataElements.default({ value });
+}
 

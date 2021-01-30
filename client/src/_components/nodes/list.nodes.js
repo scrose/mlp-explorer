@@ -8,10 +8,8 @@
 import React from "react";
 import Loading from '../common/loading';
 import ItemMenu from '../menus/item.menu';
-import Data from '../common/data';
-import List from '../common/list';
-import Item from '../common/item';
-import { getLabelKeys } from '../../_services/schema.services.client';
+import ItemView from '../views/item.view';
+import { labelKeys } from '../../_services/schema.services.client';
 
 
 /**
@@ -59,7 +57,7 @@ const ListNodes = ({ rows=[], cols=[], model='' }) => {
                             <ItemMenu id={row.nodes_id} model={model} />
                         }
                     <div className={'collapsible'}>
-                        <Item data={itemData} fields={fields} />
+                        <ItemView data={itemData} fields={fields} />
                     </div>
                 </div>
             )

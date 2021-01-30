@@ -50,4 +50,4 @@ const HeaderViewer = () => {
     );
 }
 
-export default HeaderViewer;
+export default React.memo(HeaderViewer);

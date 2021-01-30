@@ -7,28 +7,6 @@
  * Reference: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
  */
 
-import { getSessionToken } from './session.services.client';
-
-/**
- * Get authorization header. Inserts JWT token into request headers.
- *
- * @param {String} ctype
- * @public
- */
-
-export function authHeader(ctype='application/json') {
-    // default json content type
-    const headers = {'Content-Type': ctype}
-
-    // get authentication token
-    const token = getSessionToken();
-
-    // include JWT token in headers (if exists)
-    if (token) headers['x-access-token'] = token;
-
-    return headers;
-}
-
 /**
  * Fetch options for JSON API request.
  * Options:
@@ -44,10 +22,26 @@ export function authHeader(ctype='application/json') {
  *      strict-origin-when-cross-origin, unsafe-url
  *
  * @public
- * @params {data, method, ctype}
+ * @params {data, method, ctype, token}
  */
 
-const getFetchOptions = ({ data=null, method='POST', ctype='application/json'}) => {
+const getFetchOptions = ({ data=null, method='POST', ctype='application/json', token=null}) => {
+
+    /**
+     * Get authorization header. Inserts JWT token into request headers.
+     *
+     * @public
+     */
+
+    const authHeader = () => {
+        // default json content type
+        const headers = {'Content-Type': ctype}
+
+        // include JWT token in headers (if exists)
+        if (token) headers['x-access-token'] = token;
+
+        return headers;
+    }
 
     const opts = {
             method: method,
@@ -73,25 +67,22 @@ const getFetchOptions = ({ data=null, method='POST', ctype='application/json'}) 
  * @param {url, data, method, token}
  */
 
-export async function makeRequest({ url='/', data=null, method='POST'})  {
+export async function makeRequest({ url='/', data=null, method='POST', token=null})  {
 
     // compose request headers/options
-    const opts = getFetchOptions({data, method});
+    const opts = getFetchOptions({data, method, token});
 
     // send request to API
-    return await fetch(url, opts)
-            .then(res => {
-                // Modify response to include status ok, success, and status text
-                return {
-                    success: res.ok,
-                    status: res.status,
-                    statusText: res.statusText
-                        ? res.statusText
-                        : res.json.message || '',
-                    response: res.json()
-                }
-            })
-            .catch(err => {
-                console.error('A fetch error has occurred:', err)
-            })
+    let res = await fetch(url, opts)
+        .catch(err => { throw err });
+
+    console.log(res)
+
+    // Modify response to include status ok, success, and status text
+    return {
+        success: res.ok,
+        status: res.status,
+        statusText: res.statusText,
+        response: res.json()
+    }
 }

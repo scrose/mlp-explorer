@@ -12,7 +12,6 @@
 
 import FilesController from '../controllers/files.controller.js'
 import * as schema from '../services/schema.services.js';
-import { toSnake } from '../lib/data.utils.js';
 import path from 'path';
 
 
@@ -25,8 +24,8 @@ import path from 'path';
 function FilesRoutes(modelType) {
 
     // create model identifier key
-    this.model = toSnake(modelType);
-    this.key = `${toSnake(modelType)}_id`;
+    this.model = modelType;
+    this.key = `${modelType}_id`;
 
     // initialize model controller
     this.controller = new FilesController(modelType);

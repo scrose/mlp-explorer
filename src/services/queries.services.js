@@ -389,14 +389,13 @@ export function removeFile(model) {
 }
 
 /**
- * Generate query: Append child nodes by specified table,
- * column and column value.
+ * Generate query: Append dependent nodes by owner id.
  *
  * @return {Function} query function
  * @public
  */
 
-export function getChildNodes(id) {
+export function getDependentNodes(id) {
     const sql = `SELECT * 
             FROM nodes 
             WHERE owner_id = $1::integer`;

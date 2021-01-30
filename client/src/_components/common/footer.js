@@ -18,9 +18,11 @@ const Footer = () => {
     const date = new Date();
     return (
         <footer className="footer">
-            <div>Copyright &copy; {date.getFullYear()}</div>
+            <div className={'copyright'}>
+                <p>Copyright &copy; {date.getFullYear()} Mountain Legacy Project</p>
+            </div>
         </footer>
     );
 }
 
-export default Footer;
+export default React.memo(Footer);

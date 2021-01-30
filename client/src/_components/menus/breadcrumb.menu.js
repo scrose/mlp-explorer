@@ -8,10 +8,9 @@
 import React from 'react';
 import Icon from '../common/icon';
 import { getNodeURI, getPath, getRoot } from '../../_utils/paths.utils.client';
-import List from '../common/list';
 import { capitalize, getEmailUser } from '../../_utils/data.utils.client';
 import { useUser } from '../../_providers/user.provider.client';
-import { getItemLabel } from '../../_services/schema.services.client';
+import { getNodeLabel } from '../../_services/schema.services.client';
 
 /**
  * Breadcrumb navigation menu component.
@@ -74,20 +73,20 @@ const BreadcrumbMenu = ({path}) => {
      * @api private
      */
 
-    const _parseNodes = function(path) {
+    const _parseNodes = function(nodes) {
         // iterate over sorted path keys
-        return Object.keys(path)
+        // sort node index descending and map to components
+        return Object.keys(nodes)
             .sort(function(a, b){return b-a})
             .map((key, index) => {
-
-                const menuText = getItemLabel(path[key]);
-                const {type='', id=''} = path[key] || {};
+                const menuText = getNodeLabel(nodes[key]);
+                const {type='', id=''} = nodes[key] || {};
                 const href = getNodeURI(type, 'show', id);
 
                 // render last item without link
                 return key !== '0'
-                    ? <a key={`menu_${index}`} href={href}>{menuText}</a>
-                    : <span key={`menu_${index}`}>{menuText}</span>
+                    ? <a href={href}>{menuText}</a>
+                    : <span>{menuText}</span>
             })
 
     };
@@ -104,11 +103,9 @@ const BreadcrumbMenu = ({path}) => {
                 </li>
                 {
                     breadcrumbs.length > 0
-                        ? breadcrumbs.map((key, index) => {
+                        ? breadcrumbs.map((item, index) => {
                             return (
-                                <li key={`item_${index}`}>
-                                    { breadcrumbs[key] }
-                                </li>
+                                <li key={`item_${index}`}>{ item }</li>
                             )
                         })
                         : <li><span>{'Home'}</span></li>

@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { redirect } from '../../_utils/paths.utils.client';
+import { reroute } from '../../_utils/paths.utils.client';
 
 /**
  * Render .page footer
@@ -41,7 +41,7 @@ const Button = ({type, name, label, url}) => {
                     key={`key_cancel_${name}`}
                     className={'cancel'}
                     title={`Cancel update.`}
-                    onClick={() => redirect(url)}
+                    onClick={() => reroute(url)}
                 >
                     <span>{label}</span>
                 </button>

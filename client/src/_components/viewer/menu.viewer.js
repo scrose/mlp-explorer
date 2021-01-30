@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
+import { getNodeURI, reroute } from '../../_utils/paths.utils.client';
 import Icon from '../common/icon';
 
 
@@ -23,7 +23,7 @@ import Icon from '../common/icon';
  * @public
  */
 
-const ViewerMenu = ({model, id=null, view}) => {
+const MenuViewer = ({model, id=null, view}) => {
     const menuExclude = ['dashboard', 'login', 'register']
     return (
         view && !menuExclude.includes(view) ?
@@ -34,5 +34,5 @@ const ViewerMenu = ({model, id=null, view}) => {
     )
 }
 
-export default ViewerMenu;
+export default MenuViewer;
 

@@ -14,7 +14,7 @@ import Icon from '../common/icon';
  * @public
  */
 
-const NavigatorMenu = ({view, set}) => {
+const MenuNavigator = ({view, set}) => {
     return (
         <div className={'navigator-tools h-menu'}>
             <ul>
@@ -39,4 +39,4 @@ const NavigatorMenu = ({view, set}) => {
     )
 }
 
-export default NavigatorMenu;
+export default React.memo(MenuNavigator);

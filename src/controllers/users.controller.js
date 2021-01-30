@@ -130,7 +130,6 @@ export const login = async (req, res, next) => {
 
     // check if user is currently logged-in
     const isAuth = await auth.check(req);
-    console.log('Authenticated?', isAuth, req.headers)
     if (isAuth)
         return next(new Error('redundantLogin'));
 
@@ -140,7 +139,6 @@ export const login = async (req, res, next) => {
     try {
         // validate user credentials
         const { email, password } = req.body;
-        console.log(req.body)
         reqUser = {
             email: valid.load(email).isEmail().data,
             password: valid.load(password).isPassword().data,
@@ -157,11 +155,15 @@ export const login = async (req, res, next) => {
             // User not registered
             if (!userData) throw Error('failedLogin');
 
-            // Authenticate user
+            // create model instance of authenticated user
             authUser = new User(userData);
 
+            // generate JWT access token
             const token = auth.authenticate(authUser, reqUser.password)
             if (!token) throw Error('failedLogin');
+
+            // send access token to the client inside a cookie
+            res.cookie("jwt", token, {secure: true, httpOnly: true})
 
             // successful login
             res.status(200).json(
@@ -191,6 +193,46 @@ export const login = async (req, res, next) => {
  */
 
 export const authenticate = async (req, res, next) => {
+
+    // decode JWT token -> user_id
+    await auth.verify(req, res, next);
+    const {userId, token} = req;
+    console.log('Authenticating UserID:', userId)
+
+    // confirm user registration
+    await db.users
+        .select(userId)
+        .then(userData => {
+
+            // User not registered
+            if (!userData) throw Error('noAuth');
+
+            // successful login
+            res.status(200).json(
+                prepare({
+                    user: {
+                        id: userData.user_id,
+                        email: userData.email,
+                        token: token,
+                        role: userData.role,
+                        label: userData.label
+                    }})
+            );
+        })
+        .catch(err => {return next(err)});
+};
+
+/**
+ * Refresh user token.
+ *
+ * @param req
+ * @param res
+ * @param {Function} next
+ * @method get
+ * @src public
+ */
+
+export const refresh = async (req, res, next) => {
 
     // decode JWT token -> user_id
     await auth.verify(req, res, next);

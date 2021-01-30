@@ -8,12 +8,13 @@
  */
 
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    margin: 0;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 code {
@@ -38,18 +39,28 @@ html {
 
 body {
     margin: 0;
-    min-height: 100vh;
     font-family: 'Inter', Arial, sans-serif;
     color: #8A91B4;
     background: #FFFFFF;
+}
+
+div#root {
+    height: 100%;
+}
+.page-content {
+    height: 100%;
+}
+
+.header h3 {
+    color: #01447e;
 }
 
 /* Navigator Panel */
 
 .navigator {
     display:inline-block;
-    height:100%;
-    width: 35%;
+    height: 85vh;
+    min-width: 350px;
     background-color: #D0E4F5;
     overflow: auto;
     text-align: center;
@@ -74,18 +85,23 @@ body {
     list-style-type: none;
 }
 
+.tree h4 {
+    padding-top: 10px;
+    color: #01447e;
+}
+
 /* Viewer/Editor Panel */
 
 div.main {
     padding-top:60px;
     display: flex;
-    height: 100vh;
 }
 
 .viewer, .editor {
+    width:100%;
     display:inline-block;
+    height: 85vh;
     vertical-align: top;
-    width: 65%;
     background-color: white;
     overflow: auto;
     padding: 0 10px;
@@ -93,7 +109,6 @@ div.main {
 
 .view .data {
     display:inline-block;
-    height: 70vh;
     width: 100%;
     overflow: visible;
     padding: 5px;
@@ -306,7 +321,6 @@ Menus
     cursor: pointer;
 }
 
-
 /* Breadcrumb Navigation Menu */
 
 nav.breadcrumb div {
@@ -401,11 +415,10 @@ nav.breadcrumb ul li a:hover {
     display: -ms-flexbox;
     display: flex;
     -ms-flex-wrap: wrap;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     list-style: none;
     margin: 0;
     padding: 0;
-    height: 35px;
 }
 
 .h-menu ul li {
@@ -469,7 +482,11 @@ nav.breadcrumb ul li a:hover {
 }
 
 .editor-tools.h-menu ul li {
-    line-height: normal;
+    display: inline-block;
+    vertical-align: middle;
+    height: 50px;
+    line-height: 50px;
+    color: #666;
 }
 
 .editor-tools.h-menu ul li button {
@@ -477,22 +494,10 @@ nav.breadcrumb ul li a:hover {
     color: #0B6FA4;
 }
 
-.editor-tools.h-menu ul .close {
-
-}
-
-.editor-tools.h-menu ul .close span {
-
-}
-
-.editor-tools.h-menu ul li h4 {
-
-}
-
 /* Navigator Tool Menu */
 
 .navigator-tools.h-menu {
-    width: 25%;
+    min-width: 300px;
     margin:auto;
     text-align: center;
     background-color: #666666;
@@ -532,52 +537,94 @@ nav.breadcrumb ul li a:hover {
 .h-menu ul li button:hover {
     background-color: #444;
     color: #FFF;
-    border: 2px solid #CCC;
-    margin:0;
-}
-
-.navigator .h-menu ul .close {
-
-}
-
-.navigator .h-menu ul .close span {
-
-}
-
-.navigator .h-menu ul li h4 {
-
 }
 
 /* Tree Node Menu */
 
 .tree-node .h-menu {
-    width: auto;
+    padding: 0;
+    margin:0;
 }
 
-.tree-node .h-menu ul {
-
+.tree-node .h-menu ul, .tree-node .h-menu div {
+    padding: 0;
+    margin:0;
 }
 
 .tree-node .h-menu ul li {
     line-height: normal;
+    padding: 0;
+    margin:0;
 }
 
 .tree-node .h-menu ul li button {
+    flex-wrap: nowrap;
     background-color: #D0E4F5;
     color: #0B6FA4;
 }
 
-.tree-node .h-menu ul .close {
-
+.tree-node .h-menu ul li button.tree-node-label {
+    background-color: transparent;
+    text-align: left;
+    width: 100%;
 }
 
-.tree-node .h-menu ul .close span {
-
+.tree-node .collapsible {
+    padding-left: 30px;
 }
 
-.tree-node .h-menu ul li h4 {
-
+.tree-node .collapsible ul {
+    padding: 0;
+    margin: 0;
 }
+
+.tree-node.toggle {
+    background-color: #00529B;
+    color: #FFF;
+}
+
+/* Tab List Menu */
+
+.tab.h-menu {
+    padding: 0;
+    margin-top:10px;
+    background-color: lightgrey;
+}
+
+.tab.h-menu ul li {
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+}
+
+.tab.h-menu ul li button {
+    background-color: inherit;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+}
+/* Change background color of buttons on hover */
+.tab.h-menu ul li button:hover {
+    background-color: #ddd;
+    border: none;
+    outline: none;
+    cursor: pointer;
+}
+
+/* Create an active/current tablink class */
+.tab.h-menu ul li button.active {
+    background-color: #ccc;
+}
+
+/* Style the tab content */
+.tab  {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-top: none;
+}
+
 
 /* Item Edit Menu */
 
@@ -609,10 +656,17 @@ nav.breadcrumb ul li a:hover {
   Page Footer
 */
 
-.footer {
-    font-size: small;
+.footer div {
     text-align: center;
-    padding: 20px;
+    font-size: small;
+    padding: 10px;
+    color: #666666;
+    background-color: #EEEEEE;
+    border-top: 1px solid #666666;
+}
+
+.copyright {
+
 }
 
 /*
@@ -668,19 +722,19 @@ table.items tfoot td {
 /* single item view */
 
 table.item {
-    border: 1px solid #FFFFFF;
     width: 100%;
     text-align: left;
     border-collapse: collapse;
     color: #444;
 }
 table.item td, table.item th {
-    border: 1px solid #FFFFFF;
-    padding: 3px 2px;
+    vertical-align: top;
+    padding: 5px 6px;
     margin:0;
 }
 
 table.item tbody td {
+    border-top: 1px dotted #CCCCCC;
     font-size: small;
 }
 

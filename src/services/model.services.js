@@ -7,7 +7,7 @@
 
 'use strict';
 
-import { humanize, sanitize, toCamel } from '../lib/data.utils.js';
+import { humanize, sanitize } from '../lib/data.utils.js';
 import * as schemaConstructor from './schema.services.js';
 import { getNode } from './nodes.services.js';
 
@@ -38,7 +38,7 @@ export const create = async (modelType) => {
             writable: true
         },
         name: {
-            value: toCamel(modelType),
+            value: modelType,
             writable: true
         },
         key: {

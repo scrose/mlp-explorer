@@ -7,7 +7,6 @@
 
 import React from 'react';
 import Loading from './loading';
-import Data from './data';
 
 /**
  * Render table header.
@@ -52,7 +51,7 @@ const TableBody = ({rows, cols}) => {
                         {
                             cols
                                 .filter(col => row.hasOwnProperty(col.name))
-                                .map((col, index) =>
+                                .map(col =>
                                     <td key={`td_${col.name}`}>{row[col.name]}</td>
                                 )
                         }

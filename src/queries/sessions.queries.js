@@ -8,88 +8,97 @@
 'use strict';
 
 /**
- * Initialize sessions table.
- */
-
-export const init = `BEGIN;
-                DROP TABLE IF EXISTS sessions;
-                CREATE TABLE IF NOT EXISTS sessions (
-                id serial NOT NULL PRIMARY KEY,
-                session_id VARCHAR (255) UNIQUE NOT NULL,
-                expires TIMESTAMP,
-                session_data json NOT NULL);
-                COMMIT;`;
-
-/**
- * Find session by session ID.
- */
-
-export const findById = `SELECT session_data 
-            FROM sessions 
-            WHERE session_id=$1::varchar
-              AND expires >= TO_TIMESTAMP($2)`;
-
-/**
- * Find all sessions.
- */
-
-export const findAll = `SELECT * FROM sessions`;
-
-/**
- * Upsert session.
- */
-
-export const upsert = `INSERT INTO sessions(
-            session_id,
-            expires,
-            session_data
-            ) 
-        VALUES(
-            $1::varchar,
-            TO_TIMESTAMP($2),
-            $3::json
-        )
-        ON CONFLICT (session_id) DO UPDATE
-        SET
-            session_id = $1::varchar,
-            expires = TO_TIMESTAMP($2),
-            session_data = $3::json
-        RETURNING *`;
-
-/**
- * Touch session to keep from expiring.
- */
-
-export const update = `UPDATE sessions
-        SET
-            expires = TO_TIMESTAMP($2), 
-            session_data = $3::json
-        WHERE
-            session_id = $1::varchar
-        RETURNING 
-            session_id`;
-
-/**
- * Delete session.
- */
-
-export const remove = `DELETE FROM sessions 
-            WHERE sessions.session_id = $1::varchar
-            RETURNING sessions.session_id`;
-
-/**
- * Delete all sessions.
- */
-
-export const removeAll = `DELETE FROM sessions RETURNING session_id`;
-
-/**
- * Prune expired sessions.
+ * Find session token by user ID.
  *
- * @public
+ * @param {String} user_id
+ * @return {Function} SQL query function
  */
 
-export const prune = `DELETE FROM sessions
-            WHERE expires < NOW()::timestamp
-            RETURNING sessions.session_id`;
+export function select(user_id) {
+    return {
+        sql: `SELECT token
+              FROM sessions
+              WHERE sessions.user_id=$1::varchar`,
+        data: [user_id],
+    };
+}
+
+
+/**
+ * Find all session tokens.
+ *
+ * @return {Function} SQL query function
+ */
+
+export function getAll() {
+    return {
+        sql: `SELECT *
+              FROM sessions`,
+        data: [],
+    };
+}
+
+/**
+ * Upsert session token.
+ *
+ * @param {Object} session
+ * @return {Function} SQL query function
+ */
+
+export function upsert(session) {
+    return {
+        sql: `INSERT INTO sessions (token, user_id, expiry)
+              VALUES($1::varchar, $2::varchar, TO_TIMESTAMP($2))
+              ON CONFLICT (user_id) DO UPDATE
+                  SET
+                      token = $1::varchar,
+                      expiry = TO_TIMESTAMP($2)
+              RETURNING *`,
+        data: [session.token, session.user_id, session.expiry],
+    };
+}
+
+/**
+ * Delete session token.
+ *
+ * @param {String} user_id
+ * @return {Function} SQL query function
+ */
+
+export function remove(user_id) {
+    return {
+        sql: `DELETE FROM sessions
+              WHERE sessions.user_id = $1::varchar
+              RETURNING sessions.token`,
+        data: [user_id],
+    };
+}
+
+/**
+ * Delete all session tokens.
+ *
+ * @return {Function} SQL query function
+ */
+
+export function clear() {
+    return {
+        sql: `DELETE FROM sessions`,
+        data: [],
+    };
+}
+
+/**
+ * Prune expired session tokens.
+ *
+ * @return {Function} SQL query function
+ */
+
+export function prune() {
+    return {
+        sql: `DELETE FROM sessions
+              WHERE expiry < NOW()::timestamp
+              RETURNING sessions.token`,
+        data: [],
+    };
+}
 

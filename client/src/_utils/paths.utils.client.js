@@ -84,6 +84,17 @@ export function redirect(uri=null) {
 }
 
 /**
+ * Reroute to uri in client. (Does not refresh page).
+ *
+ * @param {String} uri
+ * @public
+ */
+
+export function reroute(uri=null) {
+    window.history.pushState({}, '', uri);
+}
+
+/**
  * Create node path for requested model, view, id.
  *
  * @public
@@ -95,3 +106,4 @@ export function getNodeURI(model, view='', id='') {
     const idSlug = id !== '' ? `/${id}` : '';
     return `${modelSlug}${idSlug}${viewSlug}`;
 }
+

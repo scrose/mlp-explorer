@@ -47,7 +47,7 @@ export default {
         insertNode: defaults.insertNode,
         updateNode: defaults.updateNode,
         removeNode: defaults.removeNode,
-        getChildNodes: defaults.getChildNodes,
+        getDependentNodes: defaults.getDependentNodes,
         selectFile: defaults.selectFile,
         insertFile: defaults.insertFile,
         updateFile: defaults.updateFile,

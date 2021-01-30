@@ -6,7 +6,8 @@
  */
 
 import React from 'react';
-import { checkSessionMsg, getSessionMsg, popSessionMsg } from '../../_services/session.services.client';
+import { useRouter } from '../../_providers/router.provider.client';
+import { popSessionMsg } from '../../_services/session.services.client';
 
 /**
  * Messenger component.
@@ -16,26 +17,24 @@ import { checkSessionMsg, getSessionMsg, popSessionMsg } from '../../_services/s
 
 const Messenger = () => {
 
-    // initialize view messages with session storage
-    const [messages, setMessages] = React.useState([]);
+    // initialize user message in state
+    const [message, setMessage] = React.useState(null);
 
-    // update message from session storage
+    /**
+     * Load message from session storage
+     *
+     * @private
+     */
+
     React.useEffect(() => {
-        console.log(getSessionMsg())
-        if (checkSessionMsg())
-                setMessages(popSessionMsg())
+        setMessage(popSessionMsg())
+        return () => {};
+    }, []);
 
-    }, [setMessages]);
+    const {msg='', type=''} = message || {};
 
     return (
-        Array.isArray(messages)
-            ? <div className={'msgs'}>
-            {messages.map((message, index) => {
-                const {msg='', type=''} = message || {};
-                return (msg && type ? <div className={`msg ${type}`} key={`msg_${index}`}>{msg}</div> : '')
-            })}
-        </div>
-            : ''
+        message ? <div className={`msg ${type}`}>{msg}</div> : ''
     )
 }
 

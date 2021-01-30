@@ -1,6 +1,6 @@
 /*!
- * MLP.API.DB.Services.Users
- * File: users.services.js
+ * MLP.API.DB.Services.Sessions
+ * File: sessions.services.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -15,6 +15,23 @@
 import * as queries from '../queries/sessions.queries.js'
 import pool from './pgdb.js';
 
+
+/**
+ * Find session token by user ID.
+ *
+ * @public
+ * @param {String} user_id
+ * @return {Promise} result
+ */
+
+export async function select(user_id) {
+    let { sql, data } = queries.select(user_id);
+    return await pool.query(sql, data)
+        .then(res => {
+            return res.rows.length === 0 ? null : res.rows[0]
+        });
+}
+
 /**
  * Upsert session in database.
  *
@@ -24,92 +41,70 @@ import pool from './pgdb.js';
  */
 
 export async function upsert(args) {
-    return pool.query(
-        queries.upsert,
-        [args.session_id, args.expires, args.session_data],
-    );
+    let { sql, data } = queries.upsert(args);
+    return await pool.query(sql, data)
+        .then(res => {
+            return res.rows.length === 0 ? null : res.rows[0]
+        });
 }
 
 /**
- * Update session data to existing record in database.
- *
- * @public
- * @param {Object} args
- * @return {Promise} result
- */
-
-export async function update(args) {
-    return pool.query(
-        queries.update,
-        [args.session_id, args.expires, args.session_data]
-    );
-}
-
-/**
- * Prune expired sessions.
- *
- * @public
- * @return {Promise} result
- */
-
-export async function prune() {
-    return pool.query(queries.prune, []);
-}
-
-/**
- * Find all sessions.
+ * Get all session tokens from database.
  *
  * @public
  * @return {Promise} result
  */
 
 export async function getAll() {
-    return pool.query(queries.findAll, []);
-}
-
-/**
- * Find session by ID (include expiry timestamp).
- *
- * @public
- * @param {String} id
- * @param {Object} timestamp
- * @return {Promise} result
- */
-
-export async function select(id, timestamp) {
-    return pool.query(queries.findById, [id, timestamp]);
+    let { sql, data } = queries.getAll();
+    return await pool.query(sql, data)
+        .then(res => {
+            return res.rows;
+        });
 }
 
 /**
  * Remove session from database.
  *
  * @public
- * @param {String} id
+ * @param {String} user_id
  * @return {Promise} result
  */
 
-export async function remove(id) {
-    return pool.query(queries.remove, [id]);
+export async function remove(user_id) {
+    let { sql, data } = queries.remove(user_id);
+    return await pool.query(sql, data)
+        .then(res => {
+            return res.rows.length === 0 ? null : res.rows[0]
+        });
 }
 
 /**
- * Remove all sessions from database.
+ * Delete all session tokens from database.
  *
  * @public
  * @return {Promise} result
  */
 
-export async function removeAll() {
-    return pool.query(queries.removeAll, []);
+export async function clear() {
+    let { sql, data } = queries.clear();
+    return await pool.query(sql, data)
+        .then(res => {
+            return res.rows;
+        });
 }
 
 /**
- * Initialize sessions table.
+ * Prune all expired session tokens from database.
  *
  * @public
  * @return {Promise} result
  */
 
-export async function init() {
-    await pool.query(queries.init, []);
+export async function prune() {
+    let { sql, data } = queries.prune();
+    return await pool.query(sql, data)
+        .then(res => {
+            return res.rows;
+        });
 }

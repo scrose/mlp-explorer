@@ -6,68 +6,174 @@
  */
 
 import React from 'react'
-import { useData } from '../../_providers/data.provider.client';
+import { useRouter } from '../../_providers/router.provider.client';
 import Loading from '../common/loading';
 import { capitalize } from '../../_utils/data.utils.client';
 import Icon from '../common/icon';
-import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
-import { getItemLabel } from '../../_services/schema.services.client';
+import { getNodeURI } from '../../_utils/paths.utils.client';
+import { getNodeLabel, getNodeOrder } from '../../_services/schema.services.client';
 
 /**
- * Inline menu component to edit records.
+ * Inline tree node menu component.
+ * - Creates collapsible containers for dependent nodes that can
+ *   be toggled.
+ * - Sets route for requested node data not yet loaded.
  *
  * @public
  * @param text
  * @param {boolean} toggle
  * @param {Function} setToggle
+ * @param {Function} setRoute
  * @param {String} id
  * @param {String} model
  * @return {JSX.Element}
  */
 
-const TreeNodeMenu = ({ text='node', toggle, setToggle, id, model }) => {
+const TreeNodeMenu = ({
+                          id,
+                          model,
+                          text='...',
+                          toggle,
+                          setToggle
+}) => {
+    // text = text.length > 40 ? text.substring(0,40) + '...' : text;
+    const api = useRouter();
     return (
         <div className={'tree-node h-menu'}>
             <ul>
+                {
+                    model !== 'historic_captures' && model !== 'modern_captures'
+                        ?
+                    <li>
+                        <button
+                            className={`tree-node toggle ${model}`}
+                            title={`Expand ${text} items.`}
+                            onClick={() => {
+                                setToggle(!toggle);
+                            }}
+                        >
+                            {toggle ? <Icon type={'up'} /> : <Icon type={'down'} />}
+                        </button>
+                    </li>
+                        : ''
+                }
                 <li>
                     <button
-                        title={`View details.`}
-                        onClick={() => setToggle(!toggle)}
+                        className={`tree-node-label ${model}`}
+                        title={`View ${text} metadata.`}
+                        onClick={() => {
+                            api.router(getNodeURI(model, 'show', id));
+                        }}
                     >
-                        {toggle ? <Icon type={'up'}/> : <Icon type={'down'}/>}
+                        <Icon type={model}/> <span>{text}</span>
                     </button>
                 </li>
-                <li>
-                    <button
-                        title={`View this ${model} item.`}
-                        onClick={() => redirect(getNodeURI(model, 'show', id))}
-                    >
-                        <Icon type={'info'} />
-                    </button>
-                </li>
-                <li>{text}</li>
             </ul>
         </div>
     );
 };
 
 /**
- * Navigation tree node list component.
+ * Navigation tree node component.
  *
  * @public
- * @return {React.Component}
+ * @param {Object} node
+ * @return {JSX.Element}
  */
 
-const TreeNodeList = ({data}) => {
-    console.log('Tree node list:', data)
+const TreeNode = ({node}) => {
+
+    // create dynamic data state
+    const [toggle, setToggle] = React.useState(false);
+    const [loadedData, setLoadedData] = React.useState(null);
+
+    // initialization
+    const api = useRouter();
+    const _isMounted = React.useRef(true);
+
+    // API call to retrieve node data (if not yet loaded)
+    React.useEffect(() => {
+        if (toggle && !loadedData) {
+            const route = getNodeURI('nodes', 'show', node.id)
+            let load = async () => {
+                // request tree node data from API
+                return await api.get(route)
+                    .then(res => {
+                        const { data = {} } = res || {};
+                        return data;
+                    });
+            };
+            load()
+                .then(data => {
+                    // update state with response data
+                    if (_isMounted.current) {
+                        setLoadedData(data);
+                    }
+                })
+                .catch(err => console.error(err));
+
+            return () => {
+                _isMounted.current = false;
+            };
+        }
+    }, [api, node, toggle, loadedData, setLoadedData]);
+
+    // get any available dependent nodes
+    const { dependents=[] } = loadedData || {};
+
+    // render tree node
+    return (
+            <div className={'tree-node'}>
+                <div>
+                {
+                    <TreeNodeMenu
+                        id={node.id}
+                        model={node.type}
+                        text={node.label}
+                        toggle={toggle}
+                        setToggle={setToggle}
+                    />
+                }
+                </div>
+                <div className={`collapsible${toggle ? ' active' : ''}`}>
+                    <TreeNodeList nodes={dependents}/>
+                </div>
+            </div>
+
+    );
+}
+
+/**
+ * Navigation tree node list component.
+ * - Discovers appropriate menu label text using schema
+ * - Sorts node items: (1) Node order; (2) Alphabetically by label
+ *
+ * @public
+ * @return {JSX.Element}
+ */
+
+const TreeNodeList = ({nodes}) => {
     return (
         <ul>
             {
-                data.map((item, index) => {
-                    const { data={} } = item || {};
+                nodes
+                    .map(node => {
+                        node.label = getNodeLabel(node);
+                        node.order = getNodeOrder(node);
+                        return node;
+                    })
+                    // sort alphabetically
+                    .sort(function(a, b){
+                        return a.label.localeCompare(b.label);
+                    })
+                    // sort by node order
+                    .sort(function(a, b){
+                        return a.order - b.order;
+                    })
+                    .map(node => {
                     return (
-                        <li key={`${data.nodes_id}`}>
-                            <TreeNode data={item} />
+                        <li key={`${node.id}`}>
+                            <TreeNode node={node} />
                         </li>
                     )
                 })
@@ -78,90 +184,59 @@ const TreeNodeList = ({data}) => {
 }
 
 /**
- * Navigation tree node component.
- *
- * @public
- * @return {React.Component}
- */
-
-const TreeNode = ({data}) => {
-    console.log('Tree node:', data)
-    const [toggle, setToggle] = React.useState(false);
-
-    // get any available dependent nodes
-    const { dependents=[] } = data || {};
-
-    return (
-            <div className={'tree-node'}>
-                <div>
-                {
-                    <TreeNodeMenu
-                        text={getItemLabel(data)}
-                        toggle={toggle}
-                        setToggle={setToggle}
-                        id={data.nodes_id}
-                        model={data.type}
-                    />
-                }
-                </div>
-                <div className={`collapsible${toggle ? ' active' : ''}`}>
-                    <TreeNodeList data={dependents}/>
-                </div>
-            </div>
-
-    );
-}
-
-/**
  * Map navigator component.
  *
  * @public
- * @return {JSX.Element}
+ * @return
  */
 
 const TreeNavigator = () => {
 
     // create dynamic view state
     const [nodeData, setNodeData] = React.useState(null);
-    const api = useData();
-    const _isMounted = React.useRef(true);
+
+    // create dynamic view state
+    const _isMounted = React.useRef(false);
+
+    // initialization
+    const api = useRouter();
+
+    // API call for tree node
     const treeRoute = '/nodes';
 
-
-    // non-static views: fetch API data and set view data in state
+    // API call to retrieve node data
     React.useEffect(() => {
+        _isMounted.current = true;
         let load = async() => {
             return await api.get(treeRoute)
                 .then(res => {
                     const { data={} } = res || {};
-                    console.log('Navigator Response:', data)
                     return data;
                 })
         }
-        load()
-            .then(res => {
-                // update state with response data
-                if (_isMounted.current) {
-                    setNodeData(res);
-                }
-            })
-            .catch(err => console.error(err));
+            load()
+                .then(res => {
+                    // update state with response data
+                    if (_isMounted.current)
+                        setNodeData(res);
+                })
+                .catch(err => console.error(err));
 
-        return () => {_isMounted.current = false; load=null};
+        return () => {_isMounted.current = false};
     }, [api]);
 
+    // render node tree
     return (
         nodeData
         ? <div className={'tree'}>
-                <ul className={'tree'}>
+                <ul>
                 {
-                    Object.keys(nodeData).map((key, index) => {
+                    Object.keys(nodeData)
+                        .map((key, index) => {
                         return (
                             <li key={`item_${index}`}>
-                                <div>
-                                    <h4>{capitalize(key)}</h4>
-                                    <TreeNodeList data={nodeData[key]} />
-                                </div>
+                                <h4>{capitalize(key)}</h4>
+                                <TreeNodeList nodes={nodeData[key]} />
                             </li>
                         )
                     })
@@ -172,4 +247,4 @@ const TreeNavigator = () => {
     )
 }
 
-export default TreeNavigator;
+export default React.memo(TreeNavigator);

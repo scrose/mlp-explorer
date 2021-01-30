@@ -25,9 +25,20 @@ const getIconClass = (iconType) => {
         logo: 'fas fa-mountain',
         map: 'fas fa-lg fa-map-marked-alt',
         tree: 'fas fa-lg fa-list',
-        up: 'fas fa-lg fa-chevron-circle-up',
-        down: 'fas fa-lg fa-chevron-circle-down',
-        default: 'fas fa-lg fa-square'
+        up: 'fas fa-lg fa-chevron-circle-down',
+        down: 'fas fa-lg fa-chevron-circle-right',
+        inset: 'fas fa-lg fa-caret-right',
+        projects: 'fas fa-project-diagram',
+        surveyors: 'fas fa-hiking',
+        surveys: 'fas fa-binoculars',
+        survey_seasons: 'fas fa-calendar',
+        stations: 'fas fa-map-marker-alt',
+        historic_visits: 'fas fa-campground',
+        modern_visits: 'fas fa-campground',
+        historic_captures: 'fas fa-camera-retro',
+        modern_captures: 'fas fa-camera-retro',
+        locations: 'fas fa-location-arrow',
+        default: 'fas fa-lg fa-star'
     };
     return iconComponents.hasOwnProperty(iconType)
         ? iconComponents[iconType]
