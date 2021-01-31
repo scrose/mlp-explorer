@@ -133,53 +133,79 @@ export const login = async (req, res, next) => {
     if (isAuth)
         return next(new Error('redundantLogin'));
 
-    // authenticate submitted user credentials
+    // validate user credentials
     // TODO: Implement login rate limiter
-    let reqUser, authUser;
     try {
+
         // validate user credentials
         const { email, password } = req.body;
-        reqUser = {
+
+        // authenticate against Keycloak
+        const authData = await auth.authenticate({
             email: valid.load(email).isEmail().data,
             password: valid.load(password).isPassword().data,
-        };
+        }).catch(err => {return next(err)});
+
+        // get response data
+        const { data=null } = authData || {};
+        const { access_token=null } = data || {};
+
+        console.log('Response Data:', data)
+
+        // send access token to the client inside a cookie
+        res.cookie("jwt", access_token, {secure: true, httpOnly: true})
+
+        // successful login
+        res.status(200).json(
+            prepare({
+                message: {msg: 'Login successful!', type: 'success'},
+                view: 'login',
+                user: {
+                    email: email,
+                    token: access_token,
+                    role: 'administrator',
+                    label: 'Administrator'
+                }})
+        );
+
     } catch (err) {
         return next(new Error('invalidLogin'));
     }
 
-    // Confirm user registration
-    await db.users
-        .selectByEmail(reqUser.email)
-        .then(userData => {
 
-            // User not registered
-            if (!userData) throw Error('failedLogin');
-
-            // create model instance of authenticated user
-            authUser = new User(userData);
-
-            // generate JWT access token
-            const token = auth.authenticate(authUser, reqUser.password)
-            if (!token) throw Error('failedLogin');
-
-            // send access token to the client inside a cookie
-            res.cookie("jwt", token, {secure: true, httpOnly: true})
-
-            // successful login
-            res.status(200).json(
-                prepare({
-                    message: {msg: 'Login successful!', type: 'success'},
-                    view: 'login',
-                    user: {
-                        id: authUser.getValue('user_id'),
-                        email: authUser.getValue('email'),
-                        token: token,
-                        role: authUser.getValue('role'),
-                        label: userData.label
-                    }})
-            );
-        })
-        .catch(err => {return next(err)});
+    // // Confirm user registration
+    // let userData = await db.users
+    //     .selectByEmail(reqUser.email)
+    //     .then(userData => {
+    //
+    //         // no data: user not registered
+    //         if (!userData) throw Error('failedLogin');
+    //
+    //         // create model instance of authenticated user
+    //         authUser = new User(userData);
+    //
+    //         // authenticate and get JWT access token
+    //         const token = auth.authenticate(authUser, reqUser.password);
+    //         if (!token) throw Error('failedLogin');
+    //
+    //         // send access token to the client inside a cookie
+    //         res.cookie("jwt", token, {secure: true, httpOnly: true})
+    //
+    //         // successful login
+    //         res.status(200).json(
+    //             prepare({
+    //                 message: {msg: 'Login successful!', type: 'success'},
+    //                 view: 'login',
+    //                 user: {
+    //                     id: authUser.getValue('user_id'),
+    //                     email: authUser.getValue('email'),
+    //                     token: token,
+    //                     role: authUser.getValue('role'),
+    //                     label: userData.label
+    //                 }})
+    //         );
+    //     })
+    //     .catch(err => {return next(err)});
 };
 
 /**

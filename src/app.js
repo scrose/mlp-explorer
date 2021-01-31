@@ -84,7 +84,9 @@ app.use(express.json());
  * Parse cookies to store JWT session tokens.
  */
 
-app.use(cookieParser())
+app.use(cookieParser());
+
+
 
 /**
  * Define view parameters for template rendering (middleware)

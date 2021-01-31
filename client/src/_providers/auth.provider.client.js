@@ -7,6 +7,7 @@
 
 import * as React from 'react'
 import { useRouter } from './router.provider.client';
+import { addSessionMsg } from '../_services/session.services.client';
 
 /**
  * Global authentication context.
@@ -63,7 +64,7 @@ function AuthProvider(props) {
 
     const logout = () => {
         setData(null);
-        api.setMessage({ msg: 'Logged out successfully!', type: 'success' });
+        addSessionMsg({ msg: 'Logged out successfully!', type: 'success' });
     }
 
 
@@ -84,15 +85,15 @@ function AuthProvider(props) {
         api.get('/refresh')
             .then(res => {
                 // TODO: remove test user data
-                // const { user= null } = res || {};
+                const { user= null } = res || {};
 
-                const user = {
-                    id: 'ITtqyWEPAEgQZEOwTUgOkyNuJ2bRvkUMiuLW1fOQ3FqNBzvS',
-                    email: 'support@goruntime.ca',
-                    role: 'super-administrator',
-                    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IklUdHF5V0VQQUVnUVpFT3dUVWdPa3lOdUoyYlJ2a1VNaXVMVzFmT1EzRnFOQnp2UyIsImlhdCI6MTYxMjAzMjQ2OSwiZXhwIjoxNjEyMDMyNDY5fQ.ZN6IIEw_0FY6_23DlJ9XsA7xyO62RtB4sYqYqXjPbu0',
-                    label: 'Super Administrator'
-                    };
+                // const user = {
+                //     id: 'ITtqyWEPAEgQZEOwTUgOkyNuJ2bRvkUMiuLW1fOQ3FqNBzvS',
+                //     email: 'support@goruntime.ca',
+                //     role: 'super-administrator',
+                //     token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IklUdHF5V0VQQUVnUVpFT3dUVWdPa3lOdUoyYlJ2a1VNaXVMVzFmT1EzRnFOQnp2UyIsImlhdCI6MTYxMjAzMjQ2OSwiZXhwIjoxNjEyMDMyNDY5fQ.ZN6IIEw_0FY6_23DlJ9XsA7xyO62RtB4sYqYqXjPbu0',
+                //     label: 'Super Administrator'
+                //     };
 
                 console.log('Refresh Response:', res, user);
 

@@ -32,6 +32,7 @@ export const init = async (req, res, next) => {
 
 export const show = async (req, res, next) => {
   try {
+      console.log(req)
       res.status(200).json(
           prepare({
               view: 'dashboard'

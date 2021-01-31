@@ -17,6 +17,7 @@ import * as db from './index.services.js';
 import * as sessions from './sessions.services.js';
 import crypto from 'crypto';
 import uid from 'uid-safe';
+import * as keycloak from '../services/keycloak.services.js';
 
 /**
  * Generate standard UUID.
@@ -75,19 +76,33 @@ export function encryptUser(user) {
 }
 
 /**
- * Authenticate user password. Returns JWT token on successful
+ * Authenticate user password. Returns JSON web token on successful
  * authentication of password.
+ * TODO: Replace with third-party authentication
  *
  * @public
- * @param {Object} user data
- * @param {String} password
- * @return {String} JWT token
+ * @return {String} JSON web token
+ * @param {Object} userCredentials
  */
 
-export function authenticate(user, password) {
-    return user.getValue('password') === encrypt(password, user.getValue('salt_token'))
-        ? genAccessToken(user.getValue('user_id'))
-        : null;
+export const authenticate = async (userCredentials) => {
+    // return user.getValue('password') === encrypt(password, user.getValue('salt_token'))
+    //     ? genAccessToken(user)
+    //     : null;
+
+    console.log(userCredentials)
+
+    const credentials = {
+        grantType: 'password',
+        username: 'mlp-admin',
+        password: userCredentials.password,
+        client_secret: '2e0db745-d708-4d9a-996b-7a00168f9ee2',
+        clientId: 'nodejs-microservice',
+        totp: '123456', // optional Time-based One-time Password if OTP is required in authentication flow
+    }
+
+    // request access token
+    return await keycloak.refresh(credentials);
 }
 
 /**
@@ -100,14 +115,15 @@ export function authenticate(user, password) {
  * @param next
  */
 
-export const verify = (req, res, next) => {
+export const verify = async (req, res, next) => {
 
-    let token = req.headers["x-access-token"];
+    // get JWT token from cookie
+    const { token=null } = req.cookies || [];
     let secret = process.env.SESSION_SECRET;
 
     if (!token) return next(new Error('noToken'));
 
-    jwt.verify(token, secret, (err, decoded) => {
+    return await jwt.verify(token, secret, (err, decoded) => {
         if (err) return next(new Error('noAuth'));
         req.userId = decoded ? decoded.id : null;
         req.token = token;
@@ -115,19 +131,20 @@ export const verify = (req, res, next) => {
 };
 
 /**
- * Checks if requested user is authenticated.
+ * Checks if request is from an authenticated user.
  *
  * @public
- * @return {Boolean} result
  * @param req
- * @param allowedRoles
+ * @return {Boolean} result
  */
 
-export const check = async (req, allowedRoles=[]) => {
+export const check = async (req) => {
 
-    // get JWT token from request headers
-    let token = req.headers["x-access-token"];
-    let secret = process.env.SESSION_SECRET;
+    // get JWT token from cookie
+    const { token=null } = req.cookies || [];
+    let secret = process.env.ACCESS_TOKEN_SECRET;
+
+    console.log(req.cookies['token'], req.headers)
 
     if (!token) return false;
 
@@ -137,34 +154,51 @@ export const check = async (req, allowedRoles=[]) => {
 };
 
 /**
- * Generate JWT access token. Access token has short lifespan.
+ * Generate JWT access token. Access token has short lifespan
+ * of default: 120 seconds.
+ * TODO: Replace with third-party authentication service.
  *
  * @public
- * @return {String} token
- * @param {String} userId
+ * @param {Object} user
+ * @return {String} JSON web token
  */
 
-export const genAccessToken = (userId) => {
+export const genAccessToken = (user) => {
     let secret = process.env.ACCESS_TOKEN_SECRET;
-    return jwt.sign({ id: userId }, secret, {
+    let payload = {
+        id: user.userId,
+        email: user.email,
+        role: user.role,
+        label: user.role
+    }
+    // generate token
+    return jwt.sign(payload, secret, {
         algorithm: "HS256",
-        expiresIn: process.env.ACCESS_TOKEN_TTL // default: 24 hours
+        expiresIn: process.env.ACCESS_TOKEN_TTL
     });
 }
 
 /**
- * Generate JWT refresh token. Refresh token has long lifespan.
+ * Generate JWT refresh token. Refresh token has long lifespan
+ * of default: 24 hours.
+ * TODO: Replace with third-party authentication service.
  *
  * @public
- * @return {String} token
- * @param {String} userId
+ * @param {Object} user
+ * @return {String} JSON web token
  */
 
-export const genRefreshToken = (userId) => {
+export const genRefreshToken = (user) => {
     let secret = process.env.REFRESH_TOKEN_SECRET;
-    return jwt.sign({ id: userId }, secret, {
+    let payload = {
+        id: user.userId,
+        email: user.email,
+        role: user.role,
+        label: user.role
+    }
+    return jwt.sign(payload, secret, {
         algorithm: "HS256",
-        expiresIn: process.env.REFRESH_TOKEN_TTL // default: 24 hours
+        expiresIn: process.env.REFRESH_TOKEN_TTL
     });
 }
 
@@ -187,7 +221,8 @@ export const authorize = async (req, res, next, allowedRoles) => {
 
     // verify JWT authorization token
     // let token = req.headers["x-access-token"];
-    let token = req.cookies.jwt
+    const { token=null } = req.cookies || [];
+
     let secret = process.env.SESSION_SECRET;
 
     // check if token exists
@@ -261,7 +296,7 @@ export const refresh = async (req, res, next) => {
 
     // get JWT authorization token from cookie
     // let token = req.headers["x-access-token"];
-    let token = req.cookies.jwt;
+    const { token=null } = req.cookies || [];
 
     // check if token exists
     if (token == null)
@@ -289,7 +324,8 @@ export const refresh = async (req, res, next) => {
             expiresIn: process.env.ACCESS_TOKEN_TTL
         })
 
-    res.cookie("jwt", newToken, {secure: true, httpOnly: true})
+    // set HTTP-only cookie to store token
+    res.cookie("token", newToken, {secure: true, httpOnly: true})
     res.send()
 
 }

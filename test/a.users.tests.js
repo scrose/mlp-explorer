@@ -100,6 +100,8 @@ let admin = {
     role: 'super_administrator'
 }
 
+let cValue;
+
 /**
  * Sign-in administrator.
  * @private
@@ -144,8 +146,8 @@ mocha.describe('Login Administrator', () => {
                 password: admin.password
             })
             .then((res) => {
-                admin.token = res.body.user.token;
-                console.log(res.body)
+                console.log(res.headers)
+                cValue = "token=" + JSON.stringify({sessionId: sessionId});
                 expect(res).to.have.status(200);
                 expect(res.body.message.msg).to.equal('Login successful!');
             })
@@ -155,7 +157,6 @@ mocha.describe('Login Administrator', () => {
         await agent
             .post(`${BASE_URL}login`)
             .set('Accept', 'application/json')
-            .set('x-access-token', admin.token)
             .send({
                 email: admin.email,
                 password: admin.password
