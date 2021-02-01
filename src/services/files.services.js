@@ -20,7 +20,7 @@ import path from 'path';
 import { Transform, PassThrough, Writable, Duplex } from 'stream';
 import { getFilename } from '../lib/file.utils.js';
 import { imageSizes } from '../../config.js';
-import { genUUID } from './auth.services.js';
+import { genUUID } from '../lib/data.utils.js';
 
 
 /**

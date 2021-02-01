@@ -39,14 +39,14 @@ async function initRoutes(routes, baseRouter) {
     // get user permission settings
     let permissions = await schema.getPermissions();
 
-    // add routes
+    // add API endpoints
     Object.entries(routes.routes).forEach(([view, route]) => {
         router.route(route.path)
             .all(function(req, res, next) {
                 // initialize controller
                 routes.controller.init(req, res, next);
             })
-            .all(function(req, res, next) {
+            .all(async (req, res, next) => {
 
                 // get permissions settings (allowed user roles) for model, view
                 const allowedRoles = getPermissions({
@@ -57,27 +57,27 @@ async function initRoutes(routes, baseRouter) {
                 });
 
                 // authorize user access based on role permissions
-                req.user = auth.authorize(req, res, next, allowedRoles);
+                await auth.authorize(req, res, next, allowedRoles);
 
             })
             .get(function(req, res, next) {
                 if (!route.get)
-                    return next(new Error('notImplemented'));
+                    return next(new Error(`${view} [get] route not implemented.`));
                 route.get(req, res, next);
             })
             .put(function(req, res, next) {
                 if (!route.put)
-                    return next(new Error('notImplemented'));
+                    return next(new Error(`${view} [put] route not implemented.`));
                 route.put(req, res, next);
             })
             .post(function(req, res, next) {
                 if (!route.post)
-                    return next(new Error('notImplemented'));
+                    return next(new Error(`${view} [post] route not implemented.`));
                 route.post(req, res, next);
             })
             .delete(function(req, res, next) {
                 if (!route.delete)
-                    return next(new Error('notImplemented'));
+                    return next(new Error(`${view} [delete] route not implemented.`));
                 route.delete(req, res, next);
             });
 

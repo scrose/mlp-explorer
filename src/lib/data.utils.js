@@ -7,6 +7,9 @@
 
 'use strict';
 
+import crypto from 'crypto';
+import uid from 'uid-safe';
+
 /**
  * Group array rows by common key
  * Reference: https://stackoverflow.com/a/38575908
@@ -141,3 +144,25 @@ export const toSnake = (str) => {
     return str.replace(/[A-Z]/g,
         (letter) => `_${letter.toLowerCase()}`);
 };
+
+/**
+ * Generate standard UUID.
+ *
+ * @public
+ * @return {String} UUID
+ */
+
+export function genUUID() {
+    return uid.sync(36);
+}
+
+/**
+ * Generate Random ID (16 bytes)
+ *
+ * @public
+ * @return {String} Random ID
+ */
+
+export function genID() {
+    return crypto.randomBytes(16).toString('hex');
+}

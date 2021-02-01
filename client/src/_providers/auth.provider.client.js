@@ -38,7 +38,7 @@ function AuthProvider(props) {
      * @public
      */
 
-    const login = async function(route, credentials) {
+    const login = async (route, credentials) => {
         return await api.post('/login', credentials)
             .then(res => {
                 console.log('Login Response:', res)
@@ -53,7 +53,7 @@ function AuthProvider(props) {
 
                 // console.error(getError('noAuth', 'authentication'));
                 // addSessionMsg({msg: getError('noAuth', 'authentication'), type: 'error'})
-            })
+            });
     }
 
     /**
@@ -62,9 +62,23 @@ function AuthProvider(props) {
      * @public
      */
 
-    const logout = () => {
-        setData(null);
-        addSessionMsg({ msg: 'Logged out successfully!', type: 'success' });
+    const logout = async () => {
+        return await api.post('/logout')
+            .then(res => {
+                console.log('Logout Response:', res);
+
+                if (res.status !== 200) {
+                    addSessionMsg({ msg: 'Failed to sign out user.', type: 'error' });
+                    console.error('Logout failed', res);
+                    return null;
+                }
+
+                setData(null);
+                addSessionMsg({ msg: 'Logged out successfully!', type: 'success' });
+
+                return res
+
+            })
     }
 
 
@@ -82,30 +96,20 @@ function AuthProvider(props) {
      */
 
     React.useEffect(() => {
-        api.get('/refresh')
+        console.log('Refreshing token...')
+        api.post('/refresh')
             .then(res => {
-                // TODO: remove test user data
+
                 const { user= null } = res || {};
 
-                // const user = {
-                //     id: 'ITtqyWEPAEgQZEOwTUgOkyNuJ2bRvkUMiuLW1fOQ3FqNBzvS',
-                //     email: 'support@goruntime.ca',
-                //     role: 'super-administrator',
-                //     token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IklUdHF5V0VQQUVnUVpFT3dUVWdPa3lOdUoyYlJ2a1VNaXVMVzFmT1EzRnFOQnp2UyIsImlhdCI6MTYxMjAzMjQ2OSwiZXhwIjoxNjEyMDMyNDY5fQ.ZN6IIEw_0FY6_23DlJ9XsA7xyO62RtB4sYqYqXjPbu0',
-                //     label: 'Super Administrator'
-                //     };
+                console.log('Refreshed:', res, user);
 
-                console.log('Refresh Response:', res, user);
-
-                // create user session on success
+                // reset user session data
                 if (user) {
                     setData(user);
                 }
-
                 return res
 
-                // console.error(getError('noAuth', 'authentication'));
-                // addSessionMsg({msg: getError('noAuth', 'authentication'), type: 'error'})
             })
     }, [api]);
 

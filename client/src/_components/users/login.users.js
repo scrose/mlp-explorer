@@ -10,6 +10,7 @@ import Form from '../common/form';
 import { useUser } from '../../_providers/user.provider.client';
 import { useAuth } from '../../_providers/auth.provider.client';
 import { useRouter } from '../../_providers/router.provider.client';
+import { addSessionMsg } from '../../_services/session.services.client';
 
 /**
  * User sign in form component.
@@ -30,7 +31,7 @@ const LoginUsers = () => {
     React.useEffect(() => {
         console.log(api.route, api.staticView, user)
         if (user) {
-            // api.setMessage({ msg: 'User is logged in.', type: 'info' });
+            addSessionMsg({ msg: 'User is logged in.', type: 'info' });
             console.log('Logged in Already!', user)
             // redirect('/');
         }

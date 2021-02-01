@@ -27,28 +27,14 @@
 
 const getFetchOptions = ({ data=null, method='POST', ctype='application/json', token=null}) => {
 
-    /**
-     * Get authorization header. Inserts JWT token into request headers.
-     *
-     * @public
-     */
-
-    const authHeader = () => {
-        // default json content type
-        const headers = {'Content-Type': ctype}
-
-        // include JWT token in headers (if exists)
-        if (token) headers['x-access-token'] = token;
-
-        return headers;
-    }
-
     const opts = {
             method: method,
             mode: 'cors',
             cache: 'no-cache',
-            credentials: 'same-origin',
-            headers: authHeader(ctype),
+            credentials: 'include',
+            headers: {
+                'Content-Type': ctype
+            },
             redirect: 'follow',
             referrerPolicy: 'no-referrer'
         }

@@ -7,8 +7,6 @@
 
 import React from "react";
 import { useAuth } from '../../_providers/auth.provider.client';
-import { reroute } from '../../_utils/paths.utils.client';
-import Loading from '../common/loading';
 import { useUser } from '../../_providers/user.provider.client';
 import { addSessionMsg } from '../../_services/session.services.client';
 
@@ -23,12 +21,12 @@ const LogoutUsers = () => {
             auth.logout();
         }
         else {
-            addSessionMsg({msg:'User is logged out.', type:'info'})
+            addSessionMsg({msg:'User is logged out.', type:'info'});
         }
         return () => {};
-    }, []);
+    }, [auth, user]);
 
-    return <Loading />;
+    return <div><p>User is logged out.</p></div>;
 }
 
 export default LogoutUsers;

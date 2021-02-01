@@ -9,13 +9,16 @@ import React from 'react';
 import {AuthProvider} from './auth.provider.client'
 import {RouterProvider} from './router.provider.client'
 import {UserProvider} from './user.provider.client'
+import { MsgProvider } from './messenger.provider.client';
 
 function AppProviders({children}) {
     return (
             <RouterProvider>
                 <AuthProvider>
                     <UserProvider>
-                        {children}
+                        <MsgProvider>
+                            {children}
+                        </MsgProvider>
                     </UserProvider>
                 </AuthProvider>
             </RouterProvider>

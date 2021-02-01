@@ -134,7 +134,7 @@ function RouterProvider(props) {
      */
 
     const post = async (uri, payload) => {
-        let res = await makeRequest({url: getAPIURL(route), method:'POST', data: payload})
+        let res = await makeRequest({url: getAPIURL(uri), method:'POST', data: payload})
             .catch(err => {
                 // handle API connection errors
                 console.error('An API error occurred:', err);

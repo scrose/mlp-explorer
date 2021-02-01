@@ -10,7 +10,7 @@ import MainMenu from '../menus/main.menu';
 import Logo from '../common/logo';
 import { useUser } from '../../_providers/user.provider.client';
 import Icon from '../common/icon';
-import { reroute } from '../../_utils/paths.utils.client';
+import { redirect, reroute } from '../../_utils/paths.utils.client';
 import { getEmailUser } from '../../_utils/data.utils.client';
 
 /**
@@ -31,7 +31,7 @@ const UserMenu = () => {
                         </a>
                     </li>
                     <li>
-                        <button title={'Sign out of session.'} onClick={() => reroute("/logout")}>
+                        <button title={'Sign out of session.'} onClick={() => redirect("/logout")}>
                             <span>Sign Out</span>
                         </button>
                     </li>

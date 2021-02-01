@@ -128,124 +128,97 @@ export const show = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
 
-    // check if user is currently logged-in
-    const isAuth = await auth.check(req);
-    if (isAuth)
-        return next(new Error('redundantLogin'));
+    // get access token from request cookie
+    const { access_token=null } = req.signedCookies || [];
 
-    // validate user credentials
-    // TODO: Implement login rate limiter
+    let credentials;
     try {
+        // check if user is currently logged-in
+        const isAuth = await auth.validate(access_token);
+        if (isAuth)
+            return next(new Error('redundantLogin'));
 
-        // validate user credentials
-        const { email, password } = req.body;
-
-        // authenticate against Keycloak
-        const authData = await auth.authenticate({
+        // otherwise, validate user credentials
+        const { email = '', password = '' } = req.body || {};
+        credentials = {
             email: valid.load(email).isEmail().data,
             password: valid.load(password).isPassword().data,
-        }).catch(err => {return next(err)});
-
-        // get response data
-        const { data=null } = authData || {};
-        const { access_token=null } = data || {};
-
-        console.log('Response Data:', data)
-
-        // send access token to the client inside a cookie
-        res.cookie("jwt", access_token, {secure: true, httpOnly: true})
-
-        // successful login
-        res.status(200).json(
-            prepare({
-                message: {msg: 'Login successful!', type: 'success'},
-                view: 'login',
-                user: {
-                    email: email,
-                    token: access_token,
-                    role: 'administrator',
-                    label: 'Administrator'
-                }})
-        );
-
-    } catch (err) {
-        return next(new Error('invalidLogin'));
+        }
+    }
+    catch (err) {
+        return next(err);
     }
 
+    // authenticate credentials against Keycloak
+    await auth.authenticate(credentials)
+        .then(data => {
+            console.log('Login data:', data);
 
-    // // Confirm user registration
-    // let userData = await db.users
-    //     .selectByEmail(reqUser.email)
-    //     .then(userData => {
-    //
-    //         // no data: user not registered
-    //         if (!userData) throw Error('failedLogin');
-    //
-    //         // create model instance of authenticated user
-    //         authUser = new User(userData);
-    //
-    //         // authenticate and get JWT access token
-    //         const token = auth.authenticate(authUser, reqUser.password);
-    //         if (!token) throw Error('failedLogin');
-    //
-    //         // send access token to the client inside a cookie
-    //         res.cookie("jwt", token, {secure: true, httpOnly: true})
-    //
-    //         // successful login
-    //         res.status(200).json(
-    //             prepare({
-    //                 message: {msg: 'Login successful!', type: 'success'},
-    //                 view: 'login',
-    //                 user: {
-    //                     id: authUser.getValue('user_id'),
-    //                     email: authUser.getValue('email'),
-    //                     token: token,
-    //                     role: authUser.getValue('role'),
-    //                     label: userData.label
-    //                 }})
-    //         );
-    //     })
-    //     .catch(err => {return next(err)});
-};
+            // get token value
+            const { refresh_token=null, access_token=null } = data || {};
 
-/**
- * Authenticate user token.
- *
- * @param req
- * @param res
- * @param {Function} next
- * @method get
- * @src public
- */
-
-export const authenticate = async (req, res, next) => {
-
-    // decode JWT token -> user_id
-    await auth.verify(req, res, next);
-    const {userId, token} = req;
-    console.log('Authenticating UserID:', userId)
-
-    // confirm user registration
-    await db.users
-        .select(userId)
-        .then(userData => {
-
-            // User not registered
-            if (!userData) throw Error('noAuth');
+            // send access token to the client inside a cookie
+            // TODO: include secure: true on production site
+            res.cookie("access_token", access_token, {httpOnly: true, sameSite: 'strict', signed: true});
+            res.cookie("refresh_token", refresh_token, {httpOnly: true, sameSite: 'strict', signed: true});
 
             // successful login
             res.status(200).json(
                 prepare({
+                    message: {msg: 'Login successful!', type: 'success'},
+                    view: 'login',
                     user: {
-                        id: userData.user_id,
-                        email: userData.email,
-                        token: token,
-                        role: userData.role,
-                        label: userData.label
+                        email: credentials.email,
+                        role: data.roles,
+                        label: data.roles
                     }})
             );
         })
         .catch(err => {return next(err)});
+
+};
+
+
+/**
+ * User sign-out.
+ *
+ * @param req
+ * @param res
+ * @param {Function} next
+ * @method post
+ * @src public
+ */
+
+export const logout = async (req, res, next) => {
+
+    // get access token from cookie
+    const { access_token=null, refresh_token=null } = req.signedCookies || [];
+
+    console.log('\n\nLogging out!!\n\n')
+
+    // logout session in Keycloak
+    await auth.logout(access_token, refresh_token)
+        .then(res => {
+            console.log('Logout response:', res);
+
+            if (res.status !== 200) {
+                return next(new Error('noAuth'));
+            }
+
+            // force token cookies to expire
+            // TODO: include secure: true on production site
+            res.cookie("access_token", null, {httpOnly: true, sameSite: 'strict', signed: true, maxAge: 0});
+            res.cookie("refresh_token", null, {httpOnly: true, sameSite: 'strict', signed: true, maxAge: 0});
+
+            // successful token refresh
+            res.status(200).json(
+                prepare({
+                    message: {msg: 'Successfully logged out!', type: 'success'}
+                })
+            );
+        })
+        .catch(err => {return next(err)});
+
 };
 
 /**
@@ -260,32 +233,47 @@ export const authenticate = async (req, res, next) => {
 
 export const refresh = async (req, res, next) => {
 
-    // decode JWT token -> user_id
-    await auth.verify(req, res, next);
-    const {userId, token} = req;
-    console.log('Authenticating UserID:', userId)
+    // get access token from cookie
+    const { access_token=null, refresh_token=null } = req.signedCookies || [];
 
-    // confirm user registration
-    await db.users
-        .select(userId)
-        .then(userData => {
+    console.log('Refresh token:', refresh_token)
 
-            // User not registered
-            if (!userData) throw Error('noAuth');
+    if (!access_token)
+        return res.status(200).json(
+            prepare({
+                message: {msg: 'No token.', type: 'success'}})
+        );
 
-            // successful login
+    // authenticate credentials against Keycloak
+    await auth.refresh(refresh_token)
+        .then(data => {
+            console.log('Refresh data:', data);
+
+            // refresh cancelled if no token found
+            if (!data) return next(Error('noToken'));
+
+            // get token value
+            const { access_token=null, refresh_token=null } = data || {};
+
+            // send access token to the client inside a cookie
+            // TODO: include secure: true on production site
+            res.cookie("access_token", access_token, {httpOnly: true, sameSite: 'strict', signed: true});
+            res.cookie("refresh_token", refresh_token, {httpOnly: true, sameSite: 'strict', signed: true});
+
+            // successful token refresh
             res.status(200).json(
                 prepare({
+                    message: {msg: 'Token refreshed.', type: 'success'},
                     user: {
-                        id: userData.user_id,
-                        email: userData.email,
-                        token: token,
-                        role: userData.role,
-                        label: userData.label
-                    }})
+                        email: data.email,
+                        role: data.roles,
+                        label: data.roles
+                    }
+                })
             );
         })
         .catch(err => {return next(err)});
+
 };
 
 /**

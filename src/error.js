@@ -33,6 +33,12 @@ export const errors = {
         status: 422,
         type: 'error'
     },
+    invalidEmail: {
+        hint: 'Invalid email.',
+        msg: 'Invalid email address.',
+        status: 401,
+        type: 'error'
+    },
     invalidLogin: {
         hint: 'Invalid login credentials.',
         msg: 'Authentication failed. Please check your login credentials.',

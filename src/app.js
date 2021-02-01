@@ -55,7 +55,8 @@ app.set('trust proxy', 1); // trust first proxy
 const allowedOrigins = [
     "http://localhost:3000",
     "http://localhost:3001",
-    "http://localhost:5000"
+    "http://localhost:5000",
+    "http://localhost:8080"
 ];
 
 app.use(cors({
@@ -68,7 +69,10 @@ app.use(cors({
                 return callback(new Error(msg), false);
             }
             return callback(null, true);
-        }
+        },
+        methods: ['GET', 'POST'],
+        credentials: true,
+        optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
     })
 );
 
@@ -84,21 +88,22 @@ app.use(express.json());
  * Parse cookies to store JWT session tokens.
  */
 
-app.use(cookieParser());
-
-
+app.use(cookieParser(
+    process.env.COOKIE_SECRET
+));
 
 /**
- * Define view parameters for template rendering (middleware)
+ * Response headers
  */
 
 app.use(function(req, res, next) {
+    res.header('Access-Control-Allow-Credentials', 'true')
     res.header(
-        "Access-Control-Allow-Headers",
-        "x-access-token, Origin, Content-Type, Accept"
-    );
-    next();
-});
+        'Access-Control-Allow-Headers',
+        'Origin, X-Requested-With, Content-Type, Accept'
+    )
+    next()
+})
 
 /**
  * Initialize router.

@@ -79,18 +79,18 @@ function UserRoutes() {
             post: this.controller.login,
             delete: null,
         },
-        auth: {
-            path: path.join('/auth'),
+        logout: {
+            path: path.join('/logout'),
             get: null,
             put: null,
-            post: this.controller.authenticate,
+            post: this.controller.logout,
             delete: null,
         },
         refresh: {
             path: path.join('/refresh'),
-            get: this.controller.refresh,
+            get: null,
             put: null,
-            post: null,
+            post: this.controller.refresh,
             delete: null,
         }
     }

@@ -6,8 +6,7 @@
  */
 
 import React from 'react';
-import { useRouter } from '../../_providers/router.provider.client';
-import { popSessionMsg } from '../../_services/session.services.client';
+import { useMessenger } from '../../_providers/messenger.provider.client';
 
 /**
  * Messenger component.
@@ -17,24 +16,13 @@ import { popSessionMsg } from '../../_services/session.services.client';
 
 const Messenger = () => {
 
-    // initialize user message in state
-    const [message, setMessage] = React.useState(null);
+    const messenger = useMessenger();
 
-    /**
-     * Load message from session storage
-     *
-     * @private
-     */
-
-    React.useEffect(() => {
-        setMessage(popSessionMsg())
-        return () => {};
-    }, []);
-
-    const {msg='', type=''} = message || {};
+    const { message={} } = messenger || {};
+    const { msg='', type='' } = message || {};
 
     return (
-        message ? <div className={`msg ${type}`}>{msg}</div> : ''
+        msg && type ? <div className={`msg ${type}`}>{msg}</div> : ''
     )
 }
 

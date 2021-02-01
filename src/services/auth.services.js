@@ -1,6 +1,6 @@
 /*!
- * MLP.API.Services.DB.Model
- * File: db.services.js
+ * MLP.API.Services.Authenticate
+ * File: auth.services.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -12,194 +12,234 @@
  * @private
  */
 
-import jwt from "jsonwebtoken";
-import * as db from './index.services.js';
-import * as sessions from './sessions.services.js';
-import crypto from 'crypto';
-import uid from 'uid-safe';
-import * as keycloak from '../services/keycloak.services.js';
+import jwt from 'jsonwebtoken';
+import fetch from 'node-fetch';
+
 
 /**
- * Generate standard UUID.
- *
- * @public
- * @return {String} UUID
+ * Settings
+ * TODO: convert to environment variables.
+ * @private
  */
 
-export function genUUID() {
-    return uid.sync(36);
+const settings = {
+    grantType: 'password',
+    clientId: "nodejs-microservice",
+    realm: "MLP-Explorer",
+    serverURL: "http://localhost:8080/auth",
+    ssl: "external",
+    resource: "nodejs-microservice",
+    bearerOnly: true,
+    clientSecret: "50192a2b-b36e-4b6e-9f2c-5df3a0a70864"
+    // clientSecret: "6d979be5-cb81-4d5c-9fc7-45d1b0c7a75e"
 }
 
 /**
- * Generate Random ID (16 bytes)
+ * Compose request urls (KeyCloak endpoints)
  *
  * @public
- * @return {String} Random ID
  */
 
-export function genID() {
-    return crypto.randomBytes(16).toString('hex');
-}
+const kcBaseURL = `${settings.serverURL}/realms/${settings.realm}/protocol/openid-connect`
+const kcTokenURL = `${kcBaseURL}/token`;
+const kcInfoURL = `${kcBaseURL}/userinfo`;
+const kcLogoutURL = `${kcBaseURL}/logout`;
 
 /**
- * Encrypt string
- *
- * @public
- * @param {String} str
- * @param {String} salt
- * @return {String} encrypted string
- */
-
-export function encrypt(str, salt) {
-    return crypto.pbkdf2Sync(str, salt, 1000, 64, `sha512`).toString(`hex`);
-}
-
-/**
- * Encrypt user salt and password
+ * Compose authentication request.
  *
  * @public
  */
 
-export function encryptUser(user) {
-    let password = user.getValue('password') || null;
-    if (!password) return;
+export function getOpts(payload=null, method='POST') {
 
-    // generate unique identifier for user (user_id)
-    user.setValue('user_id', genUUID());
-    // Generate unique hash and salt tokens
-    let salt_token = genID();
-    let hash_token = encrypt(password, salt_token);
-    // Set values in schema
-    user.setValue('password', hash_token);
-    user.setValue('repeat_password', hash_token);
-    user.setValue('salt_token', salt_token);
+    // compose request headers/options
+    const opts = {
+        method: method,
+        mode: 'cors',
+        cache: 'no-cache',
+        credentials: 'same-origin', // to include cookie data
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+        },
+        redirect: 'follow',
+        referrerPolicy: 'no-referrer',
+    };
+
+    // add payload (if exists)
+    if (payload) {
+        // request access token
+        opts.body = Object.keys(payload)
+            .map(key => {
+                const encodedKey = encodeURIComponent(key);
+                const encodedValue = encodeURIComponent(payload[key]);
+                return `${encodedKey}=${encodedValue}`;
+            })
+            .join("&");
+    }
+
+    return opts;
 }
 
 /**
  * Authenticate user password. Returns JSON web token on successful
  * authentication of password.
- * TODO: Replace with third-party authentication
  *
  * @public
  * @return {String} JSON web token
- * @param {Object} userCredentials
+ * @param {Object} user credentials
  */
 
-export const authenticate = async (userCredentials) => {
-    // return user.getValue('password') === encrypt(password, user.getValue('salt_token'))
-    //     ? genAccessToken(user)
-    //     : null;
+export const authenticate = async ({email:email, password:password}) => {
 
-    console.log(userCredentials)
+    // Prepare credentials for openid-connect token request
+    // ref: http://openid.net/specs/openid-connect-core-1_0.html#TokenEndpoint
+    const payload = {
+        username: email,
+        password: password,
+        grant_type: settings.grantType,
+        client_secret: settings.clientSecret,
+        client_id: settings.clientId
+    };
 
-    const credentials = {
-        grantType: 'password',
-        username: 'mlp-admin',
-        password: userCredentials.password,
-        client_secret: '2e0db745-d708-4d9a-996b-7a00168f9ee2',
-        clientId: 'nodejs-microservice',
-        totp: '123456', // optional Time-based One-time Password if OTP is required in authentication flow
-    }
+    // send request to API
+    let data = await fetch(kcTokenURL, getOpts(payload))
+        .then(response => response.json())
+        .then(data => {
+            return data
+        })
+        .catch(err => {
+            console.error('KeyCloak error:', err)
+        });
 
-    // request access token
-    return await keycloak.refresh(credentials);
+    // decode KeyCloak JWT token
+    const { access_token='' } = data || {};
+    const decoded = jwt.decode(access_token);
+    console.log('Decoded data:', decoded);
+
+    // append user roles to fetched data
+    data.roles = decoded.resource_access[settings.clientId].roles;
+
+    return data;
+}
+
+
+/**
+ * Refresh access token from KeyCloak.
+ *
+ * @public
+ * @return {String} JSON web token
+ * @param access_token
+ * @param refresh_token
+ */
+
+export const logout = async (access_token, refresh_token) => {
+
+
+    // stop refresh if no token found
+    if (!access_token) return null;
+
+    const payload = {
+        client_id: settings.clientId,
+        refresh_token: refresh_token
+    };
+
+    // request options for logout (KeyCloak API)
+    const opts = getOpts(payload, 'POST');
+    opts.headers.authorization = access_token;
+
+    // send request to API
+    return await fetch(kcLogoutURL, opts)
+        .then(response => {
+            console.log(response)
+            response.json();
+        })
+        .then(data => {
+            return data
+        })
 }
 
 /**
- * Verify JWT token in request.
+ * Validate access token in session cookie with KeyCloak server.
  *
  * @public
- * @return {Promise} result
- * @param req
- * @param res
- * @param next
- */
-
-export const verify = async (req, res, next) => {
-
-    // get JWT token from cookie
-    const { token=null } = req.cookies || [];
-    let secret = process.env.SESSION_SECRET;
-
-    if (!token) return next(new Error('noToken'));
-
-    return await jwt.verify(token, secret, (err, decoded) => {
-        if (err) return next(new Error('noAuth'));
-        req.userId = decoded ? decoded.id : null;
-        req.token = token;
-    });
-};
-
-/**
- * Checks if request is from an authenticated user.
- *
- * @public
- * @param req
- * @return {Boolean} result
- */
-
-export const check = async (req) => {
-
-    // get JWT token from cookie
-    const { token=null } = req.cookies || [];
-    let secret = process.env.ACCESS_TOKEN_SECRET;
-
-    console.log(req.cookies['token'], req.headers)
-
-    if (!token) return false;
-
-    return await jwt.verify(token, secret, (err) => {
-        return !err;
-    });
-};
-
-/**
- * Generate JWT access token. Access token has short lifespan
- * of default: 120 seconds.
- * TODO: Replace with third-party authentication service.
- *
- * @public
- * @param {Object} user
  * @return {String} JSON web token
+ * @param token
  */
 
-export const genAccessToken = (user) => {
-    let secret = process.env.ACCESS_TOKEN_SECRET;
-    let payload = {
-        id: user.userId,
-        email: user.email,
-        role: user.role,
-        label: user.role
-    }
-    // generate token
-    return jwt.sign(payload, secret, {
-        algorithm: "HS256",
-        expiresIn: process.env.ACCESS_TOKEN_TTL
-    });
+export const validate = async (token) => {
+
+    // stop verification if no token found
+    if (!token) return null;
+
+    // request options for logout (KeyCloak API)
+    const opts = getOpts(null, 'GET');
+    opts.headers.authorization = token;
+
+    console.log(opts);
+
+    // send a request to the userinfo endpoint on keycloak to
+    // validate access token
+    let res = await fetch(kcInfoURL, opts)
+        .then(response => {
+
+            console.log(response)
+
+            // if the request status isn't "OK", the token is invalid
+            // if (response.statusCode !== 200)
+            //     throw new Error('unauthorized');
+
+            return response;
+        })
+    console.log(res)
+
 }
 
 /**
- * Generate JWT refresh token. Refresh token has long lifespan
- * of default: 24 hours.
- * TODO: Replace with third-party authentication service.
+ * Validate access token in session cookie with KeyCloak server.
  *
  * @public
- * @param {Object} user
  * @return {String} JSON web token
+ * @param token
  */
 
-export const genRefreshToken = (user) => {
-    let secret = process.env.REFRESH_TOKEN_SECRET;
-    let payload = {
-        id: user.userId,
-        email: user.email,
-        role: user.role,
-        label: user.role
-    }
-    return jwt.sign(payload, secret, {
-        algorithm: "HS256",
-        expiresIn: process.env.REFRESH_TOKEN_TTL
-    });
+export const refresh = async (token) => {
+
+    // stop refresh if no token found
+    if (!token) return null;
+
+    const payload = {
+        grant_type: 'refresh_token',
+        client_secret: settings.clientSecret,
+        client_id: settings.clientId,
+        refresh_token: token
+    };
+
+    // request options for refresh (KeyCloak API)
+    const opts = getOpts(payload, 'POST');
+
+    // send a request to the userinfo endpoint on keycloak
+    let data = await fetch(kcTokenURL, opts)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data)
+            return data
+        })
+        .catch(err => {
+            console.error('KeyCloak error:', err)
+        });
+
+    // decode KeyCloak JWT token
+    const { access_token='' } = data || {};
+    const decoded = jwt.decode(access_token);
+    console.log('Decoded data:', decoded);
+
+    // append user email, roles to fetched data
+    data.email = decoded.email;
+    data.roles = decoded.resource_access[settings.clientId].roles;
+
+    return data;
+
 }
 
 /**
@@ -219,47 +259,32 @@ export const authorize = async (req, res, next, allowedRoles) => {
         return next();
     }
 
-    // verify JWT authorization token
-    // let token = req.headers["x-access-token"];
-    const { token=null } = req.cookies || [];
-
-    let secret = process.env.SESSION_SECRET;
+    // get access token from cookie
+    const { access_token=null } = req.signedCookies || [];
 
     // check if token exists
-    if (token == null) return next(new Error('noToken'));
+    if (!access_token) return next(new Error('noToken'));
 
     // verify token
-    const userId = await jwt.verify(token, secret, (err, decoded) => {
-        if (err) return next(new Error('noAuth'));
-        return decoded.id;
-    });
+    const decoded = jwt.decode(access_token);
 
-    // restrict anonymous users
-    if ( userId == null ) next(new Error('restricted'));
+    // reject invalid user data
+    if (!decoded) next(new Error('restricted'));
 
     // get current user role and check authorization
-    req.user = await db.users
-        .select(userId)
-        .then(user => {
+    const {roles=[]} = decoded.resource_access[settings.clientId];
 
-            // user ID not found
-            if (!user)
-                throw new Error('restricted');
+    // deny users with lesser admin privileges
+    // i.e. check if any user roles are allowed.
+    if ( !allowedRoles.some(role => roles.includes(role)) )
+        throw new Error('restricted');
 
-            // deny users with lesser admin privileges
-            if ( !allowedRoles.includes(user.role) )
-                throw new Error('restricted');
-
-            // return user data
-            return {
-                // id: user.user_id,
-                email: user.email,
-                role: user.role,
-                token: user.token
-            }
-
-        })
-        .catch(err => next(err));
+    // compose user data
+    req.user = {
+        email: decoded.email,
+        role: roles,
+        label: roles
+    }
 
     next();
 }
@@ -281,51 +306,4 @@ export const isAuthorized = async (req, allowedRoles=[]) => {
     const { role } = req.user;
 
     return allowedRoles.includes(role);
-}
-
-/**
- * Issue refresh token.
- *
- * @param req
- * @param res
- * @param {Function} next
- * @src public
- */
-
-export const refresh = async (req, res, next) => {
-
-    // get JWT authorization token from cookie
-    // let token = req.headers["x-access-token"];
-    const { token=null } = req.cookies || [];
-
-    // check if token exists
-    if (token == null)
-        return next(new Error('noToken'));
-
-    // use the jwt.verify method to verify the access token
-    // throws an error if the token has expired or has a invalid signature
-    const userId = await jwt.verify(token, process.env.SESSION_SECRET, (err, decoded) => {
-        if (err) return next(new Error('noAuth'));
-        return decoded.id;
-    });
-
-    //retrieve the refresh token from the users array
-    let refreshToken = sessions.select(userId);
-
-    //verify the refresh token
-    await jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
-        if (err) return next(new Error('noAuth'));
-        return decoded.id;
-    });
-
-    let newToken = jwt.sign(userId, process.env.ACCESS_TOKEN_SECRET,
-        {
-            algorithm: "HS256",
-            expiresIn: process.env.ACCESS_TOKEN_TTL
-        })
-
-    // set HTTP-only cookie to store token
-    res.cookie("token", newToken, {secure: true, httpOnly: true})
-    res.send()
-
 }
