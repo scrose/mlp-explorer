@@ -15,6 +15,7 @@
 import pool from './pgdb.js';
 import queries from '../queries/index.queries.js';
 import { groupBy, humanize } from '../lib/data.utils.js';
+import { sanitize } from '../lib/data.utils.js';
 
 /**
  * Export schema constructor. A schema instance is a
@@ -97,6 +98,14 @@ export const create = async (modelType) => {
             },
             writable: false
         },
+        setOwner: {
+            value: function(ownerModel, id) {
+                // set owner attributes in model instance
+                if (typeof id === 'string' && this.attributes.hasOwnProperty('owner_id')) {
+                    this.attributes['owner_id'].value = sanitize(id);
+                }
+            }
+        },
         getAttachedFiles: {
             value: function() {
                 const attached = Object.keys(this.attributes)
@@ -124,7 +133,7 @@ export const create = async (modelType) => {
 };
 
 /**
- * Get all model types.
+ * Get all node types.
  *
  * @public
  * @return {Promise} result
@@ -200,10 +209,10 @@ export const getModelAttributes = async function(modelType) {
     // no attributes found
     if (attrs.rows.length === 0) return null;
 
-    // index attributes by name
+    // index attributes by their names
     return attrs.rows
-        .reduce(function(rv, x) {
-            (rv[x.col] = {
+        .reduce((o, x) => {
+            (o[x.col] = {
                 value: null,
                 key: x.col,
                 label: humanize(x.col),
@@ -211,7 +220,7 @@ export const getModelAttributes = async function(modelType) {
                 ref: x.ref_table
                 // refId: x.ref_col
             } || []);
-            return rv;
+            return o;
         }, {});
 };
 

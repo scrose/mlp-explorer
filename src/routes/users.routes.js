@@ -37,39 +37,11 @@ function UserRoutes() {
 
     // add controller routes
     this.routes = {
-        list: {
-            path: path.join('/', this.model),
-            get: this.controller.list,
-            put: null,
-            post: null,
-            delete: null,
-        },
-        register: {
-            path: path.join('/', this.model, 'new'),
-            get: this.controller.register,
-            put: null,
-            post: this.controller.create,
-            delete: null,
-        },
         show: {
-            path: path.join('/', this.model, '/:' + this.key),
+            path: path.join('/', this.model, '/:user_id'),
             get: this.controller.show,
             put: null,
             post: null,
-            delete: null,
-        },
-        edit: {
-            path: path.join('/', this.model, '/:' + this.key, 'edit'),
-            get: this.controller.edit,
-            put: null,
-            post: this.controller.update,
-            delete: null,
-        },
-        remove: {
-            path: path.join('/', this.model, '/:' + this.key, 'remove'),
-            get: this.controller.remove,
-            put: null,
-            post: this.controller.drop,
             delete: null,
         },
         login: {

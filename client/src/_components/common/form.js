@@ -9,8 +9,9 @@ import React from 'react'
 import Fieldset from './fieldset';
 import Button from './button';
 import { addSessionMsg } from '../../_services/session.services.client';
-import { genSchema } from '../../_services/schema.services.client';
+import { genSchema, getModelLabel } from '../../_services/schema.services.client';
 import { useRouter } from '../../_providers/router.provider.client';
+import { useMessenger } from '../../_providers/messenger.provider.client';
 
 /**
  * Form submission buttons component.
@@ -52,11 +53,11 @@ const Form = ({
                   model,
                   data,
                   setData,
-                  callback,
-                  action='/'
+                  callback
 }) => {
 
     const api = useRouter();
+    const msg = useMessenger();
 
     const [isValid, setValid] = React.useState(false);
     const [isDisabled, setDisabled] = React.useState(false);
@@ -66,8 +67,7 @@ const Form = ({
     const {
         submit='Submit',
         method='POST',
-        legend='',
-        buttons='top'
+        legend='User Form'
     } = attributes || {};
 
     const handleSubmit = e => {
@@ -77,10 +77,10 @@ const Form = ({
             const formData = new FormData(e.target);
 
             // API callback for form data submission
-            callback(action, Object.fromEntries(formData))
+            callback(api.route, Object.fromEntries(formData))
                 .then(res => {
                     console.log('Form response:', res);
-                    addSessionMsg(res.message);
+                    msg.setMessage(res.message);
                 })
                 .catch(err => console.error(err))
         }
@@ -103,21 +103,15 @@ const Form = ({
             onSubmit={handleSubmit}
             autoComplete={'chrome-off'}
         >
-            {
-                buttons === 'top' ? <Submit model={model} label={submit} /> : ''
-            }
             <Fieldset
                 model={model}
-                legend={legend}
+                legend={`${legend} ${getModelLabel(model)}`}
                 fields={fields}
-                data={data}
-                setData={setData}
+                init={data}
                 valid={isValid}
                 disabled={isDisabled}
             />
-            {
-                buttons === 'bottom' ? <Submit model={model} label={submit} /> : ''
-            }
+            <Submit model={model} label={submit} />
         </form>
         );
 }

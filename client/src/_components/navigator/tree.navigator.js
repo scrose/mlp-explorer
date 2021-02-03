@@ -52,7 +52,7 @@ const TreeNodeMenu = ({
                                 setToggle(!toggle);
                             }}
                         >
-                            {toggle ? <Icon type={'up'} /> : <Icon type={'down'} />}
+                            {toggle ? <Icon type={'hopen'} /> : <Icon type={'hclose'} />}
                         </button>
                     </li>
                         : ''
@@ -65,7 +65,18 @@ const TreeNodeMenu = ({
                             api.router(getNodeURI(model, 'show', id));
                         }}
                     >
-                        <Icon type={model}/> <span>{text}</span>
+                        <Icon type={model}/>
+                    </button>
+                </li>
+                <li>
+                    <button
+                        className={`tree-node-label ${model}`}
+                        title={`View ${text} metadata.`}
+                        onClick={() => {
+                            api.router(getNodeURI(model, 'show', id));
+                        }}
+                    >
+                        {text}
                     </button>
                 </li>
             </ul>

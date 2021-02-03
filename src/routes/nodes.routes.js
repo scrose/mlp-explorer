@@ -40,7 +40,7 @@ function NodesRoutes() {
             delete: null,
         },
         show: {
-            path: path.join('/nodes/:id'),
+            path: path.join('/nodes/show/:id'),
             get: this.controller.show,
             put: null,
             post: null,

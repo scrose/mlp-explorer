@@ -137,13 +137,30 @@ export const getLabelKeys = (model) => {
  */
 
 export const getModelLabel = (model, type='singular') => {
-    return labelKeys.hasOwnProperty(model)
-        ? labelKeys[model].attributes.hasOwnProperty(type)
+    if (labelKeys.hasOwnProperty(model)) {
+        const { attributes = {} } = labelKeys[model] || {};
+        return attributes.hasOwnProperty(type)
             ? labelKeys[model].attributes[type]
+            : '';
+    }
+    return '';
+}
+
+/**
+ * Retrieve label for model from schema.
+ *
+ * @param {String} model
+ * @return {String} dependents
+ * @public
+ */
+
+export const getDependents = (model) => {
+    return schema.models.hasOwnProperty(model)
+        ? schema.models[model].attributes.hasOwnProperty('dependents')
+            ? schema.models[model].attributes.dependents
             : ''
         : '';
 }
-
 
 /**
  * Computes label for given node data using data fields.
@@ -200,21 +217,6 @@ export const getNodeOrder = (node) => {
     const { attributes={} } = modelSchema || {};
 
     return attributes.hasOwnProperty('order') ? attributes.order : 0;
-}
-
-/**
- * Get local client message.
- *
- * @public
- * @param {String} key
- * @param {String} type
- * @return {Object} message
- */
-
-export const getLocalMsg = (key='', type='info') => {
-    return schema.messages.hasOwnProperty(key)
-        ? { msg: schema.messages[key], type: type }
-        : {};
 }
 
 /**

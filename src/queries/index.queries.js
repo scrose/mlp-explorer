@@ -57,6 +57,7 @@ export default {
         getNode: defaults.getNode,
         getNodes: defaults.getNodes,
         getNodeTypes: defaults.getNodeTypes,
+        getNodeRelations: defaults.getNodeRelations,
         getFile: defaults.getFile,
         getFileTypes: defaults.getFileTypes,
         getAttachedFiles: defaults.getAttachedFiles,

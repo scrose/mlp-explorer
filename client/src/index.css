@@ -118,6 +118,10 @@ div.main {
     padding: 0 5px;
 }
 
+.view h5 {
+    color: #01447e;
+}
+
 /*
 DOM Elements
 */
@@ -415,7 +419,7 @@ nav.breadcrumb ul li a:hover {
     display: -ms-flexbox;
     display: flex;
     -ms-flex-wrap: wrap;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     list-style: none;
     margin: 0;
     padding: 0;
@@ -424,8 +428,6 @@ nav.breadcrumb ul li a:hover {
 .h-menu ul li {
     font-size: small;
     display: block;
-    height: 60px;
-    line-height: 60px;
     cursor: pointer;
     padding: 0;
 }
@@ -471,6 +473,58 @@ nav.breadcrumb ul li a:hover {
     color: #666;
 }
 
+
+/* Vertical Menu */
+
+.v-menu {
+    width: auto;
+    padding: 10px;
+}
+
+.v-menu ul {
+    width: 100%;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.v-menu ul li {
+    width: 100%;
+    font-size: small;
+    display: block;
+    cursor: pointer;
+    margin: 0;
+    padding: 5px;
+}
+
+.v-menu ul li a {
+    font-size: medium;
+    align-items: center;
+    vertical-align: middle;
+    width: 100%;
+    height: 100%;
+    line-height: 100%;
+    color: #0B6FA4;
+}
+
+.v-menu ul li button {
+    width: 100%;
+    background-color: #D0E4F5;
+    color: #0B6FA4;
+}
+
+.v-menu ul .close {
+    display: none;
+    text-align: right;
+    padding: 10px;
+}
+
+.v-menu ul .close span {
+    font-size: medium;
+    border: 1px solid #cccccc;
+    cursor: pointer;
+}
+
 /* Editor Tool Menu */
 
 .editor-tools.h-menu {
@@ -496,8 +550,11 @@ nav.breadcrumb ul li a:hover {
 
 /* Navigator Tool Menu */
 
-.navigator-tools.h-menu {
-    min-width: 300px;
+.navigator-tools {
+    position: fixed;
+}
+
+.navigator-tools.v-menu {
     margin:auto;
     text-align: center;
     background-color: #666666;
@@ -505,36 +562,26 @@ nav.breadcrumb ul li a:hover {
     opacity: 0.8;
 }
 
-.navigator-tools {
-    position: fixed;
-}
-
-.navigator-tools.h-menu ul {
-    padding: 0;
-    margin:auto;
+.navigator-tools.v-menu ul {
     text-align: center;
     height: auto;
 }
 
-.navigator .h-menu ul li {
-    line-height: 40px;
-    height: 40px;
-    vertical-align: middle;
-    margin: 0 5px;
+.navigator .v-menu ul li {
 }
 
-.navigator .h-menu ul li button {
+.navigator .v-menu ul li button {
     background-color: #666666;
     color: #EEE;
     border: 2px solid #EEE;
-    margin:0;
 }
 
-.navigator .h-menu ul li button.active {
+.navigator .v-menu ul li button.active {
     background-color: #0275d8;
+    color: white;
 }
 
-.h-menu ul li button:hover {
+.navigator .v-menu ul li button:hover {
     background-color: #444;
     color: #FFF;
 }
@@ -542,11 +589,13 @@ nav.breadcrumb ul li a:hover {
 /* Tree Node Menu */
 
 .tree-node .h-menu {
+
     padding: 0;
     margin:0;
 }
 
 .tree-node .h-menu ul, .tree-node .h-menu div {
+    flex-wrap: nowrap;
     padding: 0;
     margin:0;
 }
@@ -554,7 +603,8 @@ nav.breadcrumb ul li a:hover {
 .tree-node .h-menu ul li {
     line-height: normal;
     padding: 0;
-    margin:0;
+    margin: 2px;
+    vertical-align: middle;
 }
 
 .tree-node .h-menu ul li button {
@@ -593,21 +643,21 @@ nav.breadcrumb ul li a:hover {
 
 .tab.h-menu ul li {
     overflow: hidden;
-    border: 1px solid #ccc;
-    background-color: #f1f1f1;
+    padding: 2px;
 }
 
 .tab.h-menu ul li button {
-    background-color: inherit;
     border: none;
     outline: none;
     cursor: pointer;
     padding: 14px 16px;
     transition: 0.3s;
+    background-color: #666666;
+    color: white;
 }
 /* Change background color of buttons on hover */
 .tab.h-menu ul li button:hover {
-    background-color: #ddd;
+    background-color: #888;
     border: none;
     outline: none;
     cursor: pointer;
@@ -615,13 +665,13 @@ nav.breadcrumb ul li a:hover {
 
 /* Create an active/current tablink class */
 .tab.h-menu ul li button.active {
-    background-color: #ccc;
+    background-color: #0275d8;
+    color: white;
 }
 
 /* Style the tab content */
 .tab  {
     padding: 6px 12px;
-    border: 1px solid #ccc;
     border-top: none;
 }
 

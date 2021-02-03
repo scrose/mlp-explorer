@@ -102,8 +102,8 @@ export function reroute(uri=null) {
 
 export function getNodeURI(model, view='', id='') {
     const modelSlug = model !== '' ? `/${model}` : '';
-    const viewSlug = view !== 'show' ? `/${view}` : '';
+    const viewSlug = view !== '' ? `/${view}` : '';
     const idSlug = id !== '' ? `/${id}` : '';
-    return `${modelSlug}${idSlug}${viewSlug}`;
+    return `${modelSlug}${viewSlug}${idSlug}`;
 }
 

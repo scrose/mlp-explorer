@@ -464,6 +464,20 @@ export function getNodeTypes() {
 }
 
 /**
+ * Query: Get all node relations listed.
+ *
+ * @return {Object} query binding
+ */
+
+export function getNodeRelations() {
+    return {
+        sql: `SELECT *
+              FROM node_relations;`,
+        data: [],
+    };
+}
+
+/**
  * Generate query: Retrieve node entry for given ID.
  *
  * @param {integer} id

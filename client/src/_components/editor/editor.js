@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { getRenderType, getStaticView } from '../../_services/schema.services.client';
+import { getRenderType } from '../../_services/schema.services.client';
 import BreadcrumbMenu from '../menus/breadcrumb.menu';
 import DataView from '../views/data.view';
 import Messenger from '../common/messenger';
@@ -14,6 +14,8 @@ import StaticView from '../views/static.view';
 import MenuEditor from './menu.editor';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
+import { getQuery } from '../../_utils/paths.utils.client';
+import { useMessenger } from '../../_providers/messenger.provider.client';
 
 /**
  * Render editor panel component (authenticated).
@@ -26,6 +28,7 @@ const Editor = () => {
     // create dynamic view state
     const [apiData, setAPIData] = React.useState({});
     const api = useRouter();
+    const msg = useMessenger();
     const _isMounted = React.useRef(false);
 
     /**
@@ -49,7 +52,7 @@ const Editor = () => {
                         setAPIData(data);
                 });
         return () => {_isMounted.current = false;};
-    }, [api]);
+    }, [api, msg]);
 
     // destructure API data for settings
     const { view = '', model = {}, data = {}, path = {} } = apiData || {};
@@ -60,10 +63,10 @@ const Editor = () => {
     return (
         <div className={'viewer'}>
             <div className={'header'}>
-                <BreadcrumbMenu path={path} />
+                <BreadcrumbMenu path={path} view={view} model={name} />
                 <Messenger />
                 <MenuEditor id={id} model={name} view={view} />
-                <Heading path={path} />
+                <Heading path={path} view={view} model={name} />
             </div>
             {
                 api.staticView

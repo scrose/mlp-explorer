@@ -8,6 +8,7 @@
 import * as React from 'react'
 import { useRouter } from './router.provider.client';
 import { addSessionMsg } from '../_services/session.services.client';
+import { useMessenger } from './messenger.provider.client';
 
 /**
  * Global authentication context.
@@ -32,6 +33,9 @@ function AuthProvider(props) {
     // get providers
     const api = useRouter();
 
+    // messenger
+    const msg = useMessenger();
+
     /**
      * User login request.
      *
@@ -41,18 +45,19 @@ function AuthProvider(props) {
     const login = async (route, credentials) => {
         return await api.post('/login', credentials)
             .then(res => {
-                console.log('Login Response:', res)
+
+                // send message
+                const { message='' } = res || {};
+                msg.setMessage(message);
+
                 const { user=null } = res || {};
 
                 // create user session on success
                 if (user) {
                     setData(user);
                 }
-
                 return res
 
-                // console.error(getError('noAuth', 'authentication'));
-                // addSessionMsg({msg: getError('noAuth', 'authentication'), type: 'error'})
             });
     }
 
@@ -65,19 +70,9 @@ function AuthProvider(props) {
     const logout = async () => {
         return await api.post('/logout')
             .then(res => {
-                console.log('Logout Response:', res);
-
-                if (res.status !== 200) {
-                    addSessionMsg({ msg: 'Failed to sign out user.', type: 'error' });
-                    console.error('Logout failed', res);
-                    return null;
-                }
-
+                // Keycloak logout operation returns no content (204)
                 setData(null);
-                addSessionMsg({ msg: 'Logged out successfully!', type: 'success' });
-
-                return res
-
+                msg.setMessage({ msg: 'Logged out successfully!', type: 'success' });
             })
     }
 
@@ -96,13 +91,10 @@ function AuthProvider(props) {
      */
 
     React.useEffect(() => {
-        console.log('Refreshing token...')
         api.post('/refresh')
             .then(res => {
 
                 const { user= null } = res || {};
-
-                console.log('Refreshed:', res, user);
 
                 // reset user session data
                 if (user) {

@@ -56,7 +56,7 @@ export default function ModelController(modelRoute) {
             filer = new FileServices();
         }
         catch (err) {
-            console.error('Services generator error.')
+            console.error('Model services generator error.')
             return next(err);
         }
         return next();
@@ -72,13 +72,9 @@ export default function ModelController(modelRoute) {
      */
 
     this.getId = function (req) {
-        try {
-            // Throw error if route key is invalid
-            return req.params[model.key];
-        }
-        catch (err) {
-            throw new Error('invalidRouteKey');
-        }
+        return req.params.hasOwnProperty(model.key)
+            ? req.params[model.key]
+            : null;
     };
 
     /**
@@ -123,11 +119,12 @@ export default function ModelController(modelRoute) {
             let id = this.getId(req);
 
             // get record data for node
-            const data = await db.select(id)
+            const data = await db.select(id);
+            const node = await ns.getNode(id);
             const item = new Model(data);
 
             // get path of node in hierarchy
-            const path = await ns.getNodePath(item);
+            const path = await ns.getNodePath(node);
 
             // get linked data referenced in node tree
             await ns.getModelDependents(item)
@@ -151,7 +148,7 @@ export default function ModelController(modelRoute) {
     };
 
     /**
-     * Add record to database.
+     * Get model schema to create new record.
      *
      * @param req
      * @param res
@@ -160,16 +157,35 @@ export default function ModelController(modelRoute) {
      */
 
     this.add = async (req, res, next) => {
+
+        // get owner ID from parameters (if exists)
+        let { owner_id=null } = req.params || {};
+
+        // create model instance
+        const item = owner_id
+            ? model.setData({owner_id: owner_id})
+            : model;
+
+        // get path of node in hierarchy
+        const owner = await ns.getNode(owner_id);
+        const path = await ns.getNodePath(owner) || {};
+
         try {
-            res.status(200).json(
-                prepare({
+            // send form data response
+           res.status(200).json(
+               prepare({
                     view: 'add',
-                    model: model
+                    model: model,
+                    data: item.getData(),
+                    path: path
                 }));
+
         } catch (err) {
+            console.error(err)
             return next(err);
         }
     };
+
 
     /**
      * Insert record in database.
@@ -181,29 +197,35 @@ export default function ModelController(modelRoute) {
      */
 
     this.create = async (req, res, next) => {
-        let item;
+
         try {
-            item = new Model(req.body);
+            let item = new Model(req.body);
+
+            // insert item into database
+            let data = await db.insert(item);
+
+            console.log(data)
+
+            // get path of node in hierarchy
+            const { nodes_id=null } = data || {};
+            const node = await ns.getNode(nodes_id);
+            const path = await ns.getNodePath(node);
+
+            res.status(200).json(
+                prepare({
+                    view: 'add',
+                    model: model,
+                    data: data,
+                    message: {
+                        msg: `New record added successfully!`,
+                        type: 'success'
+                    },
+                    path: path
+                }));
+
         } catch (err) {
             next(err);
         }
-
-        // insert item into database
-        await db
-            .insert(item)
-            .then(data => {
-                res.status(200).json(
-                    prepare({
-                        view: 'create',
-                        model: model,
-                        data: data,
-                        message: {
-                            msg: `New record added successfully!`,
-                            type: 'success'
-                        }
-                    }));
-            })
-            .catch(err => next(err));
     };
 
     /**

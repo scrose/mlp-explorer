@@ -17,14 +17,14 @@ export default Validator;
  * Create input data validator.
  *
  * @param {Array} validations
- * @param {Array} refs
  * @public
  */
 
-function Validator(validations, refs=[]) {
+function Validator(validations) {
     validations = ( typeof validations !== "undefined" ) ? validations : [];
 
     // resolve validation methods
+    // default is a no-op that returns the value.
     this.checks = validations.map(check => {
         return _inputValidations.hasOwnProperty(check)
           ? {
@@ -33,12 +33,11 @@ function Validator(validations, refs=[]) {
             }
           : {
                 name: check,
-                run: () => {}
+                run: (value) => {
+                    return value;
+                }
             };
     });
-
-    // input references
-    this.refs = refs;
 }
 
 /**
@@ -52,7 +51,6 @@ function Validator(validations, refs=[]) {
  */
 
 Validator.prototype.check = function check(val1, val2='') {
-    console.log('Check:', val1, val2)
     return this.checks
             .filter(check => !check.run(val1, val2))
             .map(check => {

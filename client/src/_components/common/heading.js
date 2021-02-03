@@ -16,7 +16,7 @@ import { useRouter } from '../../_providers/router.provider.client';
  * @public
  */
 
-const Heading = ({path='', prefix=''}) => {
+const Heading = ({path='', view, model, prefix=''}) => {
 
     // check if node path available to extract view label
     const isNode = path && Object.keys(path).length > 0 && typeof path === 'object';

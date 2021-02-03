@@ -9,7 +9,7 @@ import * as React from 'react'
 import { makeRequest } from '../_services/api.services.client';
 import { getAPIURL, getPath, reroute } from '../_utils/paths.utils.client';
 import { getStaticView } from '../_services/schema.services.client';
-import { addSessionMsg } from '../_services/session.services.client';
+import { useMessenger } from './messenger.provider.client';
 
 /**
  * Global data provider.
@@ -38,6 +38,9 @@ function RouterProvider(props) {
     // static view state: static views do not require API requests
     const [staticView, setStaticView] = React.useState(getStaticView(getPath()));
 
+    // get messenger
+    const msg = useMessenger();
+
     /**
      * Router to handle route requests.
      *
@@ -48,6 +51,9 @@ function RouterProvider(props) {
     const router = async function(uri) {
         // set static view (if applicable)
         setStaticView(getStaticView(uri));
+
+        // clear messages
+        msg.setMessage(null)
 
         // set app route state
         setRoute(uri);
@@ -95,10 +101,6 @@ function RouterProvider(props) {
 
         // get content portion of fetched response data
         const { response } = res || {};
-
-        // send message
-        const { message='' } = res || {};
-        addSessionMsg(message);
 
         // handle exceptions
         if (!res.success) {

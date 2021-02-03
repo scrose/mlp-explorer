@@ -7,8 +7,8 @@
 
 import React from 'react'
 import Loading from '../common/loading';
-import Item from '../common/item';
 import StationsView from './stations.view';
+import NodesView from './nodes.view';
 
 /**
  * Data item (record) component.
@@ -23,7 +23,7 @@ const ItemView = ({ data: apiData, view, model }) => {
     const itemViews = {
         stations: () => <StationsView data={ apiData } model={'stations'} />,
         survey_seasons: () => <StationsView data={ apiData } model={'survey_seasons'} />,
-        default: () => <Item data={ apiData } view={view} model={model} />
+        default: () => <NodesView data={ apiData } model={model} />
 
     }
 

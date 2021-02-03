@@ -26,6 +26,8 @@ import { mapToObj } from '../lib/data.utils.js';
 
 export const getNode = async (id) => {
 
+    if (!id) return null;
+
     // NOTE: client undefined if connection fails.
     const client = await pool.connect();
 
@@ -104,10 +106,10 @@ export const getNodes = async function(model) {
 };
 
 /**
- * Get node by ID. Returns single node object.
+ * Get model data by node reference. Returns single node object.
  *
  * @public
- * @param {integer} node
+ * @param {Object} node
  * @return {Promise} result
  */
 
@@ -193,13 +195,15 @@ export const getModelDependents = async (item) => {
 };
 
 /**
- * Find node path for given item.
+ * Find node path in tree for given node.
  *
  * @public
- * @params {Object} item
+ * @params {Object} node
  * @return {Promise} result
  */
-export const getNodePath = async (item) => {
+export const getNodePath = async (node) => {
+
+    if (!node) return null;
 
     // NOTE: client undefined if connection fails.
     const client = await pool.connect();
@@ -209,35 +213,35 @@ export const getNodePath = async (item) => {
         await client.query('BEGIN');
 
         // initialization
-        const { owner = { } } = item || {};
-        const { value=null } = owner || {};
-        let id = item.id;
-        let ownerId = value;
-        let node = {ownerId: null};
+        let { owner_id = null } = node || {};
+        let id = node.id;
         let nodePath = new Map();
         let end = 9; // limit traversal of node tree to 9
-        let n = 1;
+        let n = 1; // branch counter
+
+        // get current item data (if item exists)
+        let data = await selectByNode(node) || {};
 
         // set leaf node of tree
         nodePath.set(0, {
-            owner_id: item.id,
-            type: item.table,
-            data: item.getData()
+            owner_id: node.id,
+            type: node.type,
+            data: data
         });
 
         // follow owners up the node hierarchy
         do {
             // get owner node
-            if (ownerId) {
-                node = await getNode(ownerId);
+            if (owner_id) {
+                node = await getNode(owner_id);
                 // append node data
-                node.data = ownerId ? await selectByNode(node) : {};
+                node.data = owner_id ? await selectByNode(node) : {};
                 // set node path item
                 nodePath.set(n, node);
             }
             // reset node iteration
-            id = ownerId;
-            ownerId = node.owner_id;
+            id = owner_id;
+            owner_id = node.owner_id;
             n++;
         } while (id && n < end)
 

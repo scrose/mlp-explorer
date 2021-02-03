@@ -92,6 +92,10 @@ export const create = async (modelType) => {
             value: getData,
             writable: false
         },
+        setOwner: {
+            value: schema.setOwner,
+            writable: false
+        },
         setOptions: {
             value: setOptions,
             writable: false
@@ -120,8 +124,6 @@ function setData(data=null) {
         // select either first row of data array or single data object
         // NOTE: model can only hold data for single record
         const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
-        //
-        // console.log(this.attributes);
 
         // assert attributes exist in model schema
         Object.keys(inputData)

@@ -30,8 +30,8 @@ const settings = {
     ssl: "external",
     resource: "nodejs-microservice",
     bearerOnly: true,
-    clientSecret: "50192a2b-b36e-4b6e-9f2c-5df3a0a70864"
-    // clientSecret: "6d979be5-cb81-4d5c-9fc7-45d1b0c7a75e"
+    // clientSecret: "50192a2b-b36e-4b6e-9f2c-5df3a0a70864"
+    clientSecret: "5b01ce26-d23b-4c2d-9371-a7be962f23f6"
 }
 
 /**
@@ -115,7 +115,6 @@ export const authenticate = async ({email:email, password:password}) => {
     // decode KeyCloak JWT token
     const { access_token='' } = data || {};
     const decoded = jwt.decode(access_token);
-    console.log('Decoded data:', decoded);
 
     // append user roles to fetched data
     data.roles = decoded.resource_access[settings.clientId].roles;
@@ -135,28 +134,20 @@ export const authenticate = async ({email:email, password:password}) => {
 
 export const logout = async (access_token, refresh_token) => {
 
-
     // stop refresh if no token found
     if (!access_token) return null;
 
     const payload = {
+        client_secret: settings.clientSecret,
         client_id: settings.clientId,
         refresh_token: refresh_token
     };
 
     // request options for logout (KeyCloak API)
     const opts = getOpts(payload, 'POST');
-    opts.headers.authorization = access_token;
 
-    // send request to API
-    return await fetch(kcLogoutURL, opts)
-        .then(response => {
-            console.log(response)
-            response.json();
-        })
-        .then(data => {
-            return data
-        })
+    // send logout request to KeyCloak endpoint
+    return await fetch(kcLogoutURL, opts);
 }
 
 /**
@@ -176,22 +167,12 @@ export const validate = async (token) => {
     const opts = getOpts(null, 'GET');
     opts.headers.authorization = token;
 
-    console.log(opts);
-
     // send a request to the userinfo endpoint on keycloak to
     // validate access token
     let res = await fetch(kcInfoURL, opts)
         .then(response => {
-
-            console.log(response)
-
-            // if the request status isn't "OK", the token is invalid
-            // if (response.statusCode !== 200)
-            //     throw new Error('unauthorized');
-
             return response;
         })
-    console.log(res)
 
 }
 
@@ -218,25 +199,33 @@ export const refresh = async (token) => {
     // request options for refresh (KeyCloak API)
     const opts = getOpts(payload, 'POST');
 
-    // send a request to the userinfo endpoint on keycloak
+    // refresh token via KeyCloak endpoint
     let data = await fetch(kcTokenURL, opts)
-        .then(response => response.json())
-        .then(data => {
-            console.log(data)
-            return data
+        .then(res => {
+
+            // token is invalid or session is not active
+            if (!res || res.status !== 200)
+                throw new Error('Refresh failed');
+
+            return res
+
         })
+        .then(res => res.json())
         .catch(err => {
             console.error('KeyCloak error:', err)
         });
 
-    // decode KeyCloak JWT token
-    const { access_token='' } = data || {};
-    const decoded = jwt.decode(access_token);
-    console.log('Decoded data:', decoded);
+    // extract user data if response valid
+    if (data) {
 
-    // append user email, roles to fetched data
-    data.email = decoded.email;
-    data.roles = decoded.resource_access[settings.clientId].roles;
+        // decode KeyCloak JWT token
+        const { access_token = '' } = data || {};
+        const decoded = jwt.decode(access_token);
+
+        // append user email, roles to fetched data
+        data.email = decoded.email;
+        data.roles = decoded.resource_access[settings.clientId].roles;
+    }
 
     return data;
 

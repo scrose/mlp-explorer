@@ -9,8 +9,7 @@ import React from 'react';
 import Icon from '../common/icon';
 import { getNodeURI, getPath, getRoot } from '../../_utils/paths.utils.client';
 import { capitalize, getEmailUser } from '../../_utils/data.utils.client';
-import { useUser } from '../../_providers/user.provider.client';
-import { getNodeLabel } from '../../_services/schema.services.client';
+import { getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
 
 /**
  * Breadcrumb navigation menu component.
@@ -20,9 +19,7 @@ import { getNodeLabel } from '../../_services/schema.services.client';
  * @public
  */
 
-const BreadcrumbMenu = ({path}) => {
-
-    const user = useUser();
+const BreadcrumbMenu = ({path, view, model}) => {
 
     /**
      * Build 'breadcrumb' navigation menu from current
@@ -42,7 +39,7 @@ const BreadcrumbMenu = ({path}) => {
         if (breadcrumbs.length === 0) return null;
 
         // reformat user email to extract user-id (if exists)
-        const placeholder = user ? getEmailUser(user.email) : '...';
+        const placeholder = '...';
 
         // convert breadcrumbs -> components and extend array
         return breadcrumbs
@@ -82,12 +79,13 @@ const BreadcrumbMenu = ({path}) => {
                 const menuText = getNodeLabel(nodes[key]);
                 const {type='', id=''} = nodes[key] || {};
                 const href = getNodeURI(type, 'show', id);
+                const isLeaf = view !== 'add' && key !== '0'
 
-                // render last item without link
-                return key !== '0'
-                    ? <a href={href}>{menuText}</a>
-                    : <span>{menuText}</span>
-            })
+                // render last item (leaf) without link
+                return isLeaf
+                    ? <span>{menuText}</span>
+                    : <a href={href}>{menuText}</a>
+            });
 
     };
 
@@ -109,6 +107,10 @@ const BreadcrumbMenu = ({path}) => {
                             )
                         })
                         : <li><span>{'Home'}</span></li>
+                }
+                {
+                    // include menu text for new item
+                    view === 'add' ? <li><span>{`New ${getModelLabel(model)}`}</span></li> : ''
                 }
             </ul>
         </nav>

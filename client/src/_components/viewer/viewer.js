@@ -57,8 +57,8 @@ const Viewer = () => {
             <div className={'header'}>
                 <BreadcrumbMenu path={path} />
                 <Messenger />
-                <Heading path={path} />
                 <MenuViewer id={id} model={model} view={view} />
+                <Heading path={path} />
             </div>
             {
                 api.staticView

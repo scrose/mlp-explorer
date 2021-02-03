@@ -10,7 +10,7 @@ import MainMenu from '../menus/main.menu';
 import Logo from '../common/logo';
 import { useUser } from '../../_providers/user.provider.client';
 import Icon from '../common/icon';
-import { redirect, reroute } from '../../_utils/paths.utils.client';
+import { redirect } from '../../_utils/paths.utils.client';
 import { getEmailUser } from '../../_utils/data.utils.client';
 
 /**

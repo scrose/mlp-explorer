@@ -60,8 +60,6 @@ const Input = ({
     // input conditional states
     const [autoClick, setAutoClick] = React.useState(true);
 
-    console.log('Input:', value)
-
     /**
      * Input constructors for different render types.
      *
@@ -79,6 +77,7 @@ const Input = ({
                 value={value || ''}
             />
         },
+
         text: () => {
             return <label key={`label_${name}`} htmlFor={name}>
                 {label}
@@ -93,6 +92,7 @@ const Input = ({
                 {error ? <ValidationMessage msg={error}/> : null}
             </label>
         },
+
         checkbox: () => {
             const isChecked = (value && value === true);
             return <label key={`label_${name}`} htmlFor={name}>
@@ -121,6 +121,7 @@ const Input = ({
                 {error ? <ValidationMessage msg={error}/> : null}
             </label>
         },
+
         password: () => {
             return <label key={`label_${name}`} htmlFor={name}>
                 {label}
@@ -139,6 +140,7 @@ const Input = ({
                 {error ? <ValidationMessage msg={error}/> : null}
             </label>
         },
+
         select: () => {
             return <label key={`label_${name}`} htmlFor={name}>
                 {label}

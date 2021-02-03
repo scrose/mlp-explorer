@@ -11,6 +11,8 @@ import { useUser } from '../../_providers/user.provider.client';
 import { useAuth } from '../../_providers/auth.provider.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import { addSessionMsg } from '../../_services/session.services.client';
+import { useMessenger } from '../../_providers/messenger.provider.client';
+import { redirect } from '../../_utils/paths.utils.client';
 
 /**
  * User sign in form component.
@@ -26,16 +28,14 @@ const LoginUsers = () => {
     const user = useUser();
     const auth = useAuth();
     const api = useRouter();
+    const msg = useMessenger();
 
     // Redirect to dashboard if logged in
     React.useEffect(() => {
-        console.log(api.route, api.staticView, user)
         if (user) {
-            addSessionMsg({ msg: 'User is logged in.', type: 'info' });
-            console.log('Logged in Already!', user)
-            // redirect('/');
+            redirect('/?msg=isLoggedIn');
         }
-    }, [user, api]);
+    }, [user, api, msg]);
 
     return user
         ? <div><p>User currently logged in.</p></div>

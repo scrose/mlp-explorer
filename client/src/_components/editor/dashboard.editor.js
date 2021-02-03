@@ -6,22 +6,20 @@
  */
 
 import React from 'react'
-import Heading from '../common/heading';
 
 /**
- * User management panel.
+ * Systems preferences management panel.
  *
  * @public
  * @return {Promise} result
  */
 
-const UserPanel = () => {
+const OptionsPanel = () => {
     return (
         <nav className={'panel'}>
-            <h4>User Management</h4>
+            <h4>Options</h4>
             <ul>
-                <li><a href={'/users'}>List users</a></li>
-                <li><a href={'/users/register'}>Add new user</a></li>
+                <li><a href={'#'}>TBA</a></li>
             </ul>
         </nav>
     );
@@ -56,8 +54,7 @@ const NodePanel = () => {
 const DashboardEditor = () => {
     return (
         <div className="dashboard">
-            <Heading text={'Editor Dashboard'}/>
-            <UserPanel />
+            <OptionsPanel />
             <NodePanel />
         </div>
     );

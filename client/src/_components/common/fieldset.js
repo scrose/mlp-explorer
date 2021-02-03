@@ -23,15 +23,18 @@ const Fieldset = ({
                       model,
                       legend,
                       fields,
-                      data,
-                      setData,
+                      init,
                       valid,
                       disabled}
                   ) => {
 
     // initialize state for input parameters
+    // create dynamic view state
+    const [data, setData] = React.useState(init);
     const [errors, setErrors] = React.useState({});
     const [readonly, setReadonly] = React.useState({});
+
+    console.log('Fieldset data:', data, fields)
 
     /**
      * Input on-change handler. Updates references state.
@@ -56,6 +59,8 @@ const Fieldset = ({
     const handleChange = e => {
         const { name, value } = e.target;
         e.persist(); // not used in ReactJS v.17
+        // update state with input data
+        console.log(name, value)
         setData(data => ({...data, [name]: value}));
     }
 
@@ -67,7 +72,7 @@ const Fieldset = ({
      * @param validator
      */
 
-    const handleBlur = validator => {
+    const handleBlur = (validator) => {
         // wrap validator in event handler
         return (e) => {
             const { name, value } = e.target;
@@ -87,38 +92,33 @@ const Fieldset = ({
                 // insert input fields
                 Object.keys(fields || {}).map(key => {
 
-                // get form schema for requested model
-                const { name='', label='', render='', refs=[], validate=[], options=[]} = fields[key];
-                const _value = (data || []).hasOwnProperty(name) ? data[name] : '';
-                const _error = (errors || []).hasOwnProperty(name) ? errors[name] : '';
-                const _readonly = (readonly || []).hasOwnProperty(name) ? readonly[name] : false;
+                    console.log(key, data[key])
 
-                // TODO: Fix references between values in state
-                const _references = refs.reduce((o, ref) => {
-                    o[ref] = data.hasOwnProperty(ref) ? data[ref] : '';
-                    return o;
-                }, {});
+                    // get form schema for requested model
+                    const { label='', render='', validate=[], options=[] } = fields[key];
+                    const _value = data.hasOwnProperty(key) ? data[key] : '';
+                    const _error = errors.hasOwnProperty(key) ? errors[key] : '';
+                    const _readonly = readonly.hasOwnProperty(key) ? readonly[key] : false;
 
-                // create validator from schema
-                const _validator = new Validator(validate, _references);
+                    // create validator from schema
+                    const _validator = new Validator(validate);
 
-                return (
-                    <Input
-                        key={`key_${name}`}
-                        type={render}
-                        name={name}
-                        label={label}
-                        value={_value}
-                        error={_error}
-                        options={options}
-                        validate={validate}
-                        readonly={_readonly}
-                        onchange={handleChange}
-                        onblur={handleBlur(_validator)}
-                    />
-                )
-
-            })}
+                    return (
+                        <Input
+                            key={`key_${key}`}
+                            type={render}
+                            name={key}
+                            label={label}
+                            value={_value}
+                            error={_error}
+                            options={options}
+                            readonly={_readonly}
+                            onchange={handleChange}
+                            onblur={handleBlur(_validator)}
+                        />
+                    )
+                })
+            }
         </fieldset>
     )
 }

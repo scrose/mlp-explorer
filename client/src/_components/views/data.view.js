@@ -38,13 +38,16 @@ const DataView = ({
     const api = useRouter();
     const callback = api.post;
 
+    // Extract initial form data (if exists)
+    const initData = data.hasOwnProperty('data') ? data.data : [];
+
     // view components indexed by render type
     const renders = {
         form: () => (
             <Form
                 view={view}
                 model={model}
-                data={data}
+                data={initData}
                 setData={setData}
                 callback={callback}
             />),

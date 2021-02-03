@@ -77,16 +77,19 @@ export const schema = {
         },
         add: {
             legend: 'Create New',
+            submit: 'Create',
             render: 'form',
             review: 'show'
         },
         edit: {
             legend: 'Update',
+            submit: 'Update',
             render: 'form',
             review: 'show'
         },
         remove: {
             legend: 'Delete',
+            submit: 'Delete',
             render: 'form'
         },
         show: {
@@ -177,7 +180,8 @@ export const schema = {
             attributes: {
                 order: 2,
                 label: "Surveyors",
-                singular: "Surveyor"
+                singular: "Surveyor",
+                dependents: ['surveys']
             },
             given_names: {
                 key: 2,
@@ -201,6 +205,9 @@ export const schema = {
                 order: 3,
                 label: "Surveys",
                 singular: "Survey"
+            },
+            owner_id: {
+                render: 'hidden'
             },
             name: {
                 key: 1,

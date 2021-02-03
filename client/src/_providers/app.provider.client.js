@@ -13,15 +13,15 @@ import { MsgProvider } from './messenger.provider.client';
 
 function AppProviders({children}) {
     return (
+        <MsgProvider>
             <RouterProvider>
                 <AuthProvider>
                     <UserProvider>
-                        <MsgProvider>
-                            {children}
-                        </MsgProvider>
+                        {children}
                     </UserProvider>
                 </AuthProvider>
             </RouterProvider>
+        </MsgProvider>
     )
 }
 
