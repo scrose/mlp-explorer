@@ -220,14 +220,10 @@ export const getNodePath = async (node) => {
         let n = 1; // branch counter
 
         // get current item data (if item exists)
-        let data = await selectByNode(node) || {};
+        node.data = await selectByNode(node) || {};
 
         // set leaf node of tree
-        nodePath.set(0, {
-            owner_id: node.id,
-            type: node.type,
-            data: data
-        });
+        nodePath.set(0, node);
 
         // follow owners up the node hierarchy
         do {

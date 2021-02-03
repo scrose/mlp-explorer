@@ -8,7 +8,7 @@
 import React from 'react';
 import Icon from '../common/icon';
 import { getNodeURI, getPath, getRoot } from '../../_utils/paths.utils.client';
-import { capitalize, getEmailUser } from '../../_utils/data.utils.client';
+import { capitalize } from '../../_utils/data.utils.client';
 import { getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
 
 /**
@@ -75,11 +75,11 @@ const BreadcrumbMenu = ({path, view, model}) => {
         // sort node index descending and map to components
         return Object.keys(nodes)
             .sort(function(a, b){return b-a})
-            .map((key, index) => {
+            .map(key => {
                 const menuText = getNodeLabel(nodes[key]);
                 const {type='', id=''} = nodes[key] || {};
                 const href = getNodeURI(type, 'show', id);
-                const isLeaf = view !== 'add' && key !== '0'
+                const isLeaf = !(view !== 'add' && key !== '0');
 
                 // render last item (leaf) without link
                 return isLeaf

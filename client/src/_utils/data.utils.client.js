@@ -88,3 +88,18 @@ export const sanitize = (value, render='', href='', title='') => {
         : _dataElements.default({ value });
 }
 
+/**
+ * Get root node from node path. Indexed by '0'.
+ *
+ * @public
+ * @return {Object} node
+ * @param {Object} path
+ */
+
+export const getRootNode = (path=null) => {
+    return Object.keys(path || {})
+        .filter(key => key === '0')
+        .reduce((o, key) => {
+            return path[key];
+        }, {});
+}

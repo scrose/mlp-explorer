@@ -74,10 +74,12 @@ const DataView = ({
         notFound: () => <NotfoundError />
     }
 
+    console.log('Render:', render)
+
     // render data view
     return (
         <div className={'view'}>
-            <div className={'data'}>
+            <div>
                 {
                     renders.hasOwnProperty(render) ? renders[render]() : <Loading/>
                 }

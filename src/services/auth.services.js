@@ -30,8 +30,8 @@ const settings = {
     ssl: "external",
     resource: "nodejs-microservice",
     bearerOnly: true,
-    // clientSecret: "50192a2b-b36e-4b6e-9f2c-5df3a0a70864"
-    clientSecret: "5b01ce26-d23b-4c2d-9371-a7be962f23f6"
+    clientSecret: "50192a2b-b36e-4b6e-9f2c-5df3a0a70864"
+    // clientSecret: "5b01ce26-d23b-4c2d-9371-a7be962f23f6"
 }
 
 /**
@@ -169,10 +169,8 @@ export const validate = async (token) => {
 
     // send a request to the userinfo endpoint on keycloak to
     // validate access token
-    let res = await fetch(kcInfoURL, opts)
-        .then(response => {
-            return response;
-        })
+    let res = await fetch(kcInfoURL, opts);
+    console.log(res)
 
 }
 
@@ -205,14 +203,15 @@ export const refresh = async (token) => {
 
             // token is invalid or session is not active
             if (!res || res.status !== 200)
-                throw new Error('Refresh failed');
+                throw new Error('invalidToken');
 
             return res
 
         })
         .then(res => res.json())
         .catch(err => {
-            console.error('KeyCloak error:', err)
+            console.error('KeyCloak error:', err);
+            return null;
         });
 
     // extract user data if response valid

@@ -29,12 +29,9 @@ const Fieldset = ({
                   ) => {
 
     // initialize state for input parameters
-    // create dynamic view state
     const [data, setData] = React.useState(init);
     const [errors, setErrors] = React.useState({});
     const [readonly, setReadonly] = React.useState({});
-
-    console.log('Fieldset data:', data, fields)
 
     /**
      * Input on-change handler. Updates references state.
@@ -60,7 +57,6 @@ const Fieldset = ({
         const { name, value } = e.target;
         e.persist(); // not used in ReactJS v.17
         // update state with input data
-        console.log(name, value)
         setData(data => ({...data, [name]: value}));
     }
 
@@ -91,8 +87,6 @@ const Fieldset = ({
             {
                 // insert input fields
                 Object.keys(fields || {}).map(key => {
-
-                    console.log(key, data[key])
 
                     // get form schema for requested model
                     const { label='', render='', validate=[], options=[] } = fields[key];

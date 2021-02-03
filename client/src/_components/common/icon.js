@@ -27,6 +27,8 @@ const getIconClass = (iconType) => {
         tree: 'fas fa-lg fa-list',
         hopen: 'fas fa-lg fa-chevron-circle-down',
         hclose: 'fas fa-lg fa-chevron-circle-right',
+        hopenleft: 'fas fa-lg fa-angle-double-left',
+        hcloseleft: 'fas fa-lg fa-angle-double-right',
         vopen: 'fas fa-lg fa-angle-double-down',
         vclose: 'fas fa-lg fa-angle-double-up',
         projects: 'fas fa-project-diagram',

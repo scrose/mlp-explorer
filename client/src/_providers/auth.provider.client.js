@@ -7,7 +7,6 @@
 
 import * as React from 'react'
 import { useRouter } from './router.provider.client';
-import { addSessionMsg } from '../_services/session.services.client';
 import { useMessenger } from './messenger.provider.client';
 
 /**
@@ -76,16 +75,8 @@ function AuthProvider(props) {
             })
     }
 
-
-    /*
-      Post-pone rendering any of the children until after we've
-      determined whether or not we have a user token and if we do,
-      then we render a spinner while we go retrieve that user's
-      information.
-     */
-
     /**
-     * Post-Render: Authenticate user token with API.
+     * Post-Render: Refresh access token with API.
      *
      * @public
      */
@@ -93,16 +84,11 @@ function AuthProvider(props) {
     React.useEffect(() => {
         api.post('/refresh')
             .then(res => {
-
-                const { user= null } = res || {};
-
                 // reset user session data
-                if (user) {
-                    setData(user);
-                }
-                return res
-
+                const { user=null } = res || {};
+                setData(user);
             })
+        return () => {};
     }, [api]);
 
     /*

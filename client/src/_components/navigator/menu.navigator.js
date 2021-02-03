@@ -37,7 +37,7 @@ const MenuNavigator = ({set}) => {
                                 setToggle(!toggle);
                             }}
                         >
-                            {toggle ? <Icon type={'vopen'} /> : <Icon type={'vclose'} />}
+                            {toggle ? <Icon type={'hopenleft'} /> : <Icon type={'hcloseleft'} />}
                         </button>
                     </li>
                 </ul>

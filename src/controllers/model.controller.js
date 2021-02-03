@@ -163,8 +163,10 @@ export default function ModelController(modelRoute) {
 
         // create model instance
         const item = owner_id
-            ? model.setData({owner_id: owner_id})
-            : model;
+            ? new Model({owner_id: owner_id})
+            : new Model();
+
+        console.log(owner_id, item)
 
         // get path of node in hierarchy
         const owner = await ns.getNode(owner_id);
@@ -204,8 +206,6 @@ export default function ModelController(modelRoute) {
             // insert item into database
             let data = await db.insert(item);
 
-            console.log(data)
-
             // get path of node in hierarchy
             const { nodes_id=null } = data || {};
             const node = await ns.getNode(nodes_id);
@@ -217,19 +217,20 @@ export default function ModelController(modelRoute) {
                     model: model,
                     data: data,
                     message: {
-                        msg: `New record added successfully!`,
+                        msg: `Item added successfully!`,
                         type: 'success'
                     },
                     path: path
                 }));
 
         } catch (err) {
-            next(err);
+            console.error(err)
+            return next(err);
         }
     };
 
     /**
-     * Edit record data.
+     * Get model schema to edit record data.
      *
      * @param req
      * @param res
@@ -238,18 +239,31 @@ export default function ModelController(modelRoute) {
      */
 
     this.edit = async (req, res, next) => {
-        let id = this.getId(req);
-        await db
-            .select(id)
-            .then(data => {
-                res.status(200).json(
-                    prepare({
-                        view: 'edit',
-                        model: model,
-                        data: data
-                    }));
-            })
-            .catch(err => next(err));
+        try{
+
+            // get node ID from parameters
+            const id = this.getId(req);
+
+            // get item data
+            let data = await db.select(id);
+
+            // get path of node in hierarchy
+            const owner = await ns.getNode(id);
+            const path = await ns.getNodePath(owner) || {};
+
+            // send form data response
+            res.status(200).json(
+                prepare({
+                    view: 'edit',
+                    model: model,
+                    data: data,
+                    path: path
+                }));
+
+        } catch (err) {
+            console.error(err)
+            return next(err);
+        }
     };
 
     /**
@@ -262,52 +276,34 @@ export default function ModelController(modelRoute) {
      */
 
     this.update = async (req, res, next) => {
-
-        // create model instance
-        let item;
         try {
-            item = new Model(req.body);
+            let item = new Model(req.body);
+
+            // insert item into database
+            let data = await db.update(item);
+
+            // get path of node in hierarchy
+            const { nodes_id=null } = data || {};
+            const node = await ns.getNode(nodes_id);
+            const path = await ns.getNodePath(node);
+
+            res.status(200).json(
+                prepare({
+                    view: 'edit',
+                    model: model,
+                    data: data,
+                    message: {
+                        msg: `Update successful!`,
+                        type: 'success'
+                    },
+                    path: path
+                }));
+
         } catch (err) {
-            next(err);
+            console.error(err)
+            return next(err);
         }
 
-        // update record
-        await db
-            .update(item)
-            .then(data => {
-                res.status(200).json(
-                    prepare({
-                        view: 'update',
-                        model: model,
-                        data: data,
-                        message: {
-                            msg: `Update successful!`,
-                            type: 'success'
-                        }
-                    }));
-            })
-            .catch(err => next(err));
-    };
-
-    /**
-     * Confirm removal of record.
-     *
-     * @param req
-     * @param res
-     * @param next
-     * @src public
-     */
-
-    this.remove = async (req, res, next) => {
-        let id = this.getId(req);
-        await db
-            .select(id)
-            .then((data) => {
-                if (data.rows.length === 0)
-                    throw new Error('noitem');
-                res.status(200).json(res.locals);
-            })
-            .catch((err) => next(err));
     };
 
     /**
@@ -319,27 +315,37 @@ export default function ModelController(modelRoute) {
      * @src public
      */
 
-    this.drop = async (req, res, next) => {
-        let id = this.getId(req);
+    this.remove = async (req, res, next) => {
+        try {
+            const id = this.getId(req);
 
-        // retrieve item
-        let item = await db
-            .select(id)
-            .then((data) => {
-                if (data.rows.length === 0) throw new Error('norecord');
-                return new Model(data.rows[0]);
-            })
-            .catch((err) => next(err));
+            // retrieve item data
+            let data = await db.select(id);
+            let item = new Model(data);
 
-        // delete item
-        await db
-            .remove(item)
-            .then(data => {
-                if (data.rows.length === 0) throw new Error('noitem');
-                res.locals.data = data.rows[0];
-                res.message('Item successfully deleted.', 'success');
-                res.status(200).json(res.locals);
-            })
-            .catch((err) => next(err));
+            // get path of owner node in hierarchy (if exists)
+            const { owner_id=null } = data || {};
+            const node = await ns.getNode(owner_id);
+            const path = await ns.getNodePath(node);
+
+            // delete item
+            data = await db.remove(item);
+
+            res.status(200).json(
+                prepare({
+                    view: 'remove',
+                    model: model,
+                    data: data,
+                    message: {
+                        msg: `Deletion successful!`,
+                        type: 'success'
+                    },
+                    path: path
+                }));
+
+        } catch (err) {
+            console.error(err)
+            return next(err);
+        }
     };
 }

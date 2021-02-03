@@ -16,24 +16,16 @@ import { useRouter } from '../../_providers/router.provider.client';
  * @public
  */
 
-const Heading = ({path='', view, model, prefix=''}) => {
+const Heading = ({node={}, prefix=''}) => {
 
-    // check if node path available to extract view label
-    const isNode = path && Object.keys(path).length > 0 && typeof path === 'object';
     const api = useRouter();
-
-    // extract root path from node path data
-    const rootNode = Object.keys(path || {})
-        .filter(key => key === '0')
-        .reduce((o, key) => {
-            return path[key]
-        }, {});
+    console.log('Heading:', node, api.route)
 
     // heading text/prefix attribute overrides computed heading
-    const heading = isNode ? getNodeLabel(rootNode) : getStaticLabel(api.route);
-    prefix = isNode ? getModelLabel(rootNode.type) : prefix;
+    const heading = Object.keys(node).length > 0 ? getNodeLabel(node) : getStaticLabel(api.route);
+    prefix = node ? getModelLabel(node.type) : prefix;
 
-    return <h3>{prefix ? `${capitalize(prefix)}: ` : ''}{heading}</h3>
+    return  <h3>{prefix ? `${capitalize(prefix)}: ` : ''}{heading}</h3>
 }
 
 export default Heading;

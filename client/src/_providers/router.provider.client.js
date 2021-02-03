@@ -7,7 +7,7 @@
 
 import * as React from 'react'
 import { makeRequest } from '../_services/api.services.client';
-import { getAPIURL, getPath, reroute } from '../_utils/paths.utils.client';
+import { getAPIURL, getPath, redirect, reroute } from '../_utils/paths.utils.client';
 import { getStaticView } from '../_services/schema.services.client';
 import { useMessenger } from './messenger.provider.client';
 
@@ -75,16 +75,13 @@ function RouterProvider(props) {
     const errorRouter = (status, response) => {
         const routes = {
             '404': () => {
-                return '/not_found'
+                return redirect('/not_found');
             },
             '401': () => {
-                return '/login'
+                return redirect('/login');
             },
             '403': () => {
-                return '/login'
-            },
-            '500': () => {
-                return '/'
+                return redirect('/login');
             }
         }
         return routes.hasOwnProperty(status) ? routes[status]() : response;

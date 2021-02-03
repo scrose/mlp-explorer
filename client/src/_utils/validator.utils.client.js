@@ -100,7 +100,6 @@ const _inputValidations =
         isRepeatPassword: (repeatPassword='') => {
 
             if (typeof this === 'undefined') return true;
-            console.log('Passwords:', this.refs.password, repeatPassword)
 
             return this.refs.hasOwnProperty('password')
                 ? this.refs.password === repeatPassword

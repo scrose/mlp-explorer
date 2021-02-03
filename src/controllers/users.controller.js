@@ -172,9 +172,16 @@ export const refresh = async (req, res, next) => {
     await auth.refresh(refresh_token)
         .then(data => {
 
-            // refresh ignored if no token found or session is invalid
+            // force logout if no token found or session is invalid
             if (!data) {
-                return res.status(200);
+                // successful session logout
+                res.cookie("access_token", '', {httpOnly: true, sameSite: 'strict', signed: true, maxAge: 0});
+                res.cookie("refresh_token", '', {httpOnly: true, sameSite: 'strict', signed: true, maxAge: 0});
+                return res.status(200).json(
+                    prepare({
+                        message: {msg: 'Successfully logged out!', type: 'success'}
+                    })
+                );
             }
 
             // get token value

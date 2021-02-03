@@ -25,7 +25,15 @@ const Viewer = () => {
 
     // create dynamic view state
     const [apiData, setAPIData] = React.useState({});
+
+    // get router context provider
     const api = useRouter();
+
+    // Addresses: Can't perform a React state update on unmounted component.
+    // This is a no-op, but it indicates a memory leak in your
+    // application. To fix, cancel all subscriptions and
+    // asynchronous tasks in a useEffect cleanup function.
+    const _isMounted = React.useRef(false);
 
     /**
      * Load API data.
@@ -35,15 +43,19 @@ const Viewer = () => {
 
     // non-static views: fetch API data and set view data in state
     React.useEffect(() => {
-        console.log('Static View:', api.staticView)
+        _isMounted.current = true;
+
+        // request data if not static view
         if (!api.staticView)
             api.get(api.route)
                 .then(data => {
                     console.log('API Response:', data);
+
                     // update state with response data
-                    setAPIData(data);
+                    if (_isMounted.current)
+                        setAPIData(data);
                 });
-        return () => {};
+        return () => {_isMounted.current = false;};
     }, [api]);
 
     // destructure API data for settings

@@ -121,12 +121,6 @@ export const schema = {
             }
         },
         users: {
-            user_id: {
-                label: 'User ID',
-                render: 'hidden',
-                validate: [],
-                restrict: ['edit', 'delete', 'show'],
-            },
             email: {
                 label: 'Email',
                 render: 'email',
@@ -138,28 +132,11 @@ export const schema = {
                 validate: ['isRequired', 'isPassword'],
                 restrict: ['login', 'register']
             },
-            repeat_password: {
-                label: 'Repeat Password',
-                render: 'password',
-                restrict: ['register'],
-                refs: ['password'],
-                validate: ['isRequired', 'isRepeatPassword']
-            },
             role: {
                 label: 'User Role',
                 render: 'select',
                 restrict: ['list', 'edit', 'delete', 'show'],
                 validate: []
-            },
-            created_at: {
-                label: 'Created At',
-                render: 'timestamp',
-                restrict: ['edit', 'show', 'list']
-            },
-            updated_at: {
-                label: 'Updated At',
-                render: 'timestamp',
-                restrict: ['edit', 'show', 'list']
             }
         },
         projects: {
@@ -205,6 +182,10 @@ export const schema = {
                 order: 3,
                 label: "Surveys",
                 singular: "Survey"
+            },
+            nodes_id: {
+                render: 'hidden',
+                restrict: ['edit', 'delete'],
             },
             owner_id: {
                 render: 'hidden'

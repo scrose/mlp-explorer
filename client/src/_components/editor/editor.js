@@ -14,8 +14,8 @@ import StaticView from '../views/static.view';
 import MenuEditor from './menu.editor';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
-import { getQuery } from '../../_utils/paths.utils.client';
 import { useMessenger } from '../../_providers/messenger.provider.client';
+import { getRootNode } from '../../_utils/data.utils.client';
 
 /**
  * Render editor panel component (authenticated).
@@ -55,23 +55,26 @@ const Editor = () => {
     }, [api, msg]);
 
     // destructure API data for settings
-    const { view = '', model = {}, data = {}, path = {} } = apiData || {};
+    const { view = '', model = {}, path = {} } = apiData || {};
     const { name = '' } = model || {};
-    const { nodes_id='', users_id='' } = data;
-    const id = nodes_id ? nodes_id : users_id ? users_id : '';
+    const node = getRootNode(path);
+
+    console.log('Editor node:', node)
 
     return (
         <div className={'viewer'}>
             <div className={'header'}>
                 <BreadcrumbMenu path={path} view={view} model={name} />
                 <Messenger />
-                <MenuEditor id={id} model={name} view={view} />
-                <Heading path={path} view={view} model={name} />
+                <MenuEditor view={view} node={node} />
+                <Heading node={node} />
             </div>
             {
                 api.staticView
                     ? <StaticView type={
-                        api.staticView === 'dashboard' ? 'dashboardEdit' : api.staticView
+                        api.staticView === 'dashboard'
+                            ? 'dashboardEdit'
+                            : api.staticView
                     } />
                     : <DataView
                         view={view}

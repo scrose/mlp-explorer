@@ -140,6 +140,7 @@ export function globalHandler(err, req, res, next) {
     // send response
     return res.status(e.status).json(
         prepare({
+            view: e.status,
             message: {
                 msg: e.msg,
                 type: e.type

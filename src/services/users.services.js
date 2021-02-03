@@ -24,7 +24,7 @@ import pool from './pgdb.js';
 
 export async function getAll() {
     let { sql, data } = queries.getAll();
-    return await pool.query(sql, data)
+    return pool.query(sql, data)
         .then(res => {
             return res.rows
         });
@@ -40,75 +40,12 @@ export async function getAll() {
 
 export async function select(user_id) {
     let { sql, data } = queries.select(user_id);
-    return await pool.query(sql, data)
+    return pool.query(sql, data)
         .then(res => {
             return res.rows.length === 0 ? null : res.rows[0]
         });
 }
 
-/**
- * Find user by email.
- *
- * @public
- * @param {String} email
- * @return {Promise} result
- */
-
-export async function selectByEmail(email) {
-    let { sql, data } = queries.selectByEmail(email);
-    return await pool.query(sql, data)
-        .then(res => {
-            return res.rows.length === 0 ? null : res.rows[0]
-        });
-}
-
-/**
- * Insert user in database.
- *
- * @public
- * @param {Object} user
- * @return {Promise} result
- */
-
-export async function insert(user) {
-    let { sql, data } = queries.insert(user);
-    return await pool.query(sql, data)
-        .then(res => {
-            return res.rows.length === 0 ? null : res.rows[0]
-        });
-}
-
-/**
- * Save user data to existing record in database.
- *
- * @public
- * @param {Object} user
- * @return {Promise} result
- */
-
-export async function update(user) {
-    let { sql, data } = queries.update(user);
-    return await pool.query(sql, data)
-        .then(res => {
-            return res.rows.length === 0 ? null : res.rows[0]
-        });
-}
-
-/**
- * Remove user.
- *
- * @public
- * @param {String} user_id
- * @return {Promise} result
- */
-
-export async function remove(user_id) {
-    let { sql, data } = queries.remove(user_id);
-    return await pool.query(sql, data)
-        .then(res => {
-            return res.rows.length === 0 ? null : res.rows[0]
-        });
-}
 
 /**
  * Get user roles.
@@ -119,7 +56,7 @@ export async function remove(user_id) {
 
 export async function getRoles() {
     let { sql, data } = queries.getRoles();
-    return await pool.query(sql, data)
+    return pool.query(sql, data)
         .then(res => {
             return res.rows.length === 0 ? null : res.rows;
         });

@@ -46,7 +46,9 @@ function ModelRoutes(modelType) {
             delete: null,
         },
         create: {
-            path: path.join('/', this.model, 'new') + '(:owner_id)?',
+            path: this.model === 'surveyors' || this.model === 'projects'
+                    ? path.join('/', this.model, 'new')
+                    : path.join('/', this.model, 'new', ':owner_id'),
             get: this.controller.add,
             put: null,
             post: this.controller.create,
@@ -61,9 +63,9 @@ function ModelRoutes(modelType) {
         },
         remove: {
             path: path.join('/', this.model, 'remove', ':' + this.key),
-            get: this.controller.remove,
+            get: null,
             put: null,
-            post: this.controller.drop,
+            post: this.controller.remove,
             delete: null,
         }
     };

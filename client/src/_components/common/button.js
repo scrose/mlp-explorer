@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { reroute } from '../../_utils/paths.utils.client';
+import Icon from './icon';
 
 /**
  * Render .page footer
@@ -15,10 +16,10 @@ import { reroute } from '../../_utils/paths.utils.client';
  * @return {React.Component}
  */
 
-const Button = ({type, name, label, url}) => {
+const Button = ({type, name, label, url, icon, onClick}) => {
 
     /**
-     * Button constructors for different types.
+     * Button constructors for different render types.
      *
      * @private
      * @return {Function} input constructor
@@ -46,13 +47,25 @@ const Button = ({type, name, label, url}) => {
                     <span>{label}</span>
                 </button>
             )
+        },
+        default: () => {
+            return (
+                <button
+                    key={`key_${name}`}
+                    title={label}
+                    onClick={() => onClick()}
+                >
+                    {icon ? <><Icon type={icon} />&#160;</> : ''}
+                    <span>{label}</span>
+                </button>
+            )
         }
     }
 
     // render input
     return _buttonElements.hasOwnProperty(type)
         ? _buttonElements[type]()
-        : <div>Loading error</div>;
+        : _buttonElements.default();
 }
 
 export default Button;
