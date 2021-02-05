@@ -7,7 +7,6 @@
 
 import React from 'react'
 import Loading from '../common/loading';
-import StationsView from './stations.view';
 import NodesView from './nodes.view';
 
 /**
@@ -21,10 +20,7 @@ const ItemView = ({ data: apiData, view, model }) => {
 
     // view components indexed by model type
     const itemViews = {
-        stations: () => <StationsView data={ apiData } model={'stations'} />,
-        survey_seasons: () => <StationsView data={ apiData } model={'survey_seasons'} />,
         default: () => <NodesView data={ apiData } model={model} />
-
     }
 
     return Object.keys(apiData).length > 0

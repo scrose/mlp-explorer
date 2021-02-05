@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.App.Unauthenticated
- * File: unauthenticated.app.js
+ * MLP.Client.Components.App.Viewer
+ * File: viewer.app.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */

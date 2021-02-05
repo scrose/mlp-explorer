@@ -14,6 +14,7 @@ import DataView from '../views/data.view';
 import StaticView from '../views/static.view';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
+import { getRootNode } from '../../_utils/data.utils.client';
 
 /**
  * Render viewer panel component (unauthenticated).
@@ -59,18 +60,17 @@ const Viewer = () => {
     }, [api]);
 
     // destructure API data for settings
-    const { view = '', model = {}, data = {}, path = {} } = apiData || {};
+    const { view = '', model = {}, path = {} } = apiData || {};
     const { name = '' } = model || {};
-    const { nodes_id='', users_id='' } = data;
-    const id = nodes_id ? nodes_id : users_id ? users_id : '';
+    const node = getRootNode(path);
 
     return (
         <div className={'viewer'}>
             <div className={'header'}>
-                <BreadcrumbMenu path={path} />
+                <BreadcrumbMenu path={path} view={view} model={name} />
                 <Messenger />
-                <MenuViewer id={id} model={model} view={view} />
-                <Heading path={path} />
+                <MenuViewer view={view} node={node} />
+                <Heading node={node} />
             </div>
             {
                 api.staticView

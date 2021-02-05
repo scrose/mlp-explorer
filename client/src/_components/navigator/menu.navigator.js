@@ -17,13 +17,10 @@ import { getModelLabel } from '../../_services/schema.services.client';
  * @public
  */
 
-const MenuNavigator = ({set}) => {
+const MenuNavigator = ({view, set, toggle, setToggle}) => {
 
     // get API router
     const api = useRouter();
-
-    // menu visibility state
-    const [toggle, setToggle] = React.useState(false);
 
     return (
         <div className={'navigator-tools v-menu'}>
@@ -46,6 +43,7 @@ const MenuNavigator = ({set}) => {
             <ul>
                 <li>
                     <button
+                        className={view === 'tree' ? 'active' : ''}
                         title={`View navigation tree.`}
                         onClick={() => set('tree')}
                     >
@@ -54,6 +52,7 @@ const MenuNavigator = ({set}) => {
                 </li>
                 <li>
                     <button
+                        className={view === 'map' ? 'active' : ''}
                         title={`View navigation map.`}
                         onClick={() => set('map')}
                     >

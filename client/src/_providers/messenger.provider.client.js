@@ -6,6 +6,8 @@
  */
 
 import * as React from 'react'
+import { getQuery } from '../_utils/paths.utils.client';
+import { popSessionMsg } from '../_services/session.services.client';
 
 /**
  * Global data provider.
@@ -25,8 +27,10 @@ const MsgContext = React.createContext({})
 
 function MsgProvider(props) {
 
-    // Messenger state
-    const [message, setMessage] = React.useState(null);
+    // messenger state: check for session messages
+    const [message, setMessage] = React.useState(
+        getQuery('msg') ? popSessionMsg() : null
+    );
 
     return (
         <MsgContext.Provider value={

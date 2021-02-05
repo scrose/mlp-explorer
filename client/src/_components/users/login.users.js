@@ -33,7 +33,8 @@ const LoginUsers = () => {
     // Redirect to dashboard if logged in
     React.useEffect(() => {
         if (user) {
-            redirect('/?msg=isLoggedIn');
+            addSessionMsg({msg: 'User is signed in.', type:'info'})
+            redirect('/?msg=true');
         }
     }, [user, api, msg]);
 

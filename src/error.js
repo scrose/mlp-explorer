@@ -21,12 +21,6 @@ export const errors = {
         status: 500,
         type: 'error'
     },
-    failedRegistration: {
-        hint: 'User was not added to the database.',
-        msg: 'Registration failed. Please check your registration details.',
-        status: 401,
-        type: 'error'
-    },
     invalidData: {
         hint: 'Invalid input data (generic).',
         msg: 'Invalid data. Please check the data fields for errors.',
@@ -36,13 +30,13 @@ export const errors = {
     invalidEmail: {
         hint: 'Invalid email.',
         msg: 'Invalid email address.',
-        status: 401,
+        status: 422,
         type: 'error'
     },
     invalidLogin: {
         hint: 'Invalid login credentials.',
         msg: 'Authentication failed. Please check your login credentials.',
-        status: 401,
+        status: 422,
         type: 'error'
     },
     failedLogin: {
@@ -96,7 +90,13 @@ export const errors = {
     schemaMismatch: {
         hint: 'User input data found to be invalid for a given model schema. Check setData() method in constructor.',
         msg: 'Input data does not match model schema.',
-        status: 403,
+        status: 500,
+        type: 'error'
+    },
+    '23505': {
+        hint: 'Unique record duplicated in database.',
+        msg: 'Record already exists with that key.',
+        status: 422,
         type: 'error'
     },
     notFound: {
@@ -116,8 +116,14 @@ export const errors = {
  */
 
 function decodeError(err = null) {
-    const { message } = err;
-    return errors.hasOwnProperty(message) ? errors[message] : errors.default;
+
+    // dereference error data
+    const { message='', code='' } = err || {};
+
+    // Check for Postgres error codes
+    const key = code ? code : message;
+
+    return errors.hasOwnProperty(key) ? errors[key] : errors.default;
 }
 
 /**

@@ -40,7 +40,7 @@ html {
 body {
     margin: 0;
     font-family: 'Inter', Arial, sans-serif;
-    color: #8A91B4;
+    color: #050533;
     background: #FFFFFF;
 }
 
@@ -52,6 +52,7 @@ div#root {
 }
 
 .header h3 {
+    margin-top: 60px;
     color: #01447e;
 }
 
@@ -61,16 +62,16 @@ div#root {
     display:inline-block;
     height: 85vh;
     min-width: 350px;
-    background-color: #D0E4F5;
+    background-color: ivory;
     overflow: auto;
     text-align: center;
 }
 
 .navigator .tree {
-    padding-top: 20px;
+    padding-top: 40px;
     display:inline-block;
     width: 100%;
-    background-color: #FFFFFF;
+    background-color: ivory;
 }
 
 .tree ul {
@@ -87,7 +88,7 @@ div#root {
 
 .tree h4 {
     padding-top: 10px;
-    color: #01447e;
+    color: #050533;
 }
 
 /* Viewer/Editor Panel */
@@ -102,16 +103,33 @@ div.main {
     display:inline-block;
     height: 85vh;
     vertical-align: top;
-    background-color: white;
+    background-color: ivory;
     overflow: auto;
-    padding: 0 10px;
+    padding: 0px 10px 40px 10px;
+}
+
+.viewer .header, .editor .header {
+    position: fixed;
+    width: 100%;
+    background-color: ivory;
+    color: #282c34;
+    clear: both;
+}
+
+.viewer .header  h3, .editor .header  h3 {
+    padding: 10px;
+    margin: 0;
+}
+
+.view {
+    margin-top: 150px;
+    padding: 10px !important;
 }
 
 .view .data {
     display:inline-block;
     width: 100%;
     overflow: visible;
-    padding: 5px;
 }
 
 .view h3 {
@@ -119,7 +137,7 @@ div.main {
 }
 
 .view h5 {
-    color: #01447e;
+    color: #050533;
 }
 
 /*
@@ -127,7 +145,7 @@ DOM Elements
 */
 
 a {
-    color: #00B7FF;
+    color: #0D698B;
 }
 
 /*
@@ -136,7 +154,6 @@ Page Header
 
 header {
     clear: both;
-    background-color: #D0E4F5;
 }
 
 /*
@@ -148,7 +165,7 @@ header .navbar {
     width: 100%;
     height: 60px;
     min-height: 60px;
-    background-color: #333333;
+    background-color: #282c34;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -218,7 +235,7 @@ Main Navigation Menu
 
 .navbar nav.main div ul li a {
     text-decoration: none;
-    color: #999999;
+    color: ivory;
     font-size: small;
     text-transform: uppercase;
     display: block;
@@ -229,22 +246,9 @@ Main Navigation Menu
 }
 
 .navbar nav.main div ul li a:hover {
-    color: #ffffff;
-    background-color: rgba(23, 23, 23, 0.9);
-}
-
-.navbar nav.main div ul .close {
-    display: none;
-    text-align: right;
-    padding: 10px;
-}
-
-.navbar nav.main div ul .close span {
-    font-size: medium;
-    display: inline-block;
-    border: 1px solid #cccccc;
-    padding: 0 10px;
-    cursor: pointer;
+    color: ivory;
+    background-color: #0D698B;
+    opacity: 0.9;
 }
 
 /*
@@ -297,8 +301,9 @@ Menus
 
 .navbar nav.user div ul li a {
     text-decoration: none;
-    color: #999999;
+    color: ivory;
     font-size: small;
+    text-transform: uppercase;
     display: block;
     height: 60px;
     line-height: 60px;
@@ -307,34 +312,33 @@ Menus
 }
 
 .navbar nav.user div ul li a:hover {
-    color: #ffffff;
-    background-color: rgba(23, 23, 23, 0.9);
+    color: ivory;
+    background-color: #0D698B;
+    opacity: 0.9;
 }
 
-.navbar nav.user div ul .close {
-    display: none;
-    text-align: right;
-    padding: 10px;
+.navbar nav.user div ul li button {
+    color: ivory;
+    background-color: #0D698B !important;
 }
 
-.navbar nav.user div ul .close span {
-    font-size: small;
-    display: inline-block;
-    border: 1px solid #cccccc;
-    padding: 0 10px;
-    cursor: pointer;
+.navbar nav.user div ul li button:hover {
+    color: #050533;
+    background-color: ivory !important;
 }
+
 
 /* Breadcrumb Navigation Menu */
 
 nav.breadcrumb div {
-    position: fixed;
+    width: 100%;
 }
 nav.breadcrumb ul {
     padding: 10px 16px;
     margin:0;
     list-style: none;
-    background-color: #eee;
+    background-color: #E34234;
+    color: ivory;
 }
 
 /* Display list items side by side */
@@ -346,57 +350,19 @@ nav.breadcrumb ul li {
 /* Add a slash symbol (/) before/behind each list item */
 nav.breadcrumb ul li+li:before {
     padding: 8px;
-    color: black;
+    font-weight: bold;
     content: "/\00a0";
 }
 
 /* Add a color to all links inside the list */
 nav.breadcrumb ul li a {
-    color: #0275d8;
+    color: ivory;
     text-decoration: none;
 }
 
 /* Add a color on mouse-over */
 nav.breadcrumb ul li a:hover {
-    color: #01447e;
-    text-decoration: underline;
-}
-
-/* Use home icon for frontpage link */
-nav.breadcrumb ul li a.home {
-    content:'\f015';
-}
-
-/* Breadcrumb Navigation Menu */
-
-nav.breadcrumb ul {
-    padding: 10px 16px;
-    list-style: none;
-    background-color: #eee;
-}
-
-/* Display list items side by side */
-nav.breadcrumb ul li {
-    display: inline;
-    font-size: small;
-}
-
-/* Add a slash symbol (/) before/behind each list item */
-nav.breadcrumb ul li+li:before {
-    padding: 8px;
-    color: black;
-    content: "/\00a0";
-}
-
-/* Add a color to all links inside the list */
-nav.breadcrumb ul li a {
-    color: #0275d8;
-    text-decoration: none;
-}
-
-/* Add a color on mouse-over */
-nav.breadcrumb ul li a:hover {
-    color: #01447e;
+    color: ivory;
     text-decoration: underline;
 }
 
@@ -439,39 +405,13 @@ nav.breadcrumb ul li a:hover {
     vertical-align: middle;
     height: 100%;
     line-height: 100%;
-    color: #0B6FA4;
     padding: 6px;
 }
 
 .h-menu ul li button {
-    background-color: #D0E4F5;
-    color: #0B6FA4;
     margin: 0 4px;
 }
 
-.h-menu ul .close {
-    display: none;
-    text-align: right;
-    padding: 10px;
-}
-
-.h-menu ul .close span {
-    font-size: medium;
-    display: inline-block;
-    border: 1px solid #cccccc;
-    padding: 0 10px;
-    cursor: pointer;
-}
-
-.h-menu ul li h4 {
-    display: inline-block;
-    vertical-align: middle;
-    padding:0;
-    margin:3px;
-    height: 35px;
-    line-height: 35px;
-    color: #666;
-}
 
 
 /* Vertical Menu */
@@ -504,35 +444,18 @@ nav.breadcrumb ul li a:hover {
     width: 100%;
     height: 100%;
     line-height: 100%;
-    color: #0B6FA4;
 }
 
 .v-menu ul li button {
     width: 100%;
-    background-color: #D0E4F5;
-    color: #0B6FA4;
-}
-
-.v-menu ul .close {
-    display: none;
-    text-align: right;
-    padding: 10px;
-}
-
-.v-menu ul .close span {
-    font-size: medium;
-    border: 1px solid #cccccc;
-    cursor: pointer;
 }
 
 /* Editor Tool Menu */
 
 .editor-tools.h-menu {
-    float: right;
-}
-
-.editor-tools.h-menu ul {
-
+    background-color: #DDDDDD;
+    color: #282c34;
+    width: 100%;
 }
 
 .editor-tools.h-menu ul li {
@@ -540,12 +463,17 @@ nav.breadcrumb ul li a:hover {
     vertical-align: middle;
     height: 50px;
     line-height: 50px;
-    color: #666;
+    color: #282c34;
 }
 
 .editor-tools.h-menu ul li button {
-    background-color: #D0E4F5;
-    color: #0B6FA4;
+    background-color: transparent;
+    color: #282c34;
+}
+
+.editor-tools.h-menu ul li button:hover {
+    background-color: ivory;
+    color: #E34234;
 }
 
 /* Navigator Tool Menu */
@@ -557,7 +485,7 @@ nav.breadcrumb ul li a:hover {
 .navigator-tools.v-menu {
     margin:auto;
     text-align: center;
-    background-color: #666666;
+    background-color: #050533;
     border-radius: 0 0 10px 0;
     opacity: 0.8;
 }
@@ -567,29 +495,25 @@ nav.breadcrumb ul li a:hover {
     height: auto;
 }
 
-.navigator .v-menu ul li {
-}
-
 .navigator .v-menu ul li button {
-    background-color: #666666;
-    color: #EEE;
+    background-color: #050533;
+    color: ivory;
     border: 2px solid #EEE;
 }
 
 .navigator .v-menu ul li button.active {
-    background-color: #0275d8;
-    color: white;
+    background-color: #E34234;
+    color: ivory;
 }
 
 .navigator .v-menu ul li button:hover {
-    background-color: #444;
-    color: #FFF;
+    color: #050533;
+    background-color: ivory !important;
 }
 
 /* Tree Node Menu */
 
 .tree-node .h-menu {
-
     padding: 0;
     margin:0;
 }
@@ -609,12 +533,23 @@ nav.breadcrumb ul li a:hover {
 
 .tree-node .h-menu ul li button {
     flex-wrap: nowrap;
-    background-color: #D0E4F5;
-    color: #0B6FA4;
+    background-color: #0D698B;
+    color: ivory;
+}
+
+.tree-node .h-menu ul li button.active {
+    background-color: #E34234;
+    color: ivory;
+}
+
+.tree-node .h-menu ul li button:hover {
+    background-color: #E34234 !important;
+    color: ivory;
 }
 
 .tree-node .h-menu ul li button.tree-node-label {
     background-color: transparent;
+    color: #0D698B;
     text-align: left;
     width: 100%;
 }
@@ -628,17 +563,11 @@ nav.breadcrumb ul li a:hover {
     margin: 0;
 }
 
-.tree-node.toggle {
-    background-color: #00529B;
-    color: #FFF;
-}
-
 /* Tab List Menu */
 
 .tab.h-menu {
     padding: 0;
     margin-top:10px;
-    background-color: lightgrey;
 }
 
 .tab.h-menu ul li {
@@ -652,12 +581,10 @@ nav.breadcrumb ul li a:hover {
     cursor: pointer;
     padding: 14px 16px;
     transition: 0.3s;
-    background-color: #666666;
     color: white;
 }
 /* Change background color of buttons on hover */
 .tab.h-menu ul li button:hover {
-    background-color: #888;
     border: none;
     outline: none;
     cursor: pointer;
@@ -665,8 +592,8 @@ nav.breadcrumb ul li a:hover {
 
 /* Create an active/current tablink class */
 .tab.h-menu ul li button.active {
-    background-color: #0275d8;
-    color: white;
+    background-color: #E34234;
+    color: ivory;
 }
 
 /* Style the tab content */
@@ -675,6 +602,44 @@ nav.breadcrumb ul li a:hover {
     border-top: none;
 }
 
+
+/* Accordion List Menu */
+
+.accordion .h-menu {
+    background-color: #E8EEF1;
+    margin-top:10px;
+    padding: 6px 12px;
+    border-top: none;
+}
+
+.accordion .h-menu ul li {
+    overflow: hidden;
+    padding: 2px;
+}
+
+.accordion .h-menu ul li button {
+    text-align: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+    color: #282c34 !important;
+    background-color: transparent !important;
+}
+/* Change background color of buttons on hover */
+.accordion .h-menu ul li button:hover {
+    background-color: #888;
+    border: none;
+    outline: none;
+    cursor: pointer;
+}
+
+/* Create an active/current tablink class */
+.accordion .h-menu ul li button.active {
+    background-color: #0D698B;
+    color: white;
+}
 
 /* Item Edit Menu */
 
@@ -694,13 +659,6 @@ nav.breadcrumb ul li a:hover {
     line-height: normal;
 }
 
-.item.h-menu ul li a {
-
-}
-
-.item.h-menu ul li a:hover {
-
-}
 
 /*
   Page Footer
@@ -709,15 +667,11 @@ nav.breadcrumb ul li a:hover {
 .footer div {
     text-align: center;
     font-size: small;
-    padding: 10px;
-    color: #666666;
-    background-color: #EEEEEE;
-    border-top: 1px solid #666666;
+    padding: 8px;
+    color: ivory;
+    background-color: #282c34;
 }
 
-.copyright {
-
-}
 
 /*
   Tables
@@ -726,14 +680,14 @@ nav.breadcrumb ul li a:hover {
 /* multiple items list */
 
 table.items {
-    border: 1px solid #FFFFFF;
+    border: 1px solid ivory;
     width: 100%;
     text-align: left;
     border-collapse: collapse;
     color: #444;
 }
 table.items td, table.items th {
-    border: 1px solid #FFFFFF;
+    border: 1px solid ivory;
     padding: 3px 2px;
     margin:0;
 }
@@ -741,18 +695,18 @@ table.items tbody td {
     font-size: small;
 }
 table.items tr:nth-child(even) {
-    background: #D0E4F5;
+    background: #EEEEEE;
 }
 table.items thead {
-    background: #0B6FA4;
-    border-bottom: 5px solid #FFFFFF;
+    background: #0D698B;
+    border-bottom: 5px solid ivory;
 }
 table.items thead th {
     font-size: small;
     font-weight: bold;
-    color: #FFFFFF;
+    color: ivory;
     text-align: center;
-    border-left: 2px solid #FFFFFF;
+    border-left: 2px solid ivory;
 }
 table.items thead th:first-child {
     border-left: none;
@@ -761,9 +715,9 @@ table.items thead th:first-child {
 table.items tfoot {
     font-size: small;
     font-weight: bold;
-    color: #333333;
+    color: #282c34;
     background: #D0E4F5;
-    border-top: 3px solid #444444;
+    border-top: 3px solid #282c34;
 }
 table.items tfoot td {
     font-size: small;
@@ -784,51 +738,44 @@ table.item td, table.item th {
 }
 
 table.item tbody td {
-    border-top: 1px dotted #CCCCCC;
+    border-top: 1px dotted #050533;
     font-size: small;
 }
 
 table.item thead {
     background: lightslategray;
-    border-bottom: 5px solid #FFFFFF;
+    border-bottom: 5px solid ivory;
 }
 
 table.item thead th {
     background: lightslategray;
     font-size: small;
     font-weight: bold;
-    color: #FFFFFF;
+    color: ivory;
     text-align: center;
-    border-left: 2px solid #FFFFFF;
+    border-left: 2px solid ivory;
 }
 
 table.item tbody th {
     width: 25%;
-    background: #FFFFFF;
+    background: ivory;
     font-size: small;
     font-weight: bold;
-    color: #444444;
+    color: #282c34;
     text-align: left;
-    border-left: 2px solid #FFFFFF;
+    border-left: 2px solid ivory;
 }
 
 table.item tfoot {
     font-size: small;
     font-weight: bold;
-    color: #333333;
-    background: #D0E4F5;
-    border-top: 3px solid #444444;
+    color: #282c34;
+    background: ivory;
+    border-top: 3px solid #282c34;
 }
 
 table.item tfoot td {
     font-size: small;
-}
-
-/* Heading for editor tools */
-
-th.editor {
-    width: 25%;
-    background-color: #01447e;
 }
 
 
@@ -855,7 +802,7 @@ Forms
 
 /* Add a background color and some padding around the form */
 .form.container {
-    background-color: #f2f2f2;
+    background-color: ivory;
     padding: 20px;
 }
 
@@ -864,7 +811,7 @@ Forms
 fieldset {
     margin: 20px;
     padding: 20px;
-    border-color: #8A91B4;
+    border-color: #050533;
 }
 
 fieldset div {
@@ -968,7 +915,7 @@ input[type=email], input[type=password] {
 input[type=submit] {
     margin: 5px;
     font-family: 'Inter', Arial, sans-serif;
-    background-color: #4CAF50;
+    background-color: #0D698B;
     color: white;
     padding: 12px 20px;
     border: none;
@@ -979,13 +926,14 @@ input[type=submit] {
 
 /* When moving the mouse over the submit button, add a darker green color */
 input[type=submit]:hover {
-    background-color: #45a049;
+    background-color: #E34234;
+    color: #050533;
 }
 
 /* Style disabled submit button */
 input[type=submit].disabled, input[type=submit].disabled:hover {
-    background-color: #666;
-    color: white;
+    background-color: #999999;
+    color: ivory;
     cursor: default;
 }
 
@@ -993,7 +941,7 @@ input[type=submit].disabled, input[type=submit].disabled:hover {
 button {
     margin: auto;
     font-family: 'Inter', Arial, sans-serif;
-    background-color: #888;
+    background-color: #050533;
     color: white;
     border: none;
     border-radius: 4px;
@@ -1003,7 +951,7 @@ button {
 }
 
 button:hover {
-    background-color: #9CFF90; /* Green */
+    background-color: #0D698B; /* Blue */
 }
 
 /* form cancel button */
@@ -1016,7 +964,8 @@ button.cancel {
 }
 
 button.cancel:hover {
-    background-color: #666666;
+    color: #050533;
+    background-color: #E34234;
 }
 
 /*
@@ -1057,7 +1006,7 @@ Messages
     content:'\f057';
 }
 .msg.info {
-    color: #00529B;
+    color: #0D698B;
     background-color: #BDE5F8;
 }
 .msg.success {
@@ -1069,7 +1018,7 @@ Messages
     background-color: #FEEFB3;
 }
 .msg.error {
-    color: #D8000C;
+    color: #E34234;
     background-color: #FFD2D2;
 }
 
@@ -1085,7 +1034,7 @@ Messages
     right: 0;
     bottom: 0;
     margin: auto;
-    background-color: rgba(0,0,0, 0.5);
+    background-color: rgba(0,0,0, 0.6);
 }
 .dialog .alert-box {
     position: absolute;
@@ -1097,7 +1046,7 @@ Messages
     bottom: 25%;
     margin: auto;
     border-radius: 20px;
-    background: white;
+    background: ivory;
 }
 .dialog .alert-box-content {
     padding: 10px;
@@ -1113,4 +1062,14 @@ Messages
 .dialog.active {
     display: block;
     overflow: hidden;
+}
+
+.alert-box-buttons button {
+    background-color: #0D698B !important;
+    color: ivory !important;
+}
+
+.alert-box-buttons button:hover {
+    background-color: #050533 !important;
+    color: ivory !important;
 }

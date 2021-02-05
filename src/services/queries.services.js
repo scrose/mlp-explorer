@@ -415,8 +415,6 @@ export function getDependentNodes(id) {
 
 export function getAttached(model) {
 
-    console.log(model.attached)
-
     // get child references for model
     const refs = groupBy(model.attached, 'fk_col');
 

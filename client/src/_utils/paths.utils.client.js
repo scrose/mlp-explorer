@@ -7,6 +7,8 @@
  * Reference: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
  */
 
+import { getRoutes } from '../_services/schema.services.client';
+
 /**
  * Root API/Client urls.
  *
@@ -23,17 +25,32 @@ const _CLIENT = 'http://localhost:3000';
  */
 
 export function getURL() {
-    return `${_CLIENT}${getPath()}`;
+    return `${_CLIENT}${filterPath()}`;
 }
 
 /**
- * Get current client pathname.
+ * Filter current client pathname using
+ * schema settings.
  *
  * @public
  */
 
-export function getPath() {
-    return window.location.pathname;
+export function filterPath() {
+
+    // get current location path
+    const uri = window.location.pathname;
+
+    // filter "nonviewable" static routes
+    // - e.g. full nodes listing at '/nodes'
+    // - filtered routes are defined in the schema
+    const staticRoutes = getRoutes();
+    const filteredURI = Object.keys(staticRoutes)
+        .filter(key => uri.match(`^${key}`) && staticRoutes[key].hasOwnProperty('redirect'))
+        .reduce((o, key) => {
+            return staticRoutes[key].redirect;
+        }, '');
+
+    return filteredURI ? filteredURI : uri;
 }
 
 /**
@@ -67,7 +84,7 @@ export function getRoot() {
  */
 
 export function getAPIURL(uri=null) {
-    const route = uri ? uri : getPath();
+    const route = uri ? uri : filterPath();
     return `${_API}${route}`
 }
 
@@ -79,7 +96,7 @@ export function getAPIURL(uri=null) {
  */
 
 export function redirect(uri=null) {
-    const route = uri ? uri : getPath();
+    const route = uri ? uri : filterPath();
     return window.location.href = `${_CLIENT}${route}`;
 }
 

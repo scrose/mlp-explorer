@@ -16,14 +16,19 @@ import { useRouter } from '../../_providers/router.provider.client';
  * @public
  */
 
-const Heading = ({node={}, prefix=''}) => {
+const Heading = ({node={}, model='', prefix=''}) => {
 
     const api = useRouter();
-    console.log('Heading:', node, api.route)
+    const isNode = Object.keys(node).length > 0;
 
     // heading text/prefix attribute overrides computed heading
-    const heading = Object.keys(node).length > 0 ? getNodeLabel(node) : getStaticLabel(api.route);
-    prefix = node ? getModelLabel(node.type) : prefix;
+    const heading = isNode
+        ? getNodeLabel(node)
+        : getStaticLabel(api.route)
+            ? getStaticLabel(api.route)
+            : getModelLabel(model)
+
+    prefix = isNode ? getModelLabel(node.type) : prefix;
 
     return  <h3>{prefix ? `${capitalize(prefix)}: ` : ''}{heading}</h3>
 }

@@ -15,23 +15,19 @@
 import jwt from 'jsonwebtoken';
 import fetch from 'node-fetch';
 
-
 /**
- * Settings
- * TODO: convert to environment variables.
+ * KeyCloak Settings (set in ENV)
  * @private
  */
 
 const settings = {
+    serverURL: process.env.KC_SERVER_URL,
+    realm: process.env.KC_REALM,
+    clientId: process.env.KC_CLIENT_ID,
+    clientSecret: process.env.KC_CLIENT_SECRET,
     grantType: 'password',
-    clientId: "nodejs-microservice",
-    realm: "MLP-Explorer",
-    serverURL: "http://localhost:8080/auth",
     ssl: "external",
-    resource: "nodejs-microservice",
-    bearerOnly: true,
-    clientSecret: "50192a2b-b36e-4b6e-9f2c-5df3a0a70864"
-    // clientSecret: "5b01ce26-d23b-4c2d-9371-a7be962f23f6"
+    bearerOnly: true
 }
 
 /**
@@ -169,8 +165,7 @@ export const validate = async (token) => {
 
     // send a request to the userinfo endpoint on keycloak to
     // validate access token
-    let res = await fetch(kcInfoURL, opts);
-    console.log(res)
+    return await fetch(kcInfoURL, opts);
 
 }
 

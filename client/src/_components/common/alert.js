@@ -47,9 +47,9 @@ const Alert = ({title, description, icon, label, callback}) => {
                         <div id="alert-dialog-description">
                             {description}
                         </div>
-                        <div>
-                            <Button name={'cancel'} label={'Cancel'} onClick={handleDisagree} />
-                            <Button name={'ok'} label={'OK'} onClick={handleAgree} />
+                        <div className={'alert-box-buttons'}>
+                            <Button icon={'success'} name={'ok'} label={'OK'} onClick={handleAgree} />
+                            <Button icon={'cancel'} name={'cancel'} label={'Cancel'} onClick={handleDisagree} />
                         </div>
                     </div>
                 </div>

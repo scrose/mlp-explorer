@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { getRenderType } from '../../_services/schema.services.client';
+import { getModelLabel, getRenderType } from '../../_services/schema.services.client';
 import BreadcrumbMenu from '../menus/breadcrumb.menu';
 import DataView from '../views/data.view';
 import Messenger from '../common/messenger';
@@ -59,15 +59,13 @@ const Editor = () => {
     const { name = '' } = model || {};
     const node = getRootNode(path);
 
-    console.log('Editor node:', node)
-
     return (
         <div className={'viewer'}>
             <div className={'header'}>
                 <BreadcrumbMenu path={path} view={view} model={name} />
                 <Messenger />
                 <MenuEditor view={view} node={node} />
-                <Heading node={node} />
+                <Heading node={node} prefix={view} model={name} />
             </div>
             {
                 api.staticView

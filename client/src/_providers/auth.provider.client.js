@@ -8,6 +8,7 @@
 import * as React from 'react'
 import { useRouter } from './router.provider.client';
 import { useMessenger } from './messenger.provider.client';
+import { addSessionMsg } from '../_services/session.services.client';
 
 /**
  * Global authentication context.

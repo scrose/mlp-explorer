@@ -45,14 +45,12 @@ const Submit = ({model, label}) => {
  * @param {Object} data
  * @param {Function} setData
  * @param {Function} callback
- * @param {String} action
  */
 
 const Form = ({
                   view,
                   model,
                   data,
-                  setData,
                   callback
 }) => {
 
@@ -79,8 +77,8 @@ const Form = ({
             // API callback for form data submission
             callback(api.route, Object.fromEntries(formData))
                 .then(res => {
-                    console.log('Form response:', res);
                     msg.setMessage(res.message);
+                    api.followup(res);
                 })
                 .catch(err => console.error(err))
         }

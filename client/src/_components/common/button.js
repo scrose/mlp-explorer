@@ -8,6 +8,7 @@
 import React from 'react';
 import { reroute } from '../../_utils/paths.utils.client';
 import Icon from './icon';
+import { useRouter } from '../../_providers/router.provider.client';
 
 /**
  * Render .page footer
@@ -17,6 +18,8 @@ import Icon from './icon';
  */
 
 const Button = ({type, name, label, url, icon, onClick}) => {
+
+    const api = useRouter();
 
     /**
      * Button constructors for different render types.
@@ -42,7 +45,7 @@ const Button = ({type, name, label, url, icon, onClick}) => {
                     key={`key_cancel_${name}`}
                     className={'cancel'}
                     title={`Cancel update.`}
-                    onClick={() => reroute(url)}
+                    onClick={() => api.router(url)}
                 >
                     <span>{label}</span>
                 </button>

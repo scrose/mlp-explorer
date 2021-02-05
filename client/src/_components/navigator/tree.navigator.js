@@ -201,7 +201,7 @@ const TreeNodeList = ({nodes}) => {
  * @return
  */
 
-const TreeNavigator = () => {
+const TreeNavigator = ({setMenu}) => {
 
     // create dynamic view state
     const [nodeData, setNodeData] = React.useState(null);
@@ -239,7 +239,7 @@ const TreeNavigator = () => {
     // render node tree
     return (
         nodeData
-        ? <div className={'tree'}>
+        ? <div className={'tree'} onClick={() => {setMenu(false)}}>
                 <ul>
                 {
                     Object.keys(nodeData)

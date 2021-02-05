@@ -36,6 +36,12 @@ export const schema = {
         '/unavailable': {
             name: 'unavailable',
             label: 'Unavailable'
+        },
+        '/nodes': {
+            redirect: '/not_found'
+        },
+        '/refresh': {
+            redirect: '/not_found'
         }
     },
     errors: {

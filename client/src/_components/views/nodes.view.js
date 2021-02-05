@@ -11,38 +11,55 @@ import { getModelLabel, getNodeLabel, getNodeOrder } from '../../_services/schem
 import Icon from '../common/icon';
 
 /**
- * Inline item tab menu component.
- * - Creates tab containers for dependent nodes that can
+ * Inline vertical accordion menu component.
+ * - Creates accordion containers for dependent nodes that can
  *   be toggled.
  *
  * @public
  * @return {JSX.Element}
  */
 
-const TabMenu = ({nodes, toggle, setToggle}) => {
+const AccordionTab = ({node}) => {
+
+    // accordion toggle state
+    const [toggle, setToggle] = React.useState(false);
 
     return (
-        <div className={'tab h-menu'}>
-            <ul>
+        <div className={`accordion${toggle === node.id ? ' active' : ''}`}>
+            <div className={'h-menu'}>
+                <ul>
+                    <li key={`${node.id}_ptr`}>
+                                <button
+                                    title={`View ${node.label}.`}
+                                    onClick={() => {setToggle(!toggle)}}
+                                >
+                                    {toggle ? <Icon type={'vopen'} /> : <Icon type={'vclose'} />}
+                                </button>
+
+                    </li>
+                    <li key={`${node.id}_type`}>
+                        <button
+                            className={toggle === node.id ? 'active' : ''}
+                            title={`View ${node.label}.`}
+                            onClick={() => {setToggle(!toggle)}}
+                        >
+                            <Icon type={node.type} /> {getModelLabel(node.type)}
+                        </button>
+                    </li>
+                    <li key={`${node.id}_label`}>
+                        <button
+                            className={toggle === node.id ? 'active' : ''}
+                            title={`View ${node.label}.`}
+                            onClick={() => {setToggle(!toggle)}}
+                        >
+                            {node.label}
+                        </button>
+                    </li>
+                </ul>
+            </div>
             {
-                nodes.map(node => {
-                    return (
-                        <li key={`${node.id}`}>
-                            <button
-                                className={toggle === node.id ? 'active' : ''}
-                                title={`View ${node.label}.`}
-                                onClick={() => {
-                                    setToggle(node.id);
-                                }}
-                            >
-                                {toggle === node.id ? <Icon type={'hopen'} /> : <Icon type={'hclose'} />}
-                                &#160;{node.label}
-                            </button>
-                        </li>
-                    )
-                })
+                toggle ? <ViewItem node={node}/> : ''
             }
-            </ul>
         </div>
     );
 };
@@ -101,6 +118,7 @@ const ViewItemList = ({nodes}) => {
         })
         // sort alphabetically
         .sort(function(a, b){
+            // TODO sort station numbers in strings
             return a.label.localeCompare(b.label);
         })
         // sort by node order
@@ -108,34 +126,12 @@ const ViewItemList = ({nodes}) => {
             return a.order - b.order;
         });
 
-    // tab toggle state
-    const [toggle, setToggle] = React.useState(
-        nodes && nodes.length > 0
-        ? nodes[0].id
-        : null
-    );
-
     return (
-        <div className={'tab-container'}>
-            <TabMenu
-                nodes={nodes}
-                toggle={toggle}
-                setToggle={setToggle}
-            />
+        <div>
             {
-                nodes
-                    .map(node => {
-                        return toggle === node.id
-                            ?
-                            <div key={`${node.id}`} className={`tab`}>
-                                <ViewItem node={node} />
-                            </div>
-                            : ''
-
-                    })
+                nodes.map(node => <AccordionTab node={node}/>)
             }
         </div>
-
     );
 }
 

@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.App.Authenticated
- * File: authenticated.app.js
+ * MLP.Client.Components.App.Editor
+ * File: editor.app.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */

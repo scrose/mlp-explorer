@@ -18,8 +18,33 @@ import { sanitize } from '../_utils/data.utils.client';
  */
 
 export const getStaticView = (route) => {
+    const routeData = getStaticRoute(route);
+    return routeData.hasOwnProperty('name') ? routeData.name : null;
+}
+
+/**
+ * Get route data from schema.
+ *
+ * @public
+ * @param {String} route
+ * @return {String} static route
+ */
+
+export const getStaticRoute = (route) => {
+    const routes = getRoutes();
+    return routes.hasOwnProperty(route) ? routes[route] : {};
+}
+
+/**
+ * Get route data from schema.
+ *
+ * @public
+ * @return {String} static route
+ */
+
+export const getRoutes = () => {
     const { routes={} } = schema || {};
-    return routes.hasOwnProperty(route) ? routes[route].name : null;
+    return routes;
 }
 
 /**

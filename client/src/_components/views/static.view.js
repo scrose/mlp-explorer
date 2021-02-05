@@ -33,7 +33,11 @@ const StaticView = ({ type }) => {
     }
 
     // render static view
-    return renders.hasOwnProperty(type) ? renders[type]() : <NotfoundError/>
+    return (
+        <div className={'view'}>
+            { renders.hasOwnProperty(type) ? renders[type]() : <NotfoundError/> }
+        </div>
+        )
 
 }
 

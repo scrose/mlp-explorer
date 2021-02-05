@@ -126,6 +126,9 @@ export default function ModelController(modelRoute) {
             // get path of node in hierarchy
             const path = await ns.getNodePath(node);
 
+            // node not in database
+            if (!data || !node ) throw new Error('notFound');
+
             // get linked data referenced in node tree
             await ns.getModelDependents(item)
                 .then(dependents => {
@@ -165,8 +168,6 @@ export default function ModelController(modelRoute) {
         const item = owner_id
             ? new Model({owner_id: owner_id})
             : new Model();
-
-        console.log(owner_id, item)
 
         // get path of node in hierarchy
         const owner = await ns.getNode(owner_id);

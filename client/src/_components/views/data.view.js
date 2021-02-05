@@ -34,7 +34,7 @@ const DataView = ({
                       render
 }) => {
 
-    // select default callback for view
+    // select default form callback for view
     const api = useRouter();
     const callback = api.post;
 
@@ -79,11 +79,9 @@ const DataView = ({
     // render data view
     return (
         <div className={'view'}>
-            <div>
-                {
-                    renders.hasOwnProperty(render) ? renders[render]() : <Loading/>
-                }
-            </div>
+            {
+                renders.hasOwnProperty(render) ? renders[render]() : <Loading/>
+            }
         </div>
     )
 }

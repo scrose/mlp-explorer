@@ -6,12 +6,11 @@
  */
 
 import React from 'react';
-import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
+import { getNodeURI } from '../../_utils/paths.utils.client';
 import Icon from '../common/icon';
 import { useRouter } from '../../_providers/router.provider.client';
 import { getDependents, getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
 import Alert from '../common/alert';
-import { useMessenger } from '../../_providers/messenger.provider.client';
 
 /**
  * Editor menu component.
@@ -22,27 +21,36 @@ import { useMessenger } from '../../_providers/messenger.provider.client';
 const MenuEditor = ({view, node=null}) => {
 
     const api = useRouter();
-    const msg = useMessenger();
 
     // lookup model dependent nodes
     const dependents = getDependents(node.type) || [];
 
     // visibility settings for menu & menu items
-    const menuExclude = ['dashboard', 'login', 'register']
-    const toolExclude = ['dashboard', 'list', 'register', 'new'];
+    const menuExclude = ['dashboard', 'login', 'register', 'add']
+    const toolExclude = ['dashboard', 'list', 'register', 'add'];
 
     return (
         view && !menuExclude.includes(view) ?
         <div className={'editor-tools h-menu'}>
             <ul>
                 {node && !toolExclude.includes(view) ?
+                    <li>
+                        <button
+                            title={`Edit this ${node.type} item.`}
+                            onClick={() => api.router(getNodeURI(node.type, 'show', node.id))}
+                        >
+                            <Icon type={'info'} /> <span>View</span>
+                        </button>
+                    </li>: ''
+                }
+                {node && !toolExclude.includes(view) ?
                 <li>
-                    { dependents.map(dep => {
-                        const label = getModelLabel(dep);
+                    { dependents.map(depNode => {
+                        const label = getModelLabel(depNode);
                         return <button
-                            key={dep}
+                            key={depNode}
                             title={`Add new ${label}.`}
-                            onClick={() => api.router(getNodeURI(dep, 'new', node.id))}
+                            onClick={() => api.router(getNodeURI(depNode, 'new', node.id))}
                         >
                             <Icon type={'add'}/> <span>Add New {label}</span>
                         </button>
@@ -65,23 +73,15 @@ const MenuEditor = ({view, node=null}) => {
                         <Alert
                             icon={'delete'}
                             title={`Delete ${node.type} record?`}
-                            description={`Please confirm the deletion of ${node.type} item: ${getNodeLabel(node)}.`}
+                            description={
+                                <div>
+                                    <p>Please confirm the deletion of {getModelLabel(node.type)}:</p>
+                                    <p><b>{getNodeLabel(node)}</b></p>
+                                    <p>Note that any dependent nodes for this record will also be deleted.</p>
+                                </div>
+                            }
                             label={'Delete'}
-                            callback={() => {
-                                const route = getNodeURI(node.type, 'remove', node.id);
-                                try {
-                                    // API callback to delete item
-                                    api.post(route)
-                                        .then(res => {
-                                            console.log('Deletion response:', res);
-                                            // redirect('/?msg=deleted')
-                                        })
-                                        .catch(err => console.error(err))
-                                }
-                                catch (err) {
-                                    console.error(err)
-                                }
-                            }}
+                            callback={() => {api.remove(node)}}
                         />
                     </li> : ''
                 }

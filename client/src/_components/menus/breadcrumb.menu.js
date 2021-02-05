@@ -7,7 +7,7 @@
 
 import React from 'react';
 import Icon from '../common/icon';
-import { getNodeURI, getPath, getRoot } from '../../_utils/paths.utils.client';
+import { getNodeURI, filterPath, getRoot } from '../../_utils/paths.utils.client';
 import { capitalize } from '../../_utils/data.utils.client';
 import { getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
 
@@ -30,16 +30,14 @@ const BreadcrumbMenu = ({path, view, model}) => {
 
     const _parseRoute = function() {
 
-        const breadcrumbs = getPath()
+        console.log('breadcrumb path:', filterPath())
+
+        const breadcrumbs = filterPath()
             .split("/")
-            .filter(item => item !== '')
-            .filter(item => item !== 'not_found');
+            .filter(item => item !== '');
 
         // hide breadcrumb menu on front page
         if (breadcrumbs.length === 0) return null;
-
-        // reformat user email to extract user-id (if exists)
-        const placeholder = '...';
 
         // convert breadcrumbs -> components and extend array
         return breadcrumbs
@@ -54,7 +52,7 @@ const BreadcrumbMenu = ({path, view, model}) => {
                     .join('/');
 
                 // create label text: use placeholder for very long slugs
-                const slug = item.length > 25 ? placeholder : item;
+                const slug = item.length > 25 ? '...' : item;
                 const label = capitalize(slug.split('_').join(' '));
 
                 // render last item without link
@@ -79,40 +77,42 @@ const BreadcrumbMenu = ({path, view, model}) => {
                 const menuText = getNodeLabel(nodes[key]);
                 const {type='', id=''} = nodes[key] || {};
                 const href = getNodeURI(type, 'show', id);
-                const isLeaf = !(view !== 'add' && key !== '0');
-
-                // render last item (leaf) without link
-                return isLeaf
-                    ? <span>{menuText}</span>
-                    : <a href={href}>{menuText}</a>
+                return <>
+                        <Icon type={type} />&#160;&#160;<a href={href}>{menuText}</a>
+                        </>
             });
 
     };
 
-    const breadcrumbs = path && typeof path === 'object'
-        ? _parseNodes(path)
-        : _parseRoute();
+    // select method of extracting path elements: node path or route path
+    const isNode = Object.keys(path).length > 0 && typeof path === 'object';
+    const breadcrumbs = isNode ? _parseNodes(path) : _parseRoute();
 
     return (
         <nav className={'breadcrumb'}>
-            <ul>
-                <li>
-                    <a href={getRoot()}><Icon type={'logo'} /></a>
-                </li>
-                {
-                    breadcrumbs.length > 0
-                        ? breadcrumbs.map((item, index) => {
-                            return (
-                                <li key={`item_${index}`}>{ item }</li>
-                            )
-                        })
-                        : <li><span>{'Home'}</span></li>
-                }
-                {
-                    // include menu text for new item
-                    view === 'add' ? <li><span>{`New ${getModelLabel(model)}`}</span></li> : ''
-                }
-            </ul>
+            <div>
+                <ul>
+                    <li>
+                        <a href={getRoot()}><Icon type={'logo'} /></a>
+                    </li>
+                    {
+                        // node breadcrumb menu
+                        breadcrumbs.map((item, index) => {
+                                return (
+                                    <li key={`item_${index}`}>{ item }</li>
+                                )
+                            })
+                    }
+                    {
+                        // include menu text for new item
+                        view === 'add' ? <li><span>{`New ${getModelLabel(model)}`}</span></li> : ''
+                    }
+                    {
+                        // include menu text for new item
+                        filterPath() === '/' ? <li><span>{'Home'}</span></li> : ''
+                    }
+                </ul>
+            </div>
         </nav>
     )
 }

@@ -44,6 +44,9 @@ export const getNode = async (id) => {
                     && res.rows.length > 0 ? res.rows[0] : null;
             });
 
+        // check that node exists
+        if (!node) throw new Error('notFound');
+
         // append model data and dependents (child nodes)
         node.data = await selectByNode(node);
         node.dependents = await getDependentNodes(node.id);

@@ -9,7 +9,7 @@ import React from "react";
 
 const NotfoundError = () => {
     return (
-        <div className="page-content">
+        <div>
             <p>The requested page was not found.</p>
         </div>
     );

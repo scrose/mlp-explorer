@@ -22,10 +22,20 @@ const Navigator = () => {
     // initialize navigation view
     const [navView, setNavView] = React.useState('tree');
 
+    // menu visibility state
+    const [menuToggle, setMenuToggle] = React.useState(false);
+
     return (
         <div className={'navigator'}>
-            <MenuNavigator view={navView} set={setNavView} />
-            {navView === 'tree' ? <TreeNavigator/> : <MapNavigator/>}
+            <MenuNavigator
+                view={navView}
+                set={setNavView}
+                toggle={menuToggle}
+                setToggle={setMenuToggle}
+            />
+            {navView === 'tree'
+                ? <TreeNavigator setMenu={setMenuToggle} />
+                : <MapNavigator/>}
         </div>
     )
 }
