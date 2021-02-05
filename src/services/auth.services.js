@@ -228,31 +228,26 @@ export const refresh = async (token) => {
 /**
  * Authorize user access based on permissions set for user role.
  *
- * @param req
- * @param res
- * @param {Function} next
+ * @param access_token
  * @param {Array} allowedRoles
  * @src public
  */
 
-export const authorize = async (req, res, next, allowedRoles) => {
+export const authorize = async (access_token, allowedRoles) => {
 
     // authorize all for 'visitor' restrictions
-    if ( allowedRoles.includes('visitor') ) {
-        return next();
-    }
-
-    // get access token from cookie
-    const { access_token=null } = req.signedCookies || [];
+    if ( allowedRoles.includes('visitor') ) return
 
     // check if token exists
-    if (!access_token) return next(new Error('noToken'));
+    if (!access_token)
+        throw new Error('noToken');
 
     // verify token
     const decoded = jwt.decode(access_token);
 
     // reject invalid user data
-    if (!decoded) next(new Error('restricted'));
+    if (!decoded)
+        throw new Error('invalidToken');
 
     // get current user role and check authorization
     const {roles=[]} = decoded.resource_access[settings.clientId];
@@ -263,13 +258,12 @@ export const authorize = async (req, res, next, allowedRoles) => {
         throw new Error('restricted');
 
     // compose user data
-    req.user = {
+    return {
         email: decoded.email,
         role: roles,
         label: roles
     }
 
-    next();
 }
 
 /**

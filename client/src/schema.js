@@ -37,6 +37,10 @@ export const schema = {
             name: 'unavailable',
             label: 'Unavailable'
         },
+        '/server_error': {
+            name: 'serverError',
+            label: 'Server Error'
+        },
         '/nodes': {
             redirect: '/not_found'
         },

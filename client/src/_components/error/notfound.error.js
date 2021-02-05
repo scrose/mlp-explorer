@@ -1,6 +1,6 @@
 /*!
  * MLP.Client.Components.Error.Notfound
- * File: notfound.js
+ * File: notfound.error.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */

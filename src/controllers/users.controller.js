@@ -10,7 +10,6 @@
  * @private
  */
 
-import * as db from '../services/index.services.js';
 import * as auth from '../services/auth.services.js';
 import valid from '../lib/validate.utils.js';
 import { prepare } from '../lib/api.utils.js';
@@ -24,29 +23,8 @@ import { prepare } from '../lib/api.utils.js';
  * @src public
  */
 
-let User, roles;
-
 export const init = async (req, res, next) => {
-
-    // initialize users database
-    await db.users
-        .init([
-                process.env.API_USER,
-                process.env.API_EMAIL,
-                process.env.API_HASH,
-                process.env.API_SALT])
-        .catch((err) => next(err));
-
-    // generate user model
-    User = await db.model.create('users')
-        .catch(err => next(err));
-
-    // retrieve user roles
-    roles = await db.users.getRoles()
-        .catch(err => {return next(err)});
-    if (!roles) throw new Error();
-
-    next();
+    return next();
 };
 
 /**

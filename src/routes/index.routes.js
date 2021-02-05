@@ -42,23 +42,34 @@ async function initRoutes(routes, baseRouter) {
     // add API endpoints
     Object.entries(routes.routes).forEach(([view, route]) => {
         router.route(route.path)
-            .all(function(req, res, next) {
-                // initialize controller
-                routes.controller.init(req, res, next);
-            })
             .all(async (req, res, next) => {
+                try {
 
-                // get permissions settings (allowed user roles) for model, view
-                const allowedRoles = getPermissions({
-                    permissions: permissions,
-                    model: routes.model,
-                    view: view,
-                    id: req.params.hasOwnProperty(routes.key) ? req.params[routes.key] : null,
-                });
+                    // initialize controller
+                    await routes.controller.init(req, res, next)
+                        .catch(err => {
+                            throw err;
+                        });
 
-                // authorize user access based on role permissions
-                await auth.authorize(req, res, next, allowedRoles);
+                    // get permissions settings (allowed user roles) for model, view
+                    const allowedRoles = getPermissions({
+                        permissions: permissions,
+                        model: routes.model,
+                        view: view,
+                        id: req.params.hasOwnProperty(routes.key) ? req.params[routes.key] : null,
+                    });
 
+                    // authorize user access based on role permissions
+                    const { access_token=null } = req.signedCookies || [];
+                    req.user = await auth.authorize(access_token, allowedRoles)
+                        .catch(err => {
+                            throw err;
+                        });
+
+                }
+                catch (err) {
+                    return next(err);
+                }
             })
             .get(function(req, res, next) {
                 if (!route.get)

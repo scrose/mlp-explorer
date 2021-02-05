@@ -62,7 +62,7 @@ div#root {
     display:inline-block;
     height: 85vh;
     min-width: 350px;
-    background-color: ivory;
+    background-color: #FFFFFF;
     overflow: auto;
     text-align: center;
 }
@@ -71,7 +71,7 @@ div#root {
     padding-top: 40px;
     display:inline-block;
     width: 100%;
-    background-color: ivory;
+    background-color: #FFFFFF;
 }
 
 .tree ul {
@@ -103,7 +103,7 @@ div.main {
     display:inline-block;
     height: 85vh;
     vertical-align: top;
-    background-color: ivory;
+    background-color: #FFFFFF;
     overflow: auto;
     padding: 0px 10px 40px 10px;
 }
@@ -111,7 +111,7 @@ div.main {
 .viewer .header, .editor .header {
     position: fixed;
     width: 100%;
-    background-color: ivory;
+    background-color: #FFFFFF;
     color: #282c34;
     clear: both;
 }
@@ -235,7 +235,7 @@ Main Navigation Menu
 
 .navbar nav.main div ul li a {
     text-decoration: none;
-    color: ivory;
+    color: #FFFFFF;
     font-size: small;
     text-transform: uppercase;
     display: block;
@@ -246,7 +246,7 @@ Main Navigation Menu
 }
 
 .navbar nav.main div ul li a:hover {
-    color: ivory;
+    color: #FFFFFF;
     background-color: #0D698B;
     opacity: 0.9;
 }
@@ -301,7 +301,7 @@ Menus
 
 .navbar nav.user div ul li a {
     text-decoration: none;
-    color: ivory;
+    color: #FFFFFF;
     font-size: small;
     text-transform: uppercase;
     display: block;
@@ -312,19 +312,19 @@ Menus
 }
 
 .navbar nav.user div ul li a:hover {
-    color: ivory;
+    color: #FFFFFF;
     background-color: #0D698B;
     opacity: 0.9;
 }
 
 .navbar nav.user div ul li button {
-    color: ivory;
+    color: #FFFFFF;
     background-color: #0D698B !important;
 }
 
 .navbar nav.user div ul li button:hover {
     color: #050533;
-    background-color: ivory !important;
+    background-color: #FFFFFF !important;
 }
 
 
@@ -338,7 +338,7 @@ nav.breadcrumb ul {
     margin:0;
     list-style: none;
     background-color: #E34234;
-    color: ivory;
+    color: #FFFFFF;
 }
 
 /* Display list items side by side */
@@ -356,13 +356,13 @@ nav.breadcrumb ul li+li:before {
 
 /* Add a color to all links inside the list */
 nav.breadcrumb ul li a {
-    color: ivory;
+    color: #FFFFFF;
     text-decoration: none;
 }
 
 /* Add a color on mouse-over */
 nav.breadcrumb ul li a:hover {
-    color: ivory;
+    color: #FFFFFF;
     text-decoration: underline;
 }
 
@@ -472,7 +472,7 @@ nav.breadcrumb ul li a:hover {
 }
 
 .editor-tools.h-menu ul li button:hover {
-    background-color: ivory;
+    background-color: #FFFFFF;
     color: #E34234;
 }
 
@@ -497,18 +497,18 @@ nav.breadcrumb ul li a:hover {
 
 .navigator .v-menu ul li button {
     background-color: #050533;
-    color: ivory;
+    color: #FFFFFF;
     border: 2px solid #EEE;
 }
 
 .navigator .v-menu ul li button.active {
     background-color: #E34234;
-    color: ivory;
+    color: #FFFFFF;
 }
 
 .navigator .v-menu ul li button:hover {
     color: #050533;
-    background-color: ivory !important;
+    background-color: #FFFFFF !important;
 }
 
 /* Tree Node Menu */
@@ -534,17 +534,17 @@ nav.breadcrumb ul li a:hover {
 .tree-node .h-menu ul li button {
     flex-wrap: nowrap;
     background-color: #0D698B;
-    color: ivory;
+    color: #FFFFFF;
 }
 
 .tree-node .h-menu ul li button.active {
     background-color: #E34234;
-    color: ivory;
+    color: #FFFFFF;
 }
 
 .tree-node .h-menu ul li button:hover {
     background-color: #E34234 !important;
-    color: ivory;
+    color: #FFFFFF;
 }
 
 .tree-node .h-menu ul li button.tree-node-label {
@@ -593,7 +593,7 @@ nav.breadcrumb ul li a:hover {
 /* Create an active/current tablink class */
 .tab.h-menu ul li button.active {
     background-color: #E34234;
-    color: ivory;
+    color: #FFFFFF;
 }
 
 /* Style the tab content */
@@ -606,7 +606,7 @@ nav.breadcrumb ul li a:hover {
 /* Accordion List Menu */
 
 .accordion .h-menu {
-    background-color: #E8EEF1;
+    background-color: #D0E4F5;
     margin-top:10px;
     padding: 6px 12px;
     border-top: none;
@@ -668,7 +668,7 @@ nav.breadcrumb ul li a:hover {
     text-align: center;
     font-size: small;
     padding: 8px;
-    color: ivory;
+    color: #FFFFFF;
     background-color: #282c34;
 }
 
@@ -680,14 +680,14 @@ nav.breadcrumb ul li a:hover {
 /* multiple items list */
 
 table.items {
-    border: 1px solid ivory;
+    border: 1px solid #FFFFFF;
     width: 100%;
     text-align: left;
     border-collapse: collapse;
     color: #444;
 }
 table.items td, table.items th {
-    border: 1px solid ivory;
+    border: 1px solid #FFFFFF;
     padding: 3px 2px;
     margin:0;
 }
@@ -699,14 +699,14 @@ table.items tr:nth-child(even) {
 }
 table.items thead {
     background: #0D698B;
-    border-bottom: 5px solid ivory;
+    border-bottom: 5px solid #FFFFFF;
 }
 table.items thead th {
     font-size: small;
     font-weight: bold;
-    color: ivory;
+    color: #FFFFFF;
     text-align: center;
-    border-left: 2px solid ivory;
+    border-left: 2px solid #FFFFFF;
 }
 table.items thead th:first-child {
     border-left: none;
@@ -716,7 +716,7 @@ table.items tfoot {
     font-size: small;
     font-weight: bold;
     color: #282c34;
-    background: #D0E4F5;
+    background: #FFFFFF;
     border-top: 3px solid #282c34;
 }
 table.items tfoot td {
@@ -744,33 +744,33 @@ table.item tbody td {
 
 table.item thead {
     background: lightslategray;
-    border-bottom: 5px solid ivory;
+    border-bottom: 5px solid #FFFFFF;
 }
 
 table.item thead th {
     background: lightslategray;
     font-size: small;
     font-weight: bold;
-    color: ivory;
+    color: #FFFFFF;
     text-align: center;
-    border-left: 2px solid ivory;
+    border-left: 2px solid #FFFFFF;
 }
 
 table.item tbody th {
     width: 25%;
-    background: ivory;
+    background: #FFFFFF;
     font-size: small;
     font-weight: bold;
     color: #282c34;
     text-align: left;
-    border-left: 2px solid ivory;
+    border-left: 2px solid #FFFFFF;
 }
 
 table.item tfoot {
     font-size: small;
     font-weight: bold;
     color: #282c34;
-    background: ivory;
+    background: #FFFFFF;
     border-top: 3px solid #282c34;
 }
 
@@ -802,7 +802,7 @@ Forms
 
 /* Add a background color and some padding around the form */
 .form.container {
-    background-color: ivory;
+    background-color: #FFFFFF;
     padding: 20px;
 }
 
@@ -933,7 +933,7 @@ input[type=submit]:hover {
 /* Style disabled submit button */
 input[type=submit].disabled, input[type=submit].disabled:hover {
     background-color: #999999;
-    color: ivory;
+    color: #FFFFFF;
     cursor: default;
 }
 
@@ -1046,7 +1046,7 @@ Messages
     bottom: 25%;
     margin: auto;
     border-radius: 20px;
-    background: ivory;
+    background: #FFFFFF;
 }
 .dialog .alert-box-content {
     padding: 10px;
@@ -1066,10 +1066,22 @@ Messages
 
 .alert-box-buttons button {
     background-color: #0D698B !important;
-    color: ivory !important;
+    color: #FFFFFF !important;
 }
 
 .alert-box-buttons button:hover {
     background-color: #050533 !important;
-    color: ivory !important;
+    color: #FFFFFF !important;
+}
+
+/* Maintenance Mode */
+
+.maintenance {
+    color: #E34234;
+    background-color: #FFFFFF;
+    border: 2px solid #E34234;
+    width: 60%;
+    text-align: center;
+    margin: 20% auto;
+    padding: 20px;
 }

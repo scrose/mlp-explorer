@@ -12,7 +12,7 @@
  * @private
  */
 
-import pool from './pgdb.js';
+import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
 import { groupBy, humanize } from '../lib/data.utils.js';
 import { sanitize } from '../lib/data.utils.js';
@@ -22,23 +22,29 @@ import { sanitize } from '../lib/data.utils.js';
  * wrapper to serve table information about a model.
  *
  * @public
- * @return {Promise} result
+ * @param {String} constructorType
+ * @return {Object} constructor
  */
 
-export const create = async (modelType) => {
+export const create = async (constructorType) => {
+
+    // initialize db schema attributes
     const nodeTypes = await getNodeTypes();
     const fileTypes = await getFileTypes();
     const permissions = await getPermissions();
-    const attributes = await getModelAttributes(modelType);
+    const attributes = await getModelAttributes(constructorType);
 
-    // check model definition in db. The 'nodes' model includes all
+    // check type definition in db. The 'nodes' model includes all
     // data containers (e.g. historic visits); the 'files'
     // model handles all nodes attached to files in the library
     // (e.g. historic images).
-
-    if (!(nodeTypes.includes(modelType) || fileTypes.includes(modelType)
-        || modelType === 'nodes' || modelType === 'files'))
-        throw Error('modelNotDefined');
+    if (
+        !(nodeTypes.includes(constructorType)
+            || fileTypes.includes(constructorType)
+            || constructorType === 'nodes'
+            || constructorType === 'files')
+    )
+        throw Error('invalidConstructorType');
 
     // set identifier key based on model attributes.
     const idKey =
@@ -50,7 +56,7 @@ export const create = async (modelType) => {
 
     // construct schema for model type
     let Schema = function() {
-        this.model = modelType;
+        this.model = constructorType;
     };
 
     // define model properties
@@ -80,15 +86,6 @@ export const create = async (modelType) => {
             },
             writable: false
         },
-        getFile: {
-            value: function() {
-                const file = Object.keys(this.attributes)
-                    .find(key => key === 'files_id'
-                        && this.attributes[key].ref);
-                return file == null ? null : this.attributes[file];
-            },
-            writable: false
-        },
         getOwner: {
             value: function() {
                 const owner = Object.keys(this.attributes)
@@ -106,15 +103,6 @@ export const create = async (modelType) => {
                 }
             }
         },
-        getAttachedFiles: {
-            value: function() {
-                const attached = Object.keys(this.attributes)
-                    .filter(key => this.attributes[key].ref
-                        && this.attributes[key].ref !== 'nodes')
-                return attached.length === 0 ? null : attached;
-            },
-            writable: false
-        },
         getAttached: {
             value: function() {
                 const attached = Object.keys(this.attributes)
@@ -125,9 +113,9 @@ export const create = async (modelType) => {
             writable: false
         },
         permissions: {
-            value: permissions[modelType],
+            value: permissions[constructorType],
             writable: false
-        },
+        }
     });
     return Schema;
 };
@@ -140,7 +128,7 @@ export const create = async (modelType) => {
  */
 
 export const getNodeTypes = async function() {
-    let { sql, data } = queries.nodes.getNodeTypes();
+    let { sql, data } = queries.nodes.types();
     let nodeTypes = await pool.query(sql, data);
 
     // return only model type names as list
@@ -155,39 +143,11 @@ export const getNodeTypes = async function() {
  */
 
 export const getFileTypes = async function() {
-    let { sql, data } = queries.nodes.getFileTypes();
+    let { sql, data } = queries.files.types();
     let fileTypes = await pool.query(sql, data);
 
     // return only model type names as list
     return fileTypes.rows.map(fileType => { return fileType.name });
-};
-
-/**
- * Get file record by ID. NOTE: returns single object.
- *
- * @public
- * @param {integer} id
- * @return {Promise} result
- */
-
-export const getFile = async function(id) {
-    let { sql, data } = queries.nodes.getFile(id);
-    let file = await pool.query(sql, data);
-    return file.rows[0];
-};
-
-/**
- * Get file records attached to node.
- *
- * @public
- * @param {integer} owner_id
- * @return {Promise} result
- */
-
-export const getAttachedFiles = async function(owner_id) {
-    let { sql, data } = queries.nodes.getAttachedFiles(owner_id);
-    let res = await pool.query(sql, data);
-    return res.rows;
 };
 
 /**
@@ -198,12 +158,13 @@ export const getAttachedFiles = async function(owner_id) {
  * @return {Promise} result
  */
 
+
 export const getModelAttributes = async function(modelType) {
 
     if (modelType == null) return null;
 
     // get model attributes (table columns)
-    let {sql, data} = queries.nodes.getColumns(modelType);
+    //let {sql, data} = queries.schema.getColumns(modelType);
     const attrs = await pool.query(sql, data);
 
     // no attributes found
@@ -234,7 +195,7 @@ export const getModelAttributes = async function(modelType) {
 
 export const getPermissions = async function() {
 
-    let { sql, data } = queries.nodes.getPermissions();
+    let { sql, data } = queries.users.getPermissions();
     let permissions = await pool.query(sql, data);
 
     // group permissions by model

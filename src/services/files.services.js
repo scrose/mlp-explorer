@@ -17,127 +17,129 @@ import fs from 'fs';
 import sharp from 'sharp';
 import util from 'util';
 import path from 'path';
+import pool from './db.services.js';
 import { Transform, PassThrough, Writable, Duplex } from 'stream';
 import { getFilename } from '../lib/file.utils.js';
 import { imageSizes } from '../../config.js';
 import { genUUID } from '../lib/data.utils.js';
+import queries from '../queries/index.queries.js';
 
 
 /**
- * Export database files services constructor
+ * Upload multiple image files.
  *
- * @public
+ * @param {Request} req
+ * @param {Array} fileList
+ * @return {Object} output file data
+ * @src public
  */
 
-export default function FileServices() {
+export const uploadImages = async function (req, fileList) {
 
-    /**
-     * Upload multiple image files.
-     *
-     * @param {Request} req
-     * @param {Array} fileList
-     * @return {Object} output file data
-     * @src public
-     */
+    if (!fileList) return null;
 
-    this.uploadImages = async function (req, fileList) {
+    const outDir = process.env.LIBRARY_DIR;
+    const inFiles = fileList;
+    let outFiles = [];
+    console.log('Files to upload:', fileList);
 
-        if (!fileList) return null;
+    try {
+        const uploadFiles = async () => {
+            return Promise.all(
+                inFiles.map(inFilepath => {
+                    // upload original file to library
+                    const rawFilepath = path.join(outDir, 'raw', getFilename(inFilepath));
+                    this.uploadFile(req, inFilepath, rawFilepath);
 
-        const outDir = process.env.LIBRARY_DIR;
-        const inFiles = fileList;
-        let outFiles = [];
-        console.log('Files to upload:', fileList);
+                    // generate unique filename token
+                    const imgToken = genUUID();
 
-        try {
-            const uploadFiles = async () => {
-                return Promise.all(
-                    inFiles.map(inFilepath => {
-                        // upload original file to library
-                        const rawFilepath = path.join(outDir, 'raw', getFilename(inFilepath));
-                        this.uploadFile(req, inFilepath, rawFilepath);
+                    // copy thumbnail-sized version to library
+                    const thumbFilepath = path.join(outDir, 'versions', `thumb_${imgToken}.jpg`);
+                    this.uploadFile(req, inFilepath, thumbFilepath, imageSizes.thumb);
 
-                        // generate unique filename token
-                        const imgToken = genUUID();
+                    // copy medium-sized version to library
+                    const medFilepath = path.join(outDir, 'versions', `medium_${imgToken}.jpg`);
+                    this.uploadFile(req, inFilepath, medFilepath, imageSizes.medium);
 
-                        // copy thumbnail-sized version to library
-                        const thumbFilepath = path.join(outDir, 'versions', `thumb_${imgToken}.jpg`);
-                        this.uploadFile(req, inFilepath, thumbFilepath, imageSizes.thumb);
+                    // record generated file paths
+                    outFiles.push({
+                        raw: rawFilepath,
+                        thumb: thumbFilepath,
+                        medium: medFilepath,
+                    });
 
-                        // copy medium-sized version to library
-                        const medFilepath = path.join(outDir, 'versions', `medium_${imgToken}.jpg`);
-                        this.uploadFile(req, inFilepath, medFilepath, imageSizes.medium);
-
-                        // record generated file paths
-                        outFiles.push({
-                            raw: rawFilepath,
-                            thumb: thumbFilepath,
-                            medium: medFilepath,
-                        });
-
-                    }));
-            };
-            await uploadFiles()
-                .then(_ => {
-                    console.log(`Uploaded items ${outFiles}.`);
-                })
-                .catch(err => {throw err;});
-            return outFiles;
-        } catch (err) {throw err;}
-    };
+                }));
+        };
+        await uploadFiles()
+            .then(_ => {
+                console.log(`Uploaded items ${outFiles}.`);
+            })
+            .catch(err => {throw err;});
+        return outFiles;
+    } catch (err) {throw err;}
+};
 
 
-    /**
-     * Uploads file to library.
-     *
-     * @param {Request} req
-     * @param {String} inFilepath
-     * @param {String} outFilepath
-     * @param {Object} downsample
-     * @src public
-     */
+/**
+ * Uploads file to library.
+ *
+ * @param {Request} req
+ * @param {String} inFilepath
+ * @param {String} outFilepath
+ * @param {Object} downsample
+ * @src public
+ */
 
-    this.uploadFile = async function(req, inFilepath, outFilepath, downsample = null) {
+export const uploadFile = async function(req, inFilepath, outFilepath, downsample = null) {
 
-        // input stream
-        let inStream = fs.createReadStream(inFilepath);
+    // input stream
+    let inStream = fs.createReadStream(inFilepath);
 
-        // if client cancels the upload: forward upstream as an error.
-        req.on('aborted', function() {
-            inStream.emit('error', new Error('Upload aborted.'));
-        });
+    // if client cancels the upload: forward upstream as an error.
+    req.on('aborted', function() {
+        inStream.emit('error', new Error('Upload aborted.'));
+    });
 
-        // output stream
-        let outStream = fs.createWriteStream(outFilepath, { flags: 'w' });
+    // output stream
+    let outStream = fs.createWriteStream(outFilepath, { flags: 'w' });
 
-        // on error of output file being saved
-        outStream.on('error', function() {
-            console.error('Error');
-        });
+    // on error of output file being saved
+    outStream.on('error', function() {
+        console.error('Error');
+    });
 
-        // on success of output file being saved
-        outStream.on('close', function() {
-            console.log('Successfully saved file');
-        });
+    // on success of output file being saved
+    outStream.on('close', function() {
+        console.log('Successfully saved file');
+    });
 
-        // Read image data from readableStream, resize using Sharp and
-        // emit an 'info' event with calculated dimensions. Finally write
-        // image data to writableStream
-        let transformer = downsample
-            ? sharp()
-                .resize(downsample.width)
-                .on('info', function(info) {
-                    console.log('Image height is ' + info.height);
-                })
-            : new PassThrough();
+    // Read image data from readableStream, resize using Sharp and
+    // emit an 'info' event with calculated dimensions. Finally write
+    // image data to writableStream
+    let transformer = downsample
+        ? sharp()
+            .resize(downsample.width)
+            .on('info', function(info) {
+                console.log('Image height is ' + info.height);
+            })
+        : new PassThrough();
 
-        // create pipeline to pipe between streams and generators
-        const pipeline = util.promisify(stream.pipeline);
-        return await pipeline(inStream, transformer, outStream);
-    }
+    // create pipeline to pipe between streams and generators
+    const pipeline = util.promisify(stream.pipeline);
+    return await pipeline(inStream, transformer, outStream);
 }
 
-// Create a new transform stream class that can validate files.
+/**
+ * Create a new transform stream class that can validate files.
+ *
+ * @param {Request} req
+ * @param {String} inFilepath
+ * @param {String} outFilepath
+ * @param {Object} downsample
+ * @src public
+ */
+
 class FileValidator extends Transform {
     constructor(options) {
         super(options.streamOptions);
@@ -167,3 +169,30 @@ class FileValidator extends Transform {
     }
 }
 
+/**
+ * Get file record by ID. NOTE: returns single object.
+ *
+ * @public
+ * @param {integer} id
+ * @return {Promise} result
+ */
+
+export const select = async function(id) {
+    let { sql, data } = queries.files.select(id);
+    let file = await pool.query(sql, data);
+    return file.rows[0];
+};
+
+/**
+ * Get file records attached by owner ID.
+ *
+ * @public
+ * @param {integer} owner_id
+ * @return {Promise} result
+ */
+
+export const selectByOwner = async function(owner_id) {
+    let { sql, data } = queries.files.selectByOwner(owner_id);
+    let res = await pool.query(sql, data);
+    return res.rows;
+};

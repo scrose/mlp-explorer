@@ -1,5 +1,5 @@
 /*!
- * MLP.API.Services.Database
+ * MLP.API.Services.PostGresDB
  * File: db.services.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
@@ -8,222 +8,43 @@
 'use strict';
 
 /**
- * Module dependencies.
- * @private
- */
-
-import pool from './pgdb.js';
-import queries from '../queries/index.queries.js';
-import { createNode } from './model.services.js';
-
-/**
- * Export database model services constructor
+ * Initialize connection pool / client
  *
  * @public
- * @param {Object} model
- * @return {Promise} result
  */
 
-export default function DBServices(model) {
+import pg from 'pg';
+import dotenv from 'dotenv';
+dotenv.config()
 
-    this.model = model;
-    this.queries = {};
+/**
+ * Create client pool to allow for reusable pool of
+ * clients to check out, use, and return.
+ */
 
-    // initialize query strings for specified model
-    try {
-        // prepare default queries
-        Object.keys(queries.defaults)
-            .map(key => {
-                this.queries[key] = queries.defaults[key](model)
-            });
+const pgPool = new pg.Pool({
+  user: process.env.DB_USER,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASS,
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  max: 10, // max number of clients in the pool
+  idleTimeoutMillis: 30000,
+});
 
-        // override defaults with any model-specific queries
-        Object.keys(queries)
-            .filter(key => key === model.name)
-            .map(qKey => {
-                Object.keys(queries[qKey])
-                    .map(key => this.queries[key] = queries[qKey][key](model) )
-            })
 
-    } catch (err) {
-        throw err;
-    }
+/**
+ * Pool will emit an error on behalf of any idle clients
+ * it contains if a backend error or network partition
+ * happens.
+ */
+pgPool.on('error', (err, client) => {
+  console.error('Unexpected error on idle client', err, client);
+  process.exit(-1);
+});
 
-    /**
-     * Initialize table. (no transaction)
-     *
-     * @public
-     * @param {Object} data
-     * @return {Promise} result
-     */
+/**
+ * Export pg-pool object instance.
+ */
 
-    this.init = async function() {
-        let { sql, data } = this.queries.init();
-        await pool.query(sql, data);
-    };
-
-    /**
-     * Find all records in table. (no transaction)
-     *
-     * @public
-     * @return {Promise} result
-     */
-
-    this.getAll = async function() {
-        let { sql, data } = this.queries.getAll();
-        return await pool.query(sql, data)
-            .then(res => {
-                return res.rows
-            });
-    };
-
-    /**
-     * Find record by ID.
-     *
-     * @public
-     * @param {String} id
-     * @return {Promise} result
-     */
-
-    this.select = async function(id) {
-        this.model.setId(id);
-        const stmts = {
-            node: null,
-            model: this.queries.select,
-            attached: []
-        };
-
-        // execute transaction
-        return await this.transact(this.model, stmts)
-            .then(res => {
-                return res.hasOwnProperty('rows')
-                        && res.rows.length > 0 ? res.rows[0] : null;
-        });
-    };
-
-    /**
-     * Insert record into table. (Uses transaction).
-     *
-     * @public
-     * @param {Array} data
-     * @return {Promise} result
-     */
-
-    this.insert = async function(item) {
-        let stmts = {
-            node: this.queries.insertNode,
-            model: this.queries.insert,
-            attached: []
-        };
-
-        // execute transaction
-        return await this.transact(item, stmts)
-            .then(res => {
-                return res.hasOwnProperty('rows')
-                && res.rows.length > 0 ? res.rows[0] : null;
-            });
-    };
-
-    /**
-     * Update data in existing record.
-     *
-     * @public
-     * @param {Array} data
-     * @return {Promise} result
-     */
-
-    this.update = async function(item) {
-        let stmts = {
-            node: this.queries.updateNode,
-            model: this.queries.update,
-            attached: []
-        };
-
-        // execute transaction
-        return await this.transact(item, stmts)
-            .then(res => {
-                return res.hasOwnProperty('rows')
-                && res.rows.length > 0 ? res.rows[0] : null;
-            });
-    };
-
-    /**
-     * Remove record.
-     *
-     * @public
-     * @param {String} id
-     * @return {Promise} result
-     */
-
-    this.remove = async function(item) {
-        let stmts = {
-            node: this.queries.removeNode,
-            model: this.queries.remove,
-            attached: []
-        };
-
-        // execute transaction
-        return await this.transact(item, stmts)
-            .then(res => {
-                return res.hasOwnProperty('rows')
-                && res.rows.length > 0 ? res.rows[0] : null;
-            });
-    };
-
-    /**
-     * Perform transaction query.
-     *
-     * @param {Object} item
-     * @param {Object} statements
-     * @return {Promise} db response
-     */
-
-    this.transact = async function(item, stmts) {
-
-        // NOTE: client undefined if connection fails.
-        const client = await pool.connect();
-
-        try {
-            // transaction result
-            let res;
-
-            await client.query('BEGIN');
-
-            // process node query (if provided)
-            if (stmts.node) {
-                // create node model from item reference
-                let node = await createNode(item);
-                // generate prepared statements collated with data
-                const {sql, data} = stmts.node(node);
-                res = await client.query(sql, data);
-
-                // update item with returned data for further processing
-                item.setId(res.rows[0].id);
-            }
-
-            // process primary model query (if exists)
-            // process node query (if provided)
-            if (stmts.model) {
-                const { sql, data } = stmts.model(item);
-                res = await client.query(sql, data)
-
-                // process supplemental statements (e.g. foreign key references)
-                res.attached = await Promise.all(stmts.attached.map(async (stmt) => {
-                    const val = item.getValue(item.name);
-                    const {sql, data} = stmt(item, val);
-                    return await client.query(sql, data);
-                }));
-            }
-
-            await client.query('COMMIT');
-
-            return res;
-
-        } catch (err) {
-            await client.query('ROLLBACK');
-            throw err;
-        } finally {
-            client.release();
-        }
-    };
-}
+export default pgPool;

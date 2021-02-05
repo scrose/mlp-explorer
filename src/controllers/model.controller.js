@@ -10,29 +10,33 @@
  * @private
  */
 
-import DBServices from '../services/db.services.js';
-import FileServices from '../services/files.services.js';
-import * as modelServices from '../services/model.services.js';
+import ModelServices from '../services/model.services.js';
+import * as cs from '../services/construct.services.js';
 import * as ns from '../services/nodes.services.js'
 import { prepare } from '../lib/api.utils.js';
 
 /**
- * Export controller constructor.
+ * Shared data.
  *
- * @param {String} model
  * @src public
  */
 
-let Model, model, db, filer;
+let Model, model, db;
 
-// generate controller constructor
+/**
+ * Export controller constructor.
+ *
+ * @param {String} modelRoute
+ * @src public
+ */
+
 export default function ModelController(modelRoute) {
 
     // check model not null
     if (!modelRoute) throw new Error('invalidModel');
 
     /**
-     * Initialize the controller.
+     * Initialize the controller: generate services for model
      *
      * @param req
      * @param res
@@ -40,27 +44,10 @@ export default function ModelController(modelRoute) {
      * @src public
      */
 
-    this.init = async (req, res, next) => {
-
-        // generate model constructor
-        Model = await modelServices
-            .create(modelRoute)
-            .catch(err => {
-                return next(err);
-            });
-
-        // generate services for model
-        try {
-            model = new Model();
-            db = new DBServices(new Model());
-            filer = new FileServices();
-        }
-        catch (err) {
-            console.error('Model services generator error.')
-            return next(err);
-        }
-        return next();
-    };
+    this.init = async () => {
+        Model = await cs.create(modelRoute);
+        db = new ModelServices(new Model());
+    }
 
     /**
      * Get model id value from request parameters. Note: use model
@@ -92,7 +79,7 @@ export default function ModelController(modelRoute) {
             .then(data => {
                 res.status(200).json(
                     prepare({
-                        view: 'listNodes',
+                        view: 'list',
                         model: model,
                         data: data,
                         path: model
@@ -120,17 +107,18 @@ export default function ModelController(modelRoute) {
 
             // get record data for node
             const data = await db.select(id);
-            const node = await ns.getNode(id);
             const item = new Model(data);
 
             // get path of node in hierarchy
+            const node = await ns.get(id);
             const path = await ns.getNodePath(node);
 
             // node not in database
-            if (!data || !node ) throw new Error('notFound');
+            if (!data || !node )
+                return next(new Error('notFound'));
 
             // get linked data referenced in node tree
-            await ns.getModelDependents(item)
+            return await ns.getModelDependents(item)
                 .then(dependents => {
 
                     // append dependent nodes to data
@@ -170,7 +158,7 @@ export default function ModelController(modelRoute) {
             : new Model();
 
         // get path of node in hierarchy
-        const owner = await ns.getNode(owner_id);
+        const owner = await ns.get(owner_id);
         const path = await ns.getNodePath(owner) || {};
 
         try {
@@ -209,7 +197,7 @@ export default function ModelController(modelRoute) {
 
             // get path of node in hierarchy
             const { nodes_id=null } = data || {};
-            const node = await ns.getNode(nodes_id);
+            const node = await ns.get(nodes_id);
             const path = await ns.getNodePath(node);
 
             res.status(200).json(
@@ -249,7 +237,7 @@ export default function ModelController(modelRoute) {
             let data = await db.select(id);
 
             // get path of node in hierarchy
-            const owner = await ns.getNode(id);
+            const owner = await ns.get(id);
             const path = await ns.getNodePath(owner) || {};
 
             // send form data response
@@ -285,7 +273,7 @@ export default function ModelController(modelRoute) {
 
             // get path of node in hierarchy
             const { nodes_id=null } = data || {};
-            const node = await ns.getNode(nodes_id);
+            const node = await ns.get(nodes_id);
             const path = await ns.getNodePath(node);
 
             res.status(200).json(
@@ -326,7 +314,7 @@ export default function ModelController(modelRoute) {
 
             // get path of owner node in hierarchy (if exists)
             const { owner_id=null } = data || {};
-            const node = await ns.getNode(owner_id);
+            const node = await ns.get(owner_id);
             const path = await ns.getNodePath(node);
 
             // delete item

@@ -11,8 +11,7 @@
  */
 
 import * as db from '../services/index.services.js';
-import DBServices from '../services/db.services.js';
-
+import ModelServices from '../services/model.services.js';
 
 /**
  * Export controller constructor.
@@ -46,20 +45,10 @@ export default function FilesController(modelType) {
     this.init = async (req, res, next) => {
 
         // generate model constructor
-        Model = await db.model.create(modelType)
-            .catch((err) => next(err));
+        Model = await db.model.create(modelType);
+        model = new Model();
+        services = new ModelServices(new Model());
 
-        // generate db services for model
-        try {
-            model = new Model();
-            services = new DBServices(new Model());
-            // console.log('\n\n\n===SERVICES===\n\n\n', services, '\n\n\n===SERVICES===\n\n\n')
-        }
-        catch (err) {
-            next(err);
-        }
-
-        next();
     };
 
 

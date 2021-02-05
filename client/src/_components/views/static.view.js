@@ -12,6 +12,7 @@ import LoginUsers from '../users/login.users';
 import LogoutUsers from '../users/logout.users';
 import NotfoundError from '../error/notfound.error';
 import UnavailableError from '../error/unavailable.error';
+import ServerError from '../error/server.error';
 
 /**
  * Build requested static page view.
@@ -29,6 +30,7 @@ const StaticView = ({ type }) => {
         "login": () => <LoginUsers />,
         "logout": () => <LogoutUsers />,
         'notFound': () => <NotfoundError />,
+        'serverError': () => <ServerError />,
         'unavailable': () => <UnavailableError />
     }
 

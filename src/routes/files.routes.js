@@ -10,10 +10,9 @@
  * Module dependencies
  */
 
-import FilesController from '../controllers/files.controller.js'
-import * as schema from '../services/schema.services.js';
 import path from 'path';
-
+import FilesController from '../controllers/files.controller.js'
+import { getFileTypes } from '../services/schema.services.js';
 
 /**
  * Files routes constructor
@@ -77,7 +76,7 @@ function FilesRoutes(modelType) {
 
 export default async function generate() {
     let routes = [];
-    await schema.getFileTypes()
+    await getFileTypes()
         .then(fileTypes => {
             fileTypes.map(fileType => {
                 // add routes instance to array

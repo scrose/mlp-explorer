@@ -14,6 +14,7 @@ import ListUsers from '../users/list.users';
 import ListNodes from '../nodes/list.nodes';
 import NotfoundError from '../error/notfound.error';
 import Loading from '../common/loading';
+import ServerError from '../error/server.error';
 
 /**
  * Build requested data view from API data.
@@ -71,7 +72,8 @@ const DataView = ({
                 data={data || []}
                 model={model}
             />),
-        notFound: () => <NotfoundError />
+        notFound: () => <NotfoundError />,
+        serverError: () => <ServerError />
     }
 
     console.log('Render:', render)

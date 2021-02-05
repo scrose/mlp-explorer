@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Services.Nodes
- * File: db.services.js
+ * File: nodes.services.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -12,9 +12,10 @@
  * @private
  */
 
-import pool from './pgdb.js';
+import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
 import { mapToObj } from '../lib/data.utils.js';
+import * as fs from './files.services.js';
 
 /**
  * Get node by ID. Returns single node object.
@@ -24,7 +25,7 @@ import { mapToObj } from '../lib/data.utils.js';
  * @return {Promise} result
  */
 
-export const getNode = async (id) => {
+export const get = async (id) => {
 
     if (!id) return null;
 
@@ -36,8 +37,8 @@ export const getNode = async (id) => {
         // start transaction
         await client.query('BEGIN');
 
-        // get requested node
-        let { sql, data } = queries.nodes.getNode(id);
+        // get requested node data
+        let { sql, data } = queries.nodes.select(id);
         let node = await pool.query(sql, data)
             .then(res => {
                 return res.hasOwnProperty('rows')
@@ -45,11 +46,12 @@ export const getNode = async (id) => {
             });
 
         // check that node exists
-        if (!node) throw new Error('notFound');
+        if (!node) return null;
 
-        // append model data and dependents (child nodes)
+        // append model data, files and dependents (child nodes)
         node.data = await selectByNode(node);
-        node.dependents = await getDependentNodes(node.id);
+        node.files = await fs.selectByOwner(id);
+        node.dependents = await selectByOwner(node.id);
 
         // end transaction
         await client.query('COMMIT');
@@ -57,10 +59,12 @@ export const getNode = async (id) => {
         // return nodes
         return node;
 
-    } catch (err) {
+    }
+    catch (err) {
         await client.query('ROLLBACK');
         throw err;
-    } finally {
+    }
+    finally {
         client.release();
     }
 };
@@ -73,7 +77,7 @@ export const getNode = async (id) => {
  * @return {Promise} result
  */
 
-export const getNodes = async function(model) {
+export const getAll = async function(model) {
 
     // NOTE: client undefined if connection fails.
     const client = await pool.connect();
@@ -84,13 +88,14 @@ export const getNodes = async function(model) {
         await client.query('BEGIN');
 
         // get all nodes for model
-        let { sql, data } = queries.nodes.getNodes(model);
+        let { sql, data } = queries.nodes.selectByModel(model);
         const { rows=[] } = await pool.query(sql, data) || {}
 
         // append model data and dependents (child nodes)
         let nodes = await Promise.all(rows.map(async (node) => {
             node.data = await selectByNode(node);
-            node.dependents = await getDependentNodes(node.id);
+            node.files = await fs.selectByOwner(node.id);
+            node.dependents = await selectByOwner(node.id);
             return node;
         }));
 
@@ -109,23 +114,6 @@ export const getNodes = async function(model) {
 };
 
 /**
- * Get model data by node reference. Returns single node object.
- *
- * @public
- * @param {Object} node
- * @return {Promise} result
- */
-
-export const selectByNode = async (node) => {
-    let { sql, data } = queries.defaults.selectByNode(node);
-    return await pool.query(sql, data)
-        .then(res => {
-            return res.hasOwnProperty('rows')
-            && res.rows.length > 0 ? res.rows[0] : null;
-        });
-};
-
-/**
  * Get referenced child node(s) by parent ID value.
  * Use within a client transaction.
  *
@@ -134,10 +122,10 @@ export const selectByNode = async (node) => {
  * @return {Promise} result
  */
 
-export const getDependentNodes = async (id) => {
+export const selectByOwner = async (id) => {
 
     // get dependent nodes for requested owner item
-    let { sql, data } = queries.defaults.getDependentNodes(id);
+    let { sql, data } = queries.nodes.selectByOwner(id);
     let dependents = await pool.query(sql, data)
         .then(res => {
             return res.rows
@@ -146,6 +134,7 @@ export const getDependentNodes = async (id) => {
     // append full data for each dependent node
     dependents = await Promise.all(dependents.map(async (node) => {
         node.data = await selectByNode(node);
+        node.files = await fs.selectByOwner(node.id);
         return node;
     }));
 
@@ -174,11 +163,11 @@ export const getModelDependents = async (item) => {
         await client.query('BEGIN');
 
         // get first-level full data for each dependent node
-        let dependents = await getDependentNodes(item.id);
+        let dependents = await selectByOwner(item.id);
 
         // append second-level full data for each sub-dependent node
         dependents = await Promise.all(dependents.map(async (node) => {
-            node.dependents = await getDependentNodes(node.id);
+            node.dependents = await selectByOwner(node.id);
             return node;
         }));
 
@@ -232,7 +221,7 @@ export const getNodePath = async (node) => {
         do {
             // get owner node
             if (owner_id) {
-                node = await getNode(owner_id);
+                node = await get(owner_id);
                 // append node data
                 node.data = owner_id ? await selectByNode(node) : {};
                 // set node path item
@@ -256,4 +245,21 @@ export const getNodePath = async (node) => {
     } finally {
         client.release();
     }
+};
+
+/**
+ * Get model data by node reference. Returns single node object.
+ *
+ * @public
+ * @param {Object} node
+ * @return {Promise} result
+ */
+
+export const selectByNode = async (node) => {
+    let { sql, data } = queries.model.selectByNode(node);
+    return pool.query(sql, data)
+        .then(res => {
+            return res.hasOwnProperty('rows')
+            && res.rows.length > 0 ? res.rows[0] : null;
+        });
 };

@@ -13,7 +13,7 @@
  */
 
 import * as queries from '../queries/sessions.queries.js'
-import pool from './pgdb.js';
+import pool from './db.services.js';
 
 
 /**

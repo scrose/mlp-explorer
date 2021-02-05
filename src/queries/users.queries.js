@@ -24,22 +24,6 @@ export function select(user_id) {
 }
 
 /**
- * Find user by email. Joined with user roles table.
- *
- * @param {String} email
- * @return {Function} SQL query function
- */
-
-export function selectByEmail(email) {
-    return {
-        sql: `SELECT *
-              FROM users
-              WHERE users.email = $1::varchar`,
-        data: [email],
-    };
-}
-
-/**
  * Find all registered users.
  *
  * @return {Function} SQL query function
@@ -224,4 +208,19 @@ export function removeRole(name) {
               WHERE name = $1::varchar RETURNING *`,
         data: [name],
     };
+}
+
+/**
+ * Query: Get user permissions settings.
+ *
+ * @return {Object} query binding
+ */
+
+export function getPermissions() {
+  return {
+    sql: `
+        SELECT *
+        FROM user_permissions`,
+    data: [],
+  };
 }

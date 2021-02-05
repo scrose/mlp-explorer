@@ -85,6 +85,9 @@ function RouterProvider(props) {
             },
             '403': () => {
                 return redirect('/login');
+            },
+            '500': () => {
+                return redirect('/server_error');
             }
         }
         return routes.hasOwnProperty(status) ? routes[status]() : response;
@@ -104,7 +107,7 @@ function RouterProvider(props) {
         const routes = {
             'add': () => {
                 addSessionMsg(res.message);
-                const redirectURL = getNodeURI(model.name, 'show', data.nodes_id) + '/?msg=true';
+                const redirectURL = getNodeURI(name, 'show', nodes_id) + '/?msg=true';
                 return redirect(redirectURL);
             }
         }

@@ -1,5 +1,5 @@
 /*!
- * MLP.API.Services.Construct.Model
+ * MLP.API.Services.Database
  * File: model.services.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
@@ -7,295 +7,213 @@
 
 'use strict';
 
-import { humanize, sanitize } from '../lib/data.utils.js';
-import * as schemaConstructor from './schema.services.js';
-import { getNode } from './nodes.services.js';
-
 /**
- * Create derived model through composition. The model schema
- * should have attributes that match the database table.
- *
- * @param {String} modelType
- * @src public
+ * Module dependencies.
+ * @private
  */
 
-export const create = async (modelType) => {
+import pool from './db.services.js';
+import queries from '../queries/index.queries.js';
+import { createNode } from './construct.services.js';
+import * as ns from '../queries/nodes.queries.js';
 
-    // generate schema for model type
-    let Schema = await schemaConstructor.create(modelType);
-    const schema = new Schema();
+/**
+ * Export database model services constructor
+ *
+ * @public
+ * @param {Object} model
+ * @return {Promise} result
+ */
 
-    // initialize model constructor
-    let Model = function(attributeValues) {
-        this.setData = setData;
-        this.setData(attributeValues);
+export default function ModelServices(model) {
+
+    this.model = model;
+    this.queries = {};
+
+    // initialize query strings for specified model
+    try {
+
+        // initialize default model queries
+        Object.keys(queries.model)
+            .map(key => {
+                this.queries[key] = queries.model[key](model)
+            })
+
+        // override defaults with any model-specific queries
+        Object.keys(queries)
+            .filter(key => key === model.name)
+            .map(qKey => {
+                Object.keys(queries[qKey])
+                    .map(key => this.queries[key] = queries[qKey][key](model) )
+            })
+
+    } catch (err) {
+        throw err;
+    }
+
+    /**
+     * Initialize table. (no transaction)
+     *
+     * @public
+     * @param {Object} data
+     * @return {Promise} result
+     */
+
+    this.init = async function() {
+        let { sql, data } = this.queries.init();
+        await pool.query(sql, data);
     };
 
-    // define model properties
-    Object.defineProperties(Model.prototype, {
-        table: {
-            value: modelType,
-            writable: true
-        },
-        name: {
-            value: modelType,
-            writable: true
-        },
-        key: {
-            value: `${modelType}_id`,
-            writable: true
-        },
-        label: {
-            value: humanize(modelType),
-            writable: true
-        },
-        attributes: {
-            value: schema.attributes,
-            writable: true
-        },
-        node: {
-            get: schema.getNode,
-        },
-        files: {
-            value: null,
-            writable: true
-        },
-        getAttachedFiles: {
-            value: schema.getAttachedFiles,
-            writable: false
-        },
-        owner: {
-            get: schema.getOwner,
-        },
-        attached: {
-            get: schema.getAttached,
-        },
-        idKey: {
-            value: schema.idKey,
-            writable: false
-        },
-        id: {
-            get: getId(schema.idKey),
-        },
-        setId: {
-            value: setId(schema.idKey)
-        },
-        getValue: {
-            value: getValue,
-            writable: false
-        },
-        setValue: {
-            value: setValue,
-            writable: false
-        },
-        getData: {
-            value: getData,
-            writable: false
-        },
-        setOwner: {
-            value: schema.setOwner,
-            writable: false
-        },
-        setOptions: {
-            value: setOptions,
-            writable: false
-        },
-        clear: {
-            value: clear,
-            writable: false
-        }
-    });
-    return Model;
-};
+    /**
+     * Find all records in table. (no transaction)
+     *
+     * @public
+     * @return {Promise} result
+     */
 
-
-/**
- * Set values of model schema attributes.
- *
- * @param {Object} data
- * @src public
- */
-
-function setData(data=null) {
-
-    // select object-defined data
-    if (typeof data === 'object' && data !== null) {
-
-        // select either first row of data array or single data object
-        // NOTE: model can only hold data for single record
-        const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
-
-        // assert attributes exist in model schema
-        Object.keys(inputData)
-            .filter(key => !(this.attributes
-                && this.attributes.hasOwnProperty(key)))
-            .map(key => {
-                console.error(`Attribute key \'${key}\' was not found in model schema.`);
-                throw Error('schemaMismatch')
+    this.getAll = async function() {
+        let { sql, data } = this.queries.getAll();
+        return pool.query(sql, data)
+            .then(res => {
+                return res.rows
             });
+    };
 
-        // set attribute values from data
-        Object.keys(inputData)
-            .filter(key => this.attributes && this.attributes.hasOwnProperty(key))
-            .map(key => this.attributes[key].value =
-                sanitize(inputData[key], this.attributes[key].type));
+    /**
+     * Find record by ID.
+     *
+     * @public
+     * @param {String} id
+     * @return {Promise} result
+     */
 
-        // get attached files (if exist)
-        this.files = this.getAttachedFiles(this.id) || {};
-    }
+    this.select = async function(id) {
+        this.model.setId(id);
+        const stmts = {
+            node: null,
+            model: this.queries.select,
+            attached: []
+        };
+
+        // execute transaction
+        return await this.transact(this.model, stmts);
+    };
+
+    /**
+     * Insert record into table. (Uses transaction).
+     *
+     * @public
+     * @param {Array} data
+     * @return {Promise} result
+     */
+
+    this.insert = async function(item) {
+        let stmts = {
+            node: ns.insert,
+            model: this.queries.insert,
+            attached: []
+        };
+
+        // execute transaction
+        return await this.transact(item, stmts);
+    };
+
+    /**
+     * Update data in existing record.
+     *
+     * @public
+     * @param {Array} data
+     * @return {Promise} result
+     */
+
+    this.update = async function(item) {
+        let stmts = {
+            node: ns.update,
+            model: this.queries.update,
+            attached: []
+        };
+
+        // execute transaction
+        return await this.transact(item, stmts);
+    };
+
+    /**
+     * Remove record.
+     *
+     * @public
+     * @param {String} id
+     * @return {Promise} result
+     */
+
+    this.remove = async function(item) {
+        let stmts = {
+            node: ns.remove,
+            model: this.queries.remove,
+            attached: []
+        };
+
+        // execute transaction
+        return await this.transact(item, stmts);
+    };
+
+    /**
+     * Perform transaction query.
+     *
+     * @param {Object} item
+     * @param {Object} statements
+     * @return {Promise} db response
+     */
+
+    this.transact = async function(item, stmts) {
+
+        // NOTE: client undefined if connection fails.
+        const client = await pool.connect();
+
+        try {
+            // transaction result
+            let res;
+
+            await client.query('BEGIN');
+
+            // process node query (if provided)
+            if (stmts.node) {
+                // create node model from item reference
+                let node = await createNode(item);
+                // generate prepared statements collated with data
+                const {sql, data} = stmts.node(node);
+                res = await client.query(sql, data);
+
+                // update item with returned data for further processing
+                item.setId(res.rows[0].id);
+            }
+
+            // process primary model query (if exists)
+            // process node query (if provided)
+            if (stmts.model) {
+                const { sql, data } = stmts.model(item);
+                res = await client.query(sql, data)
+
+                // process supplemental statements (e.g. foreign key references)
+                res.attached = await Promise.all(stmts.attached.map(async (stmt) => {
+                    const val = item.getValue(item.name);
+                    const {sql, data} = stmt(item, val);
+                    return await client.query(sql, data);
+                }));
+            }
+
+            await client.query('COMMIT');
+
+            // return confirmation data
+            return res.hasOwnProperty('rows') && res.rows.length > 0
+                ? res.rows[0]
+                : null;
+
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
+        }
+    };
 }
 
-/**
- * Set field value in model schema.
- *
- * @param {String} key
- * @param {Object} value
- * @src public
- */
-
-function setValue(key, value) {
-    if (typeof key === 'string' && this.attributes.hasOwnProperty(key)) {
-        this.attributes[key].value = sanitize(value, this.attributes[key].type);
-    }
-}
-
-/**
- * Get ID value in model schema.
- *
- * @param {String} key (identifier key)
- * @src public
- */
-
-function getId(key) {
-    return function () {return this.attributes[key].value};
-}
-
-/**
- * Set ID value for model.
- *
- * @param {String} key (identifier key)
- * @src public
- */
-
-function setId(key) {
-    return function (id) {this.attributes[key].value = id};
-}
-
-/**
- * Get field value from model attributes.
- *
- * @param {String} field
- * @return {Object} field data
- * @src public
- */
-
-function getValue(field=null) {
-    return field && this.attributes.hasOwnProperty(field)
-        ? this.attributes[field].value
-        : null;
-}
-
-/**
- * Get field values from model. Optional filter array
- * omits select attributes from result.
- *
- * @return {Object} filtered data
- * @param {Array} filter
- * @src public
- */
-
-function getData(filter=[]) {
-    return Object.keys(this.attributes)
-        .filter(key => !filter.includes(key))
-        .reduce((o, key) => {
-            o[key] = this.attributes[key].value; return o
-        }, {});
-}
-
-/**
- * Clear field values from model attributes.
- *
- * @return {object} for chaining
- * @src public
- */
-
-function clear() {
-    Object.entries(this.attributes)
-        .map(attr => { attr.value = null });
-}
-
-/**
- * Set options of provided schema field.
- *
- * @param {String} key
- * @param {Array} options
- * @src public
- */
-
-function setOptions(key, options=[]) {
-    if (key
-        && this.attributes.hasOwnProperty(key)
-        && typeof options === 'object')
-        this.attributes[key].options = options;
-}
-
-
-/**
- * Generates nodes object from given model instance.
- *
- * @public
- * @params {Object} item
- * @return {Promise} result
- */
-
-export const createNode = async function(item) {
-
-    if (!item.node) return null;
-
-    // generate node model object
-    return await createReference(item.node.value, item, 'nodes');
-};
-
-/**
- * Generates files object from given model instance.
- *
- * @public
- * @params {Object} item
- * @return {Promise} result
- */
-
-export const createFile = async function(item) {
-
-    if (!item.file) return null;
-
-    // generate file model object
-    return await createReference(item.file.value, item, 'files');
-};
-
-/**
- * Generates reference (lookup) object from given model type.
- *
- * @public
- * @params {Object} item
- * @return {Promise} result
- */
-
-export const createReference = async function(id, item, modelType) {
-
-    // generate node constructor
-    let Reference = await create(modelType);
-
-    // get owner attributes (if exist)
-    let ownerAttrs = item.owner
-        ? await getNode(item.owner.value)
-        : { id: null, type: null }
-
-    // return node instance: set owner attribute values from
-    // retrieved node attributes
-    return new Reference({
-        id: id,
-        type: item.table,
-        owner_id: ownerAttrs.id,
-        owner_type: ownerAttrs.type
-    });
-};

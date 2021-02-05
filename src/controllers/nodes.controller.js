@@ -34,7 +34,7 @@ export const init = async (req, res, next) => {
 export const show = async (req, res, next) => {
     try {
         const { id='' } = req.params || {};
-        const node = await ns.getNode(sanitize(id, 'integer'));
+        const node = await ns.get(sanitize(id, 'integer'));
         res.status(200).json(
             prepare({
                 view: 'show',
@@ -59,8 +59,8 @@ export const list = async (req, res, next) => {
     try {
 
         // get surveyors and projects as root containers
-        const projects = await ns.getNodes('projects');
-        const surveyors = await ns.getNodes('surveyors');
+        const projects = await ns.getAll('projects');
+        const surveyors = await ns.getAll('surveyors');
 
         res.status(200).json(
             prepare({
