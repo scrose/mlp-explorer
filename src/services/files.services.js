@@ -131,6 +131,69 @@ export const uploadFile = async function(req, inFilepath, outFilepath, downsampl
 }
 
 /**
+ * Get file record by ID. NOTE: returns single object.
+ *
+ * @public
+ * @param {integer} id
+ * @return {Promise} result
+ */
+
+export const select = async function(id) {
+    let { sql, data } = queries.files.select(id);
+    let file = await pool.query(sql, data);
+    return file.rows[0];
+};
+
+/**
+ * Get model data by file reference. Returns single node object.
+ *
+ * @public
+ * @param {Object} file
+ * @return {Promise} result
+ */
+
+export const selectByFile = async (file) => {
+    let { sql, data } = queries.defaults.selectByFile(file);
+    return pool.query(sql, data)
+        .then(res => {
+            return res.hasOwnProperty('rows')
+            && res.rows.length > 0 ? res.rows[0] : null;
+        });
+};
+
+/**
+ * Get files for given owner.
+ *
+ * @public
+ * @param {integer} ownerID
+ * @return {Promise} result
+ */
+
+export const selectByOwner = async (ownerID) => {
+
+    // get first-level full data for each dependent node
+    const { sql, data } = queries.files.selectByOwner(ownerID);
+    const { rows=[] } = await pool.query(sql, data);
+    let files = rows;
+
+    files.map(file => {
+    console.log(file)
+        file.url = path.join(process.env.LIBRARY_DIR, file.id);
+        return file;
+    })
+
+    // append metadata for each file record
+    // files = await Promise.all(files.map(async (file) => {
+    //     file.data = await selectByFile(file);
+    //     return file;
+    // }));
+
+    // return nodes
+    return files;
+
+};
+
+/**
  * Create a new transform stream class that can validate files.
  *
  * @param {Request} req
@@ -168,31 +231,3 @@ class FileValidator extends Transform {
         done();
     }
 }
-
-/**
- * Get file record by ID. NOTE: returns single object.
- *
- * @public
- * @param {integer} id
- * @return {Promise} result
- */
-
-export const select = async function(id) {
-    let { sql, data } = queries.files.select(id);
-    let file = await pool.query(sql, data);
-    return file.rows[0];
-};
-
-/**
- * Get file records attached by owner ID.
- *
- * @public
- * @param {integer} owner_id
- * @return {Promise} result
- */
-
-export const selectByOwner = async function(owner_id) {
-    let { sql, data } = queries.files.selectByOwner(owner_id);
-    let res = await pool.query(sql, data);
-    return res.rows;
-};

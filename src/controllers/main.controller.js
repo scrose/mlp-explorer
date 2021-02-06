@@ -17,9 +17,7 @@ import * as ns from '../services/nodes.services.js';
  * @src public
  */
 
-export const init = async (req, res, next) => {
-    return next();
-};
+export const init = async (req, res, next) => {};
 
 /**
  * Default request controller.

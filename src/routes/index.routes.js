@@ -65,11 +65,11 @@ async function initRoutes(routes, baseRouter) {
                         .catch(err => {
                             throw err;
                         });
-
                 }
                 catch (err) {
                     return next(err);
                 }
+                next();
             })
             .get(function(req, res, next) {
                 if (!route.get)

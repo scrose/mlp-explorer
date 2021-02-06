@@ -53,6 +53,23 @@ export const mapToObj = (map) => {
 }
 
 /**
+ * Group array rows by common key
+ * Reference: https://stackoverflow.com/a/38575908
+ *
+ * @param {Array} arr
+ * @param {String} key
+ * @src public
+ */
+
+export function groupBy(arr, key) {
+    if (arr == null) return null;
+    return arr.reduce(function(rv, x) {
+        (rv[x[key]] = rv[x[key]] || []).push(x);
+        return rv;
+    }, {});
+}
+
+/**
  * Render datum by render settings.
  *
  * @public

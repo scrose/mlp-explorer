@@ -50,7 +50,7 @@ export const get = async (id) => {
 
         // append model data, files and dependents (child nodes)
         node.data = await selectByNode(node);
-        node.files = await fs.selectByOwner(id);
+        node.files = await fs.selectByOwner(node.id);
         node.dependents = await selectByOwner(node.id);
 
         // end transaction
@@ -124,22 +124,22 @@ export const getAll = async function(model) {
 
 export const selectByOwner = async (id) => {
 
-    // get dependent nodes for requested owner item
+    // get dependent nodes for owner
     let { sql, data } = queries.nodes.selectByOwner(id);
-    let dependents = await pool.query(sql, data)
+    let nodes = await pool.query(sql, data)
         .then(res => {
             return res.rows
         });
 
     // append full data for each dependent node
-    dependents = await Promise.all(dependents.map(async (node) => {
+    nodes = await Promise.all(nodes.map(async (node) => {
         node.data = await selectByNode(node);
         node.files = await fs.selectByOwner(node.id);
         return node;
     }));
 
     // return nodes
-    return dependents;
+    return nodes;
 
 };
 
@@ -193,7 +193,7 @@ export const getModelDependents = async (item) => {
  * @params {Object} node
  * @return {Promise} result
  */
-export const getNodePath = async (node) => {
+export const getPath = async (node) => {
 
     if (!node) return null;
 
@@ -256,7 +256,7 @@ export const getNodePath = async (node) => {
  */
 
 export const selectByNode = async (node) => {
-    let { sql, data } = queries.model.selectByNode(node);
+    let { sql, data } = queries.defaults.selectByNode(node);
     return pool.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows')

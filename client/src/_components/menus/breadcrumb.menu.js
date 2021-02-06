@@ -30,14 +30,12 @@ const BreadcrumbMenu = ({path, view, model}) => {
 
     const _parseRoute = function() {
 
-        console.log('breadcrumb path:', filterPath())
-
         const breadcrumbs = filterPath()
             .split("/")
             .filter(item => item !== '');
 
         // hide breadcrumb menu on front page
-        if (breadcrumbs.length === 0) return null;
+        if (breadcrumbs.length === 0) return [];
 
         // convert breadcrumbs -> components and extend array
         return breadcrumbs
@@ -89,6 +87,7 @@ const BreadcrumbMenu = ({path, view, model}) => {
     const breadcrumbs = isNode ? _parseNodes(path) : _parseRoute();
 
     return (
+        breadcrumbs ?
         <nav className={'breadcrumb'}>
             <div>
                 <ul>
@@ -114,6 +113,7 @@ const BreadcrumbMenu = ({path, view, model}) => {
                 </ul>
             </div>
         </nav>
+            : ''
     )
 }
 

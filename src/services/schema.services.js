@@ -164,7 +164,7 @@ export const getModelAttributes = async function(modelType) {
     if (modelType == null) return null;
 
     // get model attributes (table columns)
-    //let {sql, data} = queries.schema.getColumns(modelType);
+    let {sql, data} = queries.schema.getColumns(modelType);
     const attrs = await pool.query(sql, data);
 
     // no attributes found

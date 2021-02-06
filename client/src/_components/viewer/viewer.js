@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { getRenderType, getStaticView } from '../../_services/schema.services.client';
+import { getRenderType } from '../../_services/schema.services.client';
 import Messenger from '../common/messenger';
 import BreadcrumbMenu from '../menus/breadcrumb.menu';
 import MenuViewer from './menu.viewer';
@@ -47,7 +47,11 @@ const Viewer = () => {
         _isMounted.current = true;
 
         // request data if not static view
-        if (!api.staticView)
+        if (!api.staticView) {
+            // set view to loading
+            setAPIData({});
+
+            // call API
             api.get(api.route)
                 .then(data => {
                     console.log('API Response:', data);
@@ -56,6 +60,7 @@ const Viewer = () => {
                     if (_isMounted.current)
                         setAPIData(data);
                 });
+        }
         return () => {_isMounted.current = false;};
     }, [api]);
 

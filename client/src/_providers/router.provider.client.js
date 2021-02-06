@@ -87,7 +87,7 @@ function RouterProvider(props) {
                 return redirect('/login');
             },
             '500': () => {
-                return redirect('/server_error');
+                addSessionMsg({msg: 'Server Error', type:'error'});
             }
         }
         return routes.hasOwnProperty(status) ? routes[status]() : response;

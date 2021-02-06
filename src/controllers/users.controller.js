@@ -15,17 +15,15 @@ import valid from '../lib/validate.utils.js';
 import { prepare } from '../lib/api.utils.js';
 
 /**
- * Initialize users, roles tables and admin user account.
+ * Controller initialization.
  *
- * @param {Request} req
- * @param {Response} res
- * @param {Function} next
+ * @param req
+ * @param res
+ * @param next
  * @src public
  */
 
-export const init = async (req, res, next) => {
-    return next();
-};
+export const init = async (req, res, next) => {};
 
 /**
  * User sign-in using email and password.

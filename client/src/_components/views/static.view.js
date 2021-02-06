@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.Common.View.Data
- * File: data.view.js
+ * MLP.Client.Components.Common.View.Static
+ * File: static.view.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -13,6 +13,7 @@ import LogoutUsers from '../users/logout.users';
 import NotfoundError from '../error/notfound.error';
 import UnavailableError from '../error/unavailable.error';
 import ServerError from '../error/server.error';
+import Loading from '../common/loading';
 
 /**
  * Build requested static page view.
@@ -25,19 +26,20 @@ const StaticView = ({ type }) => {
 
     // view components indexed by render type
     const renders = {
-        "dashboardView": () => <DashboardViewer />,
-        "dashboardEdit": () => <DashboardEditor />,
-        "login": () => <LoginUsers />,
-        "logout": () => <LogoutUsers />,
-        'notFound': () => <NotfoundError />,
-        'serverError': () => <ServerError />,
-        'unavailable': () => <UnavailableError />
+        dashboardView: () => <DashboardViewer />,
+        dashboardEdit: () => <DashboardEditor />,
+        login: () => <LoginUsers />,
+        logout: () => <LogoutUsers />,
+        notFound: () => <NotfoundError />,
+        serverError: () => <ServerError />,
+        unavailable: () => <UnavailableError />,
+        default: () => <Loading />
     }
 
     // render static view
     return (
         <div className={'view'}>
-            { renders.hasOwnProperty(type) ? renders[type]() : <NotfoundError/> }
+            { renders.hasOwnProperty(type) ? renders[type]() : <Loading/> }
         </div>
         )
 

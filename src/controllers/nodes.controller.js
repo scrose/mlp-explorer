@@ -18,9 +18,7 @@ import { sanitize } from '../lib/data.utils.js';
  * @src public
  */
 
-export const init = async (req, res, next) => {
-    return next();
-};
+export const init = async (req, res, next) => {};
 
 /**
  * Show node data controller.

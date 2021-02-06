@@ -63,7 +63,7 @@ export function select(model) {
 }
 
 /**
- * Generate query: Find record by Node entry.
+ * Generate query: Find record by associated node.
  *
  * @param {Object} node
  * @return {Function} query
@@ -77,6 +77,24 @@ export function selectByNode(node) {
     return {
         sql: sql,
         data: [node.id],
+    };
+}
+
+/**
+ * Generate query: Find record by associated file.
+ *
+ * @param {Object} file
+ * @return {Function} query
+ * @public
+ */
+
+export function selectByFile(file) {
+    let sql = `SELECT * 
+            FROM ${file.type} 
+            WHERE files_id = $1::integer;`;
+    return {
+        sql: sql,
+        data: [file.id],
     };
 }
 

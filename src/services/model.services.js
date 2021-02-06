@@ -34,9 +34,9 @@ export default function ModelServices(model) {
     try {
 
         // initialize default model queries
-        Object.keys(queries.model)
+        Object.keys(queries.defaults)
             .map(key => {
-                this.queries[key] = queries.model[key](model)
+                this.queries[key] = queries.defaults[key](model)
             })
 
         // override defaults with any model-specific queries

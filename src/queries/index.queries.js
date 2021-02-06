@@ -13,7 +13,7 @@
  */
 
 import * as schema from './schema.queries.js';
-import * as model from './defaults.queries.js';
+import * as defaults from './defaults.queries.js';
 import * as nodes from './nodes.queries.js';
 import * as files from './files.queries.js';
 import * as users from './users.queries.js';
@@ -27,7 +27,7 @@ import * as sessions from './sessions.queries.js';
 
 export default {
     schema: schema,
-    model: model,
+    defaults: defaults,
     nodes: nodes,
     files: files,
     users: users,

@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.Common.View.Data
- * File: data.view.js
+ * MLP.Client.Components.Common.View.File
+ * File: files.view.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -27,7 +27,7 @@ import ServerError from '../error/server.error';
  * @public
  */
 
-const DataView = ({
+const FilesView = ({
                       view,
                       model,
                       data,
@@ -86,4 +86,4 @@ const DataView = ({
     )
 }
 
-export default DataView;
+export default FilesView;

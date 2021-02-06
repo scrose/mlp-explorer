@@ -9,6 +9,8 @@ import React from 'react';
 import Item from '../common/item';
 import { getModelLabel, getNodeLabel, getNodeOrder } from '../../_services/schema.services.client';
 import Icon from '../common/icon';
+import File from '../common/file';
+import { groupBy } from '../../_utils/data.utils.client';
 
 /**
  * Inline vertical accordion menu component.
@@ -74,8 +76,8 @@ const AccordionTab = ({node}) => {
 
 const ViewItem = ({node}) => {
 
-    // get any available dependent nodes
-    const { dependents=[] } = node || {};
+    // get any available dependents
+    const { dependents=[], files=[] } = node || {};
 
     // render tree node
     return (
@@ -93,8 +95,53 @@ const ViewItem = ({node}) => {
             <div>
                 <ViewItemList nodes={dependents}/>
             </div>
+            <div>
+                <ViewFileList files={files}/>
+            </div>
         </div>
 
+    );
+}
+
+
+/**
+ * View file records associated with a node.
+ *
+ * @public
+ * @return {JSX.Element}
+ */
+
+const ViewFileList = ({files}) => {
+
+    // sort and group files by type
+    files = (files || [])
+        // // sort alphabetically
+        .sort(function(a, b){
+            // TODO sort station numbers in strings
+            return a.file_type.localeCompare(b.file_type);
+        });
+    files = groupBy(files, 'file_type');
+
+    console.warn(files)
+
+    return (
+        Object.keys(files).length > 0
+            ?   <div>
+                    {
+                        Object.keys(files).map(key => {
+                            return (
+                                <div key={key}>
+                                    <h5>{getModelLabel(key)}</h5>
+                                    {
+                                        files[key]
+                                        .map(file => <File key={file.id} uri={file.id}/>)
+                                    }
+                                </div>
+                            )
+                        })
+                    }
+                </div>
+            : ''
     );
 }
 
@@ -129,7 +176,7 @@ const ViewItemList = ({nodes}) => {
     return (
         <div>
             {
-                nodes.map(node => <AccordionTab node={node}/>)
+                nodes.map(node => <AccordionTab key={node.id} node={node}/>)
             }
         </div>
     );

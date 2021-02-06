@@ -62,8 +62,6 @@ export async function makeRequest({ url='/', data=null, method='POST', token=nul
     let res = await fetch(url, opts)
         .catch(err => { throw err });
 
-    console.log(res)
-
     // Modify response to include status ok, success, and status text
     return {
         success: res.ok,

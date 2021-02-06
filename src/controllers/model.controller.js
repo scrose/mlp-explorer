@@ -46,7 +46,8 @@ export default function ModelController(modelRoute) {
 
     this.init = async () => {
         Model = await cs.create(modelRoute);
-        db = new ModelServices(new Model());
+        model = new Model();
+        db = new ModelServices(model);
     }
 
     /**
@@ -111,7 +112,7 @@ export default function ModelController(modelRoute) {
 
             // get path of node in hierarchy
             const node = await ns.get(id);
-            const path = await ns.getNodePath(node);
+            const path = await ns.getPath(node);
 
             // node not in database
             if (!data || !node )
@@ -159,7 +160,7 @@ export default function ModelController(modelRoute) {
 
         // get path of node in hierarchy
         const owner = await ns.get(owner_id);
-        const path = await ns.getNodePath(owner) || {};
+        const path = await ns.getPath(owner) || {};
 
         try {
             // send form data response
@@ -198,7 +199,7 @@ export default function ModelController(modelRoute) {
             // get path of node in hierarchy
             const { nodes_id=null } = data || {};
             const node = await ns.get(nodes_id);
-            const path = await ns.getNodePath(node);
+            const path = await ns.getPath(node);
 
             res.status(200).json(
                 prepare({
@@ -238,7 +239,7 @@ export default function ModelController(modelRoute) {
 
             // get path of node in hierarchy
             const owner = await ns.get(id);
-            const path = await ns.getNodePath(owner) || {};
+            const path = await ns.getPath(owner) || {};
 
             // send form data response
             res.status(200).json(
@@ -274,7 +275,7 @@ export default function ModelController(modelRoute) {
             // get path of node in hierarchy
             const { nodes_id=null } = data || {};
             const node = await ns.get(nodes_id);
-            const path = await ns.getNodePath(node);
+            const path = await ns.getPath(node);
 
             res.status(200).json(
                 prepare({
@@ -315,7 +316,7 @@ export default function ModelController(modelRoute) {
             // get path of owner node in hierarchy (if exists)
             const { owner_id=null } = data || {};
             const node = await ns.get(owner_id);
-            const path = await ns.getNodePath(node);
+            const path = await ns.getPath(node);
 
             // delete item
             data = await db.remove(item);
