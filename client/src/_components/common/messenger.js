@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { useMessenger } from '../../_providers/messenger.provider.client';
+import { useData } from '../../_providers/data.provider.client';
 
 /**
  * Messenger component.
@@ -16,7 +16,7 @@ import { useMessenger } from '../../_providers/messenger.provider.client';
 
 const Messenger = () => {
 
-    const messenger = useMessenger();
+    const messenger = useData();
 
     const { message={} } = messenger || {};
     const { msg='', type='' } = message || {};

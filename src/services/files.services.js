@@ -176,17 +176,15 @@ export const selectByOwner = async (ownerID) => {
     const { rows=[] } = await pool.query(sql, data);
     let files = rows;
 
-    files.map(file => {
-    console.log(file)
-        file.url = path.join(process.env.LIBRARY_DIR, file.id);
-        return file;
-    })
-
     // append metadata for each file record
-    // files = await Promise.all(files.map(async (file) => {
-    //     file.data = await selectByFile(file);
-    //     return file;
-    // }));
+    files = await Promise.all(files.map(async (file) => {
+        file.data = await selectByFile(file);
+
+        // construct URL from token
+        const {secure_token=''} = file.data || {};
+        file.url = new URL(`thumb_${secure_token}.jpeg`, process.env.LIBRARY_DIR);
+        return file;
+    }));
 
     // return nodes
     return files;

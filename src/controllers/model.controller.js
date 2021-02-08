@@ -111,7 +111,7 @@ export default function ModelController(modelRoute) {
             const item = new Model(data);
 
             // get path of node in hierarchy
-            const node = await ns.get(id);
+            const node = await ns.select(id);
             const path = await ns.getPath(node);
 
             // node not in database
@@ -159,7 +159,7 @@ export default function ModelController(modelRoute) {
             : new Model();
 
         // get path of node in hierarchy
-        const owner = await ns.get(owner_id);
+        const owner = await ns.select(owner_id);
         const path = await ns.getPath(owner) || {};
 
         try {
@@ -198,7 +198,7 @@ export default function ModelController(modelRoute) {
 
             // get path of node in hierarchy
             const { nodes_id=null } = data || {};
-            const node = await ns.get(nodes_id);
+            const node = await ns.select(nodes_id);
             const path = await ns.getPath(node);
 
             res.status(200).json(
@@ -238,7 +238,7 @@ export default function ModelController(modelRoute) {
             let data = await db.select(id);
 
             // get path of node in hierarchy
-            const owner = await ns.get(id);
+            const owner = await ns.select(id);
             const path = await ns.getPath(owner) || {};
 
             // send form data response
@@ -274,7 +274,7 @@ export default function ModelController(modelRoute) {
 
             // get path of node in hierarchy
             const { nodes_id=null } = data || {};
-            const node = await ns.get(nodes_id);
+            const node = await ns.select(nodes_id);
             const path = await ns.getPath(node);
 
             res.status(200).json(
@@ -315,7 +315,7 @@ export default function ModelController(modelRoute) {
 
             // get path of owner node in hierarchy (if exists)
             const { owner_id=null } = data || {};
-            const node = await ns.get(owner_id);
+            const node = await ns.select(owner_id);
             const path = await ns.getPath(node);
 
             // delete item

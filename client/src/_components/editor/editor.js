@@ -14,7 +14,7 @@ import StaticView from '../views/static.view';
 import MenuEditor from './menu.editor';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
-import { useMessenger } from '../../_providers/messenger.provider.client';
+import { useData } from '../../_providers/data.provider.client';
 import { getRootNode } from '../../_utils/data.utils.client';
 
 /**
@@ -28,7 +28,7 @@ const Editor = () => {
     // create dynamic view state
     const [apiData, setAPIData] = React.useState({});
     const api = useRouter();
-    const msg = useMessenger();
+    const msg = useData();
     const _isMounted = React.useRef(false);
 
     /**

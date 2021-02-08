@@ -76,7 +76,7 @@ export function selectByNode(node) {
             WHERE nodes_id = $1::integer;`;
     return {
         sql: sql,
-        data: [node.id],
+        data: [node.id]
     };
 }
 
@@ -90,11 +90,11 @@ export function selectByNode(node) {
 
 export function selectByFile(file) {
     let sql = `SELECT * 
-            FROM ${file.type} 
+            FROM ${file.file_type} 
             WHERE files_id = $1::integer;`;
     return {
         sql: sql,
-        data: [file.id],
+        data: [file.id]
     };
 }
 

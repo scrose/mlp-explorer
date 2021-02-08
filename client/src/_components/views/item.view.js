@@ -8,22 +8,25 @@
 import React from 'react'
 import Loading from '../common/loading';
 import NodesView from './nodes.view';
+import { useData } from '../../_providers/data.provider.client';
 
 /**
  * Data item (record) component.
  *
  * @public
- * @param { data, model }
  */
 
-const ItemView = ({ data: apiData, view, model }) => {
+const ItemView = () => {
+
+    const api = useData();
+    const { model='', data=null } = api || {};
 
     // view components indexed by model type
     const itemViews = {
-        default: () => <NodesView data={ apiData } model={model} />
+        default: () => <NodesView data={ data } model={model} />
     }
 
-    return Object.keys(apiData).length > 0
+    return Object.keys(data).length > 0
         ?
         <>
             {

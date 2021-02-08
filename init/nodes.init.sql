@@ -1,4 +1,4 @@
-z-- =========================================================
+-- =========================================================
 -- Schema Migration script
 -- =========================================================
 
@@ -88,6 +88,7 @@ create TABLE IF NOT EXISTS "public"."nodes"
     "published" boolean,
     "legacy_path" text,
     "fs_path" text,
+    UNIQUE (id, type),
     CONSTRAINT fk_ownerid FOREIGN KEY (owner_id)
         REFERENCES nodes (id) ON DELETE CASCADE,
     CONSTRAINT fk_node_relation FOREIGN KEY (type, owner_type)

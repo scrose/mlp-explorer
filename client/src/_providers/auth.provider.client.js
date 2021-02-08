@@ -7,7 +7,7 @@
 
 import * as React from 'react'
 import { useRouter } from './router.provider.client';
-import { useMessenger } from './messenger.provider.client';
+import { useData } from './data.provider.client';
 import { addSessionMsg } from '../_services/session.services.client';
 
 /**
@@ -34,7 +34,7 @@ function AuthProvider(props) {
     const api = useRouter();
 
     // messenger
-    const msg = useMessenger();
+    const msg = useData();
 
     /**
      * User login request.

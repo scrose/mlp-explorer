@@ -134,7 +134,7 @@ const ViewFileList = ({files}) => {
                                     <h5>{getModelLabel(key)}</h5>
                                     {
                                         files[key]
-                                        .map(file => <File key={file.id} uri={file.id}/>)
+                                        .map(file => <File key={file.id} uri={file.url}/>)
                                     }
                                 </div>
                             )
@@ -191,15 +191,15 @@ const ViewItemList = ({nodes}) => {
  * @return {JSX.Element}
  */
 
-const NodesView = ({data: apiData, model}) => {
+const NodesView = ({data, model}) => {
 
     // get dependent data
-    const { dependents={} } = apiData.data || {};
+    const { dependents={} } = data || {};
 
     // render node tree
     return (
         <div className={`item ${model}`}>
-            <Item data={apiData} model={model} view={'show'} />
+            <Item data={data} model={model} view={'show'} />
             <ViewItemList nodes={dependents} />
         </div>
     )

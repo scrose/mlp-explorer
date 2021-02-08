@@ -11,7 +11,7 @@ import Button from './button';
 import { addSessionMsg } from '../../_services/session.services.client';
 import { genSchema, getModelLabel } from '../../_services/schema.services.client';
 import { useRouter } from '../../_providers/router.provider.client';
-import { useMessenger } from '../../_providers/messenger.provider.client';
+import { useData } from '../../_providers/data.provider.client';
 
 /**
  * Form submission buttons component.
@@ -55,7 +55,7 @@ const Form = ({
 }) => {
 
     const api = useRouter();
-    const msg = useMessenger();
+    const msg = useData();
 
     const [isValid, setValid] = React.useState(false);
     const [isDisabled, setDisabled] = React.useState(false);

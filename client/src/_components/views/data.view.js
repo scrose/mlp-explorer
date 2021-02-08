@@ -15,32 +15,26 @@ import ListNodes from '../nodes/list.nodes';
 import NotfoundError from '../error/notfound.error';
 import Loading from '../common/loading';
 import ServerError from '../error/server.error';
+import { useData } from '../../_providers/data.provider.client';
+import { getRenderType } from '../../_services/schema.services.client';
 
 /**
  * Build requested data view from API data.
  *
- * @param {String} model
- * @param {String} view
- * @param {String} render
- * @param {Object} data
- * @param {Function} setValues
  * @public
  */
 
-const DataView = ({
-                      view,
-                      model,
-                      data,
-                      setData,
-                      render
-}) => {
+const DataView = () => {
+
+    const api = useData();
+    const { view='', model='', data=null, setData=null } = api || {};
+    const render = getRenderType(view, model);
+    //
+    // console.log(view, model, data, render, root);
 
     // select default form callback for view
-    const api = useRouter();
-    const callback = api.post;
-
-    // Extract initial form data (if exists)
-    const initData = data.hasOwnProperty('data') ? data.data : [];
+    const router = useRouter();
+    const callback = router.post;
 
     // view components indexed by render type
     const renders = {
@@ -48,16 +42,12 @@ const DataView = ({
             <Form
                 view={view}
                 model={model}
-                data={initData}
+                data={data}
                 setData={setData}
                 callback={callback}
             />),
         item: () => (
-            <ItemView
-                data={data || {}}
-                view={view || ''}
-                model={model || ''}
-            />),
+            <ItemView />),
         list: () => (
             <Table
                 rows={data || []}

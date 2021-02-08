@@ -7,10 +7,9 @@
 
 import * as React from 'react'
 import { makeRequest } from '../_services/api.services.client';
-import { getAPIURL, getNodeURI, filterPath, redirect, reroute } from '../_utils/paths.utils.client';
+import { getAPIURL, getNodeURI, filterPath, redirect, reroute, getQuery } from '../_utils/paths.utils.client';
 import { getStaticView } from '../_services/schema.services.client';
-import { useMessenger } from './messenger.provider.client';
-import { addSessionMsg } from '../_services/session.services.client';
+import { addSessionMsg, clearNodes, popSessionMsg } from '../_services/session.services.client';
 
 /**
  * Global data provider.
@@ -18,7 +17,7 @@ import { addSessionMsg } from '../_services/session.services.client';
  * @public
  */
 
-const DataContext = React.createContext({})
+const RouterContext = React.createContext({})
 
 /**
  * Provider component to allow consuming components to subscribe to
@@ -36,14 +35,16 @@ function RouterProvider(props) {
     // client route in state
     const [route, setRoute] = React.useState(filterPath());
 
-    // client node path in state
-    const [path, setPath] = React.useState(filterPath());
-
     // static view state: static views do not require API requests
     const [staticView, setStaticView] = React.useState(getStaticView(filterPath()));
 
-    // get messenger
-    const msg = useMessenger();
+    // messenger state: check for session messages
+    const [message, setMessage] = React.useState(
+        getQuery('msg') ? popSessionMsg() : null
+    );
+
+    // clear node path in session state
+    clearNodes();
 
     /**
      * Router to handle route requests.
@@ -52,7 +53,7 @@ function RouterProvider(props) {
      * @param {String} uri
      */
 
-    const router = async function(uri) {
+    const update = async function(uri) {
 
         // set static view (if applicable)
         setStaticView(getStaticView(uri));
@@ -61,7 +62,7 @@ function RouterProvider(props) {
         setRoute(uri);
 
         // clear message
-        msg.setMessage(null);
+        setMessage(null);
 
         // reroute view
         reroute(uri);
@@ -195,15 +196,18 @@ function RouterProvider(props) {
      */
 
     return (
-        <DataContext.Provider value={
+        <RouterContext.Provider value={
             {
-                router,
+                router: update,
+                update,
                 route,
                 staticView,
                 get,
                 post,
                 remove,
                 followup,
+                message,
+                setMessage,
                 online,
                 setOnline
             }
@@ -212,5 +216,5 @@ function RouterProvider(props) {
 
 }
 
-const useRouter = () => React.useContext(DataContext);
+const useRouter = () => React.useContext(RouterContext);
 export {useRouter, RouterProvider};

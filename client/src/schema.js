@@ -463,20 +463,36 @@ export const schema = {
         },
         historic_images:{
             attributes: {
+                filetype: 'image',
                 order: 11,
                 label: "Historic Images",
                 singular: "Historic Image"
             },
-            file_size: 'File size',
-            x_dim: 'Image Width',
-            y_dim: 'Image Height',
-            image_state: 'Image State',
-            image_remote: 'Remote',
-            comments: 'Comments',
-            image_remote_processing: 'Remote Processing'
+            file_size: {
+                label: 'File size'
+            },
+            x_dim: {
+                label: 'Image Width'
+            },
+            y_dim: {
+                label: 'Image Height'
+            },
+            image_state: {
+                label: 'Image State'
+            },
+            image_remote: {
+                label: 'Remote'
+            },
+            comments: {
+                label: 'Comments'
+            },
+            image_remote_processing: {
+                label: 'Remote Processing'
+            },
         },
         modern_images:{
             attributes: {
+                filetype: 'image',
                 order: 12,
                 label: "Modern Images",
                 singular: "Modern Image"

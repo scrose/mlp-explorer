@@ -9,14 +9,14 @@ import React from "react";
 import { useAuth } from '../../_providers/auth.provider.client';
 import { useUser } from '../../_providers/user.provider.client';
 import Loading from '../common/loading';
-import { useMessenger } from '../../_providers/messenger.provider.client';
+import { useData } from '../../_providers/data.provider.client';
 import { redirect } from '../../_utils/paths.utils.client';
 
 const LogoutUsers = () => {
 
     const auth = useAuth();
     const user = useUser();
-    const msg = useMessenger();
+    const msg = useData();
 
     // Delete session data and redirect
     React.useEffect(() => {

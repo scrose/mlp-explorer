@@ -9,7 +9,7 @@
 
 import { humanize, sanitize } from '../lib/data.utils.js';
 import * as schemaConstructor from './schema.services.js';
-import { get } from './nodes.services.js';
+import { select } from './nodes.services.js';
 
 /**
  * Create derived model through composition. The model schema
@@ -276,7 +276,7 @@ export const createReference = async function(id, item, modelType) {
 
     // get owner attributes (if exist)
     let ownerAttrs = item.owner
-        ? await get(item.owner.value)
+        ? await select(item.owner.value)
         : { id: null, type: null }
 
     // return node instance: set owner attribute values from

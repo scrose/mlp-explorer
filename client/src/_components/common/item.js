@@ -14,17 +14,16 @@ import { sanitize } from '../../_utils/data.utils.client';
  *
  * @public
  * @param {Array} data
+ * @param {String} view
+ * @param {String} model
  * @return {JSX.Element}
  */
 
-const Item = ({data: apiData, view, model}) => {
+const Item = ({data, view, model}) => {
 
     // prepare data for item table
     // - sanitize data by render type
     const filterData = () => {
-
-        // extract schema settings from data
-        const { data=[] } = apiData || {};
 
         // generate main schema
         const { fields={} } = genSchema(view, model)

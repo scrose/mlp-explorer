@@ -11,7 +11,7 @@ import { useUser } from '../../_providers/user.provider.client';
 import { useAuth } from '../../_providers/auth.provider.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import { addSessionMsg } from '../../_services/session.services.client';
-import { useMessenger } from '../../_providers/messenger.provider.client';
+import { useData } from '../../_providers/data.provider.client';
 import { redirect } from '../../_utils/paths.utils.client';
 
 /**
@@ -28,7 +28,7 @@ const LoginUsers = () => {
     const user = useUser();
     const auth = useAuth();
     const api = useRouter();
-    const msg = useMessenger();
+    const msg = useData();
 
     // Redirect to dashboard if logged in
     React.useEffect(() => {

@@ -5,66 +5,63 @@
  * MIT Licensed
  */
 
-
-import { getQuery } from '../_utils/paths.utils.client';
-
 /**
- * Retrieve user data from session storage.
+ * Retrieve node data from session storage.
  *
  * @public
  */
 
-export const getSession = () => {
-    const id = sessionStorage.getItem('userId') || ''
-    const email = sessionStorage.getItem('userEmail') || ''
-    const role = sessionStorage.getItem('userRole') || ''
-    const label = sessionStorage.getItem('userRoleLabel') || ''
-    const token = sessionStorage.getItem('userToken') || ''
-
-    return id && email && role && token
-        ? {id: id, email: email, role: role, token: token, label: label}
-        : null;
+export const getNodes = () => {
+    const nodeJSON = sessionStorage.getItem('nodes') || JSON.stringify([]);
+    return JSON.parse(nodeJSON);
 }
 
 /**
- * Update user data session storage. Important that default is an
- * empty string.
+ * Retrieve node data from session storage.
  *
  * @public
- * @param {Object} userData
  */
 
-export const setSession = (userData) => {
-    const { id='', email='', role='', token='', label=''} = userData || {};
-    sessionStorage.setItem('userId', id);
-    sessionStorage.setItem('userEmail', email);
-    sessionStorage.setItem('userRole', role);
-    sessionStorage.setItem('userRoleLabel', label);
-    sessionStorage.setItem('userToken', token);
+export const checkNode = (node) => {
+    return getNodes().includes(node);
 }
 
 /**
- * Retrieve user data from session storage.
+ * Update node data session storage.
  *
  * @public
+ * @param {String} node
  */
 
-export const getSessionToken = () => {
-    return sessionStorage.getItem('userToken') || '';
+export const addNode = (node) => {
+    const nodes = getNodes().filter(n => n !== node);
+    console.log(nodes)
+    nodes.push(node);
+    sessionStorage.setItem('nodes', JSON.stringify(nodes));
 }
 
 /**
- * Delete user data from session storage.
+ * Delete node from node path in session storage.
  *
  * @public
  */
 
-export const clearSession = () => {
-    sessionStorage.removeItem('userId');
-    sessionStorage.removeItem('userEmail');
-    sessionStorage.removeItem('userRole');
-    sessionStorage.removeItem('userRoleLabel');
-    sessionStorage.removeItem('userToken');
+export const removeNode = (node) => {
+    let nodes = getNodes();
+    sessionStorage.setItem('nodes', JSON.stringify(
+        nodes.filter(n => n !== node))
+    );
+}
+
+/**
+ * Delete node path from session storage.
+ *
+ * @public
+ */
+
+export const clearNodes = () => {
+    sessionStorage.setItem('nodes', JSON.stringify([]));
+
 }
 
 /**

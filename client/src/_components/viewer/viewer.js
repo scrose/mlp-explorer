@@ -6,7 +6,6 @@
  */
 
 import React from 'react';
-import { getRenderType } from '../../_services/schema.services.client';
 import Messenger from '../common/messenger';
 import BreadcrumbMenu from '../menus/breadcrumb.menu';
 import MenuViewer from './menu.viewer';
@@ -14,7 +13,7 @@ import DataView from '../views/data.view';
 import StaticView from '../views/static.view';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
-import { getRootNode } from '../../_utils/data.utils.client';
+import { useData } from '../../_providers/data.provider.client';
 
 /**
  * Render viewer panel component (unauthenticated).
@@ -24,74 +23,29 @@ import { getRootNode } from '../../_utils/data.utils.client';
 
 const Viewer = () => {
 
-    // create dynamic view state
-    const [apiData, setAPIData] = React.useState({});
-
     // get router context provider
-    const api = useRouter();
-
-    // Addresses: Can't perform a React state update on unmounted component.
-    // This is a no-op, but it indicates a memory leak in your
-    // application. To fix, cancel all subscriptions and
-    // asynchronous tasks in a useEffect cleanup function.
-    const _isMounted = React.useRef(false);
-
-    /**
-     * Load API data.
-     *
-     * @public
-     */
-
-    // non-static views: fetch API data and set view data in state
-    React.useEffect(() => {
-        _isMounted.current = true;
-
-        // request data if not static view
-        if (!api.staticView) {
-            // set view to loading
-            setAPIData({});
-
-            // call API
-            api.get(api.route)
-                .then(data => {
-                    console.log('API Response:', data);
-
-                    // update state with response data
-                    if (_isMounted.current)
-                        setAPIData(data);
-                });
-        }
-        return () => {_isMounted.current = false;};
-    }, [api]);
-
-    // destructure API data for settings
-    const { view = '', model = {}, path = {} } = apiData || {};
-    const { name = '' } = model || {};
-    const node = getRootNode(path);
+    const router = useRouter();
+    const api = useData();
 
     return (
         <div className={'viewer'}>
             <div className={'header'}>
-                <BreadcrumbMenu path={path} view={view} model={name} />
+                <BreadcrumbMenu />
                 <Messenger />
-                <MenuViewer view={view} node={node} />
-                <Heading node={node} />
+                <MenuViewer view={api.view} node={api.root} />
+                <Heading />
             </div>
             {
-                api.staticView
+                router.staticView
                 ? <StaticView type={
-                    api.staticView === 'dashboard' ? 'dashboardView' : api.staticView
+                    router.staticView === 'dashboard'
+                        ? 'dashboardView'
+                        : router.staticView
                 } />
-                : <DataView
-                        view={view}
-                        model={name}
-                        data={apiData}
-                        setData={setAPIData}
-                        render={getRenderType(view, name)}
-                    />
+                : <DataView />
             }
         </div>
     )
 };
 
-export default Viewer;
+export default React.memo(Viewer);

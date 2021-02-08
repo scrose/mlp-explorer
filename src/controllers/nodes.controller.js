@@ -21,7 +21,7 @@ import { sanitize } from '../lib/data.utils.js';
 export const init = async (req, res, next) => {};
 
 /**
- * Show node data controller.
+ * Show node data controller. Does not return dependents.
  *
  * @param req
  * @param res

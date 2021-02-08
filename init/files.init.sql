@@ -78,8 +78,8 @@ create TABLE IF NOT EXISTS "public"."files"
     "legacy_path" text,
     "fs_path" text,
     "filename_tmp" character varying(255),
-    CONSTRAINT fk_ownerid FOREIGN KEY (owner_id)
-        REFERENCES nodes (id),
+    CONSTRAINT fk_ownerid FOREIGN KEY (owner_id, owner_type)
+        REFERENCES nodes (id, type),
     CONSTRAINT fk_file_relation FOREIGN KEY (file_type, owner_type)
         REFERENCES file_relations (dependent_type, owner_type)
 );
@@ -570,7 +570,7 @@ order by id;
 -- update owner ids
 update old_field_notes set visit_id=q.id
 from (select * from nodes) as q
-where old_field_notes.visit_id=q.old_id and q.type='visits';
+where old_field_notes.visit_id=q.old_id and q.type='modern_visits';
 
 -- populate the files table
 insert into files (
@@ -587,7 +587,7 @@ insert into files (
     fs_path
 )
 select id,
-       'field_notes',
+       'metadata_files',
        null,
        field_note_file,
        null,

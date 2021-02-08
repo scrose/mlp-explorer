@@ -10,16 +10,18 @@ import Icon from '../common/icon';
 import { getNodeURI, filterPath, getRoot } from '../../_utils/paths.utils.client';
 import { capitalize } from '../../_utils/data.utils.client';
 import { getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
+import { useData } from '../../_providers/data.provider.client';
 
 /**
  * Breadcrumb navigation menu component.
  *
- * @param path
- * @param data
  * @public
  */
 
-const BreadcrumbMenu = ({path, view, model}) => {
+const BreadcrumbMenu = () => {
+
+    const api = useData();
+    const { model='', view='', path=[] } = api || {};
 
     /**
      * Build 'breadcrumb' navigation menu from current
@@ -72,6 +74,7 @@ const BreadcrumbMenu = ({path, view, model}) => {
         return Object.keys(nodes)
             .sort(function(a, b){return b-a})
             .map(key => {
+                console.log(nodes[key])
                 const menuText = getNodeLabel(nodes[key]);
                 const {type='', id=''} = nodes[key] || {};
                 const href = getNodeURI(type, 'show', id);

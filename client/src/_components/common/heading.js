@@ -9,6 +9,7 @@ import React from 'react';
 import { getModelLabel, getNodeLabel, getStaticLabel } from '../../_services/schema.services.client';
 import { capitalize } from '../../_utils/data.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
+import { useData } from '../../_providers/data.provider.client';
 
 /**
  * Render view heading component.
@@ -16,19 +17,22 @@ import { useRouter } from '../../_providers/router.provider.client';
  * @public
  */
 
-const Heading = ({node={}, model='', prefix=''}) => {
+const Heading = ({prefix=''}) => {
 
-    const api = useRouter();
-    const isNode = Object.keys(node).length > 0;
+    const router = useRouter();
+    const api = useData();
+
+    // check that a root node exists in current path
+    const isNode = Object.keys(api.root).length > 0;
 
     // heading text/prefix attribute overrides computed heading
     const heading = isNode
-        ? getNodeLabel(node)
-        : getStaticLabel(api.route)
-            ? getStaticLabel(api.route)
-            : getModelLabel(model)
+        ? getNodeLabel(api.root)
+        : getStaticLabel(router.route)
+            ? getStaticLabel(router.route)
+            : getModelLabel(api.model)
 
-    prefix = isNode ? getModelLabel(node.type) : prefix;
+    prefix = isNode ? getModelLabel(api.root.type) : prefix;
 
     return  <h3>{prefix ? `${capitalize(prefix)}: ` : ''}{heading}</h3>
 }
