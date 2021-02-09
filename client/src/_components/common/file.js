@@ -8,40 +8,41 @@
 import React from 'react';
 import Loading from './loading';
 import Button from './button';
+import Image from './image';
 
 /**
  * Defines file component.
  *
  * @public
+ * @param {Object} data
+ * @param scale
  * @return {JSX.Element}
  */
 
-const File = ({ uri='/logo192.png', type='image', scale='thumb', title='', alt='' }) => {
+const File = ({ data, scale='thumb' }) => {
 
-
+    // destructure file data
+    const {file_type, url, filename} = data || {};
 
     // file components indexed by render type
     const renders = {
-        image: () => <img
-            src={uri}
-            className={`${type} ${scale}`}
-            alt={alt}
-            title={title}
-            onError={() => {
-                return <img alt={'Not Available'} src={'/logo192.png'} />;
-            }}
+        image: () => <Image
+            src={url}
+            className={`${scale}`}
+            alt={filename}
+            title={filename}
         />,
-        metadata: () => <Button
-            icon={type}
-            label={title}
-            title={title}
+        metadata_files: () => <Button
+            icon={file_type}
+            label={filename}
+            title={filename}
         />
     }
 
     // render file view
     return (
-        <div className={type}>
-            { renders.hasOwnProperty(type) ? renders[type]() : <Loading/> }
+        <div className={file_type}>
+            { renders.hasOwnProperty(file_type) ? renders[file_type]() : <Loading/> }
         </div>
     )
 

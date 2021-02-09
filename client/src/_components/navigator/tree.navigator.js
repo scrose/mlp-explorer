@@ -36,7 +36,7 @@ const TreeNodeMenu = ({
                           text='...',
                           toggle,
                           setToggle,
-                          isCurrent,
+                          isCurrent='8',
                           hasDependents=false
 }) => {
 
@@ -60,6 +60,14 @@ const TreeNodeMenu = ({
         router.router(getNodeURI(model, 'show', id));
     }
 
+    // toggle button classnames
+    const classnames = [
+        'tree-node',
+        hasDependents ? 'toggle' : 'leaf',
+        toggle ? 'active' : '',
+        isCurrent ? 'current' : ''
+    ];
+
     return (
         <div className={'tree-node h-menu'}>
             <ul>
@@ -67,13 +75,8 @@ const TreeNodeMenu = ({
                     hasDependents ?
                     <li>
                         <button
-                            className={`
-                                tree-node toggle
-                                ${model} 
-                                ${toggle ? ' active' : ''}
-                                ${isCurrent ? ' current' : ''}
-                            `}
-                            title={`Expand ${text} items.`}
+                            className={classnames.join(' ')}
+                            title={`Expand ${text}.`}
                             onClick={handleToggle}
                         >
                             {toggle || isCurrent
@@ -85,8 +88,8 @@ const TreeNodeMenu = ({
                 }
                 <li>
                     <button
-                        className={`tree-node-label ${model}`}
-                        title={`View ${text} metadata.`}
+                        className={`tree-node-icon ${isCurrent ? ' current' : ''}`}
+                        title={`View ${getModelLabel(model)}: ${text}`}
                         onClick={handleView}
                     >
                         <Icon type={model}/>
@@ -94,8 +97,8 @@ const TreeNodeMenu = ({
                 </li>
                 <li>
                     <button
-                        className={`tree-node-label ${model}`}
-                        title={`View ${text} metadata.`}
+                        className={`tree-node-label`}
+                        title={`View ${getModelLabel(model)}: ${text}`}
                         onClick={handleView}
                     >
                         {text}
@@ -131,10 +134,9 @@ const TreeNode = ({node}) => {
         _isMounted.current = true;
 
         // include current node path as toggled
-        if (api.nodes.includes(node.id)) {
-            setToggle(true);
-            setCurrent(true);
-        }
+        setCurrent(api.nodes.includes(node.id));
+        if (api.nodes.includes(node.id))
+            setToggle(api.nodes.includes(node.id));
 
         if (toggle) {
             const route = getNodeURI('nodes', 'show', node.id);
@@ -143,7 +145,6 @@ const TreeNode = ({node}) => {
                     // update state with response data
                     if (_isMounted.current) {
                         setLoadedData(res);
-                        console.log('Loaded data', res.data, node)
                     }
                 })
                 .catch(err => console.error(err));
@@ -177,7 +178,7 @@ const TreeNode = ({node}) => {
                 }
                 </div>
                 {
-                    hasDependents
+                    Array.isArray(dependents) && dependents.length > 0
                         ?
                         <div className={`collapsible${toggle ? ' active' : ''}`}>
                             <TreeNodeList nodes={dependents} />
@@ -261,7 +262,7 @@ const TreeNavigator = ({setMenu}) => {
             })
             .catch(err => console.error(err));
 
-        return () => {_isMounted.current = false};
+        return () => {_isMounted.current = false;};
     }, [router]);
 
     // render node tree

@@ -27,8 +27,8 @@ const AccordionTab = ({node}) => {
     const [toggle, setToggle] = React.useState(false);
 
     return (
-        <div className={`accordion${toggle === node.id ? ' active' : ''}`}>
-            <div className={'h-menu'}>
+        <div className={`accordion ${toggle === node.id ? ' active' : ''}`}>
+            <div className={`h-menu ${node.type}`}>
                 <ul>
                     <li key={`${node.id}_ptr`}>
                                 <button
@@ -93,10 +93,10 @@ const ViewItem = ({node}) => {
                 }
             </div>
             <div>
-                <ViewItemList nodes={dependents}/>
+                <ViewFileList files={files}/>
             </div>
             <div>
-                <ViewFileList files={files}/>
+                <ViewItemList nodes={dependents}/>
             </div>
         </div>
 
@@ -122,7 +122,8 @@ const ViewFileList = ({files}) => {
         });
     files = groupBy(files, 'file_type');
 
-    console.warn(files)
+    if (Object.keys(files).length > 0)
+        console.log(files)
 
     return (
         Object.keys(files).length > 0
@@ -134,7 +135,8 @@ const ViewFileList = ({files}) => {
                                     <h5>{getModelLabel(key)}</h5>
                                     {
                                         files[key]
-                                        .map(file => <File key={file.id} uri={file.url}/>)
+                                        .map(file => <File data={file} />
+                                            )
                                     }
                                 </div>
                             )
@@ -196,9 +198,11 @@ const NodesView = ({data, model}) => {
     // get dependent data
     const { dependents={} } = data || {};
 
+    console.log('Node view:', data)
+
     // render node tree
     return (
-        <div className={`item ${model}`}>
+        <div className={`item`}>
             <Item data={data} model={model} view={'show'} />
             <ViewItemList nodes={dependents} />
         </div>

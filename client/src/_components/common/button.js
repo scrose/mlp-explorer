@@ -58,8 +58,12 @@ const Button = ({type, name, label, url, icon, onClick}) => {
                     title={label}
                     onClick={() => onClick()}
                 >
-                    {icon ? <><Icon type={icon} />&#160;</> : ''}
-                    <span>{label}</span>
+                    {
+                        icon
+                            ? <><Icon type={icon} />&#160;&#160;{label}</>
+                            : <span>{label}</span>
+                    }
+
                 </button>
             )
         }

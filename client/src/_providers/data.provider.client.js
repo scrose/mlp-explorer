@@ -59,8 +59,6 @@ function DataProvider(props) {
             // call API
             router.get(router.route)
                 .then(res => {
-                    console.log('API Response:', res);
-
                     // destructure API data for settings
                     const { data=null, view='', model={}, path={} } = res || {};
                     const { name='' } = model || {};

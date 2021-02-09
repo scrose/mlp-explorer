@@ -33,6 +33,7 @@ const getIconClass = (iconType) => {
         hcloseleft: 'fas fa-lg fa-angle-double-right',
         vopen: 'fas fa-lg fa-chevron-circle-up',
         vclose: 'fas fa-lg fa-chevron-circle-down',
+        metadata_files: 'fas fa-lg fa-file-download',
         projects: 'fas fa-project-diagram',
         surveyors: 'fas fa-hiking',
         surveys: 'fas fa-binoculars',

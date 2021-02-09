@@ -40,7 +40,7 @@ html {
 body {
     margin: 0;
     font-family: 'Inter', Arial, sans-serif;
-    color: #050533;
+    color: #4E4372;
     background: #FFFFFF;
 }
 
@@ -88,7 +88,7 @@ div#root {
 
 .tree h4 {
     padding-top: 10px;
-    color: #050533;
+    color: #4E4372;
 }
 
 /* Viewer/Editor Panel */
@@ -137,7 +137,7 @@ div.main {
 }
 
 .view h5 {
-    color: #050533;
+    color: #4E4372;
 }
 
 /*
@@ -145,7 +145,7 @@ DOM Elements
 */
 
 a {
-    color: #0D698B;
+    color: #008896;
 }
 
 /*
@@ -247,7 +247,7 @@ Main Navigation Menu
 
 .navbar nav.main div ul li a:hover {
     color: #FFFFFF;
-    background-color: #0D698B;
+    background-color: #008896;
     opacity: 0.9;
 }
 
@@ -313,17 +313,17 @@ Menus
 
 .navbar nav.user div ul li a:hover {
     color: #FFFFFF;
-    background-color: #0D698B;
+    background-color: #008896;
     opacity: 0.9;
 }
 
 .navbar nav.user div ul li button {
     color: #FFFFFF;
-    background-color: #0D698B !important;
+    background-color: #008896 !important;
 }
 
 .navbar nav.user div ul li button:hover {
-    color: #050533;
+    color: #4E4372;
     background-color: #FFFFFF !important;
 }
 
@@ -485,7 +485,7 @@ nav.breadcrumb ul li a:hover {
 .navigator-tools.v-menu {
     margin:auto;
     text-align: center;
-    background-color: #050533;
+    background-color: #4E4372;
     border-radius: 0 0 10px 0;
     opacity: 0.8;
 }
@@ -496,7 +496,7 @@ nav.breadcrumb ul li a:hover {
 }
 
 .navigator .v-menu ul li button {
-    background-color: #050533;
+    background-color: #4E4372;
     color: #FFFFFF;
     border: 2px solid #EEE;
 }
@@ -507,7 +507,7 @@ nav.breadcrumb ul li a:hover {
 }
 
 .navigator .v-menu ul li button:hover {
-    color: #050533;
+    color: #4E4372;
     background-color: #FFFFFF !important;
 }
 
@@ -531,9 +531,13 @@ nav.breadcrumb ul li a:hover {
     vertical-align: middle;
 }
 
+.tree-node .h-menu ul:hover {
+    background-color: #BEFBFF;
+}
+
 .tree-node .h-menu ul li button {
     flex-wrap: nowrap;
-    background-color: #0D698B;
+    background-color: #008896;
     color: #FFFFFF;
 }
 
@@ -542,16 +546,42 @@ nav.breadcrumb ul li a:hover {
     color: #FFFFFF;
 }
 
-.tree-node .h-menu ul li button:hover {
-    background-color: #E34234 !important;
+.tree-node .h-menu ul li button.current {
+    background-color: #282c34 !important;
     color: #FFFFFF;
+}
+
+.tree-node .h-menu ul li button.toggle:hover {
+    background-color: #E34234;
+    color: #FFFFFF;
+}
+
+.tree-node .h-menu ul li button.leaf {
+    background-color: #666666;
+    color: #FFFFFF;
+}
+
+.tree-node .h-menu ul li button.tree-node-icon {
+    background-color: transparent !important;
+    color: #008896;
+    text-align: center;
+}
+
+.tree-node .h-menu ul li button.tree-node-icon.current {
+    background-color: transparent !important;
+    color: #282c34;
+    text-align: center;
 }
 
 .tree-node .h-menu ul li button.tree-node-label {
     background-color: transparent;
-    color: #0D698B;
+    color: #008896;
     text-align: left;
     width: 100%;
+}
+
+.tree-node .h-menu ul li button.tree-node-label:hover {
+    background-color: transparent;
 }
 
 .tree-node .collapsible {
@@ -602,14 +632,13 @@ nav.breadcrumb ul li a:hover {
     border-top: none;
 }
 
-
 /* Accordion List Menu */
 
 .accordion .h-menu {
-    background-color: #D0E4F5;
-    margin-top:10px;
-    padding: 6px 12px;
-    border-top: none;
+    margin-top: 20px;
+    padding: 0px;
+    border: none;
+    border-radius: 20px;
 }
 
 .accordion .h-menu ul li {
@@ -624,7 +653,7 @@ nav.breadcrumb ul li a:hover {
     cursor: pointer;
     padding: 14px 16px;
     transition: 0.3s;
-    color: #282c34 !important;
+    color: white !important;
     background-color: transparent !important;
 }
 /* Change background color of buttons on hover */
@@ -637,8 +666,12 @@ nav.breadcrumb ul li a:hover {
 
 /* Create an active/current tablink class */
 .accordion .h-menu ul li button.active {
-    background-color: #0D698B;
+    background-color: #008896;
     color: white;
+}
+
+.accordion .item-data {
+    margin-left: 20px;
 }
 
 /* Item Edit Menu */
@@ -659,6 +692,35 @@ nav.breadcrumb ul li a:hover {
     line-height: normal;
 }
 
+/* Model colour schema */
+
+.surveys {
+    background-color: #008896 !important;
+}
+
+.survey_seasons {
+    background-color: #3BBD99 !important;
+}
+
+.historic_visits {
+    background-color: #447BB5 !important;
+}
+
+.modern_visits {
+    background-color: #29881B !important;
+}
+
+.stations {
+    background-color: #9E5E9B !important;
+}
+
+.historic_captures {
+    background-color: #B65179 !important;
+}
+
+.modern_captures {
+    background-color: #B65179 !important;
+}
 
 /*
   Page Footer
@@ -672,6 +734,21 @@ nav.breadcrumb ul li a:hover {
     background-color: #282c34;
 }
 
+/*
+  Images
+*/
+
+.thumb {
+    max-width: 100px;
+}
+
+.medium {
+    max-width: 350px;
+}
+
+.full {
+    width: auto;
+}
 
 /*
   Tables
@@ -698,7 +775,7 @@ table.items tr:nth-child(even) {
     background: #EEEEEE;
 }
 table.items thead {
-    background: #0D698B;
+    background: #008896;
     border-bottom: 5px solid #FFFFFF;
 }
 table.items thead th {
@@ -738,7 +815,7 @@ table.item td, table.item th {
 }
 
 table.item tbody td {
-    border-top: 1px dotted #050533;
+    border-top: 1px dotted #4E4372;
     font-size: small;
 }
 
@@ -811,7 +888,7 @@ Forms
 fieldset {
     margin: 20px;
     padding: 20px;
-    border-color: #050533;
+    border-color: #4E4372;
 }
 
 fieldset div {
@@ -915,7 +992,7 @@ input[type=email], input[type=password] {
 input[type=submit] {
     margin: 5px;
     font-family: 'Inter', Arial, sans-serif;
-    background-color: #0D698B;
+    background-color: #008896;
     color: white;
     padding: 12px 20px;
     border: none;
@@ -927,7 +1004,7 @@ input[type=submit] {
 /* When moving the mouse over the submit button, add a darker green color */
 input[type=submit]:hover {
     background-color: #E34234;
-    color: #050533;
+    color: #4E4372;
 }
 
 /* Style disabled submit button */
@@ -941,7 +1018,7 @@ input[type=submit].disabled, input[type=submit].disabled:hover {
 button {
     margin: auto;
     font-family: 'Inter', Arial, sans-serif;
-    background-color: #050533;
+    background-color: #4E4372;
     color: white;
     border: none;
     border-radius: 4px;
@@ -951,7 +1028,7 @@ button {
 }
 
 button:hover {
-    background-color: #0D698B; /* Blue */
+    background-color: #008896; /* Blue */
 }
 
 /* form cancel button */
@@ -964,7 +1041,7 @@ button.cancel {
 }
 
 button.cancel:hover {
-    color: #050533;
+    color: #4E4372;
     background-color: #E34234;
 }
 
@@ -1006,7 +1083,7 @@ Messages
     content:'\f057';
 }
 .msg.info {
-    color: #0D698B;
+    color: #008896;
     background-color: #BDE5F8;
 }
 .msg.success {
@@ -1065,12 +1142,12 @@ Messages
 }
 
 .alert-box-buttons button {
-    background-color: #0D698B !important;
+    background-color: #008896 !important;
     color: #FFFFFF !important;
 }
 
 .alert-box-buttons button:hover {
-    background-color: #050533 !important;
+    background-color: #4E4372 !important;
     color: #FFFFFF !important;
 }
 

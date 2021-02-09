@@ -79,7 +79,7 @@ export const get = async (id) => {
         node.data = await selectByNode(node);
         node.files = await fs.selectByOwner(node.id);
         node.dependents = await selectByOwner(node.id) || [];
-        node.hasDependents = node.dependents.length > 0 || false;
+        node.hasDependents = await hasDependents(node.id) || false;
 
         // end transaction
         await client.query('COMMIT');
@@ -122,8 +122,8 @@ export const getAll = async function(model) {
         // append model data and dependents (child nodes)
         let nodes = await Promise.all(rows.map(async (node) => {
             node.data = await selectByNode(node);
-            node.files = await fs.selectByOwner(node.id);
-            node.hasDependents = !!hasDependents(node.id) || false;
+            node.files = await fs.selectByOwner(node.id) || [];
+            node.hasDependents = hasDependents(node.id) || false;
             return node;
         }));
 
@@ -163,8 +163,8 @@ export const selectByOwner = async (id) => {
     // append full data for each dependent node
     nodes = await Promise.all(nodes.map(async (node) => {
         node.data = await selectByNode(node);
-        node.files = await fs.selectByOwner(node.id);
-        node.hasDependents = !!hasDependents(node.id) || false;
+        node.files = await fs.selectByOwner(node.id) || [];
+        node.hasDependents = await hasDependents(node.id) || false;
         return node;
     }));
 
@@ -189,7 +189,6 @@ export const hasDependents = async (id) => {
         .then(res => {
             return res.rows
         });
-    console.log(nodes)
     return nodes.length > 0;
 };
 
@@ -217,6 +216,8 @@ export const getModelDependents = async (item) => {
 
         // append second-level full data for each sub-dependent node
         dependents = await Promise.all(dependents.map(async (node) => {
+            node.data = await selectByNode(node);
+            node.files = await fs.selectByOwner(node.id) || [];
             node.dependents = await selectByOwner(node.id);
             return node;
         }));

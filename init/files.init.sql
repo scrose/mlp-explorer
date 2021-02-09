@@ -563,6 +563,19 @@ select id,
 from old_metadata_files
 order by id;
 
+-- populate new ancillary metadata table
+with f as (select id, old_id from files where file_type = 'metadata_files')
+insert into metadata_files (
+    files_id,
+    owner_id,
+    type)
+select f.id,
+       c.metadata_owner_id,
+       'ancillary'
+from old_metadata_files c
+         join f on c.id = f.old_id
+order by id;
+
 -- -------------------------------------------------------------
 --    Field notes (owned by Visits)
 -- -------------------------------------------------------------
@@ -598,6 +611,19 @@ select id,
        legacy_path,
        fs_path
 from old_field_notes
+order by id;
+
+-- populate new field notes table
+with f as (select id, old_id from files where file_type = 'metadata_files')
+insert into metadata_files (
+    files_id,
+    owner_id,
+    type)
+select f.id,
+       c.visit_id,
+       'field_notes'
+from old_field_notes c
+         join f on c.id = f.old_id
 order by id;
 
 commit;
