@@ -29,8 +29,6 @@ const DataView = () => {
     const api = useData();
     const { view='', model='', data=null, setData=null } = api || {};
     const render = getRenderType(view, model);
-    //
-    // console.log(view, model, data, render, root);
 
     // select default form callback for view
     const router = useRouter();
@@ -76,4 +74,4 @@ const DataView = () => {
     )
 }
 
-export default DataView;
+export default React.memo(DataView);

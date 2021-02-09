@@ -12,6 +12,7 @@ import { useUser } from '../../_providers/user.provider.client';
 import Icon from '../common/icon';
 import { redirect } from '../../_utils/paths.utils.client';
 import { getEmailUser } from '../../_utils/data.utils.client';
+import BreadcrumbMenu from '../menus/breadcrumb.menu';
 
 /**
  * User navigation menu (authenticated).
@@ -54,6 +55,9 @@ const HeaderEditor = () => {
                 <Logo />
                 <MainMenu />
                 <UserMenu />
+            </div>
+            <div className={'context-menu'}>
+                <BreadcrumbMenu />
             </div>
         </header>
     );

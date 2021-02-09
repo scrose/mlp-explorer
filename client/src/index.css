@@ -60,10 +60,10 @@ div#root {
 
 .navigator {
     display:inline-block;
-    height: 85vh;
+    height: 80vh;
     min-width: 350px;
     background-color: #FFFFFF;
-    overflow: auto;
+    overflow: scroll;
     text-align: center;
 }
 
@@ -94,23 +94,20 @@ div#root {
 /* Viewer/Editor Panel */
 
 div.main {
-    padding-top:60px;
     display: flex;
 }
 
 .viewer, .editor {
-    width:100%;
+    width: 100%;
     display:inline-block;
-    height: 85vh;
+    height: 80vh;
     vertical-align: top;
     background-color: #FFFFFF;
     overflow: auto;
-    padding: 0px 10px 40px 10px;
+    padding: 0 10px 40px 10px;
 }
 
 .viewer .header, .editor .header {
-    position: fixed;
-    width: 100%;
     background-color: #FFFFFF;
     color: #282c34;
     clear: both;
@@ -119,19 +116,14 @@ div.main {
 .viewer .header  h3, .editor .header  h3 {
     padding: 10px;
     margin: 0;
-    border-bottom: 1px solid #4E4372;
-    box-shadow: 0 3px 8px grey;
-;
 }
 
 .view {
-    margin-top: 150px;
     padding: 10px !important;
 }
 
 .view .data {
     display:inline-block;
-    width: 100%;
     overflow: visible;
 }
 
@@ -163,9 +155,17 @@ header {
 Top Banner
 */
 
-header .navbar {
+header .banner {
     position: fixed;
     width: 100%;
+    height: 100px;
+}
+
+/*
+Top Navigation Menu
+*/
+
+header .navbar {
     height: 60px;
     min-height: 60px;
     background-color: #282c34;
@@ -475,8 +475,8 @@ nav.breadcrumb ul li a:hover {
 }
 
 .editor-tools.h-menu ul li button:hover {
-    background-color: #FFFFFF;
-    color: #E34234;
+    background-color: transparent;
+    color: #008896;
 }
 
 /* Navigator Tool Menu */
@@ -539,7 +539,7 @@ nav.breadcrumb ul li a:hover {
 }
 
 .tree-node .h-menu ul li button {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     background-color: #008896;
     color: #FFFFFF;
 }
@@ -645,7 +645,7 @@ nav.breadcrumb ul li a:hover {
 }
 
 .accordion .h-menu ul li {
-    overflow: hidden;
+    overflow: auto;
     padding: 2px;
 }
 
@@ -877,7 +877,7 @@ table.item tfoot td {
 /* Style the collapsible content. Note: hidden by default */
 .collapsible.active {
     display: block;
-    overflow: hidden;
+    overflow: auto;
 }
 
 /*
@@ -1038,6 +1038,10 @@ button:hover {
     background-color: #008896; /* Blue */
 }
 
+button span {
+    padding-left: 4px;
+}
+
 /* form cancel button */
 
 button.cancel {
@@ -1057,8 +1061,7 @@ Messages
 */
 .msg {
     padding:10px;
-    margin:10px 0;
-
+    margin:10px;
 }
 .msg:before {
     font-family: FontAwesome;
@@ -1104,6 +1107,23 @@ Messages
 .msg.error {
     color: #E34234;
     background-color: #FFD2D2;
+}
+
+.msg .close {
+    float: right;
+    display: inline;
+    padding: 0;
+    margin: 0;
+}
+.msg .close button {
+    padding: 0;
+    margin: 0;
+    background-color: transparent;
+    height: 100%;
+    line-height: 100%;
+    vertical-align: middle;
+    color: inherit;
+    border: none;
 }
 
 /* Pop-up dialog component */

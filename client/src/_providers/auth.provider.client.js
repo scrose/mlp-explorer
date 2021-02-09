@@ -7,8 +7,8 @@
 
 import * as React from 'react'
 import { useRouter } from './router.provider.client';
-import { useData } from './data.provider.client';
 import { addSessionMsg } from '../_services/session.services.client';
+import { redirect } from '../_utils/paths.utils.client';
 
 /**
  * Global authentication context.
@@ -29,12 +29,7 @@ const AuthContext = React.createContext({})
 function AuthProvider(props) {
 
     let [data, setData] = React.useState(null);
-
-    // get providers
-    const api = useRouter();
-
-    // messenger
-    const msg = useData();
+    const router = useRouter();
 
     /**
      * User login request.
@@ -43,21 +38,14 @@ function AuthProvider(props) {
      */
 
     const login = async (route, credentials) => {
-        return await api.post('/login', credentials)
+        return await router.post('/login', credentials)
             .then(res => {
-
-                // send message
-                const { message='' } = res || {};
-                msg.setMessage(message);
-
                 const { user=null } = res || {};
-
                 // create user session on success
                 if (user) {
                     setData(user);
                 }
                 return res
-
             });
     }
 
@@ -68,12 +56,13 @@ function AuthProvider(props) {
      */
 
     const logout = async () => {
-        return await api.post('/logout')
+        const res = await router.post('/logout')
             .then(res => {
-                // Keycloak logout operation returns no content (204)
+                // Note: Keycloak logout operation returns no content (204)
                 setData(null);
-                msg.setMessage({ msg: 'Logged out successfully!', type: 'success' });
-            })
+            });
+        addSessionMsg({msg: 'User is signed out.', type:'info'});
+        return redirect('/');
     }
 
     /**
@@ -83,14 +72,14 @@ function AuthProvider(props) {
      */
 
     React.useEffect(() => {
-        api.post('/refresh')
+        router.post('/refresh')
             .then(res => {
                 // reset user session data
                 const { user=null } = res || {};
                 setData(user);
             })
         return () => {};
-    }, [api]);
+    }, [router]);
 
     /*
     Value is not optimized with React.useMemo here because this

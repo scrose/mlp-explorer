@@ -38,11 +38,6 @@ function RouterProvider(props) {
     // static view state: static views do not require API requests
     const [staticView, setStaticView] = React.useState(getStaticView(filterPath()));
 
-    // messenger state: check for session messages
-    const [message, setMessage] = React.useState(
-        getQuery('msg') ? popSessionMsg() : null
-    );
-
     // clear node path in session state
     clearNodes();
 
@@ -60,9 +55,6 @@ function RouterProvider(props) {
 
         // set app route state
         setRoute(uri);
-
-        // clear message
-        setMessage(null);
 
         // reroute view
         reroute(uri);
@@ -173,7 +165,7 @@ function RouterProvider(props) {
     };
 
     /**
-     * Request method to delate node.
+     * Request method to delete node.
      *
      * @public
      * @param node
@@ -198,7 +190,6 @@ function RouterProvider(props) {
     return (
         <RouterContext.Provider value={
             {
-                router: update,
                 update,
                 route,
                 staticView,
@@ -206,8 +197,6 @@ function RouterProvider(props) {
                 post,
                 remove,
                 followup,
-                message,
-                setMessage,
                 online,
                 setOnline
             }

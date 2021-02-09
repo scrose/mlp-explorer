@@ -85,7 +85,7 @@ Validator.prototype.isEmail = function () {
  */
 
 Validator.prototype.isPassword = function () {
-  if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/.test(this.data)) this.error('Password is invalid.');
+  if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/.test(this.data)) this.error('invalidCredentials');
   return this;
 };
 

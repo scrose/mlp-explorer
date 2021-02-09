@@ -6,7 +6,9 @@
  */
 
 import React from 'react';
+import { getSessionMsg, popSessionMsg } from '../../_services/session.services.client';
 import { useData } from '../../_providers/data.provider.client';
+import Button from './button';
 
 /**
  * Messenger component.
@@ -16,13 +18,46 @@ import { useData } from '../../_providers/data.provider.client';
 
 const Messenger = () => {
 
-    const messenger = useData();
+    const [data, setData] = React.useState(getSessionMsg());
+    const api = useData();
 
-    const { message={} } = messenger || {};
-    const { msg='', type='' } = message || {};
+    /**
+     * User login request.
+     *
+     * @public
+     */
+
+    const handleClose = () => {
+        popSessionMsg();
+        setData(null);
+    }
+
+    /**
+     * Load API data.
+     *
+     * @public
+     */
+
+    // non-static views: fetch API data and set view data in state
+    React.useEffect(() => {
+        if (!data && api.message) {
+            setData(api.message || popSessionMsg() || {});
+        }
+        return () => {};
+    }, [api]);
+
+    // destructure message data
+    const { msg='', type='' } = data || {};
 
     return (
-        msg && type ? <div className={`msg ${type}`}>{msg}</div> : ''
+        msg && type
+            ?   <div className={`msg ${type}`}>
+                    {msg}
+                    <div className={'close'}>
+                        <Button icon={'close'} onClick={handleClose} />
+                    </div>
+                </div>
+            : ''
     )
 }
 

@@ -54,8 +54,8 @@ const Form = ({
                   callback
 }) => {
 
-    const api = useRouter();
-    const msg = useData();
+    const router = useRouter();
+    const api = useData();
 
     const [isValid, setValid] = React.useState(false);
     const [isDisabled, setDisabled] = React.useState(false);
@@ -75,10 +75,10 @@ const Form = ({
             const formData = new FormData(e.target);
 
             // API callback for form data submission
-            callback(api.route, Object.fromEntries(formData))
+            callback(router.route, Object.fromEntries(formData))
                 .then(res => {
-                    msg.setMessage(res.message);
-                    api.followup(res);
+                    api.setMessage(res.message);
+                    router.followup(res);
                 })
                 .catch(err => console.error(err))
         }

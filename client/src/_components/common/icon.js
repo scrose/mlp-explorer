@@ -27,6 +27,7 @@ const getIconClass = (iconType) => {
         logo: 'fas fa-mountain',
         map: 'fas fa-lg fa-map-marked-alt',
         tree: 'fas fa-lg fa-list',
+        close: 'fas fa-times-circle',
         hopen: 'fas fa-lg fa-chevron-circle-down',
         hclose: 'fas fa-lg fa-chevron-circle-right',
         hopenleft: 'fas fa-lg fa-angle-double-left',

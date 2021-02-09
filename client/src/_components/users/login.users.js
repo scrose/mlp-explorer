@@ -10,9 +10,9 @@ import Form from '../common/form';
 import { useUser } from '../../_providers/user.provider.client';
 import { useAuth } from '../../_providers/auth.provider.client';
 import { useRouter } from '../../_providers/router.provider.client';
-import { addSessionMsg } from '../../_services/session.services.client';
-import { useData } from '../../_providers/data.provider.client';
 import { redirect } from '../../_utils/paths.utils.client';
+import { useData } from '../../_providers/data.provider.client';
+import { addSessionMsg } from '../../_services/session.services.client';
 
 /**
  * User sign in form component.
@@ -27,16 +27,16 @@ const LoginUsers = () => {
 
     const user = useUser();
     const auth = useAuth();
-    const api = useRouter();
-    const msg = useData();
+    const router = useRouter();
+    const api = useData();
 
     // Redirect to dashboard if logged in
     React.useEffect(() => {
         if (user) {
             addSessionMsg({msg: 'User is signed in.', type:'info'})
-            redirect('/?msg=true');
+            redirect('/');
         }
-    }, [user, api, msg]);
+    }, [user, router, api]);
 
     return user
         ? <div><p>User currently logged in.</p></div>

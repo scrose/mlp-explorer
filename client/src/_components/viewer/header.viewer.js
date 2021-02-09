@@ -9,6 +9,7 @@ import React from 'react';
 import MainMenu from '../menus/main.menu';
 import Logo from '../common/logo';
 import { redirect } from '../../_utils/paths.utils.client';
+import BreadcrumbMenu from '../menus/breadcrumb.menu';
 
 /**
  * User navigation menu (unauthenticated).
@@ -41,10 +42,15 @@ const UserMenu = () => {
 const HeaderViewer = () => {
     return (
         <header>
-            <div className={'navbar'}>
-                <Logo />
-                <MainMenu />
-                <UserMenu />
+            <div className={'banner'}>
+                <div className={'navbar'}>
+                    <Logo />
+                    <MainMenu />
+                    <UserMenu />
+                </div>
+                <div className={'context-menu'}>
+                    <BreadcrumbMenu />
+                </div>
             </div>
         </header>
     );

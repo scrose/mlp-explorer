@@ -1,6 +1,6 @@
 /*!
  * MLP.Client.Components.Menus.Navigator
- * File: editor.menu.js
+ * File: navigator.menu.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -17,7 +17,7 @@ import { getModelLabel } from '../../_services/schema.services.client';
  * @public
  */
 
-const MenuNavigator = ({view, set, toggle, setToggle}) => {
+const NavigatorMenu = ({view, set, toggle, setToggle}) => {
 
     // get API router
     const api = useRouter();
@@ -81,4 +81,4 @@ const MenuNavigator = ({view, set, toggle, setToggle}) => {
     )
 }
 
-export default React.memo(MenuNavigator);
+export default React.memo(NavigatorMenu);

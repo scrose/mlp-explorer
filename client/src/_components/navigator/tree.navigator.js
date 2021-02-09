@@ -57,7 +57,7 @@ const TreeNodeMenu = ({
         // add node to session path
         addNode(id);
         // reroute to requested data view
-        router.router(getNodeURI(model, 'show', id));
+        router.update(getNodeURI(model, 'show', id));
     }
 
     // toggle button classnames

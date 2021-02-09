@@ -6,7 +6,7 @@
  */
 
 import React from 'react'
-import MenuNavigator from './menu.navigator';
+import MenuNavigator from '../menus/navigator.menu';
 import TreeNavigator from './tree.navigator';
 import MapNavigator from './map.navigator';
 

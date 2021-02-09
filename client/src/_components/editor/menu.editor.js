@@ -11,6 +11,7 @@ import Icon from '../common/icon';
 import { useRouter } from '../../_providers/router.provider.client';
 import { getDependents, getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
 import Alert from '../common/alert';
+import { useData } from '../../_providers/data.provider.client';
 
 /**
  * Editor menu component.
@@ -18,39 +19,40 @@ import Alert from '../common/alert';
  * @public
  */
 
-const MenuEditor = ({view, node=null}) => {
+const MenuEditor = () => {
 
-    const api = useRouter();
+    const router = useRouter();
+    const api = useData()
 
     // lookup model dependent nodes
-    const dependents = getDependents(node.type) || [];
+    const dependents = getDependents(api.root.type) || [];
 
     // visibility settings for menu & menu items
     const menuExclude = ['dashboard', 'login', 'register', 'add']
     const toolExclude = ['dashboard', 'list', 'register', 'add'];
 
     return (
-        view && !menuExclude.includes(view) ?
+        api.view && !menuExclude.includes(api.view) ?
         <div className={'editor-tools h-menu'}>
             <ul>
-                {node && !toolExclude.includes(view) ?
+                {api.root && !toolExclude.includes(api.view) ?
                     <li>
                         <button
-                            title={`Edit this ${node.type} item.`}
-                            onClick={() => api.router(getNodeURI(node.type, 'show', node.id))}
+                            title={`Edit this ${api.root.type} item.`}
+                            onClick={() => router.update(getNodeURI(api.root.type, 'show', api.root.id))}
                         >
                             <Icon type={'info'} /> <span>View</span>
                         </button>
                     </li>: ''
                 }
-                {node && !toolExclude.includes(view) ?
+                {api.root && !toolExclude.includes(api.view) ?
                 <li>
                     { dependents.map(depNode => {
                         const label = getModelLabel(depNode);
                         return <button
                             key={depNode}
                             title={`Add new ${label}.`}
-                            onClick={() => api.router(getNodeURI(depNode, 'new', node.id))}
+                            onClick={() => router.update(getNodeURI(depNode, 'new', api.root.id))}
                         >
                             <Icon type={'add'}/> <span>Add New {label}</span>
                         </button>
@@ -58,30 +60,30 @@ const MenuEditor = ({view, node=null}) => {
                     }
                 </li>: ''
                 }
-                {node && !toolExclude.includes(view) ?
+                {api.root && !toolExclude.includes(api.view) ?
                     <li key={'edit'}>
                         <button
-                            title={`Edit this ${node.type} item.`}
-                            onClick={() => api.router(getNodeURI(node.type, 'edit', node.id))}
+                            title={`Edit this ${api.root.type} item.`}
+                            onClick={() => router.update(getNodeURI(api.root.type, 'edit', api.root.id))}
                         >
                             <Icon type={'edit'} /> <span>Edit</span>
                         </button>
                     </li> : ''
                 }
-                {node && !toolExclude.includes(view) ?
+                {api.root && !toolExclude.includes(api.view) ?
                     <li key={'remove'}>
                         <Alert
                             icon={'delete'}
-                            title={`Delete ${node.type} record?`}
+                            title={`Delete ${api.root.type} record?`}
                             description={
                                 <div>
-                                    <p>Please confirm the deletion of {getModelLabel(node.type)}:</p>
-                                    <p><b>{getNodeLabel(node)}</b></p>
+                                    <p>Please confirm the deletion of {getModelLabel(api.root.type)}:</p>
+                                    <p><b>{getNodeLabel(api.root)}</b></p>
                                     <p>Note that any dependent nodes for this record will also be deleted.</p>
                                 </div>
                             }
                             label={'Delete'}
-                            callback={() => {api.remove(node)}}
+                            callback={() => {router.remove(api.root)}}
                         />
                     </li> : ''
                 }

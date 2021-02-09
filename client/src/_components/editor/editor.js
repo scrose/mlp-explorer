@@ -6,16 +6,12 @@
  */
 
 import React from 'react';
-import { getModelLabel, getRenderType } from '../../_services/schema.services.client';
-import BreadcrumbMenu from '../menus/breadcrumb.menu';
 import DataView from '../views/data.view';
 import Messenger from '../common/messenger';
 import StaticView from '../views/static.view';
-import MenuEditor from './menu.editor';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
-import { useData } from '../../_providers/data.provider.client';
-import { getRootNode } from '../../_utils/data.utils.client';
+import MenuEditor from './menu.editor';
 
 /**
  * Render editor panel component (authenticated).
@@ -25,65 +21,27 @@ import { getRootNode } from '../../_utils/data.utils.client';
 
 const Editor = () => {
 
-    // create dynamic view state
-    const [apiData, setAPIData] = React.useState({});
-    const api = useRouter();
-    const msg = useData();
-    const _isMounted = React.useRef(false);
-
-    /**
-     * Load API data.
-     *
-     * @public
-     */
-
-    // non-static views: fetch API data and set view data in state
-    React.useEffect(() => {
-        _isMounted.current = true;
-
-        // request data if not static view
-        if (!api.staticView)
-            api.get(api.route)
-                .then(data => {
-                    console.log('API Response:', data);
-
-                    // update state with response data
-                    if (_isMounted.current)
-                        setAPIData(data);
-                });
-        return () => {_isMounted.current = false;};
-    }, [api, msg]);
-
-    // destructure API data for settings
-    const { view = '', model = {}, path = {} } = apiData || {};
-    const { name = '' } = model || {};
-    const node = getRootNode(path);
+    // get router context provider
+    const router = useRouter();
 
     return (
-        <div className={'viewer'}>
+        <div className={'editor'}>
             <div className={'header'}>
-                <BreadcrumbMenu path={path} view={view} model={name} />
+                <MenuEditor />
+                <Heading />
                 <Messenger />
-                <MenuEditor view={view} node={node} />
-                <Heading node={node} prefix={view} model={name} />
             </div>
             {
-                api.staticView
+                router.staticView
                     ? <StaticView type={
-                        api.staticView === 'dashboard'
+                        router.staticView === 'dashboard'
                             ? 'dashboardEdit'
-                            : api.staticView
+                            : router.staticView
                     } />
-                    : <DataView
-                        view={view}
-                        model={name}
-                        data={apiData}
-                        setData={setAPIData}
-                        render={getRenderType(view, name)}
-                    />
+                    : <DataView />
             }
         </div>
     )
 };
 
-export default Editor;
+export default React.memo(Editor);

@@ -25,16 +25,11 @@ const Viewer = () => {
 
     // get router context provider
     const router = useRouter();
-    const api = useData();
 
     return (
         <div className={'viewer'}>
-            <div className={'header'}>
-                <BreadcrumbMenu />
-                <Messenger />
-                <MenuViewer view={api.view} node={api.root} />
-                <Heading />
-            </div>
+            <Heading />
+            <Messenger />
             {
                 router.staticView
                 ? <StaticView type={

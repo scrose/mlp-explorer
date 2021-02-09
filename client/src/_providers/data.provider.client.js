@@ -35,6 +35,9 @@ function DataProvider(props) {
     const [model, setModel] = React.useState('');
     const [path, setPath] = React.useState([]);
 
+    // messenger
+    const [message, setMessage] = React.useState(null);
+
     // Addresses: Can't perform a React state update on unmounted component.
     // This is a no-op, but it indicates a memory leak in your
     // application. To fix, cancel all subscriptions and
@@ -49,6 +52,7 @@ function DataProvider(props) {
 
     // non-static views: fetch API data and set view data in state
     React.useEffect(() => {
+        console.log('Rerouting data...')
         _isMounted.current = true;
 
         // request data if not static view
@@ -94,7 +98,8 @@ function DataProvider(props) {
                 nodes: currentNodes,
                 root: root,
                 data: apiData,
-                setData: setAPIData
+                message,
+                setMessage
             }
         } {...props} />
     )

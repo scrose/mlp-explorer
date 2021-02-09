@@ -5,10 +5,10 @@
  * MIT Licensed
  */
 
+import React from 'react';
 import Navigator from '../navigator/navigator';
 import BoundaryError from '../error/boundary.error';
 import Footer from '../common/footer';
-import React from 'react';
 import Editor from '../editor/editor';
 import HeaderEditor from '../editor/header.editor';
 
@@ -22,16 +22,16 @@ const EditorApp = () => {
     return (
         <div className={"page-content"}>
             <HeaderEditor />
-                <main>
-                    <div className={'main'}>
-                        <BoundaryError>
-                            <Navigator/>
-                        </BoundaryError>
-                        <BoundaryError>
-                            <Editor/>
-                        </BoundaryError>
-                    </div>
-                </main>
+            <main>
+                <div className={'main'}>
+                    <BoundaryError>
+                        <Navigator/>
+                    </BoundaryError>
+                    <BoundaryError>
+                        <Editor/>
+                    </BoundaryError>
+                </div>
+            </main>
             <Footer/>
         </div>
     );

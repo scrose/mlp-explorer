@@ -123,7 +123,7 @@ const ViewFileList = ({files}) => {
     files = groupBy(files, 'file_type');
 
     if (Object.keys(files).length > 0)
-        console.log(files)
+        console.log('Files:', files)
 
     return (
         Object.keys(files).length > 0
@@ -132,7 +132,7 @@ const ViewFileList = ({files}) => {
                         Object.keys(files).map(key => {
                             return (
                                 <div key={key} >
-                                    <h5>{getModelLabel(key)}</h5>
+                                    <h5>{getModelLabel(key, 'label')}</h5>
                                     {
                                         files[key]
                                         .map((file, index) =>
@@ -164,8 +164,10 @@ const ViewFileList = ({files}) => {
 
 const ViewItemList = ({nodes}) => {
 
+    if (!Array.isArray(nodes)) return null;
+
     // initialize nodes
-    nodes = nodes
+    nodes = (nodes || [])
         .map(node => {
             node.label = getNodeLabel(node);
             node.order = getNodeOrder(node);

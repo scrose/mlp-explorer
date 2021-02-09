@@ -599,6 +599,16 @@ export const schema = {
                 label: 'Lens'
             },
         },
+        metadata_files: {
+            attributes: {
+                order: 13,
+                label: "Metadata Files",
+                singular: "Metadata File"
+            },
+            type: {
+                label: 'Type'
+            }
+        },
         cameras: {
             make: 'Make',
             model: 'Model',

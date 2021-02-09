@@ -9,27 +9,19 @@ import React from "react";
 import { useAuth } from '../../_providers/auth.provider.client';
 import { useUser } from '../../_providers/user.provider.client';
 import Loading from '../common/loading';
-import { useData } from '../../_providers/data.provider.client';
-import { redirect } from '../../_utils/paths.utils.client';
 
 const LogoutUsers = () => {
 
     const auth = useAuth();
     const user = useUser();
-    const msg = useData();
 
     // Delete session data and redirect
     React.useEffect(() => {
         if (user) {
             auth.logout()
-                .then(res => {
-                    const { message='' } = res || {}
-                    msg.setMessage(message);
-                    redirect('/')
-                });
         }
         return () => {};
-    }, [auth, user, msg]);
+    }, [auth, user]);
 
     return user
         ?   <div>
