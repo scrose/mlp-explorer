@@ -14,11 +14,11 @@ import React from 'react';
  * @return {JSX.Element}
  */
 
-const Image = ({ uri='', scale='thumb', title='', alt='' }) => {
+const Image = ({ url, scale='thumb', title='', name='', label='' }) => {
 
     const fallbackSrc = '/logo192.png'
 
-    const [src, setSrc] = React.useState(uri);
+    const [src, setSrc] = React.useState(url);
     const [error, setError] = React.useState(false);
 
     const onError = () => {
@@ -30,13 +30,16 @@ const Image = ({ uri='', scale='thumb', title='', alt='' }) => {
 
     // render image
     return (
-        <img
-            src={src}
-            className={scale}
-            alt={alt}
-            title={title}
-            onError={onError}
-        />
+        <figure>
+            <img
+                src={src}
+                className={scale}
+                alt={label || name}
+                title={title || name}
+                onError={onError}
+            />
+            <figcaption>{label || name}</figcaption>
+        </figure>
     )
 
 }

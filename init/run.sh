@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Run initialization
+# sh /init/run.sh
+
 # clear database
  (
  echo "DROP SCHEMA PUBLIC CASCADE;";

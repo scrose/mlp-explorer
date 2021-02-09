@@ -119,6 +119,9 @@ div.main {
 .viewer .header  h3, .editor .header  h3 {
     padding: 10px;
     margin: 0;
+    border-bottom: 1px solid #4E4372;
+    box-shadow: 0 3px 8px grey;
+;
 }
 
 .view {
@@ -711,6 +714,10 @@ nav.breadcrumb ul li a:hover {
 }
 
 .stations {
+    background-color: #9E5E9B !important;
+}
+
+.locations {
     background-color: #9E5E9B !important;
 }
 

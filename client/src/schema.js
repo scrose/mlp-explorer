@@ -308,7 +308,7 @@ export const schema = {
                 label: 'Pilot'
             },
             rw_call_sign: {
-                label: 'Call Sign'
+                label: 'RW Call Sign'
             },
             visit_narrative: {
                 label: 'Narrative'
@@ -326,16 +326,16 @@ export const schema = {
                 label: 'Wind Speed'
             },
             weather_gs: {
-                label: 'GS'
+                label: 'Gust Speed'
             },
             weather_pressure: {
-                label: 'Atmospheric Pressure'
+                label: 'Barometric Pressure'
             },
             weather_rh: {
-                label: 'RH'
+                label: 'Relative Humidity'
             },
             weather_wb: {
-                label: 'WB'
+                label: 'Wet Bulb'
             }
         },
         historic_captures: {
@@ -497,21 +497,107 @@ export const schema = {
                 label: "Modern Images",
                 singular: "Modern Image"
             },
-            file_size: 'File size',
-            x_dim: 'Image Width',
-            y_dim: 'Image Height',
-            bit_depth: 'Bit Depth',
-            image_remote: 'Remote',
-            comments: 'Comments',
-            lat: 'Latitude',
-            long: 'Longitude',
-            f_stop: 'F-stop',
-            shutter_speed: 'Shutter Speed',
-            focal_length: 'Focal Length',
-            iso: 'ISO',
-            capture_datetime: 'Capture Datetime',
-            camera_id: 'Camera',
-            lens_id: 'Lens',
+            file_size: {
+                label: 'File size'
+            },
+            x_dim: {
+                label: 'Image Width'
+            },
+            y_dim: {
+                label: 'Image Height'
+            },
+            bit_depth: {
+                label: 'Bit Depth'
+            },
+            image_remote: {
+                label: 'Remote'
+            },
+            comments: {
+                label: 'Comments'
+            },
+            lat: {
+                label: 'Latitude'
+            },
+            long: {
+                label: 'Longitude'
+            },
+            f_stop: {
+                label: 'F-stop'
+            },
+            shutter_speed: {
+                label: 'Shutter Speed'
+            },
+            focal_length: {
+                label: 'Focal Length'
+            },
+            iso: {
+                label: 'ISO'
+            },
+            capture_datetime: {
+                label: 'Capture Datetime'
+            },
+            camera_id: {
+                label: 'Camera'
+            },
+            lens_id: {
+                label: 'Lens'
+            },
+        },
+        supplemental_images: {
+            attributes: {
+                filetype: 'image',
+                order: 12,
+                label: "Supplemental Images",
+                singular: "Supplemental Image"
+            },
+            image_type: {
+                label: 'Type'
+            },
+            file_size: {
+                label: 'File size'
+            },
+            x_dim: {
+                label: 'Image Width'
+            },
+            y_dim: {
+                label: 'Image Height'
+            },
+            bit_depth: {
+                label: 'Bit Depth'
+            },
+            image_remote: {
+                label: 'Remote'
+            },
+            comments: {
+                label: 'Comments'
+            },
+            lat: {
+                label: 'Latitude'
+            },
+            long: {
+                label: 'Longitude'
+            },
+            f_stop: {
+                label: 'F-stop'
+            },
+            shutter_speed: {
+                label: 'Shutter Speed'
+            },
+            focal_length: {
+                label: 'Focal Length'
+            },
+            iso: {
+                label: 'ISO'
+            },
+            capture_datetime: {
+                label: 'Capture Datetime'
+            },
+            camera_id: {
+                label: 'Camera'
+            },
+            lens_id: {
+                label: 'Lens'
+            },
         },
         cameras: {
             make: 'Make',

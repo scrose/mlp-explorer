@@ -131,11 +131,17 @@ const ViewFileList = ({files}) => {
                     {
                         Object.keys(files).map(key => {
                             return (
-                                <div key={key}>
+                                <div key={key} >
                                     <h5>{getModelLabel(key)}</h5>
                                     {
                                         files[key]
-                                        .map(file => <File data={file} />
+                                        .map((file, index) =>
+                                                <File
+                                                    index={index}
+                                                    key={file.id}
+                                                    data={file}
+                                                    scale={'thumb'}
+                                                />
                                             )
                                     }
                                 </div>

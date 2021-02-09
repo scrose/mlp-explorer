@@ -14,22 +14,38 @@ import Image from './image';
  * Defines file component.
  *
  * @public
+ * @param index
  * @param {Object} data
  * @param scale
  * @return {JSX.Element}
  */
 
-const File = ({ data, scale='thumb' }) => {
+const File = ({ index, data, scale='thumb' }) => {
 
     // destructure file data
     const {file_type, url, filename} = data || {};
 
     // file components indexed by render type
     const renders = {
-        image: () => <Image
-            src={url}
+        historic_images: () => <Image
+            url={url}
             className={`${scale}`}
-            alt={filename}
+            name={filename}
+            label={filename}
+            title={filename}
+        />,
+        modern_images: () => <Image
+            url={url}
+            className={`${scale}`}
+            name={filename}
+            label={filename}
+            title={filename}
+        />,
+        supplemental_images: () => <Image
+            url={url}
+            className={`${scale}`}
+            name={filename}
+            label={filename}
             title={filename}
         />,
         metadata_files: () => <Button
@@ -45,7 +61,6 @@ const File = ({ data, scale='thumb' }) => {
             { renders.hasOwnProperty(file_type) ? renders[file_type]() : <Loading/> }
         </div>
     )
-
 }
 
 export default File;

@@ -33,6 +33,8 @@ export const show = async (req, res, next) => {
     try {
         const { id='' } = req.params || {};
         const node = await ns.get(sanitize(id, 'integer'));
+        console.log(node)
+        console.log('!!!!!!')
         res.status(200).json(
             prepare({
                 view: 'show',
