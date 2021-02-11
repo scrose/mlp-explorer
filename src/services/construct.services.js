@@ -54,7 +54,7 @@ export const create = async (modelType) => {
             writable: true
         },
         node: {
-            get: schema.getNod
+            get: schema.getNode
         },
         owner: {
             get: schema.getOwner,
@@ -262,22 +262,28 @@ export const createFile = async function(item) {
 };
 
 /**
- * Generates reference (lookup) object from given model type.
+ * Generates reference object (e.g. node or file) for given model type.
  *
  * @public
+ * @params {integer} id
  * @params {Object} item
+ * @params {String} type
  * @return {Promise} result
  */
 
-export const createReference = async function(id, item, modelType) {
+export const createReference = async function(id, item, type) {
 
-    // generate node constructor
-    let Reference = await create(modelType);
+    // generate reference constructor
+    let Reference = await create(type);
 
     // get owner attributes (if exist)
     let ownerAttrs = item.owner
         ? await select(item.owner.value)
-        : { id: null, type: null }
+        : { id: null, type: null };
+
+    console.log(item.getData())
+
+
 
     // return node instance: set owner attribute values from
     // retrieved node attributes

@@ -7,9 +7,9 @@
 
 import * as React from 'react'
 import { makeRequest } from '../_services/api.services.client';
-import { getAPIURL, getNodeURI, filterPath, redirect, reroute, getQuery } from '../_utils/paths.utils.client';
+import { getAPIURL, getNodeURI, filterPath, redirect, reroute } from '../_utils/paths.utils.client';
 import { getStaticView } from '../_services/schema.services.client';
-import { addSessionMsg, clearNodes, popSessionMsg } from '../_services/session.services.client';
+import { addSessionMsg, clearNodes } from '../_services/session.services.client';
 
 /**
  * Global data provider.
@@ -165,6 +165,25 @@ function RouterProvider(props) {
     };
 
     /**
+     * Request method to post data from API.
+     *
+     * @public
+     * @param {String} uri
+     * @param {Array} files
+     */
+
+    const upload = async (uri, files= []) => {
+        let res = await makeRequest({url: getAPIURL(uri), method:'POST', data: files})
+            .catch(err => {
+                // handle API connection errors
+                console.error('An API error occurred:', err);
+                setOnline(false);
+                return null;
+            });
+        return res ? handleResponse(res) : res;
+    };
+
+    /**
      * Request method to delete node.
      *
      * @public
@@ -175,10 +194,8 @@ function RouterProvider(props) {
         const route = getNodeURI(node.type, 'remove', node.id);
         post(route)
             .then(res => {
-                console.log('Deletion response:', res);
                 addSessionMsg(res.message);
-                const redirectURL = getNodeURI(node.owner_type, 'show', node.owner_id) + '/?msg=true';
-                redirect(redirectURL);
+                redirect('/');
             })
             .catch(err => console.error(err));
     }
@@ -195,6 +212,7 @@ function RouterProvider(props) {
                 staticView,
                 get,
                 post,
+                upload,
                 remove,
                 followup,
                 online,

@@ -44,6 +44,7 @@ export const login = async (req, res, next) => {
     try {
         // check if user is currently logged-in
         const isAuth = await auth.validate(access_token);
+
         if (isAuth)
             return next(new Error('redundantLogin'));
 

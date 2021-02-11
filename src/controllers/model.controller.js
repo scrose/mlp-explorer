@@ -12,7 +12,8 @@
 
 import ModelServices from '../services/model.services.js';
 import * as cs from '../services/construct.services.js';
-import * as ns from '../services/nodes.services.js'
+import * as ns from '../services/nodes.services.js';
+import * as fs from '../services/files.services.js';
 import { prepare } from '../lib/api.utils.js';
 
 /**
@@ -107,8 +108,11 @@ export default function ModelController(modelRoute) {
             let id = this.getId(req);
 
             // get record data for node
-            const data = await db.select(id);
+            const data = await db.select(id) || {};
             const item = new Model(data);
+
+            // add associated files (if they exist)
+            data.files = await fs.selectByOwner(id);
 
             // get path of node in hierarchy
             const node = await ns.select(id);
@@ -189,7 +193,6 @@ export default function ModelController(modelRoute) {
      */
 
     this.create = async (req, res, next) => {
-
         try {
             let item = new Model(req.body);
 

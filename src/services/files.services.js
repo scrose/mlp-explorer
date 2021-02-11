@@ -24,6 +24,40 @@ import { imageSizes } from '../../config.js';
 import { genUUID } from '../lib/data.utils.js';
 import queries from '../queries/index.queries.js';
 
+/**
+ * Create file source URLs from file data.
+ *
+ * @public
+ * @param {String} type
+ * @param {Object} data
+ * @return {Promise} result
+ */
+
+const genSrc = (type='', data={}) => {
+
+    const { secure_token='' } = data || {};
+
+    // generate image source URLs
+    const imgSrc = (token) => {
+        return Object.keys(imageSizes).reduce((o, key) => {
+            o[key] = new URL(`${key}_${token}.jpeg`, process.env.LIBRARY_DIR);
+            return o;
+        }, {});
+    }
+
+    // handle image source URLs differently than metadata files
+    // - images use scaled versions of raw files
+    // - metadata uses PDF downloads
+    const fileHandlers = {
+        historic_images: () => {return imgSrc(secure_token)},
+        modern_images: () => {return imgSrc(secure_token)},
+        supplemental_images: () => {return imgSrc(secure_token)},
+        metadata_files: () => {return null}
+    }
+
+    // Handle file types
+    return fileHandlers.hasOwnProperty(type) ? fileHandlers[type]() : null;
+};
 
 /**
  * Upload multiple image files.
@@ -153,11 +187,14 @@ export const select = async function(id) {
  */
 
 export const selectByFile = async (file) => {
+    const { file_type='' } = file || {};
     let { sql, data } = queries.defaults.selectByFile(file);
     return pool.query(sql, data)
         .then(res => {
-            return res.hasOwnProperty('rows')
-            && res.rows.length > 0 ? res.rows[0] : null;
+            const fileData = res.hasOwnProperty('rows')
+            && res.rows.length > 0 ? res.rows[0] : {};
+            fileData.url = genSrc(file_type, fileData);
+            return fileData;
         });
 };
 
@@ -171,33 +208,6 @@ export const selectByFile = async (file) => {
 
 export const selectByOwner = async (ownerID) => {
 
-    const fileHandlers = {
-        historic_images: (file) => {
-            // construct URL from token
-            const {secure_token=''} = file.data || {};
-            file.url = new URL(`thumb_${secure_token}.jpeg`, process.env.LIBRARY_DIR);
-            return file;
-        },
-        modern_images: (file) => {
-            // construct URL from token
-            const {secure_token=''} = file.data || {};
-            file.url = new URL(`thumb_${secure_token}.jpeg`, process.env.LIBRARY_DIR);
-            return file;
-        },
-        supplemental_images: (file) => {
-            // construct URL from token
-            const {secure_token=''} = file.data || {};
-            file.url = new URL(`thumb_${secure_token}.jpeg`, process.env.LIBRARY_DIR);
-            return file;
-        },
-        metadata_files: (file) => {
-            // construct URL from token
-            const {fs_path=''} = file || {};
-            file.url = new URL(fs_path, process.env.LIBRARY_DIR);
-            return file;
-        }
-    }
-
     // get first-level full data for each dependent node
     const { sql, data } = queries.files.selectByOwner(ownerID);
     const { rows=[] } = await pool.query(sql, data);
@@ -206,10 +216,7 @@ export const selectByOwner = async (ownerID) => {
     // append metadata for each file record
     files = await Promise.all(files.map(async (file) => {
         file.data = await selectByFile(file);
-        // Handle file types
-        return fileHandlers.hasOwnProperty(file.file_type)
-            ? fileHandlers[file.file_type](file)
-            : null
+        return file;
     }));
 
     // return nodes

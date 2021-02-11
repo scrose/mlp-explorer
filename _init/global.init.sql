@@ -8,7 +8,6 @@
 
 begin;
 
-
 -- -------------------------------------------------------------
 -- Rename old tables
 -- -------------------------------------------------------------
@@ -59,6 +58,36 @@ $$
     END
 $$;
 
+
+-- -------------------------------------------------------------
+-- Views
+-- -------------------------------------------------------------
+
+DO
+$$
+    BEGIN
+        CREATE TYPE views
+        AS ENUM (
+            'list',
+            'show',
+            'edit',
+            'create',
+            'remove',
+            'login',
+            'auth',
+            'refresh',
+            'logout',
+            'register',
+            'download',
+            'upload',
+            'bulk',
+            'export',
+            'import'
+            );
+    EXCEPTION
+        WHEN duplicate_object THEN null;
+    END
+$$;
 
 -- -------------------------------------------------------------
 --    Options table

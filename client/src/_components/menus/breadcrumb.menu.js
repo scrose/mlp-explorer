@@ -74,7 +74,7 @@ const BreadcrumbMenu = () => {
         return Object.keys(nodes)
             .sort(function(a, b){return b-a})
             .map(key => {
-                console.log(nodes[key])
+
                 const menuText = getNodeLabel(nodes[key]);
                 const {type='', id=''} = nodes[key] || {};
                 const href = getNodeURI(type, 'show', id);

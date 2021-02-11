@@ -12,6 +12,9 @@
 
 import * as db from '../services/index.services.js';
 import ModelServices from '../services/model.services.js';
+import * as fs from '../services/files.services.js';
+import * as ns from '../services/nodes.services.js';
+import { prepare } from '../lib/api.utils.js';
 
 /**
  * Export controller constructor.
@@ -91,7 +94,7 @@ export default function FilesController(modelType) {
     };
 
     /**
-     * Show record data.
+     * Show file data.
      *
      * @param req
      * @param res
@@ -100,15 +103,35 @@ export default function FilesController(modelType) {
      */
 
     this.show = async (req, res, next) => {
-        let id = this.getId(req);
-        await services
-            .select(id)
-            .then((data) => {
-                if (data.rows.length === 0) throw new Error('norecord');
-                res.locals.data = data.rows[0];
-                res.status(200).json(res.locals);
-            })
-            .catch((err) => next(err));
+        try {
+            // get requested file ID
+            let id = this.getId(req);
+
+            // get file data
+            const file = await fs.select(id);
+            file.data = await fs.selectByFile(file);
+
+            // get path of owner node in hierarchy
+            const node = await ns.select(file.owner_id);
+            const path = await ns.getPath(node);
+
+            // file or node not in database
+            if (!file || !node )
+                return next(new Error('notFound'));
+
+            // get linked data referenced in node tree
+            return res.status(200).json(
+                prepare({
+                    view: 'show',
+                    model: model,
+                    data: file,
+                    path: path
+                }));
+
+        } catch (err) {
+            console.error(err)
+            return next(err);
+        }
     };
 
 
@@ -122,8 +145,31 @@ export default function FilesController(modelType) {
      */
 
     this.browse = async (req, res, next) => {
+        try {
+            // get requested file ID
+            const ownerID = this.getId(req);
 
-        console.log('Browse Image files');
+            // get path of owner node in hierarchy
+            const node = await ns.select(ownerID);
+            const path = await ns.getPath(node);
+
+            // file or node not in database
+            if (!node )
+                return next(new Error('notFound'));
+
+            // get linked data referenced in node tree
+            return res.status(200).json(
+                prepare({
+                    view: 'bulk',
+                    model: model,
+                    data: node,
+                    path: path
+                }));
+
+        } catch (err) {
+            console.error(err)
+            return next(err);
+        }
     };
 
     /**
@@ -137,7 +183,10 @@ export default function FilesController(modelType) {
 
     this.upload = async (req, res, next) => {
 
-        if (!req.body.files) return next();
+        console.log('Upload files:', req.body);
+        next();
+
+
 
     };
 }

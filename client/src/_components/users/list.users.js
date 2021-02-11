@@ -24,9 +24,6 @@ import { sanitize } from '../../_utils/data.utils.client';
 const ListUsers = ({ data=[]}) => {
 
     const { fields=[] } = genSchema('list', 'users');
-
-    console.log('Users:', data, fields)
-
     const user = useUser();
 
     // rename value from indexed options

@@ -37,7 +37,6 @@ const ListNodes = ({ rows=[], cols=[], model='' }) => {
     // - return complete node item for each list element
     const filterItems = () => {
         return rows.map((row, index) => {
-            console.log(row)
             const fields = filterCols();
             const itemData = Object.keys(fields).reduce((o, key) => {
                 const url = '';

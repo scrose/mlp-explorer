@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Context.Providers
- * File: providers.context.client.js
+ * MLP.Client.Providers.Authenticate
+ * File: auth.providers.client.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */

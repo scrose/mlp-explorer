@@ -12,6 +12,7 @@ import { useRouter } from '../../_providers/router.provider.client';
 import { getDependents, getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
 import Alert from '../common/alert';
 import { useData } from '../../_providers/data.provider.client';
+import Button from '../common/button';
 
 /**
  * Editor menu component.
@@ -27,40 +28,30 @@ const MenuEditor = () => {
     // lookup model dependent nodes
     const dependents = getDependents(api.root.type) || [];
 
+    const [toggle, setToggle] = React.useState(false);
+
     // visibility settings for menu & menu items
-    const menuExclude = ['dashboard', 'login', 'register', 'add']
-    const toolExclude = ['dashboard', 'list', 'register', 'add'];
+    const menuExclude = ['dashboard', 'login', 'register']
+    const showExclude = ['dashboard', 'list', 'register', 'add'];
+    const editExclude = ['dashboard', 'list', 'register', 'add'];
+    const deleteExclude = ['dashboard', 'list', 'register', 'add'];
 
     return (
         api.view && !menuExclude.includes(api.view) ?
         <div className={'editor-tools h-menu'}>
             <ul>
-                {api.root && !toolExclude.includes(api.view) ?
-                    <li>
-                        <button
+                {api.root && !showExclude.includes(api.view) ?
+                    <li key={'show'}>
+                        <Button
+                            label={'View'}
                             title={`Edit this ${api.root.type} item.`}
-                            onClick={() => router.update(getNodeURI(api.root.type, 'show', api.root.id))}
-                        >
-                            <Icon type={'info'} /> <span>View</span>
-                        </button>
+                            icon={'info'}
+                            onClick={() =>
+                                router.update(getNodeURI(api.root.type, 'show', api.root.id))
+                            } />
                     </li>: ''
                 }
-                {api.root && !toolExclude.includes(api.view) ?
-                <li>
-                    { dependents.map(depNode => {
-                        const label = getModelLabel(depNode);
-                        return <button
-                            key={depNode}
-                            title={`Add new ${label}.`}
-                            onClick={() => router.update(getNodeURI(depNode, 'new', api.root.id))}
-                        >
-                            <Icon type={'add'}/> <span>Add New {label}</span>
-                        </button>
-                    })
-                    }
-                </li>: ''
-                }
-                {api.root && !toolExclude.includes(api.view) ?
+                {api.root && !editExclude.includes(api.view) ?
                     <li key={'edit'}>
                         <button
                             title={`Edit this ${api.root.type} item.`}
@@ -70,7 +61,7 @@ const MenuEditor = () => {
                         </button>
                     </li> : ''
                 }
-                {api.root && !toolExclude.includes(api.view) ?
+                {api.root && !deleteExclude.includes(api.view) ?
                     <li key={'remove'}>
                         <Alert
                             icon={'delete'}
@@ -86,6 +77,60 @@ const MenuEditor = () => {
                             callback={() => {router.remove(api.root)}}
                         />
                     </li> : ''
+                }
+                { dependents.length > 0 ?
+                    <li key={'tools'}>
+                        <div>
+                            <button
+                                className={`toggle`}
+                                title={`Expand editor tools.`}
+                                onClick={() => {
+                                    setToggle(!toggle);
+                                }}
+                            >
+                                {toggle ? <Icon type={'vopen'} /> : <Icon type={'vclose'} />}
+                                <span>Tools</span>
+                            </button>
+                        </div>
+                        <div className={`collapsible${toggle ? ' active' : ''}`}>
+                            <div className={'v-menu'}>
+                                {
+                                    dependents.map(depNode => {
+                                        const label = getModelLabel(depNode);
+                                        return (
+                                            <ul key={depNode}>
+                                                <li key={'new'}>
+                                                    <button
+                                                        key={depNode}
+                                                        title={`Add new ${label}.`}
+                                                        onClick={() =>
+                                                            router.update(getNodeURI(depNode, 'new', api.root.id))}
+                                                    >
+                                                        <Icon type={'add'}/> <span>Add {label}</span>
+                                                    </button>
+                                                </li>
+                                                {
+                                                depNode === 'historic_captures' ?
+                                                <li key={'upload'}>
+                                                    <button
+                                                        key={depNode}
+                                                        title={`Bulk upload: ${label}.`}
+                                                        onClick={() =>
+                                                            router.update(getNodeURI('historic_images', 'bulk', api.root.id))
+                                                        }
+                                                    >
+                                                        <Icon type={'upload'} /> <span>Bulk Upload Capture Images</span>
+                                                    </button>
+                                                </li>
+                                                : ''
+                                                }
+                                            </ul>
+                                        )
+                                    })
+                                }
+                            </div>
+                        </div>
+                    </li>: ''
                 }
             </ul>
         </div>

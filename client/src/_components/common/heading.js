@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { getModelLabel, getNodeLabel, getStaticLabel } from '../../_services/schema.services.client';
+import { getModelLabel, getNodeLabel, getStaticLabel, getViewLabel } from '../../_services/schema.services.client';
 import { capitalize } from '../../_utils/data.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import { useData } from '../../_providers/data.provider.client';
@@ -34,7 +34,15 @@ const Heading = ({prefix=''}) => {
 
     prefix = isNode ? getModelLabel(api.root.type) : prefix;
 
-    return  <h3>{prefix ? `${capitalize(prefix)}: ` : ''}{heading}</h3>
+    return <h3>
+        {api.view !== 'show' ? getViewLabel(api.view) + ': ' : ''}
+        {
+            prefix && prefix !== heading
+                ? capitalize(prefix) + ': '
+                : ''
+        }
+        {heading}
+    </h3>
 }
 
 export default Heading;

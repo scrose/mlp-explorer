@@ -13,7 +13,6 @@ import DataView from '../views/data.view';
 import StaticView from '../views/static.view';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
-import { useData } from '../../_providers/data.provider.client';
 
 /**
  * Render viewer panel component (unauthenticated).

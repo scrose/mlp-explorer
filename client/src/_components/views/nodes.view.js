@@ -8,150 +8,41 @@
 import React from 'react';
 import Item from '../common/item';
 import { getModelLabel, getNodeLabel, getNodeOrder } from '../../_services/schema.services.client';
-import Icon from '../common/icon';
-import File from '../common/file';
-import { groupBy } from '../../_utils/data.utils.client';
+import { FilesList } from './files.view';
+import Accordion from '../common/accordion';
 
 /**
- * Inline vertical accordion menu component.
- * - Creates accordion containers for dependent nodes that can
- *   be toggled.
- *
- * @public
- * @return {JSX.Element}
- */
-
-const AccordionTab = ({node}) => {
-
-    // accordion toggle state
-    const [toggle, setToggle] = React.useState(false);
-
-    return (
-        <div className={`accordion ${toggle === node.id ? ' active' : ''}`}>
-            <div className={`h-menu ${node.type}`}>
-                <ul>
-                    <li key={`${node.id}_ptr`}>
-                                <button
-                                    title={`View ${node.label}.`}
-                                    onClick={() => {setToggle(!toggle)}}
-                                >
-                                    {toggle ? <Icon type={'vopen'} /> : <Icon type={'vclose'} />}
-                                </button>
-
-                    </li>
-                    <li key={`${node.id}_type`}>
-                        <button
-                            className={toggle === node.id ? 'active' : ''}
-                            title={`View ${node.label}.`}
-                            onClick={() => {setToggle(!toggle)}}
-                        >
-                            <Icon type={node.type} /> {getModelLabel(node.type)}
-                        </button>
-                    </li>
-                    <li key={`${node.id}_label`}>
-                        <button
-                            className={toggle === node.id ? 'active' : ''}
-                            title={`View ${node.label}.`}
-                            onClick={() => {setToggle(!toggle)}}
-                        >
-                            {node.label}
-                        </button>
-                    </li>
-                </ul>
-            </div>
-            {
-                toggle ? <ViewItem node={node}/> : ''
-            }
-        </div>
-    );
-};
-
-/**
- * Navigation tree node component.
+ * Node item view component.
  *
  * @public
  * @param {Object} node
+ * @param {String} model
  * @return {JSX.Element}
  */
 
-const ViewItem = ({node}) => {
+const NodeItem = ({node, model}) => {
 
     // get any available dependents
-    const { dependents=[], files=[] } = node || {};
+    const { dependents=[], files=[], type=model } = node || {};
 
     // render tree node
     return (
-        <div className={'item-data'}>
+        <div>
+            <Accordion type={'info'} label={`${getModelLabel(type)} Metadata`}>
+                <Item view={'show'} model={type} data={node} />
+            </Accordion>
             <div>
-                <h5>{`${getModelLabel(node.type)}: ${getNodeLabel(node)}`}</h5>
-                {
-                    <Item
-                        view={'show'}
-                        model={node.type}
-                        data={node}
-                    />
-                }
+                <FilesList files={files} />
             </div>
             <div>
-                <ViewFileList files={files}/>
-            </div>
-            <div>
-                <ViewItemList nodes={dependents}/>
+                <NodeList nodes={dependents}/>
             </div>
         </div>
-
     );
 }
 
 
-/**
- * View file records associated with a node.
- *
- * @public
- * @return {JSX.Element}
- */
 
-const ViewFileList = ({files}) => {
-
-    // sort and group files by type
-    files = (files || [])
-        // // sort alphabetically
-        .sort(function(a, b){
-            // TODO sort station numbers in strings
-            return a.file_type.localeCompare(b.file_type);
-        });
-    files = groupBy(files, 'file_type');
-
-    if (Object.keys(files).length > 0)
-        console.log('Files:', files)
-
-    return (
-        Object.keys(files).length > 0
-            ?   <div>
-                    {
-                        Object.keys(files).map(key => {
-                            return (
-                                <div key={key} >
-                                    <h5>{getModelLabel(key, 'label')}</h5>
-                                    {
-                                        files[key]
-                                        .map((file, index) =>
-                                                <File
-                                                    index={index}
-                                                    key={file.id}
-                                                    data={file}
-                                                    scale={'thumb'}
-                                                />
-                                            )
-                                    }
-                                </div>
-                            )
-                        })
-                    }
-                </div>
-            : ''
-    );
-}
 
 /**
  * Navigation tree node list component.
@@ -162,7 +53,7 @@ const ViewFileList = ({files}) => {
  * @return {JSX.Element}
  */
 
-const ViewItemList = ({nodes}) => {
+const NodeList = ({nodes}) => {
 
     if (!Array.isArray(nodes)) return null;
 
@@ -186,7 +77,10 @@ const ViewItemList = ({nodes}) => {
     return (
         <div>
             {
-                nodes.map(node => <AccordionTab key={node.id} node={node}/>)
+                nodes.map(node =>
+                    <Accordion key={node.id} type={node.type} label={node.label}>
+                        <NodeItem node={node}/>
+                    </Accordion>)
             }
         </div>
     );
@@ -203,16 +97,10 @@ const ViewItemList = ({nodes}) => {
 
 const NodesView = ({data, model}) => {
 
-    // get dependent data
-    const { dependents={} } = data || {};
-
-    console.log('Node view:', data)
-
     // render node tree
     return (
         <div className={`item`}>
-            <Item data={data} model={model} view={'show'} />
-            <ViewItemList nodes={dependents} />
+            <NodeItem node={data} model={model} />
         </div>
     )
 }

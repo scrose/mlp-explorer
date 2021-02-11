@@ -52,7 +52,7 @@ function DataProvider(props) {
 
     // non-static views: fetch API data and set view data in state
     React.useEffect(() => {
-        console.log('Rerouting data...')
+
         _isMounted.current = true;
 
         // request data if not static view

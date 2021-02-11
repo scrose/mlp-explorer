@@ -53,10 +53,16 @@ const getFetchOptions = ({ data=null, method='POST', ctype='application/json', t
  * @param {url, data, method, token}
  */
 
-export async function makeRequest({ url='/', data=null, method='POST', token=null})  {
+export async function makeRequest({ url='/', data=null, files=null, method='POST', token=null})  {
+
+    // select content type
+    const ctype = files ? 'application/json' : 'application/json';
+
+    // select payload type
+    const payload = files ? files : data;
 
     // compose request headers/options
-    const opts = getFetchOptions({data, method, token});
+    const opts = getFetchOptions({payload, method, token, ctype});
 
     // send request to API
     let res = await fetch(url, opts)

@@ -26,11 +26,9 @@ const Editor = () => {
 
     return (
         <div className={'editor'}>
-            <div className={'header'}>
-                <MenuEditor />
-                <Heading />
-                <Messenger />
-            </div>
+            <MenuEditor />
+            <Heading />
+            <Messenger />
             {
                 router.staticView
                     ? <StaticView type={

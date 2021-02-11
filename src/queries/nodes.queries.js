@@ -98,7 +98,8 @@ export function selectByOwner(id) {
  */
 
 export function insert(node) {
-    return defaults.insert(node);
+    const fn = defaults.insert(node);
+    return fn(node);
 }
 
 /**
@@ -110,7 +111,8 @@ export function insert(node) {
  */
 
 export function update(node) {
-    return defaults.update(node);
+    const fn = defaults.update(node);
+    return fn(node);
 }
 
 /**
@@ -122,5 +124,6 @@ export function update(node) {
  */
 
 export function remove(node) {
-    return defaults.remove(node);
+    const fn = defaults.remove(node);
+    return fn(node);
 }

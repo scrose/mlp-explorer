@@ -102,11 +102,17 @@ export const authenticate = async ({email:email, password:password}) => {
     let data = await fetch(kcTokenURL, getOpts(payload))
         .then(response => response.json())
         .then(data => {
+            const { error=null } = data || {};
+            if (error) {
+                throw error;
+            }
             return data
         })
         .catch(err => {
             console.error('KeyCloak error:', err)
         });
+
+    if (!data) return null;
 
     // decode KeyCloak JWT token
     const { access_token='' } = data || {};

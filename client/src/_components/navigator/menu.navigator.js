@@ -1,6 +1,6 @@
 /*!
  * MLP.Client.Components.Menus.Navigator
- * File: navigator.menu.js
+ * File: menu.navigator.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -17,10 +17,9 @@ import { getModelLabel } from '../../_services/schema.services.client';
  * @public
  */
 
-const NavigatorMenu = ({view, set, toggle, setToggle}) => {
+const MenuNavigator = ({view, set, toggle, setToggle}) => {
 
-    // get API router
-    const api = useRouter();
+    const router = useRouter();
 
     return (
         <div className={'navigator-tools v-menu'}>
@@ -62,7 +61,7 @@ const NavigatorMenu = ({view, set, toggle, setToggle}) => {
                 <li>
                     <button
                         title={`Add new ${getModelLabel('surveyors')}.`}
-                        onClick={() => api.router(getNodeURI('surveyors', 'new'))}
+                        onClick={() => router.update(getNodeURI('surveyors', 'new'))}
                     >
                         <Icon type={'surveyors'}/> <span>Add {getModelLabel('surveyors')}</span>
                     </button>
@@ -70,7 +69,7 @@ const NavigatorMenu = ({view, set, toggle, setToggle}) => {
                 <li>
                     <button
                         title={`Add new ${getModelLabel('projects')}.`}
-                        onClick={() => api.router(getNodeURI('projects', 'new'))}
+                        onClick={() => router.update(getNodeURI('projects', 'new'))}
                     >
                         <Icon type={'projects'}/> <span>Add {getModelLabel('projects')}</span>
                     </button>
@@ -81,4 +80,4 @@ const NavigatorMenu = ({view, set, toggle, setToggle}) => {
     )
 }
 
-export default React.memo(NavigatorMenu);
+export default React.memo(MenuNavigator);

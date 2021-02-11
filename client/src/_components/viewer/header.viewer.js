@@ -10,6 +10,7 @@ import MainMenu from '../menus/main.menu';
 import Logo from '../common/logo';
 import { redirect } from '../../_utils/paths.utils.client';
 import BreadcrumbMenu from '../menus/breadcrumb.menu';
+import Button from '../common/button';
 
 /**
  * User navigation menu (unauthenticated).
@@ -23,9 +24,11 @@ const UserMenu = () => {
             <div>
                 <ul>
                     <li>
-                        <button onClick={() => redirect("/login")}>
-                            <span>Sign In</span>
-                        </button>
+                        <Button
+                            label={'Sign In'}
+                            icon={'login'}
+                            onClick={() => redirect("/login")}
+                        />
                     </li>
                 </ul>
             </div>

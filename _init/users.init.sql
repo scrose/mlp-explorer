@@ -7,33 +7,6 @@ drop table if exists user_roles CASCADE;
 drop table if exists user_permissions CASCADE;
 
 -- -------------------------------------------------------------
--- Views
--- -------------------------------------------------------------
-
-DO
-$$
-    BEGIN
-        CREATE TYPE views
-        AS ENUM (
-            'list',
-            'show',
-            'edit',
-            'create',
-            'remove',
-            'login',
-            'auth',
-            'refresh',
-            'logout',
-            'register',
-            'download',
-            'upload'
-            );
-    EXCEPTION
-        WHEN duplicate_object THEN null;
-    END
-$$;
-
--- -------------------------------------------------------------
 -- User Roles Table
 -- -------------------------------------------------------------
 
@@ -141,70 +114,44 @@ CREATE TABLE IF NOT EXISTS user_permissions
 
 INSERT INTO user_permissions (model, view, role, created_at, updated_at)
 VALUES (null, 'list', 'visitor', now(), now()),
-       (null, 'list', 'registered', now(), now()),
-       (null, 'list', 'contributor', now(), now()),
-       (null, 'list', 'editor', now(), now()),
-       (null, 'list', 'administrator', now(), now()),
-       (null, 'list', 'super_administrator', now(), now()),
-       (null, 'show', 'visitor', now(), now()),
-       (null, 'show', 'registered', now(), now()),
-       (null, 'show', 'contributor', now(), now()),
-       (null, 'show', 'editor', now(), now()),
-       (null, 'show', 'administrator', now(), now()),
-       (null, 'show', 'super_administrator', now(), now()),
-       (null, 'edit', 'contributor', now(), now()),
-       (null, 'edit', 'editor', now(), now()),
-       (null, 'edit', 'administrator', now(), now()),
-       (null, 'edit', 'super_administrator', now(), now()),
-       (null, 'create', 'editor', now(), now()),
-       (null, 'create', 'administrator', now(), now()),
-       (null, 'create', 'super_administrator', now(), now()),
-       (null, 'remove', 'editor', now(), now()),
-       (null, 'remove', 'administrator', now(), now()),
-       (null, 'remove', 'super_administrator', now(), now()),
-       ('users', 'list', 'administrator', now(), now()),
-       ('users', 'list', 'super_administrator', now(), now()),
-       ('users', 'show', 'administrator', now(), now()),
-       ('users', 'show', 'super_administrator', now(), now()),
-       ('users', 'create', 'administrator', now(), now()),
-       ('users', 'create', 'super_administrator', now(), now()),
-       ('users', 'edit', 'administrator', now(), now()),
-       ('users', 'edit', 'super_administrator', now(), now()),
-       ('users', 'remove', 'administrator', now(), now()),
-       ('users', 'remove', 'super_administrator', now(), now()),
-       ('users', 'register', 'administrator', now(), now()),
-       ('users', 'register', 'super_administrator', now(), now()),
-       ('users', 'login', 'visitor', now(), now()),
-       ('users', 'auth', 'visitor', now(), now()),
-       ('users', 'refresh', 'visitor', now(), now()),
-       ('users', 'login', 'super_administrator', now(), now()),
-       ('users', 'logout', 'visitor', now(), now()),
-       ('files', 'download', 'contributor', now(), now()),
-       ('files', 'download', 'editor', now(), now()),
-       ('files', 'download', 'administrator', now(), now()),
-       ('files', 'download', 'super_administrator', now(), now()),
-       ('files', 'upload', 'editor', now(), now()),
-       ('files', 'upload', 'administrator', now(), now()),
-       ('files', 'upload', 'super_administrator', now(), now());
-
--- -------------------------------------------------------------
---    Initialize Super-Administrator user
--- -------------------------------------------------------------
-
--- INSERT INTO users(user_id,
---                   email,
---                   password,
---                   salt_token,
---                   role,
---                   created_at,
---                   updated_at)
--- VALUES ($1::varchar,
---         $2::varchar,
---         $3::varchar,
---         $4::varchar,
---         'superadmin',
---         NOW()::timestamp,
---         NOW()::timestamp);
+        (null, 'list', 'registered', now(), now()),
+        (null, 'list', 'contributor', now(), now()),
+        (null, 'list', 'editor', now(), now()),
+        (null, 'list', 'administrator', now(), now()),
+        (null, 'list', 'super_administrator', now(), now()),
+        (null, 'show', 'visitor', now(), now()),
+        (null, 'show', 'registered', now(), now()),
+        (null, 'show', 'contributor', now(), now()),
+        (null, 'show', 'editor', now(), now()),
+        (null, 'show', 'administrator', now(), now()),
+        (null, 'show', 'super_administrator', now(), now()),
+        (null, 'edit', 'contributor', now(), now()),
+        (null, 'edit', 'editor', now(), now()),
+        (null, 'edit', 'administrator', now(), now()),
+        (null, 'edit', 'super_administrator', now(), now()),
+        (null, 'create', 'editor', now(), now()),
+        (null, 'create', 'administrator', now(), now()),
+        (null, 'create', 'super_administrator', now(), now()),
+        (null, 'remove', 'editor', now(), now()),
+        (null, 'remove', 'administrator', now(), now()),
+        (null, 'remove', 'super_administrator', now(), now()),
+        ('users', 'login', 'visitor', now(), now()),
+        ('users', 'auth', 'visitor', now(), now()),
+        ('users', 'refresh', 'visitor', now(), now()),
+        ('users', 'logout', 'visitor', now(), now()),
+        ('files', 'download', 'contributor', now(), now()),
+        ('files', 'download', 'editor', now(), now()),
+        ('files', 'download', 'administrator', now(), now()),
+        ('files', 'download', 'super_administrator', now(), now()),
+        ('files', 'import', 'editor', now(), now()),
+        ('files', 'import', 'administrator', now(), now()),
+        ('files', 'import', 'super_administrator', now(), now()),
+        ('files', 'export', 'editor', now(), now()),
+        ('files', 'export', 'administrator', now(), now()),
+        ('files', 'export', 'super_administrator', now(), now()),
+        (null, 'upload', 'editor', now(), now()),
+        (null, 'upload', 'administrator', now(), now()),
+        (null, 'upload', 'super_administrator', now(), now());
 
 -- -------------------------------------------------------------
 --    Initialize Session Table

@@ -35,7 +35,6 @@ export const checkNode = (node) => {
 
 export const addNode = (node) => {
     const nodes = getNodes().filter(n => n !== node);
-    console.log(nodes)
     nodes.push(node);
     sessionStorage.setItem('nodes', JSON.stringify(nodes));
 }

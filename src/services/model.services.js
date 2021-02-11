@@ -177,8 +177,10 @@ export default function ModelServices(model) {
 
             // process node query (if provided)
             if (stmts.node) {
+
                 // create node model from item reference
                 let node = await createNode(item);
+
                 // generate prepared statements collated with data
                 const {sql, data} = stmts.node(node);
                 res = await client.query(sql, data);
@@ -191,7 +193,7 @@ export default function ModelServices(model) {
             // process node query (if provided)
             if (stmts.model) {
                 const { sql, data } = stmts.model(item);
-                res = await client.query(sql, data)
+                res = await client.query(sql, data);
 
                 // process supplemental statements (e.g. foreign key references)
                 res.attached = await Promise.all(stmts.attached.map(async (stmt) => {

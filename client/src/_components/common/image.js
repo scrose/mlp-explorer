@@ -6,6 +6,8 @@
  */
 
 import React from 'react';
+import { getNodeURI } from '../../_utils/paths.utils.client';
+import { useRouter } from '../../_providers/router.provider.client';
 
 /**
  * Defines image component.
@@ -14,13 +16,15 @@ import React from 'react';
  * @return {JSX.Element}
  */
 
-const Image = ({ url, scale='thumb', title='', name='', label='' }) => {
+const Image = ({ url, type='', id='', title='', label='', scale='thumb' }) => {
 
-    const fallbackSrc = '/logo192.png'
-
-    const [src, setSrc] = React.useState(url);
+    const fallbackSrc = '/logo192.png';
+    const router = useRouter();
+    const [src, setSrc] = React.useState(url[scale]);
     const [error, setError] = React.useState(false);
 
+    // Handler for resource loading errors.
+    // - uses fallback image
     const onError = () => {
         if (!error) {
             setSrc(fallbackSrc);
@@ -28,17 +32,24 @@ const Image = ({ url, scale='thumb', title='', name='', label='' }) => {
         }
     }
 
+    // Handler for viewing image on click.
+    const onClick = () => {
+        router.update(getNodeURI(type, 'show', id));
+    }
+
     // render image
     return (
-        <figure>
+        <figure className={scale}>
             <img
                 src={src}
-                className={scale}
-                alt={label || name}
-                title={title || name}
+                alt={label || type}
+                title={title || type}
                 onError={onError}
+                onClick={onClick}
             />
-            <figcaption>{label || name}</figcaption>
+            <figcaption onClick={onClick}>
+                {label || type}
+            </figcaption>
         </figure>
     )
 

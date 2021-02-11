@@ -32,40 +32,33 @@ function FilesRoutes(modelType) {
     // add controller routes
     this.routes = {
         list: {
-            path: path.join('/', this.model),
+            path: path.join('/', this.model, 'list', ':' + this.key),
             get: this.controller.list,
             put: null,
             post: null,
             delete: null,
         },
         show: {
-            path: path.join('/', this.model, '/:' + this.key),
+            path: path.join('/', this.model, 'show', ':' + this.key),
             get: this.controller.show,
             put: null,
             post: null,
             delete: null,
         },
+        download: {
+            path: path.join('/', this.model, 'download', ':' + this.key),
+            get: null,
+            put: null,
+            post: this.controller.download,
+            delete: null,
+        },
         upload: {
-            path: path.join('/', this.model, '/upload'),
+            path: path.join('/', this.model, 'upload', ':' + this.key),
             get: this.controller.browse,
             put: null,
             post: this.controller.upload,
             delete: null,
-        },
-        // download: {
-        //     path: path.join('/', this.modelRoute, '/download'),
-        //     get: this.controller.select,
-        //     put: null,
-        //     post: this.controller.download,
-        //     delete: null,
-        // },
-        // info: {
-        //     path: path.join('/', this.modelRoute, '/:' + this.key),
-        //     get: this.controller.browse,
-        //     put: null,
-        //     post: this.controller.upload,
-        //     delete: null,
-        // }
+        }
     };
 }
 

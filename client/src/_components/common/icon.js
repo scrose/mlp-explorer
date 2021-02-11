@@ -18,6 +18,8 @@ const getIconClass = (iconType) => {
     const iconComponents = {
         home: 'fas fa-lg fa-home',
         user: 'fas fa-lg fa-user-circle',
+        login: 'fas fa-lg fa-sign-in-alt',
+        logout: 'fas fa-lg fa-sign-out-alt',
         info: 'fas fa-lg fa-info-circle',
         add: 'fas fa-lg fa-plus',
         edit: 'fas fa-lg fa-edit',
@@ -34,6 +36,7 @@ const getIconClass = (iconType) => {
         hcloseleft: 'fas fa-lg fa-angle-double-right',
         vopen: 'fas fa-lg fa-chevron-circle-up',
         vclose: 'fas fa-lg fa-chevron-circle-down',
+        upload: 'fas fa-lg fa-file-upload',
         metadata_files: 'fas fa-lg fa-file-download',
         projects: 'fas fa-project-diagram',
         surveyors: 'fas fa-hiking',

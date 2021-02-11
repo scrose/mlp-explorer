@@ -6,9 +6,8 @@
  */
 
 import React from 'react';
-import { reroute } from '../../_utils/paths.utils.client';
 import Icon from './icon';
-import { useRouter } from '../../_providers/router.provider.client';
+import { redirect } from '../../_utils/paths.utils.client';
 
 /**
  * Render .page footer
@@ -17,9 +16,7 @@ import { useRouter } from '../../_providers/router.provider.client';
  * @return {React.Component}
  */
 
-const Button = ({type, name, label, url, icon, onClick}) => {
-
-    const api = useRouter();
+const Button = ({type, name, label, title, url, icon, onClick}) => {
 
     /**
      * Button constructors for different render types.
@@ -27,6 +24,9 @@ const Button = ({type, name, label, url, icon, onClick}) => {
      * @private
      * @return {Function} input constructor
      */
+
+    // set default hover title
+    title = title || label;
 
     const _buttonElements = {
         submit: () => {
@@ -45,7 +45,7 @@ const Button = ({type, name, label, url, icon, onClick}) => {
                     key={`key_cancel_${name}`}
                     className={'cancel'}
                     title={`Cancel update.`}
-                    onClick={() => api.router(url)}
+                    onClick={() => redirect(url)}
                 >
                     <span>{label}</span>
                 </button>
@@ -55,12 +55,11 @@ const Button = ({type, name, label, url, icon, onClick}) => {
             return (
                 <button
                     key={`key_${name}`}
-                    title={label}
+                    title={title}
                     onClick={() => onClick()}
                 >
                     { icon ? <Icon type={icon} /> : ''}
                     <span>{label}</span>
-
                 </button>
             )
         }

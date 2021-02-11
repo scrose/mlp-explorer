@@ -40,7 +40,7 @@ const Messenger = () => {
 
     // non-static views: fetch API data and set view data in state
     React.useEffect(() => {
-        if (!data && api.message) {
+        if (!data && api.message || getSessionMsg()) {
             setData(api.message || popSessionMsg() || {});
         }
         return () => {};

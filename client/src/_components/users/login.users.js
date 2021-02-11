@@ -35,6 +35,7 @@ const LoginUsers = () => {
         if (user) {
             addSessionMsg({msg: 'User is signed in.', type:'info'})
             redirect('/');
+            return () => {};
         }
     }, [user, router, api]);
 

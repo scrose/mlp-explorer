@@ -8,7 +8,6 @@
 import React from 'react'
 import Fieldset from './fieldset';
 import Button from './button';
-import { addSessionMsg } from '../../_services/session.services.client';
 import { genSchema, getModelLabel } from '../../_services/schema.services.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import { useData } from '../../_providers/data.provider.client';

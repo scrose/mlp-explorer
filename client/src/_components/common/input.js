@@ -165,6 +165,21 @@ const Input = ({
                 </select>
                 {error ? <ValidationMessage msg={error} /> : null}
             </label>
+        },
+
+        file: () => {
+            return <label key={`label_${name}`} htmlFor={name}>
+                {label}
+                <input
+                    type={"file"}
+                    id={name}
+                    name={name}
+                    onChange={onchange}
+                    onBlur={onblur}
+                    multiple={true}
+                />
+                {error ? <ValidationMessage msg={error}/> : null}
+            </label>
         }
     }
 

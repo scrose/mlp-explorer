@@ -94,6 +94,12 @@ export const sanitize = (value, render='', href='', title='') => {
         text: ({ value }) => {
             return value != null ? String(value) : '-';
         },
+        filesize: ({ value }) => {
+            return value != null ? (parseFloat(value)/1000000).toFixed(2) + ' MB' : '-';
+        },
+        imgsize: ({ value }) => {
+            return value != null ? parseInt(value) + ' px' : '-';
+        },
         default: ({ value }) => {
             return value != null ? String(value) : '-';
         }

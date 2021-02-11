@@ -9,14 +9,13 @@ import React from 'react';
 import { useRouter } from '../../_providers/router.provider.client';
 import Form from '../common/form';
 import ItemView from './item.view';
-import Table from '../common/table';
-import ListUsers from '../users/list.users';
 import ListNodes from '../nodes/list.nodes';
 import NotfoundError from '../error/notfound.error';
 import Loading from '../common/loading';
 import ServerError from '../error/server.error';
 import { useData } from '../../_providers/data.provider.client';
 import { getRenderType } from '../../_services/schema.services.client';
+import Uploader from './uploader.view';
 
 /**
  * Build requested data view from API data.
@@ -27,7 +26,7 @@ import { getRenderType } from '../../_services/schema.services.client';
 const DataView = () => {
 
     const api = useData();
-    const { view='', model='', data=null, setData=null } = api || {};
+    const { view='', model='', data=null } = api || {};
     const render = getRenderType(view, model);
 
     // select default form callback for view
@@ -41,24 +40,15 @@ const DataView = () => {
                 view={view}
                 model={model}
                 data={data}
-                setData={setData}
                 callback={callback}
             />),
         item: () => (
             <ItemView />),
-        list: () => (
-            <Table
-                rows={data || []}
-                cols={[]}
-            />),
-        listUsers: () => (
-            <ListUsers
-                data={data || []}
-            />),
-        listNodes: () => (
-            <ListNodes
-                data={data || []}
+        upload: () => (
+            <Uploader
+                data={data}
                 model={model}
+                view={view}
             />),
         notFound: () => <NotfoundError />,
         serverError: () => <ServerError />

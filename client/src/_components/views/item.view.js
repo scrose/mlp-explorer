@@ -9,6 +9,8 @@ import React from 'react'
 import Loading from '../common/loading';
 import NodesView from './nodes.view';
 import { useData } from '../../_providers/data.provider.client';
+import CapturesView from './captures.view';
+import ImageView from './image.view';
 
 /**
  * Data item (record) component.
@@ -23,10 +25,14 @@ const ItemView = () => {
 
     // view components indexed by model type
     const itemViews = {
+        historic_captures: () => <CapturesView data={ data } model={model} />,
+        modern_captures: () => <CapturesView data={ data } model={model} />,
+        historic_images: () => <ImageView file={ data } model={model} />,
+        modern_images: () => <ImageView file={ data } model={model} />,
         default: () => <NodesView data={ data } model={model} />
     }
 
-    return Object.keys(data).length > 0
+    return model && data
         ?
         <>
             {

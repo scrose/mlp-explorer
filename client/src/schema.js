@@ -6,7 +6,9 @@
  */
 
 /**
- * Rendering schema.
+ * MLP schema. The schema is a configuration file for defining
+ * rendering, labelling, routing, input validation and node/file
+ * relations settings for the client-side web application.
  * @private
  */
 
@@ -85,17 +87,21 @@ export const schema = {
                 render: 'listUsers'
             }
         },
+        upload: {
+            legend: 'File Upload',
+            submit: 'Upload',
+            method: 'POST',
+            render: 'upload'
+        },
         add: {
             legend: 'Create New',
             submit: 'Create',
-            render: 'form',
-            review: 'show'
+            render: 'form'
         },
         edit: {
             legend: 'Update',
             submit: 'Update',
-            render: 'form',
-            review: 'show'
+            render: 'form'
         },
         remove: {
             legend: 'Delete',
@@ -108,28 +114,6 @@ export const schema = {
         }
     },
     models: {
-        default: {
-            id: {
-                render: 'hidden',
-                restrict: []
-            },
-            nodes_id: {
-                render: 'hidden'
-            },
-            created_at: {
-                label: 'Created At',
-                render: 'timestamp',
-                restrict: ['login', 'register', 'edit', 'add']
-            },
-            updated_at: {
-                label: 'Updated At',
-                render: 'timestamp',
-                restrict: ['login', 'register', 'edit', 'add']
-            },
-            published: {
-                label: 'Published'
-            }
-        },
         users: {
             email: {
                 label: 'Email',
@@ -153,7 +137,12 @@ export const schema = {
             attributes: {
                 order: 1,
                 label: "Projects",
-                singular: "Project"
+                singular: "Project",
+                dependents: ['stations', 'historic_captures', 'modern_captures']
+            },
+            nodes_id: {
+                render: 'hidden',
+                restrict: ['edit', 'delete'],
             },
             name: {
                 key: 1,
@@ -169,6 +158,10 @@ export const schema = {
                 label: "Surveyors",
                 singular: "Surveyor",
                 dependents: ['surveys']
+            },
+            nodes_id: {
+                render: 'hidden',
+                restrict: ['edit', 'delete'],
             },
             given_names: {
                 key: 2,
@@ -191,7 +184,8 @@ export const schema = {
             attributes: {
                 order: 3,
                 label: "Surveys",
-                singular: "Survey"
+                singular: "Survey",
+                dependents: ['survey_seasons', 'historic_captures', 'modern_captures']
             },
             nodes_id: {
                 render: 'hidden',
@@ -213,7 +207,15 @@ export const schema = {
             attributes: {
                 order: 4,
                 label: "Survey Seasons",
-                singular: "Survey Season"
+                singular: "Survey Season",
+                dependents: ['stations', 'historic_captures', 'modern_captures']
+            },
+            nodes_id: {
+                render: 'hidden',
+                restrict: ['edit', 'delete'],
+            },
+            owner_id: {
+                render: 'hidden'
             },
             year: {
                 key: 1,
@@ -248,7 +250,15 @@ export const schema = {
             attributes: {
                 order: 5,
                 label: "Stations",
-                singular: "Station"
+                singular: "Station",
+                dependents: ['modern_visits', 'modern_captures']
+            },
+            nodes_id: {
+                render: 'hidden',
+                restrict: ['edit', 'delete'],
+            },
+            owner_id: {
+                render: 'hidden'
             },
             name: {
                 key: 1,
@@ -277,7 +287,15 @@ export const schema = {
             attributes: {
                 order: 6,
                 label: "Historic Visits",
-                singular: "Historic Visit"
+                singular: "Historic Visit",
+                dependents: ['historic_captures']
+            },
+            nodes_id: {
+                render: 'hidden',
+                restrict: ['edit', 'delete'],
+            },
+            owner_id: {
+                render: 'hidden'
             },
             date: {
                 key: 1,
@@ -291,7 +309,15 @@ export const schema = {
             attributes: {
                 order: 7,
                 label: "Modern Visits",
-                singular: "Modern Visit"
+                singular: "Modern Visit",
+                dependents: ['modern_captures']
+            },
+            nodes_id: {
+                render: 'hidden',
+                restrict: ['edit', 'delete'],
+            },
+            owner_id: {
+                render: 'hidden'
             },
             date: {
                 key: 1,
@@ -342,7 +368,15 @@ export const schema = {
             attributes: {
                 order: 8,
                 label: "Historic Captures",
-                singular: "Historic Capture"
+                singular: "Historic Capture",
+                files: ['historic_images']
+            },
+            nodes_id: {
+                render: 'hidden',
+                restrict: ['edit', 'delete'],
+            },
+            owner_id: {
+                render: 'hidden'
             },
             plate_id: {
                 label: 'Plate ID'
@@ -362,7 +396,7 @@ export const schema = {
             capture_datetime: {
                 label: 'Capture Datetime'
             },
-            camera_id: {
+            cameras_id: {
                 label: 'Camera'
             },
             lens_id: {
@@ -384,7 +418,7 @@ export const schema = {
                 label: 'LAC Collection'
             },
             lac_box: {
-                label: 'LAC box'
+                label: 'LAC Box'
             },
             lac_catalogue: {
                 label: 'LAC Catalogue'
@@ -400,7 +434,15 @@ export const schema = {
             attributes: {
                 order: 9,
                 label: "Modern Captures",
-                singular: "Modern Capture"
+                singular: "Modern Capture",
+                files: ['modern_images']
+            },
+            nodes_id: {
+                render: 'hidden',
+                restrict: ['edit', 'delete'],
+            },
+            owner_id: {
+                render: 'hidden'
             },
             lat: {
                 label: 'Latitude'
@@ -426,7 +468,7 @@ export const schema = {
             capture_datetime: {
                 label: 'Capture Datetime'
             },
-            camera_id: {
+            cameras_id: {
                 label: 'Camera'
             },
             lens_id: {
@@ -446,7 +488,15 @@ export const schema = {
             attributes: {
                 order: 10,
                 label: "Locations",
-                singular: "Location"
+                singular: "Location",
+                files: ['supplemental_images']
+            },
+            nodes_id: {
+                render: 'hidden',
+                restrict: ['edit', 'delete'],
+            },
+            owner_id: {
+                render: 'hidden'
             },
             location_narrative: {
                 label: 'Narrative'
@@ -468,27 +518,35 @@ export const schema = {
                 label: "Historic Images",
                 singular: "Historic Image"
             },
+            files: {
+                render: 'file',
+                restrict: ['upload']
+            },
+            files_id: {
+                render: 'hidden',
+                restrict: ['edit', 'delete'],
+            },
+            owner_id: {
+                render: 'hidden'
+            },
             file_size: {
+                render: 'filesize',
                 label: 'File size'
             },
             x_dim: {
+                render: 'imgsize',
                 label: 'Image Width'
             },
             y_dim: {
+                render: 'imgsize',
                 label: 'Image Height'
             },
             image_state: {
                 label: 'Image State'
             },
-            image_remote: {
-                label: 'Remote'
-            },
             comments: {
                 label: 'Comments'
-            },
-            image_remote_processing: {
-                label: 'Remote Processing'
-            },
+            }
         },
         modern_images:{
             attributes: {
@@ -496,6 +554,13 @@ export const schema = {
                 order: 12,
                 label: "Modern Images",
                 singular: "Modern Image"
+            },
+            files_id: {
+                render: 'hidden',
+                restrict: ['edit', 'delete'],
+            },
+            owner_id: {
+                render: 'hidden'
             },
             file_size: {
                 label: 'File size'
@@ -536,7 +601,7 @@ export const schema = {
             capture_datetime: {
                 label: 'Capture Datetime'
             },
-            camera_id: {
+            cameras_id: {
                 label: 'Camera'
             },
             lens_id: {
@@ -549,6 +614,13 @@ export const schema = {
                 order: 12,
                 label: "Supplemental Images",
                 singular: "Supplemental Image"
+            },
+            files_id: {
+                render: 'hidden',
+                restrict: ['edit', 'delete'],
+            },
+            owner_id: {
+                render: 'hidden'
             },
             image_type: {
                 label: 'Type'
@@ -592,7 +664,7 @@ export const schema = {
             capture_datetime: {
                 label: 'Capture Datetime'
             },
-            camera_id: {
+            cameras_id: {
                 label: 'Camera'
             },
             lens_id: {
@@ -604,6 +676,13 @@ export const schema = {
                 order: 13,
                 label: "Metadata Files",
                 singular: "Metadata File"
+            },
+            files_id: {
+                render: 'hidden',
+                restrict: ['edit', 'delete'],
+            },
+            owner_id: {
+                render: 'hidden'
             },
             type: {
                 label: 'Type'

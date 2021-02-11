@@ -73,8 +73,6 @@ const TableBody = ({rows, cols}) => {
 
 const Table = ({ rows, cols, classname=''}) => {
 
-    // console.log('Table Input:', rows, cols)
-
     // ensure data has been retrieved
     return Array.isArray(rows) && Array.isArray(cols)
         ?

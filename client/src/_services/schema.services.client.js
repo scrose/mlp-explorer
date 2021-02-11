@@ -6,7 +6,8 @@
  */
 
 import { schema } from '../schema';
-import { sanitize } from '../_utils/data.utils.client';
+import { capitalize, sanitize } from '../_utils/data.utils.client';
+import React from 'react';
 
 /**
  * Get static view render index from given route. Unlike data
@@ -97,7 +98,6 @@ export const getAppTitle = () => {
  */
 
 export const getRenderType = (view, model) => {
-
     // destructure the render property from the schema
     const { render=view } = _getViewAttributes(view, model);
     return render;
@@ -155,6 +155,22 @@ export const getLabelKeys = (model) => {
 /**
  * Retrieve label for model from schema.
  *
+ * @param {String} view
+ * @return {String} label
+ * @public
+ */
+
+export const getViewLabel = (view) => {
+    if (schema.views.hasOwnProperty(view)) {
+        const { legend = capitalize(view) } = schema.views[view] || {};
+        return legend;
+    }
+    return '';
+}
+
+/**
+ * Retrieve label for model from schema.
+ *
  * @param {String} model
  * @param {String} type
  * @return {String} label
@@ -205,7 +221,7 @@ export const getNodeLabel = (node) => {
     const lkeys = getLabelKeys(type) || [];
 
     // get default label
-    const { attributes={singular: ''} } = lkeys || {};
+    const { attributes={singular: '', key: ''} } = lkeys || {};
 
     // iterate over label keys assigned in schema
     const label = Object.keys(lkeys)
@@ -222,6 +238,9 @@ export const getNodeLabel = (node) => {
             )
         })
         .join(', ');
+
+    // check whether dependent file filenames are used as key
+    const fileLabel = '';
 
     // Handle empty labels
     return label ? label : attributes.singular;
@@ -242,6 +261,46 @@ export const getNodeOrder = (node) => {
     const { attributes={} } = modelSchema || {};
 
     return attributes.hasOwnProperty('order') ? attributes.order : 0;
+}
+
+/**
+ * Computes label for given file data using schema data fields.
+ * - extracts prefix from filename to use as a label.
+ *
+ * @public
+ * @param {Object} file
+ * @return {String} label
+ */
+
+export const getFileLabel = (file) => {
+
+    // get label keys for node type from schema
+    const {filename='', file_type='', file_size='', data={}} = file || {};
+
+    // get image label
+    const getImgLabel = () => {
+        // extract prefix substring from filename to omit key token string
+        // - looks for last underscore '_' in filename as index
+        const abbrevFilename = filename.substring(0, filename.lastIndexOf('_'));
+
+        // Handle empty file labels
+        return abbrevFilename ? abbrevFilename : getNodeLabel(file_type);
+    }
+
+    // get metadata file label
+    const getMetadataLabel = () => {
+        return `${filename} (${capitalize(data.type)} Metadata) ${file_size ? `[${file_size}]` : ''}`;
+    }
+
+    // label functions indexed by file type
+    const fileTypes = {
+        historic_images: () => {return getImgLabel();},
+        modern_images: () => {return getImgLabel();},
+        supplemental_images: () => {return getImgLabel();},
+        metadata_files: () => {return getMetadataLabel();},
+    }
+
+    return fileTypes.hasOwnProperty(file_type) ? fileTypes[file_type]() : null
 }
 
 /**
