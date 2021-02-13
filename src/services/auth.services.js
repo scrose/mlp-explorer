@@ -169,14 +169,17 @@ export const validate = async (token) => {
     const opts = getOpts(null, 'GET');
     opts.headers.authorization = token;
 
-    // send a request to the userinfo endpoint on keycloak to
-    // validate access token
-    return await fetch(kcInfoURL, opts);
+    // send a request to the 'userinfo' endpoint on Keycloak
+    // to validate access token
+    return await fetch(kcInfoURL, opts).then(res => {
+        if (res.status !== 200) return null;
+        return res;
+    });
 
 }
 
 /**
- * Validate access token in session cookie with KeyCloak server.
+ * Validate access token in session cookie with Keycloak server.
  *
  * @public
  * @return {String} JSON web token
@@ -270,23 +273,4 @@ export const authorize = async (access_token, allowedRoles) => {
         label: roles
     }
 
-}
-
-/**
- * Check if user has access based on permissions set for user role.
- *
- * @param req
- * @param {Array} allowedRoles
- * @src public
- */
-
-export const isAuthorized = async (req, allowedRoles=[]) => {
-
-    // authorize all for 'visitor' restrictions
-    if ( allowedRoles.includes('visitor') ) return true;
-
-    // get current user role
-    const { role } = req.user;
-
-    return allowedRoles.includes(role);
 }

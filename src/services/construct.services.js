@@ -25,7 +25,7 @@ export const create = async (modelType) => {
     let Schema = await schemaConstructor.create(modelType);
     const schema = new Schema();
 
-    // initialize model constructor
+    // initialize model constructor with input data
     let Model = function(attributeValues) {
         this.setData = setData;
         this.setData(attributeValues);
@@ -51,6 +51,10 @@ export const create = async (modelType) => {
         },
         attributes: {
             value: schema.attributes,
+            writable: true
+        },
+        hasAttribute: {
+            value: (attr) => { return schema.attributes.hasOwnProperty(attr) },
             writable: true
         },
         node: {
@@ -246,19 +250,21 @@ export const createNode = async function(item) {
 };
 
 /**
- * Generates files object from given model instance.
+ * Generates file object from file type and owner ID.
  *
  * @public
  * @params {Object} item
  * @return {Promise} result
  */
 
-export const createFile = async function(item) {
+export const createFile = async function(ownerID, type, id=null) {
 
-    if (!item.file) return null;
+    if (!ownerID || !type) return null;
+
+    const item = {owner:{value: ownerID}};
 
     // generate file model object
-    return await createReference(item.file.value, item, 'files');
+    return await createReference(id, item, 'files');
 };
 
 /**
@@ -280,10 +286,6 @@ export const createReference = async function(id, item, type) {
     let ownerAttrs = item.owner
         ? await select(item.owner.value)
         : { id: null, type: null };
-
-    console.log(item.getData())
-
-
 
     // return node instance: set owner attribute values from
     // retrieved node attributes

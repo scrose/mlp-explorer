@@ -50,6 +50,7 @@ export const login = async (req, res, next) => {
 
         // otherwise, validate user credentials
         const { email = '', password = '' } = req.body || {};
+
         credentials = {
             email: valid.load(email).isEmail().data,
             password: valid.load(password).isPassword().data,

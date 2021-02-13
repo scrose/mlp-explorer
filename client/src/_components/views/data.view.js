@@ -25,8 +25,9 @@ import Uploader from './uploader.view';
 
 const DataView = () => {
 
+    // extract API data
     const api = useData();
-    const { view='', model='', data=null } = api || {};
+    const { view='', model='', schema={}, data=null } = api || {};
     const render = getRenderType(view, model);
 
     // select default form callback for view
@@ -37,9 +38,9 @@ const DataView = () => {
     const renders = {
         form: () => (
             <Form
-                view={view}
                 model={model}
-                data={data}
+                init={data}
+                schema={schema}
                 callback={callback}
             />),
         item: () => (
@@ -48,7 +49,7 @@ const DataView = () => {
             <Uploader
                 data={data}
                 model={model}
-                view={view}
+                schema={schema}
             />),
         notFound: () => <NotfoundError />,
         serverError: () => <ServerError />

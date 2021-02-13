@@ -53,6 +53,7 @@ export const schema = {
     errors: {
         validation: {
             isRequired: 'This field is required.',
+            filesSelected: 'Files must be selected.',
             isEmail: 'Not a valid email address.',
             isPassword: 'Passwords must have a minimum eight and maximum 20 characters, at least one uppercase letter, one lowercase letter, one number and one special character',
             isValidForm: 'Form not valid.',
@@ -519,8 +520,10 @@ export const schema = {
                 singular: "Historic Image"
             },
             files: {
+                label: 'Files',
                 render: 'file',
-                restrict: ['upload']
+                restrict: ['upload'],
+                validate: ['filesSelected']
             },
             files_id: {
                 render: 'hidden',
@@ -531,21 +534,26 @@ export const schema = {
             },
             file_size: {
                 render: 'filesize',
-                label: 'File size'
+                label: 'File size',
+                restrict: ['show', 'edit', 'delete']
             },
             x_dim: {
                 render: 'imgsize',
-                label: 'Image Width'
+                label: 'Image Width',
+                restrict: ['show', 'edit', 'delete']
             },
             y_dim: {
                 render: 'imgsize',
-                label: 'Image Height'
+                label: 'Image Height',
+                restrict: ['show', 'edit', 'delete']
             },
             image_state: {
+                render: 'select',
                 label: 'Image State'
             },
             comments: {
-                label: 'Comments'
+                label: 'Comments',
+                restrict: ['show', 'edit', 'delete']
             }
         },
         modern_images:{
@@ -557,7 +565,7 @@ export const schema = {
             },
             files_id: {
                 render: 'hidden',
-                restrict: ['edit', 'delete'],
+                restrict: ['edit', 'delete']
             },
             owner_id: {
                 render: 'hidden'

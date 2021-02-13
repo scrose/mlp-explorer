@@ -7,7 +7,6 @@
 
 import { schema } from '../schema';
 import { capitalize, sanitize } from '../_utils/data.utils.client';
-import React from 'react';
 
 /**
  * Get static view render index from given route. Unlike data
@@ -324,12 +323,12 @@ export const genSchema = (view, model, modelAttributes={}) => {
     // - for example, ID fields (e.g. nodes_id) and timestamps
     //   (e.g. 'created_at' is common to all nodes).
 
-    Object.keys(modelAttributes)
-        .filter(key => schema.models.default.hasOwnProperty(key))
-        .reduce((o, key) => {
-            o[key] = schema.models.default[key];
-            return o;
-        }, modelSchema)
+    // Object.keys(modelAttributes || {})
+    //     .filter(key => schema.models.default.hasOwnProperty(key))
+    //     .reduce((o, key) => {
+    //         o[key] = schema.models.default[key];
+    //         return o;
+    //     }, modelSchema)
 
     /** create renderable elements based on schema
         Filters out omitted fields (array) for view.

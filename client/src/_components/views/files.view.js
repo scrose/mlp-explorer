@@ -127,14 +127,12 @@ export const FilesTable = ({files=[]}) => {
         // include column for thumbnail image
         const cols = [{ name: 'thumbnail', label: 'Image', }];
         const { fields = {} } = genSchema('table', model);
-
-        Object.keys(fields)
+        return Object.keys(fields)
             .filter(key => fields[key].render !== 'hidden')
-            .map(key => {
-                cols.push(fields[key]);
-            });
-
-        return cols;
+            .reduce((o, key) => {
+                o.push(fields[key]);
+                return o;
+            }, cols);
     }
 
     return (

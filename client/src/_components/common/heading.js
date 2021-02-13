@@ -32,10 +32,15 @@ const Heading = ({prefix=''}) => {
             ? getStaticLabel(router.route)
             : getModelLabel(api.model)
 
+    // get prefix to heading from model label (or set in parameters)
     prefix = isNode ? getModelLabel(api.root.type) : prefix;
 
     return <h3>
-        {api.view !== 'show' ? getViewLabel(api.view) + ': ' : ''}
+        {
+            api.view && api.view !== 'show'
+                ? getViewLabel(api.view) + ': ' || capitalize(api.view) + ': '
+                : ''
+        }
         {
             prefix && prefix !== heading
                 ? capitalize(prefix) + ': '

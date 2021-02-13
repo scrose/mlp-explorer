@@ -114,9 +114,9 @@ const MenuEditor = () => {
                                                 <li key={'upload'}>
                                                     <button
                                                         key={depNode}
-                                                        title={`Bulk upload: ${label}.`}
+                                                        title={`Upload ${label} files.`}
                                                         onClick={() =>
-                                                            router.update(getNodeURI('historic_images', 'bulk', api.root.id))
+                                                            router.update(getNodeURI('historic_images', 'upload', api.root.id))
                                                         }
                                                     >
                                                         <Icon type={'upload'} /> <span>Bulk Upload Capture Images</span>

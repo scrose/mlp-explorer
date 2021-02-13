@@ -52,6 +52,11 @@ export default function FilesController(modelType) {
         model = new Model();
         services = new ModelServices(new Model());
 
+        // include image states (if needed)
+        if (model.hasAttribute('image_state')) {
+            const imageStates = await fs.getImageStates();
+            model.setOptions('image_state', imageStates);
+        }
     };
 
 
@@ -160,7 +165,7 @@ export default function FilesController(modelType) {
             // get linked data referenced in node tree
             return res.status(200).json(
                 prepare({
-                    view: 'bulk',
+                    view: 'upload',
                     model: model,
                     data: node,
                     path: path
@@ -173,7 +178,7 @@ export default function FilesController(modelType) {
     };
 
     /**
-     * Upload bulk image files.
+     * Upload files.
      *
      * @param req
      * @param res
@@ -184,9 +189,16 @@ export default function FilesController(modelType) {
     this.upload = async (req, res, next) => {
 
         console.log('Upload files:', req.body);
-        next();
 
-
+        // get linked data referenced in node tree
+        return res.status(200).json(
+            prepare({
+                view: 'upload',
+                model: model,
+                data: {},
+                path: {},
+                message: {msg:'Files uploaded successfully!', type:'success'}
+            }));
 
     };
 }

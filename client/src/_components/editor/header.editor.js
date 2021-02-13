@@ -9,9 +9,7 @@ import React from 'react';
 import MainMenu from '../menus/main.menu';
 import Logo from '../common/logo';
 import { useUser } from '../../_providers/user.provider.client';
-import Icon from '../common/icon';
 import { redirect } from '../../_utils/paths.utils.client';
-import { getEmailUser } from '../../_utils/data.utils.client';
 import BreadcrumbMenu from '../menus/breadcrumb.menu';
 import Accordion from '../common/accordion';
 import Button from '../common/button';
@@ -26,11 +24,14 @@ const UserMenu = () => {
     const user = useUser();
     return (
         <nav className={'user'}>
-            <Accordion label={user.email} type={'user'}>
+            <Accordion type={'user'}>
                 <div className={'v-menu user'}>
                     <ul>
                         <li>
-                            <strong>Role:</strong> {user.label}
+                            {user.email}
+                        </li>
+                        <li>
+                            {user.label}
                         </li>
                         <li>
                             <Button

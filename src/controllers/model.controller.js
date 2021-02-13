@@ -108,11 +108,8 @@ export default function ModelController(modelRoute) {
             let id = this.getId(req);
 
             // get record data for node
-            const data = await db.select(id) || {};
+            const data = await db.select(id) || null;
             const item = new Model(data);
-
-            // add associated files (if they exist)
-            data.files = await fs.selectByOwner(id);
 
             // get path of node in hierarchy
             const node = await ns.select(id);
@@ -121,6 +118,9 @@ export default function ModelController(modelRoute) {
             // node not in database
             if (!data || !node )
                 return next(new Error('notFound'));
+
+            // add associated files (if they exist)
+            data.files = await fs.selectByOwner(id);
 
             // get linked data referenced in node tree
             return await ns.getModelDependents(item)

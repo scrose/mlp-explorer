@@ -37,22 +37,34 @@ const Accordion = ({type, label, children}) => {
                                 {toggle ? <Icon type={'vopen'} /> : <Icon type={'vclose'} />}
                             </button>
                         </li>
-                        <li key={`accordion_icon`}>
-                            <button
-                                title={`View ${label}.`}
-                                onClick={() => {setToggle(!toggle)}}
-                            >
-                                <Icon type={type} /> {getModelLabel(type)}
-                            </button>
-                        </li>
-                        <li key={`accordion_label`}>
-                            <button
-                                title={`Expand metadata.`}
-                                onClick={() => {setToggle(!toggle)}}
-                            >
-                                <span>{label}</span>
-                            </button>
-                        </li>
+                        {
+                            type ?
+                                <li key={`accordion_icon`}>
+                                <button
+                                    title={`View ${label}.`}
+                                    onClick={() => {
+                                        setToggle(!toggle);
+                                    }}
+                                >
+                                    <Icon type={type}/> {getModelLabel(type)}
+                                </button>
+                            </li>
+                                : ''
+                        }
+                        {
+                            label ?
+                                <li key={`accordion_label`}>
+                                    <button
+                                        title={`Expand metadata.`}
+                                        onClick={() => {
+                                            setToggle(!toggle);
+                                        }}
+                                    >
+                                        <span>{label}</span>
+                                    </button>
+                                </li>
+                            : ''
+                        }
                     </ul>
                 </div>
                 {

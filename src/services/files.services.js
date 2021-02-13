@@ -262,3 +262,16 @@ class FileValidator extends Transform {
         done();
     }
 }
+
+/**
+ * Get all image state types.
+ *
+ * @public
+ * @return {Promise} result
+ */
+
+export const getImageStates = async function() {
+    const { sql, data } = queries.files.imageStates();
+    const imageStates = await pool.query(sql, data);
+    return imageStates.rows;
+};

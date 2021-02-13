@@ -25,8 +25,12 @@
  * @params {data, method, ctype, token}
  */
 
-const getFetchOptions = ({ data=null, method='POST', ctype='application/json', token=null}) => {
+const getFetchOptions = ({ data=null, files=null, method='POST', token=null}) => {
 
+    // select content type
+    const ctype = files ? 'application/json' : 'application/json';
+
+    // set request options
     const opts = {
             method: method,
             mode: 'cors',
@@ -53,16 +57,16 @@ const getFetchOptions = ({ data=null, method='POST', ctype='application/json', t
  * @param {url, data, method, token}
  */
 
-export async function makeRequest({ url='/', data=null, files=null, method='POST', token=null})  {
-
-    // select content type
-    const ctype = files ? 'application/json' : 'application/json';
-
-    // select payload type
-    const payload = files ? files : data;
+export async function makeRequest({
+                                      url='/',
+                                      data=null,
+                                      files=null,
+                                      method='POST',
+                                      token=null
+})  {
 
     // compose request headers/options
-    const opts = getFetchOptions({payload, method, token, ctype});
+    const opts = getFetchOptions({data, files, method, token});
 
     // send request to API
     let res = await fetch(url, opts)

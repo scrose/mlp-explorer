@@ -153,9 +153,9 @@ const Input = ({
                     {options
                         .map(opt =>
                             <option
-                                key={`${name}_${opt.id}`}
-                                id={`${name}_${opt.id}`}
-                                name={`${name}_${opt.id}`}
+                                key={`${name}_${opt.name}`}
+                                id={`${name}_${opt.name}`}
+                                name={`${name}_${opt.name}`}
                                 value={opt.name}
                             >
                                 {opt.label}

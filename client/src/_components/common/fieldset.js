@@ -23,28 +23,14 @@ const Fieldset = ({
                       model,
                       legend,
                       fields,
-                      init,
-                      valid,
-                      disabled}
-                  ) => {
+                      errors,
+                      setErrors,
+                      data,
+                      setData,
+                      disabled
+}) => {
 
-    // initialize state for input parameters
-    const [data, setData] = React.useState(init);
-    const [errors, setErrors] = React.useState({});
     const [readonly, setReadonly] = React.useState({});
-
-    /**
-     * Input on-change handler. Updates references state.
-     *
-     * @public
-     * @param {Object} e
-     */
-
-    const isDisabled = e => {
-        const { name, value } = e.target;
-        e.persist(); // not used in ReactJS v.17
-        setData(data => ({...data, [name]: value}));
-    }
 
     /**
      * Input on-change handler. Updates references state.
@@ -55,7 +41,9 @@ const Fieldset = ({
 
     const handleChange = e => {
         const { name, value } = e.target;
+
         e.persist(); // not used in ReactJS v.17
+
         // update state with input data
         setData(data => ({...data, [name]: value}));
     }
@@ -71,21 +59,25 @@ const Fieldset = ({
     const handleBlur = (validator) => {
         // wrap validator in event handler
         return (e) => {
-            const { name, value } = e.target;
+            const { name='', value='', files=[] } = e.target;
             e.persist(); // not used in ReactJS v.17
             setErrors(errors => ({
                 ...errors,
-                [name]: validator.check(value)
+                [name]: validator.check(value || files)
             }));
         }
     }
 
     // render fieldset component
     return (
-        <fieldset key={`fset_${model}`} name={`fset_${model}`} disabled={disabled}>
+        <fieldset
+            key={`fset_${model}`}
+            name={`fset_${model}`}
+            disabled={disabled}
+        >
             <legend>{legend}</legend>
             {
-                // insert input fields
+                // render form input fields
                 Object.keys(fields || {}).map(key => {
 
                     // get form schema for requested model

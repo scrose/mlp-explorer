@@ -13,26 +13,23 @@ import { useRouter } from '../../_providers/router.provider.client';
 import { useData } from '../../_providers/data.provider.client';
 
 /**
- * User sign in form component.
+ * File(s) uploader view.
  *
  * @public
  */
 
-const Uploader = ({data, view, model}) => {
+const Uploader = ({model, schema, data}) => {
 
-    console.log('Uploader:', data, view, model)
 
-    const router = useRouter();
-    const api = useData();
+    console.log('Uploader:', data, schema, model)
 
-    // Redirect to dashboard if logged in
-    React.useEffect(() => {
-        return () => {};
-    }, [router, api]);
+    const api = useRouter();
+
+    // convert
 
     return <Form
-        view={view}
         model={model}
+        schema={schema}
         data={data}
         callback={api.upload}
     />

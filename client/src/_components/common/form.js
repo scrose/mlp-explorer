@@ -8,9 +8,10 @@
 import React from 'react'
 import Fieldset from './fieldset';
 import Button from './button';
-import { genSchema, getModelLabel } from '../../_services/schema.services.client';
+import { getModelLabel } from '../../_services/schema.services.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import { useData } from '../../_providers/data.provider.client';
+import Validator from '../../_utils/validator.utils.client';
 
 /**
  * Form submission buttons component.
@@ -39,36 +40,79 @@ const Submit = ({model, label}) => {
  * Build HTML form.
  *
  * @public
- * @param {String} view
  * @param {String} model
+ * @param {Object} schema
  * @param {Object} data
- * @param {Function} setData
  * @param {Function} callback
  */
 
 const Form = ({
-                  view,
                   model,
-                  data,
+                  schema,
+                  init={},
                   callback
 }) => {
 
     const router = useRouter();
     const api = useData();
 
-    const [isValid, setValid] = React.useState(false);
+    // initialize state for input parameters
+    const [data, setData] = React.useState(init);
     const [isDisabled, setDisabled] = React.useState(false);
 
-    // get settings from schema
-    const { attributes={}, fields=[] } = genSchema(view, model) || {};
+    // create input error states
+    const [errors, setErrors] = React.useState({});
+
+    // get form input settings from schema
+    const { attributes={}, fields=[] } = schema || {};
     const {
         submit='Submit',
         method='POST',
-        legend='User Form'
-    } = attributes || {};
+        legend='User Form' } = attributes || {};
+
+    // create validator for each input using schema settings
+    const validators = Object.keys(fields || {})
+        .reduce((o, key) => {
+            const { validate=[] } = fields[key];
+            o[key] = new Validator(validate);
+            return o;
+        }, {});
+
+    /**
+     * Form data validation handler. Validates all data inputs.
+     *
+     * @private
+     * @return {boolean} isValid
+     */
+
+    const isValid = () => {
+        const hasData = Object.keys(data).length > 0;
+        const validationErrors = Object.keys(data || {})
+            .filter(key => {
+                validators[key].check(data.value);
+            });
+        console.log(validationErrors)
+        return hasData && validationErrors.length === 0;
+    }
+
+    /**
+     * Form submission handler.
+     *
+     * @private
+     * @param {event} e
+     */
 
     const handleSubmit = e => {
         e.preventDefault();
+
+        // check that form is complete and valid
+        if (!isValid()) {
+            api.setMessage(
+                { msg: 'Form is not complete or invalid.', type: 'error' }
+            );
+        }
+
+        // attempt form submission
         try {
             // convert submitted form data to JSON
             const formData = new FormData(e.target);
@@ -76,8 +120,8 @@ const Form = ({
             // API callback for form data submission
             callback(router.route, Object.fromEntries(formData))
                 .then(res => {
+                    console.log(res)
                     api.setMessage(res.message);
-                    router.followup(res);
                 })
                 .catch(err => console.error(err))
         }
@@ -104,8 +148,11 @@ const Form = ({
                 model={model}
                 legend={`${legend} ${getModelLabel(model)}`}
                 fields={fields}
+                errors={errors}
+                setErrors={setErrors}
+                data={data}
+                setData={setData}
                 init={data}
-                valid={isValid}
                 disabled={isDisabled}
             />
             <Submit model={model} label={submit} />

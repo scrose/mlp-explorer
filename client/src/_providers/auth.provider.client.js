@@ -28,6 +28,8 @@ const AuthContext = React.createContext({})
 
 function AuthProvider(props) {
 
+    const _isMounted = React.useRef(false);
+
     let [data, setData] = React.useState(null);
     const router = useRouter();
 
@@ -40,6 +42,7 @@ function AuthProvider(props) {
     const login = async (route, credentials) => {
         return await router.post('/login', credentials)
             .then(res => {
+                console.log(res)
                 const { user=null } = res || {};
                 // create user session on success
                 if (user) {
@@ -56,13 +59,13 @@ function AuthProvider(props) {
      */
 
     const logout = async () => {
-        const res = await router.post('/logout')
+        await router.post('/logout')
             .then(res => {
                 // Note: Keycloak logout operation returns no content (204)
                 setData(null);
+                addSessionMsg(res.message);
+                return redirect('/');
             });
-        addSessionMsg({msg: 'User is signed out.', type:'info'});
-        return redirect('/');
     }
 
     /**
@@ -72,13 +75,22 @@ function AuthProvider(props) {
      */
 
     React.useEffect(() => {
+        _isMounted.current = true;
+
+        // request new token
         router.post('/refresh')
             .then(res => {
                 // reset user session data
-                const { user=null } = res || {};
-                setData(user);
-            })
-        return () => {};
+                const { user = null } = res || {};
+                // update states with response data
+                if (_isMounted.current) {
+                    setData(user);
+                }
+            });
+        return () => {
+            _isMounted.current = false;
+        };
+
     }, [router]);
 
     /*

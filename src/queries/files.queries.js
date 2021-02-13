@@ -91,3 +91,17 @@ export function update(file) {
 export function remove(file) {
     return defaults.remove(file);
 }
+
+/**
+ * Query: Get all image state types.
+ *
+ * @return {Object} query binding
+ */
+
+export function imageStates() {
+    return {
+        sql: `SELECT *
+              FROM image_states;`,
+        data: [],
+    };
+}

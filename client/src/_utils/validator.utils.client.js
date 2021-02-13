@@ -52,10 +52,10 @@ function Validator(validations) {
 
 Validator.prototype.check = function check(val1, val2='') {
     return this.checks
-            .filter(check => !check.run(val1, val2))
-            .map(check => {
-                return getError(check.name, 'validation')
-            })
+        .filter(check => !check.run(val1, val2))
+        .map(check => {
+            return getError(check.name, 'validation')
+        })
 }
 
 /**
@@ -71,7 +71,15 @@ const _inputValidations =
          */
 
         isRequired: (value) => {
-            return value;
+            return !!value;
+        },
+
+        /**
+         * Validate files selected.
+         */
+
+        filesSelected: (files) => {
+            return files.length > 0;
         },
 
         /**

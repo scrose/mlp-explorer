@@ -148,7 +148,6 @@ const TreeNode = ({node}) => {
                     }
                 })
                 .catch(err => console.error(err));
-
         }
         return () => {
             _isMounted.current = false;
@@ -242,7 +241,7 @@ const TreeNavigator = ({setMenu}) => {
     const router = useRouter();
 
     // create dynamic view state
-    const [nodeData, setNodeData] = React.useState({});
+    const [nodeData, setNodeData] = React.useState(null);
 
     // create dynamic view state
     const _isMounted = React.useRef(false);
@@ -253,17 +252,18 @@ const TreeNavigator = ({setMenu}) => {
     // API call to retrieve node tree top level
     React.useEffect(() => {
         _isMounted.current = true;
-        router.get(treeRoute)
-            .then(res => {
-                const { data = {} } = res || {};
-                if (_isMounted.current) {
-                    setNodeData(data);
-                }
-            })
-            .catch(err => console.error(err));
-
+        if (!nodeData) {
+            router.get(treeRoute)
+                .then(res => {
+                    const { data = {} } = res || {};
+                    if (_isMounted.current) {
+                        setNodeData(data);
+                    }
+                })
+                .catch(err => console.error(err));
+        }
         return () => {_isMounted.current = false;};
-    }, [router]);
+    }, [nodeData, router]);
 
     // render node tree
     return (

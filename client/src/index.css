@@ -269,9 +269,10 @@ Menus
 /* User Navigation Menu */
 
 .navbar nav.user div {
-    position: absolute;
+    position: fixed;
     top: 0;
-    right: 10px;
+    right: 15px;
+    z-index: 9999;
 }
 .accordion .h-menu.user {
     margin-top: 0;
@@ -296,12 +297,14 @@ Menus
     background-color: transparent !important;
 }
 .v-menu.user {
-    width: 250px;
+    margin: 0;
+    width: auto;
     top: 60px !important;
     background-color: #282c34;
     color: white !important;
     vertical-align: middle;
-    line-height: 50px;
+    line-height: normal;
+    border-radius: 0 0 15px 15px;
 }
 
 /* Breadcrumb Navigation Menu */
@@ -313,7 +316,7 @@ nav.breadcrumb ul {
     padding: 10px 16px;
     margin:0;
     list-style: none;
-    background-color: #E34234;
+    background-color: #008896;
     color: #FFFFFF;
 }
 
@@ -1064,7 +1067,7 @@ input[type=submit] {
 /* When moving the mouse over the submit button, add a darker green color */
 input[type=submit]:hover {
     background-color: #E34234;
-    color: #4E4372;
+    color: white;
 }
 
 /* Style disabled submit button */
@@ -1080,7 +1083,7 @@ input[type=file] {
     outline-offset: -10px;
     -webkit-transition: outline-offset .15s ease-in-out, background-color .15s linear;
     transition: outline-offset .15s ease-in-out, background-color .15s linear;
-    padding: 120px 0px 85px 35%;
+    padding: 60px 0px 60px 35%;
     text-align: center !important;
     margin: 0;
     width: 100% !important;
@@ -1101,7 +1104,6 @@ input[type=file]:after {
     right: 0;
     height: 56px;
     content: "";
-    background-image: url(https://image.flaticon.com/icons/png/128/109/109612.png);
     display: block;
     margin: 0 auto;
     background-size: 100%;
@@ -1114,7 +1116,7 @@ input[type=file]:before {
     width: 100%;
     right: 0;
     height: 57px;
-    content: " or drag it here. ";
+    /*content: " or drag it here. ";*/
     display: block;
     margin: 0 auto;
     color: #2ea591;
@@ -1154,7 +1156,7 @@ button.cancel {
 }
 
 button.cancel:hover {
-    color: #4E4372;
+    color: white;
     background-color: #E34234;
 }
 

@@ -165,7 +165,7 @@ function RouterProvider(props) {
     };
 
     /**
-     * Request method to post data from API.
+     * Request method to upload file(s) via API.
      *
      * @public
      * @param {String} uri
@@ -173,6 +173,7 @@ function RouterProvider(props) {
      */
 
     const upload = async (uri, files= []) => {
+        console.log(uri)
         let res = await makeRequest({url: getAPIURL(uri), method:'POST', data: files})
             .catch(err => {
                 // handle API connection errors

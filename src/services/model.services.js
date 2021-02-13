@@ -189,8 +189,7 @@ export default function ModelServices(model) {
                 item.setId(res.rows[0].id);
             }
 
-            // process primary model query (if exists)
-            // process node query (if provided)
+            // process model data query (if provided)
             if (stmts.model) {
                 const { sql, data } = stmts.model(item);
                 res = await client.query(sql, data);
