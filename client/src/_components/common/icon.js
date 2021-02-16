@@ -30,6 +30,8 @@ const getIconClass = (iconType) => {
         map: 'fas fa-lg fa-map-marked-alt',
         tree: 'fas fa-lg fa-list',
         close: 'fas fa-times-circle',
+        right: 'fas fa-lg fa-caret-right',
+        tools: 'fas fa-lg fa-ellipsis-v',
         hopen: 'fas fa-lg fa-chevron-circle-down',
         hclose: 'fas fa-lg fa-chevron-circle-right',
         hopenleft: 'fas fa-lg fa-angle-double-left',

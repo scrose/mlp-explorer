@@ -56,7 +56,7 @@ const Button = ({type, name, label, title, url, icon, onClick}) => {
                 <button
                     key={`key_${name}`}
                     title={title}
-                    onClick={() => onClick()}
+                    onClick={onClick}
                 >
                     { icon ? <Icon type={icon} /> : ''}
                     <span>{label}</span>

@@ -53,7 +53,7 @@ export const schema = {
     errors: {
         validation: {
             isRequired: 'This field is required.',
-            filesSelected: 'Files must be selected.',
+            filesSelected: 'Please select files to upload.',
             isEmail: 'Not a valid email address.',
             isPassword: 'Passwords must have a minimum eight and maximum 20 characters, at least one uppercase letter, one lowercase letter, one number and one special character',
             isValidForm: 'Form not valid.',
@@ -527,7 +527,11 @@ export const schema = {
             },
             files_id: {
                 render: 'hidden',
-                restrict: ['edit', 'delete'],
+                restrict: ['edit', 'delete', 'filesSelected'],
+            },
+            id: {
+                render: 'hidden',
+                restrict: ['filesSelected']
             },
             owner_id: {
                 render: 'hidden'
@@ -535,17 +539,17 @@ export const schema = {
             file_size: {
                 render: 'filesize',
                 label: 'File size',
-                restrict: ['show', 'edit', 'delete']
+                restrict: ['show', 'edit']
             },
             x_dim: {
                 render: 'imgsize',
                 label: 'Image Width',
-                restrict: ['show', 'edit', 'delete']
+                restrict: ['show', 'edit']
             },
             y_dim: {
                 render: 'imgsize',
                 label: 'Image Height',
-                restrict: ['show', 'edit', 'delete']
+                restrict: ['show', 'edit']
             },
             image_state: {
                 render: 'select',

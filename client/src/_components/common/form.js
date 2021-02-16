@@ -87,11 +87,13 @@ const Form = ({
 
     const isValid = () => {
         const hasData = Object.keys(data).length > 0;
-        const validationErrors = Object.keys(data || {})
+        const validationErrors = Object.keys(validators)
             .filter(key => {
-                validators[key].check(data.value);
+                const err = validators[key].check(data[key] || null);
+                setErrors(errors => ({
+                    ...errors, [key]: err
+                }));
             });
-        console.log(validationErrors)
         return hasData && validationErrors.length === 0;
     }
 
@@ -99,7 +101,7 @@ const Form = ({
      * Form submission handler.
      *
      * @private
-     * @param {event} e
+     * @param {Event} e
      */
 
     const handleSubmit = e => {
@@ -108,7 +110,7 @@ const Form = ({
         // check that form is complete and valid
         if (!isValid()) {
             api.setMessage(
-                { msg: 'Form is not complete or invalid.', type: 'error' }
+                { msg: 'Form is incomplete or invalid.', type: 'error' }
             );
         }
 
@@ -154,6 +156,7 @@ const Form = ({
                 setData={setData}
                 init={data}
                 disabled={isDisabled}
+                validators={validators}
             />
             <Submit model={model} label={submit} />
         </form>

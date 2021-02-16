@@ -88,9 +88,7 @@ export const FilesTable = ({files=[]}) => {
     // prepare file metadata for table rows
     // - set render option for item fields
     // - returns row object indexed by field name
-    const filterRows = (fileData, model) => {
-        // get fields filtered by render setting
-        const { fields = {} } = genSchema('table', model);
+    const filterRows = (fileData, fields) => {
 
         // filter file record data by fields
         return fileData
@@ -122,11 +120,10 @@ export const FilesTable = ({files=[]}) => {
     // prepare file metadata fields for table header
     // - omit hidden metadata fields
     // - returns col header object indexed by field name
-    const filterCols = (model) => {
+    const filterCols = (fields) => {
 
         // include column for thumbnail image
         const cols = [{ name: 'thumbnail', label: 'Image', }];
-        const { fields = {} } = genSchema('table', model);
         return Object.keys(fields)
             .filter(key => fields[key].render !== 'hidden')
             .reduce((o, key) => {
@@ -140,12 +137,14 @@ export const FilesTable = ({files=[]}) => {
             ? <div>
                 {
                     Object.keys(files).map(model => {
+                        // get field attributes from schema
+                        const { fields = {} } = genSchema('show', model);
                         return (
                             <div key={model}>
                                 <h5>{getModelLabel(model, 'label')}</h5>
                                 <Table
-                                    rows={ filterRows(files[model], model) }
-                                    cols={ filterCols(model) }
+                                    rows={ filterRows(files[model], fields) }
+                                    cols={ filterCols(fields) }
                                     classname={'files'}
                                 />
                             </div>

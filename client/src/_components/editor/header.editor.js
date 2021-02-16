@@ -13,6 +13,7 @@ import { redirect } from '../../_utils/paths.utils.client';
 import BreadcrumbMenu from '../menus/breadcrumb.menu';
 import Accordion from '../common/accordion';
 import Button from '../common/button';
+import Icon from '../common/icon';
 
 /**
  * User navigation menu (authenticated).
@@ -28,10 +29,10 @@ const UserMenu = () => {
                 <div className={'v-menu user'}>
                     <ul>
                         <li>
-                            {user.email}
+                            <Icon type={'right'} /> {user.email}
                         </li>
                         <li>
-                            {user.label}
+                            <Icon type={'right'} /> {user.label}
                         </li>
                         <li>
                             <Button

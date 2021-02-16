@@ -27,6 +27,7 @@ const Fieldset = ({
                       setErrors,
                       data,
                       setData,
+                      validators,
                       disabled
 }) => {
 
@@ -53,19 +54,16 @@ const Fieldset = ({
      * and sets first error message in validation chain.
      *
      * @public
-     * @param validator
+     * @param e
      */
 
-    const handleBlur = (validator) => {
-        // wrap validator in event handler
-        return (e) => {
-            const { name='', value='', files=[] } = e.target;
-            e.persist(); // not used in ReactJS v.17
-            setErrors(errors => ({
-                ...errors,
-                [name]: validator.check(value || files)
-            }));
-        }
+    const handleBlur = (e) => {
+        const { name='', value='', files=[] } = e.target;
+        e.persist(); // not used in ReactJS v.17
+        setErrors(errors => ({
+            ...errors,
+            [name]: validators[name].check(value || files)
+        }));
     }
 
     // render fieldset component
@@ -81,13 +79,10 @@ const Fieldset = ({
                 Object.keys(fields || {}).map(key => {
 
                     // get form schema for requested model
-                    const { label='', render='', validate=[], options=[] } = fields[key];
+                    const { label='', render='', options=[] } = fields[key];
                     const _value = data.hasOwnProperty(key) ? data[key] : '';
                     const _error = errors.hasOwnProperty(key) ? errors[key] : '';
                     const _readonly = readonly.hasOwnProperty(key) ? readonly[key] : false;
-
-                    // create validator from schema
-                    const _validator = new Validator(validate);
 
                     return (
                         <Input
@@ -100,7 +95,7 @@ const Fieldset = ({
                             options={options}
                             readonly={_readonly}
                             onchange={handleChange}
-                            onblur={handleBlur(_validator)}
+                            onblur={handleBlur}
                         />
                     )
                 })

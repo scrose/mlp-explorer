@@ -36,6 +36,13 @@ const MenuEditor = () => {
     const editExclude = ['dashboard', 'list', 'register', 'add'];
     const deleteExclude = ['dashboard', 'list', 'register', 'add'];
 
+    function onClick(e, model, view, id) {
+        e.preventDefault();
+        console.log(model, view, id)
+        return
+        router.update(getNodeURI(model, view, id));
+    }
+
     return (
         api.view && !menuExclude.includes(api.view) ?
         <div className={'editor-tools h-menu'}>
@@ -46,8 +53,8 @@ const MenuEditor = () => {
                             label={'View'}
                             title={`Edit this ${api.root.type} item.`}
                             icon={'info'}
-                            onClick={() =>
-                                router.update(getNodeURI(api.root.type, 'show', api.root.id))
+                            onClick={e =>
+                                onClick(e, api.root.type, 'show', api.root.id)
                             } />
                     </li>: ''
                 }
@@ -55,7 +62,9 @@ const MenuEditor = () => {
                     <li key={'edit'}>
                         <button
                             title={`Edit this ${api.root.type} item.`}
-                            onClick={() => router.update(getNodeURI(api.root.type, 'edit', api.root.id))}
+                            onClick={e =>
+                                onClick(e, api.root.type, 'edit', api.root.id)
+                            }
                         >
                             <Icon type={'edit'} /> <span>Edit</span>
                         </button>
@@ -88,8 +97,7 @@ const MenuEditor = () => {
                                     setToggle(!toggle);
                                 }}
                             >
-                                {toggle ? <Icon type={'vopen'} /> : <Icon type={'vclose'} />}
-                                <span>Tools</span>
+                                <span>Tools</span>&#160;&#160;<Icon type={'tools'} />
                             </button>
                         </div>
                         <div className={`collapsible${toggle ? ' active' : ''}`}>
@@ -103,8 +111,10 @@ const MenuEditor = () => {
                                                     <button
                                                         key={depNode}
                                                         title={`Add new ${label}.`}
-                                                        onClick={() =>
-                                                            router.update(getNodeURI(depNode, 'new', api.root.id))}
+                                                        name={depNode}
+                                                        onClick={e =>
+                                                            onClick(e, api.root.type, 'new', api.root.id)
+                                                        }
                                                     >
                                                         <Icon type={'add'}/> <span>Add {label}</span>
                                                     </button>
@@ -115,8 +125,8 @@ const MenuEditor = () => {
                                                     <button
                                                         key={depNode}
                                                         title={`Upload ${label} files.`}
-                                                        onClick={() =>
-                                                            router.update(getNodeURI('historic_images', 'upload', api.root.id))
+                                                        onClick={e =>
+                                                            onClick(e, 'historic_images', 'upload', api.root.id)
                                                         }
                                                     >
                                                         <Icon type={'upload'} /> <span>Bulk Upload Capture Images</span>

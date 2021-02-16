@@ -79,7 +79,7 @@ const _inputValidations =
          */
 
         filesSelected: (files) => {
-            return files.length > 0;
+            return Array.isArray(files) && files.length > 0;
         },
 
         /**

@@ -979,16 +979,10 @@ label.checkbox {
 
 /* Field Validation errors */
 
-ul.validation {
-    padding: 0;
-    margin: 0;
-    list-style: none;
-}
-
-/* Display list items side by side */
-ul.validation li {
+div.validation {
+    height: 15px;
     font-size: small;
-    color:crimson;
+    color: #E34234;
 }
 
 /* Style inputs with type="text", select elements and textareas */

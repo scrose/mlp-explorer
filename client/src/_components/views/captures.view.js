@@ -8,6 +8,7 @@
 import React from 'react';
 import Item from '../common/item';
 import { FilesTable } from './files.view';
+import Accordion from '../common/accordion';
 
 /**
  * Model view component.
@@ -26,7 +27,9 @@ const CapturesView = ({data, model}) => {
     // render node tree
     return (
         <div className={`item`}>
-            <Item view={'show'} model={type} data={data} />
+            <Accordion type={'info'} label={'Metadata'}>
+                <Item view={'show'} model={type} data={data} />
+            </Accordion>
             <FilesTable files={files} />
         </div>
     )

@@ -9,16 +9,17 @@ import React from 'react'
 import List from './list';
 
 /**
- * Build input help text (error messages).
+ * Build input help text (error messages). Only prints
+ * first message to window.
  *
  * @public
  * @param error
  */
 
 const ValidationMessage = ({msg}) => {
-    return (
-        <List items={msg} classname={'validation'} />
-    )
+    return  <div className={'validation'}>
+                <span>{msg.length > 0 ? msg[0] : ''}</span>
+            </div>
 }
 
 /**
@@ -89,7 +90,7 @@ const Input = ({
                     onChange={onchange}
                     onBlur={onblur}
                 />
-                {error ? <ValidationMessage msg={error}/> : null}
+                <ValidationMessage msg={error}/>
             </label>
         },
 
@@ -118,7 +119,7 @@ const Input = ({
                     onChange={onchange}
                     onBlur={onblur}
                 />
-                {error ? <ValidationMessage msg={error}/> : null}
+                <ValidationMessage msg={error}/>
             </label>
         },
 
@@ -137,7 +138,7 @@ const Input = ({
                     onClick={()=>{setAutoClick(false)}}
                     onFocus={()=>{setAutoClick(false)}}
                 />
-                {error ? <ValidationMessage msg={error}/> : null}
+                <ValidationMessage msg={error}/>
             </label>
         },
 
@@ -163,7 +164,7 @@ const Input = ({
                         )
                     }
                 </select>
-                {error ? <ValidationMessage msg={error} /> : null}
+                <ValidationMessage msg={error} />
             </label>
         },
 
@@ -178,7 +179,7 @@ const Input = ({
                     onBlur={onblur}
                     multiple={true}
                 />
-                {error ? <ValidationMessage msg={error}/> : null}
+                <ValidationMessage msg={error}/>
             </label>
         }
     }
