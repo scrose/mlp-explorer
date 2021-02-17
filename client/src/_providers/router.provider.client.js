@@ -94,12 +94,12 @@ function RouterProvider(props) {
      */
 
     const followup = (res) => {
-        const { view='', data={}, model={} } = res || {};
+        const { view='', data={}, model={}, message={msg:'Response Error.', type:'error'} } = res || {};
         const { name='' } = model || {};
         const { nodes_id=''} = data || {};
         const routes = {
             'add': () => {
-                addSessionMsg(res.message);
+                addSessionMsg(message);
                 const redirectURL = getNodeURI(name, 'show', nodes_id) + '/?msg=true';
                 return redirect(redirectURL);
             }
@@ -150,11 +150,17 @@ function RouterProvider(props) {
      *
      * @public
      * @param {String} uri
-     * @param {Object} payload
+     * @param {Object} formData
      */
 
-    const post = async (uri, payload= {}) => {
-        let res = await makeRequest({url: getAPIURL(uri), method:'POST', data: payload})
+    const post = async (uri, formData= null) => {
+        const parsedData = formData ? Object.fromEntries(formData) : {};
+        console.log(parsedData)
+        let res = await makeRequest({
+            url: getAPIURL(uri),
+            method:'POST',
+            data: parsedData
+        })
             .catch(err => {
                 // handle API connection errors
                 console.error('An API error occurred:', err);
@@ -169,12 +175,16 @@ function RouterProvider(props) {
      *
      * @public
      * @param {String} uri
-     * @param {Array} files
+     * @param {Array} formData
      */
 
-    const upload = async (uri, files= []) => {
-        console.log(uri)
-        let res = await makeRequest({url: getAPIURL(uri), method:'POST', data: files})
+    const upload = async (uri, formData= []) => {
+        console.log('Upload files:', formData, uri)
+        let res = await makeRequest({
+            url: getAPIURL(uri),
+            method:'POST',
+            files: formData
+        })
             .catch(err => {
                 // handle API connection errors
                 console.error('An API error occurred:', err);

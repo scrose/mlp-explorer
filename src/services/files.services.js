@@ -72,7 +72,7 @@ export const uploadImages = async function (req, fileList) {
 
     if (!fileList) return null;
 
-    const outDir = process.env.LIBRARY_DIR;
+    const outDir = process.env.UPLOAD_DIR;
     const inFiles = fileList;
     let outFiles = [];
     console.log('Files to upload:', fileList);
@@ -83,18 +83,18 @@ export const uploadImages = async function (req, fileList) {
                 inFiles.map(inFilepath => {
                     // upload original file to library
                     const rawFilepath = path.join(outDir, 'raw', getFilename(inFilepath));
-                    this.uploadFile(req, inFilepath, rawFilepath);
+                    uploadFile(req, inFilepath, rawFilepath);
 
                     // generate unique filename token
                     const imgToken = genUUID();
 
                     // copy thumbnail-sized version to library
                     const thumbFilepath = path.join(outDir, 'versions', `thumb_${imgToken}.jpg`);
-                    this.uploadFile(req, inFilepath, thumbFilepath, imageSizes.thumb);
+                    uploadFile(req, inFilepath, thumbFilepath, imageSizes.thumb);
 
                     // copy medium-sized version to library
                     const medFilepath = path.join(outDir, 'versions', `medium_${imgToken}.jpg`);
-                    this.uploadFile(req, inFilepath, medFilepath, imageSizes.medium);
+                    uploadFile(req, inFilepath, medFilepath, imageSizes.medium);
 
                     // record generated file paths
                     outFiles.push({

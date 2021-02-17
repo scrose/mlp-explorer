@@ -120,10 +120,10 @@ const Form = ({
             const formData = new FormData(e.target);
 
             // API callback for form data submission
-            callback(router.route, Object.fromEntries(formData))
+            callback(router.route, formData)
                 .then(res => {
-                    console.log(res)
-                    api.setMessage(res.message);
+                    const { message={msg:'Response Error occurred.', type:'error'} } = res || {};
+                    api.setMessage(message);
                 })
                 .catch(err => console.error(err))
         }

@@ -54,8 +54,7 @@ const Input = ({
                    error,
                    readonly,
                    options,
-                   onchange,
-                   onblur
+                   onchange
 }) => {
 
     // input conditional states
@@ -88,7 +87,6 @@ const Input = ({
                     name={name}
                     value={value || ''}
                     onChange={onchange}
-                    onBlur={onblur}
                 />
                 <ValidationMessage msg={error}/>
             </label>
@@ -117,7 +115,6 @@ const Input = ({
                     name={name}
                     value={value || ''}
                     onChange={onchange}
-                    onBlur={onblur}
                 />
                 <ValidationMessage msg={error}/>
             </label>
@@ -134,7 +131,6 @@ const Input = ({
                     name={name}
                     value={value || ''}
                     onChange={onchange}
-                    onBlur={onblur}
                     onClick={()=>{setAutoClick(false)}}
                     onFocus={()=>{setAutoClick(false)}}
                 />
@@ -149,7 +145,6 @@ const Input = ({
                     id={name}
                     name={name}
                     onChange={onchange}
-                    onBlur={onblur}
                 >
                     {options
                         .map(opt =>
@@ -176,7 +171,6 @@ const Input = ({
                     id={name}
                     name={name}
                     onChange={onchange}
-                    onBlur={onblur}
                     multiple={true}
                 />
                 <ValidationMessage msg={error}/>

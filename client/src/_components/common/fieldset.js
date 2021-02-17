@@ -6,7 +6,6 @@
  */
 
 import React from 'react'
-import Validator from '../../_utils/validator.utils.client';
 import Input from './input';
 
 /**
@@ -41,25 +40,14 @@ const Fieldset = ({
      */
 
     const handleChange = e => {
-        const { name, value } = e.target;
+        const { name='', value='', files=[] } = e.target;
 
         e.persist(); // not used in ReactJS v.17
 
         // update state with input data
         setData(data => ({...data, [name]: value}));
-    }
 
-    /**
-     * Input on-blur handler. Validates input value(s)
-     * and sets first error message in validation chain.
-     *
-     * @public
-     * @param e
-     */
-
-    const handleBlur = (e) => {
-        const { name='', value='', files=[] } = e.target;
-        e.persist(); // not used in ReactJS v.17
+        // update validation errors
         setErrors(errors => ({
             ...errors,
             [name]: validators[name].check(value || files)
@@ -95,7 +83,6 @@ const Fieldset = ({
                             options={options}
                             readonly={_readonly}
                             onchange={handleChange}
-                            onblur={handleBlur}
                         />
                     )
                 })

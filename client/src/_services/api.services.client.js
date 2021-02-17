@@ -22,13 +22,10 @@
  *      strict-origin-when-cross-origin, unsafe-url
  *
  * @public
- * @params {data, method, ctype, token}
+ * @params {data, files, method}
  */
 
-const getFetchOptions = ({ data=null, files=null, method='POST', token=null}) => {
-
-    // select content type
-    const ctype = files ? 'application/json' : 'application/json';
+const getFetchOptions = ({ data=null, files=null, method='POST'}) => {
 
     // set request options
     const opts = {
@@ -36,16 +33,22 @@ const getFetchOptions = ({ data=null, files=null, method='POST', token=null}) =>
             mode: 'cors',
             cache: 'no-cache',
             credentials: 'include',
-            headers: {
-                'Content-Type': ctype
-            },
             redirect: 'follow',
             referrerPolicy: 'no-referrer'
         }
 
         // include form data in body for posts
         // body data type must match "Content-Type" header
-        if (data) opts.body = JSON.stringify(data);
+        if (data) {
+            // opts.header = { 'Content-Type' : 'application/json' };
+            opts.body = JSON.stringify(data);
+        }
+
+    // omit content type from header for file(s) uploads
+        if (files) {
+            // opts.header = { 'Content-Type' : 'multipart/form-data' };
+            opts.body = files;
+        }
 
     return opts
 }
@@ -62,15 +65,18 @@ export async function makeRequest({
                                       data=null,
                                       files=null,
                                       method='POST',
-                                      token=null
 })  {
 
     // compose request headers/options
-    const opts = getFetchOptions({data, files, method, token});
+    const opts = getFetchOptions({data, files, method});
+
+    console.log(opts)
 
     // send request to API
     let res = await fetch(url, opts)
         .catch(err => { throw err });
+
+    console.warn(res)
 
     // Modify response to include status ok, success, and status text
     return {

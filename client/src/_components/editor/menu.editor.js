@@ -28,7 +28,9 @@ const MenuEditor = () => {
     // lookup model dependent nodes
     const dependents = getDependents(api.root.type) || [];
 
+    // menu display toggle
     const [toggle, setToggle] = React.useState(false);
+
 
     // visibility settings for menu & menu items
     const menuExclude = ['dashboard', 'login', 'register']
@@ -38,14 +40,14 @@ const MenuEditor = () => {
 
     function onClick(e, model, view, id) {
         e.preventDefault();
-        console.log(model, view, id)
-        return
         router.update(getNodeURI(model, view, id));
     }
 
     return (
         api.view && !menuExclude.includes(api.view) ?
-        <div className={'editor-tools h-menu'}>
+        <div className={'editor-tools h-menu'} onMouseLeave={(e) => {
+            setToggle(false);
+        }}>
             <ul>
                 {api.root && !showExclude.includes(api.view) ?
                     <li key={'show'}>
@@ -125,11 +127,12 @@ const MenuEditor = () => {
                                                     <button
                                                         key={depNode}
                                                         title={`Upload ${label} files.`}
+                                                        name={'upload'}
                                                         onClick={e =>
                                                             onClick(e, 'historic_images', 'upload', api.root.id)
                                                         }
                                                     >
-                                                        <Icon type={'upload'} /> <span>Bulk Upload Capture Images</span>
+                                                        <Icon type={'upload'} />&#160;&#160;Bulk Upload Capture Images
                                                     </button>
                                                 </li>
                                                 : ''

@@ -79,7 +79,8 @@ const _inputValidations =
          */
 
         filesSelected: (files) => {
-            return Array.isArray(files) && files.length > 0;
+            console.log('Files:', files)
+            return files && files.length > 0;
         },
 
         /**
