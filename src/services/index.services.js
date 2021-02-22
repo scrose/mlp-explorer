@@ -15,7 +15,6 @@
 import * as model from './construct.services.js';
 import * as db from './model.services.js';
 import * as users from './users.services.js';
-import * as sessions from './sessions.services.js';
 
 /**
  * Index of module exports.
@@ -25,5 +24,4 @@ import * as sessions from './sessions.services.js';
 export {model};
 export {db};
 export {users};
-export {sessions};
 

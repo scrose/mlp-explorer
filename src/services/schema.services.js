@@ -15,7 +15,6 @@
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
 import { groupBy, humanize } from '../lib/data.utils.js';
-import { sanitize } from '../lib/data.utils.js';
 
 /**
  * Export schema constructor. A schema instance is a
@@ -32,7 +31,9 @@ export const create = async (constructorType) => {
     const nodeTypes = await getNodeTypes();
     const fileTypes = await getFileTypes();
     const permissions = await getPermissions();
-    const attributes = await getModelAttributes(constructorType);
+    const attributes = await getAttributes(constructorType);
+    const nodeAttributes = await getAttributes('nodes');
+    const fileAttributes = await getAttributes('files');
 
     // check type definition in db. The 'nodes' model includes all
     // data containers (e.g. historic visits); the 'files'
@@ -73,43 +74,16 @@ export const create = async (constructorType) => {
             value: attributes || [],
             writable: true
         },
+        nodeAttributes: {
+            value: nodeAttributes || [],
+            writable: true
+        },
+        fileAttributes: {
+            value: fileAttributes || [],
+            writable: true
+        },
         idKey: {
             value: idKey,
-            writable: false
-        },
-        getNode: {
-            value: function() {
-                const node = Object.keys(this.attributes)
-                    .find(key => key === 'nodes_id'
-                        && this.attributes[key].ref);
-                return node == null ? null : this.attributes[node];
-            },
-            writable: false
-        },
-        getOwner: {
-            value: function() {
-                const owner = Object.keys(this.attributes)
-                    .find(key => key === 'owner_id'
-                        && this.attributes[key].ref);
-                return owner == null ? null : this.attributes[owner];
-            },
-            writable: false
-        },
-        setOwner: {
-            value: function(ownerModel, id) {
-                // set owner attributes in model instance
-                if (typeof id === 'string' && this.attributes.hasOwnProperty('owner_id')) {
-                    this.attributes['owner_id'].value = sanitize(id);
-                }
-            }
-        },
-        getAttached: {
-            value: function() {
-                const attached = Object.keys(this.attributes)
-                    .filter(key => this.attributes[key].ref
-                        && this.attributes[key].ref !== 'nodes')
-                return attached.length === 0 ? null : attached;
-            },
             writable: false
         },
         permissions: {
@@ -151,20 +125,19 @@ export const getFileTypes = async function() {
 };
 
 /**
- * Find and format model schema attributes.
+ * Find and format schema attributes for given model or reference type.
  *
  * @public
- * @param {String} modelType
+ * @param {String} type
  * @return {Promise} result
  */
 
+export const getAttributes = async function(type) {
 
-export const getModelAttributes = async function(modelType) {
-
-    if (modelType == null) return null;
+    if (type == null) return null;
 
     // get model attributes (table columns)
-    let {sql, data} = queries.schema.getColumns(modelType);
+    let {sql, data} = queries.schema.getColumns(type);
     const attrs = await pool.query(sql, data);
 
     // no attributes found
@@ -197,16 +170,7 @@ export const getPermissions = async function() {
 
     let { sql, data } = queries.users.getPermissions();
     let permissions = await pool.query(sql, data);
-
-    // group permissions by model
-    permissions = groupBy(permissions.rows, 'model');
-
-    // rename "null" key to "default"
-    Object.defineProperty(permissions, 'default',
-        Object.getOwnPropertyDescriptor(permissions, 'null'));
-        delete permissions['null'];
-
-    return permissions;
+    return permissions.rows;
 };
 
 

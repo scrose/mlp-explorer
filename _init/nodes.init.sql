@@ -28,8 +28,7 @@ values ('users', 'Users'),
        ('modern_visits', 'Visit'),
        ('locations', 'Location'),
        ('historic_captures', 'HistoricCapture'),
-       ('modern_captures', 'Capture'),
-       ('files', 'Files');
+       ('modern_captures', 'Capture');
 
 
 -- -------------------------------------------------------------

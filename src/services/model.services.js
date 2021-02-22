@@ -1,5 +1,5 @@
 /*!
- * MLP.API.Services.Database
+ * MLP.API.Services.Model
  * File: model.services.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
@@ -14,8 +14,9 @@
 
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
-import { createNode } from './construct.services.js';
-import * as ns from '../queries/nodes.queries.js';
+import { createNode, createFile } from './construct.services.js';
+import * as nserve from '../queries/nodes.queries.js';
+import * as fserve from '../queries/files.queries.js';
 
 /**
  * Export database model services constructor
@@ -88,9 +89,10 @@ export default function ModelServices(model) {
      */
 
     this.select = async function(id) {
-        this.model.setId(id);
+        this.model.id = id;
         const stmts = {
             node: null,
+            file: null,
             model: this.queries.select,
             attached: []
         };
@@ -108,8 +110,10 @@ export default function ModelServices(model) {
      */
 
     this.insert = async function(item) {
+
         let stmts = {
-            node: ns.insert,
+            node: item.node ? nserve.insert : null,
+            file: item.file ? fserve.insert : null,
             model: this.queries.insert,
             attached: []
         };
@@ -128,7 +132,8 @@ export default function ModelServices(model) {
 
     this.update = async function(item) {
         let stmts = {
-            node: ns.update,
+            node: item.node ? nserve.update : null,
+            file: item.file ? fserve.update : null,
             model: this.queries.update,
             attached: []
         };
@@ -147,7 +152,8 @@ export default function ModelServices(model) {
 
     this.remove = async function(item) {
         let stmts = {
-            node: ns.remove,
+            node: item.node ? nserve.remove : null,
+            file: item.file ? fserve.remove : null,
             model: this.queries.remove,
             attached: []
         };
@@ -170,10 +176,15 @@ export default function ModelServices(model) {
         const client = await pool.connect();
 
         try {
+
             // transaction result
             let res;
 
             await client.query('BEGIN');
+
+            // check that only either node or file statements
+            // are submitted for transaction
+            if (stmts.node && stmts.file) return null;
 
             // process node query (if provided)
             if (stmts.node) {
@@ -186,7 +197,22 @@ export default function ModelServices(model) {
                 res = await client.query(sql, data);
 
                 // update item with returned data for further processing
-                item.setId(res.rows[0].id);
+                item.id = res.rows[0].id;
+            }
+
+            // process file query (if provided)
+            if (stmts.file) {
+
+                // create node model from item reference
+                let file = await createFile(item);
+
+                // generate prepared statements collated with data
+                const {sql, data} = stmts.file(file);
+                res = await client.query(sql, data);
+
+
+                // update item with returned data for further processing
+                item.id = res.rows[0].id;
             }
 
             // process model data query (if provided)

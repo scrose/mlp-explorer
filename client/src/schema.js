@@ -88,6 +88,14 @@ export const schema = {
                 render: 'listUsers'
             }
         },
+        historic_captures: {
+            add: {
+                legend: 'Add',
+                submit: 'Create',
+                method: 'POST',
+                render: 'upload'
+            }
+        },
         upload: {
             legend: 'File Upload',
             submit: 'Upload',
@@ -372,6 +380,12 @@ export const schema = {
                 singular: "Historic Capture",
                 files: ['historic_images']
             },
+            files: {
+                label: 'Files',
+                render: 'file',
+                restrict: ['upload', 'edit'],
+                validate: ['filesSelected']
+            },
             nodes_id: {
                 render: 'hidden',
                 restrict: ['edit', 'delete'],
@@ -519,22 +533,17 @@ export const schema = {
                 label: "Historic Images",
                 singular: "Historic Image"
             },
-            files: {
-                label: 'Files',
-                render: 'file',
-                restrict: ['upload'],
-                validate: ['filesSelected']
-            },
             files_id: {
                 render: 'hidden',
-                restrict: ['edit', 'delete', 'filesSelected'],
+                restrict: ['edit', 'delete'],
             },
             id: {
                 render: 'hidden',
-                restrict: ['filesSelected']
+                restrict: ['upload']
             },
             owner_id: {
-                render: 'hidden'
+                render: 'hidden',
+                restrict: ['edit', 'delete']
             },
             file_size: {
                 render: 'filesize',

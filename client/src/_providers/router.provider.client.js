@@ -155,7 +155,6 @@ function RouterProvider(props) {
 
     const post = async (uri, formData= null) => {
         const parsedData = formData ? Object.fromEntries(formData) : {};
-        console.log(parsedData)
         let res = await makeRequest({
             url: getAPIURL(uri),
             method:'POST',
@@ -175,23 +174,66 @@ function RouterProvider(props) {
      *
      * @public
      * @param {String} uri
-     * @param {Array} formData
+     * @param formData
+     * @param callback
      */
 
-    const upload = async (uri, formData= []) => {
-        console.log('Upload files:', formData, uri)
-        let res = await makeRequest({
-            url: getAPIURL(uri),
-            method:'POST',
-            files: formData
-        })
-            .catch(err => {
-                // handle API connection errors
-                console.error('An API error occurred:', err);
-                setOnline(false);
-                return null;
-            });
-        return res ? handleResponse(res) : res;
+    const upload = async (uri, formData, callback) => {
+
+        try {
+
+            let xhr = new XMLHttpRequest();
+            xhr.open('POST', uri, true);
+            xhr.responseType = 'json';
+
+            // request finished event
+            xhr.onload = function(e) {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        callback(null, {msg: 'Upload completed!', type: 'success'});
+                    }
+                    else {
+                        callback(null, {msg: 'Network error 1.', type: 'error'});
+                    }
+                }
+            };
+
+            // error in sending network request
+            xhr.onerror = function() {
+                callback(null, {msg: 'Network error 2.', type: 'error'});
+            };
+
+            // Upload progress callback
+            xhr.upload.onprogress = function(e) {
+                return callback(e);
+            };
+
+            // Upload error callback
+            xhr.upload.onerror = function(e) {
+                callback(null, {msg: 'Upload error has occurred.', type: 'error'});
+            };
+
+            // Upload timeout callback
+            xhr.upload.ontimeout = function(e) {
+                callback(null, {msg: 'Upload has timed out.', type: 'error'});
+            };
+
+            // Upload abort callback
+            xhr.upload.onabort = function(e) {
+                callback(null, {msg: 'Upload was aborted.', type: 'warn'});
+            };
+
+            // Upload timeout callback
+            xhr.upload.onloadend = function(e) {
+                callback(null, {msg: 'Upload completed!', type: 'success'});
+            };
+
+            // send POST request to server
+            xhr.send(formData);
+
+        } catch (err) {
+            console.log(err);
+        }
     };
 
     /**

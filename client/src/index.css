@@ -1157,6 +1157,7 @@ button.cancel:hover {
 /*
 Messages
 */
+
 .msg {
     padding:10px;
     margin:10px;
@@ -1274,6 +1275,19 @@ Messages
 .alert-box-buttons button:hover {
     background-color: #4E4372 !important;
     color: #FFFFFF !important;
+}
+
+/*
+Progress Bar
+*/
+.progress-bar {
+    height: 100%;
+    padding-right: 10px;
+    background-color: #004400;
+    border-radius: 10px;
+    text-align: right;
+    transition: width 1s ease-in-out;
+    color: white;
 }
 
 /* Maintenance Mode */

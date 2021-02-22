@@ -1,5 +1,5 @@
 /*!
- * MLP.API.Services.Construct.Model
+ * MLP.API.Services.Construct
  * File: construct.services.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
@@ -9,7 +9,8 @@
 
 import { humanize, sanitize } from '../lib/data.utils.js';
 import * as schemaConstructor from './schema.services.js';
-import { select } from './nodes.services.js';
+import { select as nselect } from './nodes.services.js';
+import { select as fselect } from './files.services.js';
 
 /**
  * Create derived model through composition. The model schema
@@ -21,92 +22,226 @@ import { select } from './nodes.services.js';
 
 export const create = async (modelType) => {
 
-    // generate schema for model type
+    // generate schema for constructor type
     let Schema = await schemaConstructor.create(modelType);
     const schema = new Schema();
 
-    // initialize model constructor with input data
-    let Model = function(attributeValues) {
+    // return constructor
+    return function(attributeValues) {
+
+        // static variables
+        this.name = modelType;
+        this.key = `${modelType}_id`;
+        this.idKey = schema.idKey;
+        this.label = humanize(modelType);
+        this.attributes = schema.attributes;
+
+        // initialize model with input data
         this.setData = setData;
         this.setData(attributeValues);
-    };
 
-    // define model properties
-    Object.defineProperties(Model.prototype, {
-        table: {
-            value: modelType,
-            writable: true
-        },
-        name: {
-            value: modelType,
-            writable: true
-        },
-        key: {
-            value: `${modelType}_id`,
-            writable: true
-        },
-        label: {
-            value: humanize(modelType),
-            writable: true
-        },
-        attributes: {
-            value: schema.attributes,
-            writable: true
-        },
-        hasAttribute: {
-            value: (attr) => { return schema.attributes.hasOwnProperty(attr) },
-            writable: true
-        },
-        node: {
-            get: schema.getNode
-        },
-        owner: {
-            get: schema.getOwner,
-        },
-        attached: {
-            get: schema.getAttached,
-        },
-        idKey: {
-            value: schema.idKey,
-            writable: false
-        },
-        id: {
-            get: getId(schema.idKey),
-        },
-        setId: {
-            value: setId(schema.idKey)
-        },
-        getValue: {
-            value: getValue,
-            writable: false
-        },
-        setValue: {
-            value: setValue,
-            writable: false
-        },
-        getData: {
-            value: getData,
-            writable: false
-        },
-        setOwner: {
-            value: schema.setOwner,
-            writable: false
-        },
-        setOptions: {
-            value: setOptions,
-            writable: false
-        },
-        clear: {
-            value: clear,
-            writable: false
-        }
-    });
-    return Model;
+        // method definitions
+        Object.defineProperties(this, {
+
+            /**
+             * Get/set node/file id value.
+             *
+             * @return {Object} field data
+             * @src public
+             */
+
+            id: {
+                get: () => {
+                    return this.attributes[schema.idKey].value;
+                },
+                set: (id) => {
+                    this.attributes[schema.idKey].value = id;
+                }
+            },
+
+            /**
+             * Check for existence of attribute in model.
+             *
+             * @return {Object} field data
+             * @src public
+             */
+
+            hasAttribute: {
+                value: (attr) => {
+                    return schema.attributes.hasOwnProperty(attr);
+                },
+                writable: true
+            },
+
+            /**
+             * Get the nodes reference data (if exists).
+             *
+             * @return {Object} field data
+             * @src public
+             */
+
+            node: {
+                get: () => {
+                    return schema.attributes.hasOwnProperty('nodes_id')
+                        ? this.attributes['nodes_id']
+                        : null;
+                },
+                set: (data) => {
+                    if (schema.attributes.hasOwnProperty('nodes_id'))
+                        this.attributes['nodes_id'].data = data;
+                }
+            },
+
+            /**
+             * Get/set the files reference data (if exists).
+             *
+             * @return {Object} field data
+             * @src public
+             */
+
+            file: {
+                get: () => {
+                    return schema.attributes.hasOwnProperty('files_id')
+                        ? this.attributes['files_id']
+                        : null;
+                },
+                set: (data) => {
+                    if (schema.attributes.hasOwnProperty('files_id'))
+                        this.attributes['files_id'].data = data;
+                }
+            },
+
+            /**
+             * Get/set the node/file owner data.
+             *
+             * @return {Object} field data
+             * @src public
+             */
+
+            owner: {
+                get: () => {
+                    return schema.attributes.hasOwnProperty('owner_id')
+                        ? this.attributes['owner_id']
+                        : null;
+                },
+                set: (id) => {
+                    if (typeof id === 'string' && this.attributes.hasOwnProperty('owner_id')) {
+                        this.attributes['owner_id'].value = sanitize(id);
+                    }
+                }
+            },
+
+            /**
+             * Get attached references (if they exist).
+             *
+             * @param {String} field
+             * @return {Object} field data
+             * @src public
+             */
+
+            attached: {
+                get: () => {
+                    const attached = Object.keys(this.attributes)
+                        .filter(key => this.attributes[key].ref && this.attributes[key].ref !== 'nodes')
+                    return attached.length === 0 ? null : attached;
+                }
+            },
+
+            /**
+             * Get field value from model attributes.
+             *
+             * @param {String} field
+             * @return {Object} field data
+             * @src public
+             */
+
+            getValue: {
+                value: (field=null) => {
+                    return field && this.attributes.hasOwnProperty(field)
+                        ? this.attributes[field].value
+                        : null;
+                },
+                writable: false
+            },
+
+            /**
+             * Set field value in model schema.
+             *
+             * @param {String} key
+             * @param {Object} value
+             * @src public
+             */
+
+            setValue: {
+                value: (key, value) => {
+                    if (typeof key === 'string' && this.attributes.hasOwnProperty(key)) {
+                        this.attributes[key].value = sanitize(value, this.attributes[key].type);
+                    }
+                },
+                writable: false
+            },
+
+            /**
+             * Get field values from model. Optional filter array
+             * omits select attributes from result.
+             *
+             * @return {Object} filtered data
+             * @param {Array} filter
+             * @src public
+             */
+
+            getData: {
+                value: (filter=[]) => {
+                    return Object.keys(this.attributes)
+                        .filter(key => !filter.includes(key))
+                        .reduce((o, key) => {
+                            o[key] = this.attributes[key].value; return o
+                        }, {});
+                },
+                writable: false
+            },
+
+            /**
+             * Set options of provided schema field.
+             *
+             * @param {String} key
+             * @param {Array} options
+             * @src public
+             */
+
+            setOptions: {
+                value: (key, options=[]) => {
+                    if (key
+                        && this.attributes.hasOwnProperty(key)
+                        && typeof options === 'object')
+                        this.attributes[key].options = options;
+                },
+                writable: false
+            },
+
+            /**
+             * Clear attributes of all values.
+             *
+             * @param {String} key
+             * @param {Array} options
+             * @src public
+             */
+
+            clear: {
+                value: () => {
+                    this.attributes = Object.keys(this.attributes)
+                        .map(key => {
+                            this.attributes[key].value = null;
+                        });
+                },
+                writable: false
+            }
+        });
+    }
 };
 
-
 /**
- * Set values of model schema attributes.
+ * Set values of model attributes.
  *
  * @param {Object} data
  * @src public
@@ -139,102 +274,7 @@ function setData(data=null) {
 }
 
 /**
- * Set field value in model schema.
- *
- * @param {String} key
- * @param {Object} value
- * @src public
- */
-
-function setValue(key, value) {
-    if (typeof key === 'string' && this.attributes.hasOwnProperty(key)) {
-        this.attributes[key].value = sanitize(value, this.attributes[key].type);
-    }
-}
-
-/**
- * Get ID value in model schema.
- *
- * @param {String} key (identifier key)
- * @src public
- */
-
-function getId(key) {
-    return function () {return this.attributes[key].value};
-}
-
-/**
- * Set ID value for model.
- *
- * @param {String} key (identifier key)
- * @src public
- */
-
-function setId(key) {
-    return function (id) {this.attributes[key].value = id};
-}
-
-/**
- * Get field value from model attributes.
- *
- * @param {String} field
- * @return {Object} field data
- * @src public
- */
-
-function getValue(field=null) {
-    return field && this.attributes.hasOwnProperty(field)
-        ? this.attributes[field].value
-        : null;
-}
-
-/**
- * Get field values from model. Optional filter array
- * omits select attributes from result.
- *
- * @return {Object} filtered data
- * @param {Array} filter
- * @src public
- */
-
-function getData(filter=[]) {
-    return Object.keys(this.attributes)
-        .filter(key => !filter.includes(key))
-        .reduce((o, key) => {
-            o[key] = this.attributes[key].value; return o
-        }, {});
-}
-
-/**
- * Clear field values from model attributes.
- *
- * @return {object} for chaining
- * @src public
- */
-
-function clear() {
-    Object.entries(this.attributes)
-        .map(attr => { attr.value = null });
-}
-
-/**
- * Set options of provided schema field.
- *
- * @param {String} key
- * @param {Array} options
- * @src public
- */
-
-function setOptions(key, options=[]) {
-    if (key
-        && this.attributes.hasOwnProperty(key)
-        && typeof options === 'object')
-        this.attributes[key].options = options;
-}
-
-
-/**
- * Generates nodes object from given model instance.
+ * Generates node object from given model instance.
  *
  * @public
  * @params {Object} item
@@ -245,53 +285,56 @@ export const createNode = async function(item) {
 
     if (!item.node) return null;
 
-    // generate node model object
-    return await createReference(item.node.value, item, 'nodes');
-};
-
-/**
- * Generates file object from file type and owner ID.
- *
- * @public
- * @params {Object} item
- * @return {Promise} result
- */
-
-export const createFile = async function(ownerID, type, id=null) {
-
-    if (!ownerID || !type) return null;
-
-    const item = {owner:{value: ownerID}};
-
-    // generate file model object
-    return await createReference(id, item, 'files');
-};
-
-/**
- * Generates reference object (e.g. node or file) for given model type.
- *
- * @public
- * @params {integer} id
- * @params {Object} item
- * @params {String} type
- * @return {Promise} result
- */
-
-export const createReference = async function(id, item, type) {
-
-    // generate reference constructor
-    let Reference = await create(type);
+    // generate node constructor
+    let Node = await create('nodes');
 
     // get owner attributes (if exist)
     let ownerAttrs = item.owner
-        ? await select(item.owner.value)
+        ? await nselect(item.owner.value)
         : { id: null, type: null };
 
     // return node instance: set owner attribute values from
     // retrieved node attributes
-    return new Reference({
-        id: id,
-        type: item.table,
+    return new Node({
+        id: item.id,
+        type: item.name,
+        owner_id: ownerAttrs.id,
+        owner_type: ownerAttrs.type
+    });
+};
+
+/**
+ * Generates file object from given model instance
+ * and file metadata.
+ *
+ * @public
+ * @params {Object} item
+ * @return {Promise} result
+ */
+
+export const createFile = async function(item) {
+
+    if (!item.file) return null;
+
+    // generate file constructor
+    let File = await create('files');
+
+    // get owner attributes (if exist)
+    let ownerAttrs = item.owner
+        ? await nselect(item.owner.value)
+        : { id: null, type: null };
+
+    // get additional file metadata from item
+    const { data={} } = item.file || {};
+    const { filename='', mime_type='' } = data || {};
+
+    // return node instance: set owner attribute values from
+    // retrieved node attributes
+    return new File({
+        id: item.id,
+        file_type: item.name,
+        filename: filename,
+        mimetype: mime_type,
         owner_id: ownerAttrs.id,
         owner_type: ownerAttrs.type
     });

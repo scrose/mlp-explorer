@@ -408,5 +408,5 @@ const _getViewAttributes = (view, model) => {
         ? schema.views[view]
         : null;
 
-    return modelView || defaultView || {}
+    return modelView ? modelView : defaultView ? defaultView : {};
 }

@@ -76,13 +76,17 @@ app.use(cors({
     })
 );
 
-
 /**
  * Parse request bodies (req.body)
  */
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({
+    extended: true
+}));
+
+app.use(express.json({
+    extended: true
+}));
 
 /**
  * Parse cookies to store JWT session tokens.

@@ -17,7 +17,6 @@ import users from './users.routes.js'
 import nodes from './nodes.routes.js'
 import models from './model.routes.js'
 import files from './files.routes.js'
-import { getPermissions } from '../lib/permissions.utils.js';
 
 /**
  * Create base router to add routes.
@@ -51,13 +50,14 @@ async function initRoutes(routes, baseRouter) {
                             throw err;
                         });
 
-                    // get permissions settings (allowed user roles) for model, view
-                    const allowedRoles = getPermissions({
-                        permissions: permissions,
-                        model: routes.model,
-                        view: view,
-                        id: req.params.hasOwnProperty(routes.key) ? req.params[routes.key] : null,
-                    });
+                    // filter permissions for given view
+                    const allowedRoles = permissions
+                        .filter(viewPermissions => {
+                            return viewPermissions.view === view;
+                        })
+                        .map(permission => {
+                            return permission.role;
+                        });
 
                     // authorize user access based on role permissions
                     const { access_token=null } = req.signedCookies || [];

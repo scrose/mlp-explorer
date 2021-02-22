@@ -10,8 +10,6 @@
  * @private
  */
 
-import Busboy from 'busboy';
-import { inspect } from 'util';
 import * as db from '../services/index.services.js';
 import ModelServices from '../services/model.services.js';
 import * as fserve from '../services/files.services.js';
@@ -47,17 +45,22 @@ export default function FilesController(modelType) {
      * @src public
      */
 
-    this.init = async (req, res, next) => {
+    this.init = async () => {
 
-        // generate model constructor
-        Model = await db.model.create(modelType);
-        model = new Model();
-        services = new ModelServices(new Model());
+        try {
 
-        // include image states (if needed)
-        if (model.hasAttribute('image_state')) {
-            const imageStates = await fserve.getImageStates();
-            model.setOptions('image_state', imageStates);
+            // generate model constructor
+            Model = await db.model.create(modelType);
+            model = new Model();
+            services = new ModelServices(new Model());
+
+            // include image states (if needed)
+            if (model.hasAttribute('image_state')) {
+                const imageStates = await fserve.getImageStates();
+                model.setOptions('image_state', imageStates);
+            }
+        } catch (err) {
+            console.error(err)
         }
     };
 
@@ -190,35 +193,41 @@ export default function FilesController(modelType) {
 
     this.upload = async (req, res, next) => {
 
-        const busboy = new Busboy({ headers: req.headers });
-        busboy.on('file', function(fieldname, file, filename, encoding, mimetype) {
-            console.log('File [' + fieldname + ']: filename: ' + filename + ', encoding: ' + encoding + ', mimetype: ' + mimetype);
-            file.on('data', function(data) {
-                console.log('File [' + fieldname + '] got ' + data.length + ' bytes');
-            });
-            file.on('end', function() {
-                console.log('File [' + fieldname + '] Finished');
-            });
-        });
-        busboy.on('field', function(fieldname, val, fieldnameTruncated, valTruncated, encoding, mimetype) {
-            console.log('Field [' + fieldname + ']: value: ' + inspect(val));
-        });
-        busboy.on('finish', function() {
-            console.log('Done parsing form!');
-            res.writeHead(303, { Connection: 'close' });
-            res.end();
-        });
-        return req.pipe(busboy);
+        try {
 
-        // get linked data referenced in node tree
-        return res.status(200).json(
-            prepare({
-                view: 'upload',
-                model: model,
-                data: {},
-                path: {},
-                message: {msg:'Files uploaded successfully!', type:'success'}
-            }));
+            // get requested file ID
+            const ownerID = this.getId(req);
 
+            // get owner node; check that node exists in database
+            // and corresponds to requested owner type.
+            const node = await nserve.select(ownerID);
+
+            // check relation exists for file type and node type
+            const isRelation = await fserve.checkRelation(node.type, model.name);
+
+            console.log(model.name, node, isRelation)
+
+            if (!node || !isRelation)
+                return next(new Error('notFound'));
+
+            // initialize file metadata
+            let metadata = {
+                file: {
+                    file_type: model.name,
+                    mimetype: null,
+                    filename: null,
+                    owner_id: node.id,
+                    owner_type: node.type,
+                    file_size: 0,
+                    fs_path: null
+                }
+            };
+
+            // stream uploaded files to server
+            await fserve.asyncUpload(req, res, next, metadata);
+
+        } catch (err) {
+            return next(err);
+        }
     };
 }

@@ -116,16 +116,12 @@ const Form = ({
 
         // attempt form submission
         try {
+
             // convert submitted form data to JSON
             const formData = new FormData(e.target);
 
             // API callback for form data submission
-            callback(router.route, formData)
-                .then(res => {
-                    const { message={msg:'Response Error occurred.', type:'error'} } = res || {};
-                    api.setMessage(message);
-                })
-                .catch(err => console.error(err))
+            return callback(router.route, formData)
         }
         catch (err) {
             console.error(err)

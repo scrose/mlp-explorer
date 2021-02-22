@@ -14,7 +14,7 @@
   "repository": "github:scrose/mlp-explorer/",
   "bugs": "https://github.com/scrose/mlp-explorer/issues",
   "scripts": {
-    "startdev": "nodemon --experimental-modules ./src/bin/www.js -r dotenv/config config.js",
+    "startdev": "nodemon --experimental-modules --trace-warnings ./src/bin/www.js -r dotenv/config config.js",
     "start": "node ./src/bin/www.js -r dotenv/config config.js",
     "serverstart": "DEBUG=mlp-explorer:* npm run devstart",
     "test": "nyc mocha --exit",

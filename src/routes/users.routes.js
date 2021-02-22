@@ -37,13 +37,6 @@ function UserRoutes() {
 
     // add controller routes
     this.routes = {
-        show: {
-            path: path.join('/', this.model, '/:user_id'),
-            get: this.controller.show,
-            put: null,
-            post: null,
-            delete: null,
-        },
         login: {
             path: path.join('/login'),
             get: null,

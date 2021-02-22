@@ -40,7 +40,7 @@ const getFetchOptions = ({ data=null, files=null, method='POST'}) => {
         // include form data in body for posts
         // body data type must match "Content-Type" header
         if (data) {
-            // opts.header = { 'Content-Type' : 'application/json' };
+            opts.headers = {'Content-Type': 'application/json'};
             opts.body = JSON.stringify(data);
         }
 
@@ -70,19 +70,16 @@ export async function makeRequest({
     // compose request headers/options
     const opts = getFetchOptions({data, files, method});
 
-    console.log(opts)
-
     // send request to API
     let res = await fetch(url, opts)
         .catch(err => { throw err });
-
-    console.warn(res)
 
     // Modify response to include status ok, success, and status text
     return {
         success: res.ok,
         status: res.status,
         statusText: res.statusText,
-        response: res.json()
+        progress: files ? res.body : null,
+        response: files ? null : res.json()
     }
 }

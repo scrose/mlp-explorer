@@ -13,16 +13,391 @@
  */
 
 import stream from 'stream';
+import Busboy from 'busboy';
 import fs from 'fs';
 import sharp from 'sharp';
 import util from 'util';
 import path from 'path';
 import pool from './db.services.js';
 import { Transform, PassThrough, Writable, Duplex } from 'stream';
-import { getFilename } from '../lib/file.utils.js';
 import { imageSizes } from '../../config.js';
 import { genUUID } from '../lib/data.utils.js';
 import queries from '../queries/index.queries.js';
+
+/**
+ * Async file uploader.
+ *
+ * @public
+ * @param req
+ * @param res
+ * @param next
+ * @param metadata
+ * @return {Promise} result
+ */
+
+export const asyncUpload = async (req, res, next, metadata) => {
+
+    // pass request headers to Busboy
+    // - module for parsing incoming HTML form data
+    const busboy = new Busboy({ headers: req.headers });
+    let bulkData = {};
+
+    req.on('close', cleanup);
+
+    // initialize busboy
+    busboy
+        .on('field', onField.bind(null, bulkData))
+        .on('file', onFile.bind(null, metadata, bulkData))
+        .on('error', onError)
+        .on('finish', onFinish)
+
+    // pipe HTTP request to busboy
+    return req.pipe(busboy);
+
+    function onError(err) {
+        cleanup();
+        return next(err);
+    }
+
+    function onFinish(err) {
+
+        cleanup();
+        if (err) return next(err);
+
+        // close connection
+        res.writeHead(200, { Connection: 'close' });
+        res.end();
+    }
+
+    function cleanup() {
+        busboy.removeListener('field', onField);
+        busboy.removeListener('file', onFile);
+        busboy.removeListener('error', onError);
+        busboy.removeListener('finish', onFinish);
+    }
+};
+
+/**
+ * Routes file uploader to server.
+ *
+ * @param metadata
+ * @param bulkData
+ * @param fieldname
+ * @param fileStream
+ * @param filename
+ * @param encoding
+ * @param mimetype
+ * @src public
+ */
+
+const onFile = async (
+    metadata,
+    bulkData,
+    fieldname,
+    fileStream,
+    filename,
+    encoding,
+    mimetype) => {
+
+    try {
+        // store basic file metadata for db records
+        metadata.file.mimetype = mimetype;
+        metadata.file.filename = filename;
+        metadata.encoding = encoding;
+
+        // if client cancels the upload: forward upstream as an error.
+        // req.on('aborted', function() {
+        //     fileStream.emit('error', new Error('Upload aborted.'));
+        // });
+
+        // track file size from data stream
+        fileStream
+            .on('data', function(data) {
+                metadata.file.file_size += data.length;
+            })
+            .on('error', function(err) {
+                    console.error(err);
+                    throw err;
+                });
+
+        // select file handler by model type
+        const fileHandlers = {
+            historic_images: async () => {
+                await uploadImage(fileStream, metadata, bulkData);
+                insertCapture(metadata);
+            },
+            modern_images: async () => {
+                await uploadImage(fileStream, metadata, bulkData);
+                insertCapture(metadata);
+            },
+            supplemental_images: async ()=> {
+                await uploadImage(fileStream, metadata, bulkData);
+                insertMetadata(metadata);
+            },
+            default: async () => {
+                const outPath = '/versions';
+                await uploadFile(fileStream, outPath, metadata);
+                insertMetadata(metadata, bulkData);
+            }
+        };
+
+        // variable database callback to insert metadata records
+        fileHandlers.hasOwnProperty(metadata.file.file_type)
+            ? await fileHandlers[metadata.file.file_type]()
+            : await fileHandlers.default();
+
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+}
+
+/**
+ * Uploads file to library.
+ *
+ * @src public
+ * @param fields
+ * @param name
+ * @param val
+ * @param fieldnameTruncated
+ * @param valTruncated
+ */
+
+function onField(fields, name, val, fieldnameTruncated, valTruncated) {
+    if (fields.hasOwnProperty(name)) {
+        if (Array.isArray(fields[name])) {
+            fields[name].push(val);
+        } else {
+            fields[name] = [fields[name], val];
+        }
+    } else {
+        fields[name] = val;
+    }
+}
+
+/**
+ * Upload multiple image files.
+ *
+ * @return {Object} output file data
+ * @src public
+ * @param fileStream
+ * @param metadata
+ * @param bulkData
+ */
+
+export const uploadImage = async function (fileStream, metadata, bulkData) {
+
+    try {
+
+        // Define output paths for original and scaled images
+        const outDir = process.env.UPLOAD_DIR;
+
+        // generate unique filename ID token
+        const imgToken = genUUID();
+
+        // initialize image versions
+        metadata.versions = {
+            raw: {
+                path: path.join(outDir, 'raw', metadata.file.filename),
+                size: null,
+            },
+            thumb: {
+                path: path.join(outDir, 'versions', `thumb_${imgToken}.jpg`),
+                size: imageSizes.thumb,
+            },
+            medium: {
+                path: path.join(outDir, 'versions', `medium_${imgToken}.jpg`),
+                size: imageSizes.medium,
+            },
+        };
+
+        // set raw path in metadata
+        metadata.file.fs_path = metadata.versions.raw.path;
+
+        // upload original (raw) version
+        await uploadFile(fileStream, metadata.versions.raw.path);
+
+        // get metadata from reader for file
+        let info = await sharp(metadata.versions.raw.path)
+            .metadata()
+            .catch(err => {throw err})
+
+        // get image_state from bulkData
+        const { image_state = 'raw' } = bulkData || {};
+        // initialize image metadata
+        metadata.model = {
+            format: info.format,
+            x_dim: info.width,
+            y_dim: info.height,
+            bit_depth: info.depth,
+            channels: info.channels,
+            density: info.density,
+            space: info.space,
+            image_state: image_state,
+        };
+
+
+        // create thumbnail scaled version:
+        await sharp(metadata.versions.raw.path)
+            .resize({
+                width: metadata.versions.thumb.size.width,
+            })
+            .toFile(metadata.versions.thumb.path);
+
+
+        // create medium scaled version:
+        await sharp(metadata.versions.raw.path)
+            .resize({
+                width: metadata.versions.medium.size.width,
+            })
+            .toFile(metadata.versions.medium.path);
+
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+}
+
+/**
+ * Insert file metadata record into database
+ * - called when files have completed upload to server
+ * - bulkData: common metadata for all uploaded files
+ *
+ * @return {Object} output file data
+ * @src public
+ * @param metadata
+ * @param bulkData
+ */
+
+const insertMetadata = (metadata, bulkData) => {
+    try {
+        // get bulk metadata
+        const { id = '', image_state = '' } = bulkData || {};
+
+        // for each file, insert new metadata record in db
+        metadata.map(md => {
+
+            // create model instance of owner
+            const item = new Model(md.model);
+            item.setValue('image_state', image_state);
+
+            // set owner and file metadata
+            item.owner = id;
+            item.file = md.file;
+
+            // insert file metadata record
+            services.insert(item);
+        });
+
+        // return res.status(200).json(
+        //     prepare({
+        //         view: 'upload',
+        //         message: { msg: 'Upload completed!', type: 'success' },
+        //     }));
+    } catch (err) {
+        return null;
+    }
+}
+
+/**
+ * Upload multiple image files.
+ *
+ * @return {Object} output file data
+ * @src public
+ * @param inStream
+ * @param outPath
+ */
+
+export const uploadFile = async function (inStream, outPath) {
+
+    try {
+        // create output stream
+        const outStream = fs.createWriteStream(outPath)
+            .on('error', (err) => {
+                console.error(err);
+                throw err;
+            })
+            .on('close', function() {
+                console.log('Successfully saved file');
+            });
+
+        // create pipeline to pipe between streams and generators
+        const pipeline = util.promisify(stream.pipeline);
+        return await pipeline([inStream, outStream])
+
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+}
+
+/**
+ * Insert capture record into database
+ * - called when files have completed upload to server
+ * - bulkData: common metadata for all uploaded files
+ *
+ * @return {Object} output file data
+ * @src public
+ * @param metadata
+ */
+
+const insertCapture = (metadata) => {
+    try {
+        // console.log('Capture:', metadata);
+        return
+
+        // for each file, insert new metadata record in db
+        metadata.map(md => {
+
+            // create model instance of owner
+            const item = new Model(md.model);
+            item.setValue('image_state', image_state);
+
+            // set owner and file metadata
+            item.owner = id;
+            item.file = md.file;
+
+            // insert file metadata record
+            services.insert(item);
+        });
+
+        // return res.status(200).json(
+        //     prepare({
+        //         view: 'upload',
+        //         message: { msg: 'Upload completed!', type: 'success' },
+        //     }));
+    } catch (err) {
+        return null;
+    }
+}
+
+/**
+ * Check if node and file types are relatable.
+ *
+ * @public
+ * @param {String} nodeType
+ * @param {String} fileType
+ * @return {Promise} result
+ */
+
+export const checkRelation = async function(nodeType, fileType) {
+    const { sql, data } = queries.files.checkRelation(nodeType, fileType);
+    const isRelation = await pool.query(sql, data);
+    return isRelation.rows.length > 0;
+};
+
+/**
+ * Get all image state types.
+ *
+ * @public
+ * @return {Promise} result
+ */
+
+export const getImageStates = async function() {
+    const { sql, data } = queries.files.imageStates();
+    const imageStates = await pool.query(sql, data);
+    return imageStates.rows;
+};
 
 /**
  * Create file source URLs from file data.
@@ -59,110 +434,6 @@ const genSrc = (type='', data={}) => {
     return fileHandlers.hasOwnProperty(type) ? fileHandlers[type]() : null;
 };
 
-/**
- * Upload multiple image files.
- *
- * @param {Request} req
- * @param {Array} fileList
- * @return {Object} output file data
- * @src public
- */
-
-export const uploadImages = async function (req, fileList) {
-
-    if (!fileList) return null;
-
-    const outDir = process.env.UPLOAD_DIR;
-    const inFiles = fileList;
-    let outFiles = [];
-    console.log('Files to upload:', fileList);
-
-    try {
-        const uploadFiles = async () => {
-            return Promise.all(
-                inFiles.map(inFilepath => {
-                    // upload original file to library
-                    const rawFilepath = path.join(outDir, 'raw', getFilename(inFilepath));
-                    uploadFile(req, inFilepath, rawFilepath);
-
-                    // generate unique filename token
-                    const imgToken = genUUID();
-
-                    // copy thumbnail-sized version to library
-                    const thumbFilepath = path.join(outDir, 'versions', `thumb_${imgToken}.jpg`);
-                    uploadFile(req, inFilepath, thumbFilepath, imageSizes.thumb);
-
-                    // copy medium-sized version to library
-                    const medFilepath = path.join(outDir, 'versions', `medium_${imgToken}.jpg`);
-                    uploadFile(req, inFilepath, medFilepath, imageSizes.medium);
-
-                    // record generated file paths
-                    outFiles.push({
-                        raw: rawFilepath,
-                        thumb: thumbFilepath,
-                        medium: medFilepath,
-                    });
-
-                }));
-        };
-        await uploadFiles()
-            .then(_ => {
-                console.log(`Uploaded items ${outFiles}.`);
-            })
-            .catch(err => {throw err;});
-        return outFiles;
-    } catch (err) {throw err;}
-};
-
-
-/**
- * Uploads file to library.
- *
- * @param {Request} req
- * @param {String} inFilepath
- * @param {String} outFilepath
- * @param {Object} downsample
- * @src public
- */
-
-export const uploadFile = async function(req, inFilepath, outFilepath, downsample = null) {
-
-    // input stream
-    let inStream = fs.createReadStream(inFilepath);
-
-    // if client cancels the upload: forward upstream as an error.
-    req.on('aborted', function() {
-        inStream.emit('error', new Error('Upload aborted.'));
-    });
-
-    // output stream
-    let outStream = fs.createWriteStream(outFilepath, { flags: 'w' });
-
-    // on error of output file being saved
-    outStream.on('error', function() {
-        console.error('Error');
-    });
-
-    // on success of output file being saved
-    outStream.on('close', function() {
-        console.log('Successfully saved file');
-    });
-
-    // Read image data from readableStream, resize using Sharp and
-    // emit an 'info' event with calculated dimensions. Finally write
-    // image data to writableStream
-    let transformer = downsample
-        ? sharp()
-            .resize(downsample.width)
-            .on('info', function(info) {
-                console.log('Image height is ' + info.height);
-            })
-        : new PassThrough();
-
-    // create pipeline to pipe between streams and generators
-    const pipeline = util.promisify(stream.pipeline);
-    return await pipeline(inStream, transformer, outStream);
-}
 
 /**
  * Get file record by ID. NOTE: returns single object.
@@ -262,16 +533,3 @@ class FileValidator extends Transform {
         done();
     }
 }
-
-/**
- * Get all image state types.
- *
- * @public
- * @return {Promise} result
- */
-
-export const getImageStates = async function() {
-    const { sql, data } = queries.files.imageStates();
-    const imageStates = await pool.query(sql, data);
-    return imageStates.rows;
-};

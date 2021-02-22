@@ -6,7 +6,7 @@
  */
 
 import { prepare } from '../lib/api.utils.js';
-import * as ns from '../services/nodes.services.js';
+import * as nserve from '../services/nodes.services.js';
 import { sanitize } from '../lib/data.utils.js';
 
 /**
@@ -32,7 +32,7 @@ export const init = async (req, res, next) => {};
 export const show = async (req, res, next) => {
     try {
         const { id='' } = req.params || {};
-        const node = await ns.get(sanitize(id, 'integer'));
+        const node = await nserve.get(sanitize(id, 'integer'));
         res.status(200).json(
             prepare({
                 view: 'show',
@@ -57,8 +57,8 @@ export const list = async (req, res, next) => {
     try {
 
         // get surveyors and projects as root containers
-        const projects = await ns.getAll('projects');
-        const surveyors = await ns.getAll('surveyors');
+        const projects = await nserve.getAll('projects');
+        const surveyors = await nserve.getAll('surveyors');
 
         res.status(200).json(
             prepare({

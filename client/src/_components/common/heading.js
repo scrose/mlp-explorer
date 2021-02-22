@@ -27,13 +27,13 @@ const Heading = ({prefix=''}) => {
 
     // heading text/prefix attribute overrides computed heading
     const heading = isNode
-        ? getNodeLabel(api.root)
+        ? getModelLabel(api.model)
         : getStaticLabel(router.route)
             ? getStaticLabel(router.route)
-            : getModelLabel(api.model)
+            : getNodeLabel(api.root)
 
     // get prefix to heading from model label (or set in parameters)
-    prefix = isNode ? getModelLabel(api.root.type) : prefix;
+    prefix = isNode ? getModelLabel(api.model) : prefix;
 
     return <h3>
         {

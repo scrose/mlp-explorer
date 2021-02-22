@@ -45,7 +45,7 @@ const MenuEditor = () => {
 
     return (
         api.view && !menuExclude.includes(api.view) ?
-        <div className={'editor-tools h-menu'} onMouseLeave={(e) => {
+        <div className={'editor-tools h-menu'} onMouseLeave={() => {
             setToggle(false);
         }}>
             <ul>
@@ -115,7 +115,7 @@ const MenuEditor = () => {
                                                         title={`Add new ${label}.`}
                                                         name={depNode}
                                                         onClick={e =>
-                                                            onClick(e, api.root.type, 'new', api.root.id)
+                                                            onClick(e, depNode, 'new', api.root.id)
                                                         }
                                                     >
                                                         <Icon type={'add'}/> <span>Add {label}</span>

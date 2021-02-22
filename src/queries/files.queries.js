@@ -24,6 +24,23 @@ export function types() {
 }
 
 /**
+ * Query: Check file relation with node.
+ *
+ * @param {String} nodeType
+ * @param {String} fileType
+ * @return {Object} query binding
+ */
+
+export function checkRelation(nodeType, fileType) {
+    return {
+        sql: `SELECT *
+              FROM file_relations 
+              WHERE owner_type = $1::varchar AND dependent_type = $2::varchar;`,
+        data: [nodeType, fileType],
+    };
+}
+
+/**
  * Generate query: Retrieve file entry for given item
  *
  * @param {Object} fileID
@@ -57,42 +74,6 @@ export function selectByOwner(owner_id) {
 }
 
 /**
- * Generate query: Insert file record.
- *
- * @param {Object} file
- * @return {Function} query function / null if no node
- * @public
- */
-
-export function insert(file) {
-    return defaults.insert(file);
-}
-
-/**
- * Generate query: Update file record data.
- *
- * @param {Object} file
- * @return {Function} query function / null if no node
- * @public
- */
-
-export function update(file) {
-    return defaults.update(file);
-}
-
-/**
- * Generate query: Delete file record.
- *
- * @param {Object} file
- * @return {Function} query function / null if no node
- * @public
- */
-
-export function remove(file) {
-    return defaults.remove(file);
-}
-
-/**
  * Query: Get all image state types.
  *
  * @return {Object} query binding
@@ -104,4 +85,43 @@ export function imageStates() {
               FROM image_states;`,
         data: [],
     };
+}
+
+/**
+ * Generate query: Insert file entry for given item
+ *
+ * @return {Function} query function / null if no node
+ * @public
+ * @param file
+ */
+
+export function insert(file) {
+    const fn = defaults.insert(file);
+    return fn(file);
+}
+
+/**
+ * Generate query: Update file entry for given item
+ *
+ * @return {Function} query function / null if no node
+ * @public
+ * @param file
+ */
+
+export function update(file) {
+    const fn = defaults.update(file);
+    return fn(file);
+}
+
+/**
+ * Generate query: Delete node entry for given item
+ *
+ * @param {Object} file
+ * @return {Function} query function / null if no node
+ * @public
+ */
+
+export function remove(file) {
+    const fn = defaults.remove(file);
+    return fn(file);
 }

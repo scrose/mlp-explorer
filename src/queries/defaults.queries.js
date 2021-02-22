@@ -13,7 +13,7 @@ import { groupBy } from '../lib/data.utils.js';
  * Database rows limit.
  */
 
-const limit = 100;
+const limit = 50;
 
 /**
  * Generate query: Find all records in table.
@@ -33,7 +33,7 @@ export function getAll(model, offset = 0, order='') {
     return function() {
         return {
             sql: `SELECT * 
-                    FROM ${model.table} 
+                    FROM ${model.name} 
                     ${orderby}
                     LIMIT ${limit} 
                     OFFSET ${offset};`,
@@ -53,7 +53,7 @@ export function getAll(model, offset = 0, order='') {
 export function select(model) {
     return function(item) {
         let sql = `SELECT * 
-                FROM ${model.table} 
+                FROM ${model.name} 
                 WHERE ${model.idKey} = $1::integer;`;
         return {
             sql: sql,
@@ -109,10 +109,10 @@ export function selectByFile(file) {
 export function findByOwner(model) {
     return function(owner_id, owner_type) {
         let sql = `SELECT * 
-                FROM ${model.table} 
+                FROM ${model.name} 
                 LEFT OUTER JOIN ${owner_type} 
-                ON ${model.table}.owner_id = ${owner_id} 
-                       AND ${model.table}.owner_type = ${owner_type}`;
+                ON ${model.name}.owner_id = ${owner_id} 
+                       AND ${model.name}.owner_type = ${owner_type}`;
         return {
             sql: sql,
             data: [owner_id, owner_type],
@@ -138,7 +138,8 @@ export function insert(
     if (!model) return null;
 
     // filter ignored columns
-    const ignore = model.node ? [] : [model.idKey];
+    // - do not ignore if model is for a node or file
+    const ignore = model.node || model.file ? [] : [model.idKey];
     const cols = Object
         .keys(model.attributes)
         .filter((key) => {
@@ -153,7 +154,7 @@ export function insert(
     });
 
     // construct prepared statement
-    let sql = `INSERT INTO ${model.table} (${cols.join(',')})
+    let sql = `INSERT INTO ${model.name} (${cols.join(',')})
                         VALUES (${vals.join(',')})
                         RETURNING *;`;
 
@@ -192,7 +193,7 @@ export function update(model, timestamps = ['created_at', 'updated_at']) {
     if (!model) return null;
 
     // filter ignored columns: Do not ignore ID column if using node reference
-    const ignore = model.node ? [] : [model.idKey];
+    const ignore = model.node || model.file ? [] : [model.idKey];
     const cols = Object
         .keys(model.attributes)
         .filter((key) => {
@@ -211,7 +212,7 @@ export function update(model, timestamps = ['created_at', 'updated_at']) {
         return [attr, `${placeholder}::${model.attributes[attr].type}`].join('=');
     });
 
-    let sql = `UPDATE "${model.table}" 
+    let sql = `UPDATE "${model.name}" 
                 SET ${assignments.join(',')} 
                 WHERE ${model.idKey} = $1::integer
                 RETURNING *;`;
@@ -240,7 +241,7 @@ export function update(model, timestamps = ['created_at', 'updated_at']) {
 
 /**
  * Generate query: Delete record from database. Returns
- * null if this is a node removal.
+ * null if this is a node or file removal.
  *
  * @param {Object} model
  * @return {function(*): {data: [*], sql: string}} sql query
@@ -248,10 +249,10 @@ export function update(model, timestamps = ['created_at', 'updated_at']) {
  */
 
 export function remove(model) {
-    return !model.node
+    return !model.node && !model.file
         ? function(item) {
             return {
-                sql: `DELETE FROM ${model.table} 
+                sql: `DELETE FROM ${model.name} 
             WHERE ${model.idKey} = $1::integer
             RETURNING *;`,
                 data: [item.id],
