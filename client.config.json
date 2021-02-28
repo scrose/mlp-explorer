@@ -1,0 +1,16 @@
+{
+  "name": "mle-client",
+  "script": "npm",
+  "args": "start",
+  "cwd": "./client",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "env_production" : {
+    "NODE_ENV": "production"
+  },
+  "max_memory_restart": "150M",
+  "log_date_format": "YYYY-MM-DD HH:mm Z",
+  "error_file": "./logs/mle_client_error.log",
+  "out_file": "./logs/mle_client_output.log"
+}

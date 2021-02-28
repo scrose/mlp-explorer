@@ -203,12 +203,10 @@ export default function FilesController(modelType) {
             const node = await nserve.select(ownerID);
 
             // check relation exists for file type and node type
-            const isRelation = await fserve.checkRelation(node.type, model.name);
+            const nodeRelations = await fserve.getFileTypesByOwner(model.name);
 
-            console.log(model.name, node, isRelation)
-
-            if (!node || !isRelation)
-                return next(new Error('notFound'));
+            if (!node || true)
+                return next(new Error('invalidRequest'));
 
             // initialize file metadata
             let metadata = {
@@ -224,7 +222,7 @@ export default function FilesController(modelType) {
             };
 
             // stream uploaded files to server
-            await fserve.asyncUpload(req, res, next, metadata);
+            await fserve.upload(req, res, next, metadata);
 
         } catch (err) {
             return next(err);

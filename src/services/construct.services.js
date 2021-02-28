@@ -10,7 +10,6 @@
 import { humanize, sanitize } from '../lib/data.utils.js';
 import * as schemaConstructor from './schema.services.js';
 import { select as nselect } from './nodes.services.js';
-import { select as fselect } from './files.services.js';
 
 /**
  * Create derived model through composition. The model schema

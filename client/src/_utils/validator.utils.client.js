@@ -55,7 +55,7 @@ Validator.prototype.check = function check(val1, val2='') {
         .filter(check => !check.run(val1, val2))
         .map(check => {
             return getError(check.name, 'validation')
-        })
+        });
 }
 
 /**
@@ -75,12 +75,11 @@ const _inputValidations =
         },
 
         /**
-         * Validate files selected.
+         * Validate files are selected.
          */
 
         filesSelected: (files) => {
-            console.log('Files:', files)
-            return files && files.length > 0;
+            return !!(files && files.length > 0);
         },
 
         /**
@@ -99,19 +98,5 @@ const _inputValidations =
 
         isPassword: (value) => {
             return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/.test(value);
-        },
-
-        /**
-         * Validate repeated password matches the password in the immediate
-         * fieldset. Retrieves password value from reference callback.
-         */
-
-        isRepeatPassword: (repeatPassword='') => {
-
-            if (typeof this === 'undefined') return true;
-
-            return this.refs.hasOwnProperty('password')
-                ? this.refs.password === repeatPassword
-                : true;
         }
     }

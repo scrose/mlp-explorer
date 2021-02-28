@@ -17,6 +17,7 @@ import users from './users.routes.js'
 import nodes from './nodes.routes.js'
 import models from './model.routes.js'
 import files from './files.routes.js'
+import db from '../services/db.services.js';
 
 /**
  * Create base router to add routes.
@@ -60,6 +61,7 @@ async function initRoutes(routes, baseRouter) {
                         });
 
                     // authorize user access based on role permissions
+                    // - user data set to null for anonymous users (visitors)
                     const { access_token=null } = req.signedCookies || [];
                     req.user = await auth.authorize(access_token, allowedRoles)
                         .catch(err => {

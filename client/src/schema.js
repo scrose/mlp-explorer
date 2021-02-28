@@ -71,53 +71,48 @@ export const schema = {
     views: {
         users: {
             login: {
+                label: 'Sign In',
                 legend: 'User Authentication',
                 submit: 'Sign In',
                 method: 'POST',
-                render: 'login',
-                buttons: 'bottom'
-            },
-            register : {
-                legend: 'User Registration',
-                submit: 'Register',
-                method: 'POST',
-                render: 'form'
-            },
-            list: {
-                legend: 'Listing',
-                render: 'listUsers'
+                render: 'login'
             }
         },
-        historic_captures: {
-            add: {
-                legend: 'Add',
-                submit: 'Create',
-                method: 'POST',
-                render: 'upload'
-            }
+        import: {
+            label: 'Import',
+            legend: 'Import New',
+            submit: 'Import',
+            method: 'POST',
+            render: 'upload',
+            singular: false
         },
         upload: {
+            label: 'Upload Files',
             legend: 'File Upload',
             submit: 'Upload',
             method: 'POST',
             render: 'upload'
         },
         add: {
-            legend: 'Create New',
+            label: 'Create New',
+            legend: 'Add',
             submit: 'Create',
             render: 'form'
         },
         edit: {
-            legend: 'Update',
+            label: 'Update',
+            legend: 'Edit',
             submit: 'Update',
             render: 'form'
         },
         remove: {
+            label: 'Remove',
             legend: 'Delete',
             submit: 'Delete',
             render: 'form'
         },
         show: {
+            label: 'Info',
             legend: 'Item',
             render: 'item'
         }
@@ -381,14 +376,14 @@ export const schema = {
                 files: ['historic_images']
             },
             files: {
-                label: 'Files',
+                label: 'Historic Images',
                 render: 'file',
-                restrict: ['upload', 'edit'],
+                restrict: ['add', 'edit', 'import'],
                 validate: ['filesSelected']
             },
             nodes_id: {
                 render: 'hidden',
-                restrict: ['edit', 'delete'],
+                restrict: ['edit', 'delete']
             },
             owner_id: {
                 render: 'hidden'
@@ -532,6 +527,12 @@ export const schema = {
                 order: 11,
                 label: "Historic Images",
                 singular: "Historic Image"
+            },
+            files: {
+                label: 'Files',
+                render: 'file',
+                restrict: ['upload', 'edit'],
+                validate: ['filesSelected']
             },
             files_id: {
                 render: 'hidden',

@@ -12,6 +12,7 @@ import StaticView from '../views/static.view';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
 import MenuEditor from './menu.editor';
+import Loading from '../common/loading';
 
 /**
  * Render editor panel component (authenticated).
@@ -25,21 +26,21 @@ const Editor = () => {
     const router = useRouter();
 
     return (
-        <div className={'editor'}>
-            <MenuEditor />
-            <Heading />
-            <Messenger />
-            {
-                router.staticView
-                    ? <StaticView type={
-                        router.staticView === 'dashboard'
-                            ? 'dashboardEdit'
-                            : router.staticView
-                    } />
-                    : <DataView />
-            }
-        </div>
-    )
+            <div className={'editor'}>
+                <MenuEditor/>
+                <Heading/>
+                <Messenger/>
+                {
+                    router.staticView
+                        ? <StaticView type={
+                            router.staticView === 'dashboard'
+                                ? 'dashboardEdit'
+                                : router.staticView
+                        }/>
+                        : <DataView/>
+                }
+            </div>
+        )
 };
 
 export default React.memo(Editor);

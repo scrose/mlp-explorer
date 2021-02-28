@@ -1,6 +1,6 @@
 /*!
  * MLP.API.Config
- * File: config.js
+ * File: app.config.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */

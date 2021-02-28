@@ -73,15 +73,15 @@ function RouterProvider(props) {
             '404': () => {
                 return redirect('/not_found');
             },
-            '401': () => {
-                return redirect('/login');
-            },
+            // '401': () => {
+            //     return redirect('/login');
+            // },
             '403': () => {
                 return redirect('/login');
             },
-            '500': () => {
-                addSessionMsg({msg: 'Server Error', type:'error'});
-            }
+            // '500': () => {
+            //     addSessionMsg({msg: 'Server Error', type:'error'});
+            // }
         }
         return routes.hasOwnProperty(status) ? routes[status]() : response;
     }
@@ -180,6 +180,11 @@ function RouterProvider(props) {
 
     const upload = async (uri, formData, callback) => {
 
+        // DEBUG: Display the key/value pairs of form data
+        // for(var pair of formData.entries()) {
+        //     console.log(pair[0]+ ', '+ pair[1]);
+        // }
+
         try {
 
             let xhr = new XMLHttpRequest();
@@ -190,17 +195,17 @@ function RouterProvider(props) {
             xhr.onload = function(e) {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
-                        callback(null, {msg: 'Upload completed!', type: 'success'});
+                        return callback(null, {msg: 'Upload completed!', type: 'success'});
                     }
                     else {
-                        callback(null, {msg: 'Network error 1.', type: 'error'});
+                        return callback(null, {msg: 'Network error 1.', type: 'error'});
                     }
                 }
             };
 
             // error in sending network request
             xhr.onerror = function() {
-                callback(null, {msg: 'Network error 2.', type: 'error'});
+                return callback(null, {msg: 'Network error 2.', type: 'error'});
             };
 
             // Upload progress callback
@@ -210,22 +215,22 @@ function RouterProvider(props) {
 
             // Upload error callback
             xhr.upload.onerror = function(e) {
-                callback(null, {msg: 'Upload error has occurred.', type: 'error'});
+                return callback(null, {msg: 'Upload error has occurred.', type: 'error'});
             };
 
             // Upload timeout callback
             xhr.upload.ontimeout = function(e) {
-                callback(null, {msg: 'Upload has timed out.', type: 'error'});
+                return callback(null, {msg: 'Upload has timed out.', type: 'error'});
             };
 
             // Upload abort callback
             xhr.upload.onabort = function(e) {
-                callback(null, {msg: 'Upload was aborted.', type: 'warn'});
+                return callback(null, {msg: 'Upload was aborted.', type: 'warn'});
             };
 
             // Upload timeout callback
             xhr.upload.onloadend = function(e) {
-                callback(null, {msg: 'Upload completed!', type: 'success'});
+                return callback(null, {msg: 'Upload completed!', type: 'success'});
             };
 
             // send POST request to server

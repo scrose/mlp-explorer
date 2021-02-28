@@ -14,7 +14,7 @@
 
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
-import { groupBy, humanize } from '../lib/data.utils.js';
+import { humanize } from '../lib/data.utils.js';
 
 /**
  * Export schema constructor. A schema instance is a
@@ -101,9 +101,9 @@ export const create = async (constructorType) => {
  * @return {Promise} result
  */
 
-export const getNodeTypes = async function() {
+export const getNodeTypes = async function(client=pool) {
     let { sql, data } = queries.nodes.types();
-    let nodeTypes = await pool.query(sql, data);
+    let nodeTypes = await client.query(sql, data);
 
     // return only model type names as list
     return nodeTypes.rows.map(nodeType => { return nodeType.name });
@@ -116,9 +116,9 @@ export const getNodeTypes = async function() {
  * @return {Promise} result
  */
 
-export const getFileTypes = async function() {
+export const getFileTypes = async function(client=pool) {
     let { sql, data } = queries.files.types();
-    let fileTypes = await pool.query(sql, data);
+    let fileTypes = await client.query(sql, data);
 
     // return only model type names as list
     return fileTypes.rows.map(fileType => { return fileType.name });
@@ -132,13 +132,13 @@ export const getFileTypes = async function() {
  * @return {Promise} result
  */
 
-export const getAttributes = async function(type) {
+export const getAttributes = async function(type, client=pool) {
 
     if (type == null) return null;
 
     // get model attributes (table columns)
     let {sql, data} = queries.schema.getColumns(type);
-    const attrs = await pool.query(sql, data);
+    const attrs = await client.query(sql, data);
 
     // no attributes found
     if (attrs.rows.length === 0) return null;
@@ -166,10 +166,10 @@ export const getAttributes = async function(type) {
  * @return {Promise} result
  */
 
-export const getPermissions = async function() {
+export const getPermissions = async function(client=pool) {
 
     let { sql, data } = queries.users.getPermissions();
-    let permissions = await pool.query(sql, data);
+    let permissions = await client.query(sql, data);
     return permissions.rows;
 };
 

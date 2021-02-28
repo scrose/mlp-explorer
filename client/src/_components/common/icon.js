@@ -24,6 +24,7 @@ const getIconClass = (iconType) => {
         add: 'fas fa-lg fa-plus',
         edit: 'fas fa-lg fa-edit',
         delete: 'fas fa-lg fa-trash-alt',
+        export: 'fas fa-lg fa-file-export',
         success: 'fas fa-lg fa-check-circle',
         cancel: 'fas fa-lg fa-times-circle',
         logo: 'fas fa-mountain',

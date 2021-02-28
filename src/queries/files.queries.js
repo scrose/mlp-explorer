@@ -41,6 +41,23 @@ export function checkRelation(nodeType, fileType) {
 }
 
 /**
+ * Query: Get node relation(s) from file type.
+ *
+ * @param {String} nodeType
+ * @return {Object} query binding
+ */
+
+export function getRelationsByNodeType(nodeType) {
+    return {
+        sql: `SELECT dependent_type
+              FROM file_relations 
+              WHERE owner_type = $1::varchar;`,
+        data: [nodeType],
+    };
+}
+
+
+/**
  * Generate query: Retrieve file entry for given item
  *
  * @param {Object} fileID

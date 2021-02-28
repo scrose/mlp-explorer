@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.Users.Login
- * File: login.users.js
+ * MLP.Client.Components.Users.Importer
+ * File: importer.users.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -10,18 +10,16 @@ import Form from '../common/form';
 import { useRouter } from '../../_providers/router.provider.client';
 
 /**
- * File(s) uploader view.
+ * Batch importer view.
  *
  * @public
  */
 
-const Uploader = ({model, schema, data}) => {
+const Importer = ({model, schema, data}) => {
 
     const api = useRouter();
     const [progress, setProgress] = React.useState({});
     const [messages, setMessages] = React.useState({});
-
-    console.log(data)
 
     /**
      * Update progress data. Progress data is updated until
@@ -35,7 +33,6 @@ const Uploader = ({model, schema, data}) => {
      */
 
     const updateProgress = (index, name, e, msg) => {
-
         // update progress indicator only if event available
         if (e) {
             // get upload data from callback event
@@ -50,7 +47,6 @@ const Uploader = ({model, schema, data}) => {
             };
             setProgress(data => ({ ...data, [index]: progressData }));
         }
-
         // update message state
         setMessages(data => ({ ...data, [index]: msg}));
     }
@@ -64,25 +60,22 @@ const Uploader = ({model, schema, data}) => {
      * @param formData
      */
 
-    const uploadFiles = (uri, formData) => {
+    const importData = (uri, formData) => {
         const fileList = formData.getAll('files');
         fileList.map((file, index) => {
-            return api.upload(
-                uri,
-                formData,
-                updateProgress.bind(this, index, file.name)
-            )
+            formData.set('files', file);
+            return api.upload(uri, formData, updateProgress.bind(this, index, file.name))
                 .catch(err => {console.error(err)});
         });
     }
 
     return (
-        <div className={'uploader'}>
+        <div className={'importer'}>
             <Form
                 model={model}
                 schema={schema}
                 init={data}
-                callback={uploadFiles}
+                callback={importData}
             />
             {
                 Object.keys(progress).map(key => {
@@ -111,4 +104,4 @@ const Uploader = ({model, schema, data}) => {
     )
 }
 
-export default React.memo(Uploader);
+export default React.memo(Importer);

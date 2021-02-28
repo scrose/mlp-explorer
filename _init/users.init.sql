@@ -17,65 +17,6 @@ CREATE TABLE IF NOT EXISTS user_roles
     label VARCHAR(255) UNIQUE NOT NULL
 );
 
-
--- -------------------------------------------------------------
---    Users
--- -------------------------------------------------------------
-
--- CREATE TABLE IF NOT EXISTS users
--- (
---     id                     serial PRIMARY KEY,
---     user_id                VARCHAR(255) UNIQUE NOT NULL,
---     role                   VARCHAR(40)         NOT NULL DEFAULT 'visitor',
---     email                  VARCHAR(255) UNIQUE NOT NULL,
---     password               VARCHAR(512)        NOT NULL,
---     salt_token             VARCHAR(255)        NOT NULL,
---     reset_password_token   VARCHAR(255),
---     reset_password_expires timestamp without time zone,
---     last_sign_in_at        timestamp without time zone,
---     last_sign_in_ip        VARCHAR(255),
---     created_at             timestamp without time zone NOT NULL,
---     updated_at             timestamp without time zone NOT NULL,
---     FOREIGN KEY (role) REFERENCES user_roles (name),
---     CHECK (email ~* '^[a-zA-Z0-9_+&-]+(?:.[a-zA-Z0-9_+&-]+)*@(?:[a-zA-Z0-9-]+.)+[a-zA-Z]{2,7}$'),
---     CHECK (password ~* '^[a-fA-F0-9]+$'),
---     CHECK (salt_token ~* '^[a-fA-F0-9]+$')
--- );
-
--- -------------------------------------------------------------
---    Trigger to ensure single super-administrator
--- -------------------------------------------------------------
---
--- CREATE OR REPLACE FUNCTION restrict_registrations()
---     RETURNS TRIGGER
---     LANGUAGE PLPGSQL
--- AS
--- $$
--- DECLARE
---     super_admin RECORD;
--- BEGIN
---     SELECT *
---     FROM users
---     WHERE role = 'super_administrator'
---     INTO super_admin;
---
---     IF super_admin IS NOT NULL THEN
---         RAISE EXCEPTION 'Super administrator already exists in users.';
---     END IF;
---
---     RETURN NEW;
--- END;
--- $$;
---
--- CREATE TRIGGER user_inserts
---     BEFORE INSERT
---     ON users
---     FOR EACH ROW
---     WHEN (NEW.role = 'super_administrator')
--- EXECUTE PROCEDURE restrict_registrations();
-
-
-
 -- -------------------------------------------------------------
 --    Initialize user roles
 -- -------------------------------------------------------------
@@ -111,9 +52,8 @@ CREATE TABLE IF NOT EXISTS user_permissions
 -- -------------------------------------------------------------
 
 INSERT INTO user_permissions (view, role, created_at, updated_at)
-VALUES ('list', 'visitor', now(), now()),
+VALUES  ('list', 'visitor', now(), now()),
         ('list', 'registered', now(), now()),
-        ('list', 'contributor', now(), now()),
         ('list', 'editor', now(), now()),
         ('list', 'administrator', now(), now()),
         ('list', 'super_administrator', now(), now()),
@@ -150,20 +90,6 @@ VALUES ('list', 'visitor', now(), now()),
         ('upload', 'editor', now(), now()),
         ('upload', 'administrator', now(), now()),
         ('upload', 'super_administrator', now(), now());
-
--- -------------------------------------------------------------
---    Initialize Session Table
--- -------------------------------------------------------------
-
-
-BEGIN;
-DROP TABLE IF EXISTS sessions;
-CREATE TABLE IF NOT EXISTS sessions (
-    id serial NOT NULL PRIMARY KEY,
-    user_id VARCHAR (255) UNIQUE NOT NULL,
-    token VARCHAR (255) UNIQUE NOT NULL,
-    expiry TIMESTAMP);
-COMMIT;
 
 -- -------------------------------------------------------------
 --    End

@@ -206,15 +206,14 @@ export const refresh = async (token) => {
         .then(res => {
 
             // token is invalid or session is not active
-            if (!res || res.status !== 200)
-                throw new Error('invalidToken');
+            if (!res || res.status !== 200) throw new Error('noToken');
 
             return res
 
         })
         .then(res => res.json())
         .catch(err => {
-            console.error('KeyCloak error:', err);
+            console.warn('KeyCloak error:', err);
             return null;
         });
 
@@ -245,7 +244,7 @@ export const refresh = async (token) => {
 export const authorize = async (access_token, allowedRoles) => {
 
     // authorize all for 'visitor' restrictions
-    if ( allowedRoles.includes('visitor') ) return
+    if ( allowedRoles.includes('visitor') ) return null;
 
     // check if token exists
     if (!access_token)

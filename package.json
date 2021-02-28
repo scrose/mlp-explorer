@@ -2,7 +2,7 @@
   "name": "mlp-api",
   "version": "1.0.0",
   "proxy": "http://localhost:3001",
-  "main": "src/app.js",
+  "main": "./src/app.js",
   "type": "module",
   "private": true,
   "author": {
@@ -14,8 +14,10 @@
   "repository": "github:scrose/mlp-explorer/",
   "bugs": "https://github.com/scrose/mlp-explorer/issues",
   "scripts": {
-    "startdev": "nodemon --experimental-modules --trace-warnings ./src/bin/www.js -r dotenv/config config.js",
-    "start": "node ./src/bin/www.js -r dotenv/config config.js",
+    "startpm2": "pm2 start -f --watch --ignore-watch=\\\"node_modules\\\" --name mle ./src/bin/www.js --log ./logs/pm2.log -- -r dotenv/config app.config.js",
+    "startdebug": "nodemon --trace-warnings --inspect --trace_gc ./src/bin/www.js -r dotenv/config app.config.js",
+    "startdev": "nodemon --trace-warnings ./src/bin/www.js -r dotenv/config app.config.js",
+    "start": "node ./src/bin/www.js -r dotenv/config app.config.js",
     "serverstart": "DEBUG=mlp-explorer:* npm run devstart",
     "test": "nyc mocha --exit",
     "coverage": "nyc npm run test",

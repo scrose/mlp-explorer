@@ -10,7 +10,6 @@ import Fieldset from './fieldset';
 import Button from './button';
 import { getModelLabel } from '../../_services/schema.services.client';
 import { useRouter } from '../../_providers/router.provider.client';
-import { useData } from '../../_providers/data.provider.client';
 import Validator from '../../_utils/validator.utils.client';
 
 /**
@@ -20,9 +19,13 @@ import Validator from '../../_utils/validator.utils.client';
  * @param { model, label }
  */
 
-const Submit = ({model, label}) => {
+const Submit = ({model, label, message}) => {
+    const { msg='', type='' } = message || {};
     return (
         <fieldset className={'submit'}>
+            <div className={`msg ${type}`}>
+                <span>{msg}</span>
+            </div>
             <Button
                 type={'submit'}
                 label={label}
@@ -33,6 +36,7 @@ const Submit = ({model, label}) => {
                 name={`cancel_${model}`}
                 url={'/'} />
         </fieldset>
+
     );
 }
 
@@ -54,7 +58,6 @@ const Form = ({
 }) => {
 
     const router = useRouter();
-    const api = useData();
 
     // initialize state for input parameters
     const [data, setData] = React.useState(init);
@@ -62,6 +65,9 @@ const Form = ({
 
     // create input error states
     const [errors, setErrors] = React.useState({});
+
+    // create error message state
+    const [message, setMessage] = React.useState({});
 
     // get form input settings from schema
     const { attributes={}, fields=[] } = schema || {};
@@ -87,14 +93,15 @@ const Form = ({
 
     const isValid = () => {
         const hasData = Object.keys(data).length > 0;
-        const validationErrors = Object.keys(validators)
-            .filter(key => {
-                const err = validators[key].check(data[key] || null);
-                setErrors(errors => ({
-                    ...errors, [key]: err
-                }));
-            });
-        return hasData && validationErrors.length === 0;
+        let valid = true;
+        for (const key in validators) {
+            const err = validators[key].check(data[key] || null);
+            valid = err.length > 0 ? false : valid;
+            setErrors(errors => ({
+                ...errors, [key]: err,
+            }));
+        }
+        return hasData && valid;
     }
 
     /**
@@ -109,10 +116,16 @@ const Form = ({
 
         // check that form is complete and valid
         if (!isValid()) {
-            api.setMessage(
-                { msg: 'Form is incomplete or invalid.', type: 'error' }
+            setMessage({
+                    msg: 'Data was not submitted: Form is incomplete or invalid.',
+                    type: 'error'
+                }
             );
+            return;
         }
+
+        // reset validation message
+        setMessage({});
 
         // attempt form submission
         try {
@@ -154,7 +167,7 @@ const Form = ({
                 disabled={isDisabled}
                 validators={validators}
             />
-            <Submit model={model} label={submit} />
+            <Submit model={model} label={submit} message={message} />
         </form>
         );
 }

@@ -1276,6 +1276,18 @@ Messages
     background-color: #4E4372 !important;
     color: #FFFFFF !important;
 }
+.dialog .loading {
+    position: absolute;
+    width: fit-content;
+    height: fit-content;
+    left: 25%;
+    right: 25%;
+    top: 25%;
+    bottom: 25%;
+    margin: auto;
+    border-radius: 20px;
+    background: #FFFFFF;
+}
 
 /*
 Progress Bar

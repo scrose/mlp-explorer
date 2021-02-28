@@ -31,12 +31,12 @@ const MenuEditor = () => {
     // menu display toggle
     const [toggle, setToggle] = React.useState(false);
 
-
     // visibility settings for menu & menu items
-    const menuExclude = ['dashboard', 'login', 'register']
-    const showExclude = ['dashboard', 'list', 'register', 'add'];
+    const menuExclude = ['dashboard', 'login', 'register', 'notFound'];
+    const showExclude = ['dashboard', 'list', 'register'];
     const editExclude = ['dashboard', 'list', 'register', 'add'];
     const deleteExclude = ['dashboard', 'list', 'register', 'add'];
+    const exportExclude = ['dashboard', 'add'];
 
     function onClick(e, model, view, id) {
         e.preventDefault();
@@ -53,17 +53,17 @@ const MenuEditor = () => {
                     <li key={'show'}>
                         <Button
                             label={'View'}
-                            title={`Edit this ${api.root.type} item.`}
+                            title={`View this ${getModelLabel(api.root.type)} item.`}
                             icon={'info'}
                             onClick={e =>
                                 onClick(e, api.root.type, 'show', api.root.id)
                             } />
-                    </li>: ''
+                    </li> : ''
                 }
                 {api.root && !editExclude.includes(api.view) ?
                     <li key={'edit'}>
                         <button
-                            title={`Edit this ${api.root.type} item.`}
+                            title={`Edit this ${getModelLabel(api.root.type)} item.`}
                             onClick={e =>
                                 onClick(e, api.root.type, 'edit', api.root.id)
                             }
@@ -87,6 +87,18 @@ const MenuEditor = () => {
                             label={'Delete'}
                             callback={() => {router.remove(api.root)}}
                         />
+                    </li> : ''
+                }
+                {api.root && !exportExclude.includes(api.view) ?
+                    <li key={'export'}>
+                        <button
+                            title={`Export this ${api.root.type} item.`}
+                            onClick={e =>
+                                onClick(e, api.root.type, 'export', api.root.id)
+                            }
+                        >
+                            <Icon type={'export'} /> <span>Export</span>
+                        </button>
                     </li> : ''
                 }
                 { dependents.length > 0 ?
@@ -122,20 +134,36 @@ const MenuEditor = () => {
                                                     </button>
                                                 </li>
                                                 {
-                                                depNode === 'historic_captures' ?
-                                                <li key={'upload'}>
-                                                    <button
-                                                        key={depNode}
-                                                        title={`Upload ${label} files.`}
-                                                        name={'upload'}
-                                                        onClick={e =>
-                                                            onClick(e, 'historic_images', 'upload', api.root.id)
-                                                        }
-                                                    >
-                                                        <Icon type={'upload'} />&#160;&#160;Bulk Upload Capture Images
-                                                    </button>
-                                                </li>
-                                                : ''
+                                                    depNode === 'historic_captures' ?
+                                                        <li key={'upload'}>
+                                                            <button
+                                                                key={depNode}
+                                                                title={`Batch Upload ${label} capture images.`}
+                                                                name={'upload'}
+                                                                onClick={e =>
+                                                                    onClick(e, 'historic_captures', 'import', api.root.id)
+                                                                }
+                                                            >
+                                                                <Icon type={'upload'} />&#160;&#160;Batch Upload Capture Images
+                                                            </button>
+                                                        </li>
+                                                        : ''
+                                                }
+                                                {
+                                                    depNode === 'modern_captures' ?
+                                                        <li key={'upload'}>
+                                                            <button
+                                                                key={depNode}
+                                                                title={`Batch Upload ${label} capture images.`}
+                                                                name={'upload'}
+                                                                onClick={e =>
+                                                                    onClick(e, 'modern_captures', 'import', api.root.id)
+                                                                }
+                                                            >
+                                                                <Icon type={'upload'} />&#160;&#160;Batch Upload Capture Images
+                                                            </button>
+                                                        </li>
+                                                        : ''
                                                 }
                                             </ul>
                                         )

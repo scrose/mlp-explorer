@@ -15,7 +15,7 @@ import Loading from '../common/loading';
 import ServerError from '../error/server.error';
 import { useData } from '../../_providers/data.provider.client';
 import { getRenderType } from '../../_services/schema.services.client';
-import Uploader from './uploader.view';
+import Uploader from './importer.view';
 
 /**
  * Build requested data view from API data.

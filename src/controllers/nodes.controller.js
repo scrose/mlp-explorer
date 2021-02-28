@@ -31,15 +31,17 @@ export const init = async (req, res, next) => {};
 
 export const show = async (req, res, next) => {
     try {
+
         const { id='' } = req.params || {};
         const node = await nserve.get(sanitize(id, 'integer'));
+
         res.status(200).json(
             prepare({
                 view: 'show',
                 data: node
             }));
+
     } catch (err) {
-        console.error(err)
         return next(err);
     }
 };
@@ -65,8 +67,8 @@ export const list = async (req, res, next) => {
                 view: 'list',
                 data: {projects: projects, surveyors: surveyors},
             }));
+
     } catch (err) {
-        console.error(err)
         return next(err);
     }
 };

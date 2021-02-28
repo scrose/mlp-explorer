@@ -44,10 +44,12 @@ function AuthProvider(props) {
             .then(res => {
                 console.log(res)
                 const { user=null } = res || {};
+
                 // create user session on success
                 if (user) {
                     setData(user);
                 }
+
                 return res
             });
     }
@@ -80,6 +82,7 @@ function AuthProvider(props) {
         // request new token
         router.post('/refresh')
             .then(res => {
+                // console.log('Refresh:', res)
                 // reset user session data
                 const { user = null } = res || {};
                 // update states with response data

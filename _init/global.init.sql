@@ -80,9 +80,8 @@ $$
             'register',
             'download',
             'upload',
-            'bulk',
-            'export',
-            'import'
+            'import',
+            'export'
             );
     EXCEPTION
         WHEN duplicate_object THEN null;

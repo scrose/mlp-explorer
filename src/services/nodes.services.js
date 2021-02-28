@@ -22,13 +22,14 @@ import * as fs from './files.services.js';
  *
  * @public
  * @param {integer} id
+ * @param client
  * @return {Promise} result
  */
 
-export const select = async (id) => {
+export const select = async (id, client=pool) => {
     if (!id) return null;
     let { sql, data } = queries.nodes.select(id);
-    let node = await pool.query(sql, data);
+    let node = await client.query(sql, data);
     return node.rows[0];
 };
 
@@ -37,12 +38,13 @@ export const select = async (id) => {
  *
  * @public
  * @param {Object} node
+ * @param client
  * @return {Promise} result
  */
 
-export const selectByNode = async (node) => {
+export const selectByNode = async (node, client=pool) => {
     let { sql, data } = queries.defaults.selectByNode(node);
-    return pool.query(sql, data)
+    return client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows')
             && res.rows.length > 0 ? res.rows[0] : null;
@@ -117,13 +119,13 @@ export const getAll = async function(model) {
 
         // get all nodes for model
         let { sql, data } = queries.nodes.selectByModel(model);
-        const { rows=[] } = await pool.query(sql, data) || {}
+        const { rows=[] } = await client.query(sql, data) || {}
 
         // append model data and dependents (child nodes)
         let nodes = await Promise.all(rows.map(async (node) => {
-            node.data = await selectByNode(node);
-            node.files = await fs.selectByOwner(node.id) || [];
-            node.hasDependents = hasDependents(node.id) || false;
+            node.data = await selectByNode(node, client);
+            node.files = await fs.selectByOwner(node.id, client) || [];
+            node.hasDependents = hasDependents(node.id, client) || false;
             return node;
         }));
 
@@ -137,7 +139,8 @@ export const getAll = async function(model) {
         await client.query('ROLLBACK');
         throw err;
     } finally {
-        client.release();
+        console.log('Client released', pool.id)
+        client.release(true);
     }
 };
 
@@ -148,23 +151,24 @@ export const getAll = async function(model) {
  *
  * @public
  * @param {integer} id
+ * @param client
  * @return {Promise} result
  */
 
-export const selectByOwner = async (id) => {
+export const selectByOwner = async (id, client=pool) => {
 
     // get dependent nodes for owner
     let { sql, data } = queries.nodes.selectByOwner(id);
-    let nodes = await pool.query(sql, data)
+    let nodes = await client.query(sql, data)
         .then(res => {
             return res.rows
         });
 
     // append full data for each dependent node
     nodes = await Promise.all(nodes.map(async (node) => {
-        node.data = await selectByNode(node);
-        node.files = await fs.selectByOwner(node.id) || [];
-        node.hasDependents = await hasDependents(node.id) || false;
+        node.data = await selectByNode(node, client);
+        node.files = await fs.selectByOwner(node.id, client) || [];
+        node.hasDependents = await hasDependents(node.id, client) || false;
         return node;
     }));
 
@@ -178,14 +182,15 @@ export const selectByOwner = async (id) => {
  *
  * @public
  * @param {integer} id
+ * @param client
  * @return {boolean} result
  */
 
-export const hasDependents = async (id) => {
+export const hasDependents = async (id, client=pool) => {
 
     // get dependent nodes for owner
     let { sql, data } = queries.nodes.selectByOwner(id);
-    let nodes = await pool.query(sql, data)
+    let nodes = await client.query(sql, data)
         .then(res => {
             return res.rows
         });
@@ -216,9 +221,9 @@ export const getModelDependents = async (item) => {
 
         // append second-level full data for each sub-dependent node
         dependents = await Promise.all(dependents.map(async (node) => {
-            node.data = await selectByNode(node);
-            node.files = await fs.selectByOwner(node.id) || [];
-            node.dependents = await selectByOwner(node.id);
+            node.data = await selectByNode(node, client);
+            node.files = await fs.selectByOwner(node.id, client) || [];
+            node.dependents = await selectByOwner(node.id, client);
             return node;
         }));
 
@@ -248,7 +253,13 @@ export const getPath = async (node) => {
 
     if (!node) return null;
 
+    // NOTE: client undefined if connection fails.
+    const client = await pool.connect();
+
     try {
+        // start transaction
+        await client.query('BEGIN');
+
         let { owner_id = null } = node || {};
         let id = node.id;
         // const leafNode = {id: node.id, type: node.type, owner_id: owner_id};
@@ -257,7 +268,7 @@ export const getPath = async (node) => {
         let n = 1; // branch counter
 
         // get current item data (if item exists)
-        node.data = await selectByNode(node) || {};
+        node.data = await selectByNode(node, client) || {};
 
         // set leaf node of tree
         nodePath.set(0, node);
@@ -267,10 +278,10 @@ export const getPath = async (node) => {
             // get owner node
             if (owner_id) {
 
-                const parentNode = await select(owner_id) || {};
+                const parentNode = await select(owner_id, client) || {};
 
                 // append node data
-                parentNode.data = await selectByNode(parentNode) || {};
+                parentNode.data = await selectByNode(parentNode, client) || {};
                 // set node path item
                 nodePath.set(n, parentNode);
 
@@ -285,6 +296,9 @@ export const getPath = async (node) => {
         return mapToObj(nodePath);
 
     } catch (err) {
+        await client.query('ROLLBACK');
         throw err;
+    } finally {
+        client.release();
     }
 };

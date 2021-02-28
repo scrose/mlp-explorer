@@ -18,7 +18,6 @@ import Button from './button';
 
 const Messenger = () => {
 
-    const [data, setData] = React.useState(getSessionMsg());
     const api = useData();
 
     /**
@@ -29,25 +28,11 @@ const Messenger = () => {
 
     const handleClose = () => {
         popSessionMsg();
-        setData(null);
+        api.setMessage(null);
     }
 
-    /**
-     * Load API data.
-     *
-     * @public
-     */
-
-    // non-static views: fetch API data and set view data in state
-    React.useEffect(() => {
-        if (!data && api.message || getSessionMsg()) {
-            setData(api.message || popSessionMsg() || {});
-        }
-        return () => {};
-    }, [api]);
-
-    // destructure message data
-    const { msg='', type='' } = data || {};
+    // destructure message data from API provider
+    const { msg='', type='' } = api.message || {};
 
     return (
         msg && type

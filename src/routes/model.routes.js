@@ -31,13 +31,6 @@ function ModelRoutes(modelType) {
 
     // add controller routes
     this.routes = {
-        list: {
-            path: path.join('/', this.model),
-            get: this.controller.list,
-            put: null,
-            post: null,
-            delete: null,
-        },
         show: {
             path: path.join('/', this.model, 'show', ':' + this.key),
             get: this.controller.show,
@@ -69,6 +62,17 @@ function ModelRoutes(modelType) {
             delete: null,
         }
     };
+
+    // include batch endpoint for image captures
+    if (this.model === 'historic_captures' || this.model === 'modern_captures') {
+        this.routes.import = {
+            path: path.join('/', this.model, 'import', ':owner_id'),
+            get: this.controller.browse,
+            put: null,
+            post: this.controller.import,
+            delete: null,
+        }
+    }
 }
 
 /**

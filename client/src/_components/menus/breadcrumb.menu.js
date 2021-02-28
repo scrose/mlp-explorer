@@ -9,7 +9,7 @@ import React from 'react';
 import Icon from '../common/icon';
 import { getNodeURI, filterPath, getRoot } from '../../_utils/paths.utils.client';
 import { capitalize } from '../../_utils/data.utils.client';
-import { getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
+import { getNodeLabel } from '../../_services/schema.services.client';
 import { useData } from '../../_providers/data.provider.client';
 
 /**
@@ -21,7 +21,7 @@ import { useData } from '../../_providers/data.provider.client';
 const BreadcrumbMenu = () => {
 
     const api = useData();
-    const { model='', view='', path=[] } = api || {};
+    const { path=[] } = api || {};
 
     /**
      * Build 'breadcrumb' navigation menu from current
@@ -56,9 +56,7 @@ const BreadcrumbMenu = () => {
                 const label = capitalize(slug.split('_').join(' '));
 
                 // render last item without link
-                return i !== breadcrumbs.length - 1
-                    ? <a key={`bnav_${i}`} href={`${getRoot()}/${uri}`}>{label}</a>
-                    : <span key={`bnav_${i}`}>{label}</span>
+                return <span key={`bnav_${i}`}>{label}</span>
             });
     };
 
@@ -104,10 +102,6 @@ const BreadcrumbMenu = () => {
                                     <li key={`item_${index}`}>{ item }</li>
                                 )
                             })
-                    }
-                    {
-                        // include menu text for new item
-                        view === 'add' ? <li><span>{`New ${getModelLabel(model)}`}</span></li> : ''
                     }
                     {
                         // include menu text for new item

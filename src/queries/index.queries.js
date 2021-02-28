@@ -17,7 +17,6 @@ import * as defaults from './defaults.queries.js';
 import * as nodes from './nodes.queries.js';
 import * as files from './files.queries.js';
 import * as users from './users.queries.js';
-import * as sessions from './sessions.queries.js';
 
 
 /**
@@ -30,6 +29,5 @@ export default {
     defaults: defaults,
     nodes: nodes,
     files: files,
-    users: users,
-    sessions: sessions
+    users: users
 };

@@ -61,15 +61,17 @@ function DataProvider(props) {
         if (!router.staticView) {
             // set view to loading
             setAPIData({});
+            setView('');
+            setModel('');
 
             // call API
             router.get(router.route)
                 .then(res => {
-                    // destructure API data for settings
-                    const { data=null, view='', model={}, path={} } = res || {};
-                    const { name='', attributes={} } = model || {};
 
-                    console.log(attributes)
+                    console.log('>>>', res)
+                    // destructure API data for settings
+                    const { data=null, view='', model={}, path={}, message={} } = res || {};
+                    const { name='', attributes={} } = model || {};
 
                     // update states with response data
                     if (_isMounted.current) {
@@ -78,6 +80,7 @@ function DataProvider(props) {
                         setModel(name);
                         setSchema(genSchema(view, name, attributes));
                         setPath(path);
+                        setMessage(message);
                     }
                 })
                 .catch(err => console.error(err));

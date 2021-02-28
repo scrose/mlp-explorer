@@ -161,8 +161,8 @@ export const getLabelKeys = (model) => {
 
 export const getViewLabel = (view) => {
     if (schema.views.hasOwnProperty(view)) {
-        const { legend = capitalize(view) } = schema.views[view] || {};
-        return legend;
+        const { label = capitalize(view) } = schema.views[view] || {};
+        return label;
     }
     return '';
 }

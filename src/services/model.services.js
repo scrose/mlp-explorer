@@ -163,6 +163,26 @@ export default function ModelServices(model) {
     };
 
     /**
+     * Import batched data.
+     *
+     * @public
+     * @param {String} id
+     * @return {Promise} result
+     */
+
+    this.import = async function(req, res, next) {
+        let stmts = {
+            node: item.node ? nserve.remove : null,
+            file: item.file ? fserve.remove : null,
+            model: this.queries.remove,
+            attached: []
+        };
+
+        // execute transaction
+        return await this.transact(item, stmts);
+    };
+
+    /**
      * Perform transaction query.
      *
      * @param {Object} item

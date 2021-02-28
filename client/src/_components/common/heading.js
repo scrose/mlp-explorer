@@ -7,7 +7,6 @@
 
 import React from 'react';
 import { getModelLabel, getNodeLabel, getStaticLabel, getViewLabel } from '../../_services/schema.services.client';
-import { capitalize } from '../../_utils/data.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import { useData } from '../../_providers/data.provider.client';
 
@@ -17,37 +16,36 @@ import { useData } from '../../_providers/data.provider.client';
  * @public
  */
 
-const Heading = ({prefix=''}) => {
+const Heading = () => {
 
     const router = useRouter();
     const api = useData();
 
-    // check that a root node exists in current path
-    const isNode = Object.keys(api.root).length > 0;
+    // get possible heading labels
+    const staticLabel = getStaticLabel(router.route);
+    const nodeLabel = getNodeLabel(api.root);
+    const modelLabel = getModelLabel(api.model);
 
-    // heading text/prefix attribute overrides computed heading
-    const heading = isNode
-        ? getModelLabel(api.model)
-        : getStaticLabel(router.route)
-            ? getStaticLabel(router.route)
-            : getNodeLabel(api.root)
+    // generate heading based on current model/view
+    const genHeading = () => {
 
-    // get prefix to heading from model label (or set in parameters)
-    prefix = isNode ? getModelLabel(api.model) : prefix;
-
-    return <h3>
-        {
-            api.view && api.view !== 'show'
-                ? getViewLabel(api.view) + ': ' || capitalize(api.view) + ': '
-                : ''
+        // return empty string if node and model not defined
+        if (!modelLabel || !nodeLabel) {
+            return '';
         }
-        {
-            prefix && prefix !== heading
-                ? capitalize(prefix) + ': '
-                : ''
+
+        const headings = {
+            add: `${getViewLabel('add')}: ${nodeLabel}`,
+            show: `${modelLabel}: ${nodeLabel}`,
+            import: `${getViewLabel('import')}: ${getModelLabel(api.model, 'label')}`,
+            default: `${getViewLabel(api.view)}: ${modelLabel}`
         }
-        {heading}
-    </h3>
+        return headings.hasOwnProperty(api.view)
+            ? headings[api.view]
+            : headings.default
+    }
+
+    return <h3>{ staticLabel ? staticLabel : genHeading()}</h3>
 }
 
 export default Heading;

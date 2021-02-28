@@ -21,6 +21,18 @@ export const errors = {
         status: 500,
         type: 'error'
     },
+    invalidRequest: {
+        hint: 'The request data is malformed.',
+        msg: 'Request is invalid.',
+        status: 500,
+        type: 'error'
+    },
+    noFiles: {
+        hint: 'No files were sent in request data.',
+        msg: 'No files found in request data.',
+        status: 500,
+        type: 'error'
+    },
     invalidData: {
         hint: 'Invalid input data (generic).',
         msg: 'Invalid data. Please check the data fields for errors.',
