@@ -7,6 +7,7 @@
 
 import React from 'react'
 import Input from './input';
+import Button from './button';
 
 /**
  * Build form fieldset element with inputs. 'Fields' are defined
@@ -20,12 +21,16 @@ import Input from './input';
 
 const Fieldset = ({
                       model,
+                      index,
+                      mode,
                       legend,
                       fields,
                       errors,
                       setErrors,
                       data,
                       setData,
+                      options,
+                      remove,
                       validators,
                       disabled
 }) => {
@@ -40,7 +45,8 @@ const Fieldset = ({
      */
 
     const handleChange = e => {
-        const { name='', value='', files=[] } = e.target;
+        const {target={}} = e || {};
+        const { name='', value='', files=[] } = target;
 
         e.persist(); // not used in ReactJS v.17
 
@@ -56,19 +62,33 @@ const Fieldset = ({
 
     // render fieldset component
     return (
+        <>
         <fieldset
+            className={legend ? '' : 'hidden'}
             key={`fset_${model}`}
             name={`fset_${model}`}
             disabled={disabled}
         >
-            <legend>{legend}</legend>
+            {
+                legend ? <legend>{legend}</legend> : ''
+            }
+            {
+                mode==='copy'
+                    ? <Button
+                        key={`fset_${model}_remove`}
+                        onClick={remove}
+                        label={`Remove ${legend}`}
+                        icon={'minus'} />
+                    : ''
+            }
             {
                 // render form input fields
                 Object.keys(fields || {}).map(key => {
 
                     // get form schema for requested model
-                    const { label='', render='', options=[] } = fields[key];
+                    const { id='', label='', render='', name='' } = fields[key];
                     const _value = data.hasOwnProperty(key) ? data[key] : '';
+                    const _options = options.hasOwnProperty(id) ? options[id] : [];
                     const _error = errors.hasOwnProperty(key) ? errors[key] : '';
                     const _readonly = readonly.hasOwnProperty(key) ? readonly[key] : false;
 
@@ -76,11 +96,11 @@ const Fieldset = ({
                         <Input
                             key={`key_${key}`}
                             type={render}
-                            name={key}
+                            name={name}
                             label={label}
                             value={_value}
                             error={_error}
-                            options={options}
+                            options={_options}
                             readonly={_readonly}
                             onchange={handleChange}
                         />
@@ -88,6 +108,7 @@ const Fieldset = ({
                 })
             }
         </fieldset>
+    </>
     )
 }
 

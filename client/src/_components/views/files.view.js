@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Common.View.File
+ * MLP.Client.Components.Common.View.Files
  * File: files.view.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
@@ -29,7 +29,6 @@ const groupFiles = (files) => {
     files = (files || [])
         // // sort alphabetically
         .sort(function(a, b){
-            // TODO sort station numbers in strings
             return a.file_type.localeCompare(b.file_type);
         });
     return groupBy(files, 'file_type');
@@ -53,18 +52,21 @@ export const FilesList = ({files}) => {
                 {
                     Object.keys(files).map(key => {
                         return (
-                            <div key={key} >
-                                <h5>{getModelLabel(key, 'label')}</h5>
+                            <div key={key} className={'gallery h-menu'}>
+                                <ul>
                                 {
                                     files[key]
                                         .map((file) =>
-                                            <File
-                                                key={file.id}
-                                                file={file}
-                                                scale={'thumb'}
-                                            />
+                                            <li key={file.id} className={'col'}>
+                                                <File
+                                                    key={file.id}
+                                                    file={file}
+                                                    scale={'thumb'}
+                                                />
+                                            </li>
                                         )
                                 }
+                                </ul>
                             </div>
                         )
                     })

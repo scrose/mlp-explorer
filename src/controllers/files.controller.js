@@ -15,6 +15,7 @@ import ModelServices from '../services/model.services.js';
 import * as fserve from '../services/files.services.js';
 import * as nserve from '../services/nodes.services.js';
 import { prepare } from '../lib/api.utils.js';
+import fs from "fs";
 
 /**
  * Export controller constructor.
@@ -101,6 +102,31 @@ export default function FilesController(modelType) {
                 res.status(200).json(res.locals);
             })
             .catch((err) => next(err));
+    };
+
+    /**
+     * Download file
+     *
+     * @param req
+     * @param res
+     * @param next
+     * @src public
+     */
+
+    this.download = async (req, res, next) => {
+
+
+
+        // const filename = req.url;
+        // let file = fs.createWriteStream(filename);
+        // res.pipe(file);
+        // file.on('finish', function() {
+        //     file.close(cb);  // close() is async, call cb after close completes.
+        // });
+        // }).on('error', function(err) { // Handle errors
+        //     fs.unlink(dest); // Delete the file async. (But we don't check the result)
+        //     if (cb) cb(err.message);
+        // });
     };
 
     /**

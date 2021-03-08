@@ -9,14 +9,6 @@ import React from 'react';
 import { getNodeURI, reroute } from '../../_utils/paths.utils.client';
 import Icon from '../common/icon';
 
-
-/**
- * Breadcrumb navigation menu component.
- *
- * @public
- */
-
-
 /**
  * Viewer menu component.
  *

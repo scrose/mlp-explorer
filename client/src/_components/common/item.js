@@ -21,44 +21,53 @@ import { sanitize } from '../../_utils/data.utils.client';
 
 const Item = ({data, view, model}) => {
 
+    // generate main schema
+    const { fieldsets=[] }  = genSchema(view, model);
+
     // prepare data for item table
     // - sanitize data by render type
-    const filterData = () => {
-
-        // generate main schema
-        const { fields={} } = genSchema(view, model)
-
-        // sanitize top-level data
-        return Object.keys(fields)
-            .filter(key => fields[key].render !== 'hidden')
+    const filterData = (fieldset) => {
+        return Object.keys(fieldset.fields)
             .map(key => {
-                const { render='' } = fields[key] || {};
+                const { render = '' } = fieldset.fields[key] || {};
                 const field = {};
                 field.value = sanitize(data[key], render);
-                field.label = fields[key].label;
+                field.label = fieldset.fields[key].label;
                 return field;
             });
     };
 
     return <div>
-        <table className={'item'}>
-            <tbody>
-            {
-                filterData().map((field, index) => {
-                    return (
-                        <tr key={`tr_${ index }`}>
-                            <th key={`h_${ index }`}>
-                                {field.label}
-                            </th>
-                            <td key={`d_${ index }`}>
-                                {field.value}
-                            </td>
-                        </tr>
-                    )
+        {
+            fieldsets
+                .filter(fieldset => fieldset.hasOwnProperty('legend') && fieldset.legend)
+                .map((fieldset, index) => {
+                    console.log(fieldset)
+                    return <table key={`fsdata_${index}`} className={'item'}>
+                        <thead>
+                            <tr>
+                                <th colSpan={'2'}>{fieldset.legend}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {
+                            filterData(fieldset).map((field, index) => {
+                                return (
+                                    <tr key={`tr_${index}`}>
+                                        <th key={`h_${index}`}>
+                                            {field.label}
+                                        </th>
+                                        <td key={`d_${index}`}>
+                                            {field.value}
+                                        </td>
+                                    </tr>
+                                );
+                            })
+                        }
+                        </tbody>
+                    </table>
                 })
-            }
-            </tbody>
-        </table>
+        }
     </div>
 }
 

@@ -43,6 +43,7 @@ const LoginUsers = () => {
                     model={'users'}
                     schema={schema}
                     callback={auth.login}
+                    route={'/login'}
                 />
           </div>
 }

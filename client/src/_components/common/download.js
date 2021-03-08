@@ -6,37 +6,41 @@
  */
 
 import React from 'react';
-import { getNodeURI } from '../../_utils/paths.utils.client';
+import { saveAs } from 'file-saver';
 import { useRouter } from '../../_providers/router.provider.client';
-import { capitalize } from '../../_utils/data.utils.client';
 import Button from './button';
 
 /**
- * Defines image component.
+ * Defines download button.
  *
  * @public
  * @return {JSX.Element}
  */
 
-const Download = ({ name='', type='', id='', label='' }) => {
+const Download = ({ type='', format='', label='', uri='' }) => {
 
+    // download link
     const router = useRouter();
 
+    // create download filename
+    const filename = `${type}.${format}`;
+    const id = `${type}_${format}`;
+
     // Handler for viewing image on click.
-    const onClick = () => {
-        console.log(getNodeURI(type, 'download', id))
-        //router.update(getNodeURI(type, 'download', id));
+    const clickHandler = async () => {
+        const blob = await router.download(uri, format);
+        // save data stream to file
+        saveAs(blob, filename);
     }
 
     // render download button
     return (
-            <Button
-                type={type}
-                name={label}
-                icon={type}
-                label={label}
-                onClick={onClick}
-            />
+        <Button
+            name={id}
+            icon={type}
+            label={label}
+            onClick={clickHandler}
+        />
     )
 }
 

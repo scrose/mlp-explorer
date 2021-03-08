@@ -17,7 +17,8 @@ import fs from 'fs';
 import sharp from 'sharp';
 import path from 'path';
 import pool from './db.services.js';
-import { Transform, PassThrough, Writable, Duplex } from 'stream';
+import { Transform, PassThrough, Writable, Duplex, Readable } from 'stream';
+import xmpReader from 'xmp-reader';
 import { imageSizes } from '../../app.config.js';
 import { genUUID } from '../lib/data.utils.js';
 import queries from '../queries/index.queries.js';
@@ -29,23 +30,33 @@ import os from 'os';
  *
  * @public
  * @param req
+ * @param owner_id
+ * @param owner_type
  * @return busboy uploader
  */
 
-export const upload = (req) => {
+export const upload = (req, owner_id, owner_type) => {
 
     // pass request headers to Busboy
     // - module for parsing incoming HTML form data
     const busboy = new Busboy({ headers: req.headers });
 
     return new Promise((resolve, reject) => {
+        // allow for multiple files
         const filePromises = [];
-        let metadata = {};
+        let metadata = {
+            files: {},
+            data: {},
+            owner: {
+                id: owner_id,
+                type: owner_type
+            }
+        };
 
         req.on('close', cleanup);
 
         busboy
-            .on('field', onField.bind(null, metadata))
+            .on('field', onField.bind(null, metadata.data))
             .on('file', onFile.bind(null, filePromises, metadata))
             .on('error', onError)
             .on('end', onEnd)
@@ -84,11 +95,10 @@ export const upload = (req) => {
             if (err) {
                 return reject(err);
             }
-            console.log('End!!')
             Promise.all(filePromises)
-                .then((file) => {
+                .then(() => {
                     cleanup();
-                    resolve({ metadata, file });
+                    resolve(metadata);
                 })
                 .catch(reject);
         }
@@ -131,15 +141,25 @@ const onFile = (filePromises, metadata, fieldname, file, filename, encoding, mim
     const saveTo = path.join(os.tmpdir(), path.basename(tmpName));
 
     // initialize file metadata
-    metadata.file = {
-            mimetype: mimetype,
-            filename: filename,
-            file_size: 0,
-            fs_path: null
-        };
-    metadata.encoding = encoding;
-    metadata.outpath = saveTo;
+    let fileData = {};
 
+    // Parse any stringified arrays
+    const [file_type, index] = fieldname.indexOf('[') > -1
+        ? extractFieldData(fieldname)
+        : [fieldname, null];
+
+    fileData.file = {
+        file_type: file_type,
+        mimetype: mimetype,
+        filename: filename,
+        file_size: 0,
+        fs_path: null,
+        filename_tmp: saveTo
+    };
+    fileData.encoding = encoding;
+    fileData.tmp = saveTo;
+
+    // create writable stream for temp file
     const writeStream = fs.createWriteStream(saveTo);
 
     const filePromise = new Promise((resolve, reject) => writeStream
@@ -149,14 +169,15 @@ const onFile = (filePromises, metadata, fieldname, file, filename, encoding, mim
             .on('finish', () => {
                 // get file size
                 const stats = fs.statSync(saveTo)
-                metadata.file.file_size = stats.size;
+                fileData.file.file_size = stats.size;
 
-                // return readable stream of file
-                const readStream = fs.createReadStream(saveTo);
-                readStream.filename = filename;
-                readStream.transferEncoding = readStream.encoding = encoding;
-                readStream.mimeType = readStream.mime = mimetype;
-                resolve(readStream);
+                // attach to metadata
+                if (index)
+                    metadata.files[index] = fileData;
+                else
+                    metadata.files[0] = fileData;
+
+                resolve(metadata);
             })
         )
         .on('error', (err) => {
@@ -181,118 +202,183 @@ const onFile = (filePromises, metadata, fieldname, file, filename, encoding, mim
  */
 
 function onField(fields, name, val, fieldnameTruncated, valTruncated) {
-    if (fields.hasOwnProperty(name)) {
-        if (Array.isArray(fields[name])) {
-            fields[name].push(val);
-        } else {
-            fields[name] = [fields[name], val];
+
+    if (name.indexOf('[') > -1) {
+
+        // Parse any stringified arrays
+        const [key, index] = extractFieldData(name);
+
+        if (fields.hasOwnProperty(key)) {
+            fields[key][index] = val;
         }
-    } else {
+        else {
+            fields[key] = {[index]: val};
+        }
+    }
+    else {
         fields[name] = val;
     }
+
 }
 
 /**
  * Callback process for file uploads.
  *
  * @src public
- * @param fileType
- * @param file
+ * @param index
  * @param metadata
  */
 
-export const processFile = function (fileType, file, metadata) {
+export const saveFile = function (index, metadata) {
+
+        // get file data object
+        let fileData = metadata.files[index];
+        fileData.data = {};
 
         // file promises
         let filePromises = [];
 
-        // Define output paths for original and scaled images
+        // Define output paths for original (raw) and scaled images
         const outDir = process.env.UPLOAD_DIR;
 
         // generate unique filename ID token
         const imgToken = genUUID();
 
         // initialize image versions
-        metadata.versions = {
-            raw: {
-                path: path.join(outDir, 'raw', metadata.file.filename),
-                size: {width: null},
-            },
-            thumb: {
-                path: path.join(outDir, 'versions', `thumb_${imgToken}.jpg`),
-                size: imageSizes.thumb,
-            },
-            medium: {
-                path: path.join(outDir, 'versions', `medium_${imgToken}.jpg`),
-                size: imageSizes.medium,
-            },
-        };
+        const createVersions = () => {
+            return {
+                raw: {
+                    path: path.join(outDir, 'raw', fileData.file.filename),
+                    size: { width: null },
+                },
+                thumb: {
+                    path: path.join(outDir, 'versions', `thumb_${imgToken}.jpg`),
+                    size: imageSizes.thumb,
+                },
+                medium: {
+                    path: path.join(outDir, 'versions', `medium_${imgToken}.jpg`),
+                    size: imageSizes.medium,
+                },
+            };
+        }
 
-        // file handlers indexed by model type
+        // update metadata
+        fileData.data.secure_token = imgToken;
+        // metadata.data.fn_photo_reference = path.parse(file.filename).name;
+
+        // process capture images
+        const captureHandler = () => {
+
+            // create image versions
+            metadata.versions = createVersions();
+
+            // update file metadata
+            fileData.file.owner_type = metadata.owner.type;
+            fileData.file.owner_id = metadata.owner.id;
+            fileData.file.fs_path = metadata.versions.raw.path;
+
+            // get image state from model data (if exists)
+            // then delete it from the model properties
+            if (metadata.data.hasOwnProperty('image_state')) {
+                fileData.data.image_state = metadata.data.image_state[index];
+                delete metadata.data.image_state;
+            }
+
+            // create scaled versions of image
+            filePromises.push(
+                copyImage(fileData.tmp, metadata.versions.raw),
+                getImageInfo(fileData.tmp, fileData.data),
+                copyImage(fileData.tmp, metadata.versions.medium, 'jpg'),
+                copyImage(fileData.tmp, metadata.versions.thumb, 'jpg'),
+            );
+        }
+
+        // file handlers router indexed by model type
         const fileHandlers = {
-            historic_images: () => {
-                filePromises.push(
-                    copyImage(metadata.outpath, metadata.versions.raw),
-                    getImageInfo(metadata),
-                    copyImage(metadata.outpath, metadata.versions.medium),
-                    copyImage(metadata.outpath, metadata.versions.thumb),
-                );
-            },
-            modern_images: () => {
-                filePromises.push(
-                    copyImage(metadata.outpath, metadata.versions.raw),
-                    getImageInfo(metadata),
-                    copyImage(metadata.outpath, metadata.versions.medium),
-                    copyImage(metadata.outpath, metadata.versions.thumb),
-                );
-            },
+            historic_images: captureHandler,
+            modern_images: captureHandler,
             supplemental_images: ()=> {
                 filePromises.push(
-                    copyImage(metadata.outpath, metadata.versions.raw),
-                    getImageInfo(metadata),
-                    copyImage(metadata.outpath, metadata.versions.medium),
-                    copyImage(metadata.outpath, metadata.versions.thumb),
+                    copyImage(fileData.tmp, metadata.versions.raw),
+                    getImageInfo(fileData.tmp, fileData.data),
+                    copyImage(fileData.tmp, metadata.versions.medium, 'jpg'),
+                    copyImage(fileData.tmp, metadata.versions.thumb, 'jpg'),
                 );
             },
             default: () => {
-                return insertMetadata(file, metadata);
+                return insertMetadata(metadata);
             }
         };
 
+        console.log('Type', index, metadata)
+
         // route database callback after file upload
-        fileHandlers.hasOwnProperty(fileType)
-            ? fileHandlers[fileType]()
+        fileHandlers.hasOwnProperty(fileData.file.file_type)
+            ? fileHandlers[fileData.file.file_type]()
             : fileHandlers.default();
 
         return Promise.all(filePromises);
 };
 
 /**
- * Upload image to server.
+ * Upload image to server. Applies file conversion if requested, otherwise
+ * skips conversion on raw files. Images are resized (if requested).
  *
  * @return {Object} output file data
  * @src public
  * @param inPath
  * @param output
+ * @param format
  */
 
-const copyImage = function (inPath, output) {
+const copyImage = function (inPath, output, format) {
 
-    // get sharp pipeline
-    const pipeline = sharp(inPath);
+    // handle conversion to requested formats
+    const handleFormats = {
+        tif: () => {
+            // get sharp pipeline + write stream for uploading image
+            const pipeline = sharp(inPath);
+            const writeStream = fs.createWriteStream(output.path);
+            pipeline
+                .resize(output.size.width)
+                .tif()
+                .pipe(writeStream);
+            return new Promise((resolve, reject) =>
+                writeStream
+                    .on('finish', resolve)
+                    .on('error', reject)
+            );
+        },
+        jpg: () => {
+            // get sharp pipeline + write stream for uploading image
+            const pipeline = sharp(inPath);
+            const writeStream = fs.createWriteStream(output.path);
+            pipeline
+                .resize(output.size.width)
+                .jpeg({
+                    quality: 100,
+                    force: true
+                })
+                .pipe(writeStream);
+            return new Promise((resolve, reject) =>
+                writeStream
+                    .on('finish', resolve)
+                    .on('error', reject)
+            );
+        },
+        default: () => {
+            // default handler streams temporary file to new destination
+            return fs.copyFile(inPath, output.path, (err)=>{
+                if (err) throw err;
+            });
+        }
+    }
 
-    // Create write stream for uploading image
-    const writeStream = fs.createWriteStream(output.path);
+    // handle requested format (default is raw image)
+    return handleFormats.hasOwnProperty(format)
+        ? handleFormats[format]()
+        : handleFormats.default();
 
-    // resize (if provided)
-    pipeline
-        .resize(output.size.width)
-        .pipe(writeStream);
-
-    return new Promise((resolve, reject) =>
-        writeStream
-            .on('finish', resolve)
-            .on('error', reject));
 }
 
 /**
@@ -300,23 +386,25 @@ const copyImage = function (inPath, output) {
  *
  * @return {Object} output file data
  * @src public
- * @param imgData
+ * @param imgPath
+ * @param file
+ * TODO: Improve exif extraction
  */
 
-const getImageInfo = function (imgData) {
-    const image = sharp(imgData.outpath);
+const getImageInfo = function (imgPath, file) {
+    const image = sharp(imgPath);
     return image
         .metadata()
         .then(function(info) {
-            imgData.image = {
-                format: info.format,
-                x_dim: info.width,
-                y_dim: info.height,
-                bit_depth: info.depth,
-                channels: info.channels,
-                density: info.density,
-                space: info.space
-            }
+            if (info.hasOwnProperty('xmp'))
+                console.log(info)
+            file.format = info.format;
+            file.x_dim = info.width;
+            file.y_dim = info.height;
+            file.bit_depth = info.depth;
+            file.channels = info.channels;
+            file.density = info.density;
+            file.space = info.space;
         })
         .catch(console.error);
 }
@@ -342,7 +430,7 @@ const insertMetadata = (metadata, bulkData) => {
         metadata.map(md => {
 
             // create model instance of owner
-            const item = new Model(md.model);
+            const item = new Model(md.data);
             item.setValue('image_state', image_state);
 
             // set owner and file metadata
@@ -359,44 +447,48 @@ const insertMetadata = (metadata, bulkData) => {
 }
 
 /**
- * Insert capture record into database
- * - called when files have completed upload to server
- * - bulkData: common metadata for all uploaded files
  *
- * @return {Object} output file data
- * @src public
- * @param metadata
+ * Extract a hierarchy array from a stringified formData single input.
+ *
+ *
+ * i.e. topLevel[sub] => [topLevel, sub]
+ *
+ * @param  {String} string: Stringify representation of a formData Object
+ * @return {Array}
+ *
  */
+const extractFieldData = (string) => {
+    const arr = string.split('[');
+    const first = arr.shift();
+    const res = arr.map( v => v.split(']')[0] );
+    res.unshift(first);
+    return res;
+};
 
-const insertCapture = (metadata) => {
-    try {
-        console.log('Capture:', metadata);
-        return
+/**
+ * Reconciles formatted data with already formatted data
+ *
+ * @param  {Object} obj extractedObject
+ * @param  {Object} target the field object
+ * @return {Object} reconciled fields
+ *
+ */
+const reconcile = (obj, target, value) => {
+    const key = Object.keys(obj)[0];
+    const val = obj[key];
 
-        // for each file, insert new metadata record in db
-        metadata.map(md => {
-
-            // create model instance of owner
-            const item = new Model(md.model);
-            item.setValue('image_state', image_state);
-
-            // set owner and file metadata
-            item.owner = id;
-            item.file = md.file;
-
-            // insert file metadata record
-            services.insert(item);
-        });
-
-        // return res.status(200).json(
-        //     prepare({
-        //         view: 'upload',
-        //         message: { msg: 'Upload completed!', type: 'success' },
-        //     }));
-    } catch (err) {
-        return null;
+    // The reconciliation works even with array has
+    // Object.keys will yield the array indexes
+    // see https://jsbin.com/hulekomopo/1/
+    // Since array are in form of [ , , valu3] [value1, value2]
+    // the final array will be: [value1, value2, value3] has expected
+    if (target.hasOwnProperty(key)) {
+        return reconcile(val, target[key]);
+    } else {
+        return target[key] = val;
     }
-}
+
+};
 
 /**
  * Check if node and file types are relatable.
@@ -461,7 +553,9 @@ const genSrc = (type='', data={}) => {
     // generate image source URLs
     const imgSrc = (token) => {
         return Object.keys(imageSizes).reduce((o, key) => {
-            o[key] = new URL(`${key}_${token}.jpeg`, process.env.LIBRARY_DIR);
+            // const rootURI = `${process.env.API_HOST}:${process.env.API_PORT}/resources/versions/`;
+            const rootURI = 'http://meat.uvic.ca/uploads/versions/'
+            o[key] = new URL(`${key}_${token}.jpeg`, rootURI);
             return o;
         }, {});
     }
@@ -521,7 +615,7 @@ export const selectByFile = async (file, client=pool) => {
  * Get files for given owner.
  *
  * @public
- * @param {integer} ownerID
+ * @param {number} ownerID
  * @param client
  * @return {Promise} result
  */
@@ -580,5 +674,65 @@ class FileValidator extends Transform {
 
     _flush(done) {
         done();
+    }
+}
+
+/**
+ * Download file stream.
+ *
+ * @src public
+ * @param fileName
+ * @param contentType
+ * @param contentStream
+ * @param data
+ */
+
+export const download = async (fileName, contentType, contentStream, data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const fileStream = fs.createWriteStream(fileName);
+            const contentStream = fs.createReadStream(data);
+            contentStream.pipe(data);
+
+            contentStream.on('error', reject);
+            fileStream.on('error', reject);
+            fileStream.on('finish', () => {
+                try {
+                    resolve();
+                } catch (err) {
+                    console.log(err);
+                    reject(err);
+                }
+            });
+        } catch (err) {
+            reject(err);
+        }
+    });
+}
+
+/**
+ * Create readable stream for non-image data.
+ *
+ * @public
+ * @return {Promise} result
+ */
+
+export class ArrayStream extends Readable {
+
+    constructor(data) {
+        super();
+        this._data = data;
+        this.sent = false;
+    }
+
+    _read() {
+        if (!this.sent) {
+            const buf = Buffer.from(this._data, 'utf-8');
+            this.push(buf);
+            this.sent = true;
+        }
+        else {
+            this.push(null);
+        }
     }
 }

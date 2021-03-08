@@ -60,10 +60,17 @@ function ModelRoutes(modelType) {
             put: null,
             post: this.controller.remove,
             delete: null,
+        },
+        export: {
+            path: path.join('/', this.model, 'export', ':' + this.key),
+            get: this.controller.export,
+            put: null,
+            post: null,
+            delete: null,
         }
     };
 
-    // include batch endpoint for image captures
+    // include import endpoint for bulk import of image captures
     if (this.model === 'historic_captures' || this.model === 'modern_captures') {
         this.routes.import = {
             path: path.join('/', this.model, 'import', ':owner_id'),

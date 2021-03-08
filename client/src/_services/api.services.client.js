@@ -25,7 +25,7 @@
  * @params {data, files, method}
  */
 
-const getFetchOptions = ({ data=null, files=null, method='POST'}) => {
+const getFetchOptions = ({ data=null, files=null, download=null, method='POST'}) => {
 
     // set request options
     const opts = {
@@ -44,10 +44,20 @@ const getFetchOptions = ({ data=null, files=null, method='POST'}) => {
             opts.body = JSON.stringify(data);
         }
 
-    // omit content type from header for file(s) uploads
+        // omit content type from header for file(s) uploads
         if (files) {
             // opts.header = { 'Content-Type' : 'multipart/form-data' };
             opts.body = files;
+        }
+
+        // for file downloads, modify header to accept requested format
+        if (download) {
+            const downloadOpts = {
+                csv: {
+                    Accept: 'text/csv; charset=utf-8'
+                }
+            }
+            opts.headers = downloadOpts[download];
         }
 
     return opts
@@ -65,10 +75,11 @@ export async function makeRequest({
                                       data=null,
                                       files=null,
                                       method='POST',
+                                      download=null
 })  {
 
     // compose request headers/options
-    const opts = getFetchOptions({data, files, method});
+    const opts = getFetchOptions({data, files, method, download});
 
     // send request to API
     let res = await fetch(url, opts)
@@ -79,7 +90,10 @@ export async function makeRequest({
         success: res.ok,
         status: res.status,
         statusText: res.statusText,
-        progress: files ? res.body : null,
-        response: files ? null : res.json()
+        response: files
+            ? null
+            : download
+                ? await res.blob()
+                : await res.json()
     }
 }

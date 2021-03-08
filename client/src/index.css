@@ -158,6 +158,7 @@ header .banner {
     position: fixed;
     width: 100%;
     height: 100px;
+    z-index: 1111;
 }
 
 /*
@@ -177,7 +178,7 @@ header .navbar {
     -ms-flex-align: center;
     align-items: center;
     overflow: hidden;
-    z-index: 999;
+    z-index: 111;
 }
 
 /*
@@ -272,7 +273,7 @@ Menus
     position: fixed;
     top: 0;
     right: 15px;
-    z-index: 9999;
+    z-index: 2222;
 }
 .accordion .h-menu.user {
     margin-top: 0;
@@ -293,8 +294,7 @@ Menus
     height: 60px;
     padding: 0;
     transition: 0.3s;
-    color: white !important;
-    background-color: transparent !important;
+    color: white;
 }
 .v-menu.user {
     margin: 0;
@@ -360,9 +360,11 @@ nav.breadcrumb ul li a:hover {
 }
 
 .h-menu ul {
+    width: 100%;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
+    align-items: stretch;
     -ms-flex-wrap: wrap;
     flex-wrap: wrap;
     list-style: none;
@@ -386,7 +388,6 @@ nav.breadcrumb ul li a:hover {
     line-height: 100%;
     padding: 6px;
 }
-
 .h-menu ul li button {
     margin: 0 4px;
 }
@@ -608,7 +609,6 @@ nav.breadcrumb ul li a:hover {
     cursor: pointer;
     padding: 14px 16px;
     transition: 0.3s;
-    color: white;
 }
 /* Change background color of buttons on hover */
 .tab.h-menu ul li button:hover {
@@ -631,14 +631,15 @@ nav.breadcrumb ul li a:hover {
 
 /* Accordion List Menu */
 
-.accordion .h-menu {
+.accordion {
     margin-top: 20px;
-    padding: 0px;
-    border: none;
     border-radius: 20px;
-    background-color: #282c34;
 }
-
+.accordion .h-menu {
+    border: 1px solid #DDD;
+    border-radius: 20px;
+    padding: 0;
+}
 .accordion .h-menu ul li {
     overflow: auto;
     padding: 2px;
@@ -651,12 +652,12 @@ nav.breadcrumb ul li a:hover {
     cursor: pointer;
     padding: 14px 16px;
     transition: 0.3s;
-    color: white !important;
-    background-color: transparent !important;
+    background-color: transparent;
+    height: 100%;
 }
 /* Change background color of buttons on hover */
 .accordion .h-menu ul li button:hover {
-    background-color: #888;
+    opacity: 0.5;
     border: none;
     outline: none;
     cursor: pointer;
@@ -664,15 +665,23 @@ nav.breadcrumb ul li a:hover {
 
 /* Create an active/current tablink class */
 .accordion .h-menu ul li button.active {
-    background-color: #008896;
-    color: white;
+
+}
+
+.accordion .accordion-menu {
+    margin-left: auto !important;
+    background-color: transparent;
 }
 
 .accordion .accordion-data {
-    margin-left: 20px;
+    margin: 20px;
 }
 
 /* Item Edit Menu */
+
+.item {
+    margin: 15px;
+}
 
 .item.h-menu {
     margin:auto;
@@ -701,7 +710,8 @@ nav.breadcrumb ul li a:hover {
 }
 
 .historic_visits {
-    background-color: #447BB5 !important;
+    background-color: #DDD !important;
+    color: #447BB5 !important;
 }
 
 .modern_visits {
@@ -713,7 +723,8 @@ nav.breadcrumb ul li a:hover {
 }
 
 .locations {
-    background-color: #9E5E9B !important;
+    background-color: #DDD !important;
+    color: #9E5E9B !important;
 }
 
 .historic_captures {
@@ -751,8 +762,11 @@ figure {
     margin: 10px;
 }
 
-.thumb {
-    max-width: 100px;
+.thumb img {
+    object-fit: cover;
+    width: 100px;
+    height: 100px;
+    border-radius: 5px;
     cursor: pointer;
 }
 
@@ -762,6 +776,47 @@ figure {
 
 .full {
     width: auto;
+}
+
+
+/* Image Thumbnail Gallery */
+
+.gallery.h-menu {
+    padding: 0;
+    margin-top:10px;
+    background-color: transparent;
+}
+
+.gallery.h-menu ul li {
+    overflow: hidden;
+    padding: 2px;
+}
+
+.gallery.h-menu ul li button {
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+    color: inherit;
+}
+/* Change background color of buttons on hover */
+.gallery.h-menu ul li button:hover {
+    border: none;
+    outline: none;
+    cursor: pointer;
+}
+
+/* Create an active/current tablink class */
+.gallery.h-menu ul li button.active {
+    background-color: #E34234;
+    color: #FFFFFF;
+}
+
+/* Style the tab content */
+.gallery  {
+    padding: 6px 12px;
+    border-top: none;
 }
 
 /*
@@ -953,13 +1008,16 @@ fieldset {
     padding: 20px;
     border-color: #4E4372;
 }
-
+fieldset.hidden {
+    padding:0;
+    margin:0;
+    border: none;
+}
 fieldset div {
     margin :10px;
     height:100%;
     line-height:2em;
 }
-
 fieldset.submit {
     padding: 0;
     margin: 0 0 0 15px;
@@ -980,6 +1038,7 @@ label.checkbox {
 /* Field Validation errors */
 
 div.validation {
+    float: right;
     height: 15px;
     font-size: small;
     color: #E34234;
@@ -1072,24 +1131,40 @@ input[type=submit].disabled, input[type=submit].disabled:hover {
 }
 
 /* File Upload Input */
-input[type=file] {
+
+/* Single file upload */
+input[type=file].single {
+    text-align: center !important;
+    margin: auto;
+    width: 100% !important;
+    font-family: 'Inter', Arial, sans-serif;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: small;
+    padding: 6px;
+
+}
+
+/* Multiple file upload */
+input[type=file].multiple {
     outline: 2px dashed #92b0b3;
     outline-offset: -10px;
     -webkit-transition: outline-offset .15s ease-in-out, background-color .15s linear;
     transition: outline-offset .15s ease-in-out, background-color .15s linear;
-    padding: 60px 0px 60px 35%;
+    padding: 60px 0 60px 35%;
     text-align: center !important;
     margin: 0;
     width: 100% !important;
 }
-input[type=file]:focus{
+input[type=file].multiple:focus{
     outline: 2px dashed #92b0b3;
     outline-offset: -10px;
     -webkit-transition: outline-offset .15s ease-in-out, background-color .15s linear;
     transition: outline-offset .15s ease-in-out, background-color .15s linear;
     border:1px solid #92b0b3;
 }
-input[type=file]:after {
+input[type=file].multiple:after {
     pointer-events: none;
     position: absolute;
     top: 60px;
@@ -1103,7 +1178,7 @@ input[type=file]:after {
     background-size: 100%;
     background-repeat: no-repeat;
 }
-input[type=file]:before {
+input[type=file].multiple:before {
     position: absolute;
     bottom: 10px;
     left: 0;  pointer-events: none;
@@ -1123,8 +1198,6 @@ input[type=file]:before {
 button {
     margin: auto;
     font-family: 'Inter', Arial, sans-serif;
-    background-color: #4E4372;
-    color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -1237,19 +1310,44 @@ Messages
     right: 0;
     bottom: 0;
     margin: auto;
-    background-color: rgba(0,0,0, 0.6);
+    background-color: rgba(255,255,255, 0.8);
+    z-index: 3333;
+    text-align: left;
+}
+.dialog .dialog-header {
+    text-align: right;
+    background: #999999;
+}
+.dialog .dialog-title {
+    text-align: center;
+}
+.dialog .content-box {
+    position: absolute;
+    width: auto;
+    height: 80%;
+    overflow: scroll;
+    left: 5%;
+    right: 5%;
+    top: 5%;
+    bottom: 5%;
+    margin: auto;
+    background: #DDDDDD;
+    color: #282c34;
+    max-height: 600px;
 }
 .dialog .alert-box {
     position: absolute;
     width: fit-content;
     height: fit-content;
-    left: 25%;
-    right: 25%;
-    top: 25%;
-    bottom: 25%;
+    overflow: scroll;
+    left: 20%;
+    right: 20%;
+    top: 20%;
+    bottom: 20%;
     margin: auto;
-    border-radius: 20px;
     background: #FFFFFF;
+    max-height: 600px;
+    min-width: 400px;
 }
 .dialog .alert-box-content {
     padding: 10px;

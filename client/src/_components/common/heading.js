@@ -36,7 +36,7 @@ const Heading = () => {
 
         const headings = {
             add: `${getViewLabel('add')}: ${nodeLabel}`,
-            show: `${modelLabel}: ${nodeLabel}`,
+            show: `${modelLabel !== nodeLabel ? modelLabel + ': ' : ''}${nodeLabel}`,
             import: `${getViewLabel('import')}: ${getModelLabel(api.model, 'label')}`,
             default: `${getViewLabel(api.view)}: ${modelLabel}`
         }

@@ -129,6 +129,7 @@ export const getFileTypes = async function(client=pool) {
  *
  * @public
  * @param {String} type
+ * @param client
  * @return {Promise} result
  */
 

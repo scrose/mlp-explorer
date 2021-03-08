@@ -6,58 +6,97 @@
  */
 
 import React from 'react';
-import { getNodeURI, reroute } from '../../_utils/paths.utils.client';
-import Icon from '../common/icon';
+import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
 import { useUser } from '../../_providers/user.provider.client';
+import { useRouter } from '../../_providers/router.provider.client';
+import Button from '../common/button';
+import { genSchema, getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
+import Alert from '../common/alert';
+import { useData } from '../../_providers/data.provider.client';
+import Dialog from '../common/dialog';
+import Importer from '../views/importer.view';
+import Item from '../common/item';
 
 /**
  * Inline menu component to edit records.
  *
  * @public
- * @param {String} id
- * @param {String} model
+ * @param {String} data
  * @return {JSX.Element}
  */
 
-const ItemMenu = ({ id, model }) => {
+const ItemMenu = ({ item, model, dependent, id, options }) => {
+
+    const { data=null } = item || {};
+
     const user = useUser();
+    const router = useRouter();
+    const api = useData();
+
     return (
         <div className={'item h-menu'}>
             <ul>
-                <li>
-                    <button
-                        title={`See data.`}
-                        onClick={() => console.log('View details.')}
-                    >
-                        <Icon type={'down'} />
-                    </button>
-                </li>
-                    <li>
-                        <button
-                            title={`View this ${model} item.`}
-                            onClick={() => reroute(getNodeURI(model, 'show', id))}
-                        >
-                            <Icon type={'info'} />
-                        </button>
-                    </li>
-                {user ?
-                    <li>
-                        <button
-                            title={`Edit this ${model} item.`}
-                            onClick={() => reroute(getNodeURI(model, 'edit', id))}
-                        >
-                            <Icon type={'edit'} />
-                        </button>
+                {
+                    id && model && data ?
+                    <li key={'show'}>
+                        <Dialog
+                            icon={'show'}
+                            title={`${getModelLabel(model)} Metadata.`}
+                            children={
+                                <Item model={model} data={data} view={'show'} />
+                            }
+                        />
                     </li> : ''
                 }
-                {user ?
-                    <li>
-                        <button
-                            title={`Delete this ${model} item.`}
-                            onClick={() => reroute(getNodeURI(model, 'remove', id))}
-                        >
-                            <Icon type={'delete'} />
-                        </button>
+                { user && id && model && data ?
+                    <li key={'edit'}>
+                        <Dialog
+                            icon={'edit'}
+                            title={`Edit ${getModelLabel(model)} Metadata.`}
+                            children={
+                                <Importer
+                                    model={model}
+                                    callback={router.post}
+                                    schema={genSchema('edit', model)}
+                                />
+                            }
+                        />
+                    </li> : ''
+                }
+                { user && id && model && data ?
+                    <li key={'remove'}>
+                        <Alert
+                            icon={'delete'}
+                            title={`Delete ${model} record?`}
+                            description={
+                                <div>
+                                    <p>Please confirm the deletion of {getModelLabel(model)}:</p>
+                                    <p><b>{getNodeLabel(api.root)}</b></p>
+                                    <p>Note that any dependent nodes for this record will also be deleted.</p>
+                                </div>
+                            }
+                            callback={() => {router.remove(data)}}
+                        />
+                    </li> : ''
+                }
+                { user && model && id && dependent ?
+                    <li key={'add'}>
+                        <Dialog
+                            icon={'add'}
+                            title={`Add new ${getModelLabel(dependent)} record.`}
+                            children={
+                                <Importer
+                                    view={'add'}
+                                    model={dependent}
+                                    options={options}
+                                    schema={genSchema('add', dependent)}
+                                    route={getNodeURI(dependent, 'new', id)}
+                                    callback={() => {
+                                        redirect(getNodeURI(model, 'show', id));
+                                    }}
+                                />
+                            }
+                        />
                     </li> : ''
                 }
             </ul>

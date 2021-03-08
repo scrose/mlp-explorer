@@ -7,6 +7,7 @@
 
 import React from 'react'
 import Heading from '../common/heading';
+import Download from '../common/download';
 
 /**
  * Node management panel.
@@ -18,11 +19,28 @@ import Heading from '../common/heading';
 const NodePanel = () => {
     return (
         <nav className={'panel'}>
-            <h4>Views</h4>
+            <h4>Export Data</h4>
             <ul>
-                <li><a href={'/surveyors'}>Surveyors</a></li>
-                <li><a href={'/surveys/'}>Surveys</a></li>
-                <li><a href={'/stations/'}>Stations</a></li>
+                <li>
+                    <p>
+                        <Download
+                        label={'Export GIS CSV'}
+                        format={'csv'}
+                        type={'export'}
+                        uri={'/nodes/export/gis/csv'}
+                        />
+                    </p>
+                </li>
+                <li>
+                    <p>
+                        <Download
+                            label={'Export GIS JSON'}
+                            format={'json'}
+                            type={'export'}
+                            uri={'/nodes/export/gis/json'}
+                        />
+                    </p>
+                </li>
             </ul>
         </nav>
     );

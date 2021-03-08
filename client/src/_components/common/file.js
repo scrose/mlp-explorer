@@ -7,10 +7,8 @@
 
 import React from 'react';
 import Loading from './loading';
-import Button from './button';
 import Image from './image';
 import { getFileLabel } from '../../_services/schema.services.client';
-import { capitalize } from '../../_utils/data.utils.client';
 import Download from './download';
 
 /**

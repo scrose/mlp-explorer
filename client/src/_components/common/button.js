@@ -16,7 +16,7 @@ import { redirect } from '../../_utils/paths.utils.client';
  * @return {React.Component}
  */
 
-const Button = ({type, name, label, title, url, icon, onClick}) => {
+const Button = ({type, name, label, title, icon, onClick}) => {
 
     /**
      * Button constructors for different render types.
@@ -38,18 +38,6 @@ const Button = ({type, name, label, title, url, icon, onClick}) => {
                     name={name}
                     value={label}
                 />)
-        },
-        cancel: () => {
-            return (
-                <button
-                    key={`key_cancel_${name}`}
-                    className={'cancel'}
-                    title={`Cancel update.`}
-                    onClick={() => redirect(url)}
-                >
-                    <span>{label}</span>
-                </button>
-            )
         },
         default: () => {
             return (

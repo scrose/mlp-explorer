@@ -7,7 +7,10 @@
 
 import { prepare } from '../lib/api.utils.js';
 import * as nserve from '../services/nodes.services.js';
+import * as expserve from '../services/export.services.js';
 import { sanitize } from '../lib/data.utils.js';
+import { json2csv } from '../lib/file.utils.js';
+import { ArrayStream } from '../services/files.services.js';
 
 /**
  * Controller initialization.
@@ -72,3 +75,63 @@ export const list = async (req, res, next) => {
         return next(err);
     }
 };
+
+/**
+ * Export node data request controller.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @src public
+ */
+
+export const exporter = async (req, res, next) => {
+    try {
+
+        const { format='', schema='default' } = req.params || {};
+
+        // get data using requested export schema
+        const data = await expserve.get(schema);
+
+        if (!data) return next(new Error('invalidRequest'));
+
+        // create file stream
+        const filename = `export_${schema}.${format}`;
+
+        // file handlers router indexed by model type
+        // Default: JSON data
+        const exportHandler = {
+            csv: () => {
+                res.setHeader("Content-Type", "text/csv");
+                res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
+                return json2csv(data);
+
+            },
+            xml: () => {
+                res.setHeader("Content-Type", "text/xml");
+                res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
+                // return json2xml(data);
+            },
+            default: () => {
+                res.setHeader("Content-Type", "text/json");
+                res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
+            }
+        };
+
+        // route database callback after file upload
+        const filtered = exportHandler.hasOwnProperty(format)
+            ? exportHandler[format]()
+            : exportHandler.default();
+
+        // create data stream
+        let rs = new ArrayStream(filtered);
+
+        // return CSV data as file download
+        rs.pipe(res).on('error', console.error);
+
+    } catch (err) {
+        console.error(err)
+        next(err);
+    }
+};
+

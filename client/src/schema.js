@@ -83,7 +83,7 @@ export const schema = {
             legend: 'Import New',
             submit: 'Import',
             method: 'POST',
-            render: 'upload',
+            render: 'import',
             singular: false
         },
         upload: {
@@ -119,23 +119,22 @@ export const schema = {
     },
     models: {
         users: {
-            email: {
-                label: 'Email',
-                render: 'email',
-                validate: ['isRequired', 'isEmail']
-            },
-            password: {
-                label: 'Password',
-                render: 'password',
-                validate: ['isRequired', 'isPassword'],
-                restrict: ['login', 'register']
-            },
-            role: {
-                label: 'User Role',
-                render: 'select',
-                restrict: ['list', 'edit', 'delete', 'show'],
-                validate: []
-            }
+            fieldsets: [
+                {
+                    legend: 'User Authentication',
+                    email: {
+                        label: 'Email',
+                        render: 'email',
+                        validate: ['isRequired', 'isEmail']
+                    },
+                    password: {
+                        label: 'Password',
+                        render: 'password',
+                        validate: ['isRequired', 'isPassword'],
+                        restrict: ['login', 'register']
+                    }
+                }
+            ]
         },
         projects: {
             attributes: {
@@ -316,57 +315,67 @@ export const schema = {
                 singular: "Modern Visit",
                 dependents: ['modern_captures']
             },
-            nodes_id: {
-                render: 'hidden',
-                restrict: ['edit', 'delete'],
-            },
-            owner_id: {
-                render: 'hidden'
-            },
-            date: {
-                key: 1,
-                render: 'date',
-                label: 'Visit Date'
-            },
-            start_time: {
-                label: 'Start Time'
-            },
-            finish_time: {
-                label: 'Finish Time'
-            },
-            pilot: {
-                label: 'Pilot'
-            },
-            rw_call_sign: {
-                label: 'RW Call Sign'
-            },
-            visit_narrative: {
-                label: 'Narrative'
-            },
-            illustration: {
-                label: 'Illustration'
-            },
-            weather_narrative: {
-                label: 'Weather Description'
-            },
-            weather_temp: {
-                label: 'Temperature'
-            },
-            weather_ws: {
-                label: 'Wind Speed'
-            },
-            weather_gs: {
-                label: 'Gust Speed'
-            },
-            weather_pressure: {
-                label: 'Barometric Pressure'
-            },
-            weather_rh: {
-                label: 'Relative Humidity'
-            },
-            weather_wb: {
-                label: 'Wet Bulb'
-            }
+            fieldsets: [
+                {
+                    nodes_id: {
+                        render: 'hidden',
+                        restrict: ['edit', 'delete'],
+                    },
+                    owner_id: {
+                        render: 'hidden'
+                    }
+                },
+                {
+                    legend: 'Visit Details',
+                    date: {
+                        key: 1,
+                        render: 'date',
+                        label: 'Visit Date'
+                    },
+                    start_time: {
+                        label: 'Start Time'
+                    },
+                    finish_time: {
+                        label: 'Finish Time'
+                    },
+                    pilot: {
+                        label: 'Pilot'
+                    },
+                    rw_call_sign: {
+                        label: 'RW Call Sign'
+                    },
+                    visit_narrative: {
+                        label: 'Narrative'
+                    },
+                    illustration: {
+                        label: 'Illustration'
+                    }
+                },
+                {
+                    legend: 'Weather Conditions',
+                    weather_narrative: {
+                        label: 'Weather Description'
+                    },
+                    weather_temp: {
+                        label: 'Temperature'
+                    },
+                    weather_ws: {
+                        label: 'Wind Speed'
+                    },
+                    weather_gs: {
+                        label: 'Gust Speed'
+                    },
+                    weather_pressure: {
+                        label: 'Barometric Pressure'
+                    },
+                    weather_rh: {
+                        label: 'Relative Humidity'
+                    },
+                    weather_wb: {
+                        label: 'Wet Bulb'
+                    }
+                }
+                ]
         },
         historic_captures: {
             attributes: {
@@ -375,70 +384,116 @@ export const schema = {
                 singular: "Historic Capture",
                 files: ['historic_images']
             },
-            files: {
-                label: 'Historic Images',
-                render: 'file',
-                restrict: ['add', 'edit', 'import'],
-                validate: ['filesSelected']
-            },
-            nodes_id: {
-                render: 'hidden',
-                restrict: ['edit', 'delete']
-            },
-            owner_id: {
-                render: 'hidden'
-            },
-            plate_id: {
-                label: 'Plate ID'
-            },
-            fn_photo_reference: {
-                label: 'Field Notes Photo Reference'
-            },
-            f_stop: {
-                label: 'F-stop'
-            },
-            shutter_speed: {
-                label: 'Shutter Speed'
-            },
-            focal_length: {
-                label: 'Focal Length'
-            },
-            capture_datetime: {
-                label: 'Capture Datetime'
-            },
-            cameras_id: {
-                label: 'Camera'
-            },
-            lens_id: {
-                label: 'Lens'
-            },
-            digitization_location: {
-                label: 'Digitization Location'
-            },
-            digitization_datetime: {
-                label: 'Digitization Datetime'
-            },
-            lac_ecopy: {
-                label: 'LAC ECopy'
-            },
-            lac_wo: {
-                label: 'LAC WO'
-            },
-            lac_collection: {
-                label: 'LAC Collection'
-            },
-            lac_box: {
-                label: 'LAC Box'
-            },
-            lac_catalogue: {
-                label: 'LAC Catalogue'
-            },
-            condition: {
-                label: 'Condition'
-            },
-            comments: {
-                label: 'Comments'
-            }
+            fieldsets: [
+                {
+                    nodes_id: {
+                        render: 'hidden',
+                        restrict: ['edit', 'delete']
+                    }
+                },
+                {
+                    legend: 'Historic Images',
+                    restrict: ['import'],
+                    historic_images: {
+                        label: 'Image File',
+                        render: 'files',
+                        validate: ['filesSelected']
+                    },
+                    image_state: {
+                        render: 'select',
+                        label: 'Image State',
+                    }
+                },
+                {
+                    legend: 'Historic Image',
+                    render: 'multiple',
+                    restrict: ['add', 'edit'],
+                    historic_images: {
+                        label: 'Image File',
+                        render: 'file',
+                        validate: ['filesSelected'],
+                    },
+                    image_state: {
+                        render: 'select',
+                        label: 'Image State',
+                    }
+                },
+                {
+                    legend:'Digitization Metadata',
+                    fn_photo_reference: {
+                        label: 'Field Notes Photo Reference',
+                        restrict: ['add', 'edit']
+                    },
+                    digitization_location: {
+                        label: 'Digitization Location',
+                        restrict: ['add', 'edit']
+                    },
+                    digitization_datetime: {
+                        label: 'Digitization Datetime',
+                        render: 'date',
+                        restrict: ['add', 'edit']
+                    },
+                    comments: {
+                        label: 'Comments'
+                    },
+                },
+                {
+                    legend:'Camera Metadata',
+                    f_stop: {
+                        label: 'F-stop',
+                        restrict: ['add', 'edit']
+                    },
+                    shutter_speed: {
+                        label: 'Shutter Speed',
+                        restrict: ['add', 'edit']
+                    },
+                    focal_length: {
+                        label: 'Focal Length',
+                        restrict: ['add', 'edit']
+                    },
+                    capture_datetime: {
+                        label: 'Capture Datetime',
+                        restrict: ['add', 'edit']
+                    },
+                    cameras_id: {
+                        label: 'Camera',
+                        render: 'select'
+                    },
+                    lens_id: {
+                        label: 'Lens',
+                        render: 'select'
+                    },
+                },
+                {
+                    legend:'Library Archives Canada (LAC) Metadata',
+                    lac_ecopy: {
+                        label: 'LAC ECopy',
+                        restrict: ['add', 'edit']
+                    },
+                    lac_wo: {
+                        label: 'LAC WO',
+                        restrict: ['add', 'edit']
+                    },
+                    lac_collection: {
+                        label: 'LAC Collection',
+                        restrict: ['add', 'edit']
+                    },
+                    lac_box: {
+                        label: 'LAC Box',
+                        restrict: ['add', 'edit']
+                    },
+                    lac_catalogue: {
+                        label: 'LAC Catalogue',
+                        restrict: ['add', 'edit']
+                    },
+                    condition: {
+                        label: 'Condition'
+                    },
+                    plate_id: {
+                        label: 'Plate ID'
+                    }
+                }
+            ]
         },
         modern_captures:{
             attributes: {
@@ -501,25 +556,32 @@ export const schema = {
                 singular: "Location",
                 files: ['supplemental_images']
             },
-            nodes_id: {
-                render: 'hidden',
-                restrict: ['edit', 'delete'],
-            },
-            owner_id: {
-                render: 'hidden'
-            },
-            location_narrative: {
-                label: 'Narrative'
-            },
-            location_identity: {
-                label: 'Location ID'
-            },
-            legacy_photos_start: {
-                label: 'Photo Start Index'
-            },
-            legacy_photos_end: {
-                label: 'Photos End Index'
-            }
+            fieldsets: [
+                {
+                    nodes_id: {
+                        render: 'hidden',
+                        restrict: ['edit', 'delete'],
+                    },
+                    owner_id: {
+                        render: 'hidden'
+                    }
+                },
+                {
+                    legend: 'Location Details',
+                    location_narrative: {
+                        label: 'Narrative'
+                    },
+                    location_identity: {
+                        label: 'Location ID'
+                    },
+                    legacy_photos_start: {
+                        label: 'Photo Start Index'
+                    },
+                    legacy_photos_end: {
+                        label: 'Photos End Index'
+                    }
+                }
+                ]
         },
         historic_images:{
             attributes: {
@@ -561,10 +623,7 @@ export const schema = {
                 label: 'Image Height',
                 restrict: ['show', 'edit']
             },
-            image_state: {
-                render: 'select',
-                label: 'Image State'
-            },
+
             comments: {
                 label: 'Comments',
                 restrict: ['show', 'edit', 'delete']

@@ -238,9 +238,6 @@ export const getNodeLabel = (node) => {
         })
         .join(', ');
 
-    // check whether dependent file filenames are used as key
-    const fileLabel = '';
-
     // Handle empty labels
     return label ? label : attributes.singular;
 }
@@ -274,13 +271,18 @@ export const getNodeOrder = (node) => {
 export const getFileLabel = (file) => {
 
     // get label keys for node type from schema
-    const {filename='', file_type='', file_size='', data={}} = file || {};
+    const {label='', filename='', file_type='', file_size='', data={}} = file || {};
 
     // get image label
     const getImgLabel = () => {
+
         // extract prefix substring from filename to omit key token string
         // - looks for last underscore '_' in filename as index
-        const abbrevFilename = filename.substring(0, filename.lastIndexOf('_'));
+        // - OR looks for last dot '.' in filename as index
+        const lastIndex = filename.lastIndexOf('_') > 0
+            ? filename.lastIndexOf('_')
+            : filename.lastIndexOf('.');
+        const abbrevFilename = filename.substring(0, lastIndex);
 
         // Handle empty file labels
         return abbrevFilename ? abbrevFilename : getNodeLabel(file_type);
@@ -293,8 +295,8 @@ export const getFileLabel = (file) => {
 
     // label functions indexed by file type
     const fileTypes = {
-        historic_images: () => {return getImgLabel();},
-        modern_images: () => {return getImgLabel();},
+        historic_images: () => {return label ? label : getImgLabel();},
+        modern_images: () => {return label ? label : getImgLabel();},
         supplemental_images: () => {return getImgLabel();},
         metadata_files: () => {return getMetadataLabel();},
     }
@@ -319,16 +321,9 @@ export const genSchema = (view, model, modelAttributes={}) => {
         : {};
     const viewAttributes = _getViewAttributes(view, model);
 
-    // include any default (common) fields to model schema
-    // - for example, ID fields (e.g. nodes_id) and timestamps
-    //   (e.g. 'created_at' is common to all nodes).
-
-    // Object.keys(modelAttributes || {})
-    //     .filter(key => schema.models.default.hasOwnProperty(key))
-    //     .reduce((o, key) => {
-    //         o[key] = schema.models.default[key];
-    //         return o;
-    //     }, modelSchema)
+    // check that model schema has fieldsets
+    if (!modelSchema.hasOwnProperty('fieldsets'))
+        return {};
 
     /** create renderable elements based on schema
         Filters out omitted fields (array) for view.
@@ -341,46 +336,68 @@ export const genSchema = (view, model, modelAttributes={}) => {
         (Optional) load initial values from input data
      */
 
-    const fields =
-        Object.keys(modelSchema)
-            .filter(key =>
-                key !== 'attributes'
-                &&
+    const filteredFieldsets =
+        modelSchema.fieldsets
+            .filter(fieldset =>
                 (
-                    !modelSchema[key].hasOwnProperty('restrict')
-                    || modelSchema[key].restrict.includes(view)
+                    !fieldset.hasOwnProperty('restrict')
+                    || fieldset.restrict.includes(view)
                 )
             )
-            .map(key => {
-                const {value='', options=[], label=''} = modelAttributes && modelAttributes.hasOwnProperty(key)
-                    ? modelAttributes[key]
-                    : {};
+            .map((fieldset, index) => {
 
+                const { render='', restrict='', legend=''} = fieldset || {};
+
+                // filter fields
+                let filteredFields = Object.keys(fieldset)
+                    .filter(fieldKey =>
+                        fieldKey !== 'legend'
+                        && fieldKey !== 'render'
+                        && fieldKey !== 'restrict'
+                        &&
+                        (
+                            !fieldset[fieldKey].hasOwnProperty('restrict')
+                            || fieldset[fieldKey].restrict.includes(view)
+                        )
+                    )
+                    .map(fieldKey => {
+                        const {value='', options=[], label=''} = modelAttributes && modelAttributes.hasOwnProperty(fieldKey)
+                            ? modelAttributes[fieldKey]
+                            : {};
+
+                            return {
+                            name: render === 'multiple' ? `${fieldKey}[${index}]` : fieldKey,
+                            id: fieldKey,
+                            label: fieldset[fieldKey].label || label,
+                            value: value,
+                            options: options,
+                            render: fieldset[fieldKey].hasOwnProperty('render')
+                                ? fieldset[fieldKey].render
+                                : 'text',
+                            validate:fieldset[fieldKey].hasOwnProperty('validate')
+                                ? fieldset[fieldKey].validate
+                                : [],
+                            refs: fieldset[fieldKey].hasOwnProperty('refs')
+                                ? fieldset[fieldKey].refs
+                                : []
+                        };
+                    })
+                    .reduce((o, field) => {
+                        o[field.name] = field;
+                        return o;
+                    }, {});
                 return {
-                    name: key,
-                    label: modelSchema[key].label || label,
-                    value: value,
-                    options: options,
-                    render: modelSchema[key].hasOwnProperty('render')
-                        ? modelSchema[key].render
-                        : 'text',
-                    validate:modelSchema[key].hasOwnProperty('validate')
-                        ? modelSchema[key].validate
-                        : [],
-                    refs: modelSchema[key].hasOwnProperty('refs')
-                        ? modelSchema[key].refs
-                        : []
-                };
-            }).reduce((o, field) => {
-                o[field.name] = field;
-                return o;
-            }, {});
+                    legend: legend,
+                    render: render,
+                    fields: filteredFields
+                }
+            });
 
     return {
         model: model,
         view: view,
         attributes: viewAttributes,
-        fields: fields
+        fieldsets: filteredFieldsets
     }
 }
 

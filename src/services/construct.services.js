@@ -73,6 +73,25 @@ export const create = async (modelType) => {
             },
 
             /**
+             * Add a new attribute to the model.
+             *
+             * @return {Object} field data
+             * @src public
+             */
+
+            addAttribute: {
+                value: (name, type, value=null) => {
+                    this.attributes[name] = {
+                        value: value,
+                        key: name,
+                        label: humanize(name),
+                        type: type,
+                    };
+                },
+                writable: true
+            },
+
+            /**
              * Get the nodes reference data (if exists).
              *
              * @return {Object} field data
@@ -124,7 +143,7 @@ export const create = async (modelType) => {
                         : null;
                 },
                 set: (id) => {
-                    if (typeof id === 'string' && this.attributes.hasOwnProperty('owner_id')) {
+                    if ((typeof id === 'number' || typeof id === 'string') && this.attributes.hasOwnProperty('owner_id')) {
                         this.attributes['owner_id'].value = sanitize(id);
                     }
                 }
@@ -287,18 +306,19 @@ export const createNode = async function(item) {
     // generate node constructor
     let Node = await create('nodes');
 
-    // get owner attributes (if exist)
-    let ownerAttrs = item.owner
-        ? await nselect(item.owner.value)
-        : { id: null, type: null };
+    // get owner attributes (if they exist)
+    const { owner={} } = item || {};
+    const { value=0 } = owner || {};
+    let ownerAttrs = await nselect(value) || owner;
+    const { id=null, type=null } = ownerAttrs;
 
     // return node instance: set owner attribute values from
     // retrieved node attributes
     return new Node({
         id: item.id,
         type: item.name,
-        owner_id: ownerAttrs.id,
-        owner_type: ownerAttrs.type
+        owner_id: id,
+        owner_type: type
     });
 };
 
@@ -318,14 +338,17 @@ export const createFile = async function(item) {
     // generate file constructor
     let File = await create('files');
 
-    // get owner attributes (if exist)
-    let ownerAttrs = item.owner
-        ? await nselect(item.owner.value)
-        : { id: null, type: null };
-
     // get additional file metadata from item
     const { data={} } = item.file || {};
-    const { filename='', mime_type='' } = data || {};
+    const {
+        filename='',
+        mimetype='',
+        owner_type='',
+        owner_id='',
+        fs_path='',
+        file_size=0,
+        filename_tmp=''
+    } = data || {};
 
     // return node instance: set owner attribute values from
     // retrieved node attributes
@@ -333,8 +356,11 @@ export const createFile = async function(item) {
         id: item.id,
         file_type: item.name,
         filename: filename,
-        mimetype: mime_type,
-        owner_id: ownerAttrs.id,
-        owner_type: ownerAttrs.type
+        file_size: file_size,
+        mimetype: mimetype,
+        owner_id: owner_id,
+        owner_type: owner_type,
+        fs_path: fs_path,
+        filename_tmp: filename_tmp
     });
 };

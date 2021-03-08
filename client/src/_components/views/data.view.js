@@ -14,8 +14,10 @@ import NotfoundError from '../error/notfound.error';
 import Loading from '../common/loading';
 import ServerError from '../error/server.error';
 import { useData } from '../../_providers/data.provider.client';
-import { getRenderType } from '../../_services/schema.services.client';
+import { genSchema, getRenderType } from '../../_services/schema.services.client';
 import Uploader from './importer.view';
+import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
+import Importer from './importer.view';
 
 /**
  * Build requested data view from API data.
@@ -27,12 +29,26 @@ const DataView = () => {
 
     // extract API data
     const api = useData();
-    const { view='', model='', schema={}, data=null } = api || {};
+    const { view='', model='', schema={}, data=null, options=[] } = api || {};
     const render = getRenderType(view, model);
 
     // select default form callback for view
     const router = useRouter();
-    const callback = router.post;
+
+    // mounted flag
+    const _isMounted = React.useRef(false);
+
+    //
+    // // update fieldset data
+    // React.useEffect(() => {
+    //     _isMounted.current = true;
+    //     if (fieldsetData.length === 0) {
+    //         setFieldsetData(fieldsets);
+    //     }
+    //     return () => {
+    //         _isMounted.current = false;
+    //     };
+    // }, [fieldsets]);
 
     // view components indexed by render type
     const renders = {
@@ -40,16 +56,28 @@ const DataView = () => {
             <Form
                 model={model}
                 init={data}
+                options={options}
                 schema={schema}
-                callback={callback}
+                callback={router.post}
             />),
         item: () => (
             <ItemView />),
-        upload: () => (
-            <Uploader
-                data={data}
+        import: () => (
+            <Importer
+                view={view}
                 model={model}
+                options={options}
                 schema={schema}
+                route={getNodeURI(model, 'import', api.root.id)}
+                callback={() => {
+                    redirect(
+                        getNodeURI(
+                            api.root.type,
+                            'show',
+                            api.root.id
+                        )
+                    );
+                }}
             />),
         notFound: () => <NotfoundError />,
         serverError: () => <ServerError />

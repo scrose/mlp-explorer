@@ -45,6 +45,13 @@ function NodesRoutes() {
             put: null,
             post: null,
             delete: null,
+        },
+        export: {
+            path: path.join('/nodes/export/:schema/:format'),
+            get: this.controller.exporter,
+            put: null,
+            post: null,
+            delete: null,
         }
     }
 }

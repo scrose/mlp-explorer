@@ -6,13 +6,15 @@
  */
 
 import React from 'react';
-import { getNodeURI } from '../../_utils/paths.utils.client';
+import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
 import Icon from '../common/icon';
 import { useRouter } from '../../_providers/router.provider.client';
-import { getDependents, getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
+import { genSchema, getDependents, getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
 import Alert from '../common/alert';
 import { useData } from '../../_providers/data.provider.client';
 import Button from '../common/button';
+import Importer from '../views/importer.view';
+import Dialog from '../common/dialog';
 
 /**
  * Editor menu component.
@@ -23,20 +25,23 @@ import Button from '../common/button';
 const MenuEditor = () => {
 
     const router = useRouter();
-    const api = useData()
+    const api = useData();
 
     // lookup model dependent nodes
     const dependents = getDependents(api.root.type) || [];
 
-    // menu display toggle
-    const [toggle, setToggle] = React.useState(false);
+    // check for capture bulk import
+    const capture = dependents.length > 0
+        ? dependents.find(dependent =>
+            (dependent === 'historic_captures' || dependent === 'modern_captures')
+        )
+        : null;
 
     // visibility settings for menu & menu items
     const menuExclude = ['dashboard', 'login', 'register', 'notFound'];
     const showExclude = ['dashboard', 'list', 'register'];
     const editExclude = ['dashboard', 'list', 'register', 'add'];
     const deleteExclude = ['dashboard', 'list', 'register', 'add'];
-    const exportExclude = ['dashboard', 'add'];
 
     function onClick(e, model, view, id) {
         e.preventDefault();
@@ -45,9 +50,7 @@ const MenuEditor = () => {
 
     return (
         api.view && !menuExclude.includes(api.view) ?
-        <div className={'editor-tools h-menu'} onMouseLeave={() => {
-            setToggle(false);
-        }}>
+        <div className={'editor-tools h-menu'}>
             <ul>
                 {api.root && !showExclude.includes(api.view) ?
                     <li key={'show'}>
@@ -89,90 +92,32 @@ const MenuEditor = () => {
                         />
                     </li> : ''
                 }
-                {api.root && !exportExclude.includes(api.view) ?
-                    <li key={'export'}>
-                        <button
-                            title={`Export this ${api.root.type} item.`}
-                            onClick={e =>
-                                onClick(e, api.root.type, 'export', api.root.id)
-                            }
-                        >
-                            <Icon type={'export'} /> <span>Export</span>
-                        </button>
-                    </li> : ''
-                }
-                { dependents.length > 0 ?
-                    <li key={'tools'}>
-                        <div>
-                            <button
-                                className={`toggle`}
-                                title={`Expand editor tools.`}
-                                onClick={() => {
-                                    setToggle(!toggle);
-                                }}
-                            >
-                                <span>Tools</span>&#160;&#160;<Icon type={'tools'} />
-                            </button>
-                        </div>
-                        <div className={`collapsible${toggle ? ' active' : ''}`}>
-                            <div className={'v-menu'}>
-                                {
-                                    dependents.map(depNode => {
-                                        const label = getModelLabel(depNode);
-                                        return (
-                                            <ul key={depNode}>
-                                                <li key={'new'}>
-                                                    <button
-                                                        key={depNode}
-                                                        title={`Add new ${label}.`}
-                                                        name={depNode}
-                                                        onClick={e =>
-                                                            onClick(e, depNode, 'new', api.root.id)
-                                                        }
-                                                    >
-                                                        <Icon type={'add'}/> <span>Add {label}</span>
-                                                    </button>
-                                                </li>
-                                                {
-                                                    depNode === 'historic_captures' ?
-                                                        <li key={'upload'}>
-                                                            <button
-                                                                key={depNode}
-                                                                title={`Batch Upload ${label} capture images.`}
-                                                                name={'upload'}
-                                                                onClick={e =>
-                                                                    onClick(e, 'historic_captures', 'import', api.root.id)
-                                                                }
-                                                            >
-                                                                <Icon type={'upload'} />&#160;&#160;Batch Upload Capture Images
-                                                            </button>
-                                                        </li>
-                                                        : ''
-                                                }
-                                                {
-                                                    depNode === 'modern_captures' ?
-                                                        <li key={'upload'}>
-                                                            <button
-                                                                key={depNode}
-                                                                title={`Batch Upload ${label} capture images.`}
-                                                                name={'upload'}
-                                                                onClick={e =>
-                                                                    onClick(e, 'modern_captures', 'import', api.root.id)
-                                                                }
-                                                            >
-                                                                <Icon type={'upload'} />&#160;&#160;Batch Upload Capture Images
-                                                            </button>
-                                                        </li>
-                                                        : ''
-                                                }
-                                            </ul>
-                                        )
-                                    })
+                {
+                    capture ?
+                        <li key={'upload'}>
+                            <Dialog
+                                icon={'import'}
+                                label={`Import`}
+                                title={`Bulk ${getModelLabel(capture)} import.`}
+                                children={
+                                    <Importer
+                                        view={'import'}
+                                        model={capture}
+                                        options={api.options}
+                                        schema={genSchema('import', capture)}
+                                        route={getNodeURI(capture, 'import', api.root.id)}
+                                        callback={() => {
+                                            redirect(
+                                                getNodeURI(api.root.type, 'show', api.root.id
+                                                )
+                                            );
+                                        }}
+                                    />
                                 }
-                            </div>
-                        </div>
-                    </li>: ''
-                }
+                            />
+                        </li>
+                        : ''
+                    }
             </ul>
         </div>
             : ''

@@ -6,31 +6,52 @@
  */
 
 import React from 'react';
-import Item from '../common/item';
-import { FilesTable } from './files.view';
-import Accordion from '../common/accordion';
+import { FilesList } from './files.view';
+import { getFileLabel } from '../../_services/schema.services.client';
 
 /**
  * Model view component.
  *
  * @public
- * @param {Object} apiData
- * @param {String} model
+ * @param {Object} captures
  * @return {JSX.Element}
  */
 
-const CapturesView = ({data, model}) => {
+const CapturesView = ({data}) => {
 
-    // get any available dependents
-    const { files=[], type=model } = data || {};
+    // filter files to select viewable images
+    const filterCaptures = () => {
+        return data
+            .reduce((o, capture) => {
+                // console.log('Capture:', capture.data, capture.files)
+                // conditionally filter capture files by image state
+                const cMaster = capture.files
+                    .find(file => file.data.image_state === 'master');
+                const cInterim = capture.files
+                    .find(file => file.data.image_state === 'interim');
+                const cRaw = capture.files
+                    .find(file => file.data.image_state === 'raw');
+                const cMisc = capture.files
+                    .find(file => file.data.image_state === 'misc');
+                const c = cMaster || cInterim || cRaw || cMisc;
+
+                // label file by capture photo reference
+                c['label'] = capture.data.fn_photo_reference || getFileLabel(c);
+
+                // add to image capture list
+                o.push(c);
+                return o;
+            }, [])
+            .sort(function(a, b){
+                // sort captures by photo reference number
+                return a.label.localeCompare(b.label);
+            })
+    }
 
     // render node tree
     return (
-        <div className={`item`}>
-            <Accordion type={'info'} label={'Metadata'}>
-                <Item view={'show'} model={type} data={data} />
-            </Accordion>
-            <FilesTable files={files} />
+        <div className={`captures`}>
+            <FilesList files={filterCaptures()} />
         </div>
     )
 }

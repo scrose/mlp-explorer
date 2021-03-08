@@ -10,6 +10,7 @@ import Icon from '../common/icon';
 import { getNodeURI } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import { getModelLabel } from '../../_services/schema.services.client';
+import { useUser } from '../../_providers/user.provider.client';
 
 /**
  * Navigator menu component.
@@ -20,6 +21,7 @@ import { getModelLabel } from '../../_services/schema.services.client';
 const MenuNavigator = ({view, set, toggle, setToggle}) => {
 
     const router = useRouter();
+    const user = useUser();
 
     return (
         <div className={'navigator-tools v-menu'}>
@@ -58,22 +60,26 @@ const MenuNavigator = ({view, set, toggle, setToggle}) => {
                         <Icon type={'map'} /> <span>Map View</span>
                     </button>
                 </li>
-                <li>
+                {
+                    user ? <li>
+                        <button
+                            title={`Add new ${getModelLabel('surveyors')}.`}
+                            onClick={() => router.update(getNodeURI('surveyors', 'new'))}
+                        >
+                            <Icon type={'surveyors'} /> <span>Add {getModelLabel('surveyors')}</span>
+                        </button>
+                    </li> : ''
+                }
+                {
+                    user ? <li>
                     <button
-                        title={`Add new ${getModelLabel('surveyors')}.`}
-                        onClick={() => router.update(getNodeURI('surveyors', 'new'))}
+                    title={`Add new ${getModelLabel('projects')}.`}
+                    onClick={() => router.update(getNodeURI('projects', 'new'))}
                     >
-                        <Icon type={'surveyors'}/> <span>Add {getModelLabel('surveyors')}</span>
+                    <Icon type={'projects'}/> <span>Add {getModelLabel('projects')}</span>
                     </button>
-                </li>
-                <li>
-                    <button
-                        title={`Add new ${getModelLabel('projects')}.`}
-                        onClick={() => router.update(getNodeURI('projects', 'new'))}
-                    >
-                        <Icon type={'projects'}/> <span>Add {getModelLabel('projects')}</span>
-                    </button>
-                </li>
+                    </li> : ''
+                }
             </ul>
             </div>
         </div>

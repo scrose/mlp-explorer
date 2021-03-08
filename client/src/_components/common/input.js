@@ -6,7 +6,51 @@
  */
 
 import React from 'react'
-import List from './list';
+import Flatpickr from "react-flatpickr";
+import "flatpickr/dist/themes/material_green.css";
+import Button from './button';
+
+/**
+ * Build datepicker widget using Pikaday module.
+ *
+ * @public
+ */
+
+const AttachFile = ({type, id, name, onChange, value, label, error}) => {
+
+    return <fieldset>
+        <label key={`label_${name}`} htmlFor={name}>
+            {label}
+            <input
+                type={"file"}
+                name={name}
+                onChange={onChange}
+                multiple={false}
+            />
+            <ValidationMessage msg={error}/>
+        </label>
+    </fieldset>
+
+}
+
+/**
+ * Build datepicker widget using Pikaday module.
+ *
+ * @public
+ * @param value
+ */
+
+const DateTimeSelector = ({value}) => {
+
+    // create date state
+    const [date, setDate] = React.useState({ date: value ? new Date(value) : new Date() });
+
+    return <Flatpickr
+        data-enable-time
+        value={date}
+        onChange={setDate} />
+
+}
 
 /**
  * Build input help text (error messages). Only prints
@@ -60,6 +104,9 @@ const Input = ({
     // input conditional states
     const [autoClick, setAutoClick] = React.useState(true);
 
+    // generate unique ID value for input
+    const id = Math.random().toString(16).substring(2);
+
     /**
      * Input constructors for different render types.
      *
@@ -73,7 +120,8 @@ const Input = ({
             return <input
                 readOnly={true}
                 type={"hidden"}
-                id={name} name={name}
+                id={id}
+                name={name}
                 value={value || ''}
             />
         },
@@ -83,7 +131,7 @@ const Input = ({
                 {label}
                 <input
                     type={"text"}
-                    id={name}
+                    id={id}
                     name={name}
                     value={value || ''}
                     onChange={onchange}
@@ -94,11 +142,11 @@ const Input = ({
 
         checkbox: () => {
             const isChecked = (value && value === true);
-            return <label key={`label_${name}`} htmlFor={name}>
+            return <label key={`label_${name}`} htmlFor={id}>
                 {label}
                 <input
                     type={'checkbox'}
-                    id={name}
+                    id={id}
                     name={name}
                     checked={isChecked}
                     onChange={onchange}
@@ -106,12 +154,19 @@ const Input = ({
             </label>;
         },
 
-        email: () => {
+        date: () => {
             return <label key={`label_${name}`} htmlFor={name}>
+                {label}
+                <DateTimeSelector value={value || ''} />
+            </label>;
+        },
+
+        email: () => {
+            return <label key={`label_${name}`} htmlFor={id}>
                 {label}
                 <input
                     type={"email"}
-                    id={name}
+                    id={id}
                     name={name}
                     value={value || ''}
                     onChange={onchange}
@@ -121,13 +176,13 @@ const Input = ({
         },
 
         password: () => {
-            return <label key={`label_${name}`} htmlFor={name}>
+            return <label key={`label_${name}`} htmlFor={id}>
                 {label}
                 <input
                     readOnly={autoClick}
                     type={"password"}
                     autoComplete="chrome-off"
-                    id={name}
+                    id={id}
                     name={name}
                     value={value || ''}
                     onChange={onchange}
@@ -139,10 +194,10 @@ const Input = ({
         },
 
         select: () => {
-            return <label key={`label_${name}`} htmlFor={name}>
+            return <label key={`label_${name}`} htmlFor={id}>
                 {label}
                 <select
-                    id={name}
+                    id={id}
                     name={name}
                     onChange={onchange}
                 >
@@ -150,7 +205,7 @@ const Input = ({
                         .map(opt =>
                             <option
                                 key={`${name}_${opt.name}`}
-                                id={`${name}_${opt.name}`}
+                                id={`${name}_${opt.name}_${id}`}
                                 name={`${name}_${opt.name}`}
                                 value={opt.name}
                             >
@@ -163,18 +218,49 @@ const Input = ({
             </label>
         },
 
-        file: () => {
-            return <label key={`label_${name}`} htmlFor={name}>
+        files: () => {
+            return <label key={`label_${name}`} htmlFor={id}>
                 {label}
                 <input
+                    className={'multiple'}
                     type={"file"}
-                    id={name}
+                    id={id}
                     name={name}
                     onChange={onchange}
                     multiple={true}
                 />
                 <ValidationMessage msg={error}/>
             </label>
+        },
+
+        file: () => {
+            return <label key={`label_${name}`} htmlFor={id}>
+                {label}
+                <input
+                    className={'single'}
+                    type={"file"}
+                    id={id}
+                    name={name}
+                    onChange={onchange}
+                    multiple={false}
+                />
+                <ValidationMessage msg={error}/>
+            </label>
+        },
+
+        attachFile: () => {
+            return (
+                <>
+                    <Button type={'add'} label={`Add ${label}`} onClick={''} />
+                    <AttachFile
+                        type={"file"}
+                        id={id}
+                        name={name}
+                        onChange={onchange}
+                        multiple={false}
+                    />
+                </>
+                )
         }
     }
 

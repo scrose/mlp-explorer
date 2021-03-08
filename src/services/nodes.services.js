@@ -21,7 +21,7 @@ import * as fs from './files.services.js';
  * Get node by ID. Returns single node object.
  *
  * @public
- * @param {integer} id
+ * @param {number} id
  * @param client
  * @return {Promise} result
  */
@@ -30,7 +30,7 @@ export const select = async (id, client=pool) => {
     if (!id) return null;
     let { sql, data } = queries.nodes.select(id);
     let node = await client.query(sql, data);
-    return node.rows[0];
+    return node.hasOwnProperty('rows') && node.rows.length > 0 ? node.rows[0] : null;
 };
 
 /**
@@ -124,7 +124,7 @@ export const getAll = async function(model) {
         // append model data and dependents (child nodes)
         let nodes = await Promise.all(rows.map(async (node) => {
             node.data = await selectByNode(node, client);
-            node.files = await fs.selectByOwner(node.id, client) || [];
+            // node.files = await fs.selectByOwner(node.id, client) || [];
             node.hasDependents = hasDependents(node.id, client) || false;
             return node;
         }));
@@ -139,7 +139,6 @@ export const getAll = async function(model) {
         await client.query('ROLLBACK');
         throw err;
     } finally {
-        console.log('Client released', pool.id)
         client.release(true);
     }
 };

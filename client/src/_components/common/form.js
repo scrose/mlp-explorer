@@ -8,9 +8,8 @@
 import React from 'react'
 import Fieldset from './fieldset';
 import Button from './button';
-import { getModelLabel } from '../../_services/schema.services.client';
-import { useRouter } from '../../_providers/router.provider.client';
 import Validator from '../../_utils/validator.utils.client';
+import { genSchema } from '../../_services/schema.services.client';
 
 /**
  * Form submission buttons component.
@@ -19,7 +18,7 @@ import Validator from '../../_utils/validator.utils.client';
  * @param { model, label }
  */
 
-const Submit = ({model, label, message}) => {
+const Submit = ({model, label, message, cancel}) => {
     const { msg='', type='' } = message || {};
     return (
         <fieldset className={'submit'}>
@@ -30,11 +29,14 @@ const Submit = ({model, label, message}) => {
                 type={'submit'}
                 label={label}
                 name={`submit_${model}`} />
-            <Button
-                type={'cancel'}
-                label={'Cancel'}
-                name={`cancel_${model}`}
-                url={'/'} />
+            { cancel ?
+                <Button
+                    type={'cancel'}
+                    label={'Cancel'}
+                    name={`cancel_${model}`}
+                    onClick={cancel}
+                /> : ''
+            }
         </fieldset>
 
     );
@@ -54,14 +56,24 @@ const Form = ({
                   model,
                   schema,
                   init={},
-                  callback
+                  options=[],
+                  callback,
+                  cancel=null,
+                  route=null
 }) => {
 
-    const router = useRouter();
+    // get form input settings from schema
+    const { attributes={}, fieldsets=[] } = schema || {};
+    const { submit='Submit', method='POST' } = attributes || {};
 
     // initialize state for input parameters
     const [data, setData] = React.useState(init);
+    const [fieldsetData, setFieldsetData] = React.useState(fieldsets);
     const [isDisabled, setDisabled] = React.useState(false);
+
+    if (fieldsetData.length === 0) {
+        setFieldsetData(fieldsets);
+    }
 
     // create input error states
     const [errors, setErrors] = React.useState({});
@@ -69,20 +81,28 @@ const Form = ({
     // create error message state
     const [message, setMessage] = React.useState({});
 
-    // get form input settings from schema
-    const { attributes={}, fields=[] } = schema || {};
-    const {
-        submit='Submit',
-        method='POST',
-        legend='User Form' } = attributes || {};
+    /**
+     * Generate form data validation handlers.
+     *
+     * @private
+     * @return {Array} validators
+     */
 
-    // create validator for each input using schema settings
-    const validators = Object.keys(fields || {})
-        .reduce((o, key) => {
-            const { validate=[] } = fields[key];
-            o[key] = new Validator(validate);
-            return o;
-        }, {});
+    const generateValidators = () => {
+        return fieldsetData
+            .reduce((o, fieldset) => {
+                Object.keys(fieldset.fields || {})
+                    .map(fieldkey => {
+                        const { name='', validate = [] } = fieldset.fields[fieldkey];
+                        o[name] = new Validator(validate);
+                        return o;
+                    });
+                return o;
+            }, {});
+    }
+
+    // create validator for each input field using schema settings
+    let validators = generateValidators();
 
     /**
      * Form data validation handler. Validates all data inputs.
@@ -134,7 +154,65 @@ const Form = ({
             const formData = new FormData(e.target);
 
             // API callback for form data submission
-            return callback(router.route, formData)
+            return callback(route, formData);
+        }
+        catch (err) {
+            console.error(callback, err)
+        }
+    }
+
+    /**
+     * Copy fieldset in form.
+     *
+     * @private
+     * @param {Object} fieldset
+     * @param {Integer} index
+     */
+
+    const handleCopy = (fieldset, index) => {
+        try {
+
+            // make a separate copies of the full fieldset arrays
+            let fieldsetCopy = JSON.parse(JSON.stringify(fieldset));
+            let fieldsets = [...fieldsetData];
+
+            // update render state
+            fieldsetCopy.render = 'copy';
+
+            // update field keys with index
+            fieldsetCopy = Object.keys(fieldsetCopy.fields)
+                .reduce((o, key) => {
+                    o.fields[key].name = `${o.fields[key].id}[${index + 1}]`;
+                    return o;
+                }, fieldsetCopy);
+
+            // insert new fieldset into state
+            fieldsets.splice(index + 1, 0, fieldsetCopy);
+            console.log('!!!!!!!!!!!!!!!!')
+            setFieldsetData(fieldsets);
+
+            // re-generate validators
+            validators = generateValidators();
+        }
+        catch (err) {
+            console.error(err)
+        }
+    }
+
+    /**
+     * Delete fieldset in form.
+     *
+     * @private
+     * @param {Integer} index
+     */
+
+    const handleDelete = (index) => {
+        try {
+            let fieldsets = [...fieldsetData]  ;  // make a separate copy of the array
+            fieldsets.splice(index, 1);
+            console.log('!???????????????')
+            setFieldsetData(fieldsets);
+            validators = generateValidators();
         }
         catch (err) {
             console.error(err)
@@ -155,19 +233,49 @@ const Form = ({
             onSubmit={handleSubmit}
             autoComplete={'chrome-off'}
         >
-            <Fieldset
+            {
+                fieldsetData
+                    .map((fieldset, index) => {
+                        return (
+                            <div key={index}>
+                                <Fieldset
+                                    model={model}
+                                    index={index}
+                                    mode={fieldset.render}
+                                    legend={fieldset.legend}
+                                    fields={fieldset.fields}
+                                    errors={errors}
+                                    setErrors={setErrors}
+                                    data={data}
+                                    setData={setData}
+                                    options={options}
+                                    remove={()=>{handleDelete(index)}}
+                                    disabled={isDisabled}
+                                    validators={validators}
+                                />
+                            {
+                                fieldset.render === 'multiple'
+                                    ? <Button
+                                        key={`${index}_copy_button`}
+                                        onClick={() => {
+                                            // send deep copy of fieldset
+                                            handleCopy(fieldset, index);
+                                        }}
+                                        label={`Add ${fieldset.legend}`}
+                                        icon={'add'}
+                                    />
+                                    : ''
+                            }
+                            </div>
+                        )
+                    })
+            }
+            <Submit
                 model={model}
-                legend={`${legend} ${getModelLabel(model)}`}
-                fields={fields}
-                errors={errors}
-                setErrors={setErrors}
-                data={data}
-                setData={setData}
-                init={data}
-                disabled={isDisabled}
-                validators={validators}
+                label={submit}
+                message={message}
+                cancel={cancel}
             />
-            <Submit model={model} label={submit} message={message} />
         </form>
         );
 }

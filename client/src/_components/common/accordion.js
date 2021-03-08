@@ -8,6 +8,9 @@
 import React from 'react';
 import Icon from './icon';
 import { getModelLabel } from '../../_services/schema.services.client';
+import { getNodeURI } from '../../_utils/paths.utils.client';
+import { capitalize } from '../../_utils/data.utils.client';
+import { useRouter } from '../../_providers/router.provider.client';
 
 /**
  * Inline vertical accordion menu component.
@@ -18,10 +21,10 @@ import { getModelLabel } from '../../_services/schema.services.client';
  * @return {JSX.Element}
  */
 
-const Accordion = ({type, label, children}) => {
+const Accordion = ({type, label='', open=false, menu=null, children}) => {
 
     // accordion toggle state
-    const [toggle, setToggle] = React.useState(false);
+    const [toggle, setToggle] = React.useState(open);
 
     // render tree node
     return (
@@ -42,28 +45,17 @@ const Accordion = ({type, label, children}) => {
                                 <li key={`accordion_icon`}>
                                 <button
                                     title={`View ${label}.`}
-                                    onClick={() => {
-                                        setToggle(!toggle);
-                                    }}
+                                    onClick={() => {setToggle(!toggle)}}
                                 >
-                                    <Icon type={type}/> {getModelLabel(type)}
+                                    <Icon type={type}/>&#160;&#160;{getModelLabel(type)} {label}
                                 </button>
                             </li>
                                 : ''
                         }
                         {
-                            label ?
-                                <li key={`accordion_label`}>
-                                    <button
-                                        title={`Expand metadata.`}
-                                        onClick={() => {
-                                            setToggle(!toggle);
-                                        }}
-                                    >
-                                        <span>{label}</span>
-                                    </button>
-                                </li>
-                            : ''
+                            menu
+                                ? <li key={`accordion_menu`} className={'accordion-menu'}>{ menu }</li>
+                                : ''
                         }
                     </ul>
                 </div>

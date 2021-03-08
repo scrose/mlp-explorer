@@ -16,6 +16,7 @@ import * as schema from './schema.queries.js';
 import * as defaults from './defaults.queries.js';
 import * as nodes from './nodes.queries.js';
 import * as files from './files.queries.js';
+import * as exporter from './export.queries.js';
 import * as users from './users.queries.js';
 
 
@@ -29,5 +30,6 @@ export default {
     defaults: defaults,
     nodes: nodes,
     files: files,
+    export: exporter,
     users: users
 };

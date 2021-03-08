@@ -21,17 +21,23 @@ export function getFilename(filepath) {
 }
 
 /**
- * Extract filenames from filepath array.
+ * CSV parser for JSON data.
  *
- * @param {Array} filepaths
- * @return {Array} filenames
+ * @param {JSON} json
+ * @return {String} CSV data
  * @src public
  */
 
-export function getFilenames(filepaths) {
-    return filepaths.map(fpath => {
-        return getFilename(fpath);
-    });
+export function json2csv(json) {
+    let fields = Object.keys(json[0])
+    let replacer = function(key, value) { return value === null ? '' : value }
+    let csv = json.map(function(row){
+        return fields.map(function(fieldName){
+            return JSON.stringify(row[fieldName], replacer)
+        }).join(',')
+    })
+    csv.unshift(fields.join(',')) // add header column
+    return csv.join('\r\n');
 }
 
 /**

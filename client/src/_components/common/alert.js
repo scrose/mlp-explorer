@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.Common.PopUp
- * File: popup.js
+ * MLP.Client.Components.Common.Alert
+ * File: alert.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -36,10 +36,10 @@ const Alert = ({title, description, icon, label, callback}) => {
     };
 
     return (
-        <div className={'alert'}>
+        <div>
             <Button onClick={handleClickOpen} label={label} icon={icon} />
             <div className={`dialog ${toggle ? 'active' : ''}`}>
-                <div className={'alert-box'}>
+                <div className={'content-box'}>
                     <div className={'alert-box-content'} aria-labelledby="alert-dialog-title">
                         <h2 id="alert-dialog-title">
                             {title}

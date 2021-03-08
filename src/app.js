@@ -19,6 +19,15 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import { globalHandler, notFoundHandler } from './error.js';
 import router from './routes/index.routes.js';
+import path from 'path';
+import fs from 'fs';
+
+/**
+ * Get current working directory.
+ */
+
+const moduleURL = new URL(import.meta.url);
+const __dirname = path.dirname(moduleURL.pathname);
 
 /**
  * Create Express application.
@@ -117,7 +126,13 @@ export default () => {
             'Origin, X-Requested-With, Content-Type, Accept'
         )
         next()
-    })
+    });
+
+    /**
+     * Serve static assets.
+     */
+
+    app.use('/resources', express.static(process.env.UPLOAD_DIR));
 
     /**
      * Initialize router.

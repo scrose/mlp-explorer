@@ -155,6 +155,7 @@ function RouterProvider(props) {
 
     const post = async (uri, formData= null) => {
         const parsedData = formData ? Object.fromEntries(formData) : {};
+
         let res = await makeRequest({
             url: getAPIURL(uri),
             method:'POST',
@@ -178,7 +179,7 @@ function RouterProvider(props) {
      * @param callback
      */
 
-    const upload = async (uri, formData, callback) => {
+    const upload = async (uri, formData, callback=()=>{}) => {
 
         // DEBUG: Display the key/value pairs of form data
         // for(var pair of formData.entries()) {
@@ -255,7 +256,23 @@ function RouterProvider(props) {
                 addSessionMsg(res.message);
                 redirect('/');
             })
-            .catch(err => console.error(err));
+            .catch(console.error);
+    }
+
+    /**
+     * Request method to download file.
+     *
+     * @public
+     * @param uri
+     * @param format
+     */
+
+    const download = async (uri, format) => {
+        return await makeRequest({url: getAPIURL(uri), method:'GET', download: format})
+            .then(res => {
+                return new Blob([res.response]);
+            })
+            .catch(console.error);
     }
 
     /**
@@ -271,6 +288,7 @@ function RouterProvider(props) {
                 get,
                 post,
                 upload,
+                download,
                 remove,
                 followup,
                 online,

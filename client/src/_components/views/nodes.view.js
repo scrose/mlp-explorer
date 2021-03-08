@@ -41,11 +41,8 @@ const NodeItem = ({node, model}) => {
     );
 }
 
-
-
-
 /**
- * Navigation tree node list component.
+ * Node list component.
  * - Discovers appropriate menu label text using schema
  * - Sorts node items: (1) Node order; (2) Alphabetically by label
  *
@@ -78,9 +75,10 @@ const NodeList = ({nodes}) => {
         <div>
             {
                 nodes.map(node =>
-                    <Accordion key={node.id} type={node.type} label={node.label}>
+                    // <Accordion key={node.id} type={node.type} label={node.label}>
                         <NodeItem node={node}/>
-                    </Accordion>)
+                    // </Accordion>
+                )
             }
         </div>
     );
