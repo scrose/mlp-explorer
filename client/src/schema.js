@@ -143,17 +143,23 @@ export const schema = {
                 singular: "Project",
                 dependents: ['stations', 'historic_captures', 'modern_captures']
             },
-            nodes_id: {
-                render: 'hidden',
-                restrict: ['edit', 'delete'],
-            },
-            name: {
-                key: 1,
-                label: 'Project Name'
-            },
-            description: {
-                label: 'Project Description'
-            }
+            fieldsets: [
+                {
+                    nodes_id: {
+                        render: 'hidden',
+                        restrict: ['edit', 'delete'],
+                    }
+                },
+                {
+                    legend: 'Project Details',
+                    name: {
+                        key: 1,
+                        label: 'Name'
+                    },
+                    description: {
+                        label: 'Description'
+                    }
+                }]
         },
         surveyors: {
             attributes: {
@@ -162,26 +168,32 @@ export const schema = {
                 singular: "Surveyor",
                 dependents: ['surveys']
             },
-            nodes_id: {
-                render: 'hidden',
-                restrict: ['edit', 'delete'],
-            },
-            given_names: {
-                key: 2,
-                label: 'Given Names'
-            },
-            last_name: {
-                key: 1,
-                label: 'Last Name'
-            },
-            short_name: {
-                key: 3,
-                label: 'Short Name'
-            },
-            affiliation: {
-                key: 4,
-                label: 'Affiliation'
-            }
+            fieldsets: [
+                {
+                    nodes_id: {
+                        render: 'hidden',
+                        restrict: ['edit', 'delete'],
+                    },
+                },
+                {
+                    legend: 'Surveyor Details',
+                    given_names: {
+                        key: 2,
+                        label: 'Given Names'
+                    },
+                    last_name: {
+                        key: 1,
+                        label: 'Last Name'
+                    },
+                    short_name: {
+                        key: 3,
+                        label: 'Short Name'
+                    },
+                    affiliation: {
+                        key: 4,
+                        label: 'Affiliation'
+                    }
+                }]
         },
         surveys: {
             attributes: {
@@ -190,21 +202,27 @@ export const schema = {
                 singular: "Survey",
                 dependents: ['survey_seasons', 'historic_captures', 'modern_captures']
             },
-            nodes_id: {
-                render: 'hidden',
-                restrict: ['edit', 'delete'],
-            },
-            owner_id: {
-                render: 'hidden'
-            },
-            name: {
-                key: 1,
-                label: 'Survey Name'
-            },
-            historical_map_sheet: {
-                key: 2,
-                label: 'Historical Map Sheet'
-            },
+            fieldsets: [
+                {
+                    nodes_id: {
+                        render: 'hidden',
+                        restrict: ['edit', 'delete'],
+                    },
+                    owner_id: {
+                        render: 'hidden'
+                    }
+                },
+                {
+                    legend: 'Survey Details',
+                    name: {
+                        key: 1,
+                        label: 'Survey Name'
+                    },
+                    historical_map_sheet: {
+                        key: 2,
+                        label: 'Historical Map Sheet'
+                    }
+                }]
         },
         survey_seasons: {
             attributes: {
@@ -213,41 +231,47 @@ export const schema = {
                 singular: "Survey Season",
                 dependents: ['stations', 'historic_captures', 'modern_captures']
             },
-            nodes_id: {
-                render: 'hidden',
-                restrict: ['edit', 'delete'],
-            },
-            owner_id: {
-                render: 'hidden'
-            },
-            year: {
-                key: 1,
-                label: 'Year'
-            },
-            geographic_coverage: {
-                label: 'Geographic Coverage'
-            },
-            jurisdiction: {
-                label: 'Jurisdiction'
-            },
-            affiliation: {
-                label: 'Affiliation'
-            },
-            archive: {
-                label: 'Archive'
-            },
-            collection: {
-                label: 'Collection'
-            },
-            location: {
-                label: 'Location'
-            },
-            sources: {
-                label: 'Sources'
-            },
-            notes: {
-                label: 'Notes'
-            }
+            fieldsets: [
+                {
+                    nodes_id: {
+                        render: 'hidden',
+                        restrict: ['edit', 'delete'],
+                    },
+                    owner_id: {
+                        render: 'hidden'
+                    }
+                },
+                {
+                    legend: 'Survey Season Details',
+                    year: {
+                        key: 1,
+                        label: 'Year'
+                    },
+                    geographic_coverage: {
+                        label: 'Geographic Coverage'
+                    },
+                    jurisdiction: {
+                        label: 'Jurisdiction'
+                    },
+                    affiliation: {
+                        label: 'Affiliation'
+                    },
+                    archive: {
+                        label: 'Archive'
+                    },
+                    collection: {
+                        label: 'Collection'
+                    },
+                    location: {
+                        label: 'Location'
+                    },
+                    sources: {
+                        label: 'Sources'
+                    },
+                    notes: {
+                        label: 'Notes'
+                    }
+                }]
         },
         stations: {
             attributes: {
@@ -256,35 +280,41 @@ export const schema = {
                 singular: "Station",
                 dependents: ['modern_visits', 'modern_captures']
             },
-            nodes_id: {
-                render: 'hidden',
-                restrict: ['edit', 'delete'],
-            },
-            owner_id: {
-                render: 'hidden'
-            },
-            name: {
-                key: 1,
-                label: 'Station'
-            },
-            lat: {
-                label: 'Latitude'
-            },
-            long: {
-                label: 'Longitude'
-            },
-            elev: {
-                label: 'Elevation'
-            },
-            azim: {
-                label: 'Azimuth'
-            },
-            nts_sheet: {
-                label: 'NTS Sheet'
-            },
-            // published: {
-            //     label: 'Published'
-            // }
+            fieldsets: [
+                {
+                    nodes_id: {
+                        render: 'hidden',
+                        restrict: ['edit', 'delete'],
+                    },
+                    owner_id: {
+                        render: 'hidden'
+                    }
+                },
+                {
+                    legend: 'Station Details',
+                    name: {
+                        key: 1,
+                        label: 'Station'
+                    },
+                    nts_sheet: {
+                        label: 'NTS Sheet'
+                    }
+                },
+                {
+                    legend: 'Coordinates',
+                    lat: {
+                        label: 'Latitude'
+                    },
+                    long: {
+                        label: 'Longitude'
+                    },
+                    elev: {
+                        label: 'Elevation'
+                    },
+                    azim: {
+                        label: 'Azimuth'
+                    }
+                }]
         },
         historic_visits: {
             attributes: {
@@ -293,20 +323,28 @@ export const schema = {
                 singular: "Historic Visit",
                 dependents: ['historic_captures']
             },
-            nodes_id: {
-                render: 'hidden',
-                restrict: ['edit', 'delete'],
-            },
-            owner_id: {
-                render: 'hidden'
-            },
-            date: {
-                key: 1,
-                label: 'Visit Date'
-            },
-            comments: {
-                label: 'Comments'
-            }
+            fieldsets: [
+                {
+                    nodes_id: {
+                        render: 'hidden',
+                        restrict: ['edit', 'delete'],
+                    },
+                    owner_id: {
+                        render: 'hidden'
+                    }
+                },
+                {
+                    legend: 'Visit Details',
+                    date: {
+                        key: 1,
+                        render: 'date',
+                        label: 'Visit Date',
+                    },
+                    comments: {
+                        label: 'Comments',
+                    },
+                }
+            ]
         },
         modern_visits: {
             attributes: {
@@ -375,7 +413,7 @@ export const schema = {
                         label: 'Wet Bulb'
                     }
                 }
-                ]
+            ]
         },
         historic_captures: {
             attributes: {
@@ -392,7 +430,7 @@ export const schema = {
                     }
                 },
                 {
-                    legend: 'Historic Images',
+                    legend: 'Image Upload',
                     restrict: ['import'],
                     historic_images: {
                         label: 'Image File',
@@ -405,7 +443,7 @@ export const schema = {
                     }
                 },
                 {
-                    legend: 'Historic Image',
+                    legend: 'Image Upload',
                     render: 'multiple',
                     restrict: ['add', 'edit'],
                     historic_images: {
@@ -419,7 +457,7 @@ export const schema = {
                     }
                 },
                 {
-                    legend:'Digitization Metadata',
+                    legend: 'Digitization Details',
                     fn_photo_reference: {
                         label: 'Field Notes Photo Reference',
                         restrict: ['add', 'edit']
@@ -438,7 +476,7 @@ export const schema = {
                     },
                 },
                 {
-                    legend:'Camera Metadata',
+                    legend: 'Camera Details',
                     f_stop: {
                         label: 'F-stop',
                         restrict: ['add', 'edit']
@@ -453,6 +491,7 @@ export const schema = {
                     },
                     capture_datetime: {
                         label: 'Capture Datetime',
+                        render: 'datetime',
                         restrict: ['add', 'edit']
                     },
                     cameras_id: {
@@ -465,7 +504,7 @@ export const schema = {
                     },
                 },
                 {
-                    legend:'Library Archives Canada (LAC) Metadata',
+                    legend: 'Library Archives Canada (LAC) Metadata',
                     lac_ecopy: {
                         label: 'LAC ECopy',
                         restrict: ['add', 'edit']
@@ -495,59 +534,97 @@ export const schema = {
                 }
             ]
         },
-        modern_captures:{
+        modern_captures: {
             attributes: {
                 order: 9,
                 label: "Modern Captures",
                 singular: "Modern Capture",
                 files: ['modern_images']
             },
-            nodes_id: {
-                render: 'hidden',
-                restrict: ['edit', 'delete'],
-            },
-            owner_id: {
-                render: 'hidden'
-            },
-            lat: {
-                label: 'Latitude'
-            },
-            long: {
-                label: 'Longitude'
-            },
-            elevation: {
-                label: 'Elevation'
-            },
-            fn_photo_reference: {
-                label: 'Field Notes Photo Reference'
-            },
-            f_stop: {
-                label: 'F-stop'
-            },
-            shutter_speed: {
-                label: 'Shutter Speed'
-            },
-            focal_length: {
-                label: 'Focal Length'
-            },
-            capture_datetime: {
-                label: 'Capture Datetime'
-            },
-            cameras_id: {
-                label: 'Camera'
-            },
-            lens_id: {
-                label: 'Lens'
-            },
-            azimuth: {
-                label: 'Azimuth'
-            },
-            comments: {
-                label: 'Comments'
-            },
-            alternate: {
-                label: 'Alternate'
-            }
+            fieldsets: [
+                {
+                    nodes_id: {
+                        render: 'hidden',
+                        restrict: ['edit', 'delete'],
+                    }
+                },
+                {
+                    legend: 'Image Upload',
+                    restrict: ['import'],
+                    modern_images: {
+                        label: 'Image File',
+                        render: 'files',
+                        validate: ['filesSelected']
+                    },
+                    image_state: {
+                        render: 'select',
+                        label: 'Image State',
+                    }
+                },
+                {
+                    legend: 'Image Upload',
+                    render: 'multiple',
+                    restrict: ['add', 'edit'],
+                    historic_images: {
+                        label: 'Image File',
+                        render: 'file',
+                        validate: ['filesSelected'],
+                    },
+                    image_state: {
+                        render: 'select',
+                        label: 'Image State',
+                    }
+                },
+                {
+                    legend: 'Capture Details',
+                    fn_photo_reference: {
+                        label: 'Field Notes Photo Reference'
+                    },
+                    capture_datetime: {
+                        render: 'datetime',
+                        label: 'Capture Datetime'
+                    },
+                    comments: {
+                        label: 'Comments'
+                    },
+                    alternate: {
+                        label: 'Alternate'
+                    }
+                },
+                {
+                    legend: 'Coordinates',
+                    lat: {
+                        label: 'Latitude'
+                    },
+                    long: {
+                        label: 'Longitude'
+                    },
+                    elevation: {
+                        label: 'Elevation'
+                    },
+                    azimuth: {
+                        label: 'Azimuth'
+                    }
+                },
+                {
+                    legend: 'Camera Details',
+                    cameras_id: {
+                        label: 'Camera'
+                    },
+                    lens_id: {
+                        label: 'Lens'
+                    },
+                    f_stop: {
+                        label: 'F-stop'
+                    },
+                    shutter_speed: {
+                        label: 'Shutter Speed'
+                    },
+                    focal_length: {
+                        label: 'Focal Length'
+                    }
+                }
+            ]
         },
         locations: {
             attributes: {
@@ -572,6 +649,7 @@ export const schema = {
                         label: 'Narrative'
                     },
                     location_identity: {
+                        key: 1,
                         label: 'Location ID'
                     },
                     legacy_photos_start: {
@@ -581,113 +659,102 @@ export const schema = {
                         label: 'Photos End Index'
                     }
                 }
-                ]
+            ]
         },
-        historic_images:{
+        historic_images: {
             attributes: {
                 filetype: 'image',
                 order: 11,
                 label: "Historic Images",
                 singular: "Historic Image"
             },
-            files: {
-                label: 'Files',
-                render: 'file',
-                restrict: ['upload', 'edit'],
-                validate: ['filesSelected']
-            },
-            files_id: {
-                render: 'hidden',
-                restrict: ['edit', 'delete'],
-            },
-            id: {
-                render: 'hidden',
-                restrict: ['upload']
-            },
-            owner_id: {
-                render: 'hidden',
-                restrict: ['edit', 'delete']
-            },
-            file_size: {
-                render: 'filesize',
-                label: 'File size',
-                restrict: ['show', 'edit']
-            },
-            x_dim: {
-                render: 'imgsize',
-                label: 'Image Width',
-                restrict: ['show', 'edit']
-            },
-            y_dim: {
-                render: 'imgsize',
-                label: 'Image Height',
-                restrict: ['show', 'edit']
-            },
-
-            comments: {
-                label: 'Comments',
-                restrict: ['show', 'edit', 'delete']
-            }
+            fieldsets: [
+                {
+                    legend: 'Image Details',
+                    file_size: {
+                        render: 'filesize',
+                        label: 'File size',
+                        restrict: ['show', 'edit']
+                    },
+                    x_dim: {
+                        render: 'imgsize',
+                        label: 'Image Width',
+                        restrict: ['show', 'edit']
+                    },
+                    y_dim: {
+                        render: 'imgsize',
+                        label: 'Image Height',
+                        restrict: ['show', 'edit']
+                    },
+                    comments: {
+                        label: 'Comments',
+                        restrict: ['show', 'edit', 'delete']
+                    }
+                }]
         },
-        modern_images:{
+        modern_images: {
             attributes: {
                 filetype: 'image',
                 order: 12,
                 label: "Modern Images",
                 singular: "Modern Image"
             },
-            files_id: {
-                render: 'hidden',
-                restrict: ['edit', 'delete']
-            },
-            owner_id: {
-                render: 'hidden'
-            },
-            file_size: {
-                label: 'File size'
-            },
-            x_dim: {
-                label: 'Image Width'
-            },
-            y_dim: {
-                label: 'Image Height'
-            },
-            bit_depth: {
-                label: 'Bit Depth'
-            },
-            image_remote: {
-                label: 'Remote'
-            },
-            comments: {
-                label: 'Comments'
-            },
-            lat: {
-                label: 'Latitude'
-            },
-            long: {
-                label: 'Longitude'
-            },
-            f_stop: {
-                label: 'F-stop'
-            },
-            shutter_speed: {
-                label: 'Shutter Speed'
-            },
-            focal_length: {
-                label: 'Focal Length'
-            },
-            iso: {
-                label: 'ISO'
-            },
-            capture_datetime: {
-                label: 'Capture Datetime'
-            },
-            cameras_id: {
-                label: 'Camera'
-            },
-            lens_id: {
-                label: 'Lens'
-            },
+            fieldsets: [
+                {
+                    legend: 'Image Details',
+                    file_size: {
+                        label: 'File size'
+                    },
+                    x_dim: {
+                        label: 'Image Width'
+                    },
+                    y_dim: {
+                        label: 'Image Height'
+                    },
+                    bit_depth: {
+                        label: 'Bit Depth'
+                    },
+                    image_remote: {
+                        label: 'Remote'
+                    },
+                    capture_datetime: {
+                        label: 'Capture Datetime'
+                    },
+                    comments: {
+                        label: 'Comments'
+                    }
+                },
+                {
+                    legend: 'Coordinates',
+                    lat: {
+                        label: 'Latitude'
+                    },
+                    long: {
+                        label: 'Longitude'
+                    }
+                },
+                {
+                    legend: 'Camera Details',
+                    cameras_id: {
+                        label: 'Camera'
+                    },
+                    lens_id: {
+                        label: 'Lens'
+                    },
+                    f_stop: {
+                        label: 'F-stop'
+                    },
+                    shutter_speed: {
+                        label: 'Shutter Speed'
+                    },
+                    focal_length: {
+                        label: 'Focal Length'
+                    },
+                    iso: {
+                        label: 'ISO'
+                    }
+                }]
+
         },
         supplemental_images: {
             attributes: {
@@ -696,61 +763,66 @@ export const schema = {
                 label: "Supplemental Images",
                 singular: "Supplemental Image"
             },
-            files_id: {
-                render: 'hidden',
-                restrict: ['edit', 'delete'],
-            },
-            owner_id: {
-                render: 'hidden'
-            },
-            image_type: {
-                label: 'Type'
-            },
-            file_size: {
-                label: 'File size'
-            },
-            x_dim: {
-                label: 'Image Width'
-            },
-            y_dim: {
-                label: 'Image Height'
-            },
-            bit_depth: {
-                label: 'Bit Depth'
-            },
-            image_remote: {
-                label: 'Remote'
-            },
-            comments: {
-                label: 'Comments'
-            },
-            lat: {
-                label: 'Latitude'
-            },
-            long: {
-                label: 'Longitude'
-            },
-            f_stop: {
-                label: 'F-stop'
-            },
-            shutter_speed: {
-                label: 'Shutter Speed'
-            },
-            focal_length: {
-                label: 'Focal Length'
-            },
-            iso: {
-                label: 'ISO'
-            },
-            capture_datetime: {
-                label: 'Capture Datetime'
-            },
-            cameras_id: {
-                label: 'Camera'
-            },
-            lens_id: {
-                label: 'Lens'
-            },
+            fieldsets: [
+                {
+                    legend: 'Image Details',
+                    image_type: {
+                        label: 'Type'
+                    },
+                    capture_datetime: {
+                        label: 'Capture Datetime'
+                    },
+                    file_size: {
+                        label: 'File size'
+                    },
+                    x_dim: {
+                        label: 'Image Width'
+                    },
+                    y_dim: {
+                        label: 'Image Height'
+                    },
+                    bit_depth: {
+                        label: 'Bit Depth'
+                    },
+                    image_remote: {
+                        label: 'Remote'
+                    },
+                    comments: {
+                        label: 'Comments'
+                    }
+                },
+                {
+                    legend: 'Coordinates',
+                    lat: {
+                        label: 'Latitude'
+                    },
+                    long: {
+                        label: 'Longitude'
+                    }
+                },
+                {
+                    legend: 'Camera Details',
+                    cameras_id: {
+                        render: 'select',
+                        label: 'Camera'
+                    },
+                    lens_id: {
+                        render: 'select',
+                        label: 'Lens'
+                    },
+                    f_stop: {
+                        label: 'F-stop'
+                    },
+                    shutter_speed: {
+                        label: 'Shutter Speed'
+                    },
+                    focal_length: {
+                        label: 'Focal Length'
+                    },
+                    iso: {
+                        label: 'ISO'
+                    }
+                }]
         },
         metadata_files: {
             attributes: {
@@ -758,17 +830,16 @@ export const schema = {
                 label: "Metadata Files",
                 singular: "Metadata File"
             },
-            files_id: {
-                render: 'hidden',
-                restrict: ['edit', 'delete'],
-            },
-            owner_id: {
-                render: 'hidden'
-            },
-            type: {
-                label: 'Type'
-            }
+            fieldsets: [
+                {
+                    legend: 'File Details',
+                    type: {
+                        label: 'Type'
+                    }
+                }]
         },
+    },
+    attached: {
         cameras: {
             make: 'Make',
             model: 'Model',

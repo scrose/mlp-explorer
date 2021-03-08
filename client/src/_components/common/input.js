@@ -23,6 +23,7 @@ const AttachFile = ({type, id, name, onChange, value, label, error}) => {
             {label}
             <input
                 type={"file"}
+                id={id}
                 name={name}
                 onChange={onChange}
                 multiple={false}
@@ -91,6 +92,7 @@ const ValidationMessage = ({msg}) => {
  */
 
 const Input = ({
+                   id,
                    type,
                    name,
                    label,
@@ -104,8 +106,8 @@ const Input = ({
     // input conditional states
     const [autoClick, setAutoClick] = React.useState(true);
 
-    // generate unique ID value for input
-    const id = Math.random().toString(16).substring(2);
+    // append unique ID value for input
+    id = `${name}_${id}`;
 
     /**
      * Input constructors for different render types.

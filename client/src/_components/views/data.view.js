@@ -9,13 +9,11 @@ import React from 'react';
 import { useRouter } from '../../_providers/router.provider.client';
 import Form from '../common/form';
 import ItemView from './item.view';
-import ListNodes from '../nodes/list.nodes';
 import NotfoundError from '../error/notfound.error';
 import Loading from '../common/loading';
 import ServerError from '../error/server.error';
 import { useData } from '../../_providers/data.provider.client';
 import { genSchema, getRenderType } from '../../_services/schema.services.client';
-import Uploader from './importer.view';
 import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
 import Importer from './importer.view';
 
@@ -27,28 +25,14 @@ import Importer from './importer.view';
 
 const DataView = () => {
 
-    // extract API data
     const api = useData();
-    const { view='', model='', schema={}, data=null, options=[] } = api || {};
-    const render = getRenderType(view, model);
-
-    // select default form callback for view
     const router = useRouter();
 
-    // mounted flag
-    const _isMounted = React.useRef(false);
-
-    //
-    // // update fieldset data
-    // React.useEffect(() => {
-    //     _isMounted.current = true;
-    //     if (fieldsetData.length === 0) {
-    //         setFieldsetData(fieldsets);
-    //     }
-    //     return () => {
-    //         _isMounted.current = false;
-    //     };
-    // }, [fieldsets]);
+    // extract API data
+    const { view='', model='', data=null, attributes={} } = api || {};
+    const { dependents=[], options=[] } = data || {};
+    const render = getRenderType(view, model);
+    const schema = genSchema(view, model, attributes);
 
     // view components indexed by render type
     const renders = {
@@ -61,7 +45,7 @@ const DataView = () => {
                 callback={router.post}
             />),
         item: () => (
-            <ItemView />),
+            <ItemView model={model} data={data} dependents={dependents} />),
         import: () => (
             <Importer
                 view={view}

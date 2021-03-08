@@ -19,7 +19,7 @@ import { sanitize } from '../../_utils/data.utils.client';
  * @return {JSX.Element}
  */
 
-const Item = ({data, view, model}) => {
+const Item = ({model, view, data={}}) => {
 
     // generate main schema
     const { fieldsets=[] }  = genSchema(view, model);
@@ -42,7 +42,6 @@ const Item = ({data, view, model}) => {
             fieldsets
                 .filter(fieldset => fieldset.hasOwnProperty('legend') && fieldset.legend)
                 .map((fieldset, index) => {
-                    console.log(fieldset)
                     return <table key={`fsdata_${index}`} className={'item'}>
                         <thead>
                             <tr>

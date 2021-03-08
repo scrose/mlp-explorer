@@ -68,18 +68,23 @@ const Form = ({
 
     // initialize state for input parameters
     const [data, setData] = React.useState(init);
-    const [fieldsetData, setFieldsetData] = React.useState(fieldsets);
+    const [fieldsetData, setFieldsetData] = React.useState([]);
     const [isDisabled, setDisabled] = React.useState(false);
 
-    if (fieldsetData.length === 0) {
-        setFieldsetData(fieldsets);
-    }
+    React.useEffect(() => {
+        if (fieldsetData.length === 0 && fieldsets.length !== 0) {
+            setFieldsetData(fieldsets);
+        }
+    }, [fieldsetData, fieldsets]);
 
     // create input error states
     const [errors, setErrors] = React.useState({});
 
     // create error message state
     const [message, setMessage] = React.useState({});
+
+    // generate unique ID value for form inputs
+    const formID = Math.random().toString(16).substring(2);
 
     /**
      * Generate form data validation handlers.
@@ -188,7 +193,6 @@ const Form = ({
 
             // insert new fieldset into state
             fieldsets.splice(index + 1, 0, fieldsetCopy);
-            console.log('!!!!!!!!!!!!!!!!')
             setFieldsetData(fieldsets);
 
             // re-generate validators
@@ -210,7 +214,6 @@ const Form = ({
         try {
             let fieldsets = [...fieldsetData]  ;  // make a separate copy of the array
             fieldsets.splice(index, 1);
-            console.log('!???????????????')
             setFieldsetData(fieldsets);
             validators = generateValidators();
         }
@@ -227,7 +230,7 @@ const Form = ({
 
     return (
         <form
-            id={model}
+            id={formID}
             name={model}
             method={method}
             onSubmit={handleSubmit}
@@ -239,6 +242,7 @@ const Form = ({
                         return (
                             <div key={index}>
                                 <Fieldset
+                                    formID={formID}
                                     model={model}
                                     index={index}
                                     mode={fieldset.render}

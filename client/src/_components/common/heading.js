@@ -45,6 +45,8 @@ const Heading = () => {
             : headings.default
     }
 
+    console.log(api.model, modelLabel, nodeLabel, genHeading())
+
     return <h3>{ staticLabel ? staticLabel : genHeading()}</h3>
 }
 

@@ -34,7 +34,7 @@ function DataProvider(props) {
     const [apiData, setAPIData] = React.useState({});
     const [view, setView] = React.useState('');
     const [model, setModel] = React.useState('');
-    const [schema, setSchema] = React.useState({});
+    const [attributes, setAttributes] = React.useState({});
     const [path, setPath] = React.useState([]);
 
     // messenger
@@ -78,7 +78,7 @@ function DataProvider(props) {
                         setAPIData(data);
                         setView(view);
                         setModel(name);
-                        setSchema(genSchema(view, name, attributes));
+                        setAttributes(attributes);
                         setPath(path);
                         setMessage(message);
                     }
@@ -102,11 +102,11 @@ function DataProvider(props) {
             {
                 view,
                 model,
-                schema,
                 path,
                 nodes: currentNodes,
                 root: root,
                 data: apiData,
+                attributes: attributes,
                 message,
                 setMessage
             }

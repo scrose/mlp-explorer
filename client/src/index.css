@@ -55,7 +55,8 @@ div#root {
 .navigator {
     display:inline-block;
     height: 80vh;
-    min-width: 350px;
+    width:40%;
+    min-width: 400px;
     background-color: #FFFFFF;
     overflow: scroll;
     text-align: center;
@@ -93,7 +94,7 @@ div.main {
 }
 
 .viewer, .editor {
-    width: 100%;
+    width: 60%;
     display:inline-block;
     height: 80vh;
     vertical-align: top;
@@ -114,6 +115,7 @@ div.main {
 }
 
 .view {
+    width: 100%;
     padding: 10px;
 }
 
@@ -715,7 +717,8 @@ nav.breadcrumb ul li a:hover {
 }
 
 .modern_visits {
-    background-color: #29881B !important;
+    background-color: #DDD !important;
+    color: #29881B !important;
 }
 
 .stations {
@@ -732,7 +735,8 @@ nav.breadcrumb ul li a:hover {
 }
 
 .modern_captures {
-    background-color: #B65179 !important;
+    background-color: #DDD !important;
+    color: #B65179 !important;
 }
 
 /*

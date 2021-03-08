@@ -18,7 +18,6 @@ import sharp from 'sharp';
 import path from 'path';
 import pool from './db.services.js';
 import { Transform, PassThrough, Writable, Duplex, Readable } from 'stream';
-import xmpReader from 'xmp-reader';
 import { imageSizes } from '../../app.config.js';
 import { genUUID } from '../lib/data.utils.js';
 import queries from '../queries/index.queries.js';

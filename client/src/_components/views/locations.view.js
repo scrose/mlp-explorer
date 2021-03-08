@@ -7,7 +7,6 @@
 
 import React from 'react';
 import Item from '../common/item';
-import { capitalize } from '../../_utils/data.utils.client';
 import Accordion from '../common/accordion';
 import ItemMenu from '../menus/item.menu';
 import CapturesView from './captures.view';
@@ -17,25 +16,29 @@ import CapturesView from './captures.view';
  *
  * @public
  * @param {Object} apiData
- * @param {Object} data
+ * @param {Object} locations
  * @return {JSX.Element}
  */
 
-const LocationsView = ({model, data, dependent}) => {
-
-    // render node tree
+const LocationsView = ({
+                           model,
+                           locations,
+                           dependent,
+                           metadata,
+                           options
+}) => {
     return (
         <div className={`item`}>
             {
-                data.map(location => {
-                    const { dependents=[], id='', nodes_id='', type='', options=[] } = location || {};
-                    const { data={} } = location || {};
-                    const { location_identity = '' } = data || {};
+                locations.map(location => {
+                    const { type='', data={}, dependents=[], id='', nodes_id=''} = location || {};
+                    const { location_identity='' } = data || {};
+
                     return (
                         <Accordion
-                            key={id}
+                            key={id || nodes_id}
                             type={type || model}
-                            label={capitalize(location_identity || model)}
+                            label={location_identity}
                             open={true}
                             menu={
                                 <ItemMenu
@@ -53,7 +56,7 @@ const LocationsView = ({model, data, dependent}) => {
                 })
             }
             <Accordion key={'md'} type={'info'} label={`Metadata`} open={true}>
-                <Item view={'show'} model={model} data={data} />
+                <Item view={'show'} model={model} data={metadata} />
             </Accordion>
         </div>
     )

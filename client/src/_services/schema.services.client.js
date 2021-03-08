@@ -103,23 +103,6 @@ export const getRenderType = (view, model) => {
 }
 
 /**
- * Get field settings from schema.
- *
- * @public
- * @param {String} key
- * @param {String} type
- * @return {Object} message
- */
-
-export const getField = (key='', type='common') => {
-    const modelSchema = schema.models.hasOwnProperty(type)
-        ? schema.models[type] : '';
-    return modelSchema
-        ? modelSchema.hasOwnProperty(key)
-            ? modelSchema[key] : '' : '';
-}
-
-/**
  * Generate lookup table for field key(s) used to assign labels for nodes.
  * - Selects only fields assigned as label keys.
  * - Keys are sorted by the order value assigned to 'key' in the field.
@@ -130,14 +113,20 @@ export const getField = (key='', type='common') => {
 
 const labelKeys = Object.keys(schema.models)
         .reduce((o, model) => {
-            // select keys from fields
-            o[model] = Object.keys(schema.models[model])
-                .filter(field => schema.models[model][field].key || field === 'attributes')
-                .reduce((o, field) => {
-                    // index field labels by position
-                    o[field] = schema.models[model][field];
-                    return o;
-                }, {});
+            // select assigned label keys from fields in model fieldsets
+            o[model] = schema.models[model].fieldsets
+                .reduce((fset, fieldset) => {
+                        Object.keys(fieldset)
+                        .filter(field => fieldset[field].key && field !== 'legend' && field !== 'render')
+                        .map(field => {
+                            fset[field] = fieldset[field];
+                            return fset;
+                        })
+                    return fset;
+                }, {})
+
+            // include general attributes
+            o[model].attributes = schema.models[model].attributes;
             return o;
         }, {});
 
@@ -177,10 +166,10 @@ export const getViewLabel = (view) => {
  */
 
 export const getModelLabel = (model, type='singular') => {
-    if (labelKeys.hasOwnProperty(model)) {
-        const { attributes = {} } = labelKeys[model] || {};
+    if (schema.models.hasOwnProperty(model)) {
+        const { attributes = {} } = schema.models[model] || {};
         return attributes.hasOwnProperty(type)
-            ? labelKeys[model].attributes[type]
+            ? schema.models[model].attributes[type]
             : '';
     }
     return '';
@@ -216,23 +205,23 @@ export const getDependents = (model) => {
 export const getNodeLabel = (node) => {
 
     // get label keys for node type from schema
-    const {type='', data={}} = node || {};
-    const lkeys = getLabelKeys(type) || [];
+    const { type='', data={} } = node || {};
+    const labelKeys = getLabelKeys(type) || [];
 
     // get default label
-    const { attributes={singular: '', key: ''} } = lkeys || {};
+    const { attributes={singular: '', key: ''} } = labelKeys || {};
 
     // iterate over label keys assigned in schema
-    const label = Object.keys(lkeys)
-        .filter(field => data.hasOwnProperty(field) && data[field])
-        .sort(function(fieldA,fieldB) {
-            return lkeys[fieldA].key - lkeys[fieldB].key;
+    const label = Object.keys(labelKeys)
+        .filter(labelKey => data.hasOwnProperty(labelKey) && data[labelKey])
+        .sort(function(labelKeyA,labelKeyB) {
+            return labelKeys[labelKeyA].key - labelKeys[labelKeyB].key;
         })
         .map(field => {
             return sanitize(
                 data[field],
-                lkeys[field].hasOwnProperty('render')
-                    ? lkeys[field].render
+                labelKeys[field].hasOwnProperty('render')
+                    ? labelKeys[field].render
                     : ''
             )
         })
@@ -361,11 +350,13 @@ export const genSchema = (view, model, modelAttributes={}) => {
                         )
                     )
                     .map(fieldKey => {
+
+                        // get optional model attributes from API data
                         const {value='', options=[], label=''} = modelAttributes && modelAttributes.hasOwnProperty(fieldKey)
                             ? modelAttributes[fieldKey]
                             : {};
 
-                            return {
+                        return {
                             name: render === 'multiple' ? `${fieldKey}[${index}]` : fieldKey,
                             id: fieldKey,
                             label: fieldset[fieldKey].label || label,

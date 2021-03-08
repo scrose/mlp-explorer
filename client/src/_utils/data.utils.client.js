@@ -85,14 +85,14 @@ export const sanitize = (value, render='', href='', title='') => {
         date: ({ value }) => {
             const date = new Date(value);
             const month = date.toLocaleString('default', { month: 'long' });
-            return `${month} ${date.getDate()}, ${date.getFullYear()}`;
+            return value ? `${month} ${date.getDate()}, ${date.getFullYear()}` : '-';
         },
         timestamp: ({ value }) => {
             const date = new Date(value);
             return `${date.toLocaleString()}`;
         },
         text: ({ value }) => {
-            return value != null ? String(value) : '-';
+            return value ? String(value) : '-';
         },
         filesize: ({ value }) => {
             return value != null ? (parseFloat(value)/1000000).toFixed(2) + ' MB' : '-';

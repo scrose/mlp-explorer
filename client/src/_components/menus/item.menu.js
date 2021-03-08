@@ -9,10 +9,8 @@ import React from 'react';
 import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
 import { useUser } from '../../_providers/user.provider.client';
 import { useRouter } from '../../_providers/router.provider.client';
-import Button from '../common/button';
 import { genSchema, getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
 import Alert from '../common/alert';
-import { useData } from '../../_providers/data.provider.client';
 import Dialog from '../common/dialog';
 import Importer from '../views/importer.view';
 import Item from '../common/item';
@@ -28,10 +26,10 @@ import Item from '../common/item';
 const ItemMenu = ({ item, model, dependent, id, options }) => {
 
     const { data=null } = item || {};
-
     const user = useUser();
     const router = useRouter();
-    const api = useData();
+
+    console.log('Item Menu', getNodeLabel(data), model, dependent, id, data)
 
     return (
         <div className={'item h-menu'}>
@@ -71,7 +69,7 @@ const ItemMenu = ({ item, model, dependent, id, options }) => {
                             description={
                                 <div>
                                     <p>Please confirm the deletion of {getModelLabel(model)}:</p>
-                                    <p><b>{getNodeLabel(api.root)}</b></p>
+                                    <p><b>{getNodeLabel(item)}</b></p>
                                     <p>Note that any dependent nodes for this record will also be deleted.</p>
                                 </div>
                             }
@@ -83,7 +81,7 @@ const ItemMenu = ({ item, model, dependent, id, options }) => {
                     <li key={'add'}>
                         <Dialog
                             icon={'add'}
-                            title={`Add new ${getModelLabel(dependent)} record.`}
+                            title={`Add new ${getModelLabel(dependent)}.`}
                             children={
                                 <Importer
                                     view={'add'}

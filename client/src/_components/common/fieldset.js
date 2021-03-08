@@ -20,8 +20,8 @@ import Button from './button';
  */
 
 const Fieldset = ({
+                      formID,
                       model,
-                      index,
                       mode,
                       legend,
                       fields,
@@ -95,6 +95,7 @@ const Fieldset = ({
                     return (
                         <Input
                             key={`key_${key}`}
+                            id={formID}
                             type={render}
                             name={name}
                             label={label}
