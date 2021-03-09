@@ -220,7 +220,6 @@ export const getModelDependents = async (item, depth=2) => {
         let dependents = await selectByOwner(item.id);
 
         // append first-level dependents
-        if (depth > 1)
             dependents = await Promise.all(dependents.map(async (node) => {
                 node.data = await selectByNode(node, client);
                 node.files = await fserve.selectByOwner(node.id, client) || [];

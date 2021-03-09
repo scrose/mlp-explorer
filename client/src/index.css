@@ -392,6 +392,7 @@ nav.breadcrumb ul li a:hover {
 }
 .h-menu ul li button {
     margin: 0 4px;
+    max-width: 300px;
 }
 
 
@@ -652,7 +653,7 @@ nav.breadcrumb ul li a:hover {
     border: none;
     outline: none;
     cursor: pointer;
-    padding: 14px 16px;
+    padding: 5px;
     transition: 0.3s;
     background-color: transparent;
     height: 100%;
@@ -704,11 +705,13 @@ nav.breadcrumb ul li a:hover {
 /* Model colour schema */
 
 .surveys {
-    background-color: #008896 !important;
+    background-color: #DDD !important;
+    color: #008896 !important;
 }
 
 .survey_seasons {
-    background-color: #3BBD99 !important;
+    background-color: #DDD !important;
+    color: #3BBD99 !important;
 }
 
 .historic_visits {
@@ -722,7 +725,8 @@ nav.breadcrumb ul li a:hover {
 }
 
 .stations {
-    background-color: #9E5E9B !important;
+    background-color: #DDD !important;
+    color: #9E5E9B !important;
 }
 
 .locations {
@@ -731,7 +735,8 @@ nav.breadcrumb ul li a:hover {
 }
 
 .historic_captures {
-    background-color: #B65179 !important;
+    background-color: #DDD !important;
+    color: #B65179 !important;
 }
 
 .modern_captures {

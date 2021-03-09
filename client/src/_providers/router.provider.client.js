@@ -56,8 +56,15 @@ function RouterProvider(props) {
         // set app route state
         setRoute(uri);
 
-        // reroute view
-        reroute(uri);
+        window.history.pushState = (state, title, uri) => {
+            this.setState({url: url, user: state})
+
+            oldPushState.call(window.history, state, title, url)
+        };
+        window.onpopstate = (event) => {
+            setRoute(uri);
+        };
+
     }
 
     /**

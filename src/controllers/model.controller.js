@@ -101,10 +101,8 @@ export default function ModelController(nodeType) {
             // add associated files (if they exist)
             data.files = await fserve.selectByOwner(id, client);
 
-            console.log('Path:', Object.keys(path).length)
-
             // calculate the depth of the node path
-            const depth = 6 - Object.keys(path).length;
+            const depth = Object.keys(path).length;
 
             // get linked data referenced in node tree
             return await nserve.getModelDependents(item, depth)

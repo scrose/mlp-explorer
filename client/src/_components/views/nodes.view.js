@@ -10,6 +10,8 @@ import Item from '../common/item';
 import { getModelLabel, getNodeLabel, getNodeOrder } from '../../_services/schema.services.client';
 import { FilesList } from './files.view';
 import Accordion from '../common/accordion';
+import ItemView from './item.view';
+import ItemMenu from '../menus/item.menu';
 
 /**
  * Node item view component.
@@ -23,7 +25,7 @@ import Accordion from '../common/accordion';
 const NodeItem = ({node, model}) => {
 
     // get any available dependents
-    const { dependents=[], files=[], type=model } = node || {};
+    const { dependents=[], type=model, data={} } = node || {};
 
     // render tree node
     return (
@@ -31,12 +33,7 @@ const NodeItem = ({node, model}) => {
             <Accordion type={'info'} label={`${getModelLabel(type)} Metadata`}>
                 <Item view={'show'} model={type} data={node} />
             </Accordion>
-            <div>
-                <FilesList files={files} />
-            </div>
-            <div>
-                <NodeList nodes={dependents}/>
-            </div>
+            <NodeList nodes={dependents} />
         </div>
     );
 }
@@ -75,9 +72,23 @@ const NodeList = ({nodes}) => {
         <div>
             {
                 nodes.map(node =>
-                    // <Accordion key={node.id} type={node.type} label={node.label}>
-                        <NodeItem node={node}/>
-                    // </Accordion>
+                    <Accordion
+                        key={node.id}
+                        id={node.id}
+                        type={node.type}
+                        label={node.label}
+                        open={false}
+                        menu={
+                            <ItemMenu
+                                item={node}
+                                model={node.type}
+                                id={node.id}
+                                options={node.options}
+                            />
+                        }
+                    >
+                        <ItemView dependents={node.dependents} data={node} model={node.type} />
+                    </Accordion>
                 )
             }
         </div>
@@ -94,13 +105,9 @@ const NodeList = ({nodes}) => {
  */
 
 const NodesView = ({data, model}) => {
-
-    // render node tree
     return (
         <div className={`item`}>
-            <Accordion key={'md'} type={'info'} label={`Metadata`} open={false}>
-                <Item view={'show'} model={model} data={data} />
-            </Accordion>
+            <NodeItem model={model} node={data} />
         </div>
     )
 }

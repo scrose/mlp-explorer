@@ -8,7 +8,7 @@
 import React from 'react';
 import Icon from './icon';
 import { getModelLabel } from '../../_services/schema.services.client';
-import { getNodeURI } from '../../_utils/paths.utils.client';
+import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
 import { capitalize } from '../../_utils/data.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 
@@ -21,10 +21,12 @@ import { useRouter } from '../../_providers/router.provider.client';
  * @return {JSX.Element}
  */
 
-const Accordion = ({type, label='', open=false, menu=null, children}) => {
+const Accordion = ({type, label='', id='', open=false, menu=null, children}) => {
 
     // accordion toggle state
     const [toggle, setToggle] = React.useState(open);
+
+    const router = useRouter();
 
     // render tree node
     return (
@@ -43,11 +45,27 @@ const Accordion = ({type, label='', open=false, menu=null, children}) => {
                         {
                             type ?
                                 <li key={`accordion_icon`}>
+                                    <button
+                                        title={`View ${label}.`}
+                                        onClick={() => {setToggle(!toggle)}}
+                                    >
+                                        <Icon type={type}/>
+                                    </button>
+                                </li>
+                                : ''
+                        }
+                        {
+                            type ?
+                                <li key={`accordion_label`}>
                                 <button
-                                    title={`View ${label}.`}
-                                    onClick={() => {setToggle(!toggle)}}
+                                    title={`Go to ${label}.`}
+                                    onClick={() => {
+                                        id
+                                            ? router.update(getNodeURI(type, 'show', id))
+                                            : setToggle(!toggle)
+                                    }}
                                 >
-                                    <Icon type={type}/>&#160;&#160;{getModelLabel(type)}
+                                    {getModelLabel(type)}
                                     {label && getModelLabel(type) ? ': ' : ''}
                                     {label}
                                 </button>

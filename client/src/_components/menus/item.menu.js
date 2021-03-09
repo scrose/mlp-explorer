@@ -39,7 +39,7 @@ const ItemMenu = ({ item, model, dependent, id, options }) => {
                     <li key={'show'}>
                         <Dialog
                             icon={'show'}
-                            title={`${getModelLabel(model)} Metadata.`}
+                            title={`${getModelLabel(model)}`}
                             children={
                                 <Item model={model} data={data} view={'show'} />
                             }
@@ -50,12 +50,17 @@ const ItemMenu = ({ item, model, dependent, id, options }) => {
                     <li key={'edit'}>
                         <Dialog
                             icon={'edit'}
-                            title={`Edit ${getModelLabel(model)} Metadata.`}
+                            title={`Edit ${getModelLabel(model)}`}
                             children={
                                 <Importer
+                                    view={'edit'}
                                     model={model}
-                                    callback={router.post}
-                                    schema={genSchema('edit', model)}
+                                    options={options}
+                                    schema={genSchema('add', dependent)}
+                                    route={getNodeURI(dependent, 'new', id)}
+                                    callback={() => {
+                                        redirect(getNodeURI(model, 'show', id));
+                                    }}
                                 />
                             }
                         />
