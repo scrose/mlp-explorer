@@ -33,7 +33,7 @@ const Dialog = ({title, label, icon, children, active=false}) => {
             <div className={`dialog ${toggle ? 'active' : ''}`}>
                 <div className={'content-box'}>
                     <div className={'dialog-header'}>
-                        <Button icon={'close'} name={'cancel'} label={'Cancel'} onClick={handleClose} />
+                        <Button icon={'close'} name={'close'} label={'Close'} onClick={handleClose} />
                     </div>
                     <h2 className={'dialog-title'} id="dialog-title">
                         {title}

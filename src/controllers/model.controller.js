@@ -16,7 +16,6 @@ import * as nserve from '../services/nodes.services.js';
 import * as fserve from '../services/files.services.js';
 import { prepare } from '../lib/api.utils.js';
 import pool from '../services/db.services.js';
-import { hasDependents, selectByNode } from '../services/nodes.services.js';
 
 /**
  * Shared data.
@@ -51,11 +50,6 @@ export default function ModelController(nodeType) {
         Model = await cserve.create(nodeType);
         model = new Model();
         db = new ModelServices(model);
-
-        // get model options
-        options = {
-            image_state: await fserve.getImageStates()
-        };
     }
 
     /**
@@ -107,11 +101,13 @@ export default function ModelController(nodeType) {
             // add associated files (if they exist)
             data.files = await fserve.selectByOwner(id, client);
 
-            // include image states in model
-            data.options = options;
+            console.log('Path:', Object.keys(path).length)
+
+            // calculate the depth of the node path
+            const depth = 6 - Object.keys(path).length;
 
             // get linked data referenced in node tree
-            return await nserve.getModelDependents(item)
+            return await nserve.getModelDependents(item, depth)
                 .then(dependents => {
 
                     // append dependent nodes to data

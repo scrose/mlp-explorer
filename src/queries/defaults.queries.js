@@ -286,6 +286,35 @@ export function getAttached(model) {
     };
 }
 
+/**
+ * Query: Get all camera types.
+ *
+ * @return {Object} query binding
+ */
+
+export function cameras() {
+    return {
+        sql: `SELECT *
+              FROM cameras;`,
+        data: [],
+    };
+}
+
+/**
+ * Query: Get all lens types.
+ *
+ * @return {Object} query binding
+ */
+
+export function lens() {
+    return {
+        sql: `SELECT *
+              FROM lens;`,
+        data: [],
+    };
+}
+
+
 
 
 

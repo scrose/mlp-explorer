@@ -98,7 +98,9 @@ const NodesView = ({data, model}) => {
     // render node tree
     return (
         <div className={`item`}>
-            <NodeItem node={data} model={model} />
+            <Accordion key={'md'} type={'info'} label={`Metadata`} open={false}>
+                <Item view={'show'} model={model} data={data} />
+            </Accordion>
         </div>
     )
 }

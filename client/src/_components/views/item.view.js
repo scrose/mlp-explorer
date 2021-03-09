@@ -11,6 +11,7 @@ import NodesView from './nodes.view';
 import CaptureView from './capture.view';
 import ImageView from './image.view';
 import LocationsView from './locations.view';
+import StationsView from './stations.view';
 
 /**
  * Data item (record) component.
@@ -20,19 +21,28 @@ import LocationsView from './locations.view';
 
 const ItemView = ({model, data, dependents}) => {
 
+    const { options={} } = data || {};
+
     // view components indexed by model type
     const itemViews = {
+        stations: () => <StationsView
+            metadata={ data }
+            dependents={dependents}
+            options={options}
+        />,
         modern_visits: () => <LocationsView
             locations={dependents}
             metadata={data}
             model={model}
             dependent={'modern_captures'}
+            options={options}
         />,
         historic_visits: () => <LocationsView
             locations={[data]}
             metadata={data}
             model={model}
             dependent={'historic_captures'}
+            options={options}
         />,
         historic_captures: () => <CaptureView data={ data } model={model} />,
         modern_captures: () => <CaptureView data={ data } model={model} />,

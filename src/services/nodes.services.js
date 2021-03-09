@@ -15,7 +15,7 @@
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
 import { mapToObj } from '../lib/data.utils.js';
-import * as fs from './files.services.js';
+import * as fserve from './files.services.js';
 
 /**
  * Get node by ID. Returns single node object.
@@ -79,7 +79,7 @@ export const get = async (id) => {
 
         // append model data, files and dependents (child nodes)
         node.data = await selectByNode(node);
-        node.files = await fs.selectByOwner(node.id);
+        node.files = await fserve.selectByOwner(node.id);
         node.dependents = await selectByOwner(node.id) || [];
         node.hasDependents = await hasDependents(node.id) || false;
 
@@ -166,7 +166,7 @@ export const selectByOwner = async (id, client=pool) => {
     // append full data for each dependent node
     nodes = await Promise.all(nodes.map(async (node) => {
         node.data = await selectByNode(node, client);
-        node.files = await fs.selectByOwner(node.id, client) || [];
+        node.files = await fserve.selectByOwner(node.id, client) || [];
         node.hasDependents = await hasDependents(node.id, client) || false;
         return node;
     }));
@@ -203,10 +203,11 @@ export const hasDependents = async (id, client=pool) => {
  *
  * @public
  * @param {Object} item
+ * @param {Integer} depth
  * @return {Promise} result
  */
 
-export const getModelDependents = async (item) => {
+export const getModelDependents = async (item, depth=2) => {
 
     // NOTE: client undefined if connection fails.
     const client = await pool.connect();
@@ -218,13 +219,24 @@ export const getModelDependents = async (item) => {
         // get first-level full data for each dependent node
         let dependents = await selectByOwner(item.id);
 
-        // append second-level full data for each sub-dependent node
-        dependents = await Promise.all(dependents.map(async (node) => {
-            node.data = await selectByNode(node, client);
-            node.files = await fs.selectByOwner(node.id, client) || [];
-            node.dependents = await selectByOwner(node.id, client);
-            return node;
-        }));
+        // append first-level dependents
+        if (depth > 1)
+            dependents = await Promise.all(dependents.map(async (node) => {
+                node.data = await selectByNode(node, client);
+                node.files = await fserve.selectByOwner(node.id, client) || [];
+                node.dependents = await selectByOwner(node.id, client);
+
+                // append second-level dependents
+                if (depth > 3)
+                    node.dependents = await Promise.all(node.dependents.map(async (node) => {
+                        node.data = await selectByNode(node, client);
+                        node.files = await fserve.selectByOwner(node.id, client) || [];
+                        node.dependents = await selectByOwner(node.id, client);
+                        return node;
+                    }));
+
+                return node;
+            }));
 
         // end transaction
         await client.query('COMMIT');

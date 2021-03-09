@@ -55,9 +55,9 @@ const LocationsView = ({
                     )
                 })
             }
-            <Accordion key={'md'} type={'info'} label={`Metadata`} open={true}>
-                <Item view={'show'} model={model} data={metadata} />
-            </Accordion>
+            {/*<Accordion key={'md'} type={'info'} label={`Metadata`} open={true}>*/}
+            {/*    <Item view={'show'} model={model} data={metadata} />*/}
+            {/*</Accordion>*/}
         </div>
     )
 }

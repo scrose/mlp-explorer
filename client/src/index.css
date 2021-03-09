@@ -99,7 +99,7 @@ div.main {
     height: 80vh;
     vertical-align: top;
     background-color: #FFFFFF;
-    overflow: auto;
+    overflow: scroll;
     padding: 0 10px 40px 10px;
 }
 
@@ -682,7 +682,7 @@ nav.breadcrumb ul li a:hover {
 /* Item Edit Menu */
 
 .item {
-    margin: 15px;
+    margin: 0;
 }
 
 .item.h-menu {

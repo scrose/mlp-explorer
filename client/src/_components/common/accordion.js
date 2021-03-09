@@ -47,7 +47,9 @@ const Accordion = ({type, label='', open=false, menu=null, children}) => {
                                     title={`View ${label}.`}
                                     onClick={() => {setToggle(!toggle)}}
                                 >
-                                    <Icon type={type}/>&#160;&#160;{getModelLabel(type)} {label}
+                                    <Icon type={type}/>&#160;&#160;{getModelLabel(type)}
+                                    {label && getModelLabel(type) ? ': ' : ''}
+                                    {label}
                                 </button>
                             </li>
                                 : ''

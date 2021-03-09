@@ -338,6 +338,7 @@ where (select old_id from nodes where id=stations.nodes_id) = q.id;
 ALTER TABLE stations
     ALTER COLUMN "name" SET NOT NULL;
 
+
 -- -------------------------------------------------------------
 --    Historic Visits (owned by stations)
 -- -------------------------------------------------------------
@@ -683,6 +684,31 @@ ALTER TABLE modern_captures
 --    ALTER TABLE stations DROP CONSTRAINT IF EXISTS check_longitude;
 --    ALTER TABLE stations ADD CONSTRAINT check_longitude
 --    CHECK (stations.long ~* '^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$')
+
+
+-- -------------------------------------------------------------
+--    Update Stations coordinates (if empty)
+-- -------------------------------------------------------------
+
+-- stations coordinates missing all data
+update stations
+set lat=locs.lat, long=locs.long, elev=locs.elev, azim=locs.azim
+from (
+    select mv.owner_id as id, lat, long, elev, azim
+    from locations
+        join modern_visits mv on locations.owner_id = mv.nodes_id
+    where locations.lat is not null and locations.long is not null) as locs
+where stations.lat is null and stations.long is null and stations.elev is null and locs.id = stations.nodes_id;
+
+-- stations coordinates missing lat/long only
+update stations
+set lat=locs.lat, long=locs.long, azim=locs.azim
+from (
+         select mv.owner_id as id, lat, long, azim
+         from locations
+                  join modern_visits mv on locations.owner_id = mv.nodes_id
+         where locations.lat is not null and locations.long is not null) as locs
+where stations.lat is null and stations.long is null and locs.id = stations.nodes_id;
 
 
 commit;

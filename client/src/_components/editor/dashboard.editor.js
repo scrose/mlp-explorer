@@ -6,6 +6,7 @@
  */
 
 import React from 'react'
+import Download from '../common/download';
 
 /**
  * Systems preferences management panel.
@@ -13,17 +14,6 @@ import React from 'react'
  * @public
  * @return {Promise} result
  */
-
-const OptionsPanel = () => {
-    return (
-        <nav className={'panel'}>
-            <h4>Options</h4>
-            <ul>
-                <li><a href={'#'}>TBA</a></li>
-            </ul>
-        </nav>
-    );
-}
 
 /**
  * Node management panel.
@@ -35,14 +25,33 @@ const OptionsPanel = () => {
 const NodePanel = () => {
     return (
         <nav className={'panel'}>
-            <h4>User Management</h4>
+            <h4>Export Data</h4>
             <ul>
-                <li><a href={'/surveyors'}>Surveyors</a></li>
-                <li><a href={'/surveys/'}>Surveys</a></li>
+                <li>
+                    <p>
+                        <Download
+                            label={'Export GIS CSV'}
+                            format={'csv'}
+                            type={'export'}
+                            uri={'/nodes/export/gis/csv'}
+                        />
+                    </p>
+                </li>
+                <li>
+                    <p>
+                        <Download
+                            label={'Export GIS JSON'}
+                            format={'json'}
+                            type={'export'}
+                            uri={'/nodes/export/gis/json'}
+                        />
+                    </p>
+                </li>
             </ul>
         </nav>
     );
 }
+
 
 /**
  * Editor dashboard component
@@ -54,7 +63,6 @@ const NodePanel = () => {
 const DashboardEditor = () => {
     return (
         <div className="dashboard">
-            <OptionsPanel />
             <NodePanel />
         </div>
     );

@@ -10,6 +10,8 @@
 import { humanize, sanitize } from '../lib/data.utils.js';
 import * as schemaConstructor from './schema.services.js';
 import { select as nselect } from './nodes.services.js';
+import * as fserve from './files.services.js';
+import * as oserve from '../services/options.services.js';
 
 /**
  * Create derived model through composition. The model schema
@@ -25,6 +27,13 @@ export const create = async (modelType) => {
     let Schema = await schemaConstructor.create(modelType);
     const schema = new Schema();
 
+    // get all model options
+    const options = {
+        image_state: await fserve.getImageStates(),
+        camera_id: await oserve.getCameraTypes(),
+        lens_id: await oserve.getLensTypes()
+    }
+
     // return constructor
     return function(attributeValues) {
 
@@ -34,6 +43,7 @@ export const create = async (modelType) => {
         this.idKey = schema.idKey;
         this.label = humanize(modelType);
         this.attributes = schema.attributes;
+        this.options = options;
 
         // initialize model with input data
         this.setData = setData;

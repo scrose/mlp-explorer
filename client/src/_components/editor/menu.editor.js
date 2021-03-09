@@ -118,6 +118,35 @@ const MenuEditor = () => {
                         </li>
                         : ''
                     }
+                {
+                    dependents.length > 0
+                        ? dependents.map(dependent => {
+                            return (
+                                <li key={`add_${dependent}`}>
+                                    <Dialog
+                                        icon={'add'}
+                                        label={`Add ${getModelLabel(dependent)}`}
+                                        title={`Add new ${getModelLabel(dependent)} item.`}
+                                        children={
+                                            <Importer
+                                                view={'add'}
+                                                model={dependent}
+                                                options={api.options}
+                                                schema={genSchema('add', dependent)}
+                                                route={getNodeURI(dependent, 'add', api.root.id)}
+                                                callback={() => {
+                                                    redirect(
+                                                        getNodeURI(api.root.type, 'show', api.root.id
+                                                        )
+                                                    );
+                                                }}
+                                            />
+                                        }
+                                    />
+                                </li>
+                            )})
+                        : ''
+                }
             </ul>
         </div>
             : ''

@@ -17,7 +17,6 @@ import users from './users.routes.js'
 import nodes from './nodes.routes.js'
 import models from './model.routes.js'
 import files from './files.routes.js'
-import db from '../services/db.services.js';
 
 /**
  * Create base router to add routes.

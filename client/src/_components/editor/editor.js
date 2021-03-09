@@ -12,7 +12,6 @@ import StaticView from '../views/static.view';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
 import MenuEditor from './menu.editor';
-import Loading from '../common/loading';
 
 /**
  * Render editor panel component (authenticated).

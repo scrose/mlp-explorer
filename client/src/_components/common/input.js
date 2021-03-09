@@ -44,11 +44,11 @@ const AttachFile = ({type, id, name, onChange, value, label, error}) => {
 const DateTimeSelector = ({value}) => {
 
     // create date state
-    const [date, setDate] = React.useState({ date: value ? new Date(value) : new Date() });
+    const [date, setDate] = React.useState({ val: value ? new Date(value) : new Date() });
 
     return <Flatpickr
         data-enable-time
-        value={date}
+        value={date.val}
         onChange={setDate} />
 
 }

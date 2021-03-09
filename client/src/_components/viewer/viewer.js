@@ -7,8 +7,6 @@
 
 import React from 'react';
 import Messenger from '../common/messenger';
-import BreadcrumbMenu from '../menus/breadcrumb.menu';
-import MenuViewer from './menu.viewer';
 import DataView from '../views/data.view';
 import StaticView from '../views/static.view';
 import { useRouter } from '../../_providers/router.provider.client';

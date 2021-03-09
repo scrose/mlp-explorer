@@ -29,7 +29,7 @@ const ItemMenu = ({ item, model, dependent, id, options }) => {
     const user = useUser();
     const router = useRouter();
 
-    console.log('Item Menu', getNodeLabel(data), model, dependent, id, data)
+    // console.log('Item Menu', getNodeLabel(data), model, dependent, id, data)
 
     return (
         <div className={'item h-menu'}>
