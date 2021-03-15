@@ -16,6 +16,8 @@ import * as nserve from '../services/nodes.services.js';
 import * as fserve from '../services/files.services.js';
 import { prepare } from '../lib/api.utils.js';
 import pool from '../services/db.services.js';
+import { sanitize } from '../lib/data.utils.js';
+import { selectByOwner } from '../services/nodes.services.js';
 
 /**
  * Shared data.
@@ -23,7 +25,7 @@ import pool from '../services/db.services.js';
  * @src public
  */
 
-let Model, model, db, options;
+let Model, model, mserve, options;
 
 /**
  * Export controller constructor.
@@ -49,7 +51,7 @@ export default function ModelController(nodeType) {
     this.init = async () => {
         Model = await cserve.create(nodeType);
         model = new Model();
-        db = new ModelServices(model);
+        mserve = new ModelServices(model);
     }
 
     /**
@@ -86,39 +88,33 @@ export default function ModelController(nodeType) {
             // get requested node ID
             let id = parseInt(this.getId(req));
 
-            // get record data for node
-            const data = await db.select(id) || null;
-            const item = new Model(data);
+            // get item data
+            let item = await nserve.get(sanitize(id, 'integer'));
+            // get node path
+            const path = await nserve.getPath(item.node);
 
-            // get path of node in hierarchy
-            const node = await nserve.select(id, client);
-            const path = await nserve.getPath(node);
-
-            // node not in database
-            if (!data || !node )
+            // item record and/or node not found in database
+            if (!item)
                 return next(new Error('notFound'));
 
-            // add associated files (if they exist)
-            data.files = await fserve.selectByOwner(id, client);
+            // append second-level dependents (if node depth is above threshold)
+            if (model.depth > 1) {
+                item.dependents = await Promise.all(
+                    item.dependents.map(async (dependent) => {
+                        dependent.dependents = await selectByOwner(dependent.id, client);
+                        return dependent;
+                    }));
+            }
 
-            // calculate the depth of the node path
-            const depth = Object.keys(path).length;
+            // send response
+            res.status(200).json(
+                prepare({
+                    view: 'show',
+                    model: model,
+                    data: item,
+                    path: path
+                }));
 
-            // get linked data referenced in node tree
-            return await nserve.getModelDependents(item, depth)
-                .then(dependents => {
-
-                    // append dependent nodes to data
-                    data.dependents = dependents;
-
-                    res.status(200).json(
-                        prepare({
-                            view: 'show',
-                            model: model,
-                            data: data,
-                            path: path
-                        }));
-                })
         } catch (err) {
             console.error(err)
             return next(err);
@@ -151,13 +147,10 @@ export default function ModelController(nodeType) {
             const owner = await nserve.select(owner_id);
             const path = await nserve.getPath(owner) || {};
 
-            // include image states in model
-            data.options = options;
-
             // send form data response
            res.status(200).json(
                prepare({
-                    view: 'add',
+                    view: 'new',
                     model: model,
                     data: item.getData(),
                     path: path
@@ -180,65 +173,56 @@ export default function ModelController(nodeType) {
      */
 
     this.create = async (req, res, next) => {
-        // try {
-        //     let item = new Model(req.body);
-        //
-        //     // insert item into database
-        //     let data = await db.insert(item);
-        //
-        //     // get path of node in hierarchy
-        //     const { nodes_id=null } = data || {};
-        //     const node = await nserve.select(nodes_id);
-        //     const path = await nserve.getPath(node);
-        //
-        //     res.status(200).json(
-        //         prepare({
-        //             view: 'add',
-        //             model: model,
-        //             data: data,
-        //             message: {
-        //                 msg: `Item added successfully!`,
-        //                 type: 'success'
-        //             },
-        //             path: path
-        //         }));
-        //
-        // } catch (err) {
-        //     console.error(err)
-        //     return next(err);
-        // }
-        // NOTE: client undefined if connection fails.
         const client = await pool.connect();
 
         try {
 
             // get owner ID from parameters (if exists)
-            let { owner_id=0 } = req.params || {};
+            const { owner_id=null } = req.params || {};
+            let owner_type = model.name;
 
-            // get owner node; check that node exists in database
-            // and corresponds to requested owner type.
-            const node = await nserve.select(owner_id, client);
+            // handle nodes with owners
+            if (model.hasOwner) {
 
-            // check relation exists for file type and node type
-            const isRelated = await fserve.checkRelation(node.type, model.name, client);
-            if (!node || isRelated)
-                return next(new Error('invalidRequest'));
+                // get owner node; check that node exists in database
+                // and corresponds to requested owner type.
+                const node = await nserve.select(owner_id, client);
+
+                // check relation exists for file type and node type
+                const isRelated = await fserve.checkRelation(node.type, model.name, client);
+                if (!node || isRelated)
+                    return next(new Error('invalidRequest'));
+
+                owner_type = node.type
+            }
 
             // stream uploaded files to server
-            const metadata = await fserve.upload(req, owner_id, model.name);
+            const metadata = await fserve.upload(req, owner_id, owner_type);
 
-            // process saved data and metadata
+            console.log(metadata)
+
+            // process saved file data and model metadata
             await Promise.all(Object.keys(metadata.files).map(async (key) => {
                 await fserve.saveFile(key, metadata);
                 console.log('Saved File:', metadata.files[key])
             }));
 
-
-
-            return;
-
             // insert metadata into appropriate db records
-            await db.import(metadata);
+            const resData = (Object.keys(metadata.files).length > 0)
+                ? await mserve.import(metadata)
+                : await mserve.insert(new Model(metadata.data));
+
+            // send create response
+            res.status(200).json(
+                prepare({
+                    view: 'show',
+                    model: model,
+                    data: resData,
+                    message: {
+                        msg: `${model.label} item created successfully!`,
+                        type: 'success'
+                    },
+                }));
 
         } catch (err) {
             console.error(err)
@@ -246,7 +230,6 @@ export default function ModelController(nodeType) {
         } finally {
             client.release();
         }
-
     };
 
     /**
@@ -265,7 +248,7 @@ export default function ModelController(nodeType) {
             const id = this.getId(req);
 
             // get item data
-            let data = await db.select(id);
+            let data = await mserve.select(id);
 
             // get path of node in hierarchy
             const owner = await nserve.select(id);
@@ -287,7 +270,7 @@ export default function ModelController(nodeType) {
     };
 
     /**
-     * Update record data.
+     * Update database data.
      *
      * @param req
      * @param res
@@ -296,34 +279,41 @@ export default function ModelController(nodeType) {
      */
 
     this.update = async (req, res, next) => {
+
+        const client = await pool.connect();
+
         try {
-            let item = new Model(req.body);
 
-            // insert item into database
-            let data = await db.update(item);
-
-            // get path of node in hierarchy
-            const { nodes_id=null } = data || {};
-            const node = await nserve.select(nodes_id);
+            // get node data from parameters
+            const id = this.getId(req);
+            const node = await nserve.select(id);
             const path = await nserve.getPath(node);
 
+            // get metadata fields
+            const metadata = await fserve.upload(req, node.owner_id, model.name);
+
+            // update database record
+            const item = new Model(metadata.data);
+            let data = await mserve.update(item);
+
+            // send create response
             res.status(200).json(
                 prepare({
-                    view: 'edit',
+                    view: 'show',
                     model: model,
                     data: data,
                     message: {
-                        msg: `Update successful!`,
+                        msg: `${model.label} item updated successfully!`,
                         type: 'success'
                     },
-                    path: path
                 }));
 
         } catch (err) {
             console.error(err)
             return next(err);
+        } finally {
+            client.release();
         }
-
     };
 
     /**
@@ -340,7 +330,7 @@ export default function ModelController(nodeType) {
             const id = this.getId(req);
 
             // retrieve item data
-            let data = await db.select(id);
+            let data = await mserve.select(id);
             let item = new Model(data);
 
             // get path of owner node in hierarchy (if exists)
@@ -349,7 +339,7 @@ export default function ModelController(nodeType) {
             const path = await nserve.getPath(node);
 
             // delete item
-            data = await db.remove(item);
+            data = await mserve.remove(item);
 
             res.status(200).json(
                 prepare({
@@ -494,7 +484,7 @@ export default function ModelController(nodeType) {
             await fserve.saveFile(fileType, metadata);
 
             // insert metadata into appropriate db records
-            await db.import(metadata);
+            await mserve.import(metadata);
 
         } catch (err) {
             console.error(err)

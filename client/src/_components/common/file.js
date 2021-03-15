@@ -15,17 +15,16 @@ import Download from './download';
  * Defines file component.
  *
  * @public
- * @param {Object} file
- * @param {Object} metadata
+ * @param {Object} data
  * @param {String} scale
  * @return {JSX.Element}
  */
 
-const File = ({ file={}, scale='thumb' }) => {
+const File = ({ data, scale='thumb' }) => {
 
     // destructure file data
-    const {file_type, filename='', data={}, file_size=''} = file || {};
-    const {files_id, url={} } = data || {};
+    const {file={}, metadata={}, url={}} = data || {};
+    const {files_id, file_type, filename, file_size } = file || {};
     const label = getFileLabel(file);
 
     // file components indexed by render type

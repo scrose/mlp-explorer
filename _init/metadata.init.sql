@@ -6,7 +6,7 @@ begin;
 
 
 -- -------------------------------------------------------------
---    Glass Plate Listings (owned by survey seasons)
+--    Glass Plate Listings (owned by Survey Seasons)
 -- -------------------------------------------------------------
 
 DROP TABLE IF EXISTS "glass_plate_listings";

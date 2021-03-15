@@ -30,12 +30,12 @@ const Heading = () => {
     const genHeading = () => {
 
         // return empty string if node and model not defined
-        if (!modelLabel || !nodeLabel) {
+        if (!modelLabel) {
             return '';
         }
 
         const headings = {
-            add: `${getViewLabel('add')}: ${nodeLabel}`,
+            add: `${getViewLabel('add')}: ${modelLabel}`,
             show: `${modelLabel !== nodeLabel ? modelLabel + ': ' : ''}${nodeLabel}`,
             import: `${getViewLabel('import')}: ${getModelLabel(api.model, 'label')}`,
             default: `${getViewLabel(api.view)}: ${modelLabel}`

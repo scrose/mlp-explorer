@@ -9,7 +9,7 @@ import React from 'react'
 import Fieldset from './fieldset';
 import Button from './button';
 import Validator from '../../_utils/validator.utils.client';
-import { genSchema } from '../../_services/schema.services.client';
+import { useData } from '../../_providers/data.provider.client';
 
 /**
  * Form submission buttons component.
@@ -56,7 +56,6 @@ const Form = ({
                   model,
                   schema,
                   init={},
-                  options=[],
                   callback,
                   cancel=null,
                   route=null
@@ -65,6 +64,10 @@ const Form = ({
     // get form input settings from schema
     const { attributes={}, fieldsets=[] } = schema || {};
     const { submit='Submit', method='POST' } = attributes || {};
+
+    // get global field options
+    const api = useData();
+    const { options={} } = api || {};
 
     // initialize state for input parameters
     const [data, setData] = React.useState(init);
@@ -259,15 +262,17 @@ const Form = ({
                                 />
                             {
                                 fieldset.render === 'multiple'
-                                    ? <Button
-                                        key={`${index}_copy_button`}
-                                        onClick={() => {
-                                            // send deep copy of fieldset
-                                            handleCopy(fieldset, index);
-                                        }}
-                                        label={`Add ${fieldset.legend}`}
-                                        icon={'add'}
-                                    />
+                                    ? <div className={'addField'}>
+                                            <Button
+                                            key={`${index}_copy_button`}
+                                            onClick={() => {
+                                                // send deep copy of fieldset
+                                                handleCopy(fieldset, index);
+                                            }}
+                                            label={`Add ${fieldset.legend}`}
+                                            icon={'add'}
+                                            />
+                                        </div>
                                     : ''
                             }
                             </div>

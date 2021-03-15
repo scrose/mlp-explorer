@@ -13,6 +13,7 @@ import { getNodeURI } from '../../_utils/paths.utils.client';
 import { getModelLabel, getNodeLabel, getNodeOrder } from '../../_services/schema.services.client';
 import { addNode, checkNode, removeNode } from '../../_services/session.services.client';
 import { useData } from '../../_providers/data.provider.client';
+import Button from '../common/button';
 
 /**
  * Inline tree node menu component.
@@ -21,27 +22,26 @@ import { useData } from '../../_providers/data.provider.client';
  * - Sets route for requested node data not yet loaded.
  *
  * @public
- * @param text
- * @param {boolean} toggle
- * @param {Function} setToggle
- * @param {Function} setRoute
  * @param {String} id
  * @param {String} model
+ * @param {String} label
+ * @param {boolean} toggle
+ * @param {Function} onToggle
+ * @param {String} isCurrent
+ * @param {boolean} hasDependents
  * @return {JSX.Element}
  */
 
 const TreeNodeMenu = ({
                           id,
                           model,
-                          text='...',
+                          label='...',
                           toggle,
                           setToggle,
-                          isCurrent='8',
+                          isCurrent='',
                           hasDependents=false
 }) => {
 
-    // restrict size of menu text
-    // text = text.length > 40 ? text.substring(0,40) + '...' : text;
     const router = useRouter();
 
     // handle toggle events
@@ -74,35 +74,30 @@ const TreeNodeMenu = ({
                 {
                     hasDependents ?
                     <li>
-                        <button
+                        <Button
+                            icon={toggle || isCurrent ? 'hopen' : 'hclose'}
                             className={classnames.join(' ')}
-                            title={`Expand ${text}.`}
+                            title={`Expand ${label}.`}
                             onClick={handleToggle}
-                        >
-                            {toggle || isCurrent
-                                ? <Icon type={'hopen'} />
-                                : <Icon type={'hclose'} />}
-                        </button>
+                        />
                     </li>
                         : ''
                 }
                 <li>
-                    <button
+                    <Button
+                        icon={model}
                         className={`tree-node-icon ${isCurrent ? ' current' : ''}`}
-                        title={`View ${getModelLabel(model)}: ${text}`}
+                        title={`View ${getModelLabel(model)}: ${label}`}
                         onClick={handleView}
-                    >
-                        <Icon type={model}/>
-                    </button>
+                    />
                 </li>
                 <li>
-                    <button
+                    <Button
+                        label={label}
                         className={`tree-node-label`}
-                        title={`View ${getModelLabel(model)}: ${text}`}
+                        title={`View ${getModelLabel(model)}: ${label}`}
                         onClick={handleView}
-                    >
-                        {text}
-                    </button>
+                    />
                 </li>
             </ul>
         </div>
@@ -113,14 +108,18 @@ const TreeNodeMenu = ({
  * Navigation tree node component.
  *
  * @public
+ * @param {String} id
  * @param {Object} node
+ * @param {String} type
+ * @param {String} label
+ * @param {String} hasDependents
  * @return {JSX.Element}
  */
 
-const TreeNode = ({node}) => {
+const TreeNode = ({id, type, label, hasDependents}) => {
 
     // create dynamic data states
-    const [toggle, setToggle] = React.useState(checkNode(node.id));
+    const [toggle, setToggle] = React.useState(checkNode(id));
     const [isCurrent, setCurrent] = React.useState(false);
     const [loadedData, setLoadedData] = React.useState([]);
     const _isMounted = React.useRef(true);
@@ -134,17 +133,20 @@ const TreeNode = ({node}) => {
         _isMounted.current = true;
 
         // include current node path as toggled
-        setCurrent(api.nodes.includes(node.id));
-        if (api.nodes.includes(node.id))
-            setToggle(api.nodes.includes(node.id));
+        setCurrent(api.nodes.includes(id));
+        if (api.nodes.includes(id))
+            setToggle(api.nodes.includes(id));
 
-        if (toggle) {
-            const route = getNodeURI('nodes', 'show', node.id);
+        if (toggle && Array.isArray(loadedData) && loadedData.length === 0) {
+            const route = getNodeURI('nodes', 'show', id);
             router.get(route)
                 .then(res => {
                     // update state with response data
                     if (_isMounted.current) {
-                        setLoadedData(res);
+                        // destructure any available dependent nodes
+                        let { data = {} } = res || {};
+                        const { dependents=[] } =  data || {};
+                        setLoadedData(dependents);
                     }
                 })
                 .catch(err => console.error(err)
@@ -153,36 +155,27 @@ const TreeNode = ({node}) => {
         return () => {
             _isMounted.current = false;
         };
-    }, [api, router, node, toggle]);
+    }, [api, router, id, toggle]);
 
-    // boolean if node has dependent nodes
-    // destructure any available dependent nodes
-    const { data={} } =  loadedData || {};
-    const { dependents=[] } =  data || {};
-    const { hasDependents=false } =  node || {};
-
-    // render tree node
     return (
             <div className={'tree-node'}>
-                <div>
                 {
                     <TreeNodeMenu
-                        id={node.id}
-                        model={node.type}
-                        text={node.label}
+                        id={id}
+                        model={type}
+                        label={label}
                         toggle={toggle}
                         setToggle={setToggle}
                         isCurrent={isCurrent}
                         hasDependents={hasDependents}
                     />
                 }
-                </div>
                 {
-                    Array.isArray(dependents) && dependents.length > 0
+                    toggle
                         ?
-                        <div className={`collapsible${toggle ? ' active' : ''}`}>
-                            <TreeNodeList nodes={dependents} />
-                        </div>
+                        Array.isArray(loadedData) && loadedData.length > 0
+                            ? <TreeNodeList items={loadedData} />
+                            : <Loading />
                         : ''
                 }
             </div>
@@ -199,15 +192,21 @@ const TreeNode = ({node}) => {
  * @return {JSX.Element}
  */
 
-const TreeNodeList = ({nodes}) => {
+const TreeNodeList = ({items}) => {
     return (
         <ul>
             {
-                nodes
-                    .map(node => {
-                        node.label = getNodeLabel(node);
-                        node.order = getNodeOrder(node);
-                        return node;
+                items
+                    .map(item => {
+                        const { node={}, hasDependents=false } = item || {};
+                        const { id='', type='' } = node || {};
+                        return {
+                            type: type,
+                            id: id,
+                            label: getNodeLabel(item),
+                            order: getNodeOrder(type || '') || 0,
+                            hasDependents: hasDependents
+                        }
                     })
                     // sort alphabetically
                     .sort(function(a, b){
@@ -217,16 +216,20 @@ const TreeNodeList = ({nodes}) => {
                     .sort(function(a, b){
                         return a.order - b.order;
                     })
-                    .map(node => {
+                    .map(item => {
                     return (
-                        <li key={`${node.id}`}>
-                            <TreeNode node={node} />
+                        <li key={`${item.id}`}>
+                            <TreeNode
+                                id={item.id}
+                                type={item.type}
+                                label={item.label}
+                                hasDependents={item.hasDependents}
+                            />
                         </li>
                     )
                 })
             }
         </ul>
-
     );
 }
 
@@ -277,7 +280,7 @@ const TreeNavigator = ({setMenu}) => {
                         return (
                             <li key={`item_${index}`}>
                                 <h4><Icon type={key} />&#160;&#160;{getModelLabel(key)}</h4>
-                                <TreeNodeList nodes={nodeData[key]} />
+                                <TreeNodeList items={nodeData[key]} />
                             </li>
                         )
                     })

@@ -35,6 +35,7 @@ function DataProvider(props) {
     const [view, setView] = React.useState('');
     const [model, setModel] = React.useState('');
     const [attributes, setAttributes] = React.useState({});
+    const [options, setOptions] = React.useState({});
     const [path, setPath] = React.useState([]);
 
     // messenger
@@ -71,7 +72,7 @@ function DataProvider(props) {
                     console.log('>>>', res)
                     // destructure API data for settings
                     const { data=null, view='', model={}, path={}, message={} } = res || {};
-                    const { name='', attributes={} } = model || {};
+                    const { name='', attributes={}, options={} } = model || {};
 
                     // update states with response data
                     if (_isMounted.current) {
@@ -79,6 +80,7 @@ function DataProvider(props) {
                         setView(view);
                         setModel(name);
                         setAttributes(attributes);
+                        setOptions(options)
                         setPath(path);
                         setMessage(message);
                     }
@@ -104,9 +106,10 @@ function DataProvider(props) {
                 model,
                 path,
                 nodes: currentNodes,
-                root: root,
+                root,
                 data: apiData,
-                attributes: attributes,
+                attributes,
+                options,
                 message,
                 setMessage
             }

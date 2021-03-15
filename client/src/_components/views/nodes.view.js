@@ -5,38 +5,20 @@
  * MIT Licensed
  */
 
-import React from 'react';
-import Item from '../common/item';
+import React from 'react'
+import Loading from '../common/loading';
+import CaptureView from './capture.view';
+import ImageView from './image.view';
+import LocationsView from './locations.view';
+import StationsView from './stations.view';
+import { getNodeURI } from '../../_utils/paths.utils.client';
+import { useRouter } from '../../_providers/router.provider.client';
 import { getModelLabel, getNodeLabel, getNodeOrder } from '../../_services/schema.services.client';
-import { FilesList } from './files.view';
 import Accordion from '../common/accordion';
-import ItemView from './item.view';
-import ItemMenu from '../menus/item.menu';
+import NodeMenu from '../menus/node.menu';
+import Item from '../common/item';
+import CapturesView from './captures.view';
 
-/**
- * Node item view component.
- *
- * @public
- * @param {Object} node
- * @param {String} model
- * @return {JSX.Element}
- */
-
-const NodeItem = ({node, model}) => {
-
-    // get any available dependents
-    const { dependents=[], type=model, data={} } = node || {};
-
-    // render tree node
-    return (
-        <div>
-            <Accordion type={'info'} label={`${getModelLabel(type)} Metadata`}>
-                <Item view={'show'} model={type} data={node} />
-            </Accordion>
-            <NodeList nodes={dependents} />
-        </div>
-    );
-}
 
 /**
  * Node list component.
@@ -44,72 +26,187 @@ const NodeItem = ({node, model}) => {
  * - Sorts node items: (1) Node order; (2) Alphabetically by label
  *
  * @public
+ * @param {Array} nodes
  * @return {JSX.Element}
  */
 
-const NodeList = ({nodes}) => {
+const NodeList = ({items}) => {
 
-    if (!Array.isArray(nodes)) return null;
-
-    // initialize nodes
-    nodes = (nodes || [])
-        .map(node => {
-            node.label = getNodeLabel(node);
-            node.order = getNodeOrder(node);
-            return node;
-        })
-        // sort alphabetically
-        .sort(function(a, b){
-            // TODO sort station numbers in strings
-            return a.label.localeCompare(b.label);
-        })
-        // sort by node order
-        .sort(function(a, b){
-            return a.order - b.order;
-        });
+    if (!Array.isArray(items)) return null;
 
     return (
-        <div>
-            {
-                nodes.map(node =>
-                    <Accordion
-                        key={node.id}
-                        id={node.id}
-                        type={node.type}
-                        label={node.label}
-                        open={false}
-                        menu={
-                            <ItemMenu
-                                item={node}
-                                model={node.type}
-                                id={node.id}
-                                options={node.options}
-                            />
-                        }
-                    >
-                        <ItemView dependents={node.dependents} data={node} model={node.type} />
-                    </Accordion>
-                )
-            }
-        </div>
+        <>
+        {
+            items
+                .map(item => {
+                    const { node={}, metadata={}, hasDependents=false } = item || {};
+                    const { id='', type='' } = node || {};
+                    return {
+                        id: id,
+                        type: type,
+                        node: node,
+                        metadata: metadata,
+                        label: getNodeLabel(item),
+                        order: getNodeOrder(type || '') || 0,
+                        hasDependents: hasDependents
+                    }
+                })
+                // sort alphabetically
+                .sort(function(a, b){
+                    return a.label.localeCompare(b.label);
+                })
+                // sort by node order
+                .sort(function(a, b){
+                    return a.order - b.order;
+                })
+                .map(item => {
+                    return (
+                        <Accordion
+                            key={item.id}
+                            id={item.id}
+                            type={item.type}
+                            label={item.label}
+                            hasDependents={item.hasDependents}
+                            open={false}
+                            menu={
+                                <NodeMenu
+                                    model={item.type}
+                                    id={item.id}
+                                    label={item.label}
+                                    metadata={item.metadata}
+                                />
+                            }
+                        >
+                            <NodesView model={item.type} data={item} />
+                        </Accordion>
+                    )
+                })
+        }
+    </>
     );
 }
 
 /**
- * Model view component.
+ * Default view component for model data.
  *
  * @public
- * @param {Object} apiData
+ * @param {Object} data
  * @param {String} model
  * @return {JSX.Element}
  */
 
-const NodesView = ({data, model}) => {
+const DefaultView = ({
+                         model,
+                         data,
+}) => {
+    const {dependents=[], metadata={}} = data || {};
     return (
-        <div className={`item`}>
-            <NodeItem model={model} node={data} />
-        </div>
+        <>
+            <Accordion
+                type={'info'}
+                label={`${getModelLabel(model)} Metadata`}
+            >
+                <Item view={'show'} model={model} data={metadata} />
+            </Accordion>
+            <NodeList items={dependents} />
+        </>
     )
+}
+
+
+
+/**
+ * Data item (record) component.
+ *
+ * @param {String} model
+ * @param {Object} data
+ * @public
+ */
+
+const NodesView = ({
+                       model,
+                       data = {}
+}) => {
+
+    console.log('Node:', model, data)
+
+
+    // create dynamic data states
+    const [loadedData, setLoadedData] = React.useState(data);
+    const _isMounted = React.useRef(true);
+    const router = useRouter();
+
+    // get dependents data
+    const { hasDependents=false, dependents=[], node={} } = loadedData || data || {};
+
+    // API call to retrieve node data (if not yet loaded)
+    React.useEffect(() => {
+        _isMounted.current = true;
+
+        // check if dependents exist and are loaded; if not, make API call
+        const loaded = hasDependents && dependents.length === 0;
+
+        // API call
+        if (loaded && model && node) {
+            const route = getNodeURI(model, 'show', node.id);
+            router.get(route)
+                .then(res => {
+                    // update state with response data
+                    if (_isMounted.current) {
+                        const { data={} } = res || {};
+                        setLoadedData(data);
+                    }
+                })
+                .catch(err => console.error(err)
+                );
+        }
+        return () => {
+            _isMounted.current = false;
+        };
+    }, [dependents, loadedData, setLoadedData, router, model, data]);
+
+    // view components indexed by model type
+    const itemViews = {
+        stations: () => <StationsView
+            data={loadedData}
+        />,
+        historic_visits: () => <LocationsView
+            model={'historic_captures'}
+            locations={[loadedData]}
+        />,
+        modern_visits: () => <LocationsView
+            model={'modern_captures'}
+            locations={dependents}
+        />,
+        historic_captures: () => <CapturesView
+            captures={ dependents}
+            fileType={'historic_images'} />,
+        modern_captures: () => <CapturesView
+            captures={ dependents }
+            fileType={'modern_images'} />,
+        historic_images: () => <ImageView
+            data={ loadedData }
+            model={model} />,
+        modern_images: () => <ImageView
+            data={ loadedData }
+            model={model} />,
+        default: () => <DefaultView
+            model={model}
+            data={loadedData}
+        />
+    }
+
+    return (
+        model && (dependents.length > 0 || !hasDependents)
+            ?
+            <>
+                {
+                    itemViews.hasOwnProperty(model)
+                        ? itemViews[model]()
+                        : itemViews.default()
+                }
+            </>
+            : <Loading/>)
 }
 
 export default NodesView;

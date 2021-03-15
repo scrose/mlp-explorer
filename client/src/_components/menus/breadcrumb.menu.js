@@ -72,12 +72,12 @@ const BreadcrumbMenu = () => {
         return Object.keys(nodes)
             .sort(function(a, b){return b-a})
             .map(key => {
-
                 const menuText = getNodeLabel(nodes[key]);
-                const {type='', id=''} = nodes[key] || {};
+                const {node={}} = nodes[key] || {};
+                const {type='', id=''} = node || {};
                 const href = getNodeURI(type, 'show', id);
                 return <>
-                        <Icon type={type} />&#160;&#160;<a href={href}>{menuText}</a>
+                        <Icon type={type} size={'sm'} />&#160;&#160;<a href={href}>{menuText}</a>
                         </>
             });
 
@@ -93,7 +93,7 @@ const BreadcrumbMenu = () => {
             <div>
                 <ul>
                     <li>
-                        <a href={getRoot()}><Icon type={'logo'} /></a>
+                        <a href={getRoot()}><Icon type={'logo'} size={'sm'} /></a>
                     </li>
                     {
                         // node breadcrumb menu

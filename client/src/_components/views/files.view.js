@@ -11,28 +11,11 @@ import Form from '../common/form';
 import NotfoundError from '../error/notfound.error';
 import Loading from '../common/loading';
 import ServerError from '../error/server.error';
-import { groupBy, sanitize } from '../../_utils/data.utils.client';
+import { sanitize } from '../../_utils/data.utils.client';
 import { genSchema, getModelLabel } from '../../_services/schema.services.client';
 import File from '../common/file';
 import Table from '../common/table';
 
-/**
- * Group and sort file records by type.
- *
- * @public
- * @param {Array} files
- * @return {JSX.Element}
- */
-
-const groupFiles = (files) => {
-
-    files = (files || [])
-        // // sort alphabetically
-        .sort(function(a, b){
-            return a.file_type.localeCompare(b.file_type);
-        });
-    return groupBy(files, 'file_type');
-}
 
 /**
  * View file records associated with a node as tabs.
@@ -42,38 +25,22 @@ const groupFiles = (files) => {
  */
 
 export const FilesList = ({files}) => {
-
-    // group and sort files
-    files = groupFiles(files) || {};
-
+    console.log('FileList:', files)
     return (
-        Object.keys(files).length > 0
-            ?   <div>
-                {
-                    Object.keys(files).map(key => {
-                        return (
-                            <div key={key} className={'gallery h-menu'}>
-                                <ul>
-                                {
-                                    files[key]
-                                        .map((file) =>
-                                            <li key={file.id} className={'col'}>
-                                                <File
-                                                    key={file.id}
-                                                    file={file}
-                                                    scale={'thumb'}
-                                                />
-                                            </li>
-                                        )
-                                }
-                                </ul>
-                            </div>
+        files.length > 0
+            ?   <div className={'gallery h-menu'}>
+                    <ul>
+                    {
+                        files.map(f =>
+                            <li key={f.file.id} className={'col'}>
+                                <File data={f} scale={'thumb'} />
+                            </li>
                         )
-                    })
-                }
-            </div>
+                    }
+                    </ul>
+                </div>
             : ''
-    );
+    )
 }
 
 /**
@@ -84,8 +51,6 @@ export const FilesList = ({files}) => {
  */
 
 export const FilesTable = ({files=[]}) => {
-
-    files = groupFiles(files) || {};
 
     // prepare file metadata for table rows
     // - set render option for item fields

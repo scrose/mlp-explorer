@@ -99,6 +99,24 @@ export function selectByFile(file) {
 }
 
 /**
+ * Select table records by owner id
+ *
+ * @param {String} id
+ * @param table
+ * @return {Function} query function
+ * @public
+ */
+
+export function selectByOwner(id, table) {
+    return {
+        sql: `SELECT *
+                 FROM ${table} 
+                 WHERE owner_id = $1::integer`,
+        data: [id],
+    };
+}
+
+/**
  * Generate query: Find records by owner type.
  *
  * @param {Object} model
@@ -260,63 +278,3 @@ export function remove(model) {
         }
         : null;
 }
-
-
-/**
- * Generate query: Append child nodes by specified table,
- * column and column value.
- *
- * @return {Function} query function
- * @public
- */
-
-export function getAttached(model) {
-
-    // get child references for model
-    const refs = groupBy(model.attached, 'fk_col');
-
-    return function(args, value) {
-        const sql = `SELECT * 
-                FROM ${args.pk_table} 
-                WHERE ${args.pk_col} = $1::${args.pk_col_type}`;
-        return {
-            sql: sql,
-            data: [value],
-        };
-    };
-}
-
-/**
- * Query: Get all camera types.
- *
- * @return {Object} query binding
- */
-
-export function cameras() {
-    return {
-        sql: `SELECT *
-              FROM cameras;`,
-        data: [],
-    };
-}
-
-/**
- * Query: Get all lens types.
- *
- * @return {Object} query binding
- */
-
-export function lens() {
-    return {
-        sql: `SELECT *
-              FROM lens;`,
-        data: [],
-    };
-}
-
-
-
-
-
-
-

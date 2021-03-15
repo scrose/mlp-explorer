@@ -17,7 +17,7 @@ import fs from 'fs';
 import sharp from 'sharp';
 import path from 'path';
 import pool from './db.services.js';
-import { Transform, PassThrough, Writable, Duplex, Readable } from 'stream';
+import { Readable, Transform } from 'stream';
 import { imageSizes } from '../../app.config.js';
 import { genUUID } from '../lib/data.utils.js';
 import queries from '../queries/index.queries.js';
@@ -45,7 +45,9 @@ export const upload = (req, owner_id, owner_type) => {
         const filePromises = [];
         let metadata = {
             files: {},
-            data: {},
+            data: {
+                owner_id: owner_id,
+            },
             owner: {
                 id: owner_id,
                 type: owner_type
@@ -490,6 +492,106 @@ const reconcile = (obj, target, value) => {
 };
 
 /**
+ * Create a new transform stream class that can validate files.
+ *
+ * @param {Request} req
+ * @param {String} inFilepath
+ * @param {String} outFilepath
+ * @param {Object} downsample
+ * @src public
+ */
+
+class FileValidator extends Transform {
+    constructor(options) {
+        super(options.streamOptions);
+
+        this.maxFileSize = options.maxFileSize;
+        this.totalBytesInBuffer = 0;
+    }
+
+    _transform(chunk, encoding, callback) {
+        this.totalBytesInBuffer += chunk.length;
+
+        // Look to see if the file size is too large.
+        if (this.totalBytesInBuffer > this.maxFileSize) {
+            const err = new Error(`The file size exceeded the limit of ${this.maxFileSize} bytes`);
+            err.code = 'MAXFILESIZEEXCEEDED';
+            callback(err);
+            return;
+        }
+
+        this.push(chunk);
+
+        callback(null);
+    }
+
+    _flush(done) {
+        done();
+    }
+}
+
+/**
+ * Download file stream.
+ *
+ * @src public
+ * @param fileName
+ * @param contentType
+ * @param contentStream
+ * @param data
+ */
+
+export const download = async (fileName, contentType, contentStream, data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const fileStream = fs.createWriteStream(fileName);
+            const contentStream = fs.createReadStream(data);
+            contentStream.pipe(data);
+
+            contentStream.on('error', reject);
+            fileStream.on('error', reject);
+            fileStream.on('finish', () => {
+                try {
+                    resolve();
+                } catch (err) {
+                    console.log(err);
+                    reject(err);
+                }
+            });
+        } catch (err) {
+            reject(err);
+        }
+    });
+}
+
+/**
+ * Create readable stream for non-image data.
+ *
+ * @public
+ * @return {Promise} result
+ */
+
+export class ArrayStream extends Readable {
+
+    constructor(data) {
+        super();
+        this._data = data;
+        this.sent = false;
+    }
+
+    _read() {
+        if (!this.sent) {
+            const buf = Buffer.from(this._data, 'utf-8');
+            this.push(buf);
+            this.sent = true;
+        }
+        else {
+            this.push(null);
+        }
+    }
+}
+
+
+/**
  * Check if node and file types are relatable.
  *
  * @public
@@ -603,10 +705,8 @@ export const selectByFile = async (file, client=pool) => {
     let { sql, data } = queries.defaults.selectByFile(file);
     return client.query(sql, data)
         .then(res => {
-            const fileData = res.hasOwnProperty('rows')
+            return res.hasOwnProperty('rows')
             && res.rows.length > 0 ? res.rows[0] : {};
-            fileData.url = genSrc(file_type, fileData);
-            return fileData;
         });
 };
 
@@ -614,124 +714,44 @@ export const selectByFile = async (file, client=pool) => {
  * Get files for given owner.
  *
  * @public
- * @param {number} ownerID
+ * @param {number} id
  * @param client
  * @return {Promise} result
  */
 
-export const selectByOwner = async (ownerID, client=pool) => {
+export const selectByOwner = async (id, client=pool) => {
 
-    // get first-level full data for each dependent node
-    const { sql, data } = queries.files.selectByOwner(ownerID);
+    // get all dependent files for requested owner
+    const { sql, data } = queries.files.selectByOwner(id);
     const { rows=[] } = await client.query(sql, data);
-    let files = rows;
 
-    // append metadata for each file record
-    files = await Promise.all(files.map(async (file) => {
-        file.data = await selectByFile(file, client);
-        return file;
-    }));
-
-    // return nodes
-    return files;
-
-};
-
-/**
- * Create a new transform stream class that can validate files.
- *
- * @param {Request} req
- * @param {String} inFilepath
- * @param {String} outFilepath
- * @param {Object} downsample
- * @src public
- */
-
-class FileValidator extends Transform {
-    constructor(options) {
-        super(options.streamOptions);
-
-        this.maxFileSize = options.maxFileSize;
-        this.totalBytesInBuffer = 0;
-    }
-
-    _transform(chunk, encoding, callback) {
-        this.totalBytesInBuffer += chunk.length;
-
-        // Look to see if the file size is too large.
-        if (this.totalBytesInBuffer > this.maxFileSize) {
-            const err = new Error(`The file size exceeded the limit of ${this.maxFileSize} bytes`);
-            err.code = 'MAXFILESIZEEXCEEDED';
-            callback(err);
-            return;
-        }
-
-        this.push(chunk);
-
-        callback(null);
-    }
-
-    _flush(done) {
-        done();
-    }
-}
-
-/**
- * Download file stream.
- *
- * @src public
- * @param fileName
- * @param contentType
- * @param contentStream
- * @param data
- */
-
-export const download = async (fileName, contentType, contentStream, data) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const fileStream = fs.createWriteStream(fileName);
-            const contentStream = fs.createReadStream(data);
-            contentStream.pipe(data);
-
-            contentStream.on('error', reject);
-            fileStream.on('error', reject);
-            fileStream.on('finish', () => {
-                try {
-                    resolve();
-                } catch (err) {
-                    console.log(err);
-                    reject(err);
+    // append full data for each dependent node
+    let files = await Promise.all(
+        rows.map(
+            async(file) => {
+                const {file_type=''} = file || {};
+                const fileMetadata = await selectByFile(file, client)
+                return {
+                    file: file,
+                    metadata: fileMetadata,
+                    url: genSrc(file_type, fileMetadata)
                 }
-            });
-        } catch (err) {
-            reject(err);
-        }
-    });
-}
+            })
+        );
 
-/**
- * Create readable stream for non-image data.
- *
- * @public
- * @return {Promise} result
- */
+    // group files by type
+    return files.reduce(
+        async(o, f) => {
+            const { file={}} = f || {};
+            const { file_type='files'} = file || {};
 
-export class ArrayStream extends Readable {
+            // create file group
+            if (!o.hasOwnProperty(file_type)) {
+                o[file_type] = [];
+            }
 
-    constructor(data) {
-        super();
-        this._data = data;
-        this.sent = false;
-    }
-
-    _read() {
-        if (!this.sent) {
-            const buf = Buffer.from(this._data, 'utf-8');
-            this.push(buf);
-            this.sent = true;
-        }
-        else {
-            this.push(null);
-        }
-    }
-}
+            // add file to group
+            o[file_type].push(f);
+            return o;
+        }, {})
+};

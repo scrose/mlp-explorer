@@ -6,59 +6,54 @@
  */
 
 import React from 'react';
-import Item from '../common/item';
 import Accordion from '../common/accordion';
-import ItemMenu from '../menus/item.menu';
-import CapturesView from './captures.view';
+import NodeMenu from '../menus/node.menu';
+import NodesView from './nodes.view';
 
 /**
  * Model view component.
  *
  * @public
- * @param {Object} apiData
- * @param {Object} locations
+ * @param {String} model
+ * @param {Array} locations
+ * @param {String} model
  * @return {JSX.Element}
  */
 
 const LocationsView = ({
                            model,
                            locations,
-                           dependent,
-                           metadata,
-                           options
 }) => {
+
     return (
-        <div className={`item`}>
+        <>
             {
                 locations.map(location => {
-                    const { type='', data={}, dependents=[], id='', nodes_id=''} = location || {};
-                    const { location_identity='' } = data || {};
+                    const {node={}, metadata={}, hasDependents=false } = location || {};
+                    const {id='', type=''} = node || {};
+                    const { location_identity='' } = metadata || {};
 
                     return (
                         <Accordion
-                            key={id || nodes_id}
-                            type={type || model}
+                            key={id}
+                            type={type}
                             label={location_identity}
                             open={true}
+                            hasDependents={hasDependents}
                             menu={
-                                <ItemMenu
-                                    item={location}
-                                    model={type || model}
-                                    id={id || nodes_id}
-                                    dependent={dependent}
-                                    options={options}
+                                <NodeMenu
+                                    model={type}
+                                    id={id}
+                                    metadata={metadata}
+                                    dependent={model}
                                 />
-                            }
-                            children={
-                                <CapturesView data={dependents} model={model} />
-                            } />
+                            }>
+                                <NodesView data={location} model={model} />
+                            </Accordion>
                     )
                 })
             }
-            {/*<Accordion key={'md'} type={'info'} label={`Metadata`} open={true}>*/}
-            {/*    <Item view={'show'} model={model} data={metadata} />*/}
-            {/*</Accordion>*/}
-        </div>
+        </>
     )
 }
 

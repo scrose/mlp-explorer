@@ -7,7 +7,7 @@
 
 import React from 'react';
 import Button from './button';
-import Icon from './icon';
+import Dialog from './dialog';
 
 /**
  * Alert dialog component.
@@ -15,46 +15,26 @@ import Icon from './icon';
  * @public
  */
 
-const Alert = ({title, description, icon, label, callback}) => {
-
-    const [toggle, setToggle] = React.useState(false);
-
-    const handleClickOpen = () => {
-        setToggle(true);
-    };
-
-    const handleClose = () => {
-        setToggle(false);
-    };
+const Alert = ({title, description, setToggle, callback}) => {
 
     const handleAgree = () => {
         callback();
-        handleClose();
+        setToggle(null);
     };
     const handleDisagree = () => {
-        handleClose();
+        setToggle(null);
     };
 
     return (
-        <div>
-            <Button onClick={handleClickOpen} label={label} icon={icon} />
-            <div className={`dialog ${toggle ? 'active' : ''}`}>
-                <div className={'content-box'}>
-                    <div className={'alert-box-content'} aria-labelledby="alert-dialog-title">
-                        <h2 id="alert-dialog-title">
-                            {title}
-                        </h2>
-                        <div id="alert-dialog-description">
-                            {description}
-                        </div>
-                        <div className={'alert-box-buttons'}>
-                            <Button icon={'success'} name={'ok'} label={'OK'} onClick={handleAgree} />
-                            <Button icon={'cancel'} name={'cancel'} label={'Cancel'} onClick={handleDisagree} />
-                        </div>
-                    </div>
+        <Dialog setToggle={setToggle} title={title}>
+            <div className={'alert-box'}>
+                {description}
+                <div className={'alert-box-buttons'}>
+                    <Button icon={'success'} name={'ok'} label={'OK'} onClick={handleAgree} />
+                    <Button icon={'cancel'} name={'cancel'} label={'Cancel'} onClick={handleDisagree} />
                 </div>
             </div>
-        </div>
+        </Dialog>
     );
 }
 

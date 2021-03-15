@@ -87,6 +87,25 @@ export function selectByModel(model) {
 }
 
 /**
+ * Generate query: Find any dependent node by owner id.
+ *
+ * @return {Function} query function
+ * @public
+ */
+
+export function hasDependent(id) {
+    const sql = `SELECT exists(
+            SELECT 1 
+            FROM nodes 
+            WHERE owner_id = $1::integer 
+    )`;
+    return {
+        sql: sql,
+        data: [id],
+    };
+}
+
+/**
  * Generate query: Retrieve dependent nodes by owner id.
  *
  * @return {Function} query function

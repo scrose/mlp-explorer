@@ -8,6 +8,7 @@
 import React from 'react'
 import Input from './input';
 import Button from './button';
+import { getNodeLabel } from '../../_services/schema.services.client';
 
 /**
  * Build form fieldset element with inputs. 'Fields' are defined
@@ -74,11 +75,13 @@ const Fieldset = ({
             }
             {
                 mode==='copy'
-                    ? <Button
+                    ? <div className={'removeField'}>
+                        <Button
                         key={`fset_${model}_remove`}
                         onClick={remove}
                         label={`Remove ${legend}`}
                         icon={'minus'} />
+                    </div>
                     : ''
             }
             {
@@ -86,11 +89,23 @@ const Fieldset = ({
                 Object.keys(fields || {}).map(key => {
 
                     // get form schema for requested model
-                    const { id='', label='', render='', name='' } = fields[key];
+                    const { id='', label='', render='', name='', reference='' } = fields[key];
                     const _value = data.hasOwnProperty(key) ? data[key] : '';
-                    const _options = options.hasOwnProperty(id) ? options[id] : [];
                     const _error = errors.hasOwnProperty(key) ? errors[key] : '';
                     const _readonly = readonly.hasOwnProperty(key) ? readonly[key] : false;
+                    // restructure input options to reference schema
+                    const _options = options.hasOwnProperty(id)
+                        ? options[id].map(opt => {
+                            return {
+                                id: opt.id,
+                                type: reference,
+                                label: getNodeLabel({
+                                    metadata: opt,
+                                    node: {type: reference}
+                                })
+                            }
+                        })
+                        : [];
 
                     return (
                         <Input

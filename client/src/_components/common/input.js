@@ -8,31 +8,7 @@
 import React from 'react'
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
-import Button from './button';
 
-/**
- * Build datepicker widget using Pikaday module.
- *
- * @public
- */
-
-const AttachFile = ({type, id, name, onChange, value, label, error}) => {
-
-    return <fieldset>
-        <label key={`label_${name}`} htmlFor={name}>
-            {label}
-            <input
-                type={"file"}
-                id={id}
-                name={name}
-                onChange={onChange}
-                multiple={false}
-            />
-            <ValidationMessage msg={error}/>
-        </label>
-    </fieldset>
-
-}
 
 /**
  * Build datepicker widget using Pikaday module.
@@ -70,24 +46,20 @@ const ValidationMessage = ({msg}) => {
 /**
  * Form input component.
  *
+ * <input type="hidden">
  * <input type="button">
  * <input type="checkbox">
  * <input type="date">
- * <input type="datetime-local">
  * <input type="email">
- * <input type="file">
- * <input type="hidden">
+ * <input type="file" [multiple]>
  * <input type="image">
  * <input type="month">
  * <input type="number">
  * <input type="password">
  * <input type="radio">
- * <input type="reset">
- * <input type="search">
  * <input type="text">
- * <input type="time">
+ * <textarea>
  * <input type="url">
- * <input type="week">
  * <select>
  */
 
@@ -133,6 +105,19 @@ const Input = ({
                 {label}
                 <input
                     type={"text"}
+                    id={id}
+                    name={name}
+                    value={value || ''}
+                    onChange={onchange}
+                />
+                <ValidationMessage msg={error}/>
+            </label>
+        },
+
+        textarea: () => {
+            return <label key={`label_${name}`} htmlFor={name}>
+                {label}
+                <textarea
                     id={id}
                     name={name}
                     value={value || ''}
@@ -203,13 +188,14 @@ const Input = ({
                     name={name}
                     onChange={onchange}
                 >
-                    {options
+                    {
+                        options
                         .map(opt =>
                             <option
-                                key={`${name}_${opt.name}`}
-                                id={`${name}_${opt.name}_${id}`}
-                                name={`${name}_${opt.name}`}
-                                value={opt.name}
+                                key={`${name}_${opt.id}`}
+                                id={`${name}_${opt.id}_${id}`}
+                                name={`${name}_${opt.id}`}
+                                value={opt.id}
                             >
                                 {opt.label}
                             </option>
@@ -248,21 +234,6 @@ const Input = ({
                 />
                 <ValidationMessage msg={error}/>
             </label>
-        },
-
-        attachFile: () => {
-            return (
-                <>
-                    <Button type={'add'} label={`Add ${label}`} onClick={''} />
-                    <AttachFile
-                        type={"file"}
-                        id={id}
-                        name={name}
-                        onChange={onchange}
-                        multiple={false}
-                    />
-                </>
-                )
         }
     }
 

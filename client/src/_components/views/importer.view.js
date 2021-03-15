@@ -9,6 +9,8 @@ import React from "react";
 import Form from '../common/form';
 import { useRouter } from '../../_providers/router.provider.client';
 import Progress from '../common/progress';
+import { getModelLabel, getViewLabel } from '../../_services/schema.services.client';
+import { useData } from '../../_providers/data.provider.client';
 
 /**
  * File/metadata importer.
@@ -18,7 +20,6 @@ import Progress from '../common/progress';
  * @param schema
  * @param route
  * @param data
- * @param options
  * @param callback
  * @public
  */
@@ -29,13 +30,14 @@ const Importer = ({
                       schema,
                       route,
                       data,
-                      options,
                       callback
 }) => {
 
     const router = useRouter();
     const [progress, setProgress] = React.useState({});
+    const [response, setResponse] = React.useState({});
     const [messages, setMessages] = React.useState({});
+    const [error, setError] = React.useState(false);
 
     /**
      * Update progress data. Progress data is updated until
@@ -45,12 +47,14 @@ const Importer = ({
      * @param name
      * @param e
      * @param msg
+     * @param res
      * @private
      */
 
-    const _updateProgress = (index, name, e, msg) => {
+    const _updateProgress = (index, name, e, msg, res) => {
         // update progress indicator only if event available
         if (e) {
+            console.log('Progress:', e)
 
             // get loaded/total bytes data from XHR progress event
             // converted to MB for progress bar
@@ -66,8 +70,12 @@ const Importer = ({
             };
             setProgress(data => ({ ...data, [index]: progressData }));
         }
-        // update message state
+
+        // update response data and message state
+        setResponse(res);
+        const {type=''} = msg || {}
         setMessages(data => ({ ...data, [index]: msg}));
+        setError(() => (type === 'error'));
     }
 
     /**
@@ -80,8 +88,12 @@ const Importer = ({
      */
 
     const _importData = (uri, formData) => {
-        return router.upload(uri, formData, _updateProgress.bind(this, 0, null))
-                .catch(err => {console.error(err)});
+        return router.upload(
+            uri,
+            formData,
+            _updateProgress.bind(this, 0, null),
+        )
+            .catch(err => {console.error(err)});
     }
 
     /**
@@ -97,7 +109,11 @@ const Importer = ({
         const fileList = formData.getAll('files');
         fileList.map((file, index) => {
             formData.set('files', file);
-            return router.upload(uri, formData, _updateProgress.bind(this, index, file.name))
+            return router.upload(
+                uri,
+                formData,
+                _updateProgress.bind(this, index, file.name),
+            )
                 .catch(err => {console.error(err)});
         });
     }
@@ -109,7 +125,9 @@ const Importer = ({
      */
 
     const _handleCompletion = () => {
-        callback();
+        const {data=''} = response || {};
+        const {nodes_id=''} = data || {};
+        callback(error, model, nodes_id);
     }
 
     return (
@@ -125,13 +143,12 @@ const Importer = ({
                 model={model}
                 schema={schema}
                 init={data}
-                options={options}
                 route={route}
                 callback={ view === 'import' ? _importBatchData : _importData }
             />
             <Progress
-                title={'Import'}
-                description={'Upload in progress ...'}
+                title={`${ getViewLabel(view) } ${ getModelLabel(model) }`}
+                description={'in progress ...'}
                 progress={progress}
                 messages={messages}
                 callback={_handleCompletion}

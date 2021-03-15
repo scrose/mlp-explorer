@@ -6,11 +6,10 @@
  */
 
 import React from 'react';
-import Icon from './icon';
 import { getModelLabel } from '../../_services/schema.services.client';
-import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
-import { capitalize } from '../../_utils/data.utils.client';
+import { getNodeURI } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
+import Button from './button';
 
 /**
  * Inline vertical accordion menu component.
@@ -21,12 +20,28 @@ import { useRouter } from '../../_providers/router.provider.client';
  * @return {JSX.Element}
  */
 
-const Accordion = ({type, label='', id='', open=false, menu=null, children}) => {
+const Accordion = ({
+                       type,
+                       label='',
+                       id='',
+                       open=false,
+                       menu=null,
+                       hasDependents=false,
+                       children=null
+}) => {
 
     // accordion toggle state
     const [toggle, setToggle] = React.useState(open);
-
     const router = useRouter();
+
+    // use toggle icon to show state of loading
+    const onToggle = () => {
+        return toggle ? 'vopen' : 'vclose';
+    }
+
+    const onClick = () => {
+        setToggle(!toggle);
+    }
 
     // render tree node
     return (
@@ -34,41 +49,42 @@ const Accordion = ({type, label='', id='', open=false, menu=null, children}) => 
             <div className={`accordion`}>
                 <div className={`h-menu ${type}`}>
                     <ul>
-                        <li key={`accordion_toggle`}>
-                            <button
-                                title={`Expand View.`}
-                                onClick={() => {setToggle(!toggle)}}
-                            >
-                                {toggle ? <Icon type={'vopen'} /> : <Icon type={'vclose'} />}
-                            </button>
-                        </li>
                         {
-                            type ?
-                                <li key={`accordion_icon`}>
-                                    <button
-                                        title={`View ${label}.`}
-                                        onClick={() => {setToggle(!toggle)}}
-                                    >
-                                        <Icon type={type}/>
-                                    </button>
+                            hasDependents
+                                ? <li key={`accordion_toggle`}>
+                                    <Button
+                                        icon={onToggle()}
+                                        title={`Expand this item.`}
+                                        onClick={() => {
+                                            setToggle(!toggle);
+                                        }}
+                                    />
                                 </li>
                                 : ''
                         }
                         {
-                            type ?
+                            type && children ?
+                                <li key={`accordion_icon`}>
+                                    <Button icon={type} onClick={onClick} />
+                                </li>
+                                : ''
+                        }
+                        {
+                            type || label ?
                                 <li key={`accordion_label`}>
-                                <button
+                                <Button
                                     title={`Go to ${label}.`}
                                     onClick={() => {
                                         id
                                             ? router.update(getNodeURI(type, 'show', id))
                                             : setToggle(!toggle)
                                     }}
-                                >
-                                    {getModelLabel(type)}
-                                    {label && getModelLabel(type) ? ': ' : ''}
-                                    {label}
-                                </button>
+                                    label={`
+                                            ${getModelLabel(type)}
+                                            ${label && getModelLabel(type) ? ': ' : ''}
+                                            ${label}
+                                        `}
+                                />
                             </li>
                                 : ''
                         }
@@ -79,9 +95,11 @@ const Accordion = ({type, label='', id='', open=false, menu=null, children}) => 
                         }
                     </ul>
                 </div>
-                {
-                    toggle ? <div className={'accordion-data'}>{children}</div> : ''
-                }
+                <div className={`accordion-data ${toggle ? 'open' : ''}`}>
+                    {
+                        toggle ? <div>{children}</div>: ''
+                    }
+                </div>
             </div>
         </div>
     )

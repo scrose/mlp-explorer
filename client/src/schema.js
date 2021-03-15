@@ -93,7 +93,7 @@ export const schema = {
             method: 'POST',
             render: 'upload'
         },
-        add: {
+        new: {
             label: 'Create New',
             legend: 'Add',
             submit: 'Create',
@@ -114,7 +114,7 @@ export const schema = {
         show: {
             label: 'Info',
             legend: 'Item',
-            render: 'item'
+            render: 'nodes'
         }
     },
     models: {
@@ -141,7 +141,8 @@ export const schema = {
                 order: 1,
                 label: "Projects",
                 singular: "Project",
-                dependents: ['stations', 'historic_captures', 'modern_captures']
+                dependents: ['stations', 'historic_captures', 'modern_captures'],
+                files: false
             },
             fieldsets: [
                 {
@@ -166,7 +167,8 @@ export const schema = {
                 order: 2,
                 label: "Surveyors",
                 singular: "Surveyor",
-                dependents: ['surveys']
+                dependents: ['surveys'],
+                files: false
             },
             fieldsets: [
                 {
@@ -269,6 +271,7 @@ export const schema = {
                         label: 'Sources'
                     },
                     notes: {
+                        render: 'textarea',
                         label: 'Notes'
                     }
                 }]
@@ -287,7 +290,8 @@ export const schema = {
                         restrict: ['edit', 'delete'],
                     },
                     owner_id: {
-                        render: 'hidden'
+                        render: 'hidden',
+                        restrict: ['edit', 'delete']
                     }
                 },
                 {
@@ -440,12 +444,13 @@ export const schema = {
                     image_state: {
                         render: 'select',
                         label: 'Image State',
+                        reference: 'image_states'
                     }
                 },
                 {
                     legend: 'Image Upload',
                     render: 'multiple',
-                    restrict: ['add', 'edit'],
+                    restrict: ['new', 'edit'],
                     historic_images: {
                         label: 'Image File',
                         render: 'file',
@@ -454,22 +459,23 @@ export const schema = {
                     image_state: {
                         render: 'select',
                         label: 'Image State',
+                        reference: 'image_states'
                     }
                 },
                 {
                     legend: 'Digitization Details',
                     fn_photo_reference: {
                         label: 'Field Notes Photo Reference',
-                        restrict: ['add', 'edit']
+                        restrict: ['new', 'edit']
                     },
                     digitization_location: {
                         label: 'Digitization Location',
-                        restrict: ['add', 'edit']
+                        restrict: ['new', 'edit']
                     },
                     digitization_datetime: {
                         label: 'Digitization Datetime',
                         render: 'date',
-                        restrict: ['add', 'edit']
+                        restrict: ['new', 'edit']
                     },
                     comments: {
                         label: 'Comments'
@@ -477,53 +483,55 @@ export const schema = {
                 },
                 {
                     legend: 'Camera Details',
+                    cameras_id: {
+                        label: 'Camera',
+                        render: 'select',
+                        reference: 'cameras'
+                    },
+                    lens_id: {
+                        label: 'Lens',
+                        render: 'select',
+                        reference: 'lens'
+                    },
                     f_stop: {
                         label: 'F-stop',
-                        restrict: ['add', 'edit']
+                        restrict: ['new', 'edit']
                     },
                     shutter_speed: {
                         label: 'Shutter Speed',
-                        restrict: ['add', 'edit']
+                        restrict: ['new', 'edit']
                     },
                     focal_length: {
                         label: 'Focal Length',
-                        restrict: ['add', 'edit']
+                        restrict: ['new', 'edit']
                     },
                     capture_datetime: {
                         label: 'Capture Datetime',
                         render: 'datetime',
-                        restrict: ['add', 'edit']
-                    },
-                    cameras_id: {
-                        label: 'Camera',
-                        render: 'select'
-                    },
-                    lens_id: {
-                        label: 'Lens',
-                        render: 'select'
+                        restrict: ['new', 'edit']
                     },
                 },
                 {
                     legend: 'Library Archives Canada (LAC) Metadata',
                     lac_ecopy: {
                         label: 'LAC ECopy',
-                        restrict: ['add', 'edit']
+                        restrict: ['new', 'edit']
                     },
                     lac_wo: {
                         label: 'LAC WO',
-                        restrict: ['add', 'edit']
+                        restrict: ['new', 'edit']
                     },
                     lac_collection: {
                         label: 'LAC Collection',
-                        restrict: ['add', 'edit']
+                        restrict: ['new', 'edit']
                     },
                     lac_box: {
                         label: 'LAC Box',
-                        restrict: ['add', 'edit']
+                        restrict: ['new', 'edit']
                     },
                     lac_catalogue: {
                         label: 'LAC Catalogue',
-                        restrict: ['add', 'edit']
+                        restrict: ['new', 'edit']
                     },
                     condition: {
                         label: 'Condition'
@@ -559,12 +567,13 @@ export const schema = {
                     image_state: {
                         render: 'select',
                         label: 'Image State',
+                        reference: 'image_states'
                     }
                 },
                 {
                     legend: 'Image Upload',
                     render: 'multiple',
-                    restrict: ['add', 'edit'],
+                    restrict: ['new', 'edit'],
                     historic_images: {
                         label: 'Image File',
                         render: 'file',
@@ -573,6 +582,7 @@ export const schema = {
                     image_state: {
                         render: 'select',
                         label: 'Image State',
+                        reference: 'image_states'
                     }
                 },
                 {
@@ -609,9 +619,13 @@ export const schema = {
                 {
                     legend: 'Camera Details',
                     cameras_id: {
+                        render: 'select',
+                        reference: 'cameras',
                         label: 'Camera'
                     },
                     lens_id: {
+                        render: 'select',
+                        reference: 'lens',
                         label: 'Lens'
                     },
                     f_stop: {
@@ -736,10 +750,14 @@ export const schema = {
                 {
                     legend: 'Camera Details',
                     cameras_id: {
-                        label: 'Camera'
+                        render: 'select',
+                        label: 'Camera',
+                        reference: 'cameras'
                     },
                     lens_id: {
-                        label: 'Lens'
+                        render: 'select',
+                        label: 'Lens',
+                        reference: 'lens'
                     },
                     f_stop: {
                         label: 'F-stop'
@@ -804,11 +822,13 @@ export const schema = {
                     legend: 'Camera Details',
                     cameras_id: {
                         render: 'select',
-                        label: 'Camera'
+                        label: 'Camera',
+                        reference: 'cameras'
                     },
                     lens_id: {
                         render: 'select',
-                        label: 'Lens'
+                        label: 'Lens',
+                        reference: 'lens'
                     },
                     f_stop: {
                         label: 'F-stop'
@@ -838,37 +858,117 @@ export const schema = {
                     }
                 }]
         },
-    },
-    attached: {
-        cameras: {
-            make: 'Make',
-            model: 'Model',
-            unit: 'Unit',
-            format: 'Format'
+        image_states: {
+            attributes: {
+                label: 'Image States',
+                singular: 'Image State',
+            },
+            fieldsets: [
+                {
+                    label: {
+                        key: 1,
+                        label: 'Image State'
+                    }
+                }]
         },
-        glass_plate_listings: {
-            container: 'Container',
-            plates: 'Plates',
-            notes: 'Notes'
+        cameras: {
+            attributes: {
+                label: 'Camera Types',
+                singular: 'Camera Type',
+            },
+            fieldsets: [
+                {
+                    make: {
+                        key: 1,
+                        label: 'Make'
+                    },
+                    model: {
+                        key: 2,
+                        label: 'Model'
+                    },
+                    unit: {
+                        key: 3,
+                        label: 'Unit'
+                    },
+                    format: {
+                        key: 4,
+                        label: 'Format'
+                    },
+                }]
         },
         lens: {
-            brand: 'Brand',
-            focal_length: 'Focal Length',
-            max_aperture: 'Max Aperture'
+            attributes: {
+                label: 'Lens Types',
+                singular: 'Lens Type',
+            },
+            fieldsets: [
+                {
+                    brand: {
+                        key: 1,
+                        label: 'Brand'
+                    },
+                    focal_length: {
+                        key: 2,
+                        label: 'Focal Length'
+                    },
+                    max_aperture: {
+                        key: 3,
+                        label: 'Max Aperture'
+                    }
+                }]
+        },
+        glass_plate_listings: {
+            attributes: {
+                filetype: 'image',
+                order: 12,
+                label: 'Supplemental Images',
+                singular: 'Supplemental Image',
+            },
+            fieldsets: [
+                {
+                    container: 'Container',
+                    plates: 'Plates',
+                    notes: 'Notes'
+                }]
         },
         maps: {
-            nts_map: 'NTS Map',
-            historic_map: 'Historic Map',
-            links: 'Links'
+            attributes: {
+                filetype: 'image',
+                order: 12,
+                label: 'Supplemental Images',
+                singular: 'Supplemental Image',
+            },
+            fieldsets: [
+                {
+                    nts_map: 'NTS Map',
+                    historic_map: 'Historic Map',
+                    links: 'Links'
+                }]
         },
         participants: {
-            last_name: 'Last Name',
-            given_names: 'Given Names'
+            attributes: {
+                filetype: 'image',
+                order: 12,
+                label: 'Supplemental Images',
+                singular: 'Supplemental Image',
+            },
+            fieldsets: [
+                {
+                    last_name: 'Last Name',
+                    given_names: 'Given Names'
+                }]
         },
         participant_groups: {
-            group_type: {
-                'photographers': 'Photographers'
-            }
+            attributes: {
+                label: 'Participant Groups',
+                singular: 'Participant Group',
+            },
+            fieldsets: [
+                {
+                    group_type: {
+                        'photographers': 'Photographers'
+                    }
+                }]
         }
     }
 }

@@ -56,16 +56,22 @@ function RouterProvider(props) {
         // set app route state
         setRoute(uri);
 
-        window.history.pushState = (state, title, uri) => {
-            this.setState({url: url, user: state})
-
-            oldPushState.call(window.history, state, title, url)
-        };
-        window.onpopstate = (event) => {
-            setRoute(uri);
-        };
-
+        // update route in browser
+        reroute(uri);
     }
+
+    // add history event listener
+    window.addEventListener('popstate', function (e) {
+
+        // get the current URI path
+        const uri = window.location.pathname;
+
+        // set app route state
+        setRoute(uri);
+
+        // update route in browser
+        reroute(uri);
+    });
 
     /**
      * Error router.
@@ -78,40 +84,19 @@ function RouterProvider(props) {
     const errorRouter = (status, response) => {
         const routes = {
             '404': () => {
-                return redirect('/not_found');
+                return update('/not_found');
             },
             // '401': () => {
             //     return redirect('/login');
             // },
             '403': () => {
-                return redirect('/login');
+                return update('/login');
             },
             // '500': () => {
             //     addSessionMsg({msg: 'Server Error', type:'error'});
             // }
         }
         return routes.hasOwnProperty(status) ? routes[status]() : response;
-    }
-
-    /**
-     * Redirection router.
-     *
-     * @public
-     * @param res
-     */
-
-    const followup = (res) => {
-        const { view='', data={}, model={}, message={msg:'Response Error.', type:'error'} } = res || {};
-        const { name='' } = model || {};
-        const { nodes_id=''} = data || {};
-        const routes = {
-            'add': () => {
-                addSessionMsg(message);
-                const redirectURL = getNodeURI(name, 'show', nodes_id) + '/?msg=true';
-                return redirect(redirectURL);
-            }
-        }
-        return routes.hasOwnProperty(view) ? routes[view]() : res;
     }
 
     /**
@@ -192,6 +177,7 @@ function RouterProvider(props) {
         // for(var pair of formData.entries()) {
         //     console.log(pair[0]+ ', '+ pair[1]);
         // }
+        // console.log('Route:', uri)
 
         try {
 
@@ -203,17 +189,22 @@ function RouterProvider(props) {
             xhr.onload = function(e) {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
-                        return callback(null, {msg: 'Upload completed!', type: 'success'});
+                        const { response } = e.currentTarget || {};
+                        const { message } = response || {};
+                        const {msg='Update Successful.'} = message || {};
+                        return callback(null, {msg: msg, type: 'success'}, response);
                     }
                     else {
-                        return callback(null, {msg: 'Network error 1.', type: 'error'});
+                        const {statusText='API Error Occurred.'} = e.currentTarget || {};
+                        return callback(null, {msg: statusText, type: 'error'});
                     }
                 }
             };
 
             // error in sending network request
-            xhr.onerror = function() {
-                return callback(null, {msg: 'Network error 2.', type: 'error'});
+            xhr.onerror = function(e) {
+                const {statusText='API Error Occurred.'} = e.currentTarget || {};
+                return callback(null, {msg: statusText, type: 'error'});
             };
 
             // Upload progress callback
@@ -236,7 +227,7 @@ function RouterProvider(props) {
                 return callback(null, {msg: 'Upload was aborted.', type: 'warn'});
             };
 
-            // Upload timeout callback
+            // Upload end callback
             xhr.upload.onloadend = function(e) {
                 return callback(null, {msg: 'Upload completed!', type: 'success'});
             };
@@ -253,11 +244,12 @@ function RouterProvider(props) {
      * Request method to delete node.
      *
      * @public
-     * @param node
+     * @param model
+     * @param id
      */
 
-    const remove = async (node) => {
-        const route = getNodeURI(node.type, 'remove', node.id);
+    const remove = async (model, id) => {
+        const route = getNodeURI(model, 'remove', id);
         post(route)
             .then(res => {
                 addSessionMsg(res.message);
@@ -297,7 +289,6 @@ function RouterProvider(props) {
                 upload,
                 download,
                 remove,
-                followup,
                 online,
                 setOnline
             }

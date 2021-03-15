@@ -8,7 +8,7 @@
 import React from "react";
 import Loading from '../common/loading';
 import Table from '../common/table';
-import ItemMenu from '../menus/item.menu';
+import NodeMenu from '../menus/node.menu';
 import { useUser } from '../../_providers/user.provider.client';
 import { genSchema } from '../../_services/schema.services.client';
 import { sanitize } from '../../_utils/data.utils.client';
@@ -48,7 +48,7 @@ const ListUsers = ({ data=[]}) => {
                 // append inline edit menu (if authenticated)
                 // disallow super-administrator account updates
                 if (user)
-                    row.editor = <ItemMenu id={row.user_id} model={'users'} />;
+                    row.editor = <NodeMenu id={row.user_id} model={'users'} />;
 
                 // convert user role ID to label
                 row.role = renameOption(row, fields, 'role');

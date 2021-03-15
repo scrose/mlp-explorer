@@ -7,8 +7,7 @@
 
 import React from 'react';
 import { useRouter } from '../../_providers/router.provider.client';
-import Form from '../common/form';
-import ItemView from './item.view';
+import NodesView from './nodes.view';
 import NotfoundError from '../error/notfound.error';
 import Loading from '../common/loading';
 import ServerError from '../error/server.error';
@@ -30,28 +29,34 @@ const DataView = () => {
 
     // extract API data
     const { view='', model='', data=null, attributes={} } = api || {};
-    const { dependents=[], options=[] } = data || {};
     const render = getRenderType(view, model);
     const schema = genSchema(view, model, attributes);
 
     // view components indexed by render type
     const renders = {
         form: () => (
-            <Form
+            <Importer
+                view={view}
                 model={model}
-                init={data}
-                options={options}
                 schema={schema}
-                callback={router.post}
+                data={data}
+                route={getNodeURI(model, view, api.root.id)}
+                callback={(err, model, id) => {
+                    if (err || !id) return;
+                    router.update(getNodeURI(model, 'show', id));
+                }}
             />),
-        item: () => (
-            <ItemView model={model} data={data} dependents={dependents} />),
+        nodes: () => (
+            <NodesView
+                model={model}
+                data={data}
+            />),
         import: () => (
             <Importer
                 view={view}
                 model={model}
-                options={options}
                 schema={schema}
+                data={data}
                 route={getNodeURI(model, 'import', api.root.id)}
                 callback={() => {
                     redirect(
@@ -69,11 +74,11 @@ const DataView = () => {
 
     // render data view
     return (
-        <div className={'view'}>
+        <>
             {
                 renders.hasOwnProperty(render) ? renders[render]() : <Loading/>
             }
-        </div>
+        </>
     )
 }
 

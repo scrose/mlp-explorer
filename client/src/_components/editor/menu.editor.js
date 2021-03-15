@@ -7,9 +7,8 @@
 
 import React from 'react';
 import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
-import Icon from '../common/icon';
 import { useRouter } from '../../_providers/router.provider.client';
-import { genSchema, getDependents, getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
+import { genSchema, getDependentTypes, getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
 import Alert from '../common/alert';
 import { useData } from '../../_providers/data.provider.client';
 import Button from '../common/button';
@@ -27,18 +26,45 @@ const MenuEditor = () => {
     const router = useRouter();
     const api = useData();
 
-    // lookup model dependent nodes
-    const dependents = getDependents(api.root.type) || [];
+    // lookup model dependent nodes in schema
+    const dependents = getDependentTypes(api.root.type) || [];
 
     // check for capture bulk import
-    const capture = dependents.length > 0
-        ? dependents.find(dependent =>
-            (dependent === 'historic_captures' || dependent === 'modern_captures')
-        )
+    const historicCaptureImport = dependents.length > 0
+        ? dependents.find(dependent => dependent === 'historic_captures' )
         : null;
 
+    const modernCaptureImport = dependents.length > 0
+        ? dependents.find(dependent => dependent === 'modern_captures' )
+        : null;
+
+    // toggle to dhow/hide popup dialogs
+    const [dialogToggle, setDialogToggle] = React.useState(null);
+
+    // dropdown toggle for tools menu items
+    const [dropdownToggle, setDropdownToggle] = React.useState(false);
+    let dropdown = React.createRef();
+
+    // create hide dropdown function
+    const hideDropdown = React.useCallback((e) => {
+        if (dropdown && !dropdown.contains(e.target)) {
+            setDropdownToggle(false);
+            document.removeEventListener('click', hideDropdown);
+        }
+    }, [dropdown]);
+
+    // create event listener to close menu upon click
+    React.useEffect(() => {
+        if (dropdownToggle) {
+            document.addEventListener('click', hideDropdown);
+        }
+        else {
+            document.removeEventListener('click', hideDropdown);
+        }
+    }, [dropdown, hideDropdown, dropdownToggle, setDropdownToggle]);
+
     // visibility settings for menu & menu items
-    const menuExclude = ['dashboard', 'login', 'register', 'notFound'];
+    const menuExclude = ['new', 'dashboard', 'login', 'register', 'notFound'];
     const showExclude = ['dashboard', 'list', 'register'];
     const editExclude = ['dashboard', 'list', 'register', 'add'];
     const deleteExclude = ['dashboard', 'list', 'register', 'add'];
@@ -50,107 +76,195 @@ const MenuEditor = () => {
 
     return (
         api.view && !menuExclude.includes(api.view) ?
-        <div className={'editor-tools h-menu'}>
-            <ul>
-                {api.root && !showExclude.includes(api.view) ?
-                    <li key={'show'}>
-                        <Button
-                            label={'View'}
-                            title={`View this ${getModelLabel(api.root.type)} item.`}
-                            icon={'info'}
-                            onClick={e =>
-                                onClick(e, api.root.type, 'show', api.root.id)
-                            } />
-                    </li> : ''
-                }
-                {api.root && !editExclude.includes(api.view) ?
-                    <li key={'edit'}>
-                        <button
-                            title={`Edit this ${getModelLabel(api.root.type)} item.`}
-                            onClick={e =>
-                                onClick(e, api.root.type, 'edit', api.root.id)
-                            }
-                        >
-                            <Icon type={'edit'} /> <span>Edit</span>
-                        </button>
-                    </li> : ''
-                }
-                {api.root && !deleteExclude.includes(api.view) ?
-                    <li key={'remove'}>
-                        <Alert
-                            icon={'delete'}
-                            title={`Delete ${api.root.type} record?`}
-                            description={
-                                <div>
-                                    <p>Please confirm the deletion of {getModelLabel(api.root.type)}:</p>
-                                    <p><b>{getNodeLabel(api.root)}</b></p>
-                                    <p>Note that any dependent nodes for this record will also be deleted.</p>
-                                </div>
-                            }
-                            label={'Delete'}
-                            callback={() => {router.remove(api.root)}}
-                        />
-                    </li> : ''
-                }
-                {
-                    capture ?
-                        <li key={'upload'}>
-                            <Dialog
-                                icon={'import'}
-                                label={`Import`}
-                                title={`Bulk ${getModelLabel(capture)} import.`}
-                                children={
-                                    <Importer
-                                        view={'import'}
-                                        model={capture}
-                                        options={api.options}
-                                        schema={genSchema('import', capture)}
-                                        route={getNodeURI(capture, 'import', api.root.id)}
-                                        callback={() => {
-                                            redirect(
-                                                getNodeURI(api.root.type, 'show', api.root.id
-                                                )
-                                            );
-                                        }}
-                                    />
+            <div className={'editor-tools h-menu'}>
+                <ul>
+                    {
+                        Object.keys(api.root).length > 0 && !showExclude.includes(api.view) ?
+                        <li key={'show'}>
+                            <Button
+                                label={'View'}
+                                title={`View this ${getModelLabel(api.root.type)} item.`}
+                                icon={'info'}
+                                onClick={e =>
+                                    onClick(e, api.root.type, 'show', api.root.id)
+                                } />
+                        </li> : ''
+                    }
+                    {
+                        api.root && !editExclude.includes(api.view) ?
+                        <li key={'edit'}>
+                            <Button
+                                icon={'edit'}
+                                label={'Edit'}
+                                title={`Edit this ${getModelLabel(api.root.type)} item.`}
+                                onClick={e =>
+                                    onClick(e, api.root.type, 'edit', api.root.id)
                                 }
                             />
-                        </li>
-                        : ''
+                        </li> : ''
                     }
-                {
-                    dependents.length > 0
-                        ? dependents.map(dependent => {
-                            return (
-                                <li key={`add_${dependent}`}>
-                                    <Dialog
-                                        icon={'add'}
-                                        label={`Add ${getModelLabel(dependent)}`}
-                                        title={`Add new ${getModelLabel(dependent)} item.`}
-                                        children={
-                                            <Importer
-                                                view={'add'}
-                                                model={dependent}
-                                                options={api.options}
-                                                schema={genSchema('add', dependent)}
-                                                route={getNodeURI(dependent, 'add', api.root.id)}
-                                                callback={() => {
-                                                    redirect(
-                                                        getNodeURI(api.root.type, 'show', api.root.id
-                                                        )
+                    {
+                        api.root && !deleteExclude.includes(api.view) ?
+                        <li key={'remove'}>
+                            <Button
+                                icon={'delete'}
+                                label={'Delete'}
+                                title={`Delete this ${getModelLabel(api.root.type)} item.`}
+                                onClick={() => {setDialogToggle('remove')}}
+                            />
+                            {
+                                dialogToggle === 'remove' ?
+                                <Alert
+                                    setToggle={setDialogToggle}
+                                    title={`Delete ${getModelLabel(api.root.type)} ${getNodeLabel(api.root)} record?`}
+                                    description={
+                                        <>
+                                            <p>Please confirm the deletion of {getModelLabel(api.root.type)}:</p>
+                                            <p><b>{getNodeLabel(api.root)}</b></p>
+                                            <p>Note that any dependent nodes for this record will also be deleted.</p>
+                                        </>
+                                    }
+                                    callback={() => {
+                                        router.remove(api.root);
+                                    }}
+                                /> : ''
+                            }
+                        </li> : ''
+                    }
+                    {
+                        // add dropdown menu for adding dependent nodes
+                        dependents.length > 0
+                            ? <li>
+                                <Button
+                                    icon={'tools'}
+                                    label={'Add Items'}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        setDropdownToggle(true);
+                                    }} />
+                                {
+                                    // toggle dropdown menu items
+                                    dropdownToggle ?
+                                        <ul
+                                            className={`v-menu dropdown`}
+                                            ref={(element) => {dropdown = element}}
+                                        >
+                                            {
+                                                // include option to add dependent items
+                                                dependents.map(dependent => {
+                                                    return (
+                                                        <li key={`add_${dependent}`}>
+                                                            <Button
+                                                                icon={'add'}
+                                                                type={dependent}
+                                                                label={getModelLabel(dependent)}
+                                                                onClick={() => {setDialogToggle(dependent)}}
+                                                            />
+                                                        </li>
                                                     );
-                                                }}
-                                            />
-                                        }
-                                    />
-                                </li>
-                            )})
-                        : ''
+                                                })
+                                            }
+                                            {
+                                                // include option to import historic captures
+                                                historicCaptureImport ?
+                                                    <li key={'import_historic'}>
+                                                        <Button
+                                                            icon={'import'}
+                                                            type={'historic_captures'}
+                                                            label={`Import ${getModelLabel('historic_captures', 'label')}`}
+                                                            onClick={() => {setDialogToggle('import_historic_captures')}}
+                                                        />
+                                                    </li>
+                                                    : ''
+                                            }
+                                            {
+                                                // include option to add modern captures
+                                                modernCaptureImport ?
+                                                    <li key={'import_modern'}>
+                                                        <Button
+                                                            icon={'import'}
+                                                            type={'modern_captures'}
+                                                            label={`Import ${getModelLabel('modern_captures', 'label')}`}
+                                                            onClick={() => {setDialogToggle('import_modern_captures')}}
+                                                        />
+                                                    </li>
+                                                    : ''
+                                            }
+                                        </ul> : ''
+                                }
+                            </li>
+                            : ''
+                    }
+                </ul>
+                {
+                    dependents.map(dependent => {
+                        return dialogToggle === dependent
+                            ? <Dialog
+                                key={`dialog_${dependent}`}
+                                setToggle={setDialogToggle}
+                                title={`Add new ${getModelLabel(dependent)} item.`}>
+                                <Importer
+                                    view={'add'}
+                                    model={dependent}
+                                    options={api.options}
+                                    schema={genSchema('new', dependent)}
+                                    route={getNodeURI(dependent, 'new', api.root.id)}
+                                    callback={() => {
+                                        redirect(
+                                            getNodeURI(api.root.type, 'show', api.root.id,
+                                            ),
+                                        );
+                                    }}
+                                />
+                            </Dialog>
+                            : ''
+                    })
                 }
-            </ul>
-        </div>
-            : ''
-    )
-}
+                {
+                    historicCaptureImport && dialogToggle === 'import_historic_captures' ?
+                            <Dialog
+                                key={'import_historic_captures'}
+                                title={`Bulk ${getModelLabel('historic_captures', 'label')} import.`}
+                                setToggle={() => {}}>
+                                <Importer
+                                    view={'import'}
+                                    model={'historic_captures'}
+                                    options={api.options}
+                                    schema={genSchema('import', 'historic_captures')}
+                                    route={getNodeURI('historic_captures', 'import', api.root.id)}
+                                    callback={() => {
+                                        redirect(
+                                            getNodeURI(api.root.type, 'show', api.root.id
+                                            )
+                                        );
+                                    }}
+                                />
+                            </Dialog> : ''
+                }
+                {
+                    modernCaptureImport && dialogToggle === 'import_modern_captures' ?
+                        <Dialog
+                            key={'import_modern_captures'}
+                            title={`Import ${getModelLabel('modern_captures', 'label')}`}
+                            setToggle={setDialogToggle}>
+                            <Importer
+                                view={'import'}
+                                model={'modern_captures'}
+                                options={api.options}
+                                schema={genSchema('import', 'modern_captures')}
+                                route={getNodeURI('modern_captures', 'import', api.root.id)}
+                                callback={() => {
+                                    redirect(
+                                        getNodeURI(api.root.type, 'show', api.root.id
+                                        )
+                                    );
+                                }}
+                            />
+                        </Dialog> : ''
+                }
+                    </div>
+                    : ''
+                    )
+                    }
 
-export default MenuEditor;
+                    export default MenuEditor;

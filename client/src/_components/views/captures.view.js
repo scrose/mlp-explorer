@@ -7,36 +7,53 @@
 
 import React from 'react';
 import { FilesList } from './files.view';
-import { getFileLabel } from '../../_services/schema.services.client';
 
 /**
  * Model view component.
  *
  * @public
- * @param {Object} captures
+ * @param {Array} captures
+ * @param {String} fileType
  * @return {JSX.Element}
  */
 
-const CapturesView = ({data}) => {
+const CapturesView = ({captures, fileType}) => {
+
+    console.log('Captures', captures, fileType)
 
     // filter files to select viewable images
     const filterCaptures = () => {
-        return data
-            .reduce((o, capture) => {
-                // console.log('Capture:', capture.data, capture.files)
+        return captures
+            .filter(capture =>
+                capture.hasOwnProperty('files')
+                && capture.files.hasOwnProperty(fileType)
+                && Object.keys(capture.files).length > 0
+            )
+            .reduce((o, capture, index) => {
+                console.log('capture:', capture, fileType)
+
+                // get field notes photo reference as capture label
+                const {metadata={}} = capture || {};
+                const {fn_photo_reference=''} = metadata || {};
+                const files = capture.files[fileType];
+
                 // conditionally filter capture files by image state
-                const cMaster = capture.files
-                    .find(file => file.data.image_state === 'master');
-                const cInterim = capture.files
-                    .find(file => file.data.image_state === 'interim');
-                const cRaw = capture.files
-                    .find(file => file.data.image_state === 'raw');
-                const cMisc = capture.files
-                    .find(file => file.data.image_state === 'misc');
+                const cMaster = files
+                    .find(file => file.metadata.image_state === 'master');
+                const cInterim = files
+                    .find(file => file.metadata.image_state === 'interim');
+                const cRaw = files
+                    .find(file => file.metadata.image_state === 'raw');
+                const cMisc = files
+                    .find(file => file.metadata.image_state === 'misc');
                 const c = cMaster || cInterim || cRaw || cMisc;
 
                 // label file by capture photo reference
-                c['label'] = capture.data.fn_photo_reference || getFileLabel(c);
+                c.label = fn_photo_reference
+                    ? fn_photo_reference
+                    : `Capture ${index}`;
+
+                console.log(fn_photo_reference, c, capture)
 
                 // add to image capture list
                 o.push(c);

@@ -14,33 +14,23 @@ import Button from './button';
  * @public
  */
 
-const Dialog = ({title, label, icon, children, active=false}) => {
-
-    // create dialog toggle
-    const [toggle, setToggle] = React.useState(active);
-
-    const handleOpen = () => {
-        setToggle(true);
-    };
-
-    const handleClose = () => {
-        setToggle(false);
-    };
-
+const Dialog = ({title, setToggle, children}) => {
     return (
-        <div>
-            <Button onClick={handleOpen} label={label} icon={icon} title={title} />
-            <div className={`dialog ${toggle ? 'active' : ''}`}>
-                <div className={'content-box'}>
-                    <div className={'dialog-header'}>
-                        <Button icon={'close'} name={'close'} label={'Close'} onClick={handleClose} />
-                    </div>
-                    <h2 className={'dialog-title'} id="dialog-title">
-                        {title}
-                    </h2>
-                    <div className={'dialog-body'} aria-labelledby="dialog-title">
-                        {children}
-                    </div>
+        <div className={`dialog`}>
+            <div className={'content-box'}>
+                <div className={'dialog-header'}>
+                    <Button
+                        icon={'close'}
+                        name={'close'}
+                        label={'Close'}
+                        onClick={() => {setToggle(null)}}
+                    />
+                </div>
+                <h2 className={'dialog-title'} id="dialog-title">
+                    {title}
+                </h2>
+                <div className={'dialog-body'} aria-labelledby="dialog-title">
+                    {children}
                 </div>
             </div>
         </div>

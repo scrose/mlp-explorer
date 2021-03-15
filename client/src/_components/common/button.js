@@ -7,16 +7,15 @@
 
 import React from 'react';
 import Icon from './icon';
-import { redirect } from '../../_utils/paths.utils.client';
 
 /**
- * Render .page footer
+ * Render HTML button element.
  *
  * @public
  * @return {React.Component}
  */
 
-const Button = ({type, name, label, title, icon, onClick}) => {
+const Button = ({type, name, label='', title, icon, className='', onClick}) => {
 
     /**
      * Button constructors for different render types.
@@ -32,7 +31,6 @@ const Button = ({type, name, label, title, icon, onClick}) => {
         submit: () => {
             return (
                 <input
-                    key={`key_submit_${name}`}
                     title={`Submit update.`}
                     type={type}
                     name={name}
@@ -42,12 +40,11 @@ const Button = ({type, name, label, title, icon, onClick}) => {
         default: () => {
             return (
                 <button
-                    key={`key_${name}`}
                     title={title}
+                    className={className}
                     onClick={onClick}
                 >
-                    { icon ? <Icon type={icon} /> : ''}
-                    <span>{label}</span>
+                    { icon ? <Icon type={icon} /> : ''}{ label ? <span>{label}</span> : ''}
                 </button>
             )
         }

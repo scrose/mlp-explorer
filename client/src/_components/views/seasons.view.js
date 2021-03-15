@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.Views.Stations
- * File: stations.view.js
+ * MLP.Client.Components.Views.SurveySeasons
+ * File: seasons.view.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -16,54 +16,57 @@ import NodesView from './nodes.view';
  * Stations view component.
  *
  * @public
- * @param {Object} data
+ * @param {Object} metadata
+ * @param {Object} dependents
+ * @param {Object} options
  * @return {JSX.Element}
  */
 
-const StationsView = ({data}) => {
+const SeasonsView = ({
+                          node,
+                          dependents=[],
+                          options
+}) => {
 
-    const {dependents=[], node={}, metadata={}} = data || {};
-    const {id=''} = node || {};
 
+    console.log('Survey Season:', node)
     return (
         <>
             <Accordion
-                key={`md_${id}`}
+                key={`md_${node.id}`}
                 type={'info'}
                 label={`Station Metadata`}
+                loaded={dependents.length > 0}
                 open={false}>
-                <Item view={'show'} model={'stations'} data={metadata} />
+                <Item view={'show'} model={'stations'} data={node} />
             </Accordion>
             {
                 (dependents || []).map(dependent => {
-
-                    const {node={}, metadata={}, hasDependents=false} = dependent || {};
-                    const {id='', type=''} = node || {};
-                    const label = getNodeLabel(dependent);
-
-                    console.log(label, hasDependents, dependent)
-
+                    const { type='', id='', nodes_id=''} = dependent || {};
                     return (
                         type === 'modern_visits'
                             ? <Accordion
-                                key={id}
-                                id={id}
+                                key={id || nodes_id}
+                                id={id || nodes_id}
                                 type={type}
                                 open={true}
-                                label={label}
-                                hasDependents={hasDependents}
+                                label={getNodeLabel(dependent)}
                                 menu={
                                     <NodeMenu
+                                        node={dependent}
                                         model={type}
-                                        id={id}
-                                        metadata={metadata}
-                                        label={label}
+                                        id={id || nodes_id}
                                         dependent={'locations'}
+                                        options={options}
                                     />}
                             >
-                                <NodesView model={type} data={dependent} />
+                                <NodesView model={type} node={dependent} />
                                 </Accordion>
-                            : <NodesView key={id} model={type} data={dependent} />
+                            : <NodesView
+                                key={id || nodes_id}
+                                model={type}
+                                node={dependent}
+                            />
                     )
                 })
             }
@@ -71,4 +74,4 @@ const StationsView = ({data}) => {
     )
 }
 
-export default StationsView;
+export default SeasonsView;

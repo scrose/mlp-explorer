@@ -15,13 +15,10 @@ import { ArrayStream } from '../services/files.services.js';
 /**
  * Controller initialization.
  *
- * @param req
- * @param res
- * @param next
  * @src public
  */
 
-export const init = async (req, res, next) => {};
+export const init = async () => {};
 
 /**
  * Show node data controller. Does not return dependents.
@@ -68,7 +65,10 @@ export const list = async (req, res, next) => {
         res.status(200).json(
             prepare({
                 view: 'list',
-                data: {projects: projects, surveyors: surveyors},
+                data: {
+                    projects: projects,
+                    surveyors: surveyors
+                },
             }));
 
     } catch (err) {

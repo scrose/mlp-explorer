@@ -252,9 +252,7 @@ Main Navigation Menu
 }
 
 .navbar nav.main div ul li a:hover {
-    color: #FFFFFF;
-    background-color: #008896;
-    opacity: 0.9;
+    opacity: 0.6;
 }
 
 /*
@@ -446,12 +444,16 @@ nav.breadcrumb ul li a:hover {
     width: 100%;
 }
 
-.editor-tools.h-menu ul li, .editor-tools .v-menu ul li  {
+.editor-tools.h-menu ul li  {
     vertical-align: middle;
     height: 50px;
     line-height: 50px;
     color: #282c34;
     width: auto;
+}
+
+.v-menu.dropdown li  {
+    width: 100% !important;
 }
 
 .editor-tools.h-menu ul li button, .editor-tools .v-menu ul li button  {
@@ -460,8 +462,7 @@ nav.breadcrumb ul li a:hover {
 }
 
 .editor-tools.h-menu ul li button:hover, .editor-tools .v-menu ul li button:hover {
-    background-color: transparent;
-    color: #008896;
+    opacity: 0.6;
 }
 
 .editor-tools .v-menu {
@@ -472,7 +473,7 @@ nav.breadcrumb ul li a:hover {
 }
 
 .editor-tools .v-menu .collapsible {
-    width: auto;
+    width: 100%;
     background-color: transparent;
 }
 
@@ -617,6 +618,7 @@ nav.breadcrumb ul li a:hover {
 .tab.h-menu ul li button:hover {
     border: none;
     outline: none;
+    opacity: 0.7;
     cursor: pointer;
 }
 
@@ -677,7 +679,14 @@ nav.breadcrumb ul li a:hover {
 }
 
 .accordion .accordion-data {
+    height: 0;
     margin: 20px;
+    transition: height 2s;
+}
+
+.accordion .accordion-data.open {
+    height: auto;
+    transition: height 2s;
 }
 
 /* Item Edit Menu */
@@ -811,6 +820,7 @@ figure {
 }
 /* Change background color of buttons on hover */
 .gallery.h-menu ul li button:hover {
+    opacity: 0.7;
     border: none;
     outline: none;
     cursor: pointer;
@@ -1032,6 +1042,12 @@ fieldset.submit {
     margin: 0 0 0 15px;
     border: none;
 }
+form .addField {
+    text-align: center;
+}
+fieldset .removeField {
+    text-align: center;
+}
 
 /* Labels */
 
@@ -1128,14 +1144,12 @@ input[type=submit] {
 
 /* When moving the mouse over the submit button, add a darker green color */
 input[type=submit]:hover {
-    background-color: #E34234;
-    color: white;
+    opacity: 0.6;
 }
 
 /* Style disabled submit button */
 input[type=submit].disabled, input[type=submit].disabled:hover {
-    background-color: #999999;
-    color: #FFFFFF;
+    opacity: 0.6;
     cursor: default;
 }
 
@@ -1215,7 +1229,7 @@ button {
 }
 
 button:hover {
-    background-color: #008896; /* Blue */
+    opacity: 0.6;
 }
 
 button span {
@@ -1232,8 +1246,7 @@ button.cancel {
 }
 
 button.cancel:hover {
-    color: white;
-    background-color: #E34234;
+    opacity: 0.6;
 }
 
 /*
@@ -1310,7 +1323,7 @@ Messages
 /* Pop-up dialog component */
 
 .dialog {
-    display: none;
+    display: block;
     position: fixed;
     width: 100%;
     height: 100%;
@@ -1324,11 +1337,30 @@ Messages
     text-align: left;
 }
 .dialog .dialog-header {
+    height: fit-content !important;
+    padding: 3px !important;
+    margin: 0 !important;
     text-align: right;
     background: #999999;
 }
+.dialog-header button {
+    background-color: #008896 !important;
+    color: #FFFFFF !important;
+}
+.dialog-header button:hover {
+    opacity: 0.6;
+}
 .dialog .dialog-title {
     text-align: center;
+}
+.dialog .dialog-title p {
+    line-height: normal;
+}
+.dialog .dialog-body, .dialog-body p {
+    line-height: normal;
+    margin: auto;
+    padding: 10px;
+    text-align: inherit;
 }
 .dialog .content-box {
     position: absolute;
@@ -1344,45 +1376,6 @@ Messages
     color: #282c34;
     max-height: 600px;
 }
-.dialog .alert-box {
-    position: absolute;
-    width: fit-content;
-    height: fit-content;
-    overflow: scroll;
-    left: 20%;
-    right: 20%;
-    top: 20%;
-    bottom: 20%;
-    margin: auto;
-    background: #FFFFFF;
-    max-height: 600px;
-    min-width: 400px;
-}
-.dialog .alert-box-content {
-    padding: 10px;
-    margin: auto;
-    text-align: center;
-}
-
-.dialog .alert-box-content h2 {
-    padding: 10px;
-    margin: auto;
-}
-
-.dialog.active {
-    display: block;
-    overflow: hidden;
-}
-
-.alert-box-buttons button {
-    background-color: #008896 !important;
-    color: #FFFFFF !important;
-}
-
-.alert-box-buttons button:hover {
-    background-color: #4E4372 !important;
-    color: #FFFFFF !important;
-}
 .dialog .loading {
     position: absolute;
     width: fit-content;
@@ -1394,6 +1387,16 @@ Messages
     margin: auto;
     border-radius: 20px;
     background: #FFFFFF;
+}
+.alert-box {
+    text-align: center;
+}
+.alert-box-buttons button {
+    background-color: #008896 !important;
+    color: #FFFFFF !important;
+}
+.alert-box-buttons button:hover {
+    opacity: 0.6;
 }
 
 /*

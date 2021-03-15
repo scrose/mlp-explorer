@@ -6,6 +6,74 @@
  */
 
 import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { library } from '@fortawesome/fontawesome-svg-core'
+import {
+    faHome,
+    faUser,
+    faSignInAlt,
+    faSignOutAlt,
+    faInfoCircle,
+    faPlus,
+    faMinus,
+    faEdit,
+    faTrashAlt,
+    faFileImport,
+    faFileExport,
+    faCheckCircle,
+    faTimesCircle,
+    faMountain,
+    faMapMarkedAlt,
+    faListAlt,
+    faCaretRight,
+    faEllipsisV,
+    faChevronCircleDown,
+    faChevronCircleRight,
+    faAngleDoubleLeft,
+    faAngleDoubleRight,
+    faFileUpload,
+    faFileDownload,
+    faProjectDiagram,
+    faHiking,
+    faBinoculars,
+    faCalendar,
+    faMapMarkerAlt, faCampground, faCameraRetro, faLocationArrow, faStar,
+} from '@fortawesome/free-solid-svg-icons';
+library.add(faHome,
+    faUser,
+    faSignInAlt,
+    faSignOutAlt,
+    faInfoCircle,
+    faPlus,
+    faMinus,
+    faEdit,
+    faTrashAlt,
+    faFileImport,
+    faFileExport,
+    faCheckCircle,
+    faTimesCircle,
+    faMountain,
+    faMapMarkedAlt,
+    faListAlt,
+    faCaretRight,
+    faEllipsisV,
+    faChevronCircleDown,
+    faChevronCircleRight,
+    faAngleDoubleLeft,
+    faAngleDoubleRight,
+    faFileUpload,
+    faFileDownload,
+    faProjectDiagram,
+    faHiking,
+    faBinoculars,
+    faCalendar,
+    faMapMarkerAlt,
+    faCampground,
+    faCameraRetro,
+    faLocationArrow,
+    faStar)
+
+
 
 /**
  * Select icon class. Uses FontAwesome icon library.
@@ -16,45 +84,45 @@ import React from 'react';
 
 const getIconClass = (iconType) => {
     const iconComponents = {
-        home: 'fas fa-lg fa-home',
-        user: 'fas fa-lg fa-user-circle',
-        login: 'fas fa-lg fa-sign-in-alt',
-        logout: 'fas fa-lg fa-sign-out-alt',
-        info: 'fas fa-lg fa-info-circle',
-        show: 'fas fa-lg fa-info-circle',
-        add: 'fas fa-lg fa-plus',
-        minus: 'fas fa-lg fa-minus',
-        edit: 'fas fa-lg fa-edit',
-        delete: 'fas fa-lg fa-trash-alt',
-        import: 'fas fa-lg fa-file-import',
-        export: 'fas fa-lg fa-file-export',
-        success: 'fas fa-lg fa-check-circle',
-        cancel: 'fas fa-lg fa-times-circle',
-        logo: 'fas fa-mountain',
-        map: 'fas fa-lg fa-map-marked-alt',
-        tree: 'fas fa-lg fa-list',
-        close: 'fas fa-times-circle',
-        right: 'fas fa-lg fa-caret-right',
-        tools: 'fas fa-lg fa-ellipsis-v',
-        hopen: 'fas fa-lg fa-chevron-circle-down',
-        hclose: 'fas fa-lg fa-chevron-circle-right',
-        hopenleft: 'fas fa-lg fa-angle-double-left',
-        hcloseleft: 'fas fa-lg fa-angle-double-right',
-        vopen: 'fas fa-lg fa-chevron-circle-up',
-        vclose: 'fas fa-lg fa-chevron-circle-down',
-        upload: 'fas fa-lg fa-file-upload',
-        metadata_files: 'fas fa-lg fa-file-download',
-        projects: 'fas fa-project-diagram',
-        surveyors: 'fas fa-hiking',
-        surveys: 'fas fa-binoculars',
-        survey_seasons: 'fas fa-calendar',
-        stations: 'fas fa-map-marker-alt',
-        historic_visits: 'fas fa-campground',
-        modern_visits: 'fas fa-campground',
-        historic_captures: 'fas fa-camera-retro',
-        modern_captures: 'fas fa-camera-retro',
-        locations: 'fas fa-location-arrow',
-        default: 'fas fa-lg fa-star'
+        home: 'home',
+        user: 'user',
+        login: 'sign-in-alt',
+        logout: 'sign-out-alt',
+        info: 'info-circle',
+        show: 'info-circle',
+        add: 'plus',
+        minus: 'minus',
+        edit: 'edit',
+        delete: 'delete',
+        import: 'file-import',
+        export: 'file-export',
+        success: 'circle-check',
+        cancel: 'circle-check',
+        logo: 'mountain',
+        map: 'map-marker-alt',
+        tree: 'list-alt',
+        close: 'times-circle',
+        right: 'caret-right',
+        tools: 'ellipsis-v',
+        hopen: 'chevron-circle-down',
+        hclose: 'chevron-circle-right',
+        hopenleft: 'angle-double-left',
+        hcloseleft: 'angle-double-right',
+        vopen: 'chevron-circle-down',
+        vclose: 'chevron-circle-right',
+        upload: 'file-upload',
+        metadata_files: 'file-download',
+        projects: 'project-diagram',
+        surveyors: 'hiking',
+        surveys: 'binoculars',
+        survey_seasons: 'calendar',
+        stations: 'map-marker-alt',
+        historic_visits: 'campground',
+        modern_visits: 'campground',
+        historic_captures: 'camera-retro',
+        modern_captures: 'camera-retro',
+        locations: 'location-arrow',
+        default: 'star'
     };
     return iconComponents.hasOwnProperty(iconType)
         ? iconComponents[iconType]
@@ -67,10 +135,8 @@ const getIconClass = (iconType) => {
  * @public
  */
 
-const Icon = ({type}) => {
-    return (
-        <i className={getIconClass(type)} />
-    );
+const Icon = ({type, size='lg'}) => {
+    return  <FontAwesomeIcon icon={getIconClass(type)} size={size} />
 }
 
 export default Icon;

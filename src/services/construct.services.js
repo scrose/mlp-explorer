@@ -11,7 +11,7 @@ import { humanize, sanitize } from '../lib/data.utils.js';
 import * as schemaConstructor from './schema.services.js';
 import { select as nselect } from './nodes.services.js';
 import * as fserve from './files.services.js';
-import * as oserve from '../services/options.services.js';
+import * as mserve from './metadata.services.js';
 
 /**
  * Create derived model through composition. The model schema
@@ -30,8 +30,9 @@ export const create = async (modelType) => {
     // get all model options
     const options = {
         image_state: await fserve.getImageStates(),
-        camera_id: await oserve.getCameraTypes(),
-        lens_id: await oserve.getLensTypes()
+        cameras_id: await mserve.getCameraTypes(),
+        lens_id: await mserve.getLensTypes(),
+        participants: await mserve.getParticipants()
     }
 
     // return constructor
@@ -44,6 +45,10 @@ export const create = async (modelType) => {
         this.label = humanize(modelType);
         this.attributes = schema.attributes;
         this.options = options;
+        this.hasOwner = !schema.rootNodeTypes.includes(modelType);
+        this.depth = schema.nodeDepth.hasOwnProperty(modelType)
+            ? schema.nodeDepth[modelType]
+            : schema.nodeDepth.default;
 
         // initialize model with input data
         this.setData = setData;
@@ -160,22 +165,6 @@ export const create = async (modelType) => {
             },
 
             /**
-             * Get attached references (if they exist).
-             *
-             * @param {String} field
-             * @return {Object} field data
-             * @src public
-             */
-
-            attached: {
-                get: () => {
-                    const attached = Object.keys(this.attributes)
-                        .filter(key => this.attributes[key].ref && this.attributes[key].ref !== 'nodes')
-                    return attached.length === 0 ? null : attached;
-                }
-            },
-
-            /**
              * Get field value from model attributes.
              *
              * @param {String} field
@@ -225,24 +214,6 @@ export const create = async (modelType) => {
                         .reduce((o, key) => {
                             o[key] = this.attributes[key].value; return o
                         }, {});
-                },
-                writable: false
-            },
-
-            /**
-             * Set options of provided schema field.
-             *
-             * @param {String} key
-             * @param {Array} options
-             * @src public
-             */
-
-            setOptions: {
-                value: (key, options=[]) => {
-                    if (key
-                        && this.attributes.hasOwnProperty(key)
-                        && typeof options === 'object')
-                        this.attributes[key].options = options;
                 },
                 writable: false
             },
@@ -320,7 +291,7 @@ export const createNode = async function(item) {
     const { owner={} } = item || {};
     const { value=0 } = owner || {};
     let ownerAttrs = await nselect(value) || owner;
-    const { id=null, type=null } = ownerAttrs;
+    const { id=null, type=null } = ownerAttrs || {};
 
     // return node instance: set owner attribute values from
     // retrieved node attributes

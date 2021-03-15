@@ -176,17 +176,33 @@ export const getModelLabel = (model, type='singular') => {
 }
 
 /**
- * Retrieve label for model from schema.
+ * Retrieve dependent types for model from schema.
  *
  * @param {String} model
- * @return {String} dependents
+ * @return {String} dependent types
  * @public
  */
 
-export const getDependents = (model) => {
+export const getDependentTypes = (model) => {
     return schema.models.hasOwnProperty(model)
         ? schema.models[model].attributes.hasOwnProperty('dependents')
             ? schema.models[model].attributes.dependents
+            : ''
+        : '';
+}
+
+/**
+ * Retrieve dependent file types for model from schema.
+ *
+ * @param {String} model
+ * @return {String} file types
+ * @public
+ */
+
+export const getFileTypes = (model) => {
+    return schema.models.hasOwnProperty(model)
+        ? schema.models[model].attributes.hasOwnProperty('files')
+            ? schema.models[model].attributes.files
             : ''
         : '';
 }
@@ -198,28 +214,28 @@ export const getDependents = (model) => {
  * - joins field values with commas to compose label
  *
  * @public
- * @param {Object} node
+ * @param {Object} item
  * @return {String} label
  */
 
-export const getNodeLabel = (node) => {
+export const getNodeLabel = (item) => {
 
     // get label keys for node type from schema
-    const { type='', data={} } = node || {};
-    const labelKeys = getLabelKeys(type) || [];
+    const { node={}, metadata={} } = item || {};
+    const labelKeys = getLabelKeys(node.type) || [];
 
     // get default label
     const { attributes={singular: '', key: ''} } = labelKeys || {};
 
     // iterate over label keys assigned in schema
     const label = Object.keys(labelKeys)
-        .filter(labelKey => data.hasOwnProperty(labelKey) && data[labelKey])
+        .filter(labelKey => metadata.hasOwnProperty(labelKey) && metadata[labelKey])
         .sort(function(labelKeyA,labelKeyB) {
             return labelKeys[labelKeyA].key - labelKeys[labelKeyB].key;
         })
         .map(field => {
             return sanitize(
-                data[field],
+                metadata[field],
                 labelKeys[field].hasOwnProperty('render')
                     ? labelKeys[field].render
                     : ''
@@ -235,12 +251,11 @@ export const getNodeLabel = (node) => {
  * Get order of node in tree.
  *
  * @public
- * @param {Object} node
+ * @param {String} type
  * @return {Object} message
  */
 
-export const getNodeOrder = (node) => {
-    const {type=''} = node;
+export const getNodeOrder = (type) => {
     const modelSchema = schema.models.hasOwnProperty(type)
         ? schema.models[type] : '';
     const { attributes={} } = modelSchema || {};
@@ -368,9 +383,9 @@ export const genSchema = (view, model, modelAttributes={}) => {
                             validate:fieldset[fieldKey].hasOwnProperty('validate')
                                 ? fieldset[fieldKey].validate
                                 : [],
-                            refs: fieldset[fieldKey].hasOwnProperty('refs')
-                                ? fieldset[fieldKey].refs
-                                : []
+                            reference: fieldset[fieldKey].hasOwnProperty('reference')
+                                ? fieldset[fieldKey].reference
+                                : ''
                         };
                     })
                     .reduce((o, field) => {

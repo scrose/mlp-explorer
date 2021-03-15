@@ -89,6 +89,20 @@ export const create = async (constructorType) => {
         permissions: {
             value: permissions[constructorType],
             writable: false
+        },
+        rootNodeTypes: {
+            value: ['projects', 'surveyors'],
+            writable: false
+        },
+        nodeDepth: {
+            value: {
+                'projects': 0,
+                'surveyors': 0,
+                'surveys': 0,
+                'survey_seasons': 1,
+                'default': 2
+            },
+            writable: false
         }
     });
     return Schema;
