@@ -50,7 +50,6 @@ export const getOptions = async function(client=pool) {
     }
 };
 
-
 /**
  * Get comparisons for given capture node.
  *
@@ -68,5 +67,26 @@ export const getComparisons = async (node, client=pool) => {
                 return res.hasOwnProperty('rows')
                 && res.rows.length > 0 ? res.rows : null;
             });
+
+};
+
+/**
+ * Get comparisons for given capture node.
+ *
+ * @public
+ * @param {Object} node
+ * @param client
+ * @return {Promise} result
+ */
+
+export const getStationStatus = async (node, client=pool) => {
+
+    const {id=''} = node || {};
+    let { sql, data } = queries.metadata.getStationStatus(id);
+    return client.query(sql, data)
+        .then(res => {
+            return res.hasOwnProperty('rows')
+            && res.rows.length > 0 ? res.rows : null;
+        });
 
 };

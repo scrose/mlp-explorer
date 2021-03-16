@@ -26,6 +26,7 @@ const LocationsView = ({data}) => {
 
     return <Accordion
         key={id}
+        id={id}
         type={type}
         label={location_identity}
         open={true}

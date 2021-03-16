@@ -27,6 +27,30 @@ export function getComparisons(node) {
 }
 
 /**
+ * Query: Get status of all capture comparisons for station.
+ *
+ * @return {Object} query binding
+ */
+
+export function getStationStatus(node) {
+    const {id=null} = node || {};
+    let sql = `SELECT *
+               FROM comparison_indices 
+                   INNER JOIN (SELECT historic_captures.nodes_id as hcid, * 
+                   FROM historic_captures
+                       INNER JOIN (SELECT * 
+                            FROM historic_visits 
+                            WHERE owner_id = $1::integer) as hv 
+                           ON hv.nodes_id = historic_captures.owner_id
+                       ) as hc
+               ON historic_captures.nodes_id = comparison_indices.historic_captures;`;
+    return {
+        sql: sql,
+        data: [id],
+    };
+}
+
+/**
  * Query: Get all lens types.
  *
  * @return {Object} query binding

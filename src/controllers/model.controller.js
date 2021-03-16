@@ -108,9 +108,6 @@ export default function ModelController(nodeType) {
                     }));
             }
 
-            console.log(model.name, model.depth, item)
-
-            // send response
             res.status(200).json(
                 prepare({
                     view: 'show',

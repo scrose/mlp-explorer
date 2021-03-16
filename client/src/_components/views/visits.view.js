@@ -10,6 +10,8 @@ import Accordion from '../common/accordion';
 import NodeMenu from '../menus/node.menu';
 import CapturesView from './captures.view';
 import NodesView from './nodes.view';
+import { getModelLabel } from '../../_services/schema.services.client';
+import Item from '../common/item';
 
 /**
  * Model view component.
@@ -46,9 +48,22 @@ const VisitsView = ({ model, data }) => {
             </Accordion>
 
             // apply location views for modern visits
-            : dependents.map((location, index) => {
-                    return <NodesView key={`location_${index}`} model={'locations'} data={location} />
-                })
+            : <>
+                <Accordion
+                    type={'info'}
+                    label={`${getModelLabel(model)} Metadata`}
+                >
+                    <Item model={type} metadata={metadata} />
+                </Accordion>
+                {
+                    dependents.map((location, index) => {
+                        return <NodesView
+                            key={`location_${index}`}
+                            model={'locations'}
+                            data={location}/>;
+                        })
+                }
+                </>
     )
 
 }

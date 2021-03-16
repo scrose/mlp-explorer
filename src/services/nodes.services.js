@@ -80,7 +80,8 @@ export const get = async (id, client=pool) => {
         metadata: await selectByNode(node, client),
         files: await fserve.selectByOwner(id, client) || [],
         dependents: await selectByOwner(id, client) || [],
-        hasDependents: await hasDependents(id, client) || false
+        hasDependents: await hasDependents(id, client) || false,
+        status: await getStatus(node, client)
     }
 };
 
@@ -115,7 +116,8 @@ export const getAll = async function(model) {
                 return {
                     node: node,
                     metadata: await selectByNode(node, client),
-                    hasDependents: hasDependents(node.id, client) || false
+                    hasDependents: hasDependents(node.id, client) || false,
+                    status: await getStatus(node, client)
                 }
             })
         );
@@ -276,6 +278,9 @@ export const getStatus = async (node, client=pool) => {
 
     // initialize image versions
     const statusInfo = {
+        stations: async () => {
+            return await mdserve.getStationStatus(node, client);
+        },
         historic_captures: async () => {
             return{
                 comparisons: await mdserve.getComparisons(node, client)

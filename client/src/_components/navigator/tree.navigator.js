@@ -122,6 +122,7 @@ const TreeNode = ({id, type, label, hasDependents}) => {
     const [toggle, setToggle] = React.useState(checkNode(id));
     const [isCurrent, setCurrent] = React.useState(false);
     const [loadedData, setLoadedData] = React.useState([]);
+    const treeNode = React.createRef();
     const _isMounted = React.useRef(true);
 
     // initialization
@@ -134,8 +135,11 @@ const TreeNode = ({id, type, label, hasDependents}) => {
 
         // include current node path as toggled
         setCurrent(api.nodes.includes(id));
-        if (api.nodes.includes(id))
+        if (api.nodes.includes(id)) {
             setToggle(api.nodes.includes(id));
+            // scroll current node into view
+            treeNode.current.scrollIntoView();
+        }
 
         if (toggle && Array.isArray(loadedData) && loadedData.length === 0) {
             const route = getNodeURI('nodes', 'show', id);
@@ -155,10 +159,10 @@ const TreeNode = ({id, type, label, hasDependents}) => {
         return () => {
             _isMounted.current = false;
         };
-    }, [api, router, id, toggle]);
+    }, [api, router, id, toggle, treeNode, loadedData]);
 
     return (
-            <div className={'tree-node'}>
+            <div id={`treenode_${id}`} ref={treeNode} className={'tree-node'}>
                 {
                     <TreeNodeMenu
                         id={id}

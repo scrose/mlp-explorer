@@ -9,6 +9,8 @@ import React from 'react'
 import MenuNavigator from './menu.navigator';
 import TreeNavigator from './tree.navigator';
 import MapNavigator from './map.navigator';
+import { getNodeURI } from '../../_utils/paths.utils.client';
+import { useData } from '../../_providers/data.provider.client';
 
 /**
  * Main navigator component.
@@ -26,7 +28,7 @@ const Navigator = () => {
     const [menuToggle, setMenuToggle] = React.useState(false);
 
     return (
-        <div className={'navigator'}>
+        <div id={'navigator'} className={'navigator'}>
             <MenuNavigator
                 view={navView}
                 set={setNavView}

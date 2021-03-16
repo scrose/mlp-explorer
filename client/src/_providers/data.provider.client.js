@@ -95,9 +95,13 @@ function DataProvider(props) {
     // get root node in path
     const root = getRootNode(path);
 
-    // set current nodes in path
+    // provide current path node IDs
     const currentNodes = Object.keys(path)
-        .map(key => {return path[key].id});
+        .map(key => {
+            const {node={}} = path[key] || {};
+            const {id=''} = node || {};
+            return id
+        });
 
     return (
         <DataContext.Provider value={
