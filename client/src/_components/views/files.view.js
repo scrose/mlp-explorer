@@ -11,11 +11,7 @@ import Form from '../common/form';
 import NotfoundError from '../error/notfound.error';
 import Loading from '../common/loading';
 import ServerError from '../error/server.error';
-import { sanitize } from '../../_utils/data.utils.client';
-import { genSchema, getModelLabel } from '../../_services/schema.services.client';
 import File from '../common/file';
-import Table from '../common/table';
-
 
 /**
  * View file records associated with a node as tabs.
@@ -30,8 +26,8 @@ export const FilesGallery = ({files}) => {
             ?   <div className={'gallery h-menu'}>
                 <ul>
                     {
-                        files.map(fileData =>
-                            <li key={fileData.file.id}>
+                        files.map((fileData, index) =>
+                            <li key={`gallery_file_${index}`}>
                                 <File data={fileData} scale={'thumb'} />
                             </li>)
                     }
@@ -73,10 +69,6 @@ export const FilesView = ({files, view, render }) => {
             />),
         list: () => (
             <FilesGallery
-                files={files || []}
-            />),
-        table: () => (
-            <CaptureImagesTable
                 files={files || []}
             />),
         notFound: () => <NotfoundError />,

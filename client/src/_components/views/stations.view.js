@@ -11,7 +11,6 @@ import Accordion from '../common/accordion';
 import NodeMenu from '../menus/node.menu';
 import { getNodeLabel } from '../../_services/schema.services.client';
 import NodesView from './nodes.view';
-import CapturesView from './captures.view';
 
 /**
  * Stations view component.
@@ -42,8 +41,6 @@ const StationsView = ({data}) => {
                     const {id='', type=''} = node || {};
                     const label = getNodeLabel(dependent);
 
-                    console.log(label, hasDependents, dependent)
-
                     return (
                         type === 'modern_visits'
                             ? <Accordion
@@ -62,9 +59,9 @@ const StationsView = ({data}) => {
                                         dependent={'locations'}
                                     />}
                             >
-                                <CapturesView model={type} data={dependent} />
+                                <NodesView model={type} data={dependent} />
                                 </Accordion>
-                            : <CapturesView key={id} model={type} data={dependent} />
+                            : <NodesView key={id} model={type} data={dependent} />
                     )
                 })
             }

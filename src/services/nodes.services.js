@@ -17,12 +17,13 @@ import queries from '../queries/index.queries.js';
 import { mapToObj } from '../lib/data.utils.js';
 import * as fserve from './files.services.js';
 import * as mdserve from './metadata.services.js';
+import { sanitize } from '../lib/data.utils.js';
 
 /**
  * Get node by ID. Returns single node object.
  *
  * @public
- * @param {number} id
+ * @param {integer} id
  * @param client
  * @return {Promise} result
  */
@@ -66,26 +67,21 @@ export const selectByNode = async (node, client=pool) => {
 export const get = async (id, client=pool) => {
 
     if (!id) return null;
-    let item = {};
 
     // get requested node
-    item.node = await select(id);
+    const node = await select(id, client);
 
     // check that node exists
-    if (!item.node) return null;
+    if (!node) return null;
 
     // append model data, files and dependents (child nodes)
-    item.metadata = await selectByNode(item.node);
-    item.files = await fserve.selectByOwner(id) || [];
-    item.dependents = await selectByOwner(id) || [];
-    item.hasDependents = await hasDependents(id) || false;
-
-    // end transaction
-    await client.query('COMMIT');
-
-    // return nodes
-    return item;
-
+    return {
+        node: node,
+        metadata: await selectByNode(node, client),
+        files: await fserve.selectByOwner(id, client) || [],
+        dependents: await selectByOwner(id, client) || [],
+        hasDependents: await hasDependents(id, client) || false
+    }
 };
 
 /**
@@ -151,6 +147,8 @@ export const getAll = async function(model) {
 
 export const selectByOwner = async (id, client=pool) => {
 
+    id = sanitize(id, 'integer');
+
     // get dependent nodes for owner
     let { sql, data } = queries.nodes.selectByOwner(id);
     let nodes = await client.query(sql, data)
@@ -201,6 +199,7 @@ export const hasDependents = async (id, client=pool) => {
  * @params {Object} inputNode
  * @return {Promise} result
  */
+
 export const getPath = async (inputNode) => {
 
     if (!inputNode) return null;
@@ -279,12 +278,12 @@ export const getStatus = async (node, client=pool) => {
     const statusInfo = {
         historic_captures: async () => {
             return{
-                comparisons: await mdserve.getComparisons(node)
+                comparisons: await mdserve.getComparisons(node, client)
             };
         },
         modern_captures: async () => {
             return{
-                comparisons: await mdserve.getComparisons(node)
+                comparisons: await mdserve.getComparisons(node, client)
             };
         }
     }

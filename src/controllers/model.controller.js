@@ -102,10 +102,13 @@ export default function ModelController(nodeType) {
             if (model.depth > 1) {
                 item.dependents = await Promise.all(
                     item.dependents.map(async (dependent) => {
-                        dependent.dependents = await selectByOwner(dependent.id, client);
+                        const {node={}} = dependent || {};
+                        dependent.dependents = await selectByOwner(node.id, client);
                         return dependent;
                     }));
             }
+
+            console.log(model.name, model.depth, item)
 
             // send response
             res.status(200).json(

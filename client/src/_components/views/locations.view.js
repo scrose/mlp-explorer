@@ -8,53 +8,38 @@
 import React from 'react';
 import Accordion from '../common/accordion';
 import NodeMenu from '../menus/node.menu';
-import NodesView from './nodes.view';
+import CapturesView from './captures.view';
 
 /**
  * Model view component.
  *
  * @public
- * @param {String} model
- * @param {Array} locations
- * @param {String} model
+ * @param {Array} data
  * @return {JSX.Element}
  */
 
-const LocationsView = ({
-                           model,
-                           locations,
-}) => {
+const LocationsView = ({data}) => {
 
-    return (
-        <>
-            {
-                locations.map(location => {
-                    const {node={}, metadata={}, hasDependents=false } = location || {};
-                    const {id='', type=''} = node || {};
-                    const { location_identity='' } = metadata || {};
+    const {node={}, metadata={}, dependents=[], hasDependents=false } = data || {};
+    const {id='', type=''} = node || {};
+    const { location_identity='' } = metadata || {};
 
-                    return (
-                        <Accordion
-                            key={id}
-                            type={type}
-                            label={location_identity}
-                            open={true}
-                            hasDependents={hasDependents}
-                            menu={
-                                <NodeMenu
-                                    model={type}
-                                    id={id}
-                                    metadata={metadata}
-                                    dependent={model}
-                                />
-                            }>
-                                <NodesView data={location} model={model} />
-                            </Accordion>
-                    )
-                })
-            }
-        </>
-    )
+    return <Accordion
+        key={id}
+        type={type}
+        label={location_identity}
+        open={true}
+        hasDependents={hasDependents}
+        menu={
+            <NodeMenu
+                model={type}
+                id={id}
+                metadata={metadata}
+                dependent={'modern_captures'}
+            />
+        }>
+        <CapturesView captures={dependents} fileType={'modern_images'} />
+    </Accordion>
 }
 
 export default LocationsView;

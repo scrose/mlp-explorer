@@ -16,9 +16,8 @@ import { getModelLabel, getNodeLabel, getNodeOrder } from '../../_services/schem
 import Accordion from '../common/accordion';
 import NodeMenu from '../menus/node.menu';
 import Item from '../common/item';
-import CapturesView from './captures.view';
 import CaptureView from './capture.view';
-import { load } from 'dotenv';
+import VisitsView from './visits.view';
 
 /**
  * Node list component.
@@ -113,8 +112,6 @@ const DefaultView = ({
     )
 }
 
-
-
 /**
  * Data item (record) component.
  *
@@ -160,20 +157,23 @@ const NodesView = ({
         return () => {
             _isMounted.current = false;
         };
-    }, [dependents, loadedData, setLoadedData, router, model, data]);
+    }, [dependents, loadedData, setLoadedData, router, model, node, hasDependents]);
 
     // view components indexed by model type
     const itemViews = {
         stations: () => <StationsView
             data={loadedData}
         />,
-        historic_visits: () => <LocationsView
-            model={'historic_captures'}
-            locations={[loadedData]}
+        historic_visits: () => <VisitsView
+            model={'historic_visits'}
+            data={loadedData}
         />,
-        modern_visits: () => <LocationsView
-            model={'modern_captures'}
-            locations={dependents}
+        modern_visits: () => <VisitsView
+            model={'modern_visits'}
+            data={loadedData}
+        />,
+        locations: () => <LocationsView
+            data={ loadedData }
         />,
         historic_captures: () => <CaptureView
             fileType={'historic_images'}

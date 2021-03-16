@@ -24,7 +24,6 @@ import Button from '../common/button';
  * @param {String} model
  * @param {String} dependent
  * @param {String} id
- * @param {Object} options
  * @return {JSX.Element}
  */
 
@@ -59,7 +58,7 @@ const NodeMenu = ({
                                         title={`${getModelLabel(model)} Metadata`}
                                         setToggle={setDialogToggle}
                                     >
-                                        <Item model={model} data={metadata} />
+                                        <Item model={model} metadata={metadata} />
                                     </Dialog>
                                 : ''
                         }

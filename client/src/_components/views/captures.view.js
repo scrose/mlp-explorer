@@ -41,9 +41,11 @@ const CapturesView = ({captures, fileType}) => {
                     .find(file => file.metadata.image_state === 'interim');
                 const cRaw = files
                     .find(file => file.metadata.image_state === 'raw');
+                const cGridded = files
+                    .find(file => file.metadata.image_state === 'gridded');
                 const cMisc = files
                     .find(file => file.metadata.image_state === 'misc');
-                const c = cMaster || cInterim || cRaw || cMisc;
+                const c = cMaster || cInterim || cRaw || cGridded || cMisc;
 
                 // label file by capture photo reference
                 c.label = fn_photo_reference ? fn_photo_reference : `Capture ${index}`;

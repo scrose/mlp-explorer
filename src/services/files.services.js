@@ -743,7 +743,7 @@ export const get = async (id, client=pool) => {
  * Get files for given owner.
  *
  * @public
- * @param {number} id
+ * @param {integer} id
  * @param client
  * @return {Promise} result
  */

@@ -13,27 +13,38 @@ import { sanitize } from '../../_utils/data.utils.client';
  * Render item table component.
  *
  * @public
- * @param {Array} metadata
- * @param {String} view
  * @param {String} model
+ * @param {Object} metadata
+ * @param {Object} node
+ * @param {Object} file
  * @return {JSX.Element}
  */
 
-const Item = ({model, metadata, file={}, node={}}) => {
+const Item = ({model, metadata={}, node={}, file={}}) => {
 
     // generate main schema
     const { fieldsets=[] }  = genSchema('show', model);
 
-    // prepare data for item table
-    // - sanitize data by render type
+    // prepare data for item table: sanitize data by render type
     const filterData = (fieldset) => {
         return Object.keys(fieldset.fields)
             .map(key => {
-                const { render = '' } = fieldset.fields[key] || {};
-                const field = {};
-                field.value = sanitize(metadata[key] || file[key] || node[key], render);
-                field.label = fieldset.fields[key].label;
-                return field;
+
+                // get rendering setting from schema (if exists)
+                const { render='' } = fieldset.fields[key] || {};
+
+                // cascade data sources
+                const value = metadata.hasOwnProperty(key)
+                    ? metadata[key]
+                    : file.hasOwnProperty(key)
+                        ? file[key]
+                        : node.hasOwnProperty(key)
+                            ? node[key]
+                            : ''
+                return {
+                    value: sanitize( value, render),
+                    label: fieldset.fields[key].label
+                }
             });
     };
 
