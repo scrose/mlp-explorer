@@ -15,7 +15,7 @@ import ModelServices from '../services/model.services.js';
 import * as fserve from '../services/files.services.js';
 import * as nserve from '../services/nodes.services.js';
 import { prepare } from '../lib/api.utils.js';
-import fs from "fs";
+import pool from '../services/db.services.js';
 
 /**
  * Export controller constructor.
@@ -37,15 +37,6 @@ export default function FilesController(modelType) {
      * @src public
      */
 
-    /**
-     * Initialize the controller.
-     *
-     * @param req
-     * @param res
-     * @param next
-     * @src public
-     */
-
     this.init = async () => {
 
         try {
@@ -55,11 +46,6 @@ export default function FilesController(modelType) {
             model = new Model();
             services = new ModelServices(new Model());
 
-            // include image states (if needed)
-            if (model.hasAttribute('image_state')) {
-                const imageStates = await fserve.getImageStates();
-                model.setOptions('image_state', imageStates);
-            }
         } catch (err) {
             console.error(err)
         }
@@ -86,50 +72,6 @@ export default function FilesController(modelType) {
     };
 
     /**
-     * List all records in table.
-     *
-     * @param req
-     * @param res
-     * @param next
-     * @src public
-     */
-
-    this.list = async (req, res, next) => {
-        await services
-            .getAll()
-            .then(data => {
-                res.locals.data = data.rows;
-                res.status(200).json(res.locals);
-            })
-            .catch((err) => next(err));
-    };
-
-    /**
-     * Download file
-     *
-     * @param req
-     * @param res
-     * @param next
-     * @src public
-     */
-
-    this.download = async (req, res, next) => {
-
-
-
-        // const filename = req.url;
-        // let file = fs.createWriteStream(filename);
-        // res.pipe(file);
-        // file.on('finish', function() {
-        //     file.close(cb);  // close() is async, call cb after close completes.
-        // });
-        // }).on('error', function(err) { // Handle errors
-        //     fs.unlink(dest); // Delete the file async. (But we don't check the result)
-        //     if (cb) cb(err.message);
-        // });
-    };
-
-    /**
      * Show file data.
      *
      * @param req
@@ -139,20 +81,26 @@ export default function FilesController(modelType) {
      */
 
     this.show = async (req, res, next) => {
+
+        // NOTE: client undefined if connection fails.
+        const client = await pool.connect();
+
         try {
-            // get requested file ID
-            let id = this.getId(req);
+            // get requested node ID
+            let id = parseInt(this.getId(req));
 
             // get file data
-            const file = await fserve.select(id);
-            file.data = await fserve.selectByFile(file);
+            const fileData = await fserve.get(id, client);
+
+            const {file=null} = fileData || {};
+            const {owner_id=''} = file || {};
 
             // get path of owner node in hierarchy
-            const node = await nserve.select(file.owner_id);
+            const node = await nserve.select(owner_id, client);
             const path = await nserve.getPath(node);
 
             // file or node not in database
-            if (!file || !node )
+            if (!fileData || !node )
                 return next(new Error('notFound'));
 
             // get linked data referenced in node tree
@@ -160,13 +108,15 @@ export default function FilesController(modelType) {
                 prepare({
                     view: 'show',
                     model: model,
-                    data: file,
+                    data: fileData,
                     path: path
                 }));
 
         } catch (err) {
             console.error(err)
             return next(err);
+        } finally {
+            client.release(true);
         }
     };
 

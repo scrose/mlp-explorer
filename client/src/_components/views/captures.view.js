@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { FilesList } from './files.view';
+import { FilesGallery } from './files.view';
 
 /**
  * Model view component.
@@ -19,8 +19,6 @@ import { FilesList } from './files.view';
 
 const CapturesView = ({captures, fileType}) => {
 
-    console.log('Captures', captures, fileType)
-
     // filter files to select viewable images
     const filterCaptures = () => {
         return captures
@@ -30,7 +28,6 @@ const CapturesView = ({captures, fileType}) => {
                 && Object.keys(capture.files).length > 0
             )
             .reduce((o, capture, index) => {
-                console.log('capture:', capture, fileType)
 
                 // get field notes photo reference as capture label
                 const {metadata={}} = capture || {};
@@ -49,11 +46,7 @@ const CapturesView = ({captures, fileType}) => {
                 const c = cMaster || cInterim || cRaw || cMisc;
 
                 // label file by capture photo reference
-                c.label = fn_photo_reference
-                    ? fn_photo_reference
-                    : `Capture ${index}`;
-
-                console.log(fn_photo_reference, c, capture)
+                c.label = fn_photo_reference ? fn_photo_reference : `Capture ${index}`;
 
                 // add to image capture list
                 o.push(c);
@@ -65,10 +58,10 @@ const CapturesView = ({captures, fileType}) => {
             })
     }
 
-    // render node tree
+    // captures thumbnail gallery
     return (
         <div className={`captures`}>
-            <FilesList files={filterCaptures()} />
+            <FilesGallery files={filterCaptures()} />
         </div>
     )
 }

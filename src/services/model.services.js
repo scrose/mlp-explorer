@@ -66,21 +66,6 @@ export default function ModelServices(model) {
     };
 
     /**
-     * Find all records in table. (no transaction)
-     *
-     * @public
-     * @return {Promise} result
-     */
-
-    this.getAll = async function() {
-        let { sql, data } = this.queries.getAll();
-        return pool.query(sql, data)
-            .then(res => {
-                return res.rows
-            });
-    };
-
-    /**
      * Find record by ID.
      *
      * @public

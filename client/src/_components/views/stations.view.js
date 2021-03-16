@@ -11,6 +11,7 @@ import Accordion from '../common/accordion';
 import NodeMenu from '../menus/node.menu';
 import { getNodeLabel } from '../../_services/schema.services.client';
 import NodesView from './nodes.view';
+import CapturesView from './captures.view';
 
 /**
  * Stations view component.
@@ -32,7 +33,7 @@ const StationsView = ({data}) => {
                 type={'info'}
                 label={`Station Metadata`}
                 open={false}>
-                <Item view={'show'} model={'stations'} data={metadata} />
+                <Item model={'stations'} metadata={metadata} />
             </Accordion>
             {
                 (dependents || []).map(dependent => {
@@ -61,9 +62,9 @@ const StationsView = ({data}) => {
                                         dependent={'locations'}
                                     />}
                             >
-                                <NodesView model={type} data={dependent} />
+                                <CapturesView model={type} data={dependent} />
                                 </Accordion>
-                            : <NodesView key={id} model={type} data={dependent} />
+                            : <CapturesView key={id} model={type} data={dependent} />
                     )
                 })
             }

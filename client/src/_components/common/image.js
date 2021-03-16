@@ -6,8 +6,6 @@
  */
 
 import React from 'react';
-import { getNodeURI } from '../../_utils/paths.utils.client';
-import { useRouter } from '../../_providers/router.provider.client';
 
 /**
  * Defines image component.
@@ -16,10 +14,15 @@ import { useRouter } from '../../_providers/router.provider.client';
  * @return {JSX.Element}
  */
 
-const Image = ({ url, type='', id='', title='', label='', scale='thumb' }) => {
+const Image = ({
+                   url,
+                   title='',
+                   label='',
+                   scale='thumb',
+                   onClick=()=>{}
+}) => {
 
     const fallbackSrc = '/logo192.png';
-    const router = useRouter();
     const [src, setSrc] = React.useState(url[scale]);
     const [error, setError] = React.useState(false);
 
@@ -32,27 +35,25 @@ const Image = ({ url, type='', id='', title='', label='', scale='thumb' }) => {
         }
     }
 
-    // Handler for viewing image on click.
-    const onClick = () => {
-        router.update(getNodeURI(type, 'show', id));
-    }
-
     // render image
     return (
         <figure className={scale}>
             <img
                 src={src}
-                alt={label || type}
-                title={title || type}
+                alt={label}
+                title={title}
                 onError={onError}
                 onClick={onClick}
             />
-            <figcaption onClick={onClick}>
-                {label || type}
-            </figcaption>
+            {
+                label ?
+                <figcaption onClick={onClick}>
+                    {label}
+                </figcaption>
+                    : ''
+            }
         </figure>
     )
-
 }
 
 export default Image;

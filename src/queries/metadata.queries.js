@@ -8,22 +8,21 @@
 'use strict';
 
 /**
- * Database rows limit.
- */
-
-const limit = 50;
-
-/**
- * Query: Get all camera types.
+ * Query: Get comparisons for given capture node.
+ * Model options include 'historic_captures' and
+ * 'modern_captures'.
  *
  * @return {Object} query binding
  */
 
-export function getCameras() {
+export function getComparisons(node) {
+    const {type='', id=''} = node || {};
+    let sql = `SELECT * 
+            FROM comparison_indices 
+            WHERE ${type} = $1::integer`;
     return {
-        sql: `SELECT *
-              FROM cameras;`,
-        data: [],
+        sql: sql,
+        data: [id],
     };
 }
 
@@ -42,7 +41,7 @@ export function getLens() {
 }
 
 /**
- * Query: Get all participants for all groups.
+ * Query: Get all participants.
  *
  * @return {Object} query binding
  */
@@ -51,9 +50,21 @@ export function getParticipants() {
     return {
         sql: `SELECT *
               FROM participants 
-              INNER JOIN participant_groups pg 
-                  on participants.id = pg.participant_id
               ORDER BY participants.last_name;`,
+        data: [],
+    };
+}
+
+/**
+ * Query: Get all participant group types.
+ *
+ * @return {Object} query binding
+ */
+
+export function getParticipantGroupTypes() {
+    return {
+        sql: `SELECT *
+              FROM participant_group_types;`,
         data: [],
     };
 }

@@ -38,7 +38,7 @@ const SeasonsView = ({
                 label={`Station Metadata`}
                 loaded={dependents.length > 0}
                 open={false}>
-                <Item view={'show'} model={'stations'} data={node} />
+                <Item model={'stations'} metadata={node} />
             </Accordion>
             {
                 (dependents || []).map(dependent => {

@@ -675,7 +675,6 @@ const genSrc = (type='', data={}) => {
     return fileHandlers.hasOwnProperty(type) ? fileHandlers[type]() : null;
 };
 
-
 /**
  * Get file record by ID. NOTE: returns single object.
  *
@@ -701,13 +700,43 @@ export const select = async function(id, client=pool) {
  */
 
 export const selectByFile = async (file, client=pool) => {
-    const { file_type='' } = file || {};
     let { sql, data } = queries.defaults.selectByFile(file);
     return client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows')
             && res.rows.length > 0 ? res.rows[0] : {};
         });
+};
+
+/**
+ * Get file data by file ID. Returns single node object.
+ *
+ * @public
+ * @param {String} id
+ * @param client
+ * @return {Promise} result
+ */
+
+export const get = async (id, client=pool) => {
+
+    if (!id) return null;
+
+    // get requested file
+    const file = await select(id, client);
+
+    // check that file exists
+    if (!file) return null;
+
+    // get associated file metadata
+    const metadata = await selectByFile(file, client)
+    const {file_type=''} = file || {};
+
+    return {
+        file: file,
+        metadata: metadata,
+        url: genSrc(file_type, metadata)
+    }
+
 };
 
 /**
@@ -740,8 +769,7 @@ export const selectByOwner = async (id, client=pool) => {
         );
 
     // group files by type
-    return files.reduce(
-        async(o, f) => {
+    return files.reduce((o, f) => {
             const { file={}} = f || {};
             const { file_type='files'} = file || {};
 

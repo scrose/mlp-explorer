@@ -7,7 +7,6 @@
 
 import React from 'react'
 import Loading from '../common/loading';
-import CaptureView from './capture.view';
 import ImageView from './image.view';
 import LocationsView from './locations.view';
 import StationsView from './stations.view';
@@ -18,7 +17,8 @@ import Accordion from '../common/accordion';
 import NodeMenu from '../menus/node.menu';
 import Item from '../common/item';
 import CapturesView from './captures.view';
-
+import CaptureView from './capture.view';
+import { load } from 'dotenv';
 
 /**
  * Node list component.
@@ -106,7 +106,7 @@ const DefaultView = ({
                 type={'info'}
                 label={`${getModelLabel(model)} Metadata`}
             >
-                <Item view={'show'} model={model} data={metadata} />
+                <Item model={model} metadata={metadata} />
             </Accordion>
             <NodeList items={dependents} />
         </>
@@ -127,9 +127,6 @@ const NodesView = ({
                        model,
                        data = {}
 }) => {
-
-    console.log('Node:', model, data)
-
 
     // create dynamic data states
     const [loadedData, setLoadedData] = React.useState(data);
@@ -178,18 +175,28 @@ const NodesView = ({
             model={'modern_captures'}
             locations={dependents}
         />,
-        historic_captures: () => <CapturesView
-            captures={ dependents}
-            fileType={'historic_images'} />,
-        modern_captures: () => <CapturesView
-            captures={ dependents }
-            fileType={'modern_images'} />,
+        historic_captures: () => <CaptureView
+            fileType={'historic_images'}
+            model={'historic_captures'}
+            data={ loadedData }
+        />,
+        modern_captures: () => <CaptureView
+            fileType={'modern_images'}
+            model={'modern_captures'}
+            data={ loadedData }
+        />,
         historic_images: () => <ImageView
-            data={ loadedData }
-            model={model} />,
+            model={'historic_images'}
+            data={loadedData}
+        />,
         modern_images: () => <ImageView
-            data={ loadedData }
-            model={model} />,
+            model={'modern_images'}
+            data={loadedData}
+        />,
+        supplemental_images: () => <ImageView
+            model={'supplemental_images'}
+            data={loadedData}
+        />,
         default: () => <DefaultView
             model={model}
             data={loadedData}

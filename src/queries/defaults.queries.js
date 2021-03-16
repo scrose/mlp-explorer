@@ -7,8 +7,6 @@
 
 'use strict';
 
-import { groupBy } from '../lib/data.utils.js';
-
 /**
  * Database rows limit.
  */
@@ -43,7 +41,7 @@ export function getAll(model, offset = 0, order='') {
 }
 
 /**
- * Generate query: Find record by ID.
+ * Generate query: Find record by model instance.
  *
  * @param {Object} model
  * @return {Function} query
@@ -59,6 +57,23 @@ export function select(model) {
             sql: sql,
             data: [item.id],
         };
+    };
+}
+
+/**
+ * Generate query: Find records by model type.
+ *
+ * @param {String} model
+ * @return {Function} query function
+ * @public
+ */
+
+export function selectByModel(model) {
+    let sql = `SELECT * 
+            FROM ${model}`;
+    return {
+        sql: sql,
+        data: [],
     };
 }
 
@@ -99,42 +114,23 @@ export function selectByFile(file) {
 }
 
 /**
- * Select table records by owner id
- *
- * @param {String} id
- * @param table
- * @return {Function} query function
- * @public
- */
-
-export function selectByOwner(id, table) {
-    return {
-        sql: `SELECT *
-                 FROM ${table} 
-                 WHERE owner_id = $1::integer`,
-        data: [id],
-    };
-}
-
-/**
  * Generate query: Find records by owner type.
  *
+ * @param {String} id
+ * @param {String} type
  * @param {Object} model
  * @return {Function} query function
  * @public
  */
 
-export function findByOwner(model) {
-    return function(owner_id, owner_type) {
-        let sql = `SELECT * 
-                FROM ${model.name} 
-                LEFT OUTER JOIN ${owner_type} 
-                ON ${model.name}.owner_id = ${owner_id} 
-                       AND ${model.name}.owner_type = ${owner_type}`;
-        return {
-            sql: sql,
-            data: [owner_id, owner_type],
-        };
+export function selectByOwner(id, type, model) {
+    let sql = `SELECT * 
+            FROM ${model} 
+            LEFT OUTER JOIN ${type} 
+            ON ${model}.owner_id = ${id}`;
+    return {
+        sql: sql,
+        data: [id, type],
     };
 }
 

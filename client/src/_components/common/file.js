@@ -10,6 +10,8 @@ import Loading from './loading';
 import Image from './image';
 import { getFileLabel } from '../../_services/schema.services.client';
 import Download from './download';
+import { useRouter } from '../../_providers/router.provider.client';
+import { getNodeURI } from '../../_utils/paths.utils.client';
 
 /**
  * Defines file component.
@@ -22,41 +24,46 @@ import Download from './download';
 
 const File = ({ data, scale='thumb' }) => {
 
+    const router = useRouter();
+
     // destructure file data
     const {file={}, metadata={}, url={}} = data || {};
-    const {files_id, file_type, filename, file_size } = file || {};
+    const {id='', file_type='', filename='', file_size='' } = file || {};
     const label = getFileLabel(file);
 
     // file components indexed by render type
     const renders = {
         historic_images: () => <Image
-            type={file_type}
-            id={files_id}
             url={url}
             scale={scale}
             label={label}
             title={filename}
+            onClick={()=>{
+                router.update(getNodeURI('historic_images', 'show', id))
+            }}
         />,
         modern_images: () => <Image
-            type={file_type}
-            id={files_id}
             url={url}
             scale={scale}
             label={label}
             title={filename}
+            onClick={()=>{
+                router.update(getNodeURI('modern_images', 'show', id))
+            }}
         />,
         supplemental_images: () => <Image
-            type={file_type}
-            id={files_id}
             url={url}
             scale={scale}
             label={label}
             title={filename}
+            onClick={()=>{
+                router.update(getNodeURI('supplemental_images', 'show', id))
+            }}
         />,
         metadata_files: () => <Download
             label={label}
             type={file_type}
-            id={files_id}
+            id={id}
             url={url}
             size={file_size}
         />

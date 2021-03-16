@@ -1,16 +1,15 @@
 /*!
- * MLP.Client.Components.Views.Captures
- * File: captures.view.js
+ * MLP.Client.Components.Views.Image
+ * File: image.view.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
 import React from 'react';
 import Item from '../common/item';
-import { FilesTable } from './files.view';
+import { getModelLabel } from '../../_services/schema.services.client';
+import Accordion from '../common/accordion';
 import File from '../common/file';
-import Image from '../common/image';
-import { getFileLabel } from '../../_services/schema.services.client';
 
 /**
  * Image view component.
@@ -21,27 +20,25 @@ import { getFileLabel } from '../../_services/schema.services.client';
  * @return {JSX.Element}
  */
 
-const ImageView = ({file, model}) => {
+const ImageView = ({data, model}) => {
 
-    const { data={} } = file || {};
-    const { filename='', file_type=model, files_id='', url='' } = data || {};
+    const { file={}, metadata={} } = data || {};
 
-    // generate image label
-    const label = getFileLabel(file);
-
-    // render image preview
     return (
-        <div className={`item`}>
-            <Item view={'show'} model={file_type} data={data} />
-            <Image
-                type={file_type}
-                id={files_id}
-                url={url}
+        <>
+            <Accordion
+                type={'info'}
+                label={`${getModelLabel(model)} Metadata`}
+                hasDependents={true}
+                open={false}
+            >
+                <Item model={model} metadata={metadata} file={file} />
+            </Accordion>
+            <File
+                data={data}
                 scale={'medium'}
-                label={label}
-                title={label}
             />
-        </div>
+        </>
     )
 }
 

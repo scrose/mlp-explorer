@@ -16,6 +16,7 @@ import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
 import { mapToObj } from '../lib/data.utils.js';
 import * as fserve from './files.services.js';
+import * as mdserve from './metadata.services.js';
 
 /**
  * Get node by ID. Returns single node object.
@@ -58,48 +59,33 @@ export const selectByNode = async (node, client=pool) => {
  *
  * @public
  * @param {integer} id
+ * @param client
  * @return {Promise} result
  */
 
-export const get = async (id) => {
+export const get = async (id, client=pool) => {
 
     if (!id) return null;
-
-    // NOTE: client undefined if connection fails.
-    const client = await pool.connect();
     let item = {};
 
-    try {
+    // get requested node
+    item.node = await select(id);
 
-        // start transaction
-        await client.query('BEGIN');
+    // check that node exists
+    if (!item.node) return null;
 
-        // get requested node
-        item.node = await select(id);
+    // append model data, files and dependents (child nodes)
+    item.metadata = await selectByNode(item.node);
+    item.files = await fserve.selectByOwner(id) || [];
+    item.dependents = await selectByOwner(id) || [];
+    item.hasDependents = await hasDependents(id) || false;
 
-        // check that node exists
-        if (!item.node) return null;
+    // end transaction
+    await client.query('COMMIT');
 
-        // append model data, files and dependents (child nodes)
-        item.metadata = await selectByNode(item.node);
-        item.files = await fserve.selectByOwner(id) || [];
-        item.dependents = await selectByOwner(id) || [];
-        item.hasDependents = await hasDependents(id) || false;
+    // return nodes
+    return item;
 
-        // end transaction
-        await client.query('COMMIT');
-
-        // return nodes
-        return item;
-
-    }
-    catch (err) {
-        await client.query('ROLLBACK');
-        throw err;
-    }
-    finally {
-        client.release();
-    }
 };
 
 /**
@@ -179,7 +165,8 @@ export const selectByOwner = async (id, client=pool) => {
                 node: node,
                 metadata: await selectByNode(node, client),
                 files: await fserve.selectByOwner(node.id, client),
-                hasDependents: await hasDependents(node.id, client)
+                hasDependents: await hasDependents(node.id, client),
+                status: await getStatus(node, client)
             }
     }));
 
@@ -205,63 +192,6 @@ export const hasDependents = async (id, client=pool) => {
                 ? res.rows[0].exists
                 : false;
     });
-};
-
-/**
- * Get full data of dependent node data for given model item.
- * This call retrieves two levels of dependent nodes as well as
- * dependent file nodes.
- *
- * @public
- * @param {Object} item
- * @param {Integer} depth
- * @return {Promise} result
- */
-
-export const getModelDependents = async (item, depth=2) => {
-
-    // NOTE: client undefined if connection fails.
-    const client = await pool.connect();
-
-    try {
-        // start transaction
-        await client.query('BEGIN');
-
-        // get first-level node data for each dependent node
-        let dependents = await selectByOwner(item.id);
-
-        // append first-level dependents
-        if (depth > 0)
-            dependents.dependents = await Promise.all(
-                dependents.map(async (dependentL1) => {
-                    dependentL1.dependents = await selectByOwner(dependentL1.id, client);
-
-                // append second-level dependents
-                if (depth > 1) {
-                    dependentL1.dependents = await Promise.all(
-                        dependentL1.dependents.map(async (dependentL2) => {
-                            dependentL2.dependents = await selectByOwner(dependentL2.id, client);
-                            return dependentL2;
-                        }),
-                    );
-                }
-
-                return dependentL1;
-            }));
-
-        // end transaction
-        await client.query('COMMIT');
-
-        // return nodes
-        return dependents;
-
-    } catch (err) {
-        await client.query('ROLLBACK');
-        throw err;
-    } finally {
-        client.release();
-    }
-
 };
 
 /**
@@ -329,4 +259,36 @@ export const getPath = async (inputNode) => {
     } finally {
         client.release();
     }
+};
+
+
+/**
+ * Get status information for node.
+ *
+ * @public
+ * @param {Object} node
+ * @param client
+ * @return {Promise} result
+ */
+
+export const getStatus = async (node, client=pool) => {
+
+    const {type=''} = node || {};
+
+    // initialize image versions
+    const statusInfo = {
+        historic_captures: async () => {
+            return{
+                comparisons: await mdserve.getComparisons(node)
+            };
+        },
+        modern_captures: async () => {
+            return{
+                comparisons: await mdserve.getComparisons(node)
+            };
+        }
+    }
+
+    // route database callback after file upload
+    return statusInfo.hasOwnProperty(type) ? statusInfo[type]() : '';
 };

@@ -59,7 +59,7 @@ const NodeMenu = ({
                                         title={`${getModelLabel(model)} Metadata`}
                                         setToggle={setDialogToggle}
                                     >
-                                        <Item model={model} data={metadata} view={'show'} />
+                                        <Item model={model} data={metadata} />
                                     </Dialog>
                                 : ''
                         }

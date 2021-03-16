@@ -1,6 +1,6 @@
 /*!
  * MLP.Client.Components.Common.Item
- * File: editor.js
+ * File: item.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -13,16 +13,16 @@ import { sanitize } from '../../_utils/data.utils.client';
  * Render item table component.
  *
  * @public
- * @param {Array} data
+ * @param {Array} metadata
  * @param {String} view
  * @param {String} model
  * @return {JSX.Element}
  */
 
-const Item = ({model, view, data={}}) => {
+const Item = ({model, metadata, file={}, node={}}) => {
 
     // generate main schema
-    const { fieldsets=[] }  = genSchema(view, model);
+    const { fieldsets=[] }  = genSchema('show', model);
 
     // prepare data for item table
     // - sanitize data by render type
@@ -31,7 +31,7 @@ const Item = ({model, view, data={}}) => {
             .map(key => {
                 const { render = '' } = fieldset.fields[key] || {};
                 const field = {};
-                field.value = sanitize(data[key], render);
+                field.value = sanitize(metadata[key] || file[key] || node[key], render);
                 field.label = fieldset.fields[key].label;
                 return field;
             });

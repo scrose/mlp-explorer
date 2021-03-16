@@ -21,7 +21,7 @@ import { ArrayStream } from '../services/files.services.js';
 export const init = async () => {};
 
 /**
- * Show node data controller. Does not return dependents.
+ * Show node data request controller. Does not return dependents.
  *
  * @param req
  * @param res

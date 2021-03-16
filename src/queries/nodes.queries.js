@@ -24,34 +24,6 @@ export function types() {
 }
 
 /**
- * Query: Get all node types listed.
- *
- * @return {Object} query binding
- */
-
-export function getRelationByDependent() {
-    return {
-        sql: `SELECT *
-              FROM node_types;`,
-        data: [],
-    };
-}
-
-/**
- * Query: Get all node relations listed.
- *
- * @return {Object} query binding
- */
-
-export function relations() {
-    return {
-        sql: `SELECT *
-              FROM node_relations;`,
-        data: [],
-    };
-}
-
-/**
  * Generate query: Retrieve node entry for given ID.
  *
  * @param {integer} id

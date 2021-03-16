@@ -14,48 +14,59 @@
 
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
+import * as fserve from './files.services.js';
 
 /**
- * Get all camera types.
+ * Get all metadata records for given model and owner.
  *
  * @public
+ * @param {String} model
+ * @param client
  * @return {Promise} result
  */
 
-export const getCameraTypes = async function(client=pool) {
-    let { sql, data } = queries.metadata.getCameras();
-    let cameraTypes = await client.query(sql, data);
+export const getAll = async function(model, client=pool) {
+    let { sql, data } = queries.defaults.selectByModel(model);
+    let metadata = await client.query(sql, data);
 
     // return only model type names as list
-    return cameraTypes.rows;
+    return metadata.rows;
 };
 
 /**
- * Get all lens types.
+ * Get metadata options.
  *
  * @public
  * @return {Promise} result
  */
 
-export const getLensTypes = async function(client=pool) {
-    let { sql, data } = queries.metadata.getLens();
-    let lensTypes = await client.query(sql, data);
-
-    // return only model type names as list
-    return lensTypes.rows;
+export const getOptions = async function(client=pool) {
+    return {
+        image_state: await fserve.getImageStates(),
+        cameras_id: await getAll('cameras', client),
+        lens_id: await getAll('lens', client),
+        participants: await getAll('participants', client),
+        participant_group_types: await getAll('participant_group_types', client)
+    }
 };
 
+
 /**
- * Get all lens types.
+ * Get comparisons for given capture node.
  *
  * @public
+ * @param {Object} node
+ * @param client
  * @return {Promise} result
  */
 
-export const getParticipants = async function(client=pool) {
-    let { sql, data } = queries.metadata.getLens();
-    let lensTypes = await client.query(sql, data);
+export const getComparisons = async (node, client=pool) => {
 
-    // return only model type names as list
-    return lensTypes.rows;
+    let { sql, data } = queries.metadata.getComparisons(node);
+    return client.query(sql, data)
+            .then(res => {
+                return res.hasOwnProperty('rows')
+                && res.rows.length > 0 ? res.rows : null;
+            });
+
 };

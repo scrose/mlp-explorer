@@ -43,7 +43,7 @@ export function prepare({
         model: {
             name: name,
             attributes: attributes,
-            options: options
+            options: options,
         },
         path: path,
         view: view,

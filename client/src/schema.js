@@ -716,13 +716,19 @@ export const schema = {
             fieldsets: [
                 {
                     legend: 'Image Details',
+                    filename: {
+                        label: 'Filename'
+                    },
                     file_size: {
+                        render: 'filesize',
                         label: 'File size'
                     },
                     x_dim: {
+                        render: 'imgsize',
                         label: 'Image Width'
                     },
                     y_dim: {
+                        render: 'imgsize',
                         label: 'Image Height'
                     },
                     bit_depth: {

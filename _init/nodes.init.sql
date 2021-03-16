@@ -685,6 +685,25 @@ ALTER TABLE modern_captures
 --    ALTER TABLE stations ADD CONSTRAINT check_longitude
 --    CHECK (stations.long ~* '^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$')
 
+-- -------------------------------------------------------------
+-- Update Comparison Indices Table
+-- -------------------------------------------------------------
+
+update  comparison_indices
+set  historic_capture_id=q.id
+from (select * from nodes) as q
+where q.old_id=comparison_indices.historic_capture_id and q.type='historic_captures';
+
+update  comparison_indices
+set  capture_id=q.id
+from (select * from nodes) as q
+where q.old_id=comparison_indices.capture_id and q.type='modern_captures';
+
+ALTER TABLE comparison_indices
+    RENAME COLUMN capture_id TO modern_captures;
+
+ALTER TABLE comparison_indices
+    RENAME COLUMN historic_capture_id TO historic_captures;
 
 -- -------------------------------------------------------------
 --    Update Stations coordinates (if empty)

@@ -6,7 +6,13 @@
  */
 
 import React from 'react';
-import { getModelLabel, getNodeLabel, getStaticLabel, getViewLabel } from '../../_services/schema.services.client';
+import {
+    getFileLabel,
+    getModelLabel,
+    getNodeLabel,
+    getStaticLabel,
+    getViewLabel,
+} from '../../_services/schema.services.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import { useData } from '../../_providers/data.provider.client';
 
@@ -25,6 +31,7 @@ const Heading = () => {
     const staticLabel = getStaticLabel(router.route);
     const nodeLabel = getNodeLabel(api.root);
     const modelLabel = getModelLabel(api.model);
+    const fileLabel = getFileLabel(api.root)
 
     // generate heading based on current model/view
     const genHeading = () => {

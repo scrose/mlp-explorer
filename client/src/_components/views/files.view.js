@@ -24,103 +24,21 @@ import Table from '../common/table';
  * @return {JSX.Element}
  */
 
-export const FilesList = ({files}) => {
-    console.log('FileList:', files)
+export const FilesGallery = ({files}) => {
     return (
         files.length > 0
             ?   <div className={'gallery h-menu'}>
-                    <ul>
+                <ul>
                     {
-                        files.map(f =>
-                            <li key={f.file.id} className={'col'}>
-                                <File data={f} scale={'thumb'} />
-                            </li>
-                        )
+                        files.map(fileData =>
+                            <li key={fileData.file.id}>
+                                <File data={fileData} scale={'thumb'} />
+                            </li>)
                     }
-                    </ul>
-                </div>
-            : ''
-    )
-}
-
-/**
- * View file records with metadata associated with a node as tabs.
- *
- * @public
- * @return {JSX.Element}
- */
-
-export const FilesTable = ({files=[]}) => {
-
-    // prepare file metadata for table rows
-    // - set render option for item fields
-    // - returns row object indexed by field name
-    const filterRows = (fileData, fields) => {
-
-        // filter file record data by fields
-        return fileData
-            .map(file => {
-
-                // destructure model data
-                const {data={}} = file;
-
-                // include thumbnail at start of row
-                const row = {
-                    thumbnail: <File file={file} metadata={data} scale={'thumb'} />
-                }
-
-                // include renderable metadata fields
-                Object.keys(fields)
-                    .filter(key => fields[key].render !== 'hidden')
-                    .reduce((o, key) => {
-                        // check if field is reference or model data
-                        row[key] = data.hasOwnProperty(key)
-                            ? sanitize(data[key], fields[key].render)
-                            : sanitize(file[key], fields[key].render)
-                        return o;
-                }, {});
-
-                return row;
-            });
-    }
-
-    // prepare file metadata fields for table header
-    // - omit hidden metadata fields
-    // - returns col header object indexed by field name
-    const filterCols = (fields) => {
-
-        // include column for thumbnail image
-        const cols = [{ name: 'thumbnail', label: 'Image', }];
-        return Object.keys(fields)
-            .filter(key => fields[key].render !== 'hidden')
-            .reduce((o, key) => {
-                o.push(fields[key]);
-                return o;
-            }, cols);
-    }
-
-    return (
-        Object.keys(files).length > 0
-            ? <div>
-                {
-                    Object.keys(files).map(model => {
-                        // get field attributes from schema
-                        const { fields = {} } = genSchema('show', model);
-                        return (
-                            <div key={model}>
-                                <h5>{getModelLabel(model, 'label')}</h5>
-                                <Table
-                                    rows={ filterRows(files[model], fields) }
-                                    cols={ filterCols(fields) }
-                                    classname={'files'}
-                                />
-                            </div>
-                        )
-                    })
-                }
+                </ul>
             </div>
             : ''
-    );
+    )
 }
 
 /**
@@ -154,11 +72,11 @@ export const FilesView = ({files, view, render }) => {
                 scale={'thumb'}
             />),
         list: () => (
-            <FilesList
+            <FilesGallery
                 files={files || []}
             />),
         table: () => (
-            <FilesTable
+            <CaptureImagesTable
                 files={files || []}
             />),
         notFound: () => <NotfoundError />,

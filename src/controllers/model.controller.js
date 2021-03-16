@@ -14,6 +14,7 @@ import ModelServices from '../services/model.services.js';
 import * as cserve from '../services/construct.services.js';
 import * as nserve from '../services/nodes.services.js';
 import * as fserve from '../services/files.services.js';
+import * as metaserve from '../services/metadata.services.js';
 import { prepare } from '../lib/api.utils.js';
 import pool from '../services/db.services.js';
 import { sanitize } from '../lib/data.utils.js';
@@ -25,7 +26,7 @@ import { selectByOwner } from '../services/nodes.services.js';
  * @src public
  */
 
-let Model, model, mserve, options;
+let Model, model, mserve;
 
 /**
  * Export controller constructor.
@@ -147,6 +148,9 @@ export default function ModelController(nodeType) {
             const owner = await nserve.select(owner_id);
             const path = await nserve.getPath(owner) || {};
 
+            // include metadata options
+            model.options = metaserve.getOptions();
+
             // send form data response
            res.status(200).json(
                prepare({
@@ -253,6 +257,9 @@ export default function ModelController(nodeType) {
             // get path of node in hierarchy
             const owner = await nserve.select(id);
             const path = await nserve.getPath(owner) || {};
+
+            // include metadata options
+            model.options = metaserve.getOptions();
 
             // send form data response
             res.status(200).json(
@@ -389,6 +396,9 @@ export default function ModelController(nodeType) {
             const item = owner_id
                 ? new Model({owner_id: owner_id})
                 : new Model();
+
+            // include metadata options
+            model.options = metaserve.getOptions();
 
             // get path of node in hierarchy
             const owner = await nserve.select(owner_id, client);
