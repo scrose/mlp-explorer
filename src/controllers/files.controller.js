@@ -342,7 +342,12 @@ export default function FilesController(modelType) {
             const station = path[stationKey].node;
 
             // include possible historic images to align
-            model.options = await metaserve.getHistoricCapturesByStation(station, client);
+            // append full data for each dependent node
+            let captures = await metaserve.getHistoricCapturesByStation(station, client);
+
+            model.options = {
+                historic_captures: captures
+            };
 
             // send form data response
             res.status(200).json(

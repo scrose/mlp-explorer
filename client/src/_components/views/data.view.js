@@ -70,8 +70,12 @@ const DataView = () => {
         master: () => (
             <Aligner
                 data={data}
-                route={getNodeURI(model, 'import', id)}
-                callback={() => {}}
+                schema={schema}
+                callback={() => {
+                    redirect(
+                        getNodeURI(model, 'show', id)
+                    );
+                }}
             />),
         notFound: () => <NotfoundError />,
         serverError: () => <ServerError />

@@ -7,6 +7,8 @@
 
 import React from "react";
 import AlignerMenu from '../menus/aligner.menu';
+import Form from '../common/form';
+import { getNodeURI } from '../../_utils/paths.utils.client';
 
 /**
  * IAT (Image Analysis Toolkit) wrapper.
@@ -19,8 +21,12 @@ import AlignerMenu from '../menus/aligner.menu';
  * @public
  */
 
-const Canvas = ({data}) => {
-    return <canvas id={''} />
+const Canvas = ({dims}) => {
+    return  <div className={'image-canvas'}>
+                <h5>Image Editor</h5>
+                <canvas id={'image-canvas-left'} />
+                <canvas id={'image-canvas-right'} />
+            </div>
 
 }
 
@@ -28,12 +34,16 @@ const Canvas = ({data}) => {
  * Image aligner wrapper.
  *
  * @param data
- * @param route
+ * @param schema
  * @param callback
  * @public
  */
 
-const Aligner = ({data, route, callback}) => {
+const Aligner = ({data, schema={}, callback}) => {
+
+    // destructure image data
+    const {file={}, metadata={}, url={}} = data || {};
+    const {id=''} = file || {};
 
     // set canvas dimensions
     const [canvasDims, setCanvasDims] = React.useState({
@@ -41,15 +51,15 @@ const Aligner = ({data, route, callback}) => {
         canvas2Width: 0.0,
         canvas3Width: 0.5
     });
-    const {canvas1Width=0.5, canvas2Width=0.0, canvas3Width=0.5} = canvasDims || {};
 
     return (
-        <div className={'iat'}>
+        <Form route={getNodeURI('modern_images', 'master', id)}
+              schema={schema}
+              model={'modern_captures'}
+              callback={callback}>
             <AlignerMenu data={''} />
-            <Canvas width={canvas1Width} className={'iat-canvas-left'} />
-            <Canvas width={canvas2Width} className={'iat-canvas-middle'} />
-            <Canvas width={canvas3Width} className={'iat-canvas-right'} />
-        </div>
+            <Canvas dims={canvasDims} />
+        </Form>
     )
 }
 

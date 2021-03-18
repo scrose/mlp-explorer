@@ -8,7 +8,9 @@
 import React from 'react'
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
-
+import Image from './image';
+import { getCaptureLabel, getFileLabel, getNodeLabel } from '../../_services/schema.services.client';
+import Tabs, { Tab } from './tabs';
 
 /**
  * Build datepicker widget using Pikaday module.
@@ -26,7 +28,6 @@ const DateTimeSelector = ({value}) => {
         data-enable-time
         value={date.val}
         onChange={setDate} />
-
 }
 
 /**
@@ -39,8 +40,8 @@ const DateTimeSelector = ({value}) => {
 
 const ValidationMessage = ({msg}) => {
     return  <div className={'validation'}>
-                <span>{msg.length > 0 ? msg[0] : ''}</span>
-            </div>
+        <span>{msg.length > 0 ? msg[0] : ''}</span>
+    </div>
 }
 
 /**
@@ -70,10 +71,11 @@ const Input = ({
                    label,
                    value,
                    error,
+                   reference,
                    readonly,
                    options,
                    onchange
-}) => {
+               }) => {
 
     // input conditional states
     const [autoClick, setAutoClick] = React.useState(true);
@@ -181,6 +183,18 @@ const Input = ({
         },
 
         select: () => {
+            // prepare options data for select input
+            options = options.map(opt => {
+                return {
+                    id: opt.id,
+                    type: reference,
+                    label: getNodeLabel({
+                        metadata: opt,
+                        node: {type: reference}
+                    })
+                }
+            });
+
             return <label key={`label_${name}`} htmlFor={id}>
                 {label}
                 <select
@@ -190,16 +204,16 @@ const Input = ({
                 >
                     {
                         options
-                        .map(opt =>
-                            <option
-                                key={`${name}_${opt.id}`}
-                                id={`${name}_${opt.id}_${id}`}
-                                name={`${name}_${opt.id}`}
-                                value={opt.id}
-                            >
-                                {opt.label}
-                            </option>
-                        )
+                            .map(opt =>
+                                <option
+                                    key={`${name}_${opt.id}`}
+                                    id={`${name}_${opt.id}_${id}`}
+                                    name={`${name}_${opt.id}`}
+                                    value={opt.id}
+                                >
+                                    {opt.label}
+                                </option>
+                            )
                     }
                 </select>
                 <ValidationMessage msg={error} />
@@ -234,6 +248,59 @@ const Input = ({
                 />
                 <ValidationMessage msg={error}/>
             </label>
+        },
+
+        captureSelect: () => {
+            return <Tabs
+                menu={
+                    options.map(capture => {
+                        const {files={}, node={}} = capture || {};
+                        return {
+                            id: node.id,
+                            label: getCaptureLabel(capture)
+                        };
+                    })
+                }
+            >
+                {
+                    options.map(capture => {
+                        const {files={}, node={}} = capture || {};
+                        const {historic_images=[]} = files || {};
+                        return (
+                            <Tab key={node.id} id={node.id} label={getCaptureLabel(capture)}>
+                                <div className={'gallery h-menu'}>
+                                    <ul>
+                                        {
+                                            historic_images.map((imgData, index) => {
+                                                const {file={}, url={}} = imgData || {};
+                                                return (
+                                                    <li key={`capture_gallery_file_${file.id || ''}`}>
+                                                        <label key={`label_${name}`} htmlFor={id}>
+                                                            <input
+                                                                checked={index===0}
+                                                                type={'radio'}
+                                                                onChange={onchange}
+                                                                name={name}
+                                                                id={file.id}
+                                                                value={file.id}>
+                                                            </input>
+                                                            <Image
+                                                                url={url}
+                                                                title={`Select ${file.filename || ''}.`}
+                                                                label={getFileLabel(file)}
+                                                            />
+                                                        </label>
+                                                    </li>
+                                                );
+                                            })}
+                                    </ul>
+                                </div>
+                            </Tab>
+                        );
+                    })
+                }
+                <ValidationMessage msg={error} />
+            </Tabs>
         }
     }
 

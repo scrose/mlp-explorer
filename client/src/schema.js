@@ -119,8 +119,8 @@ export const schema = {
         master: {
             label: 'Master',
             legend: 'Master Images',
-            submit: 'Master',
-            render: 'form'
+            submit: 'Apply Alignment',
+            render: 'master'
         },
     },
     models: {
@@ -721,11 +721,11 @@ export const schema = {
             },
             fieldsets: [
                 {
-                    legend: 'Historic Capture Image',
+                    legend: 'Select Historic Image',
                     restrict: ['master'],
-                    historic_images: {
-                        label: 'Historic Images',
-                        render: 'imageSelect'
+                    historic_captures: {
+                        label: 'Historic Captures',
+                        render: 'captureSelect'
                     }
                 },
                 {

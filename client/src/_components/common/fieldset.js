@@ -8,7 +8,7 @@
 import React from 'react'
 import Input from './input';
 import Button from './button';
-import { getNodeLabel } from '../../_services/schema.services.client';
+import { getFileLabel, getNodeLabel } from '../../_services/schema.services.client';
 
 /**
  * Build form fieldset element with inputs. 'Fields' are defined
@@ -87,25 +87,12 @@ const Fieldset = ({
             {
                 // render form input fields
                 Object.keys(fields || {}).map(key => {
-
                     // get form schema for requested model
                     const { id='', label='', render='', name='', reference='' } = fields[key];
                     const _value = data.hasOwnProperty(key) ? data[key] : '';
                     const _error = errors.hasOwnProperty(key) ? errors[key] : '';
                     const _readonly = readonly.hasOwnProperty(key) ? readonly[key] : false;
-                    // restructure input options to reference schema
-                    const _options = options.hasOwnProperty(id)
-                        ? options[id].map(opt => {
-                            return {
-                                id: opt.id,
-                                type: reference,
-                                label: getNodeLabel({
-                                    metadata: opt,
-                                    node: {type: reference}
-                                })
-                            }
-                        })
-                        : [];
+                    const _options = options.hasOwnProperty(id) ? options[id] : [];
 
                     return (
                         <Input
@@ -115,6 +102,7 @@ const Fieldset = ({
                             name={name}
                             label={label}
                             value={_value}
+                            reference={reference}
                             error={_error}
                             options={_options}
                             readonly={_readonly}

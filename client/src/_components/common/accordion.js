@@ -6,7 +6,6 @@
  */
 
 import React from 'react';
-import { getModelLabel } from '../../_services/schema.services.client';
 import { getNodeURI } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import Button from './button';
@@ -28,7 +27,7 @@ const Accordion = ({
                        menu=null,
                        hasDependents=false,
                        children=null
-}) => {
+                   }) => {
 
     // accordion toggle state
     const [toggle, setToggle] = React.useState(open);
@@ -43,62 +42,58 @@ const Accordion = ({
         setToggle(!toggle);
     }
 
-    // render tree node
-    return (
-        <div className={'item-data'}>
-            <div className={`accordion`}>
-                <div className={`h-menu ${type}`}>
-                    <ul>
-                        {
-                            hasDependents || children
-                                ? <li key={`accordion_toggle`}>
-                                    <Button
-                                        icon={onToggle()}
-                                        title={`Expand this item.`}
-                                        onClick={() => {
-                                            setToggle(!toggle);
-                                        }}
-                                    />
-                                </li>
-                                : ''
-                        }
-                        {
-                            type && children ?
-                                <li key={`accordion_icon`}>
-                                    <Button icon={type} onClick={onClick} />
-                                </li>
-                                : ''
-                        }
-                        {
-                            label ?
-                                <li key={`accordion_label`}>
-                                <Button
-                                    title={`Go to ${label}.`}
-                                    onClick={() => {
-                                        id
-                                            ? router.update(getNodeURI(type, 'show', id))
-                                            : setToggle(!toggle)
-                                    }}
-                                    label={label}
-                                />
-                            </li>
-                                : ''
-                        }
-                        {
-                            menu
-                                ? <li key={`accordion_menu`} className={'accordion-menu'}>{ menu }</li>
-                                : ''
-                        }
-                    </ul>
-                </div>
-                <div className={`accordion-data ${toggle ? 'open' : ''}`}>
-                    {
-                        toggle ? <div>{children}</div>: ''
-                    }
-                </div>
-            </div>
+    return <div className={`accordion`}>
+        <div className={`h-menu ${type}`}>
+            <ul>
+                {
+                    hasDependents || children
+                        ? <li key={`accordion_toggle`}>
+                            <Button
+                                icon={onToggle()}
+                                title={`Expand this item.`}
+                                onClick={() => {
+                                    setToggle(!toggle);
+                                }}
+                            />
+                        </li>
+                        : ''
+                }
+                {
+                    type && children ?
+                        <li key={`accordion_icon`}>
+                            <Button icon={type} onClick={onClick} />
+                        </li>
+                        : ''
+                }
+                {
+                    label ?
+                        <li key={`accordion_label`}>
+                            <Button
+                                title={`Go to ${label}.`}
+                                onClick={() => {
+                                    id
+                                        ? router.update(getNodeURI(type, 'show', id))
+                                        : setToggle(!toggle)
+                                }}
+                                label={label}
+                            />
+                        </li>
+                        : ''
+                }
+                {
+                    menu
+                        ? <li key={`accordion_menu`} className={'accordion-menu'}>{ menu }</li>
+                        : ''
+                }
+            </ul>
         </div>
-    )
+        <div className={`accordion-data ${toggle ? 'open' : ''}`}>
+            {
+                toggle ? <div>{children}</div>: ''
+            }
+        </div>
+    </div>
+
 }
 
 export default Accordion;

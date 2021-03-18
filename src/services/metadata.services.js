@@ -15,6 +15,7 @@
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
 import * as fserve from './files.services.js';
+import * as nserve from './nodes.services.js';
 
 /**
  * Get all metadata records for given model and owner.
@@ -101,14 +102,21 @@ export const getModernCapturesByStation = async (node, client=pool) => {
  */
 
 export const getHistoricCapturesByStation = async (node, client=pool) => {
-
     const {id=''} = node || {};
-    let { sql, data } = queries.metadata.getHistoricCapturesByStationID(id);
-    return client.query(sql, data)
+    const { sql, data } = queries.metadata.getHistoricCapturesByStationID(id);
+    const captures = await client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows')
-            && res.rows.length > 0 ? res.rows : null;
+            && res.rows.length > 0 ? res.rows : [];
         });
+
+    console.log(captures)
+
+    // append full data for each returned capture
+    return await Promise.all(
+        captures.map(async (capture) => {
+            return await nserve.get(capture.nodes_id, client);
+        }));
 };
 
 /**

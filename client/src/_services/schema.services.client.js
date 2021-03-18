@@ -248,6 +248,20 @@ export const getNodeLabel = (item) => {
 }
 
 /**
+ * Computes label for given capture data using data fields.
+ *
+ * @public
+ * @param capture
+ * @return {String} label
+ */
+
+export const getCaptureLabel = (capture) => {
+    const { metadata={} } = capture || {};
+    const {fn_photo_reference=''} = metadata || {};
+    return fn_photo_reference || getNodeLabel(capture);
+}
+
+/**
  * Get order of node in tree.
  *
  * @public

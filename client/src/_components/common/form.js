@@ -58,7 +58,8 @@ const Form = ({
                   init={},
                   callback,
                   cancel=null,
-                  route=null
+                  route=null,
+                  children
 }) => {
 
     // get form input settings from schema
@@ -279,6 +280,7 @@ const Form = ({
                         )
                     })
             }
+            {children}
             <Submit
                 model={model}
                 label={submit}

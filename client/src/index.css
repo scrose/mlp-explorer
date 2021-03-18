@@ -24,6 +24,25 @@ code {
 }
 
 /*
+Text Layout
+*/
+
+.rotate {
+    transform: rotate(-90deg);
+    /* Legacy vendor prefixes that you probably don't need... */
+    /* Safari */
+    -webkit-transform: rotate(-90deg);
+    /* Firefox */
+    -moz-transform: rotate(-90deg);
+    /* IE */
+    -ms-transform: rotate(-90deg);
+    /* Opera */
+    -o-transform: rotate(-90deg);
+    /* Internet Explorer */
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+}
+
+/*
 Page Layout
 */
 
@@ -588,18 +607,18 @@ nav.breadcrumb ul li a:hover {
     margin: 0;
 }
 
-/* Tab List Menu */
-
+/* Style the tab content */
+.tab  {
+    border-top: none;
+}
 .tab.h-menu {
     padding: 0;
-    margin-top:10px;
+    margin-top:0;
 }
-
 .tab.h-menu ul li {
     overflow: hidden;
     padding: 2px;
 }
-
 .tab.h-menu ul li button {
     border: none;
     outline: none;
@@ -620,11 +639,10 @@ nav.breadcrumb ul li a:hover {
     background-color: #E34234;
     color: #FFFFFF;
 }
-
-/* Style the tab content */
-.tab  {
-    padding: 6px 12px;
-    border-top: none;
+/* Tab data panel */
+.tab .tab-data {
+    margin:0;
+    padding:0;
 }
 
 /* Accordion List Menu */
@@ -639,7 +657,7 @@ nav.breadcrumb ul li a:hover {
     padding: 0;
 }
 .accordion .h-menu ul li {
-    overflow: auto;
+    overflow: visible;
     padding: 2px;
 }
 .accordion .h-menu ul li button {

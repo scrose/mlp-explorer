@@ -9,7 +9,6 @@ import React from 'react';
 import Item from '../common/item';
 import Accordion from '../common/accordion';
 import Slider from '../common/slider';
-import File from '../common/file';
 import Table from '../common/table';
 import { sanitize } from '../../_utils/data.utils.client';
 import { useUser } from '../../_providers/user.provider.client';
@@ -71,7 +70,9 @@ export const CaptureImagesTable = ({model, files=[]}) => {
             rows.master = <Button
                 label={'Master'}
                 icon={'master'}
-                onClick={()=>{}} />
+                onClick={()=>{
+                    router.update(getNodeURI(file_type, 'master', id))
+                }} />
         }
 
         return rows;
