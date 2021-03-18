@@ -9,7 +9,7 @@ import React from 'react';
 import Icon from '../common/icon';
 import { getNodeURI, filterPath, getRoot } from '../../_utils/paths.utils.client';
 import { capitalize } from '../../_utils/data.utils.client';
-import { getNodeLabel } from '../../_services/schema.services.client';
+import { getFileLabel, getNodeLabel } from '../../_services/schema.services.client';
 import { useData } from '../../_providers/data.provider.client';
 
 /**
@@ -69,15 +69,20 @@ const BreadcrumbMenu = () => {
     const _parseNodes = function(nodes) {
         // iterate over sorted path keys
         // sort node index descending and map to components
+        let charCount = 0;
         return Object.keys(nodes)
             .sort(function(a, b){return b-a})
             .map(key => {
-                const menuText = getNodeLabel(nodes[key]);
-                const {node={}} = nodes[key] || {};
-                const {type='', id=''} = node || {};
-                const href = getNodeURI(type, 'show', id);
+                // use node or file metadata
+                const {node={}, file={}} = nodes[key] || {};
+                const href = getNodeURI(
+                    node.type || file.file_type,
+                    'show',
+                    node.id || file.id);
+                const menuText = getNodeLabel(nodes[key]) || getFileLabel(file);
                 return <>
-                        <Icon type={type} size={'sm'} />&#160;&#160;<a href={href}>{menuText}</a>
+                        <Icon type={node.type || file.file_type} size={'sm'} />
+                            &#160;&#160;<a href={href}>{menuText}</a>
                         </>
             });
 

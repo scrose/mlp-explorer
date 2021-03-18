@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.Users.Importer
- * File: importer.users.js
+ * MLP.Client.Components.Views.Importer
+ * File: importer.view.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -10,7 +10,6 @@ import Form from '../common/form';
 import { useRouter } from '../../_providers/router.provider.client';
 import Progress from '../common/progress';
 import { getModelLabel, getViewLabel } from '../../_services/schema.services.client';
-import { useData } from '../../_providers/data.provider.client';
 
 /**
  * File/metadata importer.
@@ -54,7 +53,6 @@ const Importer = ({
     const _updateProgress = (index, name, e, msg, res) => {
         // update progress indicator only if event available
         if (e) {
-            console.log('Progress:', e)
 
             // get loaded/total bytes data from XHR progress event
             // converted to MB for progress bar

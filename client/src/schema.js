@@ -115,7 +115,13 @@ export const schema = {
             label: 'Info',
             legend: 'Item',
             render: 'nodes'
-        }
+        },
+        master: {
+            label: 'Master',
+            legend: 'Master Images',
+            submit: 'Master',
+            render: 'form'
+        },
     },
     models: {
         users: {
@@ -715,37 +721,58 @@ export const schema = {
             },
             fieldsets: [
                 {
+                    legend: 'Historic Capture Image',
+                    restrict: ['master'],
+                    historic_images: {
+                        label: 'Historic Images',
+                        render: 'imageSelect'
+                    }
+                },
+                {
                     legend: 'Image Details',
+                    restrict: ['show', 'edit'],
                     filename: {
-                        label: 'Filename'
+                        label: 'Filename',
+                        restrict: ['show']
                     },
                     file_size: {
                         render: 'filesize',
-                        label: 'File size'
+                        label: 'File size',
+                        restrict: ['show']
                     },
                     x_dim: {
                         render: 'imgsize',
-                        label: 'Image Width'
+                        label: 'Image Width',
+                        restrict: ['show']
                     },
                     y_dim: {
                         render: 'imgsize',
-                        label: 'Image Height'
+                        label: 'Image Height',
+                        restrict: ['show']
                     },
                     bit_depth: {
-                        label: 'Bit Depth'
+                        label: 'Bit Depth',
+                        restrict: ['show']
                     },
                     image_remote: {
-                        label: 'Remote'
+                        label: 'Remote',
+                        render: 'checkbox',
+                        restrict: ['show', 'edit']
                     },
                     capture_datetime: {
-                        label: 'Capture Datetime'
+                        label: 'Capture Datetime',
+                        render: 'datetime',
+                        restrict: ['show']
                     },
                     comments: {
-                        label: 'Comments'
+                        label: 'Comments',
+                        render: 'textarea',
+                        restrict: ['show', 'edit']
                     }
                 },
                 {
                     legend: 'Coordinates',
+                    restrict: ['show', 'edit'],
                     lat: {
                         label: 'Latitude'
                     },
@@ -755,6 +782,7 @@ export const schema = {
                 },
                 {
                     legend: 'Camera Details',
+                    restrict: ['show', 'edit'],
                     cameras_id: {
                         render: 'select',
                         label: 'Camera',
@@ -776,9 +804,8 @@ export const schema = {
                     },
                     iso: {
                         label: 'ISO'
-                    }
+                    },
                 }]
-
         },
         supplemental_images: {
             attributes: {

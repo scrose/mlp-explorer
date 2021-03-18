@@ -14,10 +14,9 @@
 
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
-import { mapToObj } from '../lib/data.utils.js';
+import { mapToObj, sanitize } from '../lib/data.utils.js';
 import * as fserve from './files.services.js';
-import * as mdserve from './metadata.services.js';
-import { sanitize } from '../lib/data.utils.js';
+import { getStatus } from './metadata.services.js';
 
 /**
  * Get node by ID. Returns single node object.
@@ -74,14 +73,16 @@ export const get = async (id, client=pool) => {
     // check that node exists
     if (!node) return null;
 
+    const metadata = await selectByNode(node, client);
+
     // append model data, files and dependents (child nodes)
     return {
         node: node,
-        metadata: await selectByNode(node, client),
+        metadata: metadata,
         files: await fserve.selectByOwner(id, client) || [],
         dependents: await selectByOwner(id, client) || [],
         hasDependents: await hasDependents(id, client) || false,
-        status: await getStatus(node, client)
+        status: await getStatus(node, metadata, client)
     }
 };
 
@@ -113,11 +114,12 @@ export const getAll = async function(model) {
         // append model data and dependents (child nodes)
         let items = await Promise.all(
             nodes.map(async (node) => {
+                const metadata = await selectByNode(node, client);
                 return {
                     node: node,
-                    metadata: await selectByNode(node, client),
+                    metadata: metadata,
                     hasDependents: hasDependents(node.id, client) || false,
-                    status: await getStatus(node, client)
+                    status: await getStatus(node, metadata, client)
                 }
             })
         );
@@ -161,12 +163,13 @@ export const selectByOwner = async (id, client=pool) => {
     // append full data for each dependent node
     nodes = await Promise.all(
         nodes.map(async (node) => {
+            const metadata = await selectByNode(node, client);
             return {
                 node: node,
-                metadata: await selectByNode(node, client),
+                metadata: metadata,
                 files: await fserve.selectByOwner(node.id, client),
                 hasDependents: await hasDependents(node.id, client),
-                status: await getStatus(node, client)
+                status: await getStatus(node, metadata, client)
             }
     }));
 
@@ -216,17 +219,27 @@ export const getPath = async (inputNode) => {
         // start transaction
         await client.query('BEGIN');
 
-        let { owner_id = null } = node || {};
-        let id = node.id;
-        // const leafNode = {id: node.id, type: node.type, owner_id: owner_id};
+        // initialize node path map
         let nodePath = new Map();
-        let end = 9; // limit traversal of node tree to 9
-        let n = 1; // branch counter
+        // check if leaf is a file
+        const isFile = node.hasOwnProperty('file_type');
+        // destructure node data
+        let { owner_id = null, id=null } = node || {};
+        // limit traversal of node tree to 9 iterations
+        let end = 9;
+        // node tree branch counter
+        let n = 1;
 
         // get current item data (if item exists)
-        let leafNode = {};
-        leafNode.node = node;
-        leafNode.metadata = await selectByNode(node, client) || {};
+        let leafNode = isFile
+            ? {
+                file: node,
+                metadata: await fserve.selectByFile(node, client) || {}
+            }
+            : {
+                node: node,
+                metadata: await selectByNode(node, client) || {}
+            }
 
         // set leaf node of tree
         nodePath.set(0, leafNode);
@@ -263,36 +276,3 @@ export const getPath = async (inputNode) => {
 };
 
 
-/**
- * Get status information for node.
- *
- * @public
- * @param {Object} node
- * @param client
- * @return {Promise} result
- */
-
-export const getStatus = async (node, client=pool) => {
-
-    const {type=''} = node || {};
-
-    // initialize image versions
-    const statusInfo = {
-        stations: async () => {
-            return await mdserve.getStationStatus(node, client);
-        },
-        historic_captures: async () => {
-            return{
-                comparisons: await mdserve.getComparisons(node, client)
-            };
-        },
-        modern_captures: async () => {
-            return{
-                comparisons: await mdserve.getComparisons(node, client)
-            };
-        }
-    }
-
-    // route database callback after file upload
-    return statusInfo.hasOwnProperty(type) ? statusInfo[type]() : '';
-};

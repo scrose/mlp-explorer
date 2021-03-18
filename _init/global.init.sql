@@ -81,7 +81,8 @@ $$
             'download',
             'upload',
             'import',
-            'export'
+            'export',
+            'master'
             );
     EXCEPTION
         WHEN duplicate_object THEN null;

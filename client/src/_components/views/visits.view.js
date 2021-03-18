@@ -33,7 +33,7 @@ const VisitsView = ({ model, data }) => {
             ? <Accordion
                 key={id}
                 type={type}
-                label={location_identity}
+                label={'Historic Visit'}
                 open={true}
                 hasDependents={hasDependents}
                 menu={

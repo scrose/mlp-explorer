@@ -27,23 +27,88 @@ export function getComparisons(node) {
 }
 
 /**
- * Query: Get status of all capture comparisons for station.
+ * Query: Get capture comparisons for station.
  *
  * @return {Object} query binding
  */
 
-export function getStationStatus(node) {
-    const {id=null} = node || {};
-    let sql = `SELECT *
-               FROM comparison_indices 
-                   INNER JOIN (SELECT historic_captures.nodes_id as hcid, * 
-                   FROM historic_captures
-                       INNER JOIN (SELECT * 
-                            FROM historic_visits 
-                            WHERE owner_id = $1::integer) as hv 
-                           ON hv.nodes_id = historic_captures.owner_id
-                       ) as hc
-               ON historic_captures.nodes_id = comparison_indices.historic_captures;`;
+export function getModernCapturesByStationID(id) {
+    let sql = `
+            WITH 
+            locs AS (
+                SELECT 
+                       locations.nodes_id,
+                       locations.owner_id
+                FROM locations 
+                INNER JOIN (
+                    SELECT nodes_id
+                    FROM modern_visits
+                    WHERE owner_id = $1::integer
+                ) as mv
+                ON mv.nodes_id = locations.owner_id
+            )
+            SELECT
+                   modern_captures.nodes_id as mc_id,
+                   modern_captures.owner_id
+                FROM modern_captures
+                    INNER JOIN locs
+                        ON modern_captures.owner_id = locs.nodes_id;`;
+    return {
+        sql: sql,
+        data: [id],
+    };
+}
+
+/**
+ * Query: Get historic captures for given station.
+ *
+ * @return {Object} query binding
+ */
+
+export function getHistoricCapturesByStationID(id) {
+    let sql = `
+            SELECT *
+            FROM historic_captures
+                INNER JOIN (
+                    SELECT nodes_id as hv_id FROM historic_visits WHERE owner_id = $1::integer) as hv
+                        ON hv_id = historic_captures.owner_id
+                        GROUP BY hv_id, historic_captures.nodes_id;
+    `;
+    return {
+        sql: sql,
+        data: [id],
+    };
+}
+
+/**
+ * Query: Get capture comparisons for station.
+ *
+ * @return {Object} query binding
+ */
+
+export function getComparisonsByStationID(id) {
+    let sql = `
+            WITH hc AS (
+                SELECT 
+                       historic_captures.nodes_id,
+                       historic_captures.owner_id
+                FROM historic_captures
+                    INNER JOIN (
+                    SELECT nodes_id as hv_id FROM historic_visits WHERE owner_id = $1::integer) as hv
+                        ON hv_id = historic_captures.owner_id
+                        GROUP BY historic_captures.nodes_id
+                )
+                SELECT
+                    hc.nodes_id, 
+                    comparison_indices.modern_captures 
+                    FROM comparison_indices
+                RIGHT JOIN hc
+                    ON hc.nodes_id = comparison_indices.historic_captures
+            GROUP BY
+                     hc.nodes_id,
+                     comparison_indices.historic_captures, 
+                     comparison_indices.modern_captures;
+    `;
     return {
         sql: sql,
         data: [id],

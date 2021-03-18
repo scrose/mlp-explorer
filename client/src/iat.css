@@ -1,10 +1,38 @@
 /*!
- * MLP.Client.CSS
- * File: index.css
+ * MLP.Client.IAT.CSS
+ * File: iat.css
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
 
  TODO: Replace CSS with Sass preprocessor scripting language
+
+        Styles:
+        a	anchors (pseudo-buttons)
+
+        .a	body and divall (same thing?)
+        .m	unused? except as base for .n
+        .b	main top-row (bar) word-buttons
+        .n  other word buttons
+        .i	input/color
+        .t	text input for canvas size
+        .r	range (slider) control only
+        .c	outer canvas
+        .v	canvas
+        ol	ordered list class
+        li	list item
+
+        button:hover{background:lightblue} ? #bbb
+        button:active{background:steelblue} ? #888
+
+    <!-- margin values below must be coordinated with iat.txt -->
+    <!-- default background-color for everything #f0f0f0 or #e04040 -->
+    <!-- Not sure how many are being used, or whether used efficiently -->
+    <!-- font-weight font-size font-family (order important) -->
+    <!-- spacing: word-spacing:2px &ensp; &emsp; &nbsp; <pre> padding-right: -->
+    <!-- .olc{margin:3px} -->
+    <!-- .v bg used to be dadada. UPNG tests: #ddd #000 #fff -->
+    <!-- .a bg crazy colour e44 so can spot load error -->
+
  */
 
 body {
@@ -436,12 +464,11 @@ nav.breadcrumb ul li a:hover {
 .editor-tools {
     position: fixed;
     width: 100%;
-    box-shadow: 0 2px 4px #888888;
-    border-radius: 10px;
 }
 
 .editor-tools.h-menu {
-    background-color: #E34234;
+    background-color: #DDDDDD;
+    color: #282c34;
     width: 100%;
 }
 
@@ -449,7 +476,7 @@ nav.breadcrumb ul li a:hover {
     vertical-align: middle;
     height: 50px;
     line-height: 50px;
-    color: white !important;
+    color: #282c34;
     width: auto;
 }
 
@@ -459,7 +486,7 @@ nav.breadcrumb ul li a:hover {
 
 .editor-tools.h-menu ul li button, .editor-tools .v-menu ul li button  {
     background-color: transparent;
-    color: white !important;
+    color: #282c34;
 }
 
 .editor-tools.h-menu ul li button:hover, .editor-tools .v-menu ul li button:hover {
@@ -516,60 +543,68 @@ nav.breadcrumb ul li a:hover {
 
 /* Tree Node Menu */
 
-.tree-node {
-    margin-left: 9px;
-}
 .tree-node .h-menu {
-    padding: 0px;
+    padding: 0;
     margin:0;
 }
-.tree-node .h-menu ul {
-    border-left: 1px dotted #cccccc;
-}
+
 .tree-node .h-menu ul, .tree-node .h-menu div {
     flex-wrap: nowrap;
     padding: 0;
     margin:0;
 }
+
+.tree-node .h-menu ul li {
+    line-height: normal;
+    padding: 0;
+    margin: 2px;
+    vertical-align: middle;
+}
+
 .tree-node .h-menu ul:hover {
     background-color: #BEFBFF;
 }
-.tree-node .h-menu ul li {
 
-}
 .tree-node .h-menu ul li button {
     flex-wrap: wrap;
-    background-color: transparent !important;
-    color: #008896;
+    background-color: #008896;
+    color: #FFFFFF;
 }
-.tree-node .h-menu ul li button:focus {
-    border: none;
-}
+
 .tree-node .h-menu ul li button.active {
-    color: #9E5E9B;
+    background-color: #E34234;
+    color: #FFFFFF;
 }
+
 .tree-node .h-menu ul li button.current {
-    color:  #282c34 !important;
+    background-color: #282c34 !important;
+    color: #FFFFFF;
 }
 
 .tree-node .h-menu ul li button.toggle:hover {
-    color: #9E5E9B;
+    background-color: #E34234;
+    color: #FFFFFF;
 }
+
 .tree-node .h-menu ul li button.leaf {
-    color: #666666;
+    background-color: #666666;
+    color: #FFFFFF;
 }
+
 .tree-node .h-menu ul li button.tree-node-icon {
     background-color: transparent !important;
     color: #008896;
     text-align: center;
 }
+
 .tree-node .h-menu ul li button.tree-node-icon.current {
     background-color: transparent !important;
     color: #282c34;
     text-align: center;
 }
+
 .tree-node .h-menu ul li button.tree-node-label {
-    background-color: transparent !important;
+    background-color: transparent;
     color: #008896;
     text-align: left;
     width: 100%;

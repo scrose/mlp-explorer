@@ -9,7 +9,7 @@ import React from 'react';
 import Item from '../common/item';
 import Accordion from '../common/accordion';
 import NodeMenu from '../menus/node.menu';
-import { getNodeLabel } from '../../_services/schema.services.client';
+import { getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
 import NodesView from './nodes.view';
 
 /**

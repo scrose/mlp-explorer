@@ -6,10 +6,9 @@
  */
 
 import React from 'react';
-import { getNodeLabel } from '../../_services/schema.services.client';
+import { getFileLabel, getNodeLabel } from '../../_services/schema.services.client';
 import Button from './button';
 import Image from './image';
-import { getNodeURI } from '../../_utils/paths.utils.client';
 
 /**
  * Image slider component.
@@ -22,51 +21,40 @@ import { getNodeURI } from '../../_utils/paths.utils.client';
 const Slider = ({images=[]}) => {
 
     // selected slide state
-    const [selected, setSelected] = React.useState(0);
-    let selectedImage = images[selected];
-    const { url={} } = selectedImage || {};
+    const [selectedIndex, setSelectedIndex] = React.useState(0);
+    const selectedImage = images[selectedIndex]
+    const {url={}, file={}, metadata={}} = selectedImage || {};
 
-    console.log('Images:', selectedImage.file.id, url['medium'])
-
-    // increment/decrement visible slide
+    // increment/decrement index to make slide visible
     const prevSlide = () => {
-        setSelected((selected - 1 + images.length) % images.length);
+        setSelectedIndex((selectedIndex - 1 + images.length) % images.length);
     }
-
     const nextSlide = () => {
-        setSelected((selected + 1) % images.length);
+        setSelectedIndex((selectedIndex + 1) % images.length);
     }
 
     return (
         <div className="slider">
-            <div className={'slides'}>
-                <div className={'numbertext'}>{selected}/{images.length}</div>
-                {
-                    (images || []).map((image, index) => {
-                        const {url={}} = image || {};
-                        return (
-                            selected === index ?
-                            <Image
-                                key={`slide_${ index }`}
-                                url={url}
-                                title={getNodeLabel(image)}
-                                label={getNodeLabel(image)}
-                                scale={'medium'}
-                            /> : ''
-                        )
-                    })
-                }
-            </div>
             <Button icon={'prev'} className={'prev'} onClick={prevSlide} />
             <Button icon={'next'} className={'next'} onClick={nextSlide} />
-
+            <div className={'slides'}>
+                <div className={'numbertext'}>{selectedIndex}/{images.length}</div>
+                {
+                    <Image
+                        key={`slide_${ selectedIndex }`}
+                        url={url}
+                        title={getNodeLabel(selectedImage)}
+                        label={getNodeLabel(selectedImage)}
+                        scale={'medium'}
+                    />
+                }
+            </div>
             <div className={'caption'}>
                 <p>
-                    {
-                        //images[toggle].
-                        'caption'
-                    }
+                    {getFileLabel(file) || ''}
+                    {metadata.hasOwnProperty('image_state') ? ' [' + metadata.image_state + ']' : ''}
                 </p>
+
             </div>
             <div className={'thumbnails'}>
                 {
@@ -79,7 +67,7 @@ const Slider = ({images=[]}) => {
                                 title={getNodeLabel(image)}
                                 label={getNodeLabel(image)}
                                 scale={'thumb'}
-                                onClick={()=>{setSelected(index)}}
+                                onClick={()=>{setSelectedIndex(index)}}
                             />
                         )
                     })

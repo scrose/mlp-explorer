@@ -18,20 +18,25 @@ import { getNodeURI } from '../../_utils/paths.utils.client';
  *
  * @public
  * @param {Object} data
+ * @param {String} callback
  * @param {String} scale
  * @return {JSX.Element}
  */
 
-const File = ({ data, scale='thumb' }) => {
+const File = ({ data, callback=null, scale='thumb' }) => {
 
     const router = useRouter();
 
     // destructure file data
     const {file={}, metadata={}, url={}} = data || {};
-    const {id='', file_type='', filename='', file_size='' } = file || {};
+    const {id='', owner_id='', file_type='', filename='', file_size='' } = file || {};
     const label = getFileLabel(file);
 
     // file components indexed by render type
+    // - historic images link to their corresponding historic captures
+    // - modern images link to their corresponding modern captures
+    // - supplemental images link to their corresponding image views
+    // - metadata files offer corresponding file downloads
     const renders = {
         historic_images: () => <Image
             url={url}
@@ -39,7 +44,9 @@ const File = ({ data, scale='thumb' }) => {
             label={label}
             title={filename}
             onClick={()=>{
-                router.update(getNodeURI('historic_images', 'show', id))
+                callback
+                    ? callback()
+                    : router.update(getNodeURI('historic_captures', 'show', owner_id))
             }}
         />,
         modern_images: () => <Image
@@ -48,7 +55,7 @@ const File = ({ data, scale='thumb' }) => {
             label={label}
             title={filename}
             onClick={()=>{
-                router.update(getNodeURI('modern_images', 'show', id))
+                router.update(getNodeURI('modern_captures', 'show', owner_id))
             }}
         />,
         supplemental_images: () => <Image

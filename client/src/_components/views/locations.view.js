@@ -28,7 +28,7 @@ const LocationsView = ({data}) => {
         key={id}
         id={id}
         type={type}
-        label={location_identity}
+        label={`Location ${location_identity}`}
         open={true}
         hasDependents={hasDependents}
         menu={

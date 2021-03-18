@@ -45,6 +45,13 @@ function FilesRoutes(modelType) {
             post: null,
             delete: null,
         },
+        edit: {
+            path: path.join('/', this.model, 'edit', ':' + this.key),
+            get: this.controller.edit,
+            put: null,
+            post: this.controller.update,
+            delete: null,
+        },
         download: {
             path: path.join('/', this.model, 'download', ':' + this.key),
             get: null,
@@ -58,7 +65,14 @@ function FilesRoutes(modelType) {
             put: null,
             post: this.controller.upload,
             delete: null,
-        }
+        },
+        master: {
+            path: path.join('/', this.model, 'master', ':' + this.key),
+            get: this.controller.master,
+            put: null,
+            post: null,
+            delete: null,
+        },
     };
 }
 

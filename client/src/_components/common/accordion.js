@@ -50,7 +50,7 @@ const Accordion = ({
                 <div className={`h-menu ${type}`}>
                     <ul>
                         {
-                            hasDependents
+                            hasDependents || children
                                 ? <li key={`accordion_toggle`}>
                                     <Button
                                         icon={onToggle()}
@@ -70,7 +70,7 @@ const Accordion = ({
                                 : ''
                         }
                         {
-                            type || label ?
+                            label ?
                                 <li key={`accordion_label`}>
                                 <Button
                                     title={`Go to ${label}.`}
@@ -79,11 +79,7 @@ const Accordion = ({
                                             ? router.update(getNodeURI(type, 'show', id))
                                             : setToggle(!toggle)
                                     }}
-                                    label={`
-                                            ${getModelLabel(type)}
-                                            ${label && getModelLabel(type) ? ': ' : ''}
-                                            ${label}
-                                        `}
+                                    label={label}
                                 />
                             </li>
                                 : ''

@@ -8,7 +8,13 @@
 import React from 'react';
 import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
-import { genSchema, getDependentTypes, getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
+import {
+    genSchema,
+    getDependentTypes,
+    getFileLabel,
+    getModelLabel,
+    getNodeLabel,
+} from '../../_services/schema.services.client';
 import Alert from '../common/alert';
 import { useData } from '../../_providers/data.provider.client';
 import Button from '../common/button';
@@ -26,8 +32,14 @@ const MenuEditor = () => {
     const router = useRouter();
     const api = useData();
 
+    // destructure root node data
+    const {node={}, file={}} = api.root || {};
+    const {file_type=''} = file || {};
+    const type = node.type || file.file_type || '';
+    const id = node.id || file.id || '';
+
     // lookup model dependent nodes in schema
-    const dependents = getDependentTypes(api.root.type) || [];
+    const dependents = getDependentTypes(type) || [];
 
     // check for capture bulk import
     const historicCaptureImport = dependents.length > 0
@@ -83,10 +95,10 @@ const MenuEditor = () => {
                         <li key={'show'}>
                             <Button
                                 label={'View'}
-                                title={`View this ${getModelLabel(api.root.type)} item.`}
+                                title={`View this ${getModelLabel(type)}.`}
                                 icon={'info'}
                                 onClick={e =>
-                                    onClick(e, api.root.type, 'show', api.root.id)
+                                    onClick(e, type, 'show', id)
                                 } />
                         </li> : ''
                     }
@@ -96,9 +108,9 @@ const MenuEditor = () => {
                             <Button
                                 icon={'edit'}
                                 label={'Edit'}
-                                title={`Edit this ${getModelLabel(api.root.type)} item.`}
+                                title={`Edit this ${getModelLabel(type)}.`}
                                 onClick={e =>
-                                    onClick(e, api.root.type, 'edit', api.root.id)
+                                    onClick(e, type, 'edit', id)
                                 }
                             />
                         </li> : ''
@@ -109,17 +121,19 @@ const MenuEditor = () => {
                             <Button
                                 icon={'delete'}
                                 label={'Delete'}
-                                title={`Delete this ${getModelLabel(api.root.type)} item.`}
+                                title={`Delete this ${getModelLabel(type)} item.`}
                                 onClick={() => {setDialogToggle('remove')}}
                             />
                             {
                                 dialogToggle === 'remove' ?
                                 <Alert
                                     setToggle={setDialogToggle}
-                                    title={`Delete ${getModelLabel(api.root.type)} ${getNodeLabel(api.root)} record?`}
+                                    title={`Delete 
+                                    ${getModelLabel(type)} 
+                                    ${getNodeLabel(api.root) || getFileLabel(file)} record?`}
                                     description={
                                         <>
-                                            <p>Please confirm the deletion of {getModelLabel(api.root.type)}:</p>
+                                            <p>Please confirm the deletion of {getModelLabel(type)}:</p>
                                             <p><b>{getNodeLabel(api.root)}</b></p>
                                             <p>Note that any dependent nodes for this record will also be deleted.</p>
                                         </>
@@ -130,6 +144,19 @@ const MenuEditor = () => {
                                 /> : ''
                             }
                         </li> : ''
+                    }
+                    {
+                        file_type==='modern_images' && api.root && !editExclude.includes(api.view) ?
+                            <li key={'master'}>
+                                <Button
+                                    icon={'master'}
+                                    label={'Master'}
+                                    title={`Master this ${getModelLabel(file_type)}.`}
+                                    onClick={e =>
+                                        onClick(e, file_type, 'master', id)
+                                    }
+                                />
+                            </li> : ''
                     }
                     {
                         // add dropdown menu for adding dependent nodes
@@ -202,18 +229,15 @@ const MenuEditor = () => {
                             ? <Dialog
                                 key={`dialog_${dependent}`}
                                 setToggle={setDialogToggle}
-                                title={`Add new ${getModelLabel(dependent)} item.`}>
+                                title={`Add new ${getModelLabel(dependent)}.`}>
                                 <Importer
                                     view={'add'}
                                     model={dependent}
                                     options={api.options}
                                     schema={genSchema('new', dependent)}
-                                    route={getNodeURI(dependent, 'new', api.root.id)}
+                                    route={getNodeURI(dependent, 'new', id)}
                                     callback={() => {
-                                        redirect(
-                                            getNodeURI(api.root.type, 'show', api.root.id,
-                                            ),
-                                        );
+                                        redirect(getNodeURI(type, 'show', id));
                                     }}
                                 />
                             </Dialog>
@@ -231,12 +255,9 @@ const MenuEditor = () => {
                                     model={'historic_captures'}
                                     options={api.options}
                                     schema={genSchema('import', 'historic_captures')}
-                                    route={getNodeURI('historic_captures', 'import', api.root.id)}
+                                    route={getNodeURI('historic_captures', 'import', id)}
                                     callback={() => {
-                                        redirect(
-                                            getNodeURI(api.root.type, 'show', api.root.id
-                                            )
-                                        );
+                                        redirect(getNodeURI(type, 'show', id));
                                     }}
                                 />
                             </Dialog> : ''
@@ -252,10 +273,10 @@ const MenuEditor = () => {
                                 model={'modern_captures'}
                                 options={api.options}
                                 schema={genSchema('import', 'modern_captures')}
-                                route={getNodeURI('modern_captures', 'import', api.root.id)}
+                                route={getNodeURI('modern_captures', 'import', id)}
                                 callback={() => {
                                     redirect(
-                                        getNodeURI(api.root.type, 'show', api.root.id
+                                        getNodeURI(type, 'show', id
                                         )
                                     );
                                 }}

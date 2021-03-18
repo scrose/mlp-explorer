@@ -15,6 +15,7 @@ import { useData } from '../../_providers/data.provider.client';
 import { genSchema, getRenderType } from '../../_services/schema.services.client';
 import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
 import Importer from './importer.view';
+import Aligner from './aligner.view';
 
 /**
  * Build requested data view from API data.
@@ -28,7 +29,9 @@ const DataView = () => {
     const router = useRouter();
 
     // extract API data
-    const { view='', model='', data=null, attributes={} } = api || {};
+    const { view='', model='', data=null, root={}, attributes={} } = api || {};
+    const {node={}} = root || {};
+    const {id=''} = node || {};
     const render = getRenderType(view, model);
     const schema = genSchema(view, model, attributes);
 
@@ -40,7 +43,7 @@ const DataView = () => {
                 model={model}
                 schema={schema}
                 data={data}
-                route={getNodeURI(model, view, api.root.id)}
+                route={getNodeURI(model, view, id)}
                 callback={(err, model, id) => {
                     if (err || !id) return;
                     router.update(getNodeURI(model, 'show', id));
@@ -57,16 +60,18 @@ const DataView = () => {
                 model={model}
                 schema={schema}
                 data={data}
-                route={getNodeURI(model, 'import', api.root.id)}
+                route={getNodeURI(model, 'import', id)}
                 callback={() => {
                     redirect(
-                        getNodeURI(
-                            api.root.type,
-                            'show',
-                            api.root.id
-                        )
+                        getNodeURI(model, 'show', id)
                     );
                 }}
+            />),
+        master: () => (
+            <Aligner
+                data={data}
+                route={getNodeURI(model, 'import', id)}
+                callback={() => {}}
             />),
         notFound: () => <NotfoundError />,
         serverError: () => <ServerError />

@@ -39,7 +39,8 @@ const TreeNodeMenu = ({
                           toggle,
                           setToggle,
                           isCurrent='',
-                          hasDependents=false
+                          hasDependents=false,
+                          status=null
 }) => {
 
     const router = useRouter();
@@ -60,6 +61,17 @@ const TreeNodeMenu = ({
         router.update(getNodeURI(model, 'show', id));
     }
 
+    // handle status of nodes: cascades status levels
+    const getStatus = () => {
+        if (status.compared) return 'mastered';
+        if (status.mastered) return 'mastered';
+        if (status.partial) return 'partial';
+        if (status.repeated) return 'repeated';
+        // if (status.located) return 'located';
+        if (status.grouped) return 'grouped';
+        return 'missing';
+    }
+
     // toggle button classnames
     const classnames = [
         'tree-node',
@@ -75,7 +87,7 @@ const TreeNodeMenu = ({
                     hasDependents ?
                     <li>
                         <Button
-                            icon={toggle || isCurrent ? 'hopen' : 'hclose'}
+                            icon={toggle || isCurrent ? 'collapse' : 'expand'}
                             className={classnames.join(' ')}
                             title={`Expand ${label}.`}
                             onClick={handleToggle}
@@ -86,8 +98,8 @@ const TreeNodeMenu = ({
                 <li>
                     <Button
                         icon={model}
-                        className={`tree-node-icon ${isCurrent ? ' current' : ''}`}
-                        title={`View ${getModelLabel(model)}: ${label}`}
+                        className={`tree-node-icon ${isCurrent ? ' current' : ''} ${status ? getStatus() : ''}`}
+                        title={`View ${getModelLabel(model)}: ${label} ${status ? ' [' + getStatus() + ' captures]' : ''}`}
                         onClick={handleView}
                     />
                 </li>
@@ -113,15 +125,17 @@ const TreeNodeMenu = ({
  * @param {String} type
  * @param {String} label
  * @param {String} hasDependents
+ * @param {Object} status
  * @return {JSX.Element}
  */
 
-const TreeNode = ({id, type, label, hasDependents}) => {
+const TreeNode = ({id, type, label, hasDependents, status}) => {
 
     // create dynamic data states
     const [toggle, setToggle] = React.useState(checkNode(id));
     const [isCurrent, setCurrent] = React.useState(false);
     const [loadedData, setLoadedData] = React.useState([]);
+    const [statusData, setStatusData] = React.useState(status);
     const treeNode = React.createRef();
     const _isMounted = React.useRef(true);
 
@@ -141,7 +155,7 @@ const TreeNode = ({id, type, label, hasDependents}) => {
             treeNode.current.scrollIntoView();
         }
 
-        if (toggle && Array.isArray(loadedData) && loadedData.length === 0) {
+        if (hasDependents && toggle && Array.isArray(loadedData) && loadedData.length === 0) {
             const route = getNodeURI('nodes', 'show', id);
             router.get(route)
                 .then(res => {
@@ -149,8 +163,9 @@ const TreeNode = ({id, type, label, hasDependents}) => {
                     if (_isMounted.current) {
                         // destructure any available dependent nodes
                         let { data = {} } = res || {};
-                        const { dependents=[] } =  data || {};
+                        const { dependents=[], status=null } =  data || {};
                         setLoadedData(dependents);
+                        setStatusData(status);
                     }
                 })
                 .catch(err => console.error(err)
@@ -159,7 +174,17 @@ const TreeNode = ({id, type, label, hasDependents}) => {
         return () => {
             _isMounted.current = false;
         };
-    }, [api, router, id, toggle, treeNode, loadedData]);
+    }, [
+        api,
+        router,
+        id,
+        hasDependents,
+        toggle,
+        treeNode,
+        loadedData,
+        setLoadedData,
+        setStatusData
+    ]);
 
     return (
             <div id={`treenode_${id}`} ref={treeNode} className={'tree-node'}>
@@ -172,10 +197,11 @@ const TreeNode = ({id, type, label, hasDependents}) => {
                         setToggle={setToggle}
                         isCurrent={isCurrent}
                         hasDependents={hasDependents}
+                        status={statusData}
                     />
                 }
                 {
-                    toggle
+                    toggle && hasDependents
                         ?
                         Array.isArray(loadedData) && loadedData.length > 0
                             ? <TreeNodeList items={loadedData} />
@@ -202,14 +228,15 @@ const TreeNodeList = ({items}) => {
             {
                 items
                     .map(item => {
-                        const { node={}, hasDependents=false } = item || {};
+                        const { node={}, hasDependents=false, status={} } = item || {};
                         const { id='', type='' } = node || {};
                         return {
                             type: type,
                             id: id,
                             label: getNodeLabel(item),
                             order: getNodeOrder(type || '') || 0,
-                            hasDependents: hasDependents
+                            hasDependents: hasDependents,
+                            status: status
                         }
                     })
                     // sort alphabetically
@@ -228,6 +255,7 @@ const TreeNodeList = ({items}) => {
                                 type={item.type}
                                 label={item.label}
                                 hasDependents={item.hasDependents}
+                                status={item.status}
                             />
                         </li>
                     )
@@ -283,7 +311,7 @@ const TreeNavigator = ({setMenu}) => {
                         .map((key, index) => {
                         return (
                             <li key={`item_${index}`}>
-                                <h4><Icon type={key} />&#160;&#160;{getModelLabel(key)}</h4>
+                                <h4><Icon type={key} />&#160;&#160;{getModelLabel(key, 'label')}</h4>
                                 <TreeNodeList items={nodeData[key]} />
                             </li>
                         )

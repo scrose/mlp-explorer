@@ -15,6 +15,7 @@ import Dialog from '../common/dialog';
 import Importer from '../views/importer.view';
 import Item from '../common/item';
 import Button from '../common/button';
+import IAT from '../views/aligner.view';
 
 /**
  * Inline menu component to edit node items.
@@ -63,6 +64,31 @@ const NodeMenu = ({
                                 : ''
                         }
                     </li> : ''
+                }
+                {
+                    user && id && model === 'modern_images' && metadata ?
+                        <li key={'master'}>
+                            <Button
+                                icon={'master'}
+                                title={`Master ${getModelLabel(model)}.`}
+                                onClick={() => {setDialogToggle('master')}}
+                            />
+                            {
+                                dialogToggle === 'master'
+                                    ? <Dialog
+                                        title={`Master ${getModelLabel(model)}`}
+                                        setToggle={setDialogToggle}
+                                    >
+                                        <IAT
+                                            image1={metadata}
+                                            image2={metadata}
+                                            callback={() => { console.log('upload image here!!');
+                                            }}
+                                        />
+                                    </Dialog>
+                                    : ''
+                            }
+                        </li> : ''
                 }
                 {
                     user && id && model && metadata ?

@@ -59,10 +59,10 @@ export function getGIS() {
               FROM surveyors
                 LEFT OUTER JOIN surveys ON surveyors.nodes_id = surveys.owner_id
                 LEFT OUTER JOIN survey_seasons ON surveys.nodes_id = survey_seasons.owner_id
-                LEFT OUTER JOIN stations on survey_seasons.nodes_id = stations.owner_id
-                LEFT OUTER JOIN historic_visits on stations.nodes_id = historic_visits.owner_id
-                LEFT OUTER JOIN modern_visits on stations.nodes_id = modern_visits.owner_id
-                LEFT OUTER JOIN locations on modern_visits.nodes_id = locations.owner_id
+                LEFT OUTER JOIN stations ON survey_seasons.nodes_id = stations.owner_id
+                LEFT OUTER JOIN historic_visits ON stations.nodes_id = historic_visits.owner_id
+                LEFT OUTER JOIN modern_visits ON stations.nodes_id = modern_visits.owner_id
+                LEFT OUTER JOIN locations ON modern_visits.nodes_id = locations.owner_id
               GROUP BY 
                        surveyors.nodes_id, 
                        surveys.nodes_id, 
