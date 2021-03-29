@@ -76,10 +76,10 @@ export const getAttachedByNode = async function(node, client=pool) {
         let participants = await client.query(sql, data);
 
         // group by participant group type
-        participants = groupBy(participants.rows, 'group_type');
+        participants = groupBy(participants.rows, 'group_type') || {};
 
         // return only model type names as list
-        return [participants] || [];
+        return Object.keys(participants).length > 0 ? [participants] : [];
     }
 
     return {

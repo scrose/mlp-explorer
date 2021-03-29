@@ -73,6 +73,7 @@ export const MetadataAttached = ({ attached }) => {
 
         return Object.keys(attached || {}).map(attachedModel => {
             if (attached[attachedModel].length > 0) {
+                console.log(attached[attachedModel])
                 // include attached metadata
                 return <Accordion
                     key={`${keyID}_${attachedModel}`}

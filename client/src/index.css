@@ -709,13 +709,14 @@ nav.breadcrumb ul li a:hover {
 /* Accordion List Menu */
 
 .accordion {
-    border: 1px dotted #CCCCCC;
+    border: 1px solid #CCCCCC;
+    border-collapse: collapse;
     margin-top: 20px;
     margin-bottom: 20px;
     border-radius: 20px;
 }
 .accordion .h-menu {
-    border: 1px solid #DDD;
+    border: inherit;
     border-radius: 20px;
     padding: 0;
 }
@@ -929,21 +930,18 @@ nav.breadcrumb ul li a:hover {
     color: #008896 !important;
 }
 .stations {
-    background-color: #DDD !important;
     color: #008896 !important;
+    border-color: #008896 !important;
 }
 .locations {
-    background-color: #EEE !important;
     color: #008896 !important;
     border-color: #008896 !important;
 }
 .historic_captures {
-    background-color: #EEE !important;
     color: #008896 !important;
     border-color: #008896 !important;
 }
 .modern_captures {
-    background-color: #EEE !important;
     color: #008896 !important;
     border-color: #008896 !important;
 }
