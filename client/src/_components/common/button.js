@@ -15,7 +15,16 @@ import Icon from './icon';
  * @return {React.Component}
  */
 
-const Button = ({type, name, label='', title, icon, className='', onClick}) => {
+const Button = ({
+                    type,
+                    name,
+                    label='',
+                    title,
+                    icon,
+                    size='lg',
+                    className='',
+                    onClick=()=>{}
+}) => {
 
     /**
      * Button constructors for different render types.
@@ -30,11 +39,24 @@ const Button = ({type, name, label='', title, icon, className='', onClick}) => {
     const _buttonElements = {
         submit: () => {
             return (
-                <input
+                <button
+                    className={className}
                     title={`Submit update.`}
-                    type={type}
+                    type={'submit'}
+                    name={name}>
+                    { icon ? <Icon type={icon} size={size} /> : ''}{ label ? <span>{label}</span> : ''}
+                </button>
+            )
+        },
+        reset: () => {
+            return (
+                <input
+                    className={className}
+                    title={`Reset form.`}
+                    type={'reset'}
                     name={name}
                     value={label}
+                    onClick={onClick}
                 />)
         },
         default: () => {
@@ -44,7 +66,7 @@ const Button = ({type, name, label='', title, icon, className='', onClick}) => {
                     className={className}
                     onClick={onClick}
                 >
-                    { icon ? <Icon type={icon} /> : ''}{ label ? <span>{label}</span> : ''}
+                    { icon ? <Icon type={icon} size={size} /> : ''}{ label ? <span>{label}</span> : ''}
                 </button>
             )
         }

@@ -56,16 +56,16 @@ const Slider = ({images=[]}) => {
                 </p>
 
             </div>
-            <div className={'thumbnails'}>
+            <div className={'thumbnails h-menu'}>
                 {
                     (images || []).map((image, index) => {
-                        const { url={} } = image || {};
+                        const { url={}, file={} } = image || {};
                         return (
                             <Image
                                 key={`slide_button_${ index }`}
                                 url={url}
                                 title={getNodeLabel(image)}
-                                label={getNodeLabel(image)}
+                                label={getFileLabel(file)}
                                 scale={'thumb'}
                                 onClick={()=>{setSelectedIndex(index)}}
                             />

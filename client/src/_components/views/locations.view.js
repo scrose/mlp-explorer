@@ -9,6 +9,8 @@ import React from 'react';
 import Accordion from '../common/accordion';
 import NodeMenu from '../menus/node.menu';
 import CapturesView from './captures.view';
+import MetadataView, { MetadataAttached } from './metadata.view';
+import { getModelLabel } from '../../_services/schema.services.client';
 
 /**
  * Model view component.
@@ -20,7 +22,7 @@ import CapturesView from './captures.view';
 
 const LocationsView = ({data}) => {
 
-    const {node={}, metadata={}, dependents=[], hasDependents=false } = data || {};
+    const {node={}, metadata={}, dependents=[], hasDependents=false, attached={} } = data || {};
     const {id='', type=''} = node || {};
     const { location_identity='' } = metadata || {};
 
@@ -39,6 +41,10 @@ const LocationsView = ({data}) => {
                 dependent={'modern_captures'}
             />
         }>
+        <Accordion type={'info'} label={`Location Field Notes`}>
+            <MetadataView key={`locations_${id}`} model={'locations'} metadata={metadata} />
+        </Accordion>
+        <MetadataAttached attached={attached} />
         <CapturesView captures={dependents} fileType={'modern_images'} />
     </Accordion>
 }

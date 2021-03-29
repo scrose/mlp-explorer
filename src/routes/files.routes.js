@@ -31,13 +31,6 @@ function FilesRoutes(modelType) {
 
     // add controller routes
     this.routes = {
-        list: {
-            path: path.join('/', this.model, 'list', ':' + this.key),
-            get: this.controller.list,
-            put: null,
-            post: null,
-            delete: null,
-        },
         show: {
             path: path.join('/', this.model, 'show', ':' + this.key),
             get: this.controller.show,

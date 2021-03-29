@@ -8,9 +8,8 @@
 import React from 'react'
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
-import Image from './image';
-import { getCaptureLabel, getFileLabel, getNodeLabel } from '../../_services/schema.services.client';
-import Tabs, { Tab } from './tabs';
+import { getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
+import Icon from './icon';
 
 /**
  * Build datepicker widget using Pikaday module.
@@ -39,9 +38,11 @@ const DateTimeSelector = ({value}) => {
  */
 
 const ValidationMessage = ({msg}) => {
-    return  <div className={'validation'}>
-        <span>{msg.length > 0 ? msg[0] : ''}</span>
-    </div>
+    return  <div className={'validation tooltip'}>
+                <span className={'tooltiptext'}>
+                    {msg.length > 0 ? msg[0] : ''}
+                </span>
+            </div>
 }
 
 /**
@@ -64,18 +65,21 @@ const ValidationMessage = ({msg}) => {
  * <select>
  */
 
-const Input = ({
-                   id,
-                   type,
-                   name,
-                   label,
-                   value,
-                   error,
-                   reference,
-                   readonly,
-                   options,
-                   onchange
-               }) => {
+export const Input = ({
+                          id,
+                          type,
+                          name,
+                          label='',
+                          value='',
+                          error=null,
+                          reference='',
+                          readonly=false,
+                          disabled=false,
+                          ariaLabel='',
+                          options=null,
+                          onchange=()=>{},
+                          onselect=()=>{}
+                      }) => {
 
     // input conditional states
     const [autoClick, setAutoClick] = React.useState(true);
@@ -103,71 +107,55 @@ const Input = ({
         },
 
         text: () => {
-            return <label key={`label_${name}`} htmlFor={name}>
-                {label}
-                <input
+            return <input
                     type={"text"}
                     id={id}
                     name={name}
                     value={value || ''}
                     onChange={onchange}
+                    aria-label={ariaLabel}
                 />
-                <ValidationMessage msg={error}/>
-            </label>
         },
 
         textarea: () => {
-            return <label key={`label_${name}`} htmlFor={name}>
-                {label}
-                <textarea
+            return <textarea
                     id={id}
                     name={name}
                     value={value || ''}
                     onChange={onchange}
+                    aria-label={ariaLabel}
                 />
-                <ValidationMessage msg={error}/>
-            </label>
         },
 
         checkbox: () => {
             const isChecked = (value && value === true);
-            return <label key={`label_${name}`} htmlFor={id}>
-                {label}
-                <input
+            return <input
                     type={'checkbox'}
                     id={id}
                     name={name}
                     checked={isChecked}
                     onChange={onchange}
+                    aria-label={ariaLabel}
                 />
-            </label>;
         },
 
         date: () => {
-            return <label key={`label_${name}`} htmlFor={name}>
-                {label}
-                <DateTimeSelector value={value || ''} />
-            </label>;
+            return <DateTimeSelector value={value || ''} />
         },
 
         email: () => {
-            return <label key={`label_${name}`} htmlFor={id}>
-                {label}
-                <input
+            return <input
                     type={"email"}
                     id={id}
                     name={name}
                     value={value || ''}
                     onChange={onchange}
+                    aria-label={ariaLabel}
                 />
-                <ValidationMessage msg={error}/>
-            </label>
         },
 
         password: () => {
-            return <label key={`label_${name}`} htmlFor={id}>
-                {label}
-                <input
+            return <input
                     readOnly={autoClick}
                     type={"password"}
                     autoComplete="chrome-off"
@@ -178,16 +166,22 @@ const Input = ({
                     onClick={()=>{setAutoClick(false)}}
                     onFocus={()=>{setAutoClick(false)}}
                 />
-                <ValidationMessage msg={error}/>
-            </label>
         },
 
         select: () => {
             // prepare options data for select input
+            let selected = '';
             options = options.map(opt => {
+                const {nodes_id='', id=''} = opt || {};
+                const optionID = id || nodes_id;
+
+                // the selected option
+                if (parseInt(value)===parseInt(optionID)) selected = optionID;
+
                 return {
-                    id: opt.id,
+                    id: optionID,
                     type: reference,
+                    value: optionID,
                     label: getNodeLabel({
                         metadata: opt,
                         node: {type: reference}
@@ -195,13 +189,22 @@ const Input = ({
                 }
             });
 
-            return <label key={`label_${name}`} htmlFor={id}>
-                {label}
-                <select
+            return <select
                     id={id}
                     name={name}
+                    disabled={disabled || options.length === 0}
                     onChange={onchange}
+                    onSelect={onselect}
+                    value={selected}
                 >
+                    <option
+                        key={`default_${id}_${name}`}
+                        id={`default_${id}_${name}`}
+                        name={`default_${id}_${name}`}
+                        value={''}
+                    >
+                        Select a {getModelLabel(reference)}...
+                    </option>
                     {
                         options
                             .map(opt =>
@@ -209,21 +212,17 @@ const Input = ({
                                     key={`${name}_${opt.id}`}
                                     id={`${name}_${opt.id}_${id}`}
                                     name={`${name}_${opt.id}`}
-                                    value={opt.id}
+                                    value={opt.value}
                                 >
                                     {opt.label}
                                 </option>
                             )
                     }
                 </select>
-                <ValidationMessage msg={error} />
-            </label>
         },
 
         files: () => {
-            return <label key={`label_${name}`} htmlFor={id}>
-                {label}
-                <input
+            return <input
                     className={'multiple'}
                     type={"file"}
                     id={id}
@@ -231,14 +230,10 @@ const Input = ({
                     onChange={onchange}
                     multiple={true}
                 />
-                <ValidationMessage msg={error}/>
-            </label>
         },
 
         file: () => {
-            return <label key={`label_${name}`} htmlFor={id}>
-                {label}
-                <input
+            return <input
                     className={'single'}
                     type={"file"}
                     id={id}
@@ -246,68 +241,23 @@ const Input = ({
                     onChange={onchange}
                     multiple={false}
                 />
-                <ValidationMessage msg={error}/>
-            </label>
-        },
-
-        captureSelect: () => {
-            return <Tabs
-                menu={
-                    options.map(capture => {
-                        const {files={}, node={}} = capture || {};
-                        return {
-                            id: node.id,
-                            label: getCaptureLabel(capture)
-                        };
-                    })
-                }
-            >
-                {
-                    options.map(capture => {
-                        const {files={}, node={}} = capture || {};
-                        const {historic_images=[]} = files || {};
-                        return (
-                            <Tab key={node.id} id={node.id} label={getCaptureLabel(capture)}>
-                                <div className={'gallery h-menu'}>
-                                    <ul>
-                                        {
-                                            historic_images.map((imgData, index) => {
-                                                const {file={}, url={}} = imgData || {};
-                                                return (
-                                                    <li key={`capture_gallery_file_${file.id || ''}`}>
-                                                        <label key={`label_${name}`} htmlFor={id}>
-                                                            <input
-                                                                checked={index===0}
-                                                                type={'radio'}
-                                                                onChange={onchange}
-                                                                name={name}
-                                                                id={file.id}
-                                                                value={file.id}>
-                                                            </input>
-                                                            <Image
-                                                                url={url}
-                                                                title={`Select ${file.filename || ''}.`}
-                                                                label={getFileLabel(file)}
-                                                            />
-                                                        </label>
-                                                    </li>
-                                                );
-                                            })}
-                                    </ul>
-                                </div>
-                            </Tab>
-                        );
-                    })
-                }
-                <ValidationMessage msg={error} />
-            </Tabs>
         }
     }
 
-    // render input
-    return _inputElements.hasOwnProperty(type)
-        ? _inputElements[type]()
-        : <div>Loading error</div>;
+    // get input element
+    const input = _inputElements.hasOwnProperty(type)
+            ?   <>
+                    { error.length > 0 ? <ValidationMessage msg={error}/> : '' }
+                    { _inputElements[type]() }
+                </>
+            : <><Icon type={'error'} />Loading error</>
+
+    return type !== 'hidden'
+            ?   <label key={`label_${name}`} htmlFor={id}>
+                    {label}
+                    {input}
+                </label>
+            : <>{input}</>;
 }
 
 export default Input;

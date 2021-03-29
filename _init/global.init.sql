@@ -68,13 +68,15 @@ $$
     BEGIN
         CREATE TYPE views
         AS ENUM (
-            'list',
             'show',
             'edit',
             'create',
             'remove',
             'login',
             'auth',
+            'search',
+            'tree',
+            'map',
             'refresh',
             'logout',
             'register',

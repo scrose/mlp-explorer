@@ -398,7 +398,6 @@ const getImageInfo = function (imgPath, file) {
         .metadata()
         .then(function(info) {
             if (info.hasOwnProperty('xmp'))
-                console.log(info)
             file.format = info.format;
             file.x_dim = info.width;
             file.y_dim = info.height;

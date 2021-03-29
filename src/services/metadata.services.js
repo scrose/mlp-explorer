@@ -16,6 +16,7 @@ import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
 import * as fserve from './files.services.js';
 import * as nserve from './nodes.services.js';
+import { groupBy } from '../lib/data.utils.js';
 
 /**
  * Get all metadata records for given model and owner.
@@ -48,6 +49,44 @@ export const getOptions = async function(client=pool) {
         lens_id: await getAll('lens', client),
         participants: await getAll('participants', client),
         participant_group_types: await getAll('participant_group_types', client)
+    }
+};
+
+/**
+ * Get (any) attached metadata for node.
+ *
+ * @public
+ * @return {Promise} result
+ */
+
+export const getAttachedByNode = async function(node, client=pool) {
+
+    const {id='', type=''} = node || {};
+
+    const getAttachedData = async (id, type, model) => {
+        let { sql, data } = queries.defaults.selectByOwner(id, type, model);
+        let metadata = await client.query(sql, data);
+
+        // return only model type names as list
+        return metadata.rows;
+    }
+
+    const getParticipantData = async (id) => {
+        let { sql, data } = queries.metadata.getParticipantData(id);
+        let participants = await client.query(sql, data);
+
+        // group by participant group type
+        participants = groupBy(participants.rows, 'group_type');
+
+        // return only model type names as list
+        return [participants] || [];
+    }
+
+    return {
+        glass_plate_listings: await getAttachedData(id, type, 'glass_plate_listings'),
+        maps: await getAttachedData(id, type, 'maps'),
+        participant_groups: await getParticipantData(id),
+        comparisons: await getComparisonsMetadata(node, client) || []
     }
 };
 
@@ -110,8 +149,6 @@ export const getHistoricCapturesByStation = async (node, client=pool) => {
             && res.rows.length > 0 ? res.rows : [];
         });
 
-    console.log(captures)
-
     // append full data for each returned capture
     return await Promise.all(
         captures.map(async (capture) => {
@@ -135,8 +172,53 @@ export const getComparisonsByStation = async (node, client=pool) => {
     return client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows')
-            && res.rows.length > 0 ? res.rows : null;
+            && res.rows.length > 0 ? res.rows : [];
         });
+};
+
+/**
+ * Get comparisons (aligned capture pairs) for given station node.
+ *
+ * @public
+ * @param {Object} node
+ * @param client
+ * @return {Promise} result
+ */
+
+export const getComparisonsMetadata = async (node, client=pool) => {
+
+    if (!node) return [];
+
+    const {type='', id=''} = node || {};
+    const queriesByType = {
+        historic_visits: queries.metadata.getComparisonsByHistoricVisitID(id),
+        modern_visits: queries.metadata.getComparisonsByModernVisitID(id),
+        locations: queries.metadata.getComparisonsByLocationID(id),
+        historic_captures: queries.metadata.getComparisonsData(node),
+        modern_captures: queries.metadata.getComparisonsData(node)
+    };
+
+    if (queriesByType.hasOwnProperty(type)) {
+        let { sql, data } = queriesByType[type];
+
+        // get comparison indices
+        const comparisons = await client.query(sql, data)
+            .then(res => {
+                return res.hasOwnProperty('rows')
+                && res.rows.length > 0 ? res.rows : [];
+            });
+
+        // get associated capture metadata
+        // append full data for each returned capture
+        return await Promise.all(
+            (comparisons || []).map(async (comparison) => {
+                return {
+                    historic_capture: await nserve.get(comparison.historic_captures, client),
+                    modern_capture: await nserve.get(comparison.modern_captures, client)
+                };
+            }));
+    }
+    return [];
 };
 
 /**

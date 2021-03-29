@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import Item from '../common/item';
+import MetadataView from './metadata.view';
 import Accordion from '../common/accordion';
 import Slider from '../common/slider';
 import Table from '../common/table';
@@ -78,7 +78,10 @@ export const CaptureImagesTable = ({model, files=[]}) => {
         return rows;
     });
 
-    return <Table rows={rows} cols={cols} classname={'files'}/>
+    return  <>
+                <h5>Capture Images</h5>
+                <Table rows={rows} cols={cols} className={'files'} />
+            </>
 
 }
 
@@ -105,12 +108,11 @@ const CaptureView = ({model, data, fileType}) => {
         <>
             <Accordion
                 type={'info'}
-                label={`Metadata`}
+                label={`Capture Metadata`}
                 open={false}>
-                <Item model={model} metadata={metadata} node={node} />
+                <MetadataView model={model} metadata={metadata} node={node} />
             </Accordion>
             <Slider images={captureImages} />
-            <h5>Capture Images</h5>
             <CaptureImagesTable model={model} files={captureImages} />
         </>
     )

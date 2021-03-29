@@ -6,8 +6,6 @@
  */
 
 import React from 'react';
-import { getNodeURI, reroute } from '../../_utils/paths.utils.client';
-import Icon from '../common/icon';
 
 /**
  * Viewer menu component.
@@ -15,14 +13,11 @@ import Icon from '../common/icon';
  * @public
  */
 
-const MenuViewer = ({model, id=null, view}) => {
-    const menuExclude = ['dashboard', 'login', 'register']
+const MenuViewer = () => {
     return (
-        view && !menuExclude.includes(view) ?
             <div className={'editor-tools h-menu'}>
                 {''}
             </div>
-            : ''
     )
 }
 

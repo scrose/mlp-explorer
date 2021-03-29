@@ -15,6 +15,8 @@ import {
 } from '../../_services/schema.services.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import { useData } from '../../_providers/data.provider.client';
+import Button from './button';
+import Icon from './icon';
 
 /**
  * Render view heading component.
@@ -43,7 +45,7 @@ const Heading = () => {
 
         const headings = {
             add: `${getViewLabel('add')}: ${modelLabel}`,
-            show: `${modelLabel !== nodeLabel ? modelLabel + ': ' : ''}${nodeLabel}`,
+            show: nodeLabel,
             import: `${getViewLabel('import')}: ${getModelLabel(api.model, 'label')}`,
             default: `${getViewLabel(api.view)}: ${modelLabel}`
         }
@@ -52,7 +54,12 @@ const Heading = () => {
             : headings.default
     }
 
-    return <h3>{ staticLabel ? staticLabel : genHeading()}</h3>
+    return  <>
+                <h3>{
+                        api.model ? <Button icon={api.model} /> : ''
+                    }
+                    { staticLabel ? staticLabel : genHeading()}</h3>
+            </>
 }
 
 export default Heading;

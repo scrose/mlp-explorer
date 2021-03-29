@@ -89,7 +89,7 @@ export default function ModelController(nodeType) {
             // get requested node ID
             let id = parseInt(this.getId(req));
 
-            // get item data
+            // get item node + metadata
             let item = await nserve.get(sanitize(id, 'integer'));
             // get node path
             const path = await nserve.getPath(item.node);
@@ -107,6 +107,9 @@ export default function ModelController(nodeType) {
                         return dependent;
                     }));
             }
+
+            // append any attached metadata
+            item.attached = await metaserve.getAttachedByNode(item.node);
 
             res.status(200).json(
                 prepare({
@@ -202,8 +205,6 @@ export default function ModelController(nodeType) {
 
             // stream uploaded files to server
             const metadata = await fserve.upload(req, owner_id, owner_type);
-
-            console.log(metadata)
 
             // process saved file data and model metadata
             await Promise.all(Object.keys(metadata.files).map(async (key) => {

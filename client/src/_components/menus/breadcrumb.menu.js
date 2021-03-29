@@ -95,25 +95,23 @@ const BreadcrumbMenu = () => {
     return (
         breadcrumbs ?
         <nav className={'breadcrumb'}>
-            <div>
-                <ul>
-                    <li>
-                        <a href={getRoot()}><Icon type={'logo'} size={'sm'} /></a>
-                    </li>
-                    {
-                        // node breadcrumb menu
-                        breadcrumbs.map((item, index) => {
-                                return (
-                                    <li key={`item_${index}`}>{ item }</li>
-                                )
-                            })
-                    }
-                    {
-                        // include menu text for new item
-                        filterPath() === '/' ? <li><span>{'Home'}</span></li> : ''
-                    }
-                </ul>
-            </div>
+            <ul>
+                <li>
+                    <a href={getRoot()}><Icon type={'logo'} size={'sm'} /></a>
+                </li>
+                {
+                    // node breadcrumb menu
+                    breadcrumbs.map((item, index) => {
+                            return (
+                                <li key={`item_${index}`}>{ item }</li>
+                            )
+                        })
+                }
+                {
+                    // include menu text for new item
+                    filterPath() === '/' ? <li><span>{'Home'}</span></li> : ''
+                }
+            </ul>
         </nav>
             : ''
     )

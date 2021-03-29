@@ -10,6 +10,7 @@
 import { humanize, sanitize } from '../lib/data.utils.js';
 import * as schemaConstructor from './schema.services.js';
 import { select as nselect } from './nodes.services.js';
+import * as metaserve from './metadata.services.js';
 
 /**
  * Create derived model through composition. The model schema
@@ -24,6 +25,7 @@ export const create = async (modelType) => {
     // generate schema for constructor type
     let Schema = await schemaConstructor.create(modelType);
     const schema = new Schema();
+    const options = await metaserve.getOptions();
 
     // return constructor
     return function(attributeValues) {
@@ -38,6 +40,7 @@ export const create = async (modelType) => {
         this.depth = schema.nodeDepth.hasOwnProperty(modelType)
             ? schema.nodeDepth[modelType]
             : schema.nodeDepth.default;
+        this.options = options;
 
         // initialize model with input data
         this.setData = setData;

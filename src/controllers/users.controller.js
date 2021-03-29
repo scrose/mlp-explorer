@@ -17,13 +17,10 @@ import { prepare } from '../lib/api.utils.js';
 /**
  * Controller initialization.
  *
- * @param req
- * @param res
- * @param next
  * @src public
  */
 
-export const init = async (req, res, next) => {};
+export const init = async () => {};
 
 /**
  * User sign-in using email and password.

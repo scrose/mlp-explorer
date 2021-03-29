@@ -7,7 +7,7 @@
 
 import * as React from 'react'
 import { makeRequest } from '../_services/api.services.client';
-import { getAPIURL, getNodeURI, filterPath, redirect, reroute } from '../_utils/paths.utils.client';
+import { getAPIURL, getNodeURI, filterPath, redirect, reroute, getRoot } from '../_utils/paths.utils.client';
 import { getStaticView } from '../_services/schema.services.client';
 import { addSessionMsg, clearNodes } from '../_services/session.services.client';
 
@@ -35,6 +35,9 @@ function RouterProvider(props) {
     // client route in state
     const [route, setRoute] = React.useState(filterPath());
 
+    // query filter in state
+    const [filter, setFilter] = React.useState({});
+
     // static view state: static views do not require API requests
     const [staticView, setStaticView] = React.useState(getStaticView(filterPath()));
 
@@ -61,7 +64,7 @@ function RouterProvider(props) {
     }
 
     // add history event listener
-    window.addEventListener('popstate', function (e) {
+    window.addEventListener('popstate', function () {
 
         // get the current URI path
         const uri = window.location.pathname;
@@ -92,9 +95,9 @@ function RouterProvider(props) {
             '403': () => {
                 return update('/login');
             },
-            // '500': () => {
-            //     addSessionMsg({msg: 'Server Error', type:'error'});
-            // }
+            '500': () => {
+                return update('/server_error');
+            }
         }
         return routes.hasOwnProperty(status) ? routes[status]() : response;
     }
@@ -108,7 +111,7 @@ function RouterProvider(props) {
 
     const handleResponse = (res) => {
 
-        // get content portion of fetched response data
+        // get _content portion of fetched response data
         const { response } = res || {};
 
         // handle exceptions
@@ -282,7 +285,10 @@ function RouterProvider(props) {
         <RouterContext.Provider value={
             {
                 update,
+                base: getRoot(),
                 route,
+                filter,
+                setFilter,
                 staticView,
                 get,
                 post,

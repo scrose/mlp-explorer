@@ -124,3 +124,18 @@ export function getNodeURI(model, view='', id='') {
     return `${modelSlug}${viewSlug}${idSlug}`;
 }
 
+/**
+ * Serialize query object.
+ *
+ * @public
+ */
+
+export function serialize(obj) {
+    let str = [];
+    for (let p in obj)
+        if (obj.hasOwnProperty(p)) {
+            let qStr = obj[p].replaceAll(' ', '+');
+            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(qStr));
+        }
+    return str.join("&");
+}

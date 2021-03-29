@@ -5,6 +5,8 @@
  * MIT Licensed
  */
 
+import React from 'react';
+
 /**
  * Capitalize first letter of string.
  *
@@ -19,16 +21,21 @@ export const capitalize = (str) => {
 }
 
 /**
- * Extract username from email address.
+ * Converts coordinate from decimal degrees to DMS format?
  *
- * @param {String} email
  * @return {String} capitalized string
  * @public
+ * @param coord
  */
 
-export const getEmailUser = (email) => {
-    if (typeof email !== 'string') return ''
-    return email.replace(/@.*$/,"")
+function convertCoordDMS(coord) {
+    const absolute = Math.abs(coord);
+    const degrees = Math.floor(absolute);
+    const minutesNotTruncated = (absolute - degrees) * 60;
+    const minutes = Math.floor(minutesNotTruncated);
+    const seconds = Math.floor((minutesNotTruncated - minutes) * 60);
+
+    return (degrees + '\u00B0' + minutes + '\u2032' + seconds + '\u2033');
 }
 
 /**
@@ -70,6 +77,21 @@ export function groupBy(arr, key) {
 }
 
 /**
+ * Natural sort items by alpha-numerical values in strings.
+ *
+ * @param {Object} a
+ * @param {Object} b
+ * @src public
+ */
+
+export function sorter(a, b) {
+    return a.label
+        .localeCompare(
+            b.label, undefined, {numeric: true, sensitivity: 'base'}
+            );
+}
+
+/**
  * Render datum by render settings.
  *
  * @public
@@ -93,6 +115,14 @@ export const sanitize = (value, render='', href='', title='') => {
         },
         text: ({ value }) => {
             return value ? String(value) : '-';
+        },
+        coord: ({ value }) => {
+            return value
+                ? <span className={'coord'}>
+                    { parseFloat(value).toFixed(2) }
+                    &#160;/&#160;<span>{convertCoordDMS(value)}</span>
+                  </span>
+                : '-';
         },
         filesize: ({ value }) => {
             return value != null ? (parseFloat(value)/1000000).toFixed(2) + ' MB' : '-';
@@ -125,4 +155,14 @@ export const getRootNode = (path=null) => {
         .reduce((o, key) => {
             return path[key];
         }, {});
+}
+
+/**
+ * Generate unique ID value.
+ *
+ * @public
+ */
+
+export const genID = () => {
+    return Math.random().toString(16).substring(2);
 }

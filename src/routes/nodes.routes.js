@@ -32,9 +32,23 @@ function NodesRoutes() {
 
     // add controller routes
     this.routes = {
-        list: {
-            path: '/nodes',
-            get: this.controller.list,
+        search: {
+            path: '/search',
+            get: this.controller.search,
+            put: null,
+            post: null,
+            delete: null,
+        },
+        tree: {
+            path: '/nodes/tree',
+            get: this.controller.tree,
+            put: null,
+            post: null,
+            delete: null,
+        },
+        map: {
+            path: '/nodes/map',
+            get: this.controller.map,
             put: null,
             post: null,
             delete: null,

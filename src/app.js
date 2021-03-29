@@ -53,7 +53,7 @@ export default () => {
      * - X-XSS-Protection enables the Cross-site scripting (XSS)
      *   filter built into most recent web browsers
      * - X-Content-Type-Options prevents browsers from MIME-sniffing
-     *   a response away from the declared content-type
+     *   a response away from the declared _content-type
      *   Content-Security-Policy prevents a wide range of attacks,
      *   including Cross-site scripting and other cross-site injections
      *

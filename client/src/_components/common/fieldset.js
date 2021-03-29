@@ -8,7 +8,6 @@
 import React from 'react'
 import Input from './input';
 import Button from './button';
-import { getFileLabel, getNodeLabel } from '../../_services/schema.services.client';
 
 /**
  * Build form fieldset element with inputs. 'Fields' are defined
@@ -30,10 +29,11 @@ const Fieldset = ({
                       setErrors,
                       data,
                       setData,
-                      options,
+                      options=[],
                       remove,
                       validators,
-                      disabled
+                      isDisabled=false,
+                      disabledInputs={}
 }) => {
 
     const [readonly, setReadonly] = React.useState({});
@@ -68,7 +68,7 @@ const Fieldset = ({
             className={legend ? '' : 'hidden'}
             key={`fset_${model}`}
             name={`fset_${model}`}
-            disabled={disabled}
+            disabled={isDisabled}
         >
             {
                 legend ? <legend>{legend}</legend> : ''
@@ -93,6 +93,7 @@ const Fieldset = ({
                     const _error = errors.hasOwnProperty(key) ? errors[key] : '';
                     const _readonly = readonly.hasOwnProperty(key) ? readonly[key] : false;
                     const _options = options.hasOwnProperty(id) ? options[id] : [];
+                    const _disabled = disabledInputs.hasOwnProperty(name) ? disabledInputs[name]: false;
 
                     return (
                         <Input
@@ -106,6 +107,7 @@ const Fieldset = ({
                             error={_error}
                             options={_options}
                             readonly={_readonly}
+                            disabled={_disabled}
                             onchange={handleChange}
                         />
                     )

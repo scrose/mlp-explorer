@@ -7,6 +7,8 @@
 
 import React from 'react';
 import { FilesGallery } from './files.view';
+import { sorter } from '../../_utils/data.utils.client';
+import File from '../common/file';
 
 /**
  * Model view component.
@@ -54,16 +56,17 @@ const CapturesView = ({captures, fileType}) => {
                 o.push(c);
                 return o;
             }, [])
-            .sort(function(a, b){
-                // sort captures by photo reference number
-                return a.label.localeCompare(b.label);
-            })
+            .sort(sorter)
     }
 
     // captures thumbnail gallery
     return (
         <div className={`captures`}>
-            <FilesGallery files={filterCaptures()} />
+            {
+                Array.isArray(captures) && captures.length === 1
+                    ? <File data={filterCaptures()[0]} />
+                    : <FilesGallery files={filterCaptures()} />
+            }
         </div>
     )
 }

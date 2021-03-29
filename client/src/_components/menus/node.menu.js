@@ -13,7 +13,7 @@ import { genSchema, getModelLabel } from '../../_services/schema.services.client
 import Alert from '../common/alert';
 import Dialog from '../common/dialog';
 import Importer from '../views/importer.view';
-import Item from '../common/item';
+import MetadataView from '../views/metadata.view';
 import Button from '../common/button';
 import IAT from '../views/aligner.view';
 
@@ -59,7 +59,7 @@ const NodeMenu = ({
                                         title={`${getModelLabel(model)} Metadata`}
                                         setToggle={setDialogToggle}
                                     >
-                                        <Item model={model} metadata={metadata} />
+                                        <MetadataView model={model} metadata={metadata} />
                                     </Dialog>
                                 : ''
                         }

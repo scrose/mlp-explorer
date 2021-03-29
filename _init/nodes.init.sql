@@ -293,7 +293,7 @@ CREATE TABLE "public"."stations" (
          "owner_id" integer not null,
          "name" character varying(255),
          lat  double precision,
-         long double precision,
+         lng double precision,
          elev double precision,
          azim double precision,
          "nts_sheet" character varying(255),
@@ -329,7 +329,7 @@ update stations
 set name=q.name,
     nts_sheet=q.nts_sheet,
     lat=q.lat,
-    long=q.long,
+    lng=q.long,
     elev=q.elevation
 from (select * from old_stations order by id) as q
 where (select old_id from nodes where id=stations.nodes_id) = q.id;
@@ -458,7 +458,7 @@ CREATE TABLE "public"."locations" (
       "legacy_photos_start" integer,
       "legacy_photos_end" integer,
       lat  double precision,
-      long double precision,
+      lng double precision,
       elev double precision,
       azim double precision,
       CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
@@ -487,7 +487,7 @@ set location_narrative=q.location_narrative,
     legacy_photos_start=q.legacy_photos_start,
     legacy_photos_end=q.legacy_photos_end,
     lat=q.lat,
-    long=q.long,
+    lng=q.long,
     elev=q.elevation
 from (select * from old_locations order by id) as q
 where (select old_id from nodes where id=locations.nodes_id) = q.id;
@@ -617,7 +617,7 @@ CREATE TABLE "public"."modern_captures" (
     "lens_id" integer,
     "capture_datetime" timestamp,
     "lat" double precision,
-    "long" double precision,
+    "lng" double precision,
     "elev" double precision,
     "azimuth" integer,
     "comments" character varying(255),
@@ -662,7 +662,7 @@ set  fn_photo_reference=q.fn_photo_reference,
      lens_id=q.lens_id,
      capture_datetime=q.capture_datetime,
      lat=q.lat,
-     long=q.long,
+     lng=q.long,
      elev=q.elevation,
      azimuth=q.azimuth,
      alternate=q.alternate,
@@ -711,23 +711,23 @@ ALTER TABLE comparison_indices
 
 -- stations coordinates missing all data
 update stations
-set lat=locs.lat, long=locs.long, elev=locs.elev, azim=locs.azim
+set lat=locs.lat, lng=locs.lng, elev=locs.elev, azim=locs.azim
 from (
-    select mv.owner_id as id, lat, long, elev, azim
+    select mv.owner_id as id, lat, lng, elev, azim
     from locations
         join modern_visits mv on locations.owner_id = mv.nodes_id
-    where locations.lat is not null and locations.long is not null) as locs
-where stations.lat is null and stations.long is null and stations.elev is null and locs.id = stations.nodes_id;
+    where locations.lat is not null and locations.lng is not null) as locs
+where stations.lat is null and stations.lng is null and stations.elev is null and locs.id = stations.nodes_id;
 
--- stations coordinates missing lat/long only
+-- stations coordinates missing lat/lng only
 update stations
-set lat=locs.lat, long=locs.long, azim=locs.azim
+set lat=locs.lat, lng=locs.lng, azim=locs.azim
 from (
-         select mv.owner_id as id, lat, long, azim
+         select mv.owner_id as id, lat, lng, azim
          from locations
                   join modern_visits mv on locations.owner_id = mv.nodes_id
-         where locations.lat is not null and locations.long is not null) as locs
-where stations.lat is null and stations.long is null and locs.id = stations.nodes_id;
+         where locations.lat is not null and locations.lng is not null) as locs
+where stations.lat is null and stations.lng is null and locs.id = stations.nodes_id;
 
 
 commit;

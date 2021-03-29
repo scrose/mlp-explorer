@@ -11,6 +11,7 @@ import DataView from '../views/data.view';
 import StaticView from '../views/static.view';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
+import MenuViewer from './menu.viewer';
 
 /**
  * Render viewer panel component (unauthenticated).
@@ -25,17 +26,20 @@ const Viewer = () => {
 
     return (
         <div className={'viewer'}>
-            <Heading />
-            <Messenger />
-            {
-                router.staticView
-                ? <StaticView type={
-                    router.staticView === 'dashboard'
-                        ? 'dashboardView'
-                        : router.staticView
-                } />
-                : <DataView />
-            }
+            <MenuViewer/>
+            <div className={'view'}>
+                <Heading />
+                <Messenger />
+                {
+                    router.staticView
+                    ? <StaticView type={
+                        router.staticView === 'dashboard'
+                            ? 'dashboardView'
+                            : router.staticView
+                    } />
+                    : <DataView />
+                }
+            </div>
         </div>
     )
 };

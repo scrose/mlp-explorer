@@ -18,19 +18,35 @@ import { useData } from '../../_providers/data.provider.client';
  * @param { model, label }
  */
 
-const Submit = ({model, label, message, cancel}) => {
+const Submit = ({model, label='', message, cancel, reset, submit=true}) => {
     const { msg='', type='' } = message || {};
     return (
         <fieldset className={'submit'}>
-            <div className={`msg ${type}`}>
-                <span>{msg}</span>
-            </div>
-            <Button
-                type={'submit'}
-                label={label}
-                name={`submit_${model}`} />
+            { msg ?
+                <div className={`msg ${type}`}>
+                    <span>{msg}</span>
+                </div>
+                : ''
+            }
+            { submit ?
+                <Button
+                    className={'submit'}
+                    type={'submit'}
+                    label={label || 'Submit'}
+                    name={`submit_${model}`}
+                /> : ''
+            }
+            { reset ?
+                <Button
+                    type={'reset'}
+                    label={'Reset'}
+                    name={`reset_${model}`}
+                    onClick={reset}
+                /> : ''
+            }
             { cancel ?
                 <Button
+                    className={'cancel'}
                     type={'cancel'}
                     label={'Cancel'}
                     name={`cancel_${model}`}
@@ -56,35 +72,38 @@ const Form = ({
                   model,
                   schema,
                   init={},
+                  opts=null,
                   callback,
+                  onChange=()=>{},
                   cancel=null,
+                  reset=null,
                   route=null,
+                  disabledInputs={},
                   children
 }) => {
 
     // get form input settings from schema
     const { attributes={}, fieldsets=[] } = schema || {};
-    const { submit='Submit', method='POST' } = attributes || {};
+    const { submit='', method='POST' } = attributes || {};
 
     // get global field options
     const api = useData();
-    const { options={} } = api || {};
+    const { options={} } = opts || api || {};
 
     // initialize state for input parameters
     const [data, setData] = React.useState(init);
     const [fieldsetData, setFieldsetData] = React.useState([]);
     const [isDisabled, setDisabled] = React.useState(false);
 
+    // initialize field data
     React.useEffect(() => {
         if (fieldsetData.length === 0 && fieldsets.length !== 0) {
             setFieldsetData(fieldsets);
         }
     }, [fieldsetData, fieldsets]);
 
-    // create input error states
+    // create input error states / message state
     const [errors, setErrors] = React.useState({});
-
-    // create error message state
     const [message, setMessage] = React.useState({});
 
     // generate unique ID value for form inputs
@@ -120,8 +139,8 @@ const Form = ({
      * @return {boolean} isValid
      */
 
-    const isValid = () => {
-        const hasData = Object.keys(data).length > 0;
+    const isValid = (formData) => {
+        const hasData = Object.keys(formData).length > 0;
         let valid = true;
         for (const key in validators) {
             const err = validators[key].check(data[key] || null);
@@ -143,8 +162,12 @@ const Form = ({
     const handleSubmit = e => {
         e.preventDefault();
 
+        // convert submitted form data to JSON
+        const formData = new FormData(e.target);
+        const fieldData = Object.fromEntries(formData);
+
         // check that form is complete and valid
-        if (!isValid()) {
+        if (!isValid(fieldData)) {
             setMessage({
                     msg: 'Data was not submitted: Form is incomplete or invalid.',
                     type: 'error'
@@ -156,13 +179,8 @@ const Form = ({
         // reset validation message
         setMessage({});
 
-        // attempt form submission
+        // callback for form data submission
         try {
-
-            // convert submitted form data to JSON
-            const formData = new FormData(e.target);
-
-            // API callback for form data submission
             return callback(route, formData);
         }
         catch (err) {
@@ -238,6 +256,7 @@ const Form = ({
             name={model}
             method={method}
             onSubmit={handleSubmit}
+            onChange={onChange}
             autoComplete={'chrome-off'}
         >
             {
@@ -259,6 +278,7 @@ const Form = ({
                                     options={options}
                                     remove={()=>{handleDelete(index)}}
                                     disabled={isDisabled}
+                                    disabledInputs={disabledInputs}
                                     validators={validators}
                                 />
                             {
@@ -285,7 +305,9 @@ const Form = ({
                 model={model}
                 label={submit}
                 message={message}
+                submit={submit}
                 cancel={cancel}
+                reset={reset}
             />
         </form>
         );

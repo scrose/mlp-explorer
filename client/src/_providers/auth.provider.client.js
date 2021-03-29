@@ -42,7 +42,6 @@ function AuthProvider(props) {
     const login = async (route, credentials) => {
         return await router.post('/login', credentials)
             .then(res => {
-                console.log(res)
                 const { user=null } = res || {};
 
                 // create user session on success
@@ -63,7 +62,7 @@ function AuthProvider(props) {
     const logout = async () => {
         await router.post('/logout')
             .then(res => {
-                // Note: Keycloak logout operation returns no content (204)
+                // Note: Keycloak logout operation returns no _content (204)
                 setData(null);
                 addSessionMsg(res.message);
                 return redirect('/');

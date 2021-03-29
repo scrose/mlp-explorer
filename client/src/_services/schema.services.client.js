@@ -224,8 +224,9 @@ export const getNodeLabel = (item) => {
     const { node={}, metadata={} } = item || {};
     const labelKeys = getLabelKeys(node.type) || [];
 
-    // get default label
-    const { attributes={singular: '', key: ''} } = labelKeys || {};
+    // get item prefix (if exists)
+    const { attributes={} } = labelKeys || {};
+    const { prefix=''} = attributes || {};
 
     // iterate over label keys assigned in schema
     const label = Object.keys(labelKeys)
@@ -244,7 +245,7 @@ export const getNodeLabel = (item) => {
         .join(', ');
 
     // Handle empty labels
-    return label ? label : attributes.singular;
+    return prefix + ' ' + label;
 }
 
 /**

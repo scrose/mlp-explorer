@@ -163,7 +163,6 @@ export default function ModelServices(model) {
         try {
 
             console.log('Filetype:', metadata.file.owner_type)
-            console.log(metadata)
 
             // transaction result
             let res;

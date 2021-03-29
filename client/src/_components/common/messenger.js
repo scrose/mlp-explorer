@@ -6,9 +6,10 @@
  */
 
 import React from 'react';
-import { getSessionMsg, popSessionMsg } from '../../_services/session.services.client';
+import { popSessionMsg } from '../../_services/session.services.client';
 import { useData } from '../../_providers/data.provider.client';
 import Button from './button';
+import Icon from './icon';
 
 /**
  * Messenger component.
@@ -37,7 +38,7 @@ const Messenger = () => {
     return (
         msg && type
             ?   <div className={`msg ${type}`}>
-                    {msg}
+                    <Icon type={type}/> {msg}
                     <div className={'close'}>
                         <Button icon={'close'} onClick={handleClose} />
                     </div>

@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import Item from '../common/item';
+import MetadataView from './metadata.view';
 import { getModelLabel } from '../../_services/schema.services.client';
 import Accordion from '../common/accordion';
 import File from '../common/file';
@@ -32,7 +32,7 @@ const ImageView = ({data, model}) => {
                 hasDependents={true}
                 open={false}
             >
-                <Item model={model} metadata={metadata} file={file} />
+                <MetadataView model={model} metadata={metadata} file={file} />
             </Accordion>
             <File
                 data={data}

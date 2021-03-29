@@ -106,3 +106,24 @@ export const popSessionMsg = () => {
     sessionStorage.removeItem('statusMsg');
     return message;
 }
+
+/**
+ * Get current navigation view.
+ *
+ * @public
+ */
+
+export const getNavView = () => {
+    const navView = sessionStorage.getItem('navView') || ''
+    return navView ? JSON.parse(navView) : '';
+}
+
+/**
+ * Set navigation view.
+ *
+ * @public
+ */
+
+export const setNavView = (view) => {
+    sessionStorage.setItem('navView', JSON.stringify(view));
+}

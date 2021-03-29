@@ -27,6 +27,7 @@ const Importer = ({
                       model,
                       view,
                       schema,
+                      opts,
                       route,
                       data,
                       callback
@@ -140,6 +141,7 @@ const Importer = ({
             <Form
                 model={model}
                 schema={schema}
+                opts={opts}
                 init={data}
                 route={route}
                 callback={ view === 'import' ? _importBatchData : _importData }

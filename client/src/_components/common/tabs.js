@@ -9,22 +9,6 @@ import React from 'react';
 import Button from './button';
 
 /**
- * Data container for tab layout.
- *
- * @public
- * @return {JSX.Element}
- */
-
-export const Tab = ({children}) => {
-
-    return (
-        <div className={'tab-data'}>
-            {children}
-        </div>
-    )
-}
-
-/**
  * Tab layout.
  * - Creates tab to toggle data panels (<Tab>).
  *
@@ -32,11 +16,11 @@ export const Tab = ({children}) => {
  * @return {JSX.Element}
  */
 
-const Tabs = ({menu=[], children}) => {
+const Tabs = ({menu=[], data=[], highlight=null}) => {
 
     // tab toggle state
     const [selectedIndex, setSelectedIndex] = React.useState(0);
-    const [items=[], _] = children;
+    const selectedCapture = data[selectedIndex];
 
     // use toggle icon to show state of loading
     const onToggle = (index) => {
@@ -52,6 +36,7 @@ const Tabs = ({menu=[], children}) => {
                                 const { id = '', label = '' } = item || {};
                                 return <li key={`tab_${id}`}>
                                     <Button
+                                        className={highlight===index ? 'active' : ''}
                                         icon={onToggle(index)}
                                         title={`View ${label}.`}
                                         label={label}
@@ -64,9 +49,9 @@ const Tabs = ({menu=[], children}) => {
                         }
                     </ul>
                 </div>
-                {
-                    items[selectedIndex]
-                }
+                <div className={'tab-data'}>
+                    {selectedCapture}
+                </div>
             </div>
     )
 }

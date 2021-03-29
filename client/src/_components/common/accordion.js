@@ -89,7 +89,7 @@ const Accordion = ({
         </div>
         <div className={`accordion-data ${toggle ? 'open' : ''}`}>
             {
-                toggle ? <div>{children}</div>: ''
+                toggle ? <>{children}</>: ''
             }
         </div>
     </div>

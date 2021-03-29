@@ -249,7 +249,7 @@ Object.keys(mockItems).forEach(modelName => {
                 .then((res) => {
                     expect(res).to.have.status(200);
                     expect(res.body.messages[0].type).to.equal('success');
-                    expect(res.body.messages[0].string).to.equal('Item successfully deleted.');
+                    expect(res.body.messages[0].string).to.equal('MetadataView successfully deleted.');
                 })
         });
 

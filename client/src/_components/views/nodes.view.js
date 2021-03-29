@@ -5,7 +5,7 @@
  * MIT Licensed
  */
 
-import React from 'react'
+import React from 'react';
 import Loading from '../common/loading';
 import ImageView from './image.view';
 import LocationsView from './locations.view';
@@ -15,9 +15,10 @@ import { useRouter } from '../../_providers/router.provider.client';
 import { getModelLabel, getNodeLabel, getNodeOrder } from '../../_services/schema.services.client';
 import Accordion from '../common/accordion';
 import NodeMenu from '../menus/node.menu';
-import Item from '../common/item';
+import MetadataView, { MetadataAttached } from './metadata.view';
 import CaptureView from './capture.view';
 import VisitsView from './visits.view';
+import { sorter } from '../../_utils/data.utils.client';
 
 /**
  * Node list component.
@@ -29,7 +30,7 @@ import VisitsView from './visits.view';
  * @return {JSX.Element}
  */
 
-const NodeList = ({items}) => {
+export const NodeList = ({items}) => {
 
     if (!Array.isArray(items)) return null;
 
@@ -51,9 +52,7 @@ const NodeList = ({items}) => {
                     }
                 })
                 // sort alphabetically
-                .sort(function(a, b){
-                    return a.label.localeCompare(b.label);
-                })
+                .sort(sorter)
                 // sort by node order
                 .sort(function(a, b){
                     return a.order - b.order;
@@ -98,14 +97,15 @@ const DefaultView = ({
                          model,
                          data,
 }) => {
-    const {dependents=[], metadata={}} = data || {};
+    const {dependents=[], metadata={}, attached={}} = data || {};
     return (
         <>
             <Accordion
                 type={'info'}
                 label={`${getModelLabel(model)} Metadata`}
             >
-                <Item model={model} metadata={metadata} />
+                <MetadataView key={`${model}_${metadata.id}`} model={model} metadata={metadata} />
+                <MetadataAttached attached={attached} />
             </Accordion>
             <NodeList items={dependents} />
         </>

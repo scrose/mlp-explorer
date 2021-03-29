@@ -1,6 +1,6 @@
 /*!
  * MLP.Client.Components.Menus.IAT
- * File: aligner.menu.js
+ * File: canvas.menu.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -27,7 +27,7 @@ const cbk = () => {
  * @return {JSX.Element}
  */
 
-const AlignerMenu = ({data}) => {
+const CanvasMenu = ({data}) => {
 
     const [menuToggle, setMenuToggle] = React.useState(null);
 
@@ -258,4 +258,4 @@ const AlignerMenu = ({data}) => {
     )
 };
 
-export default AlignerMenu;
+export default CanvasMenu;

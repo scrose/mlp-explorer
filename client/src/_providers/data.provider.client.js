@@ -8,7 +8,6 @@
 import * as React from 'react'
 import { useRouter } from './router.provider.client';
 import { getRootNode } from '../_utils/data.utils.client';
-import { genSchema } from '../_services/schema.services.client';
 
 /**
  * Global data provider.
@@ -74,13 +73,18 @@ function DataProvider(props) {
                     const { data=null, view='', model={}, path={}, message={} } = res || {};
                     const { name='', attributes={}, options={} } = model || {};
 
+                    console.log(name, attributes)
+
                     // update states with response data
                     if (_isMounted.current) {
+                        setAttributes(attributes);
                         setAPIData(data);
                         setView(view);
                         setModel(name);
-                        setAttributes(attributes);
-                        setOptions(options)
+                        // update options without removing existing
+                        Object.keys(options).forEach(key => {
+                            setOptions(opts => ({...opts, [key]: options[key]}));
+                        });
                         setPath(path);
                         setMessage(message);
                     }
@@ -114,6 +118,7 @@ function DataProvider(props) {
                 data: apiData,
                 attributes,
                 options,
+                setOptions,
                 message,
                 setMessage
             }

@@ -16,10 +16,13 @@ import {
     faInfoCircle,
     faPlus,
     faMinus,
+    faTimes,
     faEdit,
     faTrashAlt,
     faFileImport,
     faFileExport,
+    faFilter,
+    faSearch,
     faImage,
     faImages,
     faCheckCircle,
@@ -46,6 +49,9 @@ import {
     faCampground,
     faCameraRetro,
     faLocationArrow,
+    faArchive,
+    faMap,
+    faUsers,
     faStar
 } from '@fortawesome/free-solid-svg-icons';
 library.add(faHome,
@@ -55,10 +61,13 @@ library.add(faHome,
     faInfoCircle,
     faPlus,
     faMinus,
+    faTimes,
     faEdit,
     faTrashAlt,
     faFileImport,
     faFileExport,
+    faFilter,
+    faSearch,
     faImage,
     faImages,
     faCheckCircle,
@@ -85,9 +94,10 @@ library.add(faHome,
     faCampground,
     faCameraRetro,
     faLocationArrow,
+    faArchive,
+    faMap,
+    faUsers,
     faStar)
-
-
 
 /**
  * Select icon class. Uses FontAwesome icon library.
@@ -111,10 +121,13 @@ const getIconClass = (iconType) => {
         import: 'file-import',
         export: 'file-export',
         master: 'images',
+        filter: 'filter',
+        search: 'search',
         success: 'check-circle',
+        error: 'times',
         cancel: 'times-circle',
         logo: 'mountain',
-        map: 'map-marker-alt',
+        map: 'map-marked-alt',
         tree: 'list-alt',
         close: 'times-circle',
         right: 'caret-right',
@@ -143,6 +156,10 @@ const getIconClass = (iconType) => {
         historic_images: 'image',
         modern_images: 'image',
         locations: 'location-arrow',
+        glass_plate_listings: 'archive',
+        maps: 'map',
+        participant_groups: 'users',
+        comparisons: 'images',
         default: 'star'
     };
     return iconComponents.hasOwnProperty(iconType)

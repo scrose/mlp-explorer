@@ -107,6 +107,12 @@ export function sanitize(data, datatype) {
         'USER-DEFINED': function() {
             return !Array.isArray(data) ? null : `(${data.join(',')})`;
         },
+        'text': function() {
+            // Replaces HTML tags with null string.
+            return ((data===null) || (data===''))
+                ? ''
+                : data.toString().replace( /(<([^>]+)>)/ig, '');
+        },
         'default': function() {
             return data === '' ? null : data;
         },

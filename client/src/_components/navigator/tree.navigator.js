@@ -14,6 +14,7 @@ import { getModelLabel, getNodeLabel, getNodeOrder } from '../../_services/schem
 import { addNode, checkNode, removeNode } from '../../_services/session.services.client';
 import { useData } from '../../_providers/data.provider.client';
 import Button from '../common/button';
+import { sorter } from '../../_utils/data.utils.client';
 
 /**
  * Inline tree node menu component.
@@ -98,6 +99,7 @@ const TreeNodeMenu = ({
                 <li>
                     <Button
                         icon={model}
+                        size={'lg'}
                         className={`tree-node-icon ${isCurrent ? ' current' : ''} ${status ? getStatus() : ''}`}
                         title={`View ${getModelLabel(model)}: ${label} ${status ? ' [' + getStatus() + ' captures]' : ''}`}
                         onClick={handleView}
@@ -106,6 +108,7 @@ const TreeNodeMenu = ({
                 <li>
                     <Button
                         label={label}
+                        size={'sm'}
                         className={`tree-node-label`}
                         title={`View ${getModelLabel(model)}: ${label}`}
                         onClick={handleView}
@@ -222,7 +225,7 @@ const TreeNode = ({id, type, label, hasDependents, status}) => {
  * @return {JSX.Element}
  */
 
-const TreeNodeList = ({items}) => {
+const TreeNodeList = ({items, filter}) => {
     return (
         <ul>
             {
@@ -239,10 +242,8 @@ const TreeNodeList = ({items}) => {
                             status: status
                         }
                     })
-                    // sort alphabetically
-                    .sort(function(a, b){
-                        return a.label.localeCompare(b.label);
-                    })
+                    // sort alphabetically / numerically
+                    .sort(sorter)
                     // sort by node order
                     .sort(function(a, b){
                         return a.order - b.order;
@@ -272,55 +273,31 @@ const TreeNodeList = ({items}) => {
  * @return
  */
 
-const TreeNavigator = ({setMenu}) => {
-
-    const router = useRouter();
-
-    // create dynamic view state
-    const [nodeData, setNodeData] = React.useState({});
-
-    // create dynamic view state
-    const _isMounted = React.useRef(false);
-
-    // API endpoint to get node tree
-    const treeRoute = '/nodes';
-
-    // API call to retrieve node tree top level
-    React.useEffect(() => {
-        _isMounted.current = true;
-        if (!nodeData || Object.keys(nodeData).length === 0) {
-            router.get(treeRoute)
-                .then(res => {
-                    let { data = {} } = res || {};
-                    if (_isMounted.current) {
-                        setNodeData(data);
-                    }
-                })
-                .catch(err => console.error(err));
-        }
-        return () => {_isMounted.current = false;};
-    }, [nodeData, router]);
+const TreeNavigator = ({data, filter}) => {
 
     // render node tree
     return (
-        Object.keys(nodeData).length > 0
-        ? <div className={'tree'} onClick={() => {setMenu(false)}}>
-                <ul>
-                {
-                    Object.keys(nodeData)
-                        .map((key, index) => {
-                        return (
-                            <li key={`item_${index}`}>
-                                <h4><Icon type={key} />&#160;&#160;{getModelLabel(key, 'label')}</h4>
-                                <TreeNodeList items={nodeData[key]} />
-                            </li>
-                        )
-                    })
-                }
-                </ul>
-            </div>
-        : <Loading/>
-    )
+            data && Object.keys(data).length > 0
+                ? <div className={'tree'}>
+                    <ul>
+                    {
+                        Object.keys(data)
+                            .map((key, index) => {
+                            return (
+                                <li key={`item_${index}`}>
+                                    <h4><Icon type={key} />&#160;&#160;{getModelLabel(key, 'label')}</h4>
+                                    <TreeNodeList
+                                        items={data[key]}
+                                        filter={filter}
+                                    />
+                                </li>
+                            )
+                        })
+                    }
+                    </ul>
+                </div>
+                : <Loading/>
+                )
 }
 
 export default React.memo(TreeNavigator);

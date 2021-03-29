@@ -44,7 +44,7 @@ const getFetchOptions = ({ data=null, files=null, download=null, method='POST'})
             opts.body = JSON.stringify(data);
         }
 
-        // omit content type from header for file(s) uploads
+        // omit _content type from header for file(s) uploads
         if (files) {
             // opts.header = { 'Content-Type' : 'multipart/form-data' };
             opts.body = files;

@@ -17,6 +17,7 @@ import * as defaults from './defaults.queries.js';
 import * as nodes from './nodes.queries.js';
 import * as files from './files.queries.js';
 import * as metadata from './metadata.queries.js';
+import * as search from './search.queries.js';
 import * as exporter from './export.queries.js';
 import * as users from './users.queries.js';
 
@@ -32,6 +33,7 @@ export default {
     nodes: nodes,
     files: files,
     metadata: metadata,
+    search: search,
     export: exporter,
     users: users
 };

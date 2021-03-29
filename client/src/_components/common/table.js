@@ -43,7 +43,6 @@ const TableHeader = ({ cols }) => {
  */
 
 const TableBody = ({rows, cols}) => {
-
     return <tbody>{
             rows.map((row, index) => {
                 return (
@@ -71,12 +70,12 @@ const TableBody = ({rows, cols}) => {
  * @return {JSX.Element}
  */
 
-const Table = ({ rows, cols, classname=''}) => {
+const Table = ({ rows, cols, className=''}) => {
 
     // ensure data has been retrieved
     return Array.isArray(rows) && Array.isArray(cols)
         ?
-            <table className={classname}>
+            <table className={className}>
                 <TableHeader cols={cols} />
                 <TableBody rows={rows} cols={cols} />
             </table>

@@ -25,20 +25,24 @@ const Editor = () => {
     const router = useRouter();
 
     return (
+        <>
             <div className={'editor'}>
                 <MenuEditor/>
-                <Heading/>
-                <Messenger/>
-                {
-                    router.staticView
-                        ? <StaticView type={
-                            router.staticView === 'dashboard'
-                                ? 'dashboardEdit'
-                                : router.staticView
-                        }/>
-                        : <DataView/>
-                }
+                <div className={'view'}>
+                    <Heading/>
+                    <Messenger/>
+                    {
+                        router.staticView
+                            ? <StaticView type={
+                                router.staticView === 'dashboard'
+                                    ? 'dashboardEdit'
+                                    : router.staticView
+                            }/>
+                            : <DataView/>
+                    }
+                </div>
             </div>
+        </>
         )
 };
 

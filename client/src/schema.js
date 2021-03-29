@@ -6,9 +6,10 @@
  */
 
 /**
- * MLP schema. The schema is a configuration file for defining
- * rendering, labelling, routing, input validation and node/file
- * relations settings for the client-side web application.
+ * MLP Schema
+ * Description: This is a configuration document for defining rendering,
+ *              labelling, routing, input validation, node/file relations
+ *              and other settings for the client-side web application.
  * @private
  */
 
@@ -97,19 +98,19 @@ export const schema = {
             label: 'Create New',
             legend: 'Add',
             submit: 'Create',
-            render: 'form'
+            render: 'update'
         },
         edit: {
             label: 'Update',
             legend: 'Edit',
             submit: 'Update',
-            render: 'form'
+            render: 'update'
         },
         remove: {
             label: 'Remove',
             legend: 'Delete',
             submit: 'Delete',
-            render: 'form'
+            render: 'update'
         },
         show: {
             label: 'Info',
@@ -122,6 +123,18 @@ export const schema = {
             submit: 'Apply Alignment',
             render: 'master'
         },
+        filter: {
+            label: 'Filter',
+            legend: 'Filter',
+            submit: 'Filter',
+            render: 'form'
+        },
+        search: {
+            label: 'Search',
+            legend: 'Search',
+            submit: '',
+            render: 'form'
+        }
     },
     models: {
         users: {
@@ -291,16 +304,16 @@ export const schema = {
             },
             fieldsets: [
                 {
+                    restrict: ['edit', 'delete'],
                     nodes_id: {
-                        render: 'hidden',
-                        restrict: ['edit', 'delete'],
+                        render: 'hidden'
                     },
                     owner_id: {
-                        render: 'hidden',
-                        restrict: ['edit', 'delete']
+                        render: 'hidden'
                     }
                 },
                 {
+                    restrict: ['show', 'edit', 'delete'],
                     legend: 'Station Details',
                     name: {
                         key: 1,
@@ -311,18 +324,40 @@ export const schema = {
                     }
                 },
                 {
+                    restrict: ['show', 'edit', 'delete'],
                     legend: 'Coordinates',
                     lat: {
-                        label: 'Latitude'
+                        label: 'Latitude',
+                        render: 'coord'
                     },
-                    long: {
-                        label: 'Longitude'
+                    lng: {
+                        label: 'Longitude',
+                        render: 'coord'
                     },
                     elev: {
                         label: 'Elevation'
                     },
                     azim: {
                         label: 'Azimuth'
+                    }
+                },
+                {
+                    legend: 'Filter Map Stations',
+                    restrict: ['filter'],
+                    surveyors_id: {
+                        render: 'select',
+                        reference: 'surveyors',
+                        label: 'Surveyor'
+                    },
+                    surveys_id: {
+                        render: 'select',
+                        reference: 'surveys',
+                        label: 'Survey',
+                    },
+                    survey_seasons_id: {
+                        render: 'select',
+                        reference: 'survey_seasons',
+                        label: 'Survey Season'
                     }
                 }]
         },
@@ -331,6 +366,7 @@ export const schema = {
                 order: 6,
                 label: "Historic Visits",
                 singular: "Historic Visit",
+                prefix: "Historic Visit",
                 dependents: ['historic_captures']
             },
             fieldsets: [
@@ -430,13 +466,15 @@ export const schema = {
                 order: 8,
                 label: "Historic Captures",
                 singular: "Historic Capture",
+                prefix: "Capture",
                 files: ['historic_images']
             },
             fieldsets: [
                 {
                     nodes_id: {
                         render: 'hidden',
-                        restrict: ['edit', 'delete']
+                        restrict: ['edit', 'delete'],
+                        key: 3
                     }
                 },
                 {
@@ -470,25 +508,27 @@ export const schema = {
                 },
                 {
                     legend: 'Digitization Details',
+                    restrict: ['show', 'new', 'edit'],
                     fn_photo_reference: {
-                        label: 'Field Notes Photo Reference',
-                        restrict: ['new', 'edit']
+                        key: 1,
+                        label: 'Field Notes Photo Reference'
+
                     },
                     digitization_location: {
-                        label: 'Digitization Location',
-                        restrict: ['new', 'edit']
+                        label: 'Digitization Location'
                     },
                     digitization_datetime: {
+                        key: 2,
                         label: 'Digitization Datetime',
                         render: 'date',
-                        restrict: ['new', 'edit']
                     },
                     comments: {
                         label: 'Comments'
-                    },
+                    }
                 },
                 {
                     legend: 'Camera Details',
+                    restrict: ['show', 'new', 'edit'],
                     cameras_id: {
                         label: 'Camera',
                         render: 'select',
@@ -500,44 +540,36 @@ export const schema = {
                         reference: 'lens'
                     },
                     f_stop: {
-                        label: 'F-stop',
-                        restrict: ['new', 'edit']
+                        label: 'F-stop'
                     },
                     shutter_speed: {
-                        label: 'Shutter Speed',
-                        restrict: ['new', 'edit']
+                        label: 'Shutter Speed'
                     },
                     focal_length: {
-                        label: 'Focal Length',
-                        restrict: ['new', 'edit']
+                        label: 'Focal Length'
                     },
                     capture_datetime: {
                         label: 'Capture Datetime',
-                        render: 'datetime',
-                        restrict: ['new', 'edit']
+                        render: 'datetime'
                     },
                 },
                 {
                     legend: 'Library Archives Canada (LAC) Metadata',
+                    restrict: ['show', 'new', 'edit'],
                     lac_ecopy: {
-                        label: 'LAC ECopy',
-                        restrict: ['new', 'edit']
+                        label: 'LAC ECopy'
                     },
                     lac_wo: {
-                        label: 'LAC WO',
-                        restrict: ['new', 'edit']
+                        label: 'LAC WO'
                     },
                     lac_collection: {
-                        label: 'LAC Collection',
-                        restrict: ['new', 'edit']
+                        label: 'LAC Collection'
                     },
                     lac_box: {
-                        label: 'LAC Box',
-                        restrict: ['new', 'edit']
+                        label: 'LAC Box'
                     },
                     lac_catalogue: {
-                        label: 'LAC Catalogue',
-                        restrict: ['new', 'edit']
+                        label: 'LAC Catalogue'
                     },
                     condition: {
                         label: 'Condition'
@@ -553,6 +585,7 @@ export const schema = {
                 order: 9,
                 label: "Modern Captures",
                 singular: "Modern Capture",
+                prefix: "Capture",
                 files: ['modern_images']
             },
             fieldsets: [
@@ -560,6 +593,7 @@ export const schema = {
                     nodes_id: {
                         render: 'hidden',
                         restrict: ['edit', 'delete'],
+                        key: 2
                     }
                 },
                 {
@@ -594,7 +628,8 @@ export const schema = {
                 {
                     legend: 'Capture Details',
                     fn_photo_reference: {
-                        label: 'Field Notes Photo Reference'
+                        label: 'Field Notes Photo Reference',
+                        key: 1
                     },
                     capture_datetime: {
                         render: 'datetime',
@@ -610,10 +645,12 @@ export const schema = {
                 {
                     legend: 'Coordinates',
                     lat: {
-                        label: 'Latitude'
+                        label: 'Latitude',
+                        render: 'coord'
                     },
-                    long: {
-                        label: 'Longitude'
+                    lng: {
+                        label: 'Longitude',
+                        render: 'coord'
                     },
                     elevation: {
                         label: 'Elevation'
@@ -650,6 +687,7 @@ export const schema = {
             attributes: {
                 order: 10,
                 label: "Locations",
+                prefix: "Location",
                 singular: "Location",
                 files: ['supplemental_images']
             },
@@ -721,14 +759,6 @@ export const schema = {
             },
             fieldsets: [
                 {
-                    legend: 'Select Historic Image',
-                    restrict: ['master'],
-                    historic_captures: {
-                        label: 'Historic Captures',
-                        render: 'captureSelect'
-                    }
-                },
-                {
                     legend: 'Image Details',
                     restrict: ['show', 'edit'],
                     filename: {
@@ -774,10 +804,12 @@ export const schema = {
                     legend: 'Coordinates',
                     restrict: ['show', 'edit'],
                     lat: {
-                        label: 'Latitude'
+                        label: 'Latitude',
+                        render: 'coord'
                     },
-                    long: {
-                        label: 'Longitude'
+                    lng: {
+                        label: 'Longitude',
+                        render: 'coord'
                     }
                 },
                 {
@@ -845,10 +877,12 @@ export const schema = {
                 {
                     legend: 'Coordinates',
                     lat: {
-                        label: 'Latitude'
+                        label: 'Latitude',
+                        render: 'coord'
                     },
-                    long: {
-                        label: 'Longitude'
+                    lng: {
+                        label: 'Longitude',
+                        render: 'coord'
                     }
                 },
                 {
@@ -952,54 +986,122 @@ export const schema = {
         },
         glass_plate_listings: {
             attributes: {
-                filetype: 'image',
                 order: 12,
-                label: 'Supplemental Images',
-                singular: 'Supplemental Image',
+                label: 'Glass Plate Listings',
+                singular: 'Glass Plate Listing',
             },
             fieldsets: [
                 {
-                    container: 'Container',
-                    plates: 'Plates',
-                    notes: 'Notes'
+                    legend: 'Glass Plate Listing Details',
+                    container: {
+                        label: 'Container'
+                    },
+                    plates: {
+                        label: 'Plates'
+                    },
+                    notes: {
+                        label: 'Notes'
+                    }
                 }]
         },
         maps: {
             attributes: {
-                filetype: 'image',
                 order: 12,
-                label: 'Supplemental Images',
-                singular: 'Supplemental Image',
+                label: 'Maps',
+                singular: 'Map',
             },
             fieldsets: [
                 {
-                    nts_map: 'NTS Map',
-                    historic_map: 'Historic Map',
-                    links: 'Links'
+                    legend: 'Map Details',
+                    nts_map: {
+                        label: 'NTS Map'
+                    },
+                    historic_map: {
+                        label: 'Historic Map'
+                    },
+                    links: {
+                        label: 'Links'
+                    }
                 }]
         },
-        participants: {
+        comparisons: {
             attributes: {
-                filetype: 'image',
                 order: 12,
-                label: 'Supplemental Images',
-                singular: 'Supplemental Image',
+                label: 'Comparisons',
+                singular: 'Comparison',
             },
             fieldsets: [
                 {
-                    last_name: 'Last Name',
-                    given_names: 'Given Names'
+                    legend: 'Map Details',
+                    historic_capture: {
+                        label: 'Historic Capture'
+                    },
+                    modern_capture: {
+                        label: 'Modern Capture'
+                    },
                 }]
+        },
+        hiking_party: {
+            attributes: {
+                label: 'Hiking Party',
+                singular: 'Hiking Party'
+            },
+            fieldsets: [{}]
+        },
+        field_notes_authors: {
+            attributes: {
+                label: 'Field Notes Authors',
+                singular: 'Field Notes Authors'
+            },
+            fieldsets: [{}]
+        },
+        photographers: {
+            attributes: {
+                label: 'Photographers',
+                singular: 'Photographers'
+            },
+            fieldsets: [{}]
         },
         participant_groups: {
             attributes: {
-                label: 'Participant Groups',
-                singular: 'Participant Group',
+                order: 12,
+                label: 'Participants',
+                singular: 'Participant',
             },
             fieldsets: [
                 {
+                    legend: 'Participants',
+                    hiking_party: {
+                        label: 'Hiking Party',
+                        render: 'participants'
+                    },
+                    field_notes_authors: {
+                        label: 'Field Notes Authors',
+                        render: 'participants'
+                    },
+                    photographers: {
+                        label: 'Photographers',
+                        render: 'participants'
+                    }
+                }]
+        },
+        participant: {
+            attributes: {
+                order: 12,
+                label: 'Participants',
+                singular: 'Participant',
+            },
+            fieldsets: [
+                {
+                    legend: 'Participant',
+                    last_name: {
+                        label: 'Last Name'
+                    },
+                    given_names: {
+                        label: 'Given Names'
+                    },
                     group_type: {
-                        'photographers': 'Photographers'
+                        label: 'Group Type'
                     }
                 }]
         }

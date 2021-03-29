@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import Item from '../common/item';
+import MetadataView, { MetadataAttached } from './metadata.view';
 import Accordion from '../common/accordion';
 import NodeMenu from '../menus/node.menu';
 import { getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
@@ -22,7 +22,7 @@ import NodesView from './nodes.view';
 
 const StationsView = ({data}) => {
 
-    const {dependents=[], node={}, metadata={}} = data || {};
+    const {dependents=[], node={}, metadata={}, attached={}} = data || {};
     const {id=''} = node || {};
 
     return (
@@ -30,9 +30,10 @@ const StationsView = ({data}) => {
             <Accordion
                 key={`md_${id}`}
                 type={'info'}
-                label={`Station Metadata`}
+                label={`Station Info`}
                 open={false}>
-                <Item model={'stations'} metadata={metadata} />
+                <MetadataView model={'stations'} metadata={metadata} />
+                <MetadataAttached attached={attached} />
             </Accordion>
             {
                 (dependents || []).map(dependent => {

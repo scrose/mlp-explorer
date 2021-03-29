@@ -114,7 +114,7 @@ export function selectByFile(file) {
 }
 
 /**
- * Generate query: Find records by owner type.
+ * Generate query: Find records by owner.
  *
  * @param {String} id
  * @param {String} type
@@ -125,12 +125,11 @@ export function selectByFile(file) {
 
 export function selectByOwner(id, type, model) {
     let sql = `SELECT * 
-            FROM ${model} 
-            LEFT OUTER JOIN ${type} 
-            ON ${model}.owner_id = ${id}`;
+            FROM ${model}
+            WHERE ${model}.owner_id = $1::integer`;
     return {
         sql: sql,
-        data: [id, type],
+        data: [id],
     };
 }
 

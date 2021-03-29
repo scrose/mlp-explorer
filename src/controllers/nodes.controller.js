@@ -8,9 +8,11 @@
 import { prepare } from '../lib/api.utils.js';
 import * as nserve from '../services/nodes.services.js';
 import * as expserve from '../services/export.services.js';
+import * as srchserve from '../services/search.services.js';
 import { sanitize } from '../lib/data.utils.js';
 import { json2csv } from '../lib/file.utils.js';
 import { ArrayStream } from '../services/files.services.js';
+import { getAll } from '../services/metadata.services.js';
 
 /**
  * Controller initialization.
@@ -47,7 +49,7 @@ export const show = async (req, res, next) => {
 };
 
 /**
- * All nodes request controller.
+ * Node tree request controller.
  *
  * @param req
  * @param res
@@ -55,20 +57,54 @@ export const show = async (req, res, next) => {
  * @src public
  */
 
-export const list = async (req, res, next) => {
+export const tree = async (req, res, next) => {
     try {
 
         // get surveyors and projects as root containers
-        const projects = await nserve.getAll('projects');
-        const surveyors = await nserve.getAll('surveyors');
+        const projects = await nserve.getTree('projects');
+        const surveyors = await nserve.getTree('surveyors');
 
         res.status(200).json(
             prepare({
-                view: 'list',
+                view: 'tree',
                 data: {
                     projects: projects,
                     surveyors: surveyors
                 },
+            }));
+
+    } catch (err) {
+        return next(err);
+    }
+};
+
+/**
+ * Node tree request controller.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @src public
+ */
+
+export const map = async (req, res, next) => {
+    try {
+
+        // get surveyors and projects as root containers
+        const data = await nserve.getMap();
+        const options = {
+            options: {
+                surveyors_id: await getAll('surveyors'),
+                surveys_id: await getAll('surveys'),
+                survey_seasons_id: await getAll('survey_seasons')
+            }
+        }
+
+        res.status(200).json(
+            prepare({
+                view: 'map',
+                model: options,
+                data: data,
             }));
 
     } catch (err) {
@@ -132,6 +168,34 @@ export const exporter = async (req, res, next) => {
     } catch (err) {
         console.error(err)
         next(err);
+    }
+};
+
+/**
+ * Search nodes using filter or query.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @src public
+ */
+
+export const search = async (req, res, next) => {
+    try {
+
+        // get query parameters
+        const { q='' } = req.query || {};
+
+        const resultData = await srchserve.fulltext(q);
+
+        res.status(200).json(
+            prepare({
+                view: 'search',
+                data: resultData
+            }));
+
+    } catch (err) {
+        return next(err);
     }
 };
 

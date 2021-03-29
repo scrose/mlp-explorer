@@ -29,7 +29,7 @@ const DataView = () => {
     const router = useRouter();
 
     // extract API data
-    const { view='', model='', data=null, root={}, attributes={} } = api || {};
+    const { view='', model='', data=null, root={}, attributes={}, options={} } = api || {};
     const {node={}} = root || {};
     const {id=''} = node || {};
     const render = getRenderType(view, model);
@@ -37,11 +37,17 @@ const DataView = () => {
 
     // view components indexed by render type
     const renders = {
-        form: () => (
+        nodes: () => (
+            <NodesView
+                model={model}
+                data={data}
+            />),
+        update: () => (
             <Importer
                 view={view}
                 model={model}
                 schema={schema}
+                opts={options}
                 data={data}
                 route={getNodeURI(model, view, id)}
                 callback={(err, model, id) => {
@@ -49,22 +55,31 @@ const DataView = () => {
                     router.update(getNodeURI(model, 'show', id));
                 }}
             />),
-        nodes: () => (
-            <NodesView
-                model={model}
-                data={data}
-            />),
         import: () => (
             <Importer
                 view={view}
                 model={model}
                 schema={schema}
                 data={data}
+                opts={options}
                 route={getNodeURI(model, 'import', id)}
                 callback={() => {
                     redirect(
                         getNodeURI(model, 'show', id)
                     );
+                }}
+            />),
+        filter: () => (
+            <Importer
+                view={view}
+                model={model}
+                schema={schema}
+                data={data}
+                opts={options}
+                route={getNodeURI(model, view, id)}
+                callback={(err, model, id) => {
+                    if (err || !id) return;
+                    router.update(getNodeURI(model, 'show', id));
                 }}
             />),
         master: () => (

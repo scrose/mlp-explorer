@@ -94,7 +94,7 @@ export const get = async (id, client=pool) => {
  * @return {Promise} result
  */
 
-export const getAll = async function(model) {
+export const getTree = async function(model) {
 
     // NOTE: client undefined if connection fails.
     const client = await pool.connect();
@@ -138,6 +138,44 @@ export const getAll = async function(model) {
     }
 };
 
+/**
+ * Get filtered station location data and additional context metadata.
+ *
+ * @public
+ * @param {Object} filter
+ * @return {Promise} result
+ */
+
+export const getMap = async function(filter=null) {
+
+    // NOTE: client undefined if connection fails.
+    const client = await pool.connect();
+
+    try {
+
+        // start transaction
+        await client.query('BEGIN');
+
+        // get all nodes for station model
+        let { sql, data } = queries.metadata.getMapLocations('stations');
+        let stations = await client.query(sql, data)
+            .then(res => {
+                return res.rows
+            });
+
+        // end transaction
+        await client.query('COMMIT');
+
+        // return nodes
+        return stations;
+
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release(true);
+    }
+};
 
 /**
  * Get referenced child node(s) by parent ID value.
@@ -262,7 +300,9 @@ export const getPath = async (inputNode) => {
                 owner_id = parentNode.owner_id;
             }
             n++;
-        } while (id && n < end)
+        } while (id && n < end);
+
+        await client.query('COMMIT');
 
         // return node path as JS object
         return mapToObj(nodePath);
@@ -274,5 +314,3 @@ export const getPath = async (inputNode) => {
         client.release();
     }
 };
-
-

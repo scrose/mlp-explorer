@@ -11,7 +11,7 @@ import NodeMenu from '../menus/node.menu';
 import CapturesView from './captures.view';
 import NodesView from './nodes.view';
 import { getModelLabel } from '../../_services/schema.services.client';
-import Item from '../common/item';
+import MetadataView, { MetadataAttached } from './metadata.view';
 
 /**
  * Model view component.
@@ -24,48 +24,53 @@ import Item from '../common/item';
 
 const VisitsView = ({ model, data }) => {
 
-    const {node={}, metadata={}, dependents=[], hasDependents=false } = data || {};
-    const {id='', type=''} = node || {};
-    const { location_identity='' } = metadata || {};
+    const { node = {}, metadata = {}, dependents = [], hasDependents = false, attached = {} } = data || {};
+    const { id = '', type = '' } = node || {};
 
-    return (
-        model === 'historic_visits'
-            ? <Accordion
-                key={id}
-                type={type}
-                label={'Historic Visit'}
-                open={true}
-                hasDependents={hasDependents}
-                menu={
-                    <NodeMenu
-                        model={type}
+    return <>
+        {
+            model === 'historic_visits'
+                ? <>
+                    <Accordion
+                        key={id}
                         id={id}
-                        metadata={metadata}
-                        dependent={'historic_captures'}
-                    />
-                }>
-                <CapturesView captures={dependents} fileType={'historic_images'} />
-            </Accordion>
-
-            // apply location views for modern visits
-            : <>
-                <Accordion
-                    type={'info'}
-                    label={`${getModelLabel(model)} Metadata`}
-                >
-                    <Item model={type} metadata={metadata} />
-                </Accordion>
-                {
-                    dependents.map((location, index) => {
-                        return <NodesView
-                            key={`location_${index}`}
-                            model={'locations'}
-                            data={location}/>;
-                        })
-                }
+                        type={type}
+                        label={'Historic Visit'}
+                        open={true}
+                        hasDependents={hasDependents}
+                        menu={
+                            <NodeMenu
+                                model={type}
+                                id={id}
+                                metadata={metadata}
+                                dependent={'historic_captures'}
+                            />
+                        }>
+                        <CapturesView captures={dependents} fileType={'historic_images'} />
+                    </Accordion>
+                    <MetadataAttached attached={attached} />
                 </>
-    )
 
-}
+                // apply location views for modern visits
+                : <>
+                    <Accordion
+                        type={'info'}
+                        label={`${getModelLabel(model)} Field Notes`}
+                    >
+                        <MetadataView model={type} metadata={metadata} />
+                    </Accordion>
+                    <MetadataAttached attached={attached} />
+                    {
+                        dependents.map((location, index) => {
+                            return <NodesView
+                                key={`location_${index}`}
+                                model={'locations'}
+                                data={location} />;
+                        })
+                    }
+                </>
+        }
+    </>;
+};
 
 export default VisitsView;
