@@ -49,7 +49,6 @@ export const MetadataAttached = ({ attached }) => {
                         <ul>
                             {
                                 data[pgroup].map(participant => {
-                                    console.log(participant)
                                     const { id='', given_names = '', last_name = '' } = participant || {};
                                     return (
                                         <li key={`${keyID}_participant_${id}`}>
@@ -73,7 +72,6 @@ export const MetadataAttached = ({ attached }) => {
 
         return Object.keys(attached || {}).map(attachedModel => {
             if (attached[attachedModel].length > 0) {
-                console.log(attached[attachedModel])
                 // include attached metadata
                 return <Accordion
                     key={`${keyID}_${attachedModel}`}

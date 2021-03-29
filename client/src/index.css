@@ -709,14 +709,15 @@ nav.breadcrumb ul li a:hover {
 /* Accordion List Menu */
 
 .accordion {
-    border: 1px solid #CCCCCC;
+    background-color: #EEEEEE;
+    border: 1px solid #282c34;
+    border-radius: 20px;
     margin-top: 20px;
     margin-bottom: 20px;
-    border-radius: 20px;
 }
 .accordion .h-menu {
-    border: inherit;
     border-radius: 20px;
+    border: none;
     padding: 0;
 }
 .accordion .h-menu ul li {
@@ -903,29 +904,24 @@ nav.breadcrumb ul li a:hover {
     flex-wrap: nowrap;
     border: none;
 }
-.comparison .captures {
+.captures {
     width: auto;
 }
 
 /* Model colour schema */
 .info {
-    background-color: #FFF !important;
     color: #282c34 !important;
 }
 .surveys {
-    background-color: #DDD !important;
     color: #008896 !important;
 }
 .survey_seasons {
-    background-color: #DDD !important;
     color: #008896 !important;
 }
 .historic_visits {
-    background-color: #DDD !important;
     color: #008896 !important;
 }
 .modern_visits {
-    background-color: #DDD !important;
     color: #008896 !important;
 }
 .stations {

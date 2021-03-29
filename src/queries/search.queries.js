@@ -11,29 +11,47 @@
  * Query: Get all node types listed.
  *
  * @param {Array} q
+ * @param {Integer} limit
+ * @param {Integer} offset
  * @return {Object} query binding
  */
 
-export function fulltext(q) {
+export function fulltext(q, offset=0, limit=10) {
     let queryString = q.join(' \& ');
     return {
         sql: `
-            SELECT
-                   n.id as id,
-                   n.type as type,
-                   modern_visits.date as heading,
+            WITH mv as (
+                SELECT
+                   nodes_id as id,
+                   date as heading,
                    concat(
-                       modern_visits.weather_narrative, 
-                       modern_visits.visit_narrative
-                       ) as blurb,
-                   n.updated_at as last_modified
-            FROM modern_visits
-                     INNER JOIN nodes n on n.id = modern_visits.nodes_id
-            WHERE to_tsvector(
-                visit_narrative || ' ' || weather_narrative
-                ) @@ to_tsquery($1::varchar)
-            ORDER BY n.updated_at DESC
-            LIMIT 10;
+                       weather_narrative, 
+                       visit_narrative
+                       ) as blurb
+                FROM modern_visits
+                WHERE to_tsvector(
+                    visit_narrative || ' ' || weather_narrative
+                    ) @@ to_tsquery($1::varchar)
+                GROUP BY id, heading, blurb
+            )
+            SELECT 
+                   mv.id, 
+                   mv.heading, 
+                   mv.blurb, 
+                   n.type as type,
+                   n.updated_at as last_modified,
+                   (SELECT COUNT(*) FROM mv) as total
+            FROM mv
+            JOIN nodes n ON n.id = mv.id
+            GROUP BY 
+                     mv.id, 
+                     mv.heading, 
+                     mv.blurb,
+                     type,
+                     last_modified
+            ORDER BY last_modified DESC
+            OFFSET ${offset}
+            LIMIT ${limit};
             `,
         data: [queryString],
     };

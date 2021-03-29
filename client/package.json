@@ -8,17 +8,13 @@
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
     "react": "^17.0.1",
-    "react-dom": "^17.0.1",
     "react-idle-timer": "^4.5.6",
     "react-scripts": "4.0.1",
     "web-vitals": "^0.2.4"
   },
   "devDependencies": {
     "file-saver": "^2.0.5",
-    "flatpickr": "^4.6.9",
     "jest": "^26.6.0",
-    "react-calendar": "^3.3.1",
-    "react-datetime-picker": "^3.1.0",
     "react-flatpickr": "^3.10.7"
   },
   "scripts": {

@@ -184,9 +184,9 @@ export const search = async (req, res, next) => {
     try {
 
         // get query parameters
-        const { q='' } = req.query || {};
+        const { q='', offset=0, limit=10 } = req.query || {};
 
-        const resultData = await srchserve.fulltext(q);
+        const resultData = await srchserve.fulltext(q, offset, limit);
 
         res.status(200).json(
             prepare({

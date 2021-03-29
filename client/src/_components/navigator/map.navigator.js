@@ -222,8 +222,6 @@ function MapNavigator({ view, data, filter }) {
     // initialize map
     const initMap = React.useCallback((domNode, mapCenter = center, mapZoom = zoom) => {
 
-        console.log('Regenerate map...', view);
-
         // create base tile layers
         const baseLayers = {
             'Map': L.tileLayer(

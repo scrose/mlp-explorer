@@ -37,7 +37,7 @@ const stopWords = [
  * @return {Promise} result
  */
 
-export const fulltext = async (q) => {
+export const fulltext = async (q, offset, limit) => {
 
     if (!q) return null;
 
@@ -55,7 +55,7 @@ export const fulltext = async (q) => {
         await client.query('BEGIN');
 
         // get all nodes for station model
-        let { sql, data } = queries.search.fulltext(q);
+        let { sql, data } = queries.search.fulltext(q, offset, limit);
         let results = await client.query(sql, data)
             .then(res => {
                 return res.rows

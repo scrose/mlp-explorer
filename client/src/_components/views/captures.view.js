@@ -62,11 +62,7 @@ const CapturesView = ({captures, fileType}) => {
     // captures thumbnail gallery
     return (
         <div className={`captures`}>
-            {
-                Array.isArray(captures) && captures.length === 1
-                    ? <File data={filterCaptures()[0]} />
-                    : <FilesGallery files={filterCaptures()} />
-            }
+            <FilesGallery files={filterCaptures()} />
         </div>
     )
 }
