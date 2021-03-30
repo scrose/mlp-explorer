@@ -59,6 +59,16 @@ const Button = ({
                     onClick={onClick}
                 />)
         },
+        rightAlign: () => {
+            return (
+                <button
+                    title={title}
+                    className={className}
+                    onClick={onClick}
+                >
+                    { label ? <span>{label}</span> : ''}{ icon ? <Icon type={icon} size={size} /> : ''}
+                </button>)
+        },
         default: () => {
             return (
                 <button

@@ -18,7 +18,7 @@ import { sanitize } from '../lib/data.utils.js';
 
 // list of commonly used words that can be excluded from search queries
 const stopWords = [
-    'about', 'after', 'all', 'also', 'am', 'an', 'and', 'another', 'any', 'are', 'as', 'at', 'be',
+    '', 'about', 'after', 'all', 'also', 'am', 'an', 'and', 'another', 'any', 'are', 'as', 'at', 'be',
     'because', 'been', 'before', 'being', 'between', 'both', 'but', 'by', 'came', 'can',
     'come', 'could', 'did', 'do', 'each', 'for', 'from', 'get', 'got', 'has', 'had',
     'he', 'have', 'her', 'here', 'him', 'himself', 'his', 'how', 'if', 'in', 'into',
@@ -42,10 +42,9 @@ export const fulltext = async (q, offset, limit) => {
     if (!q) return null;
 
     // sanitize + convert query string to term array
-    q = sanitize(q, 'text').split('+');
+    q = sanitize(q.replace(/[^a-zA-Z0-9-_]/g, ''), 'text').split('+');
     // filter stop words
     q = q.filter(term => !stopWords.includes(term));
-    console.log(q)
 
     // NOTE: client undefined if connection fails.
     const client = await pool.connect();

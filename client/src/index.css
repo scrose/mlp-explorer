@@ -89,6 +89,13 @@ div#root {
     margin: 0;
 }
 
+/* Pagination  */
+
+.pagination {
+    display: flex;
+    justify-content: space-between;
+}
+
 /* Navigator Panel */
 
 .navigator {
@@ -174,12 +181,15 @@ div#root {
 }
 
 .search-item {
+    margin-top: 20px;
     padding: 10px;
 }
 
 .search-item h4 {
     color: #008896 !important;
     cursor: pointer;
+    padding: 0;
+    margin: 0;
 }
 
 /* Viewer/Editor Panel */
@@ -1417,7 +1427,8 @@ button:hover {
     opacity: 0.6;
 }
 button span {
-    padding-left: 4px;
+    padding-left: 5px;
+    padding-right: 5px;
 }
 /* form cancel button */
 button.cancel {
