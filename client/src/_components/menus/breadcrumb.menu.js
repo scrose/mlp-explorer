@@ -9,7 +9,6 @@ import React from 'react';
 import Icon from '../common/icon';
 import { getNodeURI, filterPath, getRoot } from '../../_utils/paths.utils.client';
 import { capitalize } from '../../_utils/data.utils.client';
-import { getFileLabel, getNodeLabel } from '../../_services/schema.services.client';
 import { useData } from '../../_providers/data.provider.client';
 
 /**
@@ -69,20 +68,18 @@ const BreadcrumbMenu = () => {
     const _parseNodes = function(nodes) {
         // iterate over sorted path keys
         // sort node index descending and map to components
-        let charCount = 0;
         return Object.keys(nodes)
             .sort(function(a, b){return b-a})
             .map(key => {
                 // use node or file metadata
-                const {node={}, file={}} = nodes[key] || {};
+                const {node={}, file={}, label=''} = nodes[key] || {};
                 const href = getNodeURI(
                     node.type || file.file_type,
                     'show',
                     node.id || file.id);
-                const menuText = getNodeLabel(nodes[key]) || getFileLabel(file);
                 return <>
                         <Icon type={node.type || file.file_type} size={'sm'} />
-                            &#160;&#160;<a href={href}>{menuText}</a>
+                            &#160;&#160;<a href={href}>{label}</a>
                         </>
             });
 
@@ -93,27 +90,28 @@ const BreadcrumbMenu = () => {
     const breadcrumbs = isNode ? _parseNodes(path) : _parseRoute();
 
     return (
-        breadcrumbs ?
+        breadcrumbs &&
         <nav className={'breadcrumb'}>
-            <ul>
-                <li>
-                    <a href={getRoot()}><Icon type={'logo'} size={'sm'} /></a>
-                </li>
-                {
-                    // node breadcrumb menu
-                    breadcrumbs.map((item, index) => {
-                            return (
-                                <li key={`item_${index}`}>{ item }</li>
-                            )
-                        })
-                }
-                {
-                    // include menu text for new item
-                    filterPath() === '/' ? <li><span>{'Home'}</span></li> : ''
-                }
-            </ul>
+            <div className={`breadcrumb-container`}>
+                <ul>
+                    <li>
+                        <a href={getRoot()}><Icon type={'logo'} size={'sm'} /></a>
+                    </li>
+                    {
+                        // node breadcrumb menu
+                        breadcrumbs.map((item, index) => {
+                                return (
+                                    <li key={`item_${index}`}>{ item }</li>
+                                )
+                            })
+                    }
+                    {
+                        // include menu text for new item
+                        filterPath() === '/' ? <li><span>{'Home'}</span></li> : ''
+                    }
+                </ul>
+            </div>
         </nav>
-            : ''
     )
 }
 

@@ -12,6 +12,7 @@ import Form from '../common/form';
 import { getNodeURI, serialize } from '../../_utils/paths.utils.client';
 import { genID, sanitize } from '../../_utils/data.utils.client';
 import { getModelLabel } from '../../_services/schema.services.client';
+import PageMenu from '../menus/page.menu';
 
 /**
  * Generate unique key.
@@ -23,27 +24,42 @@ const keyID = genID();
  * Search navigator component.
  *
  * @public
+ * @param {Object} filter
+ * @param {integer} limit
+ * @param {integer} offset
  * @return
  */
 
-const SearchNavigator = ({filter, limit=10, offset=0}) => {
+const SearchNavigator = ({filter=null, limit=10, offset=0}) => {
 
     const router = useRouter();
 
     // create search data state
     const [searchQuery, setSearchQuery] = React.useState('');
     const [searchTerms, setSearchTerms] = React.useState([]);
-    const [searchResults, setSearchResults] = React.useState([]);
+    const [searchResults, setSearchResults] = React.useState(null);
     const [searchOffset, setSearchOffset] = React.useState(offset);
 
-    // results counter
-    let counter = searchOffset;
+    // handle previous page request
+    const onPrev = () => {
+        const delta = sanitize(searchOffset - limit, 'integer');
+        setSearchOffset(delta);
+        onSubmit();
+    }
+
+    // handle next page request
+    const onNext = () => {
+        setSearchOffset(10 + searchOffset);
+        onSubmit();
+    }
 
     // filter options by owner ID
     const onChange = (e) => {
 
         const {target={}} = e || {};
         const { name='', value=''} = target;
+
+        console.log(searchQuery)
 
         // reset search offset
         setSearchOffset(0);
@@ -54,9 +70,9 @@ const SearchNavigator = ({filter, limit=10, offset=0}) => {
 
     // filter options by owner ID
     const onSubmit = () => {
-
         router.get(`/search?${serialize(searchQuery)}&offset=${searchOffset}&limit=${limit}`)
             .then(res => {
+                console.log(res)
                 const {data=[]} = res || {};
                 const {query=[], results=[]} = data || {};
                 // ensure data is an array
@@ -91,14 +107,18 @@ const SearchNavigator = ({filter, limit=10, offset=0}) => {
         return blurb;
     }
 
-    // get results count
-    const resultsCount = searchResults.length > 0
-        ? searchResults[0].total
-        : 0;
+    // get page / total results count
+    const pageCount = Array.isArray(searchResults) ? searchResults.length : 0;
+    const resultsCount = Array.isArray(searchResults) && pageCount > 0 ? searchResults[0].total : 0;
+    const hasNext = resultsCount >= searchOffset + limit;
+    const hasPrev = 0 < searchOffset;
 
     return (
         <>
-        <Form callback={onSubmit}>
+        <Form
+            allowEmpty={true}
+            callback={onSubmit}
+        >
             <div className="search">
                 <input
                     className={'search-query'}
@@ -118,58 +138,41 @@ const SearchNavigator = ({filter, limit=10, offset=0}) => {
             <div className={'search-results'}>
                 <h3>
                     {
-                        searchTerms.length > 0
-                            ? `Results Found: ${resultsCount}`
+                        Array.isArray(searchResults) && searchTerms.length > 0
+                            ? `Searched for '${searchTerms.join(' ')}'. Results found: ${resultsCount}`
                             : ''
                     }
                 </h3>
-                <div className={'pagination'}>
-                    {
-                        0 < counter && counter < resultsCount
-                        &&
-                        <Button
-                            icon={'prev'}
-                            label={'Previous Page'}
-                            className={'prev'}
-                            onClick={() => {
-                                setSearchOffset(-10 + searchOffset)
-                                onSubmit();
-                            }
-                            }
-                        />
-                    }
-                    {
-                        counter + 10 < resultsCount
-                        &&
-                        <Button
-                            icon={'next'}
-                            type={'rightAlign'}
-                            className={'next'}
-                            label={'Next Page'}
-                            onClick={() => {
-                                setSearchOffset(10 + searchOffset)
-                                onSubmit();
-                            }
-                            }
-                        />
-                    }
-                </div>
+                <PageMenu
+                    total={pageCount}
+                    hasPrev={hasPrev}
+                    hasNext={hasNext}
+                    onPrev={onPrev}
+                    onNext={onNext}
+                />
                 <ol start={searchOffset + 1}>
                 {
                     (searchResults || []).map((item, index) => {
                         const {id='', type='', last_modified='', blurb='' } = item || {};
                         return <li key={`${keyID}_searchresults_${index}`} className={'search-item'}>
-                            <div className={'subtext'}>
-                                Last Modified: {sanitize(last_modified, 'date')}
-                            </div>
                             <h4 onClick={()=>{router.update(getNodeURI(type, 'show', id))}}>
                                 {getModelLabel(item.type)}: {sanitize(item.heading, 'date')}
                             </h4>
-                            <p>...{getExcerpt(blurb, index)}...</p>
+                            <div className={'subtext'}>
+                                Last Modified: {sanitize(last_modified, 'date')}
+                            </div>
+                            <p>...&#160;{getExcerpt(blurb, index)}&#160;...</p>
                         </li>
                     })
                 }
                 </ol>
+                <PageMenu
+                    total={pageCount}
+                    hasPrev={hasPrev}
+                    hasNext={hasNext}
+                    onPrev={onPrev}
+                    onNext={onNext}
+                />
             </div>
         </Form>
         </>

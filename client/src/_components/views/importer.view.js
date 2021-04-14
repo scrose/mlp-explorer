@@ -10,6 +10,7 @@ import Form from '../common/form';
 import { useRouter } from '../../_providers/router.provider.client';
 import Progress from '../common/progress';
 import { getModelLabel, getViewLabel } from '../../_services/schema.services.client';
+import { useData } from '../../_providers/data.provider.client';
 
 /**
  * File/metadata importer.
@@ -27,6 +28,7 @@ const Importer = ({
                       model,
                       view,
                       schema,
+                      batchType = '',
                       opts,
                       route,
                       data,
@@ -34,10 +36,14 @@ const Importer = ({
 }) => {
 
     const router = useRouter();
+    const api = useData();
     const [progress, setProgress] = React.useState({});
     const [response, setResponse] = React.useState({});
     const [messages, setMessages] = React.useState({});
     const [error, setError] = React.useState(false);
+
+    // check if schema includes file uploads
+    const hasUploads = schema.hasOwnProperty('hasFiles') ? schema.hasFiles : false;
 
     /**
      * Update progress data. Progress data is updated until
@@ -105,9 +111,13 @@ const Importer = ({
      */
 
     const _importBatchData = (uri, formData) => {
-        const fileList = formData.getAll('files');
+
+        // get files set for bulk import
+        const fileList = formData.getAll(batchType);
+
+        // import files individually with same metadata
         fileList.map((file, index) => {
-            formData.set('files', file);
+            formData.set(batchType, file);
             return router.upload(
                 uri,
                 formData,
@@ -124,33 +134,35 @@ const Importer = ({
      */
 
     const _handleCompletion = () => {
-        const {data=''} = response || {};
-        const {nodes_id=''} = data || {};
-        callback(error, model, nodes_id);
+        const {data={}} = response || {};
+        const { id='' } = api.destructure(data);
+        callback(error, model, id);
     }
+
+    // short activity description
+    const description = error
+        ? 'An error occurred.'
+        : response && Object.keys(response).length > 0
+            ? 'Finished!'
+            : 'In progress ...';
 
     return (
         <div className={'importer'}>
-            {
-                view === 'import'
-                    ? <p>Use this form to import multiple capture images. Each image
-                        will generate a unique historic or modern capture entry.
-                        Metadata included below will be applied to all imported captures.</p>
-                    : ''
-            }
             <Form
                 model={model}
                 schema={schema}
                 opts={opts}
                 init={data}
                 route={route}
-                callback={ view === 'import' ? _importBatchData : _importData }
+                callback={ view === 'import' && batchType ? _importBatchData : _importData }
             />
             <Progress
                 title={`${ getViewLabel(view) } ${ getModelLabel(model) }`}
-                description={'in progress ...'}
+                description={description}
                 progress={progress}
                 messages={messages}
+                hasUploads={hasUploads}
+                error={error}
                 callback={_handleCompletion}
             />
         </div>

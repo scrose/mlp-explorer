@@ -6,6 +6,7 @@
  */
 
 import { prepare } from '../lib/api.utils.js';
+import { getMetadataOptions } from '../services/metadata.services.js';
 
 /**
  * Controller initialization.
@@ -13,7 +14,8 @@ import { prepare } from '../lib/api.utils.js';
  * @src public
  */
 
-export const init = async () => {};
+export const init = async () => {
+};
 
 /**
  * Default request controller.
@@ -28,7 +30,8 @@ export const show = async (req, res, next) => {
   try {
       res.status(200).json(
           prepare({
-              view: 'dashboard'
+              view: 'dashboard',
+              options: await getMetadataOptions()
           }));
   } catch (err) {
     return next(err);

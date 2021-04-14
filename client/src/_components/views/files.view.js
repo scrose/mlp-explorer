@@ -9,9 +9,9 @@ import React from 'react';
 import { useRouter } from '../../_providers/router.provider.client';
 import Form from '../common/form';
 import NotfoundError from '../error/notfound.error';
-import Loading from '../common/loading';
 import ServerError from '../error/server.error';
 import File from '../common/file';
+import Loading from '../common/icon';
 
 /**
  * View file records associated with a node as tabs.

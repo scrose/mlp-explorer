@@ -21,6 +21,12 @@ export const errors = {
         status: 500,
         type: 'error'
     },
+    dbError: {
+        hint: 'Database failed to complete transaction.',
+        msg: 'Database error has occurred. Please contact the site administrator',
+        status: 500,
+        type: 'error'
+    },
     invalidRequest: {
         hint: 'The request data is malformed.',
         msg: 'Request is invalid.',
@@ -35,7 +41,7 @@ export const errors = {
     },
     invalidData: {
         hint: 'Invalid input data (generic).',
-        msg: 'Invalid data. Please check the data fields for errors.',
+        msg: 'Invalid or duplicated data. Please check the data fields for errors or record duplication.',
         status: 422,
         type: 'error'
     },
@@ -107,7 +113,13 @@ export const errors = {
     },
     '23505': {
         hint: 'Unique record duplicated in database.',
-        msg: 'Record already exists with that key.',
+        msg: 'Duplicate Record: Database contains an entry with same key data.',
+        status: 422,
+        type: 'error'
+    },
+    '23503': {
+        hint: 'Deletion of node before deleting dependent files.',
+        msg: 'Update or delete failed. Please ensure all dependent records and files are deleted before deleting this item.',
         status: 422,
         type: 'error'
     },

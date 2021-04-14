@@ -41,6 +41,28 @@ export function getAll(model, offset = 0, order='') {
 }
 
 /**
+ * Query: Get grouped metadata for given owner and group type.
+ *
+ * @param {String} ownerID
+ * @param {String} modelType
+ * @param {String} groupType
+ * @param {String} groupCol
+ * @return {Object} query binding
+ */
+
+export function getGroup(ownerID, modelType, groupType, groupCol = 'group_type') {
+    let sql = `
+            SELECT *
+            FROM ${modelType}
+            WHERE owner_id = $1::integer 
+              AND ${groupCol} = $2::varchar`;
+    return {
+        sql: sql,
+        data: [ownerID, groupType],
+    };
+}
+
+/**
  * Generate query: Find record by model instance.
  *
  * @param {Object} model
@@ -57,23 +79,6 @@ export function select(model) {
             sql: sql,
             data: [item.id],
         };
-    };
-}
-
-/**
- * Generate query: Find records by model type.
- *
- * @param {String} model
- * @return {Function} query function
- * @public
- */
-
-export function selectByModel(model) {
-    let sql = `SELECT * 
-            FROM ${model}`;
-    return {
-        sql: sql,
-        data: [],
     };
 }
 
@@ -116,20 +121,36 @@ export function selectByFile(file) {
 /**
  * Generate query: Find records by owner.
  *
- * @param {String} id
- * @param {String} type
+ * @param {String} ownerID
  * @param {Object} model
  * @return {Function} query function
  * @public
  */
 
-export function selectByOwner(id, type, model) {
-    let sql = `SELECT * 
+export function selectByOwner(ownerID, model) {
+    let sql = `SELECT *
             FROM ${model}
             WHERE ${model}.owner_id = $1::integer`;
     return {
         sql: sql,
-        data: [id],
+        data: [ownerID],
+    };
+}
+
+/**
+ * Generate query: Find records by model type.
+ *
+ * @param {Object} model
+ * @return {Function} query function
+ * @public
+ */
+
+export function selectByModel(model) {
+    let sql = `SELECT * 
+            FROM ${model}`;
+    return {
+        sql: sql,
+        data: [],
     };
 }
 
@@ -138,12 +159,14 @@ export function selectByOwner(id, type, model) {
  *
  * @param {Object} model
  * @param {Array} timestamps
+ * @param upsert
  * @return {Function} query binding function
  * @public
  */
 
 export function insert(
     model,
+    upsert=false,
     timestamps = ['created_at', 'updated_at']
 ) {
 
@@ -155,9 +178,7 @@ export function insert(
     const ignore = model.node || model.file ? [] : [model.idKey];
     const cols = Object
         .keys(model.attributes)
-        .filter((key) => {
-            return !ignore.includes(key);
-        });
+        .filter(key => !ignore.includes(key));
 
     // generate prepared sql
     let index = 1;
@@ -166,22 +187,36 @@ export function insert(
         return `${placeholder}::${model.attributes[key].type}`;
     });
 
-    // construct prepared statement
-    let sql = `INSERT INTO ${model.name} (${cols.join(',')})
-                        VALUES (${vals.join(',')})
-                        RETURNING *;`;
+    // upsert assignment values
+    index = 1;
+    const upsertCols = cols.filter(key => !timestamps.includes(key));
+    const assignments = cols
+        .filter(key => !ignore.includes(key))
+        .map(attr => {
+        // handle timestamp placeholders defined in arguments
+        const placeholder = timestamps.includes(attr) ? `NOW()` : `$${index++}`;
+        // map returns conjoined prepared parameters in order
+        return [attr, `${placeholder}::${model.attributes[attr].type}`].join('=');
+    });
+
+    // construct prepared statement (insertion or merge)
+    let sql = upsert
+        ? `INSERT INTO ${model.name} (${cols.join(',')})
+            VALUES (${vals.join(',')})
+            ON CONFLICT (${upsertCols.join(',')})
+            DO UPDATE SET ${assignments.join(',')}
+            RETURNING *;`
+        : `INSERT INTO ${model.name} (${cols.join(',')})
+            VALUES (${vals.join(',')})
+            RETURNING *;`
 
     // return query function
     return function(item) {
         // filter input data to match insert parameters
         // filters: ignored, timestamp, ID attributes
         let data = Object.keys(item.attributes)
-            .filter(key =>
-                !ignore.includes(key)
-                && !timestamps.includes(key))
-            .map(key => {
-                return item.attributes[key].value;
-            });
+            .filter(key => !ignore.includes(key) && !timestamps.includes(key))
+            .map(key => {return item.attributes[key].value});
 
         // collate data as value array
         return {
@@ -200,23 +235,23 @@ export function insert(
  * @public
  */
 
-export function update(model, timestamps = ['created_at', 'updated_at']) {
+export function update(model, timestamps = ['updated_at']) {
 
     // return null if instance is null
     if (!model) return null;
 
-    // filter ignored columns: Do not ignore ID column if using node reference
-    const ignore = model.node || model.file ? [] : [model.idKey];
+    // filter ignored columns:
+    // - DO NOTE ignore ID, CREATE_AT columns if model is a node instance
+    const ignore = model.node ? [] : [model.idKey, 'created_at'];
     const cols = Object
         .keys(model.attributes)
-        .filter((key) => {
-            return !ignore.includes(key);
-        });
+        .filter(key => !ignore.includes(key));
 
     // generate prepared statement value placeholders
+    // - NOTE: index shift to account for ID and created datetime values
     let index = 2;
     const assignments = cols.map(attr => {
-        // handle timestamp placeholders defined in arguments
+        // handle timestamp placeholder defined in arguments
         const placeholder = timestamps.includes(attr)
             ? `NOW()`
             : `$${index++}`;
@@ -231,19 +266,15 @@ export function update(model, timestamps = ['created_at', 'updated_at']) {
                 RETURNING *;`;
 
     // return query function
-    return function(item) {
+    return function (item) {
 
-        // place ID value at front of array
+        // place ID, creation datetime values at front of array
         let data = [item.id];
 
         // filter input data to match update parameters
         data.push(...Object.keys(item.attributes)
-            .filter(key =>
-                !ignore.includes(key)
-                && !timestamps.includes(key))
-            .map(key => {
-                return item.attributes[key].value;
-            }));
+            .filter(key => !ignore.includes(key) && !timestamps.includes(key))
+            .map(key => {return item.attributes[key].value}));
 
         return {
             sql: sql,

@@ -21,7 +21,7 @@ import MenuViewer from '../viewer/menu.viewer';
 
 const ViewerApp = () => {
     return (
-        <div className={"page-_content"}>
+        <div className={"page-_static"}>
             <HeaderViewer/>
             <main>
                 <div className={'main'}>

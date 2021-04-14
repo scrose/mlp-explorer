@@ -79,6 +79,42 @@ div#root {
     color: #01447e;
 }
 
+ul.list {
+    display: block !important;
+}
+
+/* Load spinner  */
+
+.spinner {
+    display: block;
+    width: 100%;
+    height: 100%;
+    margin: auto;
+    text-align: center;
+}
+.spinner.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 99999;
+}
+.spinner-icon {
+    font-size: 2em;
+    opacity: 0.7;
+    color: #008896;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+}
+.spinner-icon.overlay {
+    font-size: 4em;
+}
+
 /* Global Text Styles */
 
 .subtext {
@@ -96,6 +132,11 @@ div#root {
     justify-content: space-between;
 }
 
+.pagination .inactive {
+    opacity: 0.5;
+    cursor: default;
+}
+
 /* Navigator Panel */
 
 .navigator {
@@ -107,7 +148,7 @@ div#root {
 
 .navigator .tree {
     height: 75vh;
-    overflow: scroll;
+    overflow: auto;
     width: auto;
 }
 
@@ -136,6 +177,10 @@ div#root {
 }
 .map-container {
     height: 100%;
+    background-color: #000000 !important;
+}
+.map-container input {
+    width: auto;
 }
 
 /* Navigator Panel: Search  */
@@ -173,23 +218,23 @@ div#root {
     border-style: solid;
     border-radius: 0;
 }
-
 .navigator .search-results {
     height: 70vh;
-    overflow: scroll;
+    overflow: auto;
     padding: 10px;
 }
-
 .search-item {
     margin-top: 20px;
     padding: 10px;
 }
-
 .search-item h4 {
     color: #008896 !important;
     cursor: pointer;
     padding: 0;
     margin: 0;
+}
+.search-item p {
+    font-size: smaller;
 }
 
 /* Viewer/Editor Panel */
@@ -203,21 +248,14 @@ div.main {
 .viewer, .editor {
     width: 60%;
 }
-
 .viewer .header, .editor .header {
     color: #282c34;
     clear: both;
 }
-
-.viewer .header  h3, .editor .header  h3 {
-    padding: 10px;
-    margin: 0;
-}
-
 .view {
     width: 100%;
     height: 75vh;
-    overflow: scroll;
+    overflow: auto;
     padding: 0 10px 40px 10px;
 }
 .view .data {
@@ -225,6 +263,13 @@ div.main {
 }
 .view h3 {
     padding: 0 5px;
+}
+.view h3 span {
+    padding: 10px;
+    margin: 0;
+}
+.view h3 button {
+    cursor: default;
 }
 .view h5 {
     color: #4E4372;
@@ -365,26 +410,33 @@ Menus
     right: 15px;
     z-index: 99999;
 }
-.accordion .h-menu.user {
+.accordion.user {
     margin-top: 0;
     padding: 0;
     border: none;
     border-radius: 0;
     background-color: transparent;
 }
-.accordion .h-menu.user ul {
+.accordion.user .h-menu {
+    margin-top: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background-color: transparent;
+}
+.accordion.user .h-menu ul {
     flex-wrap: nowrap;
 }
-.accordion .h-menu.user ul li {
+.accordion.user .h-menu ul li {
     overflow: visible;
     padding: 2px;
 }
-.accordion .h-menu.user ul li button {
+.accordion.user .h-menu ul li button {
     line-height: 60px;
     height: 60px;
     padding: 0;
-    transition: 0.3s;
     color: white;
+    background-color: transparent;
 }
 .v-menu.user {
     margin: 0;
@@ -396,24 +448,38 @@ Menus
     line-height: normal;
     border-radius: 0 0 15px 15px;
 }
+.v-menu.user button {
+    color: #282c34;
+}
 
-/* Breadcrumb Navigation Menu */
+/*
+Breadcrumb Navigation Menu
+*/
 
-nav.breadcrumb div {
-    width: 100%;
+nav.breadcrumb div.breadcrumb-container ul {
+    flex-wrap: nowrap;
+    max-height: 40px;
+    transition: max-height 0.2s ease-out;
+}
+nav.breadcrumb div.breadcrumb-container ul:hover {
+    flex-wrap: wrap;
+    max-height: 100px;
+    transition: max-height 0.5s ease-in;
 }
 nav.breadcrumb ul {
+    display: flex;
     padding: 10px 16px;
-    margin:0;
+    margin: 0;
     list-style: none;
     background-color: #008896;
     color: #FFFFFF;
-}
 
+}
 /* Display list items side by side */
 nav.breadcrumb ul li {
-    display: inline;
+    flex: 0 0 auto;
     font-size: small;
+    text-overflow: ellipsis;
 }
 /* Add a slash symbol (/) before/behind each list item */
 nav.breadcrumb ul li+li:before {
@@ -426,12 +492,18 @@ nav.breadcrumb ul li+li:before {
 nav.breadcrumb ul li a {
     color: #FFFFFF;
     text-decoration: none;
+    text-overflow: ellipsis;
 }
-
 /* Add a color on mouse-over */
 nav.breadcrumb ul li a:hover {
     color: #FFFFFF;
     text-decoration: underline;
+    text-overflow: ellipsis;
+}
+.breadcrumb-show {
+    position: absolute;
+    top: 64px;
+    right: 2px;
 }
 
 /* Horizontal Menu */
@@ -471,6 +543,10 @@ nav.breadcrumb ul li a:hover {
     display: block;
     cursor: pointer;
     padding: 0;
+}
+
+.h-menu ul li.push {
+    margin-left: auto;
 }
 
 .h-menu ul li a {
@@ -525,6 +601,22 @@ nav.breadcrumb ul li a:hover {
     width: 100%;
 }
 
+/* Dropdown Menu */
+
+.v-menu.dropdown {
+    visibility: hidden;
+    opacity: 0;
+    z-index: 999999;
+}
+.v-menu.dropdown.active {
+    visibility: visible;
+    opacity: 1;
+}
+.v-menu.dropdown li  {
+    height: auto;
+    padding: 5px;
+}
+
 /* Editor Tool Menu */
 
 .editor-tools {
@@ -532,6 +624,7 @@ nav.breadcrumb ul li a:hover {
     height: 40px;
     position: relative;
     background-color: #57BECC;
+    z-index: 9999;
 }
 .editor-tools.h-menu ul {
     justify-content: right;
@@ -545,13 +638,18 @@ nav.breadcrumb ul li a:hover {
     width: auto;
 }
 .editor-tools .v-menu.dropdown {
+    margin: 0;
+    padding: 0;
 }
 .editor-tools .v-menu.dropdown li  {
+    height: auto;
+    padding: 5px;
     background-color: #57BECC;
     width: 100% !important;
 }
 
 .editor-tools.h-menu ul li button, .editor-tools .v-menu ul li button  {
+    text-align: left;
     background-color: transparent;
     color: white !important;
 }
@@ -570,7 +668,6 @@ nav.breadcrumb ul li a:hover {
     width: 100%;
     background-color: inherit;
 }
-
 
 /* Navigator Tool Menu */
 
@@ -675,13 +772,19 @@ nav.breadcrumb ul li a:hover {
     margin: 0;
 }
 
-/* Style the tab _content */
+/* Style the tab _static */
 .tab  {
     border-top: none;
+}
+.tab .v-menu, .tab .v-menu ul, .tab .v-menu ul li {
+    width: auto;
+    min-width: auto;
+    max-width: 400px;
 }
 .tab.h-menu {
     padding: 0;
     margin-top:0;
+    flex-wrap: nowrap;
 }
 .tab.h-menu ul li {
     overflow: hidden;
@@ -692,7 +795,6 @@ nav.breadcrumb ul li a:hover {
     outline: none;
     cursor: pointer;
     padding: 14px 16px;
-    transition: 0.3s;
 }
 /* Change background color of buttons on hover */
 .tab.h-menu ul li button:hover {
@@ -720,28 +822,30 @@ nav.breadcrumb ul li a:hover {
 
 .accordion {
     background-color: #EEEEEE;
-    border: 1px solid #282c34;
+    border: 1px solid #DDDDDD;
     border-radius: 20px;
     margin-top: 20px;
     margin-bottom: 20px;
+    padding: 3px;
 }
 .accordion .h-menu {
     border-radius: 20px;
     border: none;
     padding: 0;
 }
+.accordion .h-menu ul {
+}
 .accordion .h-menu ul li {
     overflow: visible;
     padding: 2px;
 }
 .accordion .h-menu ul li button {
+    background-color: transparent;
     text-align: left;
     border: none;
     outline: none;
     cursor: pointer;
     padding: 5px;
-    transition: 0.3s;
-    background-color: transparent;
     height: 100%;
 }
 /* Change background color of buttons on hover */
@@ -757,13 +861,16 @@ nav.breadcrumb ul li a:hover {
     background-color: transparent;
 }
 .accordion .accordion-data {
-    height: 0;
-    transition: height 2s;
+    max-height: 0;
+    /*-webkit-transition: max-height 0.5s ease-in-out;*/
+    /*transition: max-height 0.5s ease-in-out;*/
 }
 .accordion .accordion-data.open {
+    max-height: 2000px;
+    overflow: visible;
     padding: 8px;
-    height: auto;
-    transition: height 2s;
+    /*-webkit-transition: max-height 0.5s ease-in;*/
+    /*transition: max-height 0.5s ease-in;*/
 }
 
 /* Image Slider */
@@ -799,7 +906,7 @@ nav.breadcrumb ul li a:hover {
 .slider .next {
     cursor: pointer;
     position: absolute;
-    top: 30%;
+    top: 35%;
     width: auto;
     padding: 16px;
     margin-top: -50px;
@@ -829,6 +936,18 @@ nav.breadcrumb ul li a:hover {
     position: absolute;
     top: 0;
 }
+/* image expand button */
+.slider .expand-image {
+    font-size: 12px;
+    padding: 8px 12px;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+.slider .expand-image button {
+    color: #f2f2f2;
+    background-color: transparent !important;
+}
 /* Container for image text */
 .slider .caption {
     text-align: center;
@@ -854,31 +973,84 @@ nav.breadcrumb ul li a:hover {
 .slider .demo:hover {
     opacity: 1;
 }
-.slider .thumbnails {
-
+.slider .thumbnails.h-menu{
+    background-color: #DDDDDD;
+    justify-content: left;
 }
 
 /* MetadataView Edit Menu */
 
-.item {
+.node {
     margin: 0;
 }
-
-.item.h-menu {
-    margin:auto;
+.node.h-menu {
+}
+.node.h-menu ul {
     width: 100%;
-    text-align: center;
     border: none;
+    align-items: flex-end;
+    justify-items: right;
 }
-
-.item.h-menu ul {
-    margin:auto;
-    text-align: center;
-}
-
-.item.h-menu ul li {
+.node.h-menu ul li {
     height: auto;
     line-height: normal;
+    margin-left: auto;
+}
+.node .h-menu ul li button {
+    color: #282c34 !important;
+    background-color: transparent;
+}
+.node .v-menu.dropdown {
+    position: relative;
+    display: inline-block;
+    text-align: left;
+    padding:0;
+    margin-top: 0;
+}
+.node .v-menu.dropdown ul {
+    width: 250px;
+    border-radius: 10px;
+    background-color: #008896;
+
+    /* Position the tooltip text */
+    position: absolute;
+    z-index: 1;
+    top: 20px;
+    right: 0;
+    margin-left: -60px; /* Use half of the width (120/2 = 60), to center the tooltip */
+
+    /* Fade in tooltip */
+    transition: max-height 0.3s;
+}
+.node .v-menu.dropdown ul::after {
+    content: " ";
+    position: absolute;
+    bottom: 100%;  /* At the top of the tooltip */
+    right: 20px;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent #008896 transparent;
+}
+.node .v-menu.dropdown li  {
+    background-color: #008896;
+    width: 100% !important;
+}
+.node .v-menu ul li button  {
+    background-color: transparent;
+    color: #FFFFFF;
+}
+.node.h-menu ul li button:hover, .node .v-menu ul li button:hover {
+    opacity: 0.6;
+}
+.node .v-menu {
+    margin:auto;
+    width: auto;
+    max-width: 300px;
+}
+.node .v-menu .collapsible {
+    width: 100%;
+    background-color: inherit;
 }
 
 /* Station Status */
@@ -903,6 +1075,11 @@ nav.breadcrumb ul li a:hover {
 }
 
 /* Capture Comparisons */
+.accordion.comparisons {
+    border-color: #45a049;
+    color: #45a049;
+    background-color: rgba(63,173,66,0.28);
+}
 .comparisons.h-menu {
     border-color: #55BF81 !important;
     color: #55BF81 !important;
@@ -919,7 +1096,7 @@ nav.breadcrumb ul li a:hover {
 }
 
 /* Model colour schema */
-.info {
+.show {
     color: #282c34 !important;
 }
 .surveys {
@@ -937,10 +1114,12 @@ nav.breadcrumb ul li a:hover {
 .stations {
     color: #008896 !important;
     border-color: #008896 !important;
+    background-color: rgba(0,136,150,0.10);
 }
 .locations {
     color: #008896 !important;
     border-color: #008896 !important;
+    background-color: rgba(0,136,150,0.10);
 }
 .historic_captures {
     color: #008896 !important;
@@ -1036,7 +1215,6 @@ figcaption {
     outline: none;
     cursor: pointer;
     padding: 14px 16px;
-    transition: 0.3s;
     color: inherit;
 }
 /* Change background color of buttons on hover */
@@ -1055,6 +1233,66 @@ figcaption {
 /*
   Tables
 */
+
+
+/* single item view */
+
+table.item {
+    width: 98%;
+    text-align: left;
+    border-collapse: collapse;
+    color: #444;
+    margin: 10px auto 10px auto;
+}
+table.item tr:nth-child(even) {
+    background: #dedbe6;
+}
+table.item tbody td, table.item tbody th {
+    padding: 5px 20px !important;
+    text-align: left !important;
+    font-size: small;
+    vertical-align: text-top;
+}
+table.item thead {
+    background: #8174A7;
+    border-bottom: 5px solid #FFFFFF;
+}
+table.item thead th {
+    background: #8174A7;
+    font-size: small;
+    font-weight: bold;
+    color: #FFFFFF;
+    text-align: center;
+    border-left: 2px solid #FFFFFF;
+}
+table.item thead th div {
+    border: none;
+}
+table.item thead th div button {
+    border: none;
+    background-color: transparent;
+    font-weight: bold;
+    color: #FFFFFF;
+}
+table.item tbody th {
+    width: 25%;
+    background: #FFFFFF;
+    font-size: small;
+    font-weight: bold;
+    color: #282c34;
+    text-align: left;
+    border-left: 2px solid #FFFFFF;
+}
+table.item tfoot {
+    font-size: small;
+    font-weight: bold;
+    color: #282c34;
+    background: #FFFFFF;
+    border-top: 3px solid #282c34;
+}
+table.item tfoot td {
+    font-size: small;
+}
 
 /* multiple items list */
 
@@ -1147,69 +1385,9 @@ table.files tfoot td {
     font-size: small;
 }
 
-/* single item view */
-
-table.item {
-    width: 98%;
-    text-align: left;
-    border-collapse: collapse;
-    color: #444;
-    margin: 10px auto 10px auto;
-}
-table.item td, table.item th {
-    vertical-align: top;
-    padding: 5px 6px;
-    margin:0;
-}
-table.item tr:nth-child(even) {
-    background: #dedbe6;
-}
-table.item tbody td {
-    font-size: small;
-}
-table.item thead {
-    background: #8174A7;
-    border-bottom: 5px solid #FFFFFF;
-}
-table.item thead th {
-    background: #8174A7;
-    font-size: small;
-    font-weight: bold;
-    color: #FFFFFF;
-    text-align: center;
-    border-left: 2px solid #FFFFFF;
-}
-table.item thead th div {
-    border: none !important;
-}
-table.item thead th div button {
-    border: none !important;
-    font-weight: bold;
-    color: #FFFFFF;
-}
-table.item tbody th {
-    width: 25%;
-    background: #FFFFFF;
-    font-size: small;
-    font-weight: bold;
-    color: #282c34;
-    text-align: left;
-    border-left: 2px solid #FFFFFF;
-}
-table.item tfoot {
-    font-size: small;
-    font-weight: bold;
-    color: #282c34;
-    background: #FFFFFF;
-    border-top: 3px solid #282c34;
-}
-table.item tfoot td {
-    font-size: small;
-}
-
 /* Collapsible Containers */
 
-/* Style the button that is used to open and close the collapsible _content */
+/* Style the button that is used to open and close the collapsible _static */
 .collapsible {
     display: none;
     width: 100%;
@@ -1217,7 +1395,7 @@ table.item tfoot td {
     text-align: left;
     outline: none;
 }
-/* Style the collapsible _content. Note: hidden by default */
+/* Style the collapsible _static. Note: hidden by default */
 .collapsible.active {
     display: block;
     overflow: visible;
@@ -1227,6 +1405,12 @@ table.item tfoot td {
 Forms
 */
 
+form {
+    /*display: grid;*/
+    /*grid-template-columns: min-content auto;*/
+    /*grid-row-gap: 2em;*/
+    /*white-space: nowrap;*/
+}
 /* Add a background color and some padding around the form */
 .form.container {
     background-color: #FFFFFF;
@@ -1251,15 +1435,44 @@ fieldset div {
     line-height:2em;
 }
 fieldset.submit {
-    padding: 0;
+    padding: 20px 0;
     margin: 0 0 0 15px;
     border: none;
+}
+fieldset.submit button {
+    background-color: #008896 !important;
 }
 form .addField {
     text-align: center;
 }
 fieldset .removeField {
     text-align: center;
+}
+.multiselect div {
+    text-align: center;
+    vertical-align: middle;
+    height: 160px;
+    width: 30%;
+    display: inline-block;
+    float: left;
+}
+.multiselect-controls {
+    line-height: 160px;
+    color: #FFFFFF !important;
+}
+.multiselect button {
+    background-color: #008896 !important;
+    height: auto !important;
+}
+/* Clear floats after the columns */
+.multiselect:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+.multiselect select {
+    height: 160px;
+    width: 100%;
 }
 
 /* Labels */
@@ -1268,6 +1481,15 @@ label {
     display: block;
     font-weight: bold;
     padding: 5px;
+}
+label .label-text {
+    display: inline-block;
+    min-width: 150px;
+
+}
+label .prefix, label .suffix {
+    font-weight: normal;
+    padding: 10px;
 }
 label.checkbox {
     float:right;
@@ -1278,11 +1500,17 @@ label.checkbox {
 input, select, textarea {
     width: 100%; /* Full width */
     padding: 12px; /* Some padding */
-    margin-top: 6px; /* Add a top margin */
-    margin-bottom: 4px; /* Bottom margin */
+    margin: 4px;
     border: 1px solid #ccc; /* Gray border */
     border-radius: 4px; /* Rounded borders */
     box-sizing: border-box; /* Make sure that padding and width stays in place */
+}
+input:required, select:required, textarea:required {
+    border-color: #008896;
+    background-color: rgba(0,136,150,0.17);
+}
+input.short {
+    width: 30%;
 }
 textarea {
     resize: vertical /* Allow the user to vertically resize the textarea (not horizontally) */
@@ -1321,7 +1549,7 @@ input[type=submit].disabled, input[type=submit].disabled:hover {
     cursor: default;
 }
 
-/* Reset, Cancel buttons [input */
+/* Reset, Cancel buttons [input] */
 input[type=reset], button.cancel {
     width: auto;
     margin: 5px;
@@ -1350,38 +1578,42 @@ button.cancel.disabled, button.cancel.disabled:hover {
 /* File Upload Input */
 
 /* Single file upload */
-input[type=file].single {
-    text-align: center !important;
-    margin: auto;
-    width: 100% !important;
-    font-family: 'Inter', Arial, sans-serif;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: small;
-    padding: 6px;
+/*input[type=file].single {*/
+/*    text-align: center !important;*/
+/*    margin: auto;*/
+/*    width: 100% !important;*/
+/*    font-family: 'Inter', Arial, sans-serif;*/
+/*    border: none;*/
+/*    border-radius: 4px;*/
+/*    cursor: pointer;*/
+/*    font-size: small;*/
+/*    padding: 6px;*/
 
-}
+/*}*/
 
 /* Multiple file upload */
-input[type=file].multiple {
+input[type=file] {
+    display: none;
+}
+.file-upload {
+    cursor: pointer;
+    margin: auto;
     outline: 2px dashed #92b0b3;
     outline-offset: -10px;
     -webkit-transition: outline-offset .15s ease-in-out, background-color .15s linear;
     transition: outline-offset .15s ease-in-out, background-color .15s linear;
-    padding: 60px 0 60px 35%;
+    padding: 60px 0 60px 0;
     text-align: center !important;
-    margin: 0;
     width: 100% !important;
 }
-input[type=file].multiple:focus{
+.file-upload:focus{
     outline: 2px dashed #92b0b3;
     outline-offset: -10px;
     -webkit-transition: outline-offset .15s ease-in-out, background-color .15s linear;
     transition: outline-offset .15s ease-in-out, background-color .15s linear;
     border:1px solid #92b0b3;
 }
-input[type=file].multiple:after {
+.file-upload:after {
     pointer-events: none;
     position: absolute;
     top: 60px;
@@ -1395,14 +1627,14 @@ input[type=file].multiple:after {
     background-size: 100%;
     background-repeat: no-repeat;
 }
-input[type=file].multiple:before {
+.file-upload:before {
     position: absolute;
     bottom: 10px;
     left: 0;  pointer-events: none;
     width: 100%;
     right: 0;
     height: 57px;
-    /*_content: " or drag it here. ";*/
+    /*_static: " or drag it here. ";*/
     display: block;
     margin: 0 auto;
     color: #2ea591;
@@ -1446,24 +1678,30 @@ Messages
 */
 
 .msg {
-    padding:10px;
-    margin:10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
+    min-height: 30px;
+    margin: 10px auto;
+
 }
-.msg:before {
-    font-style:normal;
-    font-weight:400;
-    speak:none;
-    display:inline-block;
-    text-decoration:inherit;
-    width:1em;
-    margin-right:.4em;
-    text-align:center;
-    font-variant:normal;
-    text-transform:none;
-    line-height:1em;
-    margin-left:.2em;
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale
+.msg-text {
+    text-align: left;
+    padding: 10px;
+    flex-grow: 4;
+}
+.msg-icon {
+    width: auto !important;
+    align-self: flex-start;
+    text-align: center;
+    padding: 10px 20px;
+}
+.msg .close {
+    padding: 10px;
+}
+.msg .close button {
+    background-color: transparent;
 }
 .msg.info {
     color: #008896;
@@ -1481,65 +1719,36 @@ Messages
     color: #E34234;
     background-color: #FFD2D2;
 }
-.msg .close {
-    float: right;
-    display: inline;
-    padding: 0;
-    margin: 0;
-}
-.msg .close button {
-    padding: 0;
-    margin: 0;
-    background-color: transparent;
-    height: 100%;
-    line-height: 100%;
-    vertical-align: middle;
-    color: inherit;
-    border: none;
-}
 
-/* Tool-tips */
+/* Validation Messages */
 
-.tooltip {
+.validation{
+    width: auto !important;
+    background: #c51244 !important;
+    color: #FFFFFF;
+    font-size: small;
+    padding: 10px !important;
+    border-radius: 0 !important;
     position: relative;
-    display: inline-block;
+    display: inline-block !important;
+    box-shadow: 1px 1px 1px #aaaaaa;
+    margin-top: 10px;
 }
-.tooltip .tooltiptext {
-    font-size: smaller;
-    visibility: hidden;
-    width: 200px;
-    background-color: #E34234;
-    color: #fff;
-    text-align: center;
-    border-radius: 6px;
-    padding: 4px;
+.validation:before{
+    content: '';
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid #c51244;
     position: absolute;
-    z-index: 1;
-    top: 150%;
-    left: 10%;
-    margin-left: 200px;
-    margin-top: -30px;
-}
-.tooltip .tooltiptext::after {
-    content: " ";
-    position: absolute;
-    top: 100%; /* At the bottom of the tooltip */
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: #E34234 transparent transparent transparent;
-}
-.validation.tooltip .tooltiptext {
-    visibility: visible !important;
-}
-.tooltip:hover .tooltiptext {
-    visibility: visible;
+    top: -10px;
 }
 
 /* Pop-up dialog component */
 
 .dialog {
+    font-size: initial;
     display: block;
     position: fixed;
     width: 100%;
@@ -1554,6 +1763,7 @@ Messages
     z-index: 99999;
 }
 .dialog .content-box {
+    font-weight: normal;
     position: absolute;
     width: auto;
     height: 80%;
@@ -1574,7 +1784,7 @@ Messages
     background: #666666;
 }
 .dialog-header button {
-    background-color: #282c34 !important;
+    background-color: transparent !important;
     color: #FFFFFF !important;
 }
 .dialog-header button:hover {
@@ -1592,7 +1802,10 @@ Messages
     margin: auto;
     padding: 10px;
     text-align: inherit;
-    overflow: scroll;
+    overflow: auto;
+}
+.dialog .dialog-body p {
+    margin: 20px;
 }
 .dialog .loading {
     position: absolute;
@@ -1610,14 +1823,49 @@ Messages
 /* Alert Dialog Box */
 
 .alert-box {
+    padding: 20px;
+    background-color: #EEEEEE;
+}
+.alert-box-buttons {
     text-align: center;
 }
 .alert-box-buttons button {
     background-color: #008896 !important;
     color: #FFFFFF !important;
+    margin: 10px;
 }
 .alert-box-buttons button:hover {
     opacity: 0.6;
+}
+
+/* Image Editor (Canvas) */
+
+.image-canvas {
+    text-align: center;
+    width: auto;
+    margin: 10px;
+}
+.image-canvas img {
+    display: none;
+}
+canvas {
+    margin: 10px;
+    background-color: #FFFFFF;
+    border: 1px solid #008896;
+}
+
+
+
+/*
+Manage Options Editor
+*/
+
+table.options {
+    width: 90%;
+    margin: auto !important;
+}
+table.options .node.h-menu {
+    min-width: 180px;
 }
 
 /*

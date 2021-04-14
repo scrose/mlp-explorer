@@ -7,11 +7,12 @@
 
 import React from 'react';
 import Accordion from '../common/accordion';
-import NodeMenu from '../menus/node.menu';
 import CapturesView from './captures.view';
 import NodesView from './nodes.view';
-import { getModelLabel } from '../../_services/schema.services.client';
+import { getDependentTypes, getModelLabel } from '../../_services/schema.services.client';
 import MetadataView, { MetadataAttached } from './metadata.view';
+import EditorMenu from '../menus/editor.menu';
+import { useData } from '../../_providers/data.provider.client';
 
 /**
  * Model view component.
@@ -24,10 +25,20 @@ import MetadataView, { MetadataAttached } from './metadata.view';
 
 const VisitsView = ({ model, data }) => {
 
-    const { node = {}, metadata = {}, dependents = [], hasDependents = false, attached = {} } = data || {};
-    const { id = '', type = '' } = node || {};
+    const api = useData();
+    const {
+        id,
+        type,
+        owner,
+        node,
+        label,
+        metadata,
+        dependents,
+        hasDependents,
+        attached} = api.destructure(data) || {};
+    const hasCaptures = type === 'historic_captures' || type === 'modern_captures';
 
-    return <>
+    return !hasCaptures && <>
         {
             model === 'historic_visits'
                 ? <>
@@ -39,16 +50,18 @@ const VisitsView = ({ model, data }) => {
                         open={true}
                         hasDependents={hasDependents}
                         menu={
-                            <NodeMenu
+                            <EditorMenu
                                 model={type}
                                 id={id}
+                                label={label}
+                                owner={owner}
                                 metadata={metadata}
-                                dependent={'historic_captures'}
+                                dependents={getDependentTypes(model)}
                             />
                         }>
                         <CapturesView captures={dependents} fileType={'historic_images'} />
                     </Accordion>
-                    <MetadataAttached attached={attached} />
+                    <MetadataAttached owner={node} attached={attached} />
                 </>
 
                 // apply location views for modern visits
@@ -59,7 +72,7 @@ const VisitsView = ({ model, data }) => {
                     >
                         <MetadataView model={type} metadata={metadata} />
                     </Accordion>
-                    <MetadataAttached attached={attached} />
+                    <MetadataAttached owner={node} attached={attached} />
                     {
                         dependents.map((location, index) => {
                             return <NodesView

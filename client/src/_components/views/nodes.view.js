@@ -6,19 +6,22 @@
  */
 
 import React from 'react';
-import Loading from '../common/loading';
 import ImageView from './image.view';
 import LocationsView from './locations.view';
 import StationsView from './stations.view';
 import { getNodeURI } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
-import { getModelLabel, getNodeLabel, getNodeOrder } from '../../_services/schema.services.client';
+import { getDependentTypes, getModelLabel } from '../../_services/schema.services.client';
 import Accordion from '../common/accordion';
-import NodeMenu from '../menus/node.menu';
 import MetadataView, { MetadataAttached } from './metadata.view';
 import CaptureView from './capture.view';
 import VisitsView from './visits.view';
 import { sorter } from '../../_utils/data.utils.client';
+import Loading from '../common/icon';
+import EditorMenu from '../menus/editor.menu';
+import { useData } from '../../_providers/data.provider.client';
+import CapturesView from './captures.view';
+
 
 /**
  * Node list component.
@@ -30,59 +33,91 @@ import { sorter } from '../../_utils/data.utils.client';
  * @return {JSX.Element}
  */
 
-export const NodeList = ({items}) => {
+export const NodeList = ({ owner, items }) => {
 
-    if (!Array.isArray(items)) return null;
+    const api = useData();
+
+    // check for empty of invalid nodes
+    if (!Array.isArray(items) || items.length === 0) return null;
+
+    // filter captures
+    const captures = {
+        historic_captures: {
+            fileType: 'historic_images',
+            captures: items.filter(
+                item => item.node.type === 'historic_captures',
+            )
+        },
+        modern_captures: {
+            fileType: 'modern_images',
+            captures: items.filter(
+                item => item.node.type === 'modern_captures'
+            )
+        }
+    };
+
+    // filter non-captures
+    const nodes = items.filter(
+        item => item.node.type !== 'historic_captures' && item.node.type !== 'modern_captures'
+    ).sort(sorter);
 
     return (
         <>
-        {
-            items
-                .map(item => {
-                    const { node={}, metadata={}, hasDependents=false } = item || {};
-                    const { id='', type='' } = node || {};
-                    return {
-                        id: id,
-                        type: type,
-                        node: node,
-                        metadata: metadata,
-                        label: getNodeLabel(item),
-                        order: getNodeOrder(type || '') || 0,
-                        hasDependents: hasDependents
-                    }
-                })
-                // sort alphabetically
-                .sort(sorter)
-                // sort by node order
-                .sort(function(a, b){
-                    return a.order - b.order;
-                })
-                .map(item => {
+            {
+                nodes.map(item => {
+                    const {id, type, label, hasDependents, metadata} = api.destructure(item);
                     return (
                         <Accordion
-                            key={item.id}
-                            id={item.id}
-                            type={item.type}
-                            label={item.label}
-                            hasDependents={item.hasDependents}
+                            key={id}
+                            id={id}
+                            type={type}
+                            label={label}
+                            hasDependents={hasDependents}
                             open={false}
                             menu={
-                                <NodeMenu
-                                    model={item.type}
-                                    id={item.id}
-                                    label={item.label}
-                                    metadata={item.metadata}
+                                <EditorMenu
+                                    model={type}
+                                    id={id}
+                                    owner={owner}
+                                    label={label}
+                                    metadata={metadata}
+                                    dependents={getDependentTypes(type)}
                                 />
                             }
                         >
-                            <NodesView model={item.type} data={item} />
+                            <NodesView model={type} data={item} />
                         </Accordion>
-                    )
+                    );
                 })
-        }
-    </>
+            }
+            {
+                Object.keys(captures).map((captureType, index) => {
+                    return captures[captureType].captures.length > 0 &&
+                        <Accordion
+                            key={`${captureType}_${index}`}
+                            type={captureType}
+                            label={getModelLabel(captureType, 'label')}
+                            hasDependents={true}
+                            open={true}
+                            menu={
+                                <EditorMenu
+                                    model={owner.type}
+                                    id={owner.id}
+                                    owner={owner}
+                                    label={getModelLabel(captureType, 'label')}
+                                    dependents={[captureType]}
+                                />
+                            }>
+                            <CapturesView
+                                captures={captures[captureType].captures}
+                                fileType={captures[captureType].fileType}
+                            />
+                        </Accordion>
+                })
+            }
+        </>
     );
-}
+};
 
 /**
  * Default view component for model data.
@@ -96,21 +131,22 @@ export const NodeList = ({items}) => {
 const DefaultView = ({
                          model,
                          data,
-}) => {
-    const {dependents=[], metadata={}, attached={}} = data || {};
+                     }) => {
+    const api = useData();
+    const { node, dependents, metadata, attached, owner } = api.destructure(data) || {};
     return (
         <>
             <Accordion
-                type={'info'}
-                label={`${getModelLabel(model)} Metadata`}
+                type={'show'}
+                label={`${getModelLabel(model)} Info`}
             >
-                <MetadataView key={`${model}_${metadata.id}`} model={model} metadata={metadata} />
-                <MetadataAttached attached={attached} />
+                <MetadataView key={`${model}_${node.id}`} model={model} metadata={metadata} />
             </Accordion>
-            <NodeList items={dependents} />
+            <MetadataAttached owner={node} attached={attached} />
+            <NodeList owner={node} items={dependents} />
         </>
-    )
-}
+    );
+};
 
 /**
  * Data item (record) component.
@@ -122,8 +158,8 @@ const DefaultView = ({
 
 const NodesView = ({
                        model,
-                       data = {}
-}) => {
+                       data = {},
+                   }) => {
 
     // create dynamic data states
     const [loadedData, setLoadedData] = React.useState(data);
@@ -131,7 +167,7 @@ const NodesView = ({
     const router = useRouter();
 
     // get dependents data
-    const { hasDependents=false, dependents=[], node={} } = loadedData || data || {};
+    const { hasDependents = false, dependents = [], node = {} } = loadedData || data || {};
 
     // API call to retrieve node data (if not yet loaded)
     React.useEffect(() => {
@@ -147,17 +183,17 @@ const NodesView = ({
                 .then(res => {
                     // update state with response data
                     if (_isMounted.current) {
-                        const { data={} } = res || {};
+                        const { data = {} } = res || {};
                         setLoadedData(data);
                     }
                 })
-                .catch(err => console.error(err)
+                .catch(err => console.error(err),
                 );
         }
         return () => {
             _isMounted.current = false;
         };
-    }, [dependents, loadedData, setLoadedData, router, model, node, hasDependents]);
+    }, [dependents, setLoadedData, router, model, node, hasDependents]);
 
     // view components indexed by model type
     const itemViews = {
@@ -173,17 +209,17 @@ const NodesView = ({
             data={loadedData}
         />,
         locations: () => <LocationsView
-            data={ loadedData }
+            data={loadedData}
         />,
         historic_captures: () => <CaptureView
             fileType={'historic_images'}
             model={'historic_captures'}
-            data={ loadedData }
+            data={loadedData}
         />,
         modern_captures: () => <CaptureView
             fileType={'modern_images'}
             model={'modern_captures'}
-            data={ loadedData }
+            data={loadedData}
         />,
         historic_images: () => <ImageView
             model={'historic_images'}
@@ -200,8 +236,8 @@ const NodesView = ({
         default: () => <DefaultView
             model={model}
             data={loadedData}
-        />
-    }
+        />,
+    };
 
     return (
         model && (dependents.length > 0 || !hasDependents)
@@ -213,7 +249,7 @@ const NodesView = ({
                         : itemViews.default()
                 }
             </>
-            : <Loading/>)
-}
+            : <Loading />);
+};
 
 export default NodesView;

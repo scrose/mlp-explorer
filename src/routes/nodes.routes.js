@@ -32,6 +32,13 @@ function NodesRoutes() {
 
     // add controller routes
     this.routes = {
+        filter: {
+            path: '/filter',
+            get: this.controller.filter,
+            put: null,
+            post: null,
+            delete: null,
+        },
         search: {
             path: '/search',
             get: this.controller.search,

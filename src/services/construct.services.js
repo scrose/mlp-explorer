@@ -25,7 +25,6 @@ export const create = async (modelType) => {
     // generate schema for constructor type
     let Schema = await schemaConstructor.create(modelType);
     const schema = new Schema();
-    const options = await metaserve.getOptions();
 
     // return constructor
     return function(attributeValues) {
@@ -40,7 +39,6 @@ export const create = async (modelType) => {
         this.depth = schema.nodeDepth.hasOwnProperty(modelType)
             ? schema.nodeDepth[modelType]
             : schema.nodeDepth.default;
-        this.options = options;
 
         // initialize model with input data
         this.setData = setData;
@@ -247,10 +245,9 @@ function setData(data=null) {
 
         // assert attributes exist in model schema
         Object.keys(inputData)
-            .filter(key => !(this.attributes
-                && this.attributes.hasOwnProperty(key)))
+            .filter(key => !(this.attributes && this.attributes.hasOwnProperty(key)))
             .map(key => {
-                console.error(`Attribute key \'${key}\' was not found in model schema.`);
+                console.warn(`Attribute key \'${key}\' was not in model schema.`);
                 throw Error('schemaMismatch')
             });
 
@@ -302,15 +299,14 @@ export const createNode = async function(item) {
  * @return {Promise} result
  */
 
-export const createFile = async function(item) {
+export const createFile = async function(item, fileData) {
 
-    if (!item.file) return null;
+    if (!item) return null;
 
     // generate file constructor
     let File = await create('files');
 
     // get additional file metadata from item
-    const { data={} } = item.file || {};
     const {
         filename='',
         mimetype='',
@@ -319,9 +315,9 @@ export const createFile = async function(item) {
         fs_path='',
         file_size=0,
         filename_tmp=''
-    } = data || {};
+    } = fileData || {};
 
-    // return node instance: set owner attribute values from
+    // return file instance: set owner attribute values from
     // retrieved node attributes
     return new File({
         id: item.id,

@@ -28,12 +28,8 @@ const UserMenu = () => {
             <Accordion type={'user'}>
                 <div className={'v-menu user'}>
                     <ul>
-                        <li>
-                            <Icon type={'right'} /> {user.email}
-                        </li>
-                        <li>
-                            <Icon type={'right'} /> {user.label}
-                        </li>
+                        <li>{user.email}</li>
+                        <li>{user.label}</li>
                         <li>
                             <Button
                                 type={'logout'}

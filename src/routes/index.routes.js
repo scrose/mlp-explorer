@@ -16,6 +16,7 @@ import main from './main.routes.js'
 import users from './users.routes.js'
 import nodes from './nodes.routes.js'
 import models from './model.routes.js'
+import metadata from './metadata.routes.js'
 import files from './files.routes.js'
 
 /**
@@ -67,6 +68,7 @@ async function initRoutes(routes, baseRouter) {
                         .catch(err => {
                             throw err;
                         });
+
                 }
                 catch (err) {
                     return next(err);
@@ -120,7 +122,12 @@ async function initRouter() {
     // initialize model routes
     const modelsRoutes = await models();
     modelsRoutes
-        .map(routes => initRoutes(routes, baseRouter))
+        .map(routes => initRoutes(routes, baseRouter));
+
+    // initialize metadata routes
+    const metadataRoutes = await metadata();
+    metadataRoutes
+        .map(routes => initRoutes(routes, baseRouter));
 
     // initialize file routes
     const filesRoutes = await files();

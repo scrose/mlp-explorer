@@ -11,7 +11,9 @@ import Messenger from '../common/messenger';
 import StaticView from '../views/static.view';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
-import MenuEditor from './menu.editor';
+import EditorMenu from '../menus/editor.menu';
+import { useData } from '../../_providers/data.provider.client';
+import { getDependentTypes } from '../../_services/schema.services.client';
 
 /**
  * Render editor panel component (authenticated).
@@ -23,11 +25,22 @@ const Editor = () => {
 
     // get router context provider
     const router = useRouter();
+    const api = useData();
 
     return (
         <>
             <div className={'editor'}>
-                <MenuEditor/>
+                <EditorMenu
+                    className={'editor-tools'}
+                    model={api.model}
+                    view={api.view}
+                    id={api.id}
+                    label={api.label}
+                    owner={api.owner}
+                    metadata={api.metadata}
+                    fileType={api.type}
+                    dependents={getDependentTypes(api.model)}
+                />
                 <div className={'view'}>
                     <Heading/>
                     <Messenger/>

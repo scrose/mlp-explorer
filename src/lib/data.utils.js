@@ -49,18 +49,6 @@ export const mapToObj = (map) => {
 }
 
 /**
- * Check if object is empty. NOTE: This should
- * work in ES5 compliant implementations.
- *
- * @param {Object} obj
- * @src public
- */
-
-export function isEmptyObject(obj) {
-    return !Object.keys(obj).length;
-}
-
-/**
  * Remove empty elements from array
  *
  * @param {Array} arr
@@ -93,7 +81,10 @@ export function sanitize(data, datatype) {
             return !!data;
         },
         'varying character': function() {
-            return data === '' ? null : String(data);
+            // Replaces HTML tags with null string.
+            return ((data===null) || (data===''))
+                ? ''
+                : data.toString().replace( /(<([^>]+)>)/ig, '');
         },
         'integer': function() {
             return isNaN(parseInt(data)) ? null : parseInt(data);

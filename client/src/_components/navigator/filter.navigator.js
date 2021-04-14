@@ -19,15 +19,15 @@ import { genSchema } from '../../_services/schema.services.client';
 function FilterNavigator({data, setData, optionsData, setToggle}) {
 
     // get filter options
-    const {options={}} = optionsData || {};
-    const {surveyors_id={}, surveys_id={}, survey_seasons_id={}} = options || {};
+    const {surveyors=[], surveys=[], survey_seasons=[]} = optionsData || {};
 
     // create filter data state
     const [filterData, setFilterData] = React.useState(data);
 
     // filter options by owner ID
     const filterOptions = (selectData, ownerID) => {
-        return selectData.filter(item => parseInt(item.owner_id) === parseInt(ownerID))
+        return (selectData || [])
+            .filter(item => parseInt(item.owner_id) === parseInt(ownerID))
     }
 
     // filter options by owner ID
@@ -36,38 +36,50 @@ function FilterNavigator({data, setData, optionsData, setToggle}) {
         const {target={}} = e || {};
         const { name='', value=''} = target;
 
+        const updates = {
+            surveyors: ()=>{
+                setFilterData({ surveyors: value });
+            },
+            surveys: ()=>{
+                setFilterData(data => ({...data, surveys: value, survey_seasons: ''}));
+            },
+            survey_seasons: ()=>{
+                setFilterData(data => ({...data, survey_seasons: value}));
+            }
+        }
+
         // update filter data state with input selection
-        setFilterData(data => ({...data, [name]: value}));
+        if (updates.hasOwnProperty(name)) updates[name]();
+
     }
 
-    // get selected values
-    let surveyorID = filterData.hasOwnProperty('surveyors_id')
-        ? filterData.surveyors_id
-        : '';
-    let surveyID = filterData.hasOwnProperty('surveys_id')
-        ? filterData.surveys_id
-        : '';
+    // filter options based on selected values
+    let surveyorID = filterData.hasOwnProperty('surveyors') && filterData.surveyors;
+    let surveyID = filterData.hasOwnProperty('surveys') && filterData.surveys;
+    const filteredSurveys = filterOptions(surveys, surveyorID);
+    const filteredSurveySeasons = filterOptions(survey_seasons, surveyID);
 
     return (
         <Form
             model={'stations'}
             opts={
                 {
-                    options: {
-                        surveyors_id: surveyors_id,
-                        surveys_id: filterOptions(surveys_id, surveyorID),
-                        survey_seasons_id: filterOptions(survey_seasons_id, surveyID),
-                    }
+                    surveyors: surveyors,
+                    surveys: filteredSurveys,
+                    survey_seasons: filteredSurveySeasons
                 }
             }
             init={filterData}
-            schema={genSchema('filter', 'stations')}
-            reset={()=>{setFilterData({})}}
+            schema={genSchema('mapFilter', 'stations')}
+            reset={()=>{
+                setFilterData({})
+            }}
             onChange={onChange}
             callback={()=>{
                 setData(filterData)
-                setToggle(false)}
-            }
+                setToggle(false)
+            }}
+            allowEmpty={true}
         />
     )
 }

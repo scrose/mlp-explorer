@@ -53,7 +53,6 @@ const NodePanel = () => {
  */
 
 const DashboardViewer = () => {
-
     return (
         <div>
             <p>

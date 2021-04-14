@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import Loading from './loading';
+import Loading from './icon';
 
 /**
  * Render table header.
@@ -37,7 +37,7 @@ const TableHeader = ({ cols }) => {
  * column array using column/item names as keys.
  *
  * @public
- * @param {Array} rows: [{name: NAME, data: DATA}]
+ * @param {Array} rows: [{name: DATA}]
  * @param {Array} cols: [{name: NAME, label: DATA}]
  * @return {JSX.Element}
  */
@@ -46,7 +46,7 @@ const TableBody = ({rows, cols}) => {
     return <tbody>{
             rows.map((row, index) => {
                 return (
-                    <tr key={index}>
+                    <tr key={`table_row_${index}`}>
                         {
                             cols
                                 .filter(col => row.hasOwnProperty(col.name))
@@ -62,6 +62,10 @@ const TableBody = ({rows, cols}) => {
 
 /**
  * Render table component.
+ * - Input columns (cols) must be object of form:
+ *   [...{name: <column name>, label: <column label>}]
+ * - Input rows (rows) must be object of form:
+ *   [...{[name]: {...[column name]: <row data>}]
  *
  * @public
  * @param {Array} rows

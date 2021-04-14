@@ -60,7 +60,6 @@ export const removeNode = (node) => {
 
 export const clearNodes = () => {
     sessionStorage.setItem('nodes', JSON.stringify([]));
-
 }
 
 /**
@@ -75,22 +74,12 @@ export const getSessionMsg = () => {
 }
 
 /**
- * Check if messages are in storage.
- *
- * @public
- */
-
-export const checkSessionMsg = () => {
-    return !!getSessionMsg().length;
-}
-
-/**
  * Add message to session storage.
  *
  * @public
  */
 
-export const addSessionMsg = (msg) => {
+export const setSessionMsg = (msg) => {
     sessionStorage.setItem('statusMsg', JSON.stringify(msg));
 }
 

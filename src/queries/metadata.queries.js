@@ -7,78 +7,102 @@
 
 'use strict';
 
+import * as defaults from './defaults.queries.js';
+
 /**
- * Query: Get comparisons for given capture node.
- * Model options include 'historic_captures' and
- * 'modern_captures'.
+ * Query: Get all metadata types listed.
  *
  * @return {Object} query binding
  */
 
-export function getComparisons(node) {
-    const {type='', id=''} = node || {};
-    let sql = `SELECT * 
-            FROM comparison_indices 
-            WHERE ${type} = $1::integer`;
+export function types() {
     return {
-        sql: sql,
-        data: [id],
+        sql: `SELECT *
+              FROM metadata_types;`,
+        data: [],
     };
 }
 
 /**
- * Query: Get comparisons metadata for given capture node.
- * Model options include 'historic_captures' and
- * 'modern_captures'.
+ * Query: Insert metadata entry for given item instance.
  *
- * @return {Object} query binding
+ * @public
+ * @param {integer} id
+ * @param {Object} model
+ * @return {Function} query function / null if no node
  */
 
-export function getComparisonsData(node) {
-    const {type='', id=''} = node || {};
-    let sql = `SELECT * 
-            FROM comparison_indices 
-            INNER JOIN historic_captures hc ON comparison_indices.historic_captures = hc.nodes_id
-                 INNER JOIN modern_captures mc ON comparison_indices.modern_captures = mc.nodes_id
-            WHERE ${type} = $1::integer`;
-    return {
-        sql: sql,
-        data: [id],
-    };
+export function select(id, model) {
+    const fn = defaults.select(model);
+    return fn({id: id});
 }
 
+
 /**
- * Query: Get participant metadata for given node.
- * Model options include 'historic_captures' and
- * 'modern_captures'.
+ * Query: Insert metadata entry for given item instance.
  *
- * @return {Object} query binding
+ * @param {Object} item
+ * @param {Boolean} upsert
+ * @return {Function} query function / null if no node
+ * @public
  */
 
-export function getParticipantData(id) {
-    let sql = `
-            SELECT
-                participant_groups.group_type,
-                p.last_name,
-                p.given_names,
-                p.id
-            FROM participant_groups
-            INNER JOIN participants p ON participant_groups.participant_id = p.id
-            WHERE participant_groups.owner_id = $1::integer
-            GROUP BY 
-                     participant_groups.group_type,
-                     p.last_name, 
-                     p.given_names, 
-                     p.id;`;
+export function insert(item, upsert) {
+    const fn = defaults.insert(item, upsert);
+    return fn(item);
+}
+
+/**
+ * Query: Update metadata entry for given item instance.
+ *
+ * @param {Object} item
+ * @return {Function} query function / null if no node
+ * @public
+ */
+
+export function update(item) {
+    const fn = defaults.update(item);
+    return fn(item);
+}
+
+/**
+ * Query: Delete metadata entry for given item instance.
+ *
+ * @param {Object} item
+ * @return {Function} query function / null if no node
+ * @public
+ */
+
+export function remove(item) {
+    const fn = defaults.remove(item);
+    return fn(item);
+}
+
+/**
+ * Generate query: Delete group of metadata records from database.
+ *
+ * @public
+ * @param {String} ownerID
+ * @param {String} model
+ * @param {String} groupType
+ * @param {String} groupCol
+ * @return {Object} query
+ */
+
+export function removeGroup(ownerID, model, groupType, groupCol) {
+    let sql = `DELETE FROM ${model} 
+            WHERE owner_id = $1::integer
+            AND ${groupCol} = $2::varchar
+            RETURNING *;`
+
     return {
         sql: sql,
-        data: [id],
+        data: [ownerID, groupType],
     };
 }
 
-
 /**
- * Query: Get capture comparisons for station.
+ * Query: Get modern capture ID values by station ID.
  *
  * @return {Object} query binding
  */
@@ -144,9 +168,9 @@ export function getMapLocations(filter=null) {
                    stations.nodes_id, 
                    stations.lat, 
                    stations.lng,
-                   s.nodes_id as surveyors_id,
-                   ss.nodes_id as surveys_id,
-                   sss.nodes_id as survey_seasons_id
+                   s.nodes_id as surveyors,
+                   ss.nodes_id as surveys,
+                   sss.nodes_id as survey_seasons
             FROM stations
             JOIN survey_seasons sss on stations.owner_id = sss.nodes_id
             JOIN surveys ss on sss.owner_id = ss.nodes_id
@@ -156,127 +180,6 @@ export function getMapLocations(filter=null) {
     return {
         sql: sql,
         data: [],
-    };
-}
-
-/**
- * Query: Get capture comparisons for station.
- *
- * @return {Object} query binding
- */
-
-export function getComparisonsByStationID(id) {
-    let sql = `
-            WITH hc AS (
-                SELECT 
-                       historic_captures.nodes_id,
-                       historic_captures.owner_id
-                FROM historic_captures
-                    INNER JOIN (
-                    SELECT nodes_id as hv_id FROM historic_visits WHERE owner_id = $1::integer) as hv
-                        ON hv_id = historic_captures.owner_id
-                        GROUP BY historic_captures.nodes_id
-                )
-                SELECT
-                    hc.nodes_id, 
-                    comparison_indices.modern_captures 
-                    FROM comparison_indices
-                RIGHT JOIN hc
-                    ON hc.nodes_id = comparison_indices.historic_captures
-            GROUP BY
-                     hc.nodes_id,
-                     comparison_indices.historic_captures, 
-                     comparison_indices.modern_captures;
-    `;
-    return {
-        sql: sql,
-        data: [id],
-    };
-}
-
-/**
- * Query: Get capture comparisons metadata for station.
- *
- * @return {Object} query binding
- */
-
-export function getComparisonsByLocationID(id) {
-    let sql = `
-            WITH mc as (
-                SELECT * 
-                FROM modern_captures
-                WHERE modern_captures.owner_id = $1::integer)
-            SELECT comparison_indices.modern_captures, comparison_indices.historic_captures
-            FROM comparison_indices
-                RIGHT JOIN mc
-                    ON mc.nodes_id = comparison_indices.modern_captures
-            GROUP BY
-                     mc.nodes_id,
-                     comparison_indices.modern_captures,
-                     comparison_indices.id;
-    `;
-    return {
-        sql: sql,
-        data: [id],
-    };
-}
-
-/**
- * Query: Get capture comparisons metadata for historic visit.
- *
- * @return {Object} query binding
- */
-
-export function getComparisonsByHistoricVisitID(id) {
-    let sql = `
-            WITH hc as (
-                SELECT * 
-                FROM historic_captures
-                WHERE historic_captures.owner_id = $1::integer)
-            SELECT comparison_indices.modern_captures, comparison_indices.historic_captures
-            FROM comparison_indices
-                INNER JOIN hc
-                    ON hc.nodes_id = comparison_indices.historic_captures
-            GROUP BY
-                     hc.nodes_id,
-                     comparison_indices.modern_captures,
-                     comparison_indices.id;
-    `;
-    return {
-        sql: sql,
-        data: [id],
-    };
-}
-
-/**
- * Query: Get capture comparisons metadata for modern visit.
- *
- * @return {Object} query binding
- */
-
-export function getComparisonsByModernVisitID(id) {
-    let sql = `
-            WITH mc as (
-                SELECT modern_captures.nodes_id
-                FROM modern_captures
-                    INNER JOIN (
-                        SELECT locations.nodes_id
-                        FROM locations
-                        WHERE locations.owner_id = $1::integer) as locs
-                        ON locs.nodes_id = modern_captures.owner_id
-            )
-            SELECT comparison_indices.modern_captures, comparison_indices.historic_captures
-            FROM comparison_indices
-                INNER JOIN mc
-                    ON mc.nodes_id = comparison_indices.modern_captures
-            GROUP BY
-                     mc.nodes_id,
-                     comparison_indices.modern_captures,
-                     comparison_indices.id;
-    `;
-    return {
-        sql: sql,
-        data: [id],
     };
 }
 
@@ -295,27 +198,95 @@ export function getLens() {
 }
 
 /**
- * Query: Get all participants.
+ * Query: Get node or file label from defined columns.
  *
  * @return {Object} query binding
  */
 
-export function getParticipants() {
+export function selectLabel(
+    id,
+    model,
+    labelCols=['id'],
+    prefix=null,
+    delimiter=' ',
+    idCol='nodes_id'
+) {
+    prefix = prefix ? `'${prefix}',` : '';
     return {
-        sql: `SELECT *
-              FROM participants 
-              ORDER BY participants.last_name;`,
+        sql: `
+            SELECT
+                CONCAT_WS('${delimiter}', ${prefix} ${labelCols.join(',')}) AS label
+            FROM ${model}
+            WHERE ${idCol} = $1::integer;`,
+        data: [id],
+    };
+}
+
+/**
+ * Generate query: Find metadata options for given model type.
+ *
+ * @param {String} model
+ * @param {String} valueCol
+ * @param {Array} labelCols
+ * @param delimiter
+ * @return {Function} query function
+ * @public
+ */
+
+export function selectMetadataOptionsByModel(
+    model,
+    valueCol='id',
+    labelCols = ['id'],
+    delimiter=''
+) {
+    console.log(model, valueCol, labelCols)
+    let sql = `SELECT 
+                id,
+                ${valueCol} AS value, 
+                CONCAT_WS('${delimiter}', ${labelCols.join(',')}) AS label
+            FROM ${model}`;
+    return {
+        sql: sql,
         data: [],
     };
 }
 
 /**
- * Query: Get all participant group types.
+ * Generate query: Find node options for given model type.
+ *
+ * @param {String} model
+ * @param {Array} labelCols
+ * @param {String} delimiter
+ * @param {Boolean} hasOwner
+ * @return {Object} Query
+ * @public
+ */
+
+export function selectNodeOptionsByModel(
+    model,
+    labelCols = ['nodes_id'],
+    delimiter='',
+    hasOwner=true
+) {
+    let sql = `SELECT 
+                nodes_id as id,
+                nodes_id AS value, 
+                CONCAT_WS('${delimiter}', ${labelCols.join(',')}) AS label
+                ${ hasOwner ? `, owner_id` : ''}
+            FROM ${model}`;
+    return {
+        sql: sql,
+        data: [],
+    };
+}
+
+/**
+ * Query: Get all participant group types listed.
  *
  * @return {Object} query binding
  */
 
-export function getParticipantGroupTypes() {
+export function participantGroupTypes() {
     return {
         sql: `SELECT *
               FROM participant_group_types;`,
@@ -323,9 +294,37 @@ export function getParticipantGroupTypes() {
     };
 }
 
+/**
+ * Query: Get participant metadata for given node.
+ * Model options include 'historic_captures' and
+ * 'modern_captures'.
+ *
+ * @param {String} ownerID
+ * @param {String} groupType
+ * @return {Object} query binding
+ */
 
-
-
-
-
-
+export function getParticipantOptions(ownerID, groupType = null) {
+    let sql = `
+            SELECT
+                CONCAT_WS(', ', p.last_name, p.given_names) AS full_name,
+                participant_groups.id as pg_id,
+                participant_groups.group_type,
+                p.last_name,
+                p.given_names,
+                p.id
+            FROM participant_groups
+            INNER JOIN participants p ON participant_groups.participant_id = p.id
+            WHERE participant_groups.owner_id = $1::integer
+            ${groupType ? `AND group_type = $2::varchar` : ''}
+            GROUP BY
+                    participant_groups.id,
+                     participant_groups.group_type,
+                     p.last_name, 
+                     p.given_names, 
+                     p.id;`;
+    return {
+        sql: sql,
+        data: groupType ? [ownerID, groupType] : [ownerID],
+    };
+}

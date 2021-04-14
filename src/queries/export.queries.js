@@ -37,7 +37,7 @@ export function getGIS() {
                 ) AS survey_year_end,
                 survey_seasons.year as survey_season,
                 stations.name as station_name,
-                stations.long as longitude,
+                stations.lng as longitude,
                 stations.lat as latitude,
                 stations.elev as elevation,
                 modern_visits.date as repeat_date,

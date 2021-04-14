@@ -29,8 +29,7 @@ export function getURL() {
 }
 
 /**
- * Filter current client pathname using
- * schema settings.
+ * Filter current client pathname using schema settings.
  *
  * @public
  */
@@ -38,19 +37,19 @@ export function getURL() {
 export function filterPath() {
 
     // get current location path
-    const uri = window.location.pathname;
+    const url = `${window.location.pathname}${window.location.search}`;
 
     // filter "nonviewable" static routes
     // - e.g. full nodes listing at '/nodes'
     // - filtered routes are defined in the schema
     const staticRoutes = getRoutes();
     const filteredURI = Object.keys(staticRoutes)
-        .filter(key => uri.match(`^${key}`) && staticRoutes[key].hasOwnProperty('redirect'))
+        .filter(key => url.match(`^${key}`) && staticRoutes[key].hasOwnProperty('redirect'))
         .reduce((o, key) => {
             return staticRoutes[key].redirect;
         }, '');
 
-    return filteredURI ? filteredURI : uri;
+    return filteredURI ? filteredURI : url.toString();
 }
 
 /**
@@ -112,16 +111,29 @@ export function reroute(uri=null) {
 }
 
 /**
- * Create node path for requested model, view, id.
+ * Create node path for requested model, view, id, group.
+ * - format: <MODEL>/<VIEW>/<ID>/<GROUP>
  *
  * @public
  */
 
-export function getNodeURI(model, view='', id='') {
+export function getNodeURI(model='', view='', id='', group='') {
     const modelSlug = model ? `/${model}` : '';
     const viewSlug = view ? `/${view}` : '';
     const idSlug = id ? `/${id}` : '';
-    return `${modelSlug}${viewSlug}${idSlug}`;
+    const groupSlug = group ? `/${group}` : '';
+    return `${modelSlug}${viewSlug}${idSlug}${groupSlug}`;
+}
+
+/**
+ * Create node path for requested node filtered view.
+ *
+ * @public
+ */
+
+export function getNodeFilterURI(ids=[], offset=0, limit=10) {
+    const idfilter = ids.join('+');
+    return `/filter?ids=${idfilter}&offset=${offset}&limit=${limit}`;
 }
 
 /**

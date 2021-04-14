@@ -6,7 +6,7 @@
  */
 
 import { schema } from '../schema';
-import { capitalize, sanitize } from '../_utils/data.utils.client';
+import { capitalize } from '../_utils/data.utils.client';
 
 /**
  * Get static view render index from given route. Unlike data
@@ -97,47 +97,8 @@ export const getAppTitle = () => {
  */
 
 export const getRenderType = (view, model) => {
-    // destructure the render property from the schema
     const { render=view } = _getViewAttributes(view, model);
     return render;
-}
-
-/**
- * Generate lookup table for field key(s) used to assign labels for nodes.
- * - Selects only fields assigned as label keys.
- * - Keys are sorted by the order value assigned to 'key' in the field.
- * - Returns model-index arrays of field settings for each key.
- *
- * @public
- */
-
-const labelKeys = Object.keys(schema.models)
-        .reduce((o, model) => {
-            // select assigned label keys from fields in model fieldsets
-            o[model] = schema.models[model].fieldsets
-                .reduce((fset, fieldset) => {
-                        Object.keys(fieldset)
-                        .filter(field => fieldset[field].key && field !== 'legend' && field !== 'render')
-                        .map(field => {
-                            fset[field] = fieldset[field];
-                            return fset;
-                        })
-                    return fset;
-                }, {})
-
-            // include general attributes
-            o[model].attributes = schema.models[model].attributes;
-            return o;
-        }, {});
-
-/**
- * Retrieve field key(s) used to assign labels for model nodes.
- *
- * @public
- */
-
-export const getLabelKeys = (model) => {
-    return labelKeys.hasOwnProperty(model) ? labelKeys[model] : {};
 }
 
 /**
@@ -192,77 +153,6 @@ export const getDependentTypes = (model) => {
 }
 
 /**
- * Retrieve dependent file types for model from schema.
- *
- * @param {String} model
- * @return {String} file types
- * @public
- */
-
-export const getFileTypes = (model) => {
-    return schema.models.hasOwnProperty(model)
-        ? schema.models[model].attributes.hasOwnProperty('files')
-            ? schema.models[model].attributes.files
-            : ''
-        : '';
-}
-
-/**
- * Computes label for given node data using data fields.
- * - looks up fields assigned as key(s) to label node type instance
- * - sorts key values (integers) to order positions in the label
- * - joins field values with commas to compose label
- *
- * @public
- * @param {Object} item
- * @return {String} label
- */
-
-export const getNodeLabel = (item) => {
-
-    // get label keys for node type from schema
-    const { node={}, metadata={} } = item || {};
-    const labelKeys = getLabelKeys(node.type) || [];
-
-    // get item prefix (if exists)
-    const { attributes={} } = labelKeys || {};
-    const { prefix=''} = attributes || {};
-
-    // iterate over label keys assigned in schema
-    const label = Object.keys(labelKeys)
-        .filter(labelKey => metadata.hasOwnProperty(labelKey) && metadata[labelKey])
-        .sort(function(labelKeyA,labelKeyB) {
-            return labelKeys[labelKeyA].key - labelKeys[labelKeyB].key;
-        })
-        .map(field => {
-            return sanitize(
-                metadata[field],
-                labelKeys[field].hasOwnProperty('render')
-                    ? labelKeys[field].render
-                    : ''
-            )
-        })
-        .join(', ');
-
-    // Handle empty labels
-    return prefix + ' ' + label;
-}
-
-/**
- * Computes label for given capture data using data fields.
- *
- * @public
- * @param capture
- * @return {String} label
- */
-
-export const getCaptureLabel = (capture) => {
-    const { metadata={} } = capture || {};
-    const {fn_photo_reference=''} = metadata || {};
-    return fn_photo_reference || getNodeLabel(capture);
-}
-
-/**
  * Get order of node in tree.
  *
  * @public
@@ -276,150 +166,6 @@ export const getNodeOrder = (type) => {
     const { attributes={} } = modelSchema || {};
 
     return attributes.hasOwnProperty('order') ? attributes.order : 0;
-}
-
-/**
- * Computes label for given file data using schema data fields.
- * - extracts prefix from filename to use as a label.
- *
- * @public
- * @param {Object} file
- * @return {String} label
- */
-
-export const getFileLabel = (file) => {
-
-    // get label keys for node type from schema
-    const {label='', filename='', file_type='', file_size='', data={}} = file || {};
-
-    // get image label
-    const getImgLabel = () => {
-
-        // extract prefix substring from filename to omit key token string
-        // - looks for last underscore '_' in filename as index
-        // - OR looks for last dot '.' in filename as index
-        const lastIndex = filename.lastIndexOf('_') > 0
-            ? filename.lastIndexOf('_')
-            : filename.lastIndexOf('.');
-        const abbrevFilename = filename.substring(0, lastIndex);
-
-        // Handle empty file labels
-        return abbrevFilename ? abbrevFilename : getNodeLabel(file_type);
-    }
-
-    // get metadata file label
-    const getMetadataLabel = () => {
-        return `${filename} (${capitalize(data.type)} Metadata) ${file_size ? `[${file_size}]` : ''}`;
-    }
-
-    // label functions indexed by file type
-    const fileTypes = {
-        historic_images: () => {return label ? label : getImgLabel();},
-        modern_images: () => {return label ? label : getImgLabel();},
-        supplemental_images: () => {return getImgLabel();},
-        metadata_files: () => {return getMetadataLabel();},
-    }
-
-    return fileTypes.hasOwnProperty(file_type) ? fileTypes[file_type]() : null
-}
-
-/**
- * Load view settings for model.
- *
- * @public
- * @param {String} view
- * @param {String} model
- * @param {Object} modelAttributes
- * @return {{model: String, attributes: *, fields: {name: *, label: *, render: *|string, value: *|string}[]}}
- */
-
-export const genSchema = (view, model, modelAttributes={}) => {
-
-    const modelSchema = schema.models.hasOwnProperty(model)
-        ? schema.models[model]
-        : {};
-    const viewAttributes = _getViewAttributes(view, model);
-
-    // check that model schema has fieldsets
-    if (!modelSchema.hasOwnProperty('fieldsets'))
-        return {};
-
-    /** create renderable elements based on schema
-        Filters out omitted fields (array) for view.
-        - set in schema 'restrict' settings (list of
-          views restricted for showing the field).
-        - when 'restrict' is absent, all views show
-          the field.
-        - an empty 'restrict' array omits the field
-          from all views.
-        (Optional) load initial values from input data
-     */
-
-    const filteredFieldsets =
-        modelSchema.fieldsets
-            .filter(fieldset =>
-                (
-                    !fieldset.hasOwnProperty('restrict')
-                    || fieldset.restrict.includes(view)
-                )
-            )
-            .map((fieldset, index) => {
-
-                const { render='', restrict='', legend=''} = fieldset || {};
-
-                // filter fields
-                let filteredFields = Object.keys(fieldset)
-                    .filter(fieldKey =>
-                        fieldKey !== 'legend'
-                        && fieldKey !== 'render'
-                        && fieldKey !== 'restrict'
-                        &&
-                        (
-                            !fieldset[fieldKey].hasOwnProperty('restrict')
-                            || fieldset[fieldKey].restrict.includes(view)
-                        )
-                    )
-                    .map(fieldKey => {
-
-                        // get optional model attributes from API data
-                        const {value='', options=[], label=''} = modelAttributes && modelAttributes.hasOwnProperty(fieldKey)
-                            ? modelAttributes[fieldKey]
-                            : {};
-
-                        return {
-                            name: render === 'multiple' ? `${fieldKey}[${index}]` : fieldKey,
-                            id: fieldKey,
-                            label: fieldset[fieldKey].label || label,
-                            value: value,
-                            options: options,
-                            render: fieldset[fieldKey].hasOwnProperty('render')
-                                ? fieldset[fieldKey].render
-                                : 'text',
-                            validate:fieldset[fieldKey].hasOwnProperty('validate')
-                                ? fieldset[fieldKey].validate
-                                : [],
-                            reference: fieldset[fieldKey].hasOwnProperty('reference')
-                                ? fieldset[fieldKey].reference
-                                : ''
-                        };
-                    })
-                    .reduce((o, field) => {
-                        o[field.name] = field;
-                        return o;
-                    }, {});
-                return {
-                    legend: legend,
-                    render: render,
-                    fields: filteredFields
-                }
-            });
-
-    return {
-        model: model,
-        view: view,
-        attributes: viewAttributes,
-        fieldsets: filteredFieldsets
-    }
 }
 
 /**
@@ -447,4 +193,104 @@ const _getViewAttributes = (view, model) => {
         : null;
 
     return modelView ? modelView : defaultView ? defaultView : {};
+}
+
+/**
+ * Load view settings for model.
+ *
+ * @public
+ * @param {String} view
+ * @param {String} model
+ * @param {String} fieldsetKey
+ * @return {Object} schema
+ */
+
+export const genSchema = (view, model, fieldsetKey='') => {
+
+    // model schema configuration
+    const modelSchema = schema.models.hasOwnProperty(model)
+        ? schema.models[model]
+        : {};
+
+    // view schema configuration
+    const viewAttributes = _getViewAttributes(view, model);
+
+    // does the schema include file uploads?
+    let hasFiles = false;
+
+    /** create renderable elements based on schema Filters out omitted
+     * fields (array) for view.
+     *  - set in schema 'restrict' settings (list of views restricted for showing the field).
+     *  - when 'restrict' is absent, all views show the field.
+     *  - an empty 'restrict' array omits the field from all views.
+     *  - (Optional) load initial values from input data
+     */
+
+    const filteredFieldsets = modelSchema.hasOwnProperty('fieldsets') ?
+        modelSchema.fieldsets
+            .filter(fieldset =>
+                (
+                    !fieldset.hasOwnProperty('restrict') || fieldset.restrict.includes(view)
+                )
+                &&
+                (
+                    !fieldsetKey || fieldset.hasOwnProperty(fieldsetKey)
+                )
+            )
+            .map((fieldset, index) => {
+
+                const { render = '', legend = '' } = fieldset || {};
+
+                // filter fields
+                let filteredFields = Object.keys(fieldset)
+                    .filter(fieldKey =>
+                        fieldKey !== 'legend'
+                        && fieldKey !== 'render'
+                        && fieldKey !== 'restrict'
+                        && (
+                            !fieldset[fieldKey].hasOwnProperty('restrict')
+                            || fieldset[fieldKey].restrict.includes(view)
+                        ),
+                    )
+                    .map(fieldKey => {
+
+                        const _render = fieldset[fieldKey].hasOwnProperty('render')
+                            ? fieldset[fieldKey].render
+                            : 'text';
+
+                        hasFiles = _render === 'file' || _render === 'files' ? true : hasFiles;
+
+                        return {
+                            name: render === 'multiple' ? `${fieldKey}[${index}]` : fieldKey,
+                            id: fieldKey,
+                            label: fieldset[fieldKey].label,
+                            attributes: fieldset[fieldKey],
+                            render: _render,
+                            validate: fieldset[fieldKey].hasOwnProperty('validate')
+                                ? fieldset[fieldKey].validate
+                                : [],
+                            reference: fieldset[fieldKey].hasOwnProperty('reference')
+                                ? fieldset[fieldKey].reference
+                                : '',
+                        };
+                    })
+                    .reduce((o, field) => {
+                        o[field.name] = field;
+                        return o;
+                    }, {});
+                return {
+                    legend: legend,
+                    render: render,
+                    fields: filteredFields,
+                };
+            })
+        :[];
+
+    return {
+        model: model,
+        view: view,
+        hasFiles: hasFiles,
+        attributes: viewAttributes,
+        fieldsets: filteredFieldsets
+    }
 }

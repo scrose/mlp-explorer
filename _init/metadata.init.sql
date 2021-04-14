@@ -6,6 +6,56 @@ begin;
 
 
 -- -------------------------------------------------------------
+-- Metadata Types Table
+-- -------------------------------------------------------------
+
+drop table if exists "metadata_types" CASCADE;
+
+create TABLE"public"."metadata_types"
+(
+    id    serial PRIMARY KEY,
+    name  VARCHAR(40) UNIQUE NOT NULL CHECK (name ~ '^[\w]+$'),
+    label VARCHAR(40) UNIQUE NOT NULL
+);
+
+insert into "public"."metadata_types" (name, label)
+values ('glass_plate_listings', 'Glass Plate Listings'),
+       ('maps', 'Maps'),
+       ('cameras', 'Cameras'),
+       ('lens', 'Lens'),
+       ('participants', 'Participants'),
+       ('participant_groups', 'Participant Groups');
+
+-- -------------------------------------------------------------
+-- Metadata Relations Table
+-- -------------------------------------------------------------
+
+drop table if exists "metadata_relations" cascade;
+
+create TABLE "metadata_relations"
+(
+    "id "            serial PRIMARY KEY,
+    "dependent_type" VARCHAR(40) NOT NULL,
+    "owner_type"     VARCHAR(40),
+    UNIQUE (owner_type, dependent_type),
+    CONSTRAINT fk_owner_type FOREIGN KEY (owner_type)
+        REFERENCES "node_types" (name),
+    CONSTRAINT fk_dependent_type FOREIGN KEY (dependent_type)
+        REFERENCES "metadata_types" (name)
+);
+
+insert into "metadata_relations" (dependent_type, owner_type)
+values ('glass_plate_listings', 'survey_seasons'),
+       ('maps', 'survey_seasons'),
+       ('cameras', 'historic_captures'),
+       ('cameras', 'modern_captures'),
+       ('lens', 'historic_captures'),
+       ('lens', 'modern_captures'),
+       ('participants', 'modern_visits'),
+       ('participant_groups', 'modern_visits');
+
+
+-- -------------------------------------------------------------
 --    Glass Plate Listings (owned by Survey Seasons)
 -- -------------------------------------------------------------
 
@@ -19,6 +69,7 @@ CREATE TABLE "public"."glass_plate_listings" (
    "notes" text,
    "created_at" timestamp without time zone NOT NULL,
    "updated_at" timestamp without time zone NOT NULL,
+   UNIQUE (owner_id, container, plates),
    CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
        REFERENCES survey_seasons (nodes_id) ON DELETE CASCADE
 ) WITH (oids = false);
@@ -60,6 +111,7 @@ CREATE TABLE "public"."maps" (
      "links" text,
      "created_at" timestamp without time zone NOT NULL,
      "updated_at" timestamp without time zone NOT NULL,
+     UNIQUE (owner_id, nts_map, historic_map, links),
      CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
          REFERENCES survey_seasons (nodes_id) ON DELETE CASCADE
 ) WITH (oids = false);

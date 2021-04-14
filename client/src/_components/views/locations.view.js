@@ -7,10 +7,10 @@
 
 import React from 'react';
 import Accordion from '../common/accordion';
-import NodeMenu from '../menus/node.menu';
 import CapturesView from './captures.view';
 import MetadataView, { MetadataAttached } from './metadata.view';
-import { getModelLabel } from '../../_services/schema.services.client';
+import EditorMenu from '../menus/editor.menu';
+import { getDependentTypes } from '../../_services/schema.services.client';
 
 /**
  * Model view component.
@@ -34,17 +34,17 @@ const LocationsView = ({data}) => {
         open={true}
         hasDependents={hasDependents}
         menu={
-            <NodeMenu
+            <EditorMenu
                 model={type}
                 id={id}
                 metadata={metadata}
-                dependent={'modern_captures'}
+                dependents={getDependentTypes('locations')}
             />
         }>
         <Accordion type={'info'} label={`Location Field Notes`}>
             <MetadataView key={`locations_${id}`} model={'locations'} metadata={metadata} />
         </Accordion>
-        <MetadataAttached attached={attached} />
+        <MetadataAttached owner={node} attached={attached} />
         <CapturesView captures={dependents} fileType={'modern_images'} />
     </Accordion>
 }

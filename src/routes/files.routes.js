@@ -38,6 +38,13 @@ function FilesRoutes(modelType) {
             post: null,
             delete: null,
         },
+        create: {
+            path: path.join('/', this.model, 'new', ':owner_id'),
+            get: null,
+            put: null,
+            post: this.controller.upload,
+            delete: null,
+        },
         edit: {
             path: path.join('/', this.model, 'edit', ':' + this.key),
             get: this.controller.edit,
@@ -45,28 +52,32 @@ function FilesRoutes(modelType) {
             post: this.controller.update,
             delete: null,
         },
-        download: {
-            path: path.join('/', this.model, 'download', ':' + this.key),
+        remove: {
+            path: path.join('/', this.model, 'remove', ':' + this.key),
             get: null,
             put: null,
-            post: this.controller.download,
+            post: this.controller.remove,
             delete: null,
         },
-        upload: {
-            path: path.join('/', this.model, 'upload', ':' + this.key),
-            get: this.controller.browse,
+        download: {
+            path: path.join('/', this.model, 'download', ':' + this.key),
+            get: this.controller.download,
             put: null,
-            post: this.controller.upload,
+            post: null,
             delete: null,
-        },
-        master: {
+        }
+    };
+
+    // include master endpoint for modern capture images
+    if (this.model === 'modern_images') {
+        this.routes.master = {
             path: path.join('/', this.model, 'master', ':' + this.key),
             get: this.controller.master,
             put: null,
             post: null,
             delete: null,
-        },
-    };
+        }
+    }
 }
 
 /**

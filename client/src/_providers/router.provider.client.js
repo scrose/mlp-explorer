@@ -7,9 +7,9 @@
 
 import * as React from 'react'
 import { makeRequest } from '../_services/api.services.client';
-import { getAPIURL, getNodeURI, filterPath, redirect, reroute, getRoot } from '../_utils/paths.utils.client';
+import { getAPIURL, getNodeURI, filterPath, reroute, getRoot } from '../_utils/paths.utils.client';
 import { getStaticView } from '../_services/schema.services.client';
-import { addSessionMsg, clearNodes } from '../_services/session.services.client';
+import { setSessionMsg, clearNodes } from '../_services/session.services.client';
 
 /**
  * Global data provider.
@@ -53,11 +53,11 @@ function RouterProvider(props) {
 
     const update = async function(uri) {
 
-        // set static view (if applicable)
-        setStaticView(getStaticView(uri));
-
         // set app route state
         setRoute(uri);
+
+        // set static view (if applicable)
+        setStaticView(getStaticView(uri));
 
         // update route in browser
         reroute(uri);
@@ -86,18 +86,18 @@ function RouterProvider(props) {
 
     const errorRouter = (status, response) => {
         const routes = {
-            '404': () => {
-                return update('/not_found');
-            },
+            // '404': () => {
+            //     return update('/not_found');
+            // },
             // '401': () => {
             //     return redirect('/login');
             // },
-            '403': () => {
-                return update('/login');
-            },
-            '500': () => {
-                return update('/server_error');
-            }
+            // '403': () => {
+            //     return update('/login');
+            // },
+            // '500': () => {
+            //     return update('/server_error');
+            // }
         }
         return routes.hasOwnProperty(status) ? routes[status]() : response;
     }
@@ -111,7 +111,7 @@ function RouterProvider(props) {
 
     const handleResponse = (res) => {
 
-        // get _content portion of fetched response data
+        // get _static portion of fetched response data
         const { response } = res || {};
 
         // handle exceptions
@@ -130,6 +130,7 @@ function RouterProvider(props) {
      *
      */
     const get = async (uri) => {
+        if (!uri) return null;
         let res = await makeRequest({url: getAPIURL(uri), method:'GET'})
             .catch(err => {
                 // handle API connection errors
@@ -150,6 +151,8 @@ function RouterProvider(props) {
 
     const post = async (uri, formData= null) => {
         const parsedData = formData ? Object.fromEntries(formData) : {};
+
+        if (!uri) return null;
 
         let res = await makeRequest({
             url: getAPIURL(uri),
@@ -180,7 +183,6 @@ function RouterProvider(props) {
         // for(var pair of formData.entries()) {
         //     console.log(pair[0]+ ', '+ pair[1]);
         // }
-        // console.log('Route:', uri)
 
         try {
 
@@ -191,15 +193,18 @@ function RouterProvider(props) {
             // request finished event
             xhr.onload = function(e) {
                 if (xhr.readyState === 4) {
+                    const {statusText='An API Error Occurred.'} = e.currentTarget || {};
+                    const { response={} } = e.currentTarget || {};
+                    const { message={} } = response || {};
+                    const {msg=statusText} = message || {};
+
+                    // success
                     if (xhr.status === 200) {
-                        const { response } = e.currentTarget || {};
-                        const { message } = response || {};
-                        const {msg='Update Successful.'} = message || {};
                         return callback(null, {msg: msg, type: 'success'}, response);
                     }
+                    // error
                     else {
-                        const {statusText='API Error Occurred.'} = e.currentTarget || {};
-                        return callback(null, {msg: statusText, type: 'error'});
+                        return callback(null, {msg: msg, type: 'error'});
                     }
                 }
             };
@@ -239,27 +244,9 @@ function RouterProvider(props) {
             xhr.send(formData);
 
         } catch (err) {
-            console.log(err);
+            return callback(null, {msg: 'Submission Failed. Please try again.', type: 'error'});
         }
     };
-
-    /**
-     * Request method to delete node.
-     *
-     * @public
-     * @param model
-     * @param id
-     */
-
-    const remove = async (model, id) => {
-        const route = getNodeURI(model, 'remove', id);
-        post(route)
-            .then(res => {
-                addSessionMsg(res.message);
-                redirect('/');
-            })
-            .catch(console.error);
-    }
 
     /**
      * Request method to download file.
@@ -273,6 +260,27 @@ function RouterProvider(props) {
         return await makeRequest({url: getAPIURL(uri), method:'GET', download: format})
             .then(res => {
                 return new Blob([res.response]);
+            })
+            .catch(console.error);
+    }
+
+    /**
+     * Request method to delete node.
+     *
+     * @public
+     * @param {String} id
+     * @param {String} model
+     * @param {String} group
+     * @param {Function} callback
+     */
+
+    const remove = async (id, model, group='', callback) => {
+        const route = getNodeURI(model, 'remove', id, group);
+        post(route)
+            .then(res => {
+                console.log(res)
+                setSessionMsg(res.message);
+                callback(res);
             })
             .catch(console.error);
     }

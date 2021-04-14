@@ -9,8 +9,9 @@ import React from "react";
 
 const ServerError = () => {
     return (
-        <div>
-            <p>A server error has occurred.</p>
+        <div className={'error'}>
+            <h3>Server Error</h3>
+            <p>An error has occurred. <em>Please contact the site administrator for assistance.</em></p>
         </div>
     );
 }

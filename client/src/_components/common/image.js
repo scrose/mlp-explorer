@@ -15,7 +15,7 @@ import React from 'react';
  */
 
 const Image = ({
-                   url,
+                   url='',
                    title='',
                    label='',
                    scale='thumb',
@@ -28,12 +28,19 @@ const Image = ({
 
     // Handler for resource loading errors.
     // - uses fallback image
-    const onError = () => {
+    const onError = (err) => {
         if (!error) {
             setSrc(fallbackSrc);
             setError(true);
         }
     }
+
+    React.useEffect(()=> {
+        if (!src) {
+            setSrc(fallbackSrc);
+            setError(true);
+        }
+    }, [src, setSrc, setError])
 
     // render image
     return (
@@ -46,11 +53,10 @@ const Image = ({
                 onClick={onClick}
             />
             {
-                label ?
+                label &&
                 <figcaption onClick={onClick}>
                     {label}
                 </figcaption>
-                    : ''
             }
         </figure>
     )

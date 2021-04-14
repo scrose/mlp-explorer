@@ -6,12 +6,11 @@
  */
 
 import React from "react";
-import Loading from '../common/loading';
 import Table from '../common/table';
-import NodeMenu from '../menus/node.menu';
 import { useUser } from '../../_providers/user.provider.client';
 import { genSchema } from '../../_services/schema.services.client';
 import { sanitize } from '../../_utils/data.utils.client';
+import Loading from '../common/icon';
 
 /**
  * User list component to view/edit/delete records.
@@ -48,7 +47,7 @@ const ListUsers = ({ data=[]}) => {
                 // append inline edit menu (if authenticated)
                 // disallow super-administrator account updates
                 if (user)
-                    row.editor = <NodeMenu id={row.user_id} model={'users'} />;
+                    row.editor = '';
 
                 // convert user role ID to label
                 row.role = renameOption(row, fields, 'role');

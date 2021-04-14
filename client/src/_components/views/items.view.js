@@ -9,7 +9,7 @@ import React from 'react';
 import { genSchema, getModelLabel } from '../../_services/schema.services.client';
 import { sanitize } from '../../_utils/data.utils.client';
 import Table from '../common/table';
-import NodeMenu from '../menus/node.menu';
+import EditorMenu from '../menus/editor.menu';
 
 /**
  * Render item table component.
@@ -27,7 +27,7 @@ const ItemsView = ({
 }) => {
 
     const nodeMenu = (id, metadata) => {
-        return <NodeMenu
+        return <EditorMenu
             model={model}
             id={id}
             label={`${getModelLabel(model)} Metadata`}
@@ -62,16 +62,11 @@ const ItemsView = ({
         const cols = filterCols();
         return items.map(item => {
             return cols.reduce((o, col) => {
-                o[col.name] = sanitize(
-                    item.hasOwnProperty(col.name)
-                        ? item[col.name] : '',
-                    col.render);
+                o[col.name] = sanitize(item.hasOwnProperty(col.name) && item[col.name], col.render);
                 return o;
             }, {})
         });
     };
-
-    console.log(filterCols(), filterRows())
 
     return <Table rows={filterRows()} cols={filterCols()} className={'item'} />
 

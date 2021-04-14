@@ -6,13 +6,16 @@
  */
 
 import React from 'react';
-import { genSchema, getModelLabel } from '../../_services/schema.services.client';
+import { genSchema, getDependentTypes, getModelLabel } from '../../_services/schema.services.client';
 import { genID, sanitize } from '../../_utils/data.utils.client';
-import NodeMenu from '../menus/node.menu';
 import Button from '../common/button';
 import CapturesView from './captures.view';
 import Accordion from '../common/accordion';
+import EditorMenu from '../menus/editor.menu';
+import { useData } from '../../_providers/data.provider.client';
+import ComparisonsView from './comparisons.view';
 
+// generate random key
 const keyID = genID();
 
 /**
@@ -22,61 +25,71 @@ const keyID = genID();
  * - comparisons: side-by-side thumbnails
  *
  * @public
+ * @param {Object} owner
  * @param {Object} attached
  * @return {Array} components
  */
 
-export const MetadataAttached = ({ attached }) => {
-
+export const MetadataAttached = ({ owner, attached }) => {
         const attachedViews = {
-            comparisons: (data) => {
-                const { historic_capture = {}, modern_capture = {} } = data || {};
-                return <div className={'comparison h-menu'}>
-                    <CapturesView
-                        captures={[historic_capture]}
-                        fileType={'historic_images'}
-                    />
-                    <CapturesView
-                        captures={[modern_capture]}
-                        fileType={'modern_images'}
-                    />
-                </div>;
-            },
             participant_groups: (data) => {
-                return Object.keys(data || {}).map((pgroup) => {
-                    return <div key={`${keyID}_${pgroup}`} className={'participants'}>
-                        <h5>{getModelLabel(pgroup)}</h5>
-                        <ul>
+                return Object.keys(data || {})
+                    .sort()
+                    .map((pgroup, index) => {
+                    // get participant group ID
+                    const pgrp = data[pgroup].find(pg => pg !== null);
+                    const {pg_id=''} = pgrp || {};
+                    return <MetadataView
+                        key={`${keyID}_${pgroup}_${index}`}
+                        model={'participant_groups'}
+                        owner={owner}
+                        view={'attachItem'}
+                        metadata={
                             {
-                                data[pgroup].map(participant => {
-                                    const { id='', given_names = '', last_name = '' } = participant || {};
-                                    return (
-                                        <li key={`${keyID}_participant_${id}`}>
-                                            {given_names} {last_name}
-                                        </li>
-                                    );
-                                })
+                                id: pg_id,
+                                group_type: pgroup,
+                                [pgroup]: data[pgroup].map(participant => {
+                                    return {
+                                        value: participant.id,
+                                        label: participant.full_name
+                                    };
+                                }),
                             }
-                        </ul>
-                    </div>;
-                })
+                        }
+                        menu={true}
+                    />;
+                });
             },
-            default: (data, model) => {
+            comparisons: (data) => {
+                return <ComparisonsView data={data} />;
+            },
+            default: (mdData, model) => {
+                const {label='', data={}} = mdData || {};
                 return <MetadataView
+                    view={'attachItem'}
                     model={model}
+                    owner={owner}
+                    label={label}
                     metadata={data}
                     menu={true}
                 />;
             },
         }
 
+        // iterate over attached data types
         return Object.keys(attached || {}).map(attachedModel => {
-            if (attached[attachedModel].length > 0) {
-                // include attached metadata
-                return <Accordion
+            return Array.isArray(attached[attachedModel]) && attached[attachedModel].length > 0
+                ? <Accordion
                     key={`${keyID}_${attachedModel}`}
                     type={attachedModel}
                     label={`${getModelLabel(attachedModel, 'label')}`}
+                    menu={<EditorMenu
+                        model={attachedModel}
+                        id={owner && owner.hasOwnProperty('id') ? owner.id : ''}
+                        view={'attach'}
+                        owner={owner}
+                        dependents={[attachedModel]}
+                    />}
                 >
                     <div className={`${attachedModel} h-menu`}>
                         {
@@ -91,10 +104,9 @@ export const MetadataAttached = ({ attached }) => {
                             })
                         }
                     </div>
-                </Accordion>;
-            }
+                </Accordion>
+            : '';
         });
-
 };
 
 /**
@@ -102,45 +114,84 @@ export const MetadataAttached = ({ attached }) => {
  *
  * @public
  * @param {String} model
+ * @param {Object} owner
  * @param {Object} metadata
+ * @param {String} view
+ * @param {String} label
  * @param {Object} node
  * @param {Object} file
- * @param menu
+ * @param {Boolean} menu
  * @return {JSX.Element}
  */
 
 const MetadataView = ({
-                      model,
-                      metadata={},
-                      node={},
-                      file={},
-                      menu=false
+                          model,
+                          owner=null,
+                          metadata={},
+                          view='show',
+                          label='',
+                          node={},
+                          file={},
+                          menu=false
 }) => {
 
-    // generate main schema
-    const { fieldsets=[] }  = genSchema('show', model);
-    const {id=null, nodes_id=null} = metadata || {};
+    const api = useData();
+
+    // gather the metadata
+    const {id=null, nodes_id=null, group_type=''} = metadata || {};
+    const { fieldsets=[] }  = genSchema('show', model, group_type);
     const itemID = id || nodes_id || '';
 
     // prepare data for item table: sanitize data by render type
     const filterData = (fieldset) => {
         return Object.keys(fieldset.fields)
-            .map(key => {
-
-                // get rendering setting from schema (if exists)
+            .filter(key => {
+                // omit hidden fields
                 const { render='' } = fieldset.fields[key] || {};
+                return render !== 'hidden';
+            })
+            .map(fieldKey => {
+                // get rendering setting from schema (if exists)
+                const { render='', reference='', attributes={} } = fieldset.fields[fieldKey] || {};
+                const {prefix='', suffix=''} = attributes || {};
 
                 // cascade data sources
-                const value = metadata.hasOwnProperty(key)
-                    ? metadata[key]
-                    : file.hasOwnProperty(key)
-                        ? file[key]
-                        : node.hasOwnProperty(key)
-                            ? node[key]
-                            : ''
+                let value = metadata.hasOwnProperty(fieldKey)
+                    ? metadata[fieldKey]
+                    : file.hasOwnProperty(fieldKey)
+                        ? file[fieldKey]
+                        : node.hasOwnProperty(fieldKey)
+                            ? node[fieldKey]
+                            : '';
+
+                // select options for value (if available)
+                if (render === 'select' && api.options.hasOwnProperty(reference)) {
+                    const selected = api.options[reference].find(opt => opt.value === value);
+                    value = selected ? selected.label : value;
+                }
+
+                // multiselect list of values (if available)
+                if (render === 'multiselect') {
+                    return {
+                        value:  <ul className={'list'}>
+                            {
+                                    metadata[group_type].map((item, index) => {
+                                        const { label='' } = item || {};
+                                        return (
+                                            <li key={`${keyID}_${model}_${index}`}>
+                                                {sanitize(label)}
+                                            </li>
+                                        );
+                                    })
+                                    }
+                        </ul>,
+                        label: fieldset.fields[fieldKey].label
+                    }
+                }
+
                 return {
-                    value: sanitize( value, render),
-                    label: fieldset.fields[key].label
+                    value: sanitize( value, render, '', '', prefix, suffix),
+                    label: fieldset.fields[fieldKey].label
                 }
             });
     };
@@ -148,7 +199,10 @@ const MetadataView = ({
     return <>
         {
             fieldsets
-                .filter(fieldset => fieldset.hasOwnProperty('legend') && fieldset.legend)
+                .filter(fieldset =>
+                    !group_type
+                    || fieldset.fields.hasOwnProperty(group_type)
+                )
                 .map((fieldset, index) => {
                     return <table key={`${keyID}_${index}`} className={'item'}>
                         <thead>
@@ -158,14 +212,15 @@ const MetadataView = ({
                                         <ul>
                                             <li><Button label={fieldset.legend} /></li>
                                             <li className={'accordion-menu'}>{
-                                                menu
-                                                    ? <NodeMenu
-                                                        model={model}
-                                                        id={itemID}
-                                                        label={`${getModelLabel(model)} Metadata`}
-                                                        metadata={metadata}
-                                                    />
-                                                    : ''
+                                                menu && <EditorMenu
+                                                            id={itemID}
+                                                            model={model}
+                                                            owner={owner}
+                                                            view={view}
+                                                            label={label}
+                                                            metadata={metadata}
+                                                            dependents={getDependentTypes(model)}
+                                                        />
                                             }</li>
                                         </ul>
                                     </div>

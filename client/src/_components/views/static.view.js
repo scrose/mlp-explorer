@@ -13,7 +13,7 @@ import LogoutUsers from '../users/logout.users';
 import NotfoundError from '../error/notfound.error';
 import UnavailableError from '../error/unavailable.error';
 import ServerError from '../error/server.error';
-import Loading from '../common/loading';
+import Loading from '../common/icon';
 
 /**
  * Build requested static page view.

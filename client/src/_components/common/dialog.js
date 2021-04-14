@@ -11,10 +11,14 @@ import Button from './button';
 /**
  * Dialog component.
  *
+ * @param title
+ * @param setToggle
+ * @param callback
+ * @param children
  * @public
  */
 
-const Dialog = ({title, setToggle, children}) => {
+const Dialog = ({title, setToggle, callback=()=>{}, children}) => {
     return (
         <div className={`dialog`}>
             <div className={'content-box'}>
@@ -22,8 +26,11 @@ const Dialog = ({title, setToggle, children}) => {
                     <Button
                         icon={'close'}
                         name={'close'}
-                        label={'Close'}
-                        onClick={() => {setToggle(null)}}
+                        className={'closer'}
+                        onClick={() => {
+                            setToggle(null);
+                            callback();
+                        }}
                     />
                 </div>
                 <h2 className={'dialog-title'} id="dialog-title">

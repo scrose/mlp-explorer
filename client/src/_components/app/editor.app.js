@@ -11,7 +11,7 @@ import BoundaryError from '../error/boundary.error';
 import Footer from '../common/footer';
 import Editor from '../editor/editor';
 import HeaderEditor from '../editor/header.editor';
-import MenuEditor from '../editor/menu.editor';
+import EditorMenu from '../menus/editor.menu';
 
 /**
  * Main app component for authenticated users.
@@ -21,7 +21,7 @@ import MenuEditor from '../editor/menu.editor';
 
 const EditorApp = () => {
     return (
-        <div className={"page-_content"}>
+        <div className={"page-_static"}>
             <HeaderEditor />
             <main>
                 <div className={'main'}>

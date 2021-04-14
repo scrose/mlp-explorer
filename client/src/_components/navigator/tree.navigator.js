@@ -7,10 +7,9 @@
 
 import React from 'react'
 import { useRouter } from '../../_providers/router.provider.client';
-import Loading from '../common/loading';
-import Icon from '../common/icon';
+import Icon, { Loading } from '../common/icon';
 import { getNodeURI } from '../../_utils/paths.utils.client';
-import { getModelLabel, getNodeLabel, getNodeOrder } from '../../_services/schema.services.client';
+import { getModelLabel, getNodeOrder } from '../../_services/schema.services.client';
 import { addNode, checkNode, removeNode } from '../../_services/session.services.client';
 import { useData } from '../../_providers/data.provider.client';
 import Button from '../common/button';
@@ -231,12 +230,12 @@ const TreeNodeList = ({items, filter}) => {
             {
                 items
                     .map(item => {
-                        const { node={}, hasDependents=false, status={} } = item || {};
+                        const { node={}, hasDependents=false, status={}, label='' } = item || {};
                         const { id='', type='' } = node || {};
                         return {
                             type: type,
                             id: id,
-                            label: getNodeLabel(item),
+                            label: label,
                             order: getNodeOrder(type || '') || 0,
                             hasDependents: hasDependents,
                             status: status
@@ -296,7 +295,7 @@ const TreeNavigator = ({data, filter}) => {
                     }
                     </ul>
                 </div>
-                : <Loading/>
+                : <Loading overlay={true}/>
                 )
 }
 

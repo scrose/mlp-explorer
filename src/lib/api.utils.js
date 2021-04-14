@@ -32,7 +32,7 @@ export function prepare({
 }) {
 
     // get model attributes
-    const { name={}, attributes={}, options={} } = model;
+    const { name='', attributes={} } = model;
 
     // get submission data
     const submissionData = data
@@ -42,8 +42,7 @@ export function prepare({
     return {
         model: {
             name: name,
-            attributes: attributes,
-            options: options,
+            attributes: attributes
         },
         path: path,
         view: view,

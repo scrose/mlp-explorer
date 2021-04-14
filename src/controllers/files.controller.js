@@ -17,6 +17,9 @@ import * as nserve from '../services/nodes.services.js';
 import { prepare } from '../lib/api.utils.js';
 import pool from '../services/db.services.js';
 import * as metaserve from '../services/metadata.services.js';
+import { sanitize } from '../lib/data.utils.js';
+import * as importer from '../services/import.services.js';
+import * as cserve from '../services/construct.services.js';
 
 /**
  * Export controller constructor.
@@ -25,7 +28,7 @@ import * as metaserve from '../services/metadata.services.js';
  * @src public
  */
 
-let Model, model, services;
+let Model, model, mserve;
 
 export default function FilesController(modelType) {
 
@@ -45,7 +48,7 @@ export default function FilesController(modelType) {
             // generate model constructor
             Model = await db.model.create(modelType);
             model = new Model();
-            services = new ModelServices(new Model());
+            mserve = new ModelServices(new Model());
 
         } catch (err) {
             console.error(err)
@@ -87,7 +90,7 @@ export default function FilesController(modelType) {
 
         try {
             // get requested node ID
-            let id = parseInt(this.getId(req));
+            let id = this.getId(req);
 
             // get file data
             const fileData = await fserve.get(id, client);
@@ -96,12 +99,15 @@ export default function FilesController(modelType) {
             const { owner_id = '' } = file || {};
 
             // get path of owner node in hierarchy
-            const node = await nserve.select(owner_id, client);
-            const path = await nserve.getPath(file);
+            const owner = await nserve.select(
+                sanitize(owner_id, 'integer'), client);
 
-            // file or node not in database
-            if (!fileData || !node)
+            // file or owner do not exist
+            if (!fileData || !owner)
                 return next(new Error('notFound'));
+
+            // create node path
+            const path = await nserve.getPath(file);
 
             // get linked data referenced in node tree
             return res.status(200).json(
@@ -117,6 +123,62 @@ export default function FilesController(modelType) {
             return next(err);
         } finally {
             client.release(true);
+        }
+    };
+
+
+    /**
+     * Upload files.
+     *
+     * @param req
+     * @param res
+     * @param next
+     * @src public
+     */
+
+    this.upload = async (req, res, next) => {
+
+        const client = await pool.connect();
+
+        try {
+
+            // get owner ID from parameters (if exists)
+            const { owner_id = null } = req.params || {};
+
+            // get owner metadata record
+            const owner = await nserve.select(owner_id, client);
+            const {type=''} = owner || {};
+
+            // filter metadata through importer
+            // - saves attached files to library
+            // - collates metadata
+            const metadata = await importer.receive(req, owner_id, type);
+
+            // check if files are present
+            if (Object.keys(metadata.files).length === 0) {
+                return next(new Error('invalidRequest'));
+            }
+
+            // save file(s) and insert file metadata
+            const resData = await fserve.insert(metadata, model.name, owner);
+
+            // send response
+            res.status(200).json(
+                prepare({
+                    view: 'show',
+                    model: model,
+                    data: resData[0],
+                    message: {
+                        msg: `${resData.length} ${model.label} items created successfully!`,
+                        type: 'success'
+                    },
+                }));
+
+        } catch (err) {
+            console.error(err)
+            return next(err);
+        } finally {
+            client.release();
         }
     };
 
@@ -141,16 +203,10 @@ export default function FilesController(modelType) {
 
             // get file data
             const fileData = await fserve.get(id, client);
-
             const { file = null } = fileData || {};
-            const { owner_id = '' } = file || {};
 
             // get path of owner node in hierarchy
-            const node = await nserve.select(owner_id, client);
             const path = await nserve.getPath(file);
-
-            // include metadata options
-            model.options = await metaserve.getOptions();
 
             // send form data response
             res.status(200).json(
@@ -182,30 +238,51 @@ export default function FilesController(modelType) {
 
         try {
 
-            // get file data
+            // get file data from parameters
+            const id = this.getId(req);
             const fileData = await fserve.get(id, client);
 
-            const { file = null } = fileData || {};
-            const { owner_id = '' } = file || {};
+            // check that file entry exists
+            if (!fileData) {
+                return next(new Error('invalidRequest'));
+            }
+
+            // get metadata fields
+            const {metadata='', file=''} = fileData || {};
+            const {owner_id='', owner_type=''} = file || {};
+            const imported = await importer.receive(req, owner_id, owner_type);
+
+
+            console.log('Imported data:', imported)
+
+            // overwrite metadata
+            Object.keys(imported.data).forEach((field) => {
+                console.log(field)
+                metadata[field] = imported.data[field];
+            })
+
+            console.log('Updated metadata:', metadata);
+
+            // update file metadata record
+            await fserve.update(new Model(metadata));
+
+            // get updated file
+            let updatedItem = await fserve.get(id);
 
             // get path of owner node in hierarchy
-            const node = await nserve.select(owner_id, client);
             const path = await nserve.getPath(file);
 
-            // include metadata options
-            model.options = await metaserve.getOptions();
-
-            // send create response
+            // send response
             res.status(200).json(
                 prepare({
                     view: 'show',
                     model: model,
-                    data: fileData,
-                    path: path,
+                    data: {},
                     message: {
-                        msg: `${model.label} item updated successfully!`,
+                        msg: `'${updatedItem.label}' updated successfully!`,
                         type: 'success'
                     },
+                    path: path
                 }));
 
         } catch (err) {
@@ -217,7 +294,7 @@ export default function FilesController(modelType) {
     };
 
     /**
-     * Select image files for upload.
+     * Delete file and file metadata.
      *
      * @param req
      * @param res
@@ -225,26 +302,38 @@ export default function FilesController(modelType) {
      * @src public
      */
 
-    this.browse = async (req, res, next) => {
+    this.remove = async (req, res, next) => {
+
         try {
-            // get requested file ID
-            const ownerID = this.getId(req);
+            const id = this.getId(req);
 
-            // get path of owner node in hierarchy
-            const node = await nserve.select(ownerID);
-            const path = await nserve.getPath(node);
+            // retrieve item data and create a file instance
+            let fileData = await fserve.get(id);
 
-            // file or node not in database
-            if (!node)
+            // check if node is valid (exists)
+            if (!fileData)
                 return next(new Error('notFound'));
 
-            // get linked data referenced in node tree
-            return res.status(200).json(
+            // create file instance
+            const item = new Model(fileData.metadata);
+            let file = await cserve.createFile(item, fileData);
+            const filepaths = ['/Users/boutrous/Workspace/NodeJS/images/versions/medium_BotoQMBg516RnHixpJvAWb8HqokbEsyELUHxnoy7GiZ703u9.jpg']
+
+            // delete file
+            const resData = await fserve.remove(file, filepaths);
+            if (resData.error) {
+                return next(resData.error);
+            }
+
+            res.status(200).json(
                 prepare({
-                    view: 'upload',
+                    view: 'remove',
                     model: model,
-                    data: node,
-                    path: path
+                    data: fileData,
+                    message: {
+                        msg: `'${fileData.label}' deleted successful!`,
+                        type: 'success'
+                    }
                 }));
 
         } catch (err) {
@@ -253,8 +342,9 @@ export default function FilesController(modelType) {
         }
     };
 
+
     /**
-     * Upload files.
+     * Download files.
      *
      * @param req
      * @param res
@@ -262,7 +352,7 @@ export default function FilesController(modelType) {
      * @src public
      */
 
-    this.upload = async (req, res, next) => {
+    this.download = async (req, res, next) => {
 
         try {
 
@@ -293,13 +383,12 @@ export default function FilesController(modelType) {
             };
 
             // stream uploaded files to server
-            await fserve.upload(req, res, next, metadata);
+            await fserve.receive(req, res, next, metadata);
 
         } catch (err) {
             return next(err);
         }
     };
-
 
     /**
      * Get image data for mastering.
@@ -322,39 +411,34 @@ export default function FilesController(modelType) {
 
             // get file data
             const fileData = await fserve.get(id, client);
-
             const { file = null } = fileData || {};
-            const { owner_id = '' } = file || {};
 
             // get path of owner node in hierarchy
-            const node = await nserve.select(owner_id, client);
             const path = await nserve.getPath(file);
 
-            // get station ID
+            // get station node
             const stationKey = Object.keys(path)
                 .find(key => {
                     const {node={}} = path[key] || {};
                     const {type=''} = node || {};
                     return type === 'stations';
                 });
+
             if (!stationKey)
                 return next(new Error('invalidRequest'));
+
             const station = path[stationKey].node;
 
-            // include possible historic images to align
-            // append full data for each dependent node
-            let captures = await metaserve.getHistoricCapturesByStation(station, client);
-
-            model.options = {
-                historic_captures: captures
-            };
-
             // send form data response
+            // - include possible historic images for alignment (mastering)
             res.status(200).json(
                 prepare({
                     view: 'master',
                     model: model,
-                    data: fileData,
+                    data: {
+                        modern_capture: fileData,
+                        historic_captures: await metaserve.getHistoricCapturesByStation(station, client)
+                    },
                     path: path
                 }));
 

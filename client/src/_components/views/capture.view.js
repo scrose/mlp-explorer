@@ -6,17 +6,17 @@
  */
 
 import React from 'react';
-import MetadataView from './metadata.view';
+import MetadataView, { MetadataAttached } from './metadata.view';
 import Accordion from '../common/accordion';
 import Slider from '../common/slider';
 import Table from '../common/table';
 import { sanitize } from '../../_utils/data.utils.client';
 import { useUser } from '../../_providers/user.provider.client';
-import Button from '../common/button';
 import { getNodeURI } from '../../_utils/paths.utils.client';
 import Image from '../common/image';
-import { getFileLabel } from '../../_services/schema.services.client';
 import { useRouter } from '../../_providers/router.provider.client';
+import EditorMenu from '../menus/editor.menu';
+import { useData } from '../../_providers/data.provider.client';
 
 /**
  * View available versions of capture images.
@@ -25,14 +25,17 @@ import { useRouter } from '../../_providers/router.provider.client';
  *
  * @public
  * @param {String} model
+ * @param {String} type
+ * @param {Object} owner
  * @param {Array} files
  * @return {JSX.Element}
  */
 
-export const CaptureImagesTable = ({model, files=[]}) => {
+export const CaptureImagesTable = ({type, owner, files=[]}) => {
 
     const user = useUser();
     const router = useRouter();
+    const api = useData();
 
     // prepare capture images columns
     const cols = [
@@ -40,41 +43,52 @@ export const CaptureImagesTable = ({model, files=[]}) => {
         { name: 'image_state', label: 'State'},
         { name: 'width', label: 'Width'},
         { name: 'height', label: 'Height'},
-        { name: 'file_size', label: 'File Size'},
-        user && model==='modern_captures'
-            ? { name: 'master', label: 'Master' }
-            : ''
+        { name: 'file_size', label: 'File Size'}
     ];
 
+    // include editor menu for logged-in users
+    if (user) {
+        cols.push({ name: 'menu', label: 'Edit Options' })
+    }
+
+    // prepare capture image data rows
     const rows = files.map(fileData => {
-        const { file={}, metadata={}, url={} } = fileData || {};
+
+        const { file={}, metadata={}, url={}, label='', filename='' } = fileData || {};
         const {file_type='', id=''} = file || {};
+        const { image_states=[] } = api.options || {};
+        // select image state label for value (if available)
+        const imageState = image_states.find(opt => opt.value === metadata.image_state);
         const rows = {
             thumbnail: <Image
                 url={url}
                 scale={'thumb'}
-                label={getFileLabel(file)}
-                title={getFileLabel(file)}
+                label={filename}
+                title={filename}
                 onClick={()=>{
                     router.update(getNodeURI(file_type, 'show', id))
                 }}
             />,
-            image_state: sanitize(metadata.image_state),
+            image_state: imageState && imageState.hasOwnProperty('label') ? imageState.label : '',
             width: sanitize(metadata.x_dim, 'imgsize'),
             height: sanitize(metadata.y_dim, 'imgsize'),
             file_size: sanitize(file.file_size, 'filesize')
-        }
+        };
 
-        // create option to master modern capture image
-        if (user && model==='modern_captures') {
-            rows.master = <Button
-                label={'Master'}
-                icon={'master'}
-                onClick={()=>{
-                    router.update(getNodeURI(file_type, 'master', id))
-                }} />
-        }
+        // include file size in metadata
+        metadata.file_size = file.file_size;
 
+        // add editor menu for logged-in users
+        if (user) {
+            rows.menu =  <EditorMenu
+                            fileType={type}
+                            model={type}
+                            id={id}
+                            owner={owner}
+                            label={label}
+                            metadata={metadata}
+                          />;
+        }
         return rows;
     });
 
@@ -97,8 +111,17 @@ export const CaptureImagesTable = ({model, files=[]}) => {
 
 const CaptureView = ({model, data, fileType}) => {
 
-    // select capture files
-    const { files={}, metadata={}, node={} } = data || {};
+    const api = useData();
+
+    // select capture data
+    const {
+        id='',
+        files={},
+        metadata={},
+        node={},
+        attached={} } = api.destructure(data);
+
+    // get capture images
     const captureImages = files.hasOwnProperty(fileType)
         ? files[fileType]
         : [];
@@ -112,8 +135,18 @@ const CaptureView = ({model, data, fileType}) => {
                 open={false}>
                 <MetadataView model={model} metadata={metadata} node={node} />
             </Accordion>
-            <Slider images={captureImages} />
-            <CaptureImagesTable model={model} files={captureImages} />
+            {
+                captureImages.length > 0 &&
+                <>
+                    <MetadataAttached owner={node} attached={attached} />
+                    <Slider images={captureImages} />
+                    <CaptureImagesTable
+                        type={fileType}
+                        owner={{ id: id, type: model}}
+                        files={captureImages}
+                    />
+                </>
+            }
         </>
     )
 }

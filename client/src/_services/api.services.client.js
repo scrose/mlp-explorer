@@ -44,7 +44,7 @@ const getFetchOptions = ({ data=null, files=null, download=null, method='POST'})
             opts.body = JSON.stringify(data);
         }
 
-        // omit _content type from header for file(s) uploads
+        // omit _static type from header for file(s) uploads
         if (files) {
             // opts.header = { 'Content-Type' : 'multipart/form-data' };
             opts.body = files;
@@ -82,8 +82,7 @@ export async function makeRequest({
     const opts = getFetchOptions({data, files, method, download});
 
     // send request to API
-    let res = await fetch(url, opts)
-        .catch(err => { throw err });
+    let res = await fetch(url, opts).catch(console.error);
 
     // Modify response to include status ok, success, and status text
     return {

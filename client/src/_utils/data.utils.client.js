@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import { useData } from '../_providers/data.provider.client';
 
 /**
  * Capitalize first letter of string.
@@ -28,7 +29,7 @@ export const capitalize = (str) => {
  * @param coord
  */
 
-function convertCoordDMS(coord) {
+export function convertCoordDMS(coord) {
     const absolute = Math.abs(coord);
     const degrees = Math.floor(absolute);
     const minutesNotTruncated = (absolute - degrees) * 60;
@@ -60,6 +61,26 @@ export const mapToObj = (map) => {
 }
 
 /**
+ *
+ * Extract a hierarchy array from a stringified formData single input.
+ *
+ *
+ * i.e. topLevel[sub] => [topLevel, sub]
+ *
+ * @param  {String} string: Stringify representation of a formData Object
+ * @return {Array}
+ *
+ */
+
+export const extractFieldIndex = (string) => {
+    const arr = string.split('[');
+    const first = arr.shift();
+    const res = arr.map( v => v.split(']')[0] );
+    res.unshift(first);
+    return res;
+};
+
+/**
  * Group array rows by common key
  * Reference: https://stackoverflow.com/a/38575908
  *
@@ -85,10 +106,14 @@ export function groupBy(arr, key) {
  */
 
 export function sorter(a, b) {
-    return a.label
-        .localeCompare(
-            b.label, undefined, {numeric: true, sensitivity: 'base'}
+    try {
+        return a.label
+            .localeCompare(
+                b.label, undefined, { numeric: true, sensitivity: 'base' }
             );
+    } catch (err) {
+        console.error(err);
+    }
 }
 
 /**
@@ -100,9 +125,20 @@ export function sorter(a, b) {
  * @param render
  * @param href
  * @param title
+ * @param prefix
+ * @param suffix
  */
 
-export const sanitize = (value, render='', href='', title='') => {
+export const sanitize = (
+    value,
+    render='',
+    href='',
+    title='',
+    prefix='',
+    suffix=''
+) => {
+
+    // select data component for value
     const _dataElements = {
         date: ({ value }) => {
             const date = new Date(value);
@@ -117,6 +153,29 @@ export const sanitize = (value, render='', href='', title='') => {
             return value ? String(value) : '-';
         },
         coord: ({ value }) => {
+            return value
+                ? <span className={'coord'}>
+                    { parseFloat(value).toFixed(2) }
+                    &#160;/&#160;<span>{convertCoordDMS(value)}</span>
+                  </span>
+                : '-';
+        },
+        float: ({ value }) => {
+            return value
+                ? <span className={'float'}>
+                    {prefix}{ parseFloat(value).toFixed(2) }{suffix}
+                  </span>
+                : '-';
+        },
+        lat: ({ value }) => {
+            return value
+                ? <span className={'coord'}>
+                    { parseFloat(value).toFixed(2) }
+                    &#160;/&#160;<span>{convertCoordDMS(value)}</span>
+                  </span>
+                : '-';
+        },
+        lng: ({ value }) => {
             return value
                 ? <span className={'coord'}>
                     { parseFloat(value).toFixed(2) }

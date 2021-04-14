@@ -8,9 +8,9 @@
 import React from 'react';
 import MetadataView, { MetadataAttached } from './metadata.view';
 import Accordion from '../common/accordion';
-import NodeMenu from '../menus/node.menu';
-import { getModelLabel, getNodeLabel } from '../../_services/schema.services.client';
 import NodesView from './nodes.view';
+import EditorMenu from '../menus/editor.menu';
+import { getDependentTypes } from '../../_services/schema.services.client';
 
 /**
  * Stations view component.
@@ -20,10 +20,10 @@ import NodesView from './nodes.view';
  * @return {JSX.Element}
  */
 
-const StationsView = ({data}) => {
+const StationsView = ({ data }) => {
 
-    const {dependents=[], node={}, metadata={}, attached={}} = data || {};
-    const {id=''} = node || {};
+    const { dependents = [], node = {}, metadata = {}, attached = {} } = data || {};
+    const { id = '' } = node || {};
 
     return (
         <>
@@ -33,41 +33,41 @@ const StationsView = ({data}) => {
                 label={`Station Info`}
                 open={false}>
                 <MetadataView model={'stations'} metadata={metadata} />
-                <MetadataAttached attached={attached} />
+                <MetadataAttached owner={node} attached={attached} />
             </Accordion>
             {
                 (dependents || []).map(dependent => {
 
-                    const {node={}, metadata={}, hasDependents=false} = dependent || {};
-                    const {id='', type=''} = node || {};
-                    const label = getNodeLabel(dependent);
+                    const { node = {}, metadata = {}, hasDependents = false, label = '' } = dependent || {};
+                    const { id = '', type = '' } = node || {};
+                    const isCapture = type === 'historic_captures' || type === 'modern_captures';
 
-                    return (
-                        type === 'modern_visits'
-                            ? <Accordion
-                                key={id}
-                                id={id}
-                                type={type}
-                                open={true}
-                                label={label}
-                                hasDependents={hasDependents}
-                                menu={
-                                    <NodeMenu
-                                        model={type}
+                    return !isCapture && <div key={id}>
+                            {
+                                type === 'modern_visits'
+                                    ? <Accordion
                                         id={id}
-                                        metadata={metadata}
+                                        type={type}
+                                        open={true}
                                         label={label}
-                                        dependent={'locations'}
-                                    />}
-                            >
-                                <NodesView model={type} data={dependent} />
-                                </Accordion>
-                            : <NodesView key={id} model={type} data={dependent} />
-                    )
+                                        hasDependents={hasDependents}
+                                        menu={
+                                            <EditorMenu
+                                                model={type}
+                                                id={id}
+                                                metadata={metadata}
+                                                label={label}
+                                                dependents={getDependentTypes(type)}
+                                            />}>
+                                        <NodesView model={type} data={dependent} />
+                                    </Accordion>
+                                    : <NodesView key={id} model={type} data={dependent} />
+                            }
+                    </div>;
                 })
             }
         </>
-    )
-}
+    );
+};
 
 export default StationsView;

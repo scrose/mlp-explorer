@@ -5,58 +5,13 @@
  * MIT Licensed
  */
 
-import React from 'react'
+import React from 'react';
 import Fieldset from './fieldset';
 import Button from './button';
 import Validator from '../../_utils/validator.utils.client';
-import { useData } from '../../_providers/data.provider.client';
-
-/**
- * Form submission buttons component.
- *
- * @public
- * @param { model, label }
- */
-
-const Submit = ({model, label='', message, cancel, reset, submit=true}) => {
-    const { msg='', type='' } = message || {};
-    return (
-        <fieldset className={'submit'}>
-            { msg ?
-                <div className={`msg ${type}`}>
-                    <span>{msg}</span>
-                </div>
-                : ''
-            }
-            { submit ?
-                <Button
-                    className={'submit'}
-                    type={'submit'}
-                    label={label || 'Submit'}
-                    name={`submit_${model}`}
-                /> : ''
-            }
-            { reset ?
-                <Button
-                    type={'reset'}
-                    label={'Reset'}
-                    name={`reset_${model}`}
-                    onClick={reset}
-                /> : ''
-            }
-            { cancel ?
-                <Button
-                    className={'cancel'}
-                    type={'cancel'}
-                    label={'Cancel'}
-                    name={`cancel_${model}`}
-                    onClick={cancel}
-                /> : ''
-            }
-        </fieldset>
-
-    );
-}
+import { Submit } from './submit';
+import { extractFieldIndex } from '../../_utils/data.utils.client';
+import { popSessionMsg } from '../../_services/session.services.client';
 
 /**
  * Build HTML form.
@@ -72,12 +27,13 @@ const Form = ({
                   model,
                   schema,
                   init={},
-                  opts=null,
                   callback,
                   onChange=()=>{},
                   cancel=null,
                   reset=null,
                   route=null,
+                  opts=null,
+                  allowEmpty=false,
                   disabledInputs={},
                   children
 }) => {
@@ -86,21 +42,28 @@ const Form = ({
     const { attributes={}, fieldsets=[] } = schema || {};
     const { submit='', method='POST' } = attributes || {};
 
-    // get global field options
-    const api = useData();
-    const { options={} } = opts || api || {};
+    // filter initial data against schema
+    const filterData = (initData) => {
+        return fieldsets.map(fieldset => {
+            return Object.keys(fieldset.fields || {}).reduce((o, field) => {
+                o[field] = initData[field] || '';
+                return o;
+            }, {})
+        })
+    }
 
     // initialize state for input parameters
-    const [data, setData] = React.useState(init);
-    const [fieldsetData, setFieldsetData] = React.useState([]);
+    const [data, setData] = React.useState(init || {});
+    const [files, setFiles] = React.useState({});
+    const [fieldsetSchema, setFieldsetSchema] = React.useState([]);
     const [isDisabled, setDisabled] = React.useState(false);
 
     // initialize field data
     React.useEffect(() => {
-        if (fieldsetData.length === 0 && fieldsets.length !== 0) {
-            setFieldsetData(fieldsets);
+        if (fieldsetSchema.length === 0 && fieldsets.length !== 0) {
+            setFieldsetSchema(fieldsets);
         }
-    }, [fieldsetData, fieldsets]);
+    }, [fieldsetSchema, fieldsets]);
 
     // create input error states / message state
     const [errors, setErrors] = React.useState({});
@@ -117,7 +80,7 @@ const Form = ({
      */
 
     const generateValidators = () => {
-        return fieldsetData
+        return fieldsetSchema
             .reduce((o, fieldset) => {
                 Object.keys(fieldset.fields || {})
                     .map(fieldkey => {
@@ -140,11 +103,15 @@ const Form = ({
      */
 
     const isValid = (formData) => {
-        const hasData = Object.keys(formData).length > 0;
+        let hasData = allowEmpty;
         let valid = true;
         for (const key in validators) {
+            // ensure some data is present
+            hasData = hasData || formData[key];
+            // check data for validation error
             const err = validators[key].check(data[key] || null);
             valid = err.length > 0 ? false : valid;
+            // set error state (invokes validation error message)
             setErrors(errors => ({
                 ...errors, [key]: err,
             }));
@@ -162,9 +129,19 @@ const Form = ({
     const handleSubmit = e => {
         e.preventDefault();
 
+        // clear messages
+        popSessionMsg();
+
         // convert submitted form data to JSON
         const formData = new FormData(e.target);
+
+        // convert formData to object
         const fieldData = Object.fromEntries(formData);
+
+        // append files (if they exist)
+        // Object.keys(files).forEach(i => {
+        //     formData.append(i, files[i][0], files[i][0].name);
+        // });
 
         // check that form is complete and valid
         if (!isValid(fieldData)) {
@@ -193,29 +170,34 @@ const Form = ({
      *
      * @private
      * @param {Object} fieldset
-     * @param {Integer} index
+     * @param index
      */
 
     const handleCopy = (fieldset, index) => {
         try {
 
-            // make a separate copies of the full fieldset arrays
+            // make separate copy of the template fieldset
             let fieldsetCopy = JSON.parse(JSON.stringify(fieldset));
-            let fieldsets = [...fieldsetData];
+            let fieldsets = [...fieldsetSchema];
 
-            // update render state
+            // update render type
             fieldsetCopy.render = 'copy';
 
-            // update field keys with index
+            // update field keys with updated index
             fieldsetCopy = Object.keys(fieldsetCopy.fields)
                 .reduce((o, key) => {
-                    o.fields[key].name = `${o.fields[key].id}[${index + 1}]`;
+                    const fieldsetIndex = extractFieldIndex(o.fields[key].name);
+                    const copiedIndex = `${fieldsetIndex[0]}[${parseInt(fieldsetIndex[1]) + 1}]`;
+                    o.fields[key].name = copiedIndex;
+                    o.fields[copiedIndex] = o.fields[key];
+                    // remove old key
+                    delete o.fields[key];
                     return o;
                 }, fieldsetCopy);
 
             // insert new fieldset into state
             fieldsets.splice(index + 1, 0, fieldsetCopy);
-            setFieldsetData(fieldsets);
+            setFieldsetSchema(fieldsets);
 
             // re-generate validators
             validators = generateValidators();
@@ -234,9 +216,9 @@ const Form = ({
 
     const handleDelete = (index) => {
         try {
-            let fieldsets = [...fieldsetData]  ;  // make a separate copy of the array
+            let fieldsets = [...fieldsetSchema]  ;  // make a separate copy of the array
             fieldsets.splice(index, 1);
-            setFieldsetData(fieldsets);
+            setFieldsetSchema(fieldsets);
             validators = generateValidators();
         }
         catch (err) {
@@ -260,10 +242,10 @@ const Form = ({
             autoComplete={'chrome-off'}
         >
             {
-                fieldsetData
+                fieldsetSchema
                     .map((fieldset, index) => {
                         return (
-                            <div key={index}>
+                            <div key={`fieldset_${index}`}>
                                 <Fieldset
                                     formID={formID}
                                     model={model}
@@ -274,8 +256,10 @@ const Form = ({
                                     errors={errors}
                                     setErrors={setErrors}
                                     data={data}
+                                    files={files}
+                                    setFiles={setFiles}
                                     setData={setData}
-                                    options={options}
+                                    opts={opts}
                                     remove={()=>{handleDelete(index)}}
                                     disabled={isDisabled}
                                     disabledInputs={disabledInputs}

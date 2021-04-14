@@ -11,8 +11,8 @@ import * as expserve from '../services/export.services.js';
 import * as srchserve from '../services/search.services.js';
 import { sanitize } from '../lib/data.utils.js';
 import { json2csv } from '../lib/file.utils.js';
+import { getAll, getMapFilterOptions } from '../services/metadata.services.js';
 import { ArrayStream } from '../services/files.services.js';
-import { getAll } from '../services/metadata.services.js';
 
 /**
  * Controller initialization.
@@ -61,16 +61,16 @@ export const tree = async (req, res, next) => {
     try {
 
         // get surveyors and projects as root containers
-        const projects = await nserve.getTree('projects');
-        const surveyors = await nserve.getTree('surveyors');
-
         res.status(200).json(
             prepare({
                 view: 'tree',
                 data: {
-                    projects: projects,
-                    surveyors: surveyors
-                },
+                    nodes: {
+                        projects: await nserve.getTree('projects'),
+                        surveyors: await nserve.getTree('surveyors')
+                    },
+                    options: {}
+                }
             }));
 
     } catch (err) {
@@ -91,20 +91,13 @@ export const map = async (req, res, next) => {
     try {
 
         // get surveyors and projects as root containers
-        const data = await nserve.getMap();
-        const options = {
-            options: {
-                surveyors_id: await getAll('surveyors'),
-                surveys_id: await getAll('surveys'),
-                survey_seasons_id: await getAll('survey_seasons')
-            }
-        }
-
         res.status(200).json(
             prepare({
                 view: 'map',
-                model: options,
-                data: data,
+                data: {
+                    nodes: await nserve.getMap() || [],
+                    options: await getMapFilterOptions()
+                }
             }));
 
     } catch (err) {
@@ -151,6 +144,7 @@ export const exporter = async (req, res, next) => {
             default: () => {
                 res.setHeader("Content-Type", "text/json");
                 res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
+                return JSON.stringify(data);
             }
         };
 
@@ -172,7 +166,43 @@ export const exporter = async (req, res, next) => {
 };
 
 /**
- * Search nodes using filter or query.
+ * Retrieves nodes using node ID filter.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @src public
+ */
+
+export const filter = async (req, res, next) => {
+    try {
+
+        // get query parameters
+        const { ids='', offset=0, limit=10 } = req.query || {};
+
+        // sanitize + convert query string to node id array
+        const nodeIDs = ids
+            .split(' ')
+            .map(id => {
+                return sanitize(id, 'integer');
+            });
+
+        // get results for each model requested
+        const resultData = await nserve.filterNodesByID(nodeIDs, offset, limit);
+
+        res.status(200).json(
+            prepare({
+                view: 'filter',
+                data: resultData
+            }));
+
+    } catch (err) {
+        return next(err);
+    }
+};
+
+/**
+ * Search nodes using search query.
  *
  * @param req
  * @param res

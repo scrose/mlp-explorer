@@ -24,24 +24,7 @@ export function types() {
 }
 
 /**
- * Query: Check file relation with node.
- *
- * @param {String} nodeType
- * @param {String} fileType
- * @return {Object} query binding
- */
-
-export function checkRelation(nodeType, fileType) {
-    return {
-        sql: `SELECT *
-              FROM file_relations 
-              WHERE owner_type = $1::varchar AND dependent_type = $2::varchar;`,
-        data: [nodeType, fileType],
-    };
-}
-
-/**
- * Query: Get node relation(s) from file type.
+ * Query: Get node relation(s) from owner node type.
  *
  * @param {String} nodeType
  * @return {Object} query binding
@@ -56,6 +39,21 @@ export function getRelationsByNodeType(nodeType) {
     };
 }
 
+/**
+ * Query: Get node relation(s) from file type.
+ *
+ * @param {String} fileType
+ * @return {Object} query binding
+ */
+
+export function getOwnerTypeByFileType(fileType) {
+    return {
+        sql: `SELECT owner_type
+              FROM file_relations 
+              WHERE dependent_type = $1::varchar;`,
+        data: [fileType],
+    };
+}
 
 /**
  * Generate query: Retrieve file entry for given item
@@ -91,20 +89,6 @@ export function selectByOwner(owner_id) {
 }
 
 /**
- * Query: Get all image state types.
- *
- * @return {Object} query binding
- */
-
-export function imageStates() {
-    return {
-        sql: `SELECT *
-              FROM image_states;`,
-        data: [],
-    };
-}
-
-/**
  * Generate query: Insert file entry for given item
  *
  * @return {Function} query function / null if no node
@@ -131,7 +115,7 @@ export function update(file) {
 }
 
 /**
- * Generate query: Delete node entry for given item
+ * Generate query: Delete file entry for given item
  *
  * @param {Object} file
  * @return {Function} query function / null if no node

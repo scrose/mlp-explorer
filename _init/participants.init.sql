@@ -11,7 +11,7 @@ drop table if exists "participant_group_types" CASCADE;
 create TABLE"public"."participant_group_types"
 (
     id    serial PRIMARY KEY,
-    name  VARCHAR(40) UNIQUE NOT NULL,
+    name  VARCHAR(40) UNIQUE NOT NULL CHECK (name ~ '^[\w]+$'),
     label VARCHAR(40) UNIQUE NOT NULL
 );
 

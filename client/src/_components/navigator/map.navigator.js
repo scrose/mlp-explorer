@@ -10,6 +10,8 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useRouter } from '../../_providers/router.provider.client';
 import { useData } from '../../_providers/data.provider.client';
+import { getNodeFilterURI } from '../../_utils/paths.utils.client';
+import { debounce } from '../../_utils/events.utils.client';
 
 /**
  * Map navigator component.
@@ -20,43 +22,55 @@ import { useData } from '../../_providers/data.provider.client';
  * @return {JSX.Element}
  */
 
-function MapNavigator({ view, data, filter }) {
+function MapNavigator({ data, filter }) {
 
     // let mapContainer = React.createRef();
     const mapID = 'map-container';
     const router = useRouter();
     const api = useData();
 
-    // get the current node ID
-    const { node = {} } = api.root || {};
-    const { id = '', type = '' } = node || {};
-    const currentID = type === 'stations' ? id : '';
+    // get the current node ID (if available)
+    const { query = [] } = api.data || {};
+    const currentFilter = query.length > 0 ? query : api.nodes;
 
     // map initial settings
     const [selectedBaseLayer, setBaseLayer] = React.useState('Satellite');
-    const [selected, setSelected] = React.useState(currentID);
-    const [zoom, setZoom] = React.useState(4);
     const [center, setCenter] = React.useState([51.311809, -119.249230]);
+    const [zoom, setZoom] = React.useState(4);
 
     // leaflet map object
     const mapObj = React.useRef(null);
     const layerGrp = React.useRef(null);
 
-    React.useEffect(() => {
-        return () => destroyMap();
-    }, []);
-
     // destroy map instance
     const destroyMap = React.useCallback(() => {
         // check if map initialized
         if (mapObj.current) {
+            // mapObj.current._leaflet_id = null;
             mapObj.current.off();
             mapObj.current.remove();
         }
     }, []);
 
+    // set map view to new center coordinate and zoom level
+    const reset = React.useCallback((coord, zoomLevel) => {
+        setCenter(coord);
+        setZoom(zoomLevel);
+    }, [setZoom, setCenter]);
+
+    // request stations in selected cluster
+    const loadView = React.useCallback((ids = []) => {
+        console.log('load view')
+        router.update(getNodeFilterURI(ids));
+    }, [router]);
+
+    // refresh map each render
+    // React.useEffect(() => {
+    //     return () => destroyMap();
+    // }, []);
+
     // cluster station locations for n > 1
-    const getClusterMarkers = React.useCallback((currentID) => {
+    const getClusterMarkers = React.useCallback((currentIDs) => {
 
         // apply user-defined filter
         const applyFilter = (station) => {
@@ -125,25 +139,19 @@ function MapNavigator({ view, data, filter }) {
             });
         };
 
-        // grid settings
-        const latN = 10;
-        const lngN = 10;
+        // grid settings: number of grid cells is scaled by zoom level
+        const latN = 2 * mapObj.current.getZoom();
+        const lngN = 2 * mapObj.current.getZoom();
 
         // get map parameters
         // NOTE: The following bucket sort of geographic coordinates
         // only works for one side of the international date line.
-
+        const maxBounds = [[66, -104], [44, -154]];
         const viewBounds = mapObj.current.getBounds();
-        // Latitude: East > West (northern hemisphere)
-        const latMax = viewBounds.getNorthEast().lat;
-        const latMin = viewBounds.getSouthWest().lat;
-        // Latitude: North > South (northern hemisphere)
-        const lngMin = viewBounds.getNorthEast().lng;
-        const lngMax = viewBounds.getSouthWest().lng;
 
         // Latitude: North > South (northern hemisphere)
         // Longitude: East > West (northern hemisphere)
-        // const [[latMax, lngMax], [latMin, lngMin]] = settings.init.maxBounds;
+        const [[latMax, lngMax], [latMin, lngMin]] = maxBounds;
 
         // get latitude/longitude range
         const latRange = latMax - latMin;
@@ -167,6 +175,7 @@ function MapNavigator({ view, data, filter }) {
             .reduce((o, station) => {
                 const i = Math.floor((station.lat - latMin) / dLat);
                 const j = Math.floor((station.lng - lngMin) / dLng);
+
                 // create longitudinal array if none exists
                 if (o[i][j] == null) {
                     o[i][j] = {
@@ -175,7 +184,7 @@ function MapNavigator({ view, data, filter }) {
                         centroid: { lat: 0, lng: 0 },
                     };
                 }
-                o[i][j].isSelected = o[i][j].isSelected || currentID === station.nodes_id;
+                o[i][j].isSelected = o[i][j].isSelected || currentIDs.includes(station.nodes_id);
                 o[i][j].stations.push(station);
                 o[i][j].centroid.lat += station.lat;
                 o[i][j].centroid.lng += station.lng;
@@ -191,33 +200,37 @@ function MapNavigator({ view, data, filter }) {
                         cluster.centroid.lat / n,
                         cluster.centroid.lng / n,
                     ];
-
-                    // create marker for station coordinates
+                    // set z-index of marker (selected has higher index)
+                    const zIndexOffset = cluster.isSelected ? 999 : 0;
+                    // create marker using station coordinates
                     const marker = L.marker(centroid, {
                         icon: getMarker(n, cluster.isSelected),
-                    }).on('click', (e) => {
-                        const coord = e.latlng;
-                        const zoomLevel = mapObj.current.getZoom() + 1;
-                        mapObj.current.flyTo(coord, zoomLevel);
-
-                        // router.update(
-                        //     getNodeURI('stations', 'show', cluster.stations[0].nodes_id));
-                    });
-
-                    // create cluster marker
+                        zIndexOffset: zIndexOffset,
+                        riseOnHover: true,
+                    })
+                        .on('click', (e) => {
+                            // get new map center / zoom level
+                            debounce(() => {
+                                const coord = e.latlng;
+                                const zoomLevel = mapObj.current.getZoom() + 1;
+                                mapObj.current.flyTo(coord, zoomLevel);
+                            }, 400)();
+                        })
+                        .on('dblclick', (e) => {
+                            // clicking on marker loads filter results in data pane
+                            loadView(
+                                cluster.stations.map(station => {
+                                    return station.nodes_id;
+                                }));
+                        });
+                    // add cluster marker to layer
                     o.push(marker);
                     return null;
                 }, o);
                 return o;
             }, []);
-    }, [data, mapObj, filter]);
+    }, [data, mapObj, filter, loadView]);
 
-    // set map view to new center coordinate and zoom level
-    const reset = React.useCallback((id, coord, zoomLevel) => {
-        setSelected(id);
-        setCenter(coord);
-        setZoom(zoomLevel);
-    }, [setSelected, setCenter, setZoom]);
 
     // initialize map
     const initMap = React.useCallback((domNode, mapCenter = center, mapZoom = zoom) => {
@@ -237,7 +250,7 @@ function MapNavigator({ view, data, filter }) {
                     maxZoom: 23,
                     minZoom: 4,
                     attribution: '&copy; <a href="https://www.arcgisonline.com/copyright">ARCGIS</a> contributors',
-                }),
+                })
         };
 
         if (data && Object.keys(data).length > 0) {
@@ -252,11 +265,14 @@ function MapNavigator({ view, data, filter }) {
                 layers: [baseLayers[selectedBaseLayer]],
             });
 
+            // set maximum bounds to map view
+            // mapObj.current.setMaxBounds(maxBounds);
+
             // reset saved map centre coordinate / zoom level
-            reset(selected, mapCenter, mapZoom);
+            reset(mapCenter, mapZoom);
 
             // add marker layer to map
-            layerGrp.current = L.layerGroup(getClusterMarkers(currentID)).addTo(mapObj.current);
+            layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
             let overlays = {
                 'Stations': layerGrp.current,
             };
@@ -272,28 +288,26 @@ function MapNavigator({ view, data, filter }) {
             // create callbacks for map zooming / panning
             mapObj.current.on('zoomend', e => {
                 // reset saved map centre coordinate / zoom level
-                reset(selected, e.target.getCenter(), e.target.getZoom());
+                reset(e.target.getCenter(), e.target.getZoom());
 
                 // add markers layer to map
                 layerGrp.current.clearLayers();
-                layerGrp.current = L.layerGroup(getClusterMarkers(currentID)).addTo(mapObj.current);
+                layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
             });
 
             mapObj.current.on('moveend', e => {
-                reset(selected, e.target.getCenter(), e.target.getZoom());
+                reset(e.target.getCenter(), e.target.getZoom());
 
                 // add markers layer to map
                 layerGrp.current.clearLayers();
-                layerGrp.current = L.layerGroup(getClusterMarkers(currentID)).addTo(mapObj.current);
+                layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
             });
         }
 
     }, [
         data,
-        view,
         destroyMap,
-        currentID,
-        selected,
+        currentFilter,
         center,
         zoom,
         reset,

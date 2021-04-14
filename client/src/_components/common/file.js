@@ -6,12 +6,11 @@
  */
 
 import React from 'react';
-import Loading from './loading';
 import Image from './image';
-import { getFileLabel } from '../../_services/schema.services.client';
 import Download from './download';
 import { useRouter } from '../../_providers/router.provider.client';
 import { getNodeURI } from '../../_utils/paths.utils.client';
+import Loading from './icon';
 
 /**
  * Defines file component.
@@ -28,9 +27,8 @@ const File = ({ data, callback=null, scale='thumb' }) => {
     const router = useRouter();
 
     // destructure file data
-    const {file={}, metadata={}, url={}} = data || {};
+    const {label='', file={}, metadata={}, url={}} = data || {};
     const {id='', owner_id='', file_type='', filename='', file_size='' } = file || {};
-    const label = getFileLabel(file);
 
     // file components indexed by render type
     // - historic images link to their corresponding historic captures

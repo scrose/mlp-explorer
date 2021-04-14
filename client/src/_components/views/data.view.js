@@ -6,16 +6,16 @@
  */
 
 import React from 'react';
-import { useRouter } from '../../_providers/router.provider.client';
 import NodesView from './nodes.view';
 import NotfoundError from '../error/notfound.error';
-import Loading from '../common/loading';
 import ServerError from '../error/server.error';
 import { useData } from '../../_providers/data.provider.client';
 import { genSchema, getRenderType } from '../../_services/schema.services.client';
 import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
 import Importer from './importer.view';
 import Aligner from './aligner.view';
+import FilterView from './filter.view';
+import { Loading } from '../common/icon';
 
 /**
  * Build requested data view from API data.
@@ -26,69 +26,51 @@ import Aligner from './aligner.view';
 const DataView = () => {
 
     const api = useData();
-    const router = useRouter();
 
-    // extract API data
-    const { view='', model='', data=null, root={}, attributes={}, options={} } = api || {};
-    const {node={}} = root || {};
-    const {id=''} = node || {};
-    const render = getRenderType(view, model);
-    const schema = genSchema(view, model, attributes);
+    // select render type and schema
+    const render = getRenderType(api.view, api.model);
+    const schema = genSchema(api.view, api.model);
 
     // view components indexed by render type
     const renders = {
         nodes: () => (
             <NodesView
-                model={model}
-                data={data}
+                model={api.model}
+                data={api.data}
             />),
+        filter: () => <FilterView data={api.data} />,
         update: () => (
             <Importer
-                view={view}
-                model={model}
+                view={api.view}
+                model={api.model}
                 schema={schema}
-                opts={options}
-                data={data}
-                route={getNodeURI(model, view, id)}
+                data={api.metadata}
+                route={getNodeURI(api.model, api.view, api.id)}
                 callback={(err, model, id) => {
                     if (err || !id) return;
-                    router.update(getNodeURI(model, 'show', id));
+                    redirect(getNodeURI(api.model, 'show', id));
                 }}
             />),
         import: () => (
             <Importer
-                view={view}
-                model={model}
+                view={api.view}
+                model={api.model}
                 schema={schema}
-                data={data}
-                opts={options}
-                route={getNodeURI(model, 'import', id)}
+                data={api.metadata}
+                route={getNodeURI(api.model, 'import', api.id)}
                 callback={() => {
                     redirect(
-                        getNodeURI(model, 'show', id)
+                        getNodeURI(api.model, 'show', api.id)
                     );
-                }}
-            />),
-        filter: () => (
-            <Importer
-                view={view}
-                model={model}
-                schema={schema}
-                data={data}
-                opts={options}
-                route={getNodeURI(model, view, id)}
-                callback={(err, model, id) => {
-                    if (err || !id) return;
-                    router.update(getNodeURI(model, 'show', id));
                 }}
             />),
         master: () => (
             <Aligner
-                data={data}
+                data={api.data}
                 schema={schema}
                 callback={() => {
                     redirect(
-                        getNodeURI(model, 'show', id)
+                        getNodeURI(api.model, 'show', api.id)
                     );
                 }}
             />),

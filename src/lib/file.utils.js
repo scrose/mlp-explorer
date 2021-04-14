@@ -7,23 +7,36 @@
 
 'use strict';
 
-
 /**
- * Extract filename from filepath string.
+ * Extracts label for given file.
+ * - extracts prefix from filename to use as a label.
  *
- * @param {String} filepath
- * @return {String} filename
- * @src public
+ * @public
+ * @return {String} label
+ * @param filename
+ * @param defaultLabel
  */
 
-export function getFilename(filepath) {
-    return filepath.split(/.*[\/|\\]/)[1];
+export const extractFileLabel = (filename, defaultLabel='Unknown') => {
+
+    if (!filename) return defaultLabel;
+
+    // extract prefix substring from filename to omit key token string
+    // - looks for last underscore '_' in filename as index
+    // - OR looks for last dot '.' in filename as index
+    const lastIndex = filename.lastIndexOf('_') > 0
+        ? filename.lastIndexOf('_')
+        : filename.lastIndexOf('.');
+    const abbrevFilename = filename.substring(0, lastIndex);
+
+    // Handle empty file labels
+    return abbrevFilename ? abbrevFilename : defaultLabel;
 }
 
 /**
  * CSV parser for JSON data.
  *
- * @param {JSON} json
+ * @param {Object} json
  * @return {String} CSV data
  * @src public
  */

@@ -6,23 +6,23 @@
  */
 
 import React from 'react';
-import { AuthProvider } from './auth.provider.client'
-import { RouterProvider } from './router.provider.client'
-import { UserProvider } from './user.provider.client'
+import { AuthProvider } from './auth.provider.client';
+import { RouterProvider } from './router.provider.client';
+import { UserProvider } from './user.provider.client';
 import { DataProvider } from './data.provider.client';
 
-function AppProviders({children}) {
+function AppProviders({ children }) {
     return (
         <RouterProvider>
-            <DataProvider>
-                <AuthProvider>
-                    <UserProvider>
+            <AuthProvider>
+                <UserProvider>
+                    <DataProvider>
                         {children}
-                    </UserProvider>
-                </AuthProvider>
-            </DataProvider>
+                    </DataProvider>
+                </UserProvider>
+            </AuthProvider>
         </RouterProvider>
-    )
+    );
 }
 
-export default AppProviders
+export default AppProviders;

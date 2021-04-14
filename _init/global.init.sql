@@ -72,8 +72,11 @@ $$
             'edit',
             'create',
             'remove',
+            'options',
+            'settings',
             'login',
             'auth',
+            'filter',
             'search',
             'tree',
             'map',
@@ -92,13 +95,13 @@ $$
 $$;
 
 -- -------------------------------------------------------------
---    Options table
+--    Application Settings table
 -- -------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS options
+CREATE TABLE IF NOT EXISTS settings
 (
     id    serial PRIMARY KEY,
-    name  VARCHAR(40) UNIQUE NOT NULL,
+    name  VARCHAR(40) UNIQUE NOT NULL CHECK (name ~ '^[\w]+$'),
     label VARCHAR(40) UNIQUE NOT NULL,
     value VARCHAR(255),
     created_at timestamp without time zone NOT NULL,
@@ -107,12 +110,27 @@ CREATE TABLE IF NOT EXISTS options
 
 
 -- -------------------------------------------------------------
---    Initialize options
+--    Initialize App Settings
 -- -------------------------------------------------------------
 
-INSERT INTO options (name, label, value, created_at, updated_at)
+INSERT INTO settings (name, label, value, created_at, updated_at)
+
+-- Global Settings
 VALUES ('library_root_dir', 'MLP Library Root Directory', '/Volumes/mlp/MLPLibraryNew', now(), now());
 
+-- User Settings
+VALUES ('user_roles', 'User Roles', NULL, now(), now());
+
+-- Schema Settings
+VALUES ('node_types', 'Node Types', NULL, now(), now());
+VALUES ('node_relations', 'Node Relations', NULL, now(), now());
+VALUES ('file_types', 'File Types', NULL, now(), now());
+VALUES ('file_relations', 'File Relations', NULL, now(), now());
+VALUES ('image_types', 'Image Types', NULL, now(), now());
+VALUES ('metadata_types', 'Metadata Types', NULL, now(), now());
+VALUES ('metadata_relations', 'Metadata Relations', NULL, now(), now());
+VALUES ('views', 'Views', NULL, now(), now());
+VALUES ('image_states', 'Image States', NULL, now(), now());
+VALUES ('participant_group_types', 'Participant Group Types', NULL, now(), now());
+
 commit;
-
-

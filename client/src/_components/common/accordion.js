@@ -46,8 +46,8 @@ const Accordion = ({
         <div className={`h-menu`}>
             <ul>
                 {
-                    hasDependents || children
-                        ? <li key={`accordion_toggle`}>
+                    (hasDependents || children) &&
+                        <li key={`accordion_toggle`}>
                             <Button
                                 icon={onToggle()}
                                 title={`Expand this item.`}
@@ -56,17 +56,15 @@ const Accordion = ({
                                 }}
                             />
                         </li>
-                        : ''
                 }
                 {
-                    type && children ?
+                    type && children &&
                         <li key={`accordion_icon`}>
                             <Button icon={type} onClick={onClick} />
                         </li>
-                        : ''
                 }
                 {
-                    label ?
+                    label &&
                         <li key={`accordion_label`}>
                             <Button
                                 title={`Go to ${label}.`}
@@ -78,22 +76,18 @@ const Accordion = ({
                                 label={label}
                             />
                         </li>
-                        : ''
                 }
                 {
-                    menu
-                        ? <li key={`accordion_menu`} className={'accordion-menu'}>{ menu }</li>
-                        : ''
+                    menu && <li key={`accordion_menu`} className={'accordion-menu'}>{ menu }</li>
                 }
             </ul>
         </div>
         <div className={`accordion-data ${toggle ? 'open' : ''}`}>
             {
-                toggle ? <>{children}</>: ''
+                toggle && <>{children}</>
             }
         </div>
     </div>
-
 }
 
 export default Accordion;

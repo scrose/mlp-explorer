@@ -8,6 +8,7 @@
 import React from 'react';
 import Button from './button';
 import Dialog from './dialog';
+import Messenger from './messenger';
 
 /**
  * Alert dialog component.
@@ -16,6 +17,8 @@ import Dialog from './dialog';
  * @param description
  * @param progress
  * @param messages
+ * @param hasUploads
+ * @param error
  * @param callback
  * @public
  */
@@ -23,19 +26,16 @@ import Dialog from './dialog';
 const Progress = ({
                       title,
                       description,
-                      progress,
+                      progress={},
                       messages,
+                      hasUploads=false,
+                      error=false,
                       callback=()=>{}}
                       ) => {
 
     const [toggle, setToggle] = React.useState(false);
     const [done, setDone] = React.useState(false);
     const _isMounted = React.useRef(true);
-
-    const handleClose = () => {
-        setToggle(null);
-        callback();
-    };
 
     // Open progress bar dialog when progress state is not empty
     React.useEffect(() => {
@@ -52,9 +52,9 @@ const Progress = ({
         };
     }, [progress, setToggle]);
 
-    return toggle ?
+    return toggle &&
         <Dialog title={title} setToggle={setToggle}>
-            {description}
+            { description }
             {
                 Object.keys(progress).map(key => {
 
@@ -70,28 +70,39 @@ const Progress = ({
 
                     // render progress indicator for imports
                     return (
-                        <div className={`msg ${type}`} key={key}>
-                            <div>{msg}</div>
-                            <div className={'progress-bar'} style={progressBar}>{`${data.percent}%`}</div>
-                            <div>
-                                <span>{`${(data.loaded)}MB of ${(data.total)}MB`}</span>
-                                {data.name ?
-                                    <span>{` (File: ${data.name})`}</span> : ''
-                                }
-                            </div>
+                        <div key={`${key}_msg_progress`}>
+                            <Messenger closeable={false} message={msg} level={type} />
+                            {
+                                // show progress bar if import has file uploads and no errors
+                                hasUploads && !error &&
+                                (
+                                    <>
+                                        <div className={'progress-bar'} style={progressBar}>
+                                            {`${data.percent}%`}
+                                        </div>
+                                        <div>
+                                            <span>{`${(data.loaded)}MB of ${(data.total)}MB`}</span>
+                                            {
+                                                data.name && <span>{` (File: ${data.name})`}</span>
+                                            }
+                                        </div>
+                                    </>
+                                )
+                            }
                         </div>
                     );
                 })
             }
             {
-                done
-                    ? <div className={'alert-box-buttons'}>
-                        <Button icon={'success'} name={'ok'} label={'Done!'} onClick={handleClose} />
-                    </div>
-                    : ''
+                done && <div className={'alert-box-buttons'}>
+                            <Button icon={'success'} name={'ok'} label={'Done!'} onClick={
+                                () => {
+                                    callback();
+                                    setToggle(false);
+                                }} />
+                        </div>
             }
-        </Dialog> : ''
-
+        </Dialog>
 }
 
 export default Progress;

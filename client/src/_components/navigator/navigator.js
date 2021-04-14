@@ -15,7 +15,7 @@ import FilterNavigator from './filter.navigator';
 import { useRouter } from '../../_providers/router.provider.client';
 import ServerError from '../error/server.error';
 import SearchNavigator from './search.navigator';
-import Loading from '../common/loading';
+import Loading from '../common/icon';
 
 /**
  * Main navigator component.
@@ -38,7 +38,7 @@ const Navigator = () => {
     const [filterData, setFilterData] = React.useState({});
 
     // data loading error
-    const [error, setError] = React.useState(null);
+    const [error, setError] = React.useState(false);
     const _isMounted = React.useRef(false);
 
     // Data API endpoints
@@ -58,25 +58,28 @@ const Navigator = () => {
     // API call to retrieve node tree top level
     React.useEffect(() => {
         _isMounted.current = true;
-        if (route && (!nodeData || Object.keys(nodeData).length === 0)) {
+        if (!error && route && (!nodeData || Object.keys(nodeData).length === 0)) {
             router.get(route)
                 .then(res => {
-                    const { data = {}, model={} } = res || {};
 
-                    // check if data is empty
-                    if (data.length === 0) {
+                    // destructure map data
+                    const { data = {} } = res || {};
+                    const { options={}, nodes={} } = data || {};
+
+                    // check if data is empty (set error flag if true)
+                    if ( nodes.length === 0 ) {
                         return setError(true);
                     }
 
                     if (_isMounted.current) {
-                        setOptionsData(model)
-                        setNodeData(data);
+                        setOptionsData(options)
+                        setNodeData(nodes);
                     }
                 })
                 .catch(err => console.error(err));
         }
         return () => {_isMounted.current = false;};
-    }, [router, route, nodeData, setNodeData, setOptionsData, setError]);
+    }, [router, route, nodeData, setNodeData, setOptionsData, error, setError]);
 
     return  (
         !error

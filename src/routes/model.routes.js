@@ -1,5 +1,5 @@
 /*!
- * Core.API.Router.Nodes
+ * Core.API.Router.Model
  * File: model.routes.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
@@ -60,13 +60,6 @@ function ModelRoutes(modelType) {
             put: null,
             post: this.controller.remove,
             delete: null,
-        },
-        export: {
-            path: path.join('/', this.model, 'export', ':' + this.key),
-            get: this.controller.export,
-            put: null,
-            post: null,
-            delete: null,
         }
     };
 
@@ -74,9 +67,9 @@ function ModelRoutes(modelType) {
     if (this.model === 'historic_captures' || this.model === 'modern_captures') {
         this.routes.import = {
             path: path.join('/', this.model, 'import', ':owner_id'),
-            get: this.controller.browse,
+            get: null,
             put: null,
-            post: this.controller.import,
+            post: this.controller.create,
             delete: null,
         }
     }

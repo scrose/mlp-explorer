@@ -7,15 +7,12 @@
 
 import React from 'react';
 import {
-    getFileLabel,
     getModelLabel,
-    getNodeLabel,
-    getStaticLabel,
+    getStaticLabel, getStaticView,
     getViewLabel,
 } from '../../_services/schema.services.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import { useData } from '../../_providers/data.provider.client';
-import Button from './button';
 import Icon from './icon';
 
 /**
@@ -31,35 +28,33 @@ const Heading = () => {
 
     // get possible heading labels
     const staticLabel = getStaticLabel(router.route);
-    const nodeLabel = getNodeLabel(api.root);
+    const nodeLabel = api.label;
     const modelLabel = getModelLabel(api.model);
-    const fileLabel = getFileLabel(api.root)
+
+    // select icon type
+    const icon = api.model ? api.model : api.view ? api.view : getStaticView(router.route);
 
     // generate heading based on current model/view
     const genHeading = () => {
 
-        // return empty string if node and model not defined
-        if (!modelLabel) {
-            return '';
-        }
+        // use static label (if exists)
+        if (staticLabel) return staticLabel;
 
         const headings = {
-            add: `${getViewLabel('add')}: ${modelLabel}`,
             show: nodeLabel,
+            new: `${getViewLabel('new')}: ${modelLabel}`,
+            edit: `${getViewLabel('edit')}: ${nodeLabel}`,
+            filter: `${getViewLabel('filter')}: ${getModelLabel(api.model, 'label')}`,
             import: `${getViewLabel('import')}: ${getModelLabel(api.model, 'label')}`,
+            master: `${getViewLabel('master')}: ${nodeLabel}`,
             default: `${getViewLabel(api.view)}: ${modelLabel}`
         }
-        return headings.hasOwnProperty(api.view)
-            ? headings[api.view]
-            : headings.default
+        return headings.hasOwnProperty(api.view) && headings[api.view]
     }
 
-    return  <>
-                <h3>{
-                        api.model ? <Button icon={api.model} /> : ''
-                    }
-                    { staticLabel ? staticLabel : genHeading()}</h3>
-            </>
+    const headingText = genHeading();
+
+    return headingText && <h3><Icon type={icon} size={'lg'} /> <span>{headingText}</span></h3>
 }
 
 export default Heading;

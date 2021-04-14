@@ -15,6 +15,7 @@
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
 import { humanize } from '../lib/data.utils.js';
+import { participantGroupTypes } from '../queries/metadata.queries.js';
 
 /**
  * Export schema constructor. A schema instance is a
@@ -29,6 +30,7 @@ export const create = async (constructorType) => {
 
     // initialize db schema attributes
     const nodeTypes = await getNodeTypes();
+    const metadataTypes = await getMetadataTypes();
     const fileTypes = await getFileTypes();
     const permissions = await getPermissions();
     const attributes = await getAttributes(constructorType);
@@ -42,16 +44,16 @@ export const create = async (constructorType) => {
     if (
         !(nodeTypes.includes(constructorType)
             || fileTypes.includes(constructorType)
+            || metadataTypes.includes(constructorType)
             || constructorType === 'nodes'
             || constructorType === 'files')
     )
         throw Error('invalidConstructorType');
 
     // set identifier key based on model attributes.
-    const idKey =
-        (attributes == null || attributes.hasOwnProperty('files_id'))
-            ? 'files_id'
-            : attributes.hasOwnProperty('nodes_id')
+    const idKey = (attributes == null || attributes.hasOwnProperty('files_id'))
+        ? 'files_id'
+        : attributes.hasOwnProperty('nodes_id')
             ? 'nodes_id'
             : 'id';
 
@@ -64,6 +66,10 @@ export const create = async (constructorType) => {
     Object.defineProperties(Schema.prototype, {
         nodeTypes: {
             value: nodeTypes,
+            writable: false
+        },
+        metadataTypes: {
+            value: metadataTypes,
             writable: false
         },
         fileTypes: {
@@ -121,6 +127,36 @@ export const getNodeTypes = async function(client=pool) {
 
     // return only model type names as list
     return nodeTypes.rows.map(nodeType => { return nodeType.name });
+};
+
+/**
+ * Get all metadata types.
+ *
+ * @public
+ * @return {Promise} result
+ */
+
+export const getMetadataTypes = async function(client=pool) {
+    let { sql, data } = queries.metadata.types();
+    let nodeTypes = await client.query(sql, data);
+
+    // return only model type names in list
+    return nodeTypes.rows.map(nodeType => { return nodeType.name });
+};
+
+/**
+ * Get all metadata types.
+ *
+ * @public
+ * @return {Promise} result
+ */
+
+export const getParticipantGroupTypes = async function(client=pool) {
+    let { sql, data } = participantGroupTypes();
+    let pgTypes = await client.query(sql, data);
+
+    // return only participant group type in list
+    return pgTypes.rows.map(pgType => { return pgType.name });
 };
 
 /**

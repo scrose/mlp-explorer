@@ -13,7 +13,7 @@ drop table if exists "file_types" CASCADE;
 create TABLE"public"."file_types"
 (
     id    serial PRIMARY KEY,
-    name  VARCHAR(40) UNIQUE NOT NULL,
+    name  VARCHAR(40) UNIQUE NOT NULL CHECK (name ~ '^[\w]+$'),
     label VARCHAR(40) UNIQUE NOT NULL
 );
 
@@ -291,7 +291,7 @@ CREATE TABLE "public"."modern_images"
 (
     "files_id"         integer primary key,
     "owner_id"         integer NOT NULL,
-    "image_state"      character varying(40),
+    "image_state"      character varying(40) NOT NULL,
     "format"           character varying(255),
     "channels"         integer,
     "density"          integer,
@@ -396,7 +396,7 @@ CREATE TABLE "public"."historic_images"
 (
     "files_id"         integer primary key,
     "owner_id"         integer NOT NULL,
-    "image_state"      character varying(40),
+    "image_state"      character varying(40) NOT NULL,
     "format"           character varying(255),
     "channels"         integer,
     "density"          integer,
@@ -589,7 +589,7 @@ from old_metadata_files c
 order by id;
 
 -- -------------------------------------------------------------
---    Field notes (owned by Visits)
+--    Field notes (owned by Modern Visits)
 -- -------------------------------------------------------------
 
 -- update owner ids

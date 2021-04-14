@@ -7,8 +7,9 @@
 
 import * as React from 'react'
 import { useRouter } from './router.provider.client';
-import { addSessionMsg } from '../_services/session.services.client';
+import { setSessionMsg } from '../_services/session.services.client';
 import { redirect } from '../_utils/paths.utils.client';
+import { useData } from './data.provider.client';
 
 /**
  * Global authentication context.
@@ -29,7 +30,6 @@ const AuthContext = React.createContext({})
 function AuthProvider(props) {
 
     const _isMounted = React.useRef(false);
-
     let [data, setData] = React.useState(null);
     const router = useRouter();
 
@@ -43,12 +43,11 @@ function AuthProvider(props) {
         return await router.post('/login', credentials)
             .then(res => {
                 const { user=null } = res || {};
-
                 // create user session on success
                 if (user) {
                     setData(user);
+                    setSessionMsg(res.message);
                 }
-
                 return res
             });
     }
@@ -62,10 +61,9 @@ function AuthProvider(props) {
     const logout = async () => {
         await router.post('/logout')
             .then(res => {
-                // Note: Keycloak logout operation returns no _content (204)
+                // Note: Keycloak logout operation returns no _static (204)
                 setData(null);
-                addSessionMsg(res.message);
-                return redirect('/');
+                setSessionMsg(res.message);
             });
     }
 

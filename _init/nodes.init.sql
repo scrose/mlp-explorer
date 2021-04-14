@@ -13,13 +13,12 @@ drop table if exists "node_types" CASCADE;
 create TABLE"public"."node_types"
 (
     id    serial PRIMARY KEY,
-    name  VARCHAR(40) UNIQUE NOT NULL,
+    name  VARCHAR(40) UNIQUE NOT NULL CHECK (name ~ '^[\w]+$'),
     label VARCHAR(40) UNIQUE NOT NULL
 );
 
 insert into "public"."node_types" (name, label)
-values ('users', 'Users'),
-       ('projects', 'Project'),
+values ('projects', 'Project'),
        ('surveyors', 'Surveyor'),
        ('surveys', 'Survey'),
        ('survey_seasons', 'SurveySeason'),
@@ -63,6 +62,7 @@ values ('projects', null),
        ('historic_captures', 'survey_seasons'),
        ('historic_captures', 'projects'),
        ('historic_captures', 'historic_visits'),
+       ('modern_captures', 'surveys'),
        ('modern_captures', 'survey_seasons'),
        ('modern_captures', 'modern_visits'),
        ('modern_captures', 'stations'),
@@ -619,7 +619,7 @@ CREATE TABLE "public"."modern_captures" (
     "lat" double precision,
     "lng" double precision,
     "elev" double precision,
-    "azimuth" integer,
+    "azim" integer,
     "comments" character varying(255),
     "alternate" boolean,
     CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
@@ -664,7 +664,7 @@ set  fn_photo_reference=q.fn_photo_reference,
      lat=q.lat,
      lng=q.long,
      elev=q.elevation,
-     azimuth=q.azimuth,
+     azim=q.azimuth,
      alternate=q.alternate,
      comments=q.comments
 from (select * from old_captures order by id) as q
@@ -704,6 +704,16 @@ ALTER TABLE comparison_indices
 
 ALTER TABLE comparison_indices
     RENAME COLUMN historic_capture_id TO historic_captures;
+
+-- Add foreign key references
+
+ALTER TABLE comparison_indices
+    ADD CONSTRAINT historic_capture_id_fkey
+        FOREIGN KEY (historic_captures) REFERENCES historic_captures(nodes_id);
+
+ALTER TABLE comparison_indices
+    ADD CONSTRAINT modern_capture_id_fkey
+        FOREIGN KEY (modern_captures) REFERENCES modern_captures(nodes_id);
 
 -- -------------------------------------------------------------
 --    Update Stations coordinates (if empty)

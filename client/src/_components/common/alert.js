@@ -15,23 +15,16 @@ import Dialog from './dialog';
  * @public
  */
 
-const Alert = ({title, description, setToggle, callback}) => {
-
-    const handleAgree = () => {
-        callback();
-        setToggle(null);
-    };
-    const handleDisagree = () => {
-        setToggle(null);
-    };
-
+const Alert = ({title, setToggle, callback, children}) => {
     return (
         <Dialog setToggle={setToggle} title={title}>
             <div className={'alert-box'}>
-                {description}
+                {children}
                 <div className={'alert-box-buttons'}>
-                    <Button icon={'success'} name={'ok'} label={'OK'} onClick={handleAgree} />
-                    <Button icon={'cancel'} name={'cancel'} label={'Cancel'} onClick={handleDisagree} />
+                    <Button icon={'success'} name={'ok'} label={'OK'} onClick={callback} />
+                    <Button icon={'cancel'} name={'cancel'} label={'Cancel'} onClick={()=> {
+                        setToggle(false);
+                    }} />
                 </div>
             </div>
         </Dialog>

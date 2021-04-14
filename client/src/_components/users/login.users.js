@@ -10,10 +10,10 @@ import Form from '../common/form';
 import { useUser } from '../../_providers/user.provider.client';
 import { useAuth } from '../../_providers/auth.provider.client';
 import { redirect } from '../../_utils/paths.utils.client';
-import { addSessionMsg } from '../../_services/session.services.client';
-import Loading from '../common/loading';
-import { useData } from '../../_providers/data.provider.client';
+import { getSessionMsg, popSessionMsg, setSessionMsg } from '../../_services/session.services.client';
 import { genSchema } from '../../_services/schema.services.client';
+import Loading from '../common/icon';
+import { useData } from '../../_providers/data.provider.client';
 
 /**
  * User sign in form component.
@@ -25,15 +25,18 @@ const LoginUsers = () => {
 
     const user = useUser();
     const auth = useAuth();
-    const schema = genSchema('login', 'users')
+    const schema = genSchema('login', 'users');
+
+    // clear session messages
+    popSessionMsg();
 
     // Redirect to dashboard if logged in
     React.useEffect(() => {
         if (user) {
-            addSessionMsg({msg: 'User is signed in.', type:'info'})
+            setSessionMsg({msg: 'User is signed in.', type:'info'});
             redirect('/');
-            return () => {};
         }
+        return () => {};
     }, [user]);
 
     return user

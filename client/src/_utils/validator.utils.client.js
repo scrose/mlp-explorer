@@ -21,7 +21,7 @@ export default Validator;
  */
 
 function Validator(validations) {
-    validations = ( typeof validations !== "undefined" ) ? validations : [];
+    this.validations = ( typeof validations !== "undefined" ) ? validations : [];
 
     // resolve validation methods
     // default is a no-op that returns the value.
@@ -75,11 +75,44 @@ const _inputValidations =
         },
 
         /**
+         * Validate required input.
+         */
+
+        isSelected: (value) => {
+            return !!value;
+        },
+
+        /**
+         * Validate required input.
+         */
+
+        isMultiSelected: (value) => {
+            console.log('!!!!', value)
+            return !!(Array.isArray(value) && value.length > 0);
+        },
+
+        /**
          * Validate files are selected.
          */
 
         filesSelected: (files) => {
             return !!(files && files.length > 0);
+        },
+
+        /**
+         * Validate latitude value.
+         */
+
+        isLatitude: (value) => {
+            return !!(value < 85 && value > -85);
+        },
+
+        /**
+         * Validate longitude value.
+         */
+
+        isLongitude: (value) => {
+            return !!(value < 180 && value > -180);
         },
 
         /**

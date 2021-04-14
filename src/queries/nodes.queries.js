@@ -95,6 +95,27 @@ export function selectByOwner(id) {
 }
 
 /**
+ * Generate query: Retrieve dependent nodes by id array.
+ *
+ * @return {Function} query function
+ * @public
+ */
+
+export function filterByIDArray(ids, offset, limit) {
+    const sql = `SELECT 
+            *, 
+            (SELECT COUNT(*) FROM nodes WHERE id = ANY($1)) as total
+            FROM nodes 
+            WHERE id = ANY($1)
+            OFFSET ${offset}
+            LIMIT ${limit}`;
+    return {
+        sql: sql,
+        data: [ids],
+    };
+}
+
+/**
  * Generate query: Insert node entry for given item
  *
  * @param {Object} node

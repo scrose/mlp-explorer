@@ -54,7 +54,11 @@ export const schema = {
     errors: {
         validation: {
             isRequired: 'This field is required.',
+            isSelected: 'Please select an item.',
+            isMultiSelected: 'Please select at least one item.',
             filesSelected: 'Please select files to upload.',
+            isLatitude: 'Latitude is invalid.',
+            isLongitude: 'Longitude is invalid.',
             isEmail: 'Not a valid email address.',
             isPassword: 'Passwords must have a minimum eight and maximum 20 characters, at least one uppercase letter, one lowercase letter, one number and one special character',
             isValidForm: 'Form not valid.',
@@ -95,9 +99,9 @@ export const schema = {
             render: 'upload'
         },
         new: {
-            label: 'Create New',
+            label: 'Add New',
             legend: 'Add',
-            submit: 'Create',
+            submit: 'Add',
             render: 'update'
         },
         edit: {
@@ -123,11 +127,17 @@ export const schema = {
             submit: 'Apply Alignment',
             render: 'master'
         },
+        mapFilter: {
+            label: 'Map Filter',
+            legend: 'Filter',
+            submit: 'Filter',
+            render: 'form'
+        },
         filter: {
             label: 'Filter',
             legend: 'Filter',
             submit: 'Filter',
-            render: 'form'
+            render: 'filter'
         },
         search: {
             label: 'Search',
@@ -173,7 +183,6 @@ export const schema = {
                 {
                     legend: 'Project Details',
                     name: {
-                        key: 1,
                         label: 'Name'
                     },
                     description: {
@@ -191,27 +200,23 @@ export const schema = {
             },
             fieldsets: [
                 {
+                    restrict: ['edit', 'delete'],
                     nodes_id: {
-                        render: 'hidden',
-                        restrict: ['edit', 'delete'],
-                    },
+                        render: 'hidden'
+                    }
                 },
                 {
                     legend: 'Surveyor Details',
                     given_names: {
-                        key: 2,
                         label: 'Given Names'
                     },
                     last_name: {
-                        key: 1,
                         label: 'Last Name'
                     },
                     short_name: {
-                        key: 3,
                         label: 'Short Name'
                     },
                     affiliation: {
-                        key: 4,
                         label: 'Affiliation'
                     }
                 }]
@@ -225,9 +230,9 @@ export const schema = {
             },
             fieldsets: [
                 {
+                    restrict: ['edit', 'delete'],
                     nodes_id: {
-                        render: 'hidden',
-                        restrict: ['edit', 'delete'],
+                        render: 'hidden'
                     },
                     owner_id: {
                         render: 'hidden'
@@ -236,11 +241,11 @@ export const schema = {
                 {
                     legend: 'Survey Details',
                     name: {
-                        key: 1,
-                        label: 'Survey Name'
+                        label: 'Survey Name',
+                        validate: ['isRequired'],
+                        tooltip: 'The survey name is required.'
                     },
                     historical_map_sheet: {
-                        key: 2,
                         label: 'Historical Map Sheet'
                     }
                 }]
@@ -250,13 +255,20 @@ export const schema = {
                 order: 4,
                 label: "Survey Seasons",
                 singular: "Survey Season",
-                dependents: ['stations', 'historic_captures', 'modern_captures']
+                dependents: [
+                    'stations',
+                    'historic_captures',
+                    'modern_captures',
+                    'glass_plate_listings',
+                    'maps'
+                ]
             },
             fieldsets: [
                 {
+                    restrict: ['edit', 'delete'],
                     nodes_id: {
                         render: 'hidden',
-                        restrict: ['edit', 'delete'],
+                        validate: ['isRequired']
                     },
                     owner_id: {
                         render: 'hidden'
@@ -265,8 +277,9 @@ export const schema = {
                 {
                     legend: 'Survey Season Details',
                     year: {
-                        key: 1,
-                        label: 'Year'
+                        label: 'Year',
+                        render: 'year',
+                        validate: ['isRequired']
                     },
                     geographic_coverage: {
                         label: 'Geographic Coverage'
@@ -313,48 +326,53 @@ export const schema = {
                     }
                 },
                 {
-                    restrict: ['show', 'edit', 'delete'],
+                    restrict: ['new', 'show', 'edit', 'delete'],
                     legend: 'Station Details',
                     name: {
-                        key: 1,
-                        label: 'Station'
+                        label: 'Station Name',
+                        validate: ['isRequired']
                     },
                     nts_sheet: {
                         label: 'NTS Sheet'
                     }
                 },
                 {
-                    restrict: ['show', 'edit', 'delete'],
+                    restrict: ['new', 'show', 'edit', 'delete'],
                     legend: 'Coordinates',
                     lat: {
                         label: 'Latitude',
-                        render: 'coord'
+                        render: 'coord',
+                        validate: ['isLatitude']
                     },
                     lng: {
                         label: 'Longitude',
-                        render: 'coord'
+                        render: 'coord',
+                        validate: ['isLongitude']
                     },
                     elev: {
-                        label: 'Elevation'
+                        label: 'Elevation',
+                        render: 'float',
+                        suffix: 'm'
                     },
                     azim: {
-                        label: 'Azimuth'
+                        label: 'Azimuth',
+                        render: 'float'
                     }
                 },
                 {
                     legend: 'Filter Map Stations',
-                    restrict: ['filter'],
-                    surveyors_id: {
+                    restrict: ['mapFilter'],
+                    surveyors: {
                         render: 'select',
                         reference: 'surveyors',
                         label: 'Surveyor'
                     },
-                    surveys_id: {
+                    surveys: {
                         render: 'select',
                         reference: 'surveys',
                         label: 'Survey',
                     },
-                    survey_seasons_id: {
+                    survey_seasons: {
                         render: 'select',
                         reference: 'survey_seasons',
                         label: 'Survey Season'
@@ -382,7 +400,6 @@ export const schema = {
                 {
                     legend: 'Visit Details',
                     date: {
-                        key: 1,
                         render: 'date',
                         label: 'Visit Date',
                     },
@@ -397,13 +414,16 @@ export const schema = {
                 order: 7,
                 label: "Modern Visits",
                 singular: "Modern Visit",
-                dependents: ['modern_captures']
+                dependents: [
+                    'locations',
+                    'participant_groups',
+                    'modern_captures']
             },
             fieldsets: [
                 {
+                    restrict: ['edit', 'delete'],
                     nodes_id: {
-                        render: 'hidden',
-                        restrict: ['edit', 'delete'],
+                        render: 'hidden'
                     },
                     owner_id: {
                         render: 'hidden'
@@ -412,7 +432,6 @@ export const schema = {
                 {
                     legend: 'Visit Details',
                     date: {
-                        key: 1,
                         render: 'date',
                         label: 'Visit Date'
                     },
@@ -429,7 +448,8 @@ export const schema = {
                         label: 'RW Call Sign'
                     },
                     visit_narrative: {
-                        label: 'Narrative'
+                        label: 'Narrative',
+                        render: 'textarea'
                     },
                     illustration: {
                         label: 'Illustration'
@@ -438,19 +458,28 @@ export const schema = {
                 {
                     legend: 'Weather Conditions',
                     weather_narrative: {
-                        label: 'Weather Description'
+                        label: 'Weather Description',
+                        render: 'textarea'
                     },
                     weather_temp: {
-                        label: 'Temperature'
+                        label: 'Temperature',
+                        render: 'float',
+                        suffix: '°C'
                     },
                     weather_ws: {
-                        label: 'Wind Speed'
+                        label: 'Wind Speed',
+                        render: 'float',
+                        suffix: 'km/h'
                     },
                     weather_gs: {
-                        label: 'Gust Speed'
+                        label: 'Gust Speed',
+                        suffix: 'km/h',
+                        render: 'float'
                     },
                     weather_pressure: {
-                        label: 'Barometric Pressure'
+                        label: 'Barometric Pressure',
+                        suffix: 'kPa',
+                        render: 'float'
                     },
                     weather_rh: {
                         label: 'Relative Humidity'
@@ -467,34 +496,35 @@ export const schema = {
                 label: "Historic Captures",
                 singular: "Historic Capture",
                 prefix: "Capture",
-                files: ['historic_images']
+                dependents: ['historic_images']
             },
             fieldsets: [
                 {
+                    restrict: ['edit', 'delete'],
                     nodes_id: {
-                        render: 'hidden',
-                        restrict: ['edit', 'delete'],
-                        key: 3
+                        render: 'hidden'
                     }
                 },
                 {
                     legend: 'Image Upload',
                     restrict: ['import'],
                     historic_images: {
-                        label: 'Image File',
-                        render: 'files',
+                        label: 'Image Files',
+                        render: 'file',
+                        multiple: true,
                         validate: ['filesSelected']
                     },
                     image_state: {
                         render: 'select',
                         label: 'Image State',
-                        reference: 'image_states'
+                        reference: 'image_states',
+                        validate: ['isRequired']
                     }
                 },
                 {
                     legend: 'Image Upload',
                     render: 'multiple',
-                    restrict: ['new', 'edit'],
+                    restrict: ['new'],
                     historic_images: {
                         label: 'Image File',
                         render: 'file',
@@ -503,14 +533,14 @@ export const schema = {
                     image_state: {
                         render: 'select',
                         label: 'Image State',
-                        reference: 'image_states'
+                        reference: 'image_states',
+                        validate: ['isRequired']
                     }
                 },
                 {
                     legend: 'Digitization Details',
                     restrict: ['show', 'new', 'edit'],
                     fn_photo_reference: {
-                        key: 1,
                         label: 'Field Notes Photo Reference'
 
                     },
@@ -518,7 +548,6 @@ export const schema = {
                         label: 'Digitization Location'
                     },
                     digitization_datetime: {
-                        key: 2,
                         label: 'Digitization Datetime',
                         render: 'date',
                     },
@@ -540,24 +569,31 @@ export const schema = {
                         reference: 'lens'
                     },
                     f_stop: {
-                        label: 'F-stop'
+                        label: 'F-stop',
+                        render: 'float',
+                        min: 0,
+                        prefix: 'f/'
                     },
                     shutter_speed: {
-                        label: 'Shutter Speed'
+                        label: 'Shutter Speed',
+                        render: 'smallText'
                     },
                     focal_length: {
-                        label: 'Focal Length'
+                        label: 'Focal Length',
+                        render: 'float',
+                        min: 0,
+                        suffix: 'mm'
                     },
                     capture_datetime: {
                         label: 'Capture Datetime',
                         render: 'datetime'
-                    },
+                    }
                 },
                 {
                     legend: 'Library Archives Canada (LAC) Metadata',
                     restrict: ['show', 'new', 'edit'],
                     lac_ecopy: {
-                        label: 'LAC ECopy'
+                        label: 'LAC ECopy Number'
                     },
                     lac_wo: {
                         label: 'LAC WO'
@@ -585,36 +621,37 @@ export const schema = {
                 order: 9,
                 label: "Modern Captures",
                 singular: "Modern Capture",
-                prefix: "Capture",
-                files: ['modern_images']
+                prefix: "Modern Capture",
+                dependents: ['modern_images']
             },
             fieldsets: [
                 {
+                    restrict: ['edit', 'delete'],
                     nodes_id: {
-                        render: 'hidden',
-                        restrict: ['edit', 'delete'],
-                        key: 2
+                        render: 'hidden'
                     }
                 },
                 {
                     legend: 'Image Upload',
                     restrict: ['import'],
                     modern_images: {
-                        label: 'Image File',
-                        render: 'files',
+                        label: 'Image Files',
+                        render: 'file',
+                        multiple: true,
                         validate: ['filesSelected']
                     },
                     image_state: {
                         render: 'select',
                         label: 'Image State',
-                        reference: 'image_states'
+                        reference: 'image_states',
+                        validate: ['isRequired']
                     }
                 },
                 {
                     legend: 'Image Upload',
                     render: 'multiple',
-                    restrict: ['new', 'edit'],
-                    historic_images: {
+                    restrict: ['new'],
+                    modern_images: {
                         label: 'Image File',
                         render: 'file',
                         validate: ['filesSelected'],
@@ -622,14 +659,14 @@ export const schema = {
                     image_state: {
                         render: 'select',
                         label: 'Image State',
-                        reference: 'image_states'
+                        reference: 'image_states',
+                        validate: ['isRequired']
                     }
                 },
                 {
                     legend: 'Capture Details',
                     fn_photo_reference: {
-                        label: 'Field Notes Photo Reference',
-                        key: 1
+                        label: 'Field Notes Photo Reference'
                     },
                     capture_datetime: {
                         render: 'datetime',
@@ -646,16 +683,20 @@ export const schema = {
                     legend: 'Coordinates',
                     lat: {
                         label: 'Latitude',
-                        render: 'coord'
+                        render: 'coord',
+                        validate: ['isLatitude']
                     },
                     lng: {
                         label: 'Longitude',
-                        render: 'coord'
+                        render: 'coord',
+                        validate: ['isLongitude']
                     },
-                    elevation: {
-                        label: 'Elevation'
+                    elev: {
+                        label: 'Elevation',
+                        render: 'float',
+                        suffix: 'm'
                     },
-                    azimuth: {
+                    azim: {
                         label: 'Azimuth'
                     }
                 },
@@ -672,13 +713,20 @@ export const schema = {
                         label: 'Lens'
                     },
                     f_stop: {
-                        label: 'F-stop'
+                        label: 'F-stop',
+                        render: 'float',
+                        min: 0,
+                        prefix: 'f/'
                     },
                     shutter_speed: {
-                        label: 'Shutter Speed'
+                        label: 'Shutter Speed',
+                        render: 'smallText'
                     },
                     focal_length: {
-                        label: 'Focal Length'
+                        label: 'Focal Length',
+                        render: 'float',
+                        min: 0,
+                        suffix: 'mm'
                     }
                 }
             ]
@@ -689,13 +737,14 @@ export const schema = {
                 label: "Locations",
                 prefix: "Location",
                 singular: "Location",
+                dependents: ['modern_captures'],
                 files: ['supplemental_images']
             },
             fieldsets: [
                 {
+                    restrict: ['edit', 'delete'],
                     nodes_id: {
-                        render: 'hidden',
-                        restrict: ['edit', 'delete'],
+                        render: 'hidden'
                     },
                     owner_id: {
                         render: 'hidden'
@@ -707,7 +756,6 @@ export const schema = {
                         label: 'Narrative'
                     },
                     location_identity: {
-                        key: 1,
                         label: 'Location ID'
                     },
                     legacy_photos_start: {
@@ -728,25 +776,112 @@ export const schema = {
             },
             fieldsets: [
                 {
+                    files_id: {
+                        render: 'hidden',
+                        restrict: ['edit']
+                    }
+                },
+                {
+                    legend: 'Image Upload',
+                    restrict: ['new'],
+                    historic_images: {
+                        label: 'Image File',
+                        render: 'file',
+                        validate: ['filesSelected']
+                    },
+                    image_state: {
+                        render: 'select',
+                        label: 'Image State',
+                        reference: 'image_states',
+                        validate: ['isRequired']
+                    }
+                },
+                {
+                    legend: 'Capture Details',
+                    restrict: ['edit', 'show'],
+                    image_state: {
+                        label: 'Image State',
+                        render: 'select',
+                        reference: 'image_states',
+                        validate: ['isRequired']
+                    }
+                },
+                {
                     legend: 'Image Details',
+                    restrict: ['show'],
                     file_size: {
                         render: 'filesize',
                         label: 'File size',
-                        restrict: ['show', 'edit']
+
                     },
                     x_dim: {
                         render: 'imgsize',
-                        label: 'Image Width',
-                        restrict: ['show', 'edit']
+                        label: 'Image Width'
                     },
                     y_dim: {
                         render: 'imgsize',
-                        label: 'Image Height',
-                        restrict: ['show', 'edit']
+                        label: 'Image Height'
+                    },
+                    format: {
+                        label: 'Image Format'
+                    },
+                    channels: {
+                        label: 'Channels'
+                    },
+                    density: {
+                        label: 'Density'
+                    },
+                    space: {
+                        label: 'Space'
                     },
                     comments: {
-                        label: 'Comments',
-                        restrict: ['show', 'edit', 'delete']
+                        label: 'Comments'
+                    }
+                },
+                {
+                    legend: 'Camera Details',
+                    restrict: ['show'],
+                    lens_id: {
+                        render: 'select',
+                        reference: 'lens',
+                        label: 'Lens'
+                    },
+                    f_stop: {
+                        label: 'F-stop',
+                        render: 'float',
+                        min: 0,
+                        prefix: 'f/'
+                    },
+                    shutter_speed: {
+                        label: 'Shutter Speed',
+                        render: 'smallText'
+                    },
+                    focal_length: {
+                        label: 'Focal Length',
+                        render: 'float',
+                        min: 0,
+                        suffix: 'mm'
+                    }
+                },
+                {
+                    legend: 'Coordinates',
+                    restrict: ['show'],
+                    lat: {
+                        label: 'Latitude',
+                        render: 'coord',
+                    },
+                    lng: {
+                        label: 'Longitude',
+                        render: 'coord',
+                    },
+                    elev: {
+                        label: 'Elevation',
+                        suffix: 'm',
+                        render: 'float'
+                    },
+                    azim: {
+                        label: 'Azimuth',
+                        render: 'float'
                     }
                 }]
         },
@@ -758,6 +893,37 @@ export const schema = {
                 singular: "Modern Image"
             },
             fieldsets: [
+                {
+                    files_id: {
+                        render: 'hidden',
+                        restrict: ['edit']
+                    }
+                },
+                {
+                    legend: 'Image Upload',
+                    restrict: ['new'],
+                    modern_images: {
+                        label: 'Image File',
+                        render: 'file',
+                        validate: ['filesSelected']
+                    },
+                    image_state: {
+                        render: 'select',
+                        label: 'Image State',
+                        reference: 'image_states',
+                        validate: ['isRequired']
+                    }
+                },
+                {
+                    legend: 'Capture Details',
+                    restrict: ['edit', 'show'],
+                    image_state: {
+                        label: 'Image State',
+                        render: 'select',
+                        reference: 'image_states',
+                        validate: ['isRequired']
+                    }
+                },
                 {
                     legend: 'Image Details',
                     restrict: ['show', 'edit'],
@@ -784,11 +950,6 @@ export const schema = {
                         label: 'Bit Depth',
                         restrict: ['show']
                     },
-                    image_remote: {
-                        label: 'Remote',
-                        render: 'checkbox',
-                        restrict: ['show', 'edit']
-                    },
                     capture_datetime: {
                         label: 'Capture Datetime',
                         render: 'datetime',
@@ -805,11 +966,13 @@ export const schema = {
                     restrict: ['show', 'edit'],
                     lat: {
                         label: 'Latitude',
-                        render: 'coord'
+                        render: 'coord',
+                        validate: ['isLatitude']
                     },
                     lng: {
                         label: 'Longitude',
-                        render: 'coord'
+                        render: 'coord',
+                        validate: ['isLongitude']
                     }
                 },
                 {
@@ -826,16 +989,24 @@ export const schema = {
                         reference: 'lens'
                     },
                     f_stop: {
-                        label: 'F-stop'
+                        label: 'F-stop',
+                        render: 'float',
+                        min: 0,
+                        prefix: 'f/'
                     },
                     shutter_speed: {
-                        label: 'Shutter Speed'
+                        label: 'Shutter Speed',
+                        render: 'smallText'
                     },
                     focal_length: {
-                        label: 'Focal Length'
+                        label: 'Focal Length',
+                        render: 'float',
+                        min: 0,
+                        suffix: 'mm'
                     },
                     iso: {
-                        label: 'ISO'
+                        label: 'ISO',
+                        render: 'int'
                     },
                 }]
         },
@@ -867,9 +1038,6 @@ export const schema = {
                     bit_depth: {
                         label: 'Bit Depth'
                     },
-                    image_remote: {
-                        label: 'Remote'
-                    },
                     comments: {
                         label: 'Comments'
                     }
@@ -878,11 +1046,13 @@ export const schema = {
                     legend: 'Coordinates',
                     lat: {
                         label: 'Latitude',
-                        render: 'coord'
+                        render: 'coord',
+                        validate: ['isLatitude']
                     },
                     lng: {
                         label: 'Longitude',
-                        render: 'coord'
+                        render: 'coord',
+                        validate: ['isLongitude']
                     }
                 },
                 {
@@ -898,16 +1068,24 @@ export const schema = {
                         reference: 'lens'
                     },
                     f_stop: {
-                        label: 'F-stop'
+                        label: 'F-stop',
+                        render: 'float',
+                        min: 0,
+                        prefix: 'f/'
                     },
                     shutter_speed: {
-                        label: 'Shutter Speed'
+                        label: 'Shutter Speed',
+                        render: 'smallText'
                     },
                     focal_length: {
-                        label: 'Focal Length'
+                        label: 'Focal Length',
+                        render: 'float',
+                        min: 0,
+                        suffix: 'mm'
                     },
                     iso: {
-                        label: 'ISO'
+                        label: 'ISO',
+                        render: 'int'
                     }
                 }]
         },
@@ -932,8 +1110,11 @@ export const schema = {
             },
             fieldsets: [
                 {
+                    name: {
+                        label: 'Image Name',
+                        validate: ['isAlphanumeric']
+                    },
                     label: {
-                        key: 1,
                         label: 'Image State'
                     }
                 }]
@@ -946,19 +1127,17 @@ export const schema = {
             fieldsets: [
                 {
                     make: {
-                        key: 1,
-                        label: 'Make'
+                        label: 'Make',
+                        validate: ['isRequired']
                     },
                     model: {
-                        key: 2,
-                        label: 'Model'
+                        label: 'Model',
+                        validate: ['isRequired']
                     },
                     unit: {
-                        key: 3,
                         label: 'Unit'
                     },
                     format: {
-                        key: 4,
                         label: 'Format'
                     },
                 }]
@@ -971,16 +1150,16 @@ export const schema = {
             fieldsets: [
                 {
                     brand: {
-                        key: 1,
-                        label: 'Brand'
+                        label: 'Brand',
+                        validate: ['isRequired']
                     },
                     focal_length: {
-                        key: 2,
-                        label: 'Focal Length'
+                        label: 'Focal Length',
+                        render: 'float'
                     },
                     max_aperture: {
-                        key: 3,
-                        label: 'Max Aperture'
+                        label: 'Max Aperture',
+                        render: 'float'
                     }
                 }]
         },
@@ -1032,78 +1211,120 @@ export const schema = {
             },
             fieldsets: [
                 {
-                    legend: 'Map Details',
+                    legend: 'Capture Images',
                     historic_capture: {
-                        label: 'Historic Capture'
+                        label: 'Historic Capture',
+                        validate: ['isRequired']
                     },
                     modern_capture: {
-                        label: 'Modern Capture'
+                        label: 'Modern Capture',
+                        validate: ['isRequired']
                     },
                 }]
         },
-        hiking_party: {
+        participant_group_types: {
             attributes: {
-                label: 'Hiking Party',
-                singular: 'Hiking Party'
+                label: 'Group Types',
+                singular: 'Group Type'
             },
-            fieldsets: [{}]
-        },
-        field_notes_authors: {
-            attributes: {
-                label: 'Field Notes Authors',
-                singular: 'Field Notes Authors'
-            },
-            fieldsets: [{}]
-        },
-        photographers: {
-            attributes: {
-                label: 'Photographers',
-                singular: 'Photographers'
-            },
-            fieldsets: [{}]
+            fieldsets: [
+                {
+                    legend: 'Group Type Settings',
+                    name: {
+                        label: 'Name',
+                        validate: ['isRequired']
+                    },
+                    label: {
+                        label: 'Label'
+                    },
+                }]
         },
         participant_groups: {
             attributes: {
+                label: 'Visit Participants',
+                singular: 'Participant Group'
+            },
+            fieldsets: [
+                {
+                    legend: 'Add New Participant Group',
+                    restrict: ['new'],
+                    group_type: {
+                        render: 'select',
+                        label: 'Group Type',
+                        reference: 'participant_group_types',
+                        validate: ['isRequired']
+                    },
+                    participants: {
+                        label: 'Participants',
+                        render: 'multiselect',
+                        reference: 'participants',
+                        validate: ['isMultiSelected']
+                    }
+                },
+                {
+                    legend: 'Hiking Group',
+                    restrict: ['show', 'edit'],
+                    hiking_party: {
+                        label: 'Participants',
+                        render: 'multiselect',
+                        reference: 'participants'
+                    },
+                    group_type: {
+                        render: 'hidden'
+                    }
+                },
+                {
+                    legend: 'Field Notes Authors',
+                    restrict: ['show', 'edit'],
+                    field_notes_authors: {
+                        label: 'Participants',
+                        render: 'multiselect',
+                        reference: 'participants'
+                    },
+                    group_type: {
+                        render: 'hidden'
+                    }
+                },
+                {
+                    legend: 'Photographers',
+                    restrict: ['show', 'edit'],
+                    photographers: {
+                        label: 'Participants',
+                        render: 'multiselect',
+                        reference: 'participants'
+                    },
+                    group_type: {
+                        render: 'hidden'
+                    }
+                }]
+        },
+        participants: {
+            attributes: {
                 order: 12,
-                label: 'Participants',
+                label: 'Participant',
                 singular: 'Participant',
             },
             fieldsets: [
                 {
                     legend: 'Participants',
-                    hiking_party: {
-                        label: 'Hiking Party',
-                        render: 'participants'
-                    },
-                    field_notes_authors: {
-                        label: 'Field Notes Authors',
-                        render: 'participants'
-                    },
-                    photographers: {
-                        label: 'Photographers',
-                        render: 'participants'
+                    restrict: ['list'],
+                    full_name: {
+                        label: 'Name'
                     }
-                }]
-        },
-        participant: {
-            attributes: {
-                order: 12,
-                label: 'Participants',
-                singular: 'Participant',
-            },
-            fieldsets: [
+                },
                 {
-                    legend: 'Participant',
+                    legend: 'Participant Details',
+                    restrict: ['show', 'new', 'edit'],
                     last_name: {
-                        label: 'Last Name'
+                        label: 'Last Name',
+                        validate: ['isRequired']
                     },
                     given_names: {
-                        label: 'Given Names'
-                    },
-                    group_type: {
-                        label: 'Group Type'
+                        label: 'Given Names',
+                        validate: ['isRequired']
                     }
-                }]
+                }
+            ]
         }
     }
 }

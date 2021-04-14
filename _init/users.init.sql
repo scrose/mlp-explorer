@@ -13,7 +13,7 @@ drop table if exists user_permissions CASCADE;
 CREATE TABLE IF NOT EXISTS user_roles
 (
     id    serial PRIMARY KEY,
-    name  VARCHAR(40) UNIQUE  NOT NULL,
+    name  VARCHAR(40) UNIQUE  NOT NULL CHECK (name ~ '^[\w]+$'),
     label VARCHAR(255) UNIQUE NOT NULL
 );
 
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS user_permissions
 (
     id         serial PRIMARY KEY,
     view       views,
-    role       VARCHAR(512) NOT NULL,
+    role       VARCHAR(40),
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     UNIQUE (view, role),
@@ -68,10 +68,22 @@ VALUES  ('show', 'visitor', now(), now()),
         ('remove', 'editor', now(), now()),
         ('remove', 'administrator', now(), now()),
         ('remove', 'super_administrator', now(), now()),
+        ('options', 'contributor', now(), now()),
+        ('options', 'editor', now(), now()),
+        ('options', 'administrator', now(), now()),
+        ('options', 'super_administrator', now(), now()),
+        ('settings', 'administrator', now(), now()),
+        ('settings', 'super_administrator', now(), now()),
         ('login', 'visitor', now(), now()),
         ('auth', 'visitor', now(), now()),
         ('refresh', 'visitor', now(), now()),
         ('logout', 'visitor', now(), now()),
+        ('filter', 'visitor', now(), now()),
+        ('filter', 'registered', now(), now()),
+        ('filter', 'contributor', now(), now()),
+        ('filter', 'editor', now(), now()),
+        ('filter', 'administrator', now(), now()),
+        ('filter', 'super_administrator', now(), now()),
         ('search', 'visitor', now(), now()),
         ('search', 'registered', now(), now()),
         ('search', 'contributor', now(), now()),
