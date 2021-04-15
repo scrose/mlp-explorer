@@ -8,8 +8,6 @@
 import * as React from 'react'
 import { useRouter } from './router.provider.client';
 import { setSessionMsg } from '../_services/session.services.client';
-import { redirect } from '../_utils/paths.utils.client';
-import { useData } from './data.provider.client';
 
 /**
  * Global authentication context.
@@ -46,7 +44,6 @@ function AuthProvider(props) {
                 // create user session on success
                 if (user) {
                     setData(user);
-                    setSessionMsg(res.message);
                 }
                 return res
             });

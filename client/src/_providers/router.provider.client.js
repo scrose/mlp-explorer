@@ -9,7 +9,7 @@ import * as React from 'react'
 import { makeRequest } from '../_services/api.services.client';
 import { getAPIURL, getNodeURI, filterPath, reroute, getRoot } from '../_utils/paths.utils.client';
 import { getStaticView } from '../_services/schema.services.client';
-import { setSessionMsg, clearNodes } from '../_services/session.services.client';
+import { clearNodes } from '../_services/session.services.client';
 
 /**
  * Global data provider.
@@ -40,6 +40,9 @@ function RouterProvider(props) {
 
     // static view state: static views do not require API requests
     const [staticView, setStaticView] = React.useState(getStaticView(filterPath()));
+
+    // client route in state
+    const [error, setError] = React.useState({});
 
     // clear node path in session state
     clearNodes();
@@ -116,6 +119,7 @@ function RouterProvider(props) {
 
         // handle exceptions
         if (!res.success) {
+            setError(response.message);
             response.reroute = errorRouter(res.status, response);
         }
 
@@ -221,22 +225,22 @@ function RouterProvider(props) {
             };
 
             // Upload error callback
-            xhr.upload.onerror = function(e) {
+            xhr.upload.onerror = function() {
                 return callback(null, {msg: 'Upload error has occurred.', type: 'error'});
             };
 
             // Upload timeout callback
-            xhr.upload.ontimeout = function(e) {
+            xhr.upload.ontimeout = function() {
                 return callback(null, {msg: 'Upload has timed out.', type: 'error'});
             };
 
             // Upload abort callback
-            xhr.upload.onabort = function(e) {
+            xhr.upload.onabort = function() {
                 return callback(null, {msg: 'Upload was aborted.', type: 'warn'});
             };
 
             // Upload end callback
-            xhr.upload.onloadend = function(e) {
+            xhr.upload.onloadend = function() {
                 return callback(null, {msg: 'Upload completed!', type: 'success'});
             };
 
@@ -278,8 +282,6 @@ function RouterProvider(props) {
         const route = getNodeURI(model, 'remove', id, group);
         post(route)
             .then(res => {
-                console.log(res)
-                setSessionMsg(res.message);
                 callback(res);
             })
             .catch(console.error);
@@ -303,6 +305,8 @@ function RouterProvider(props) {
                 upload,
                 download,
                 remove,
+                error,
+                setError,
                 online,
                 setOnline
             }

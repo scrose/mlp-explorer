@@ -7,6 +7,204 @@
  */
 
 /**
+ * Global canvas viewer settings.
+ */
+
+const settings = {
+    maxWidth: 300,
+    controlPointsMax: 4
+}
+
+/**
+ * Get API url for given image.
+ *
+ * @public
+ * @param image
+ */
+
+export const getImageURL = (image) => {
+    return typeof image.url != 'undefined' ? image.url.medium : '';
+}
+
+/**
+ * compute scale-to-fit canvas dimensions.
+ *
+ * @public
+ * @return {Object} dimensions
+ */
+
+export const calcDims = (canvas, x_dim, y_dim, maxWidth) => {
+    const ratio = (y_dim + 0.1) / (x_dim + 0.1)
+    return {
+        x: maxWidth,
+        y: Math.floor( ratio * maxWidth)
+    }
+}
+
+/**
+ * Get local mouse position on canvas.
+ * Reference: https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas
+ *
+ * @public
+ * @param e
+ * @param canvas
+ */
+
+export const getPos = (e, canvas) => {
+    let rect = canvas.getBoundingClientRect(), // abs. size of element
+        scaleX = canvas.width / rect.width,    // relationship bitmap vs. element for X
+        scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for Y
+
+    return {
+        x: (e.clientX - rect.left) * scaleX,   // scale mouse coordinates after they have
+        y: (e.clientY - rect.top) * scaleY     // been adjusted to be relative to element
+    }
+};
+
+/**
+ * Store selected alignment control points.
+ *
+ * @public
+ * @param e
+ * @param canvas
+ * @return {JSX.Element}
+ */
+
+export const getControlPoints = (e, canvas) => {
+    const point = markPoint(e, canvas);
+    // if (points.length > nPoints) {
+    //     setMessage({
+    //         msg: 'Maximum number of points reached.',
+    //         type: 'error'
+    //     });
+    //     return;
+    // }
+    console.log('Store point', point)
+}
+
+/**
+ * Apply alignment transformation to image data.
+ *
+ * @public
+ * @param image1
+ * @param image2
+ * @param controlPoints
+ * @return {JSX.Element}
+ */
+
+export const alignImages = (image1, image2, controlPoints) => {
+
+    console.log('Do image alignment:', controlPoints)
+}
+
+/**
+ * Get local mouse position on canvas.
+ * Reference: https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas
+ *
+ * @public
+ * @param e
+ * @param canvas
+ */
+
+export const markPoint = (e, canvas) => {
+    let ctx = canvas.getContext('2d');
+    const point = getPos(e, canvas);
+    const drawCrosshair = () => {
+        ctx.beginPath();
+        ctx.strokeStyle = "#2ea591";
+        ctx.moveTo(point.x - 10, point.y);
+        ctx.lineTo(point.x + 10, point.y);
+        ctx.moveTo(point.x, point.y - 10);
+        ctx.lineTo(point.x, point.y + 10);
+        ctx.stroke();
+    }
+    drawCrosshair();
+
+    return point;
+};
+
+/**
+ * Image position crosshair event handler.
+ *
+ * @public
+ * @param e
+ * @param posX
+ * @param posY
+ * @param canvas
+ */
+
+export const magnifyRegion = (e, canvas, posX, posY) => {
+
+    if (!canvas) return;
+
+    console.log(getPos(e, canvas))
+
+    let ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // H
+    ctx.beginPath();
+    ctx.strokeStyle = '#333';
+
+    ctx.moveTo(0, posY - 1);
+    ctx.lineTo(500, posY + 1);
+    ctx.stroke();
+
+    // V
+    ctx.beginPath();
+    ctx.moveTo(posX - 1, 0);
+    ctx.lineTo(posX + 1, 500);
+    ctx.stroke();
+};
+
+
+
+function onMouseDown() {
+    console.log('mouse down!');
+}
+
+//
+function DragMouse(e, canvas) {
+    const mousePos = getPos(e);
+    let mx = mousePos.x;
+    let my = mousePos.y;
+
+    if (isNaN(mx)) {
+        mx = e.originalEvent.touches[0].pageX;
+        my = e.originalEvent.touches[0].pageY;
+    }
+
+    magnifyRegion(mx, my, canvas);
+}
+
+/**
+ * Initialize crosshair.
+ *
+ * @public
+ * @param canvas
+ */
+
+export const initCrosshair = (canvas) => {
+    let ctx = canvas.getContext('2d');
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // H
+    ctx.beginPath();
+    ctx.strokeStyle = "#333";
+    ctx.lineWidth = 1;
+    ctx.moveTo(0, canvas.height/2);
+    ctx.lineTo(500, canvas.height/2);
+    ctx.stroke();
+
+    // V
+    ctx.beginPath();
+    ctx.moveTo(canvas.width/2, 0);
+    ctx.lineTo(canvas.width/2, 500);
+    ctx.stroke();
+};
+
+/**
  * Image Processing Utilities
  *
  * CORS and file: * Protocol Summary: (incomplete)  * 20200211
@@ -28,8 +226,6 @@ NOTES: Candidates for removal to separate files:
 Should also more strongly separate DOM/HTML/drawing from the rest
 Consider HTML/CSS/panels/canvases with no drawing nor images
 */
-
-'use strict';
 
 /**
  * IAT Constants
@@ -7936,6 +8132,3 @@ Consider HTML/CSS/panels/canvases with no drawing nor images
 //     }
 //
 //     return R8;
-//
-// } // saveBMP
-//

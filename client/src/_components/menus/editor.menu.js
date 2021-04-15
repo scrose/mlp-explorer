@@ -98,7 +98,7 @@ const EditorMenu = ({
         Metadata included below will apply to each imported capture.
     </p>
 
-    const editorDialogs = {
+    const _editorDialogs = {
         show:   <Dialog
                     key={`${menuID}_dialog_show`}
                     title={`${modelLabel} Details`}
@@ -199,7 +199,7 @@ const EditorMenu = ({
     }
 
     // create dependents dialog popups for requested model
-    const dependentDialogs = (dependents || []).reduce((o, dependent) => {
+    const _dependentDialogs = (dependents || []).reduce((o, dependent) => {
         o[dependent] =  <Dialog
             key={`${menuID}_dialog_${dependent}`}
             setToggle={setDialogToggle}
@@ -221,10 +221,10 @@ const EditorMenu = ({
 
     // show dialog popup
     const showDialog = (type) => {
-        return editorDialogs.hasOwnProperty(dialogToggle)
-            ? editorDialogs[dialogToggle]
-            : dependentDialogs.hasOwnProperty(type)
-                ? dependentDialogs[type]
+        return _editorDialogs.hasOwnProperty(dialogToggle)
+            ? _editorDialogs[dialogToggle]
+            : _dependentDialogs.hasOwnProperty(type)
+                ? _dependentDialogs[type]
                 : ''
     }
 

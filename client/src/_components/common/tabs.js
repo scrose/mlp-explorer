@@ -24,7 +24,7 @@ const Tabs = ({menu=[], data=[], highlight=null}) => {
 
     // use toggle icon to show state of loading
     const onToggle = (index) => {
-        return index===selectedIndex ? 'vopen' : 'vclose';
+        return index===selectedIndex ? 'expand' : 'collapse';
     }
 
     return (

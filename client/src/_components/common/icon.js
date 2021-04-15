@@ -9,6 +9,7 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
+    faBars,
     faAngleDoubleLeft,
     faAngleDoubleRight,
     faArchive,
@@ -62,6 +63,7 @@ import {
 
 library.add(
     faCog,
+    faBars,
     faHome,
     faUser,
     faSignInAlt,
@@ -122,6 +124,7 @@ library.add(
 const getIconClass = (iconType) => {
     const iconComponents = {
         spinner: 'cog',
+        menu: 'bars',
         home: 'home',
         dashboard: 'columns',
         user: 'user',

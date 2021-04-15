@@ -69,8 +69,8 @@ export const clearNodes = () => {
  */
 
 export const getSessionMsg = () => {
-    const msgJSON = sessionStorage.getItem('statusMsg') || ''
-    return msgJSON ? JSON.parse(msgJSON) : '';
+    const msgJSON = sessionStorage.getItem('statusMsg') || JSON.stringify('');
+    return msgJSON != null ? JSON.parse(msgJSON) : '';
 }
 
 /**
@@ -80,7 +80,7 @@ export const getSessionMsg = () => {
  */
 
 export const setSessionMsg = (msg) => {
-    sessionStorage.setItem('statusMsg', JSON.stringify(msg));
+    sessionStorage.setItem('statusMsg', JSON.stringify(msg ? msg : ''));
 }
 
 /**

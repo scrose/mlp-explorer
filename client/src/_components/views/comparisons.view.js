@@ -72,7 +72,7 @@ const ComparisonsView = ({data = {}, callback = () => {} }) => {
 
     return <>
         { showDialog() }
-        <div className={'comparisons'}>
+        <div className={'comparisons-item'}>
             <div className={'h-menu'}>
                 <CapturesView
                     captures={[historic_capture]}

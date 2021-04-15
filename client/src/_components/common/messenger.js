@@ -6,10 +6,10 @@
  */
 
 import React from 'react';
-import { getSessionMsg, popSessionMsg } from '../../_services/session.services.client';
 import { useData } from '../../_providers/data.provider.client';
 import Button from './button';
 import Icon from './icon';
+import { useRouter } from '../../_providers/router.provider.client';
 
 /**
  * Messenger component.
@@ -17,18 +17,21 @@ import Icon from './icon';
  * @public
  */
 
-const Messenger = ({closeable=true, message='', level='', retires=false}) => {
+const Messenger = ({closeable=true, message='', level=''}) => {
 
-    // message timer
-    const timer = () => {
-        popSessionMsg();
-        api.setMessage(null);
-    }
 
     const api = useData();
-    const [intervalID, setIntervalID] = React.useState(
-        retires && getSessionMsg() ? setInterval(timer, 4000) : null
-    );
+    const router = useRouter();
+
+    // // message timer
+    // const timer = () => {
+    //     api.setMessage(null);
+    // }
+    //
+    // // get timer interval ID
+    // const [intervalID, setIntervalID] = React.useState(
+    //     retires && getSessionMsg() ? setInterval(timer, 4000) : null
+    // );
 
     /**
      * Handle close of message.
@@ -37,13 +40,12 @@ const Messenger = ({closeable=true, message='', level='', retires=false}) => {
      */
 
     const handleClose = () => {
-        clearInterval(intervalID);
-        popSessionMsg();
         api.setMessage(null);
+        router.setError(null);
     }
 
-    // destructure message data from API provider
-    const { msg=message, type=level } = api.message || {};
+    // destructure message data from API provider and router
+    const { msg=message, type=level } = api.message || router.error || {};
 
     return msg && type &&
         <div className={`msg ${type}`}>

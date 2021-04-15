@@ -13,9 +13,9 @@ import { useData } from '../../_providers/data.provider.client';
 import { genSchema, getRenderType } from '../../_services/schema.services.client';
 import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
 import Importer from './importer.view';
-import Aligner from './aligner.view';
 import FilterView from './filter.view';
 import { Loading } from '../common/icon';
+import CanvasView from './canvas.view';
 
 /**
  * Build requested data view from API data.
@@ -65,8 +65,8 @@ const DataView = () => {
                 }}
             />),
         master: () => (
-            <Aligner
-                data={api.data}
+            <CanvasView
+                input2={api.data}
                 schema={schema}
                 callback={() => {
                     redirect(

@@ -806,7 +806,7 @@ nav.breadcrumb ul li a:hover {
 
 /* Create an active/current tablink class */
 .tab.h-menu ul li button.active {
-    background-color: #E34234;
+    background-color: #2B5A6B;
     color: #FFFFFF;
 }
 /* Tab data panel */
@@ -815,7 +815,7 @@ nav.breadcrumb ul li a:hover {
     padding:0;
 }
 .tab .active {
-    background-color: #E34234;
+    background-color: #2B5A6B;
 }
 
 /* Accordion List Menu */
@@ -1076,13 +1076,18 @@ nav.breadcrumb ul li a:hover {
 
 /* Capture Comparisons */
 .accordion.comparisons {
-    border-color: #45a049;
-    color: #45a049;
-    background-color: rgba(63,173,66,0.28);
+    border-color: #2B5A6B;
+    color: #D8EDE0;
+    background-color: #2B5A6B;
 }
-.comparisons.h-menu {
-    border-color: #55BF81 !important;
-    color: #55BF81 !important;
+.comparisons-item {
+    background-color: #FFFFFF;
+    border-radius: 10px;
+    margin: 5px;
+}
+.comparisons.h-menu ul {
+    align-items: center;
+    color: #2B5A6B !important;
 }
 .comparisons div {
     width: auto !important;
@@ -1093,6 +1098,12 @@ nav.breadcrumb ul li a:hover {
 }
 .captures {
     width: auto;
+}
+.capture-selector input {
+    display: none;
+}
+.capture-selector label {
+    border-radius: 10px;
 }
 
 /* Model colour schema */
@@ -1692,9 +1703,6 @@ Messages
     flex-grow: 4;
 }
 .msg-icon {
-    width: auto !important;
-    align-self: flex-start;
-    text-align: center;
     padding: 10px 20px;
 }
 .msg .close {
@@ -1704,8 +1712,8 @@ Messages
     background-color: transparent;
 }
 .msg.info {
-    color: #008896;
-    background-color: #BDE5F8;
+    color: #2ea591;
+    background-color: #C5FCEF;
 }
 .msg.success {
     color: #4F8A10;
@@ -1840,21 +1848,19 @@ Messages
 
 /* Image Editor (Canvas) */
 
+canvas {
+    cursor: crosshair;
+    margin: 10px;
+    background-color: #FFFFFF;
+    border: 1px solid #282c34;
+}
 .image-canvas {
     text-align: center;
     width: auto;
-    margin: 10px;
 }
 .image-canvas img {
     display: none;
 }
-canvas {
-    margin: 10px;
-    background-color: #FFFFFF;
-    border: 1px solid #008896;
-}
-
-
 
 /*
 Manage Options Editor

@@ -109,7 +109,8 @@ export const authenticate = async ({email:email, password:password}) => {
             return data
         })
         .catch(err => {
-            console.error('KeyCloak error:', err)
+            console.error('KeyCloak error:', err);
+            throw new Error('invalidCredentials');
         });
 
     if (!data) return null;
@@ -206,7 +207,9 @@ export const refresh = async (token) => {
         .then(res => {
 
             // token is invalid or session is not active
-            if (!res || res.status !== 200) throw new Error('noToken');
+            if (!res || res.status !== 200) {
+                throw new Error('noToken');
+            }
 
             return res
 
