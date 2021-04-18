@@ -19,7 +19,8 @@ const Image = ({
                    title='',
                    label='',
                    scale='thumb',
-                   onClick=()=>{}
+                   onClick=()=>{},
+                   onDoubleClick=()=>{}
 }) => {
 
     const fallbackSrc = '/logo192.png';
@@ -51,6 +52,7 @@ const Image = ({
                 title={title}
                 onError={onError}
                 onClick={onClick}
+                onDoubleClick={onDoubleClick}
             />
             {
                 label &&

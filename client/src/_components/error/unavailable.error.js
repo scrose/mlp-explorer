@@ -6,6 +6,7 @@
  */
 
 import React from "react";
+import Logo from '../common/logo';
 
 const UnavailableError = () => {
 
@@ -13,9 +14,11 @@ const UnavailableError = () => {
         <div className="page-content">
             <main>
                 <div className={'maintenance'}>
-                    <h2>Explorer is currently unavailable</h2>
+                    <Logo />
+                    <h2>The Mountain Legacy Project Explorer is currently unavailable</h2>
                     <p>Sorry, this application is currently undergoing maintenance
-                        and is not available. Please check back soon for updates.</p>
+                        and is not available.</p>
+                    <p>Please check back soon for updates.</p>
                 </div>
             </main>
         </div>

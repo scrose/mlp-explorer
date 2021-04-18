@@ -241,13 +241,13 @@ const MultiSelect = ({id, name, label, selected, required, disabled, options, on
  * @param error
  */
 
-const ValidationMessage = ({msg}) => {
+export const ValidationMessage = ({msg, type=''}) => {
     const container = React.useRef(null);
     // scroll to position of message in form
     React.useEffect(() => {
         container.current.scrollIntoView();
     }, [container])
-    return  <div ref={container} className={'validation'}>
+    return  <div ref={container} className={`validation ${type ? type : ''}`}>
         <span>{msg.length > 0 ? msg[0] : ''}</span>
     </div>
 }

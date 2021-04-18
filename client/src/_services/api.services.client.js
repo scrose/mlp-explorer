@@ -84,6 +84,8 @@ export async function makeRequest({
     // send request to API
     let res = await fetch(url, opts).catch(console.error);
 
+    if (!res) return null;
+
     // Modify response to include status ok, success, and status text
     return {
         success: res.ok,

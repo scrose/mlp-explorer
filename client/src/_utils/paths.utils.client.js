@@ -3,8 +3,6 @@
  * File: paths.helpers.client.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
- *
- * Reference: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
  */
 
 import { getRoutes } from '../_services/schema.services.client';
@@ -15,8 +13,10 @@ import { getRoutes } from '../_services/schema.services.client';
  * @private
  */
 
-const _API = 'http://localhost:3001';
-const _CLIENT = 'http://localhost:3000';
+const _API = new URL(process.env.API_HOST);
+_API.port = process.env.API_PORT;
+const _CLIENT = new URL(process.env.API_HOST);
+_CLIENT.port = process.env.CLIENT_PORT;
 
 /**
  * Get full client URL from path.
@@ -150,4 +150,10 @@ export function serialize(obj) {
             str.push(encodeURIComponent(p) + "=" + encodeURIComponent(qStr));
         }
     return str.join("&");
+}
+
+export function apiURL(path, params) {
+    const myUrlWithParams = new URL(_API);
+    // myUrlWithParams.searchParams.append("city", "Rome");
+    // myUrlWithParams.searchParams.append("price", "200");
 }

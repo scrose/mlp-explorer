@@ -104,7 +104,7 @@ function DataProvider(props) {
                 setOptions(data);
             })
             .catch(err => console.error(err));
-    }, [setOptions, setMessage]);
+    }, [router, setOptions, setMessage]);
 
     /**
      * Load API data.
@@ -126,14 +126,20 @@ function DataProvider(props) {
         return () => {
             _isMounted.current = false;
         }
-    }, [user, loadOptions])
+    }, [user, options, loadOptions])
 
     // non-static views: fetch API data and set view data in state
     React.useEffect(() => {
         _isMounted.current = true;
 
+        if (router.error && Object.keys(router.error).length > 0) {
+            console.error(router.error)
+            setMessage(router.error);
+            return;
+        }
+
         // request data if not static view
-        if (!router.staticView) {
+        if (!router.staticView && router.online) {
             // set view to loading
             setAPIData({});
             setView('');

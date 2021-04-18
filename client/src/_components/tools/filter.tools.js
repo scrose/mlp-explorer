@@ -7,7 +7,7 @@
 
 import React from "react";
 import { genID } from '../../_utils/data.utils.client';
-import MetadataView from './metadata.view';
+import MetadataView from '../views/metadata.view';
 import { getModelLabel } from '../../_services/schema.services.client';
 import Accordion from '../common/accordion';
 import PageMenu from '../menus/page.menu';
@@ -28,7 +28,7 @@ const keyID = genID();
  * @return {JSX.Element}
  */
 
-const FilterView = ({data}) => {
+const FilterTools = ({data}) => {
 
     let {query='', offset=0, limit=10, results=[], count=0} = data || {};
     offset = parseInt(offset);
@@ -109,4 +109,4 @@ const FilterView = ({data}) => {
     </>
 }
 
-export default FilterView;
+export default FilterTools;

@@ -28,8 +28,9 @@ const Navigator = () => {
 
     const router = useRouter();
 
-    // initialize navigation view
+    // initialize navigation view settings
     const [navView, setNavView] = React.useState(getNavView() || 'tree');
+    const [navToggle, setNavToggle] = React.useState(true);
     const [filterToggle, setFilterToggle] = React.useState(false);
 
     // node data state
@@ -83,10 +84,12 @@ const Navigator = () => {
 
     return  (
         !error
-            ? <div id={'navigator'} className={'navigator'}>
+            ? <div id={'navigator'} className={`navigator${!navToggle ? ' hidden' : ''}`}>
                 <MenuNavigator
                     view={navView}
                     set={setNavView}
+                    toggle={navToggle}
+                    setToggle={setNavToggle}
                     setData={setNodeData}
                     setFilter={setFilterToggle}
                     filtered={Object.keys(filterData).length > 0}

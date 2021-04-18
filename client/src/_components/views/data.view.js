@@ -12,10 +12,10 @@ import ServerError from '../error/server.error';
 import { useData } from '../../_providers/data.provider.client';
 import { genSchema, getRenderType } from '../../_services/schema.services.client';
 import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
-import Importer from './importer.view';
-import FilterView from './filter.view';
+import Importer from '../tools/import.tools';
+import FilterTools from '../tools/filter.tools';
 import { Loading } from '../common/icon';
-import CanvasView from './canvas.view';
+import { useRouter } from '../../_providers/router.provider.client';
 
 /**
  * Build requested data view from API data.
@@ -26,6 +26,7 @@ import CanvasView from './canvas.view';
 const DataView = () => {
 
     const api = useData();
+    const router = useRouter();
 
     // select render type and schema
     const render = getRenderType(api.view, api.model);
@@ -38,7 +39,7 @@ const DataView = () => {
                 model={api.model}
                 data={api.data}
             />),
-        filter: () => <FilterView data={api.data} />,
+        filter: () => <FilterTools data={api.data} />,
         update: () => (
             <Importer
                 view={api.view}
@@ -64,16 +65,6 @@ const DataView = () => {
                     );
                 }}
             />),
-        master: () => (
-            <CanvasView
-                input2={api.data}
-                schema={schema}
-                callback={() => {
-                    redirect(
-                        getNodeURI(api.model, 'show', api.id)
-                    );
-                }}
-            />),
         notFound: () => <NotfoundError />,
         serverError: () => <ServerError />
     }
@@ -82,7 +73,11 @@ const DataView = () => {
     return (
         <>
             {
-                renders.hasOwnProperty(render) ? renders[render]() : <Loading/>
+                renders.hasOwnProperty(render)
+                    ? renders[render]()
+                    : !router.error
+                    ? <Loading/>
+                    : <ServerError />
             }
         </>
     )

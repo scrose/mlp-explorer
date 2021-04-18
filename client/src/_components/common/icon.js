@@ -9,6 +9,7 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
+    faCompress,
     faBars,
     faAngleDoubleLeft,
     faAngleDoubleRight,
@@ -59,9 +60,18 @@ import {
     faUser,
     faExpand,
     faUsers,
+    faCrosshairs,
+    faMousePointer,
+    faEraser
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
+    faEraser,
+    faAngleDoubleLeft,
+    faAngleDoubleRight,
+    faMousePointer,
+    faCrosshairs,
+    faCompress,
     faCog,
     faBars,
     faHome,
@@ -135,6 +145,8 @@ const getIconClass = (iconType) => {
         new: 'plus',
         add: 'plus',
         minus: 'minus',
+        select: 'mouse-pointer',
+        crosshairs: 'crosshairs',
         edit: 'edit',
         delete: 'trash-alt',
         import: 'file-import',
@@ -144,6 +156,7 @@ const getIconClass = (iconType) => {
         filter: 'filter',
         search: 'search',
         undo: 'undo',
+        erase: 'eraser',
         success: 'check-circle',
         error: 'times-circle',
         cancel: 'times-circle',
@@ -157,6 +170,7 @@ const getIconClass = (iconType) => {
         settings: 'cog',
         expand: 'plus-circle',
         enlarge: 'expand',
+        compress: 'compress',
         collapse: 'minus-circle',
         hopen: 'chevron-circle-down',
         hclose: 'chevron-circle-right',
@@ -167,6 +181,8 @@ const getIconClass = (iconType) => {
         vopen: 'chevron-circle-down',
         vclose: 'chevron-circle-right',
         upload: 'file-upload',
+        download: 'file-download',
+        image: 'image',
         metadata_files: 'file-download',
         projects: 'project-diagram',
         surveyors: 'hiking',

@@ -6,14 +6,8 @@
  * MIT Licensed
  */
 
-/**
- * Global canvas viewer settings.
- */
-
-const settings = {
-    maxWidth: 300,
-    controlPointsMax: 4
-}
+import { getError } from '../_services/schema.services.client';
+import * as matrix from '../_utils/matrix.utils.client';
 
 /**
  * Get API url for given image.
@@ -23,17 +17,18 @@ const settings = {
  */
 
 export const getImageURL = (image) => {
-    return typeof image.url != 'undefined' ? image.url.medium : '';
+    return image && typeof image.url != 'undefined' ? image.url.medium : '';
 }
 
 /**
- * compute scale-to-fit canvas dimensions.
+ * compute scale-to-fit image to defined width dimension.
  *
  * @public
  * @return {Object} dimensions
  */
 
-export const calcDims = (canvas, x_dim, y_dim, maxWidth) => {
+export const scaleToFit = (x_dim, y_dim, maxWidth) => {
+    console.log(x_dim, y_dim, maxWidth)
     const ratio = (y_dim + 0.1) / (x_dim + 0.1)
     return {
         x: maxWidth,
@@ -52,12 +47,21 @@ export const calcDims = (canvas, x_dim, y_dim, maxWidth) => {
 
 export const getPos = (e, canvas) => {
     let rect = canvas.getBoundingClientRect(), // abs. size of element
-        scaleX = canvas.width / rect.width,    // relationship bitmap vs. element for X
+        scaleX = canvas.width / rect.width,   // relationship bitmap vs. element for X
         scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for Y
 
+    // scale mouse coordinates after they have been adjusted to be relative to element
     return {
-        x: (e.clientX - rect.left) * scaleX,   // scale mouse coordinates after they have
-        y: (e.clientY - rect.top) * scaleY     // been adjusted to be relative to element
+        x: Math.max(
+            Math.min(
+                (e.clientX - rect.left) * scaleX, canvas.width
+            ), 0
+        ).toFixed(2),
+        y: Math.max(
+            Math.min(
+                (e.clientY - rect.top) * scaleY, canvas.height
+            ), 0
+        ).toFixed(2)
     }
 };
 
@@ -67,34 +71,177 @@ export const getPos = (e, canvas) => {
  * @public
  * @param e
  * @param canvas
- * @return {JSX.Element}
+ * @param props
+ * @param setProps
+ * @param options
+ * @return {Object}
  */
 
-export const getControlPoints = (e, canvas) => {
-    const point = markPoint(e, canvas);
-    // if (points.length > nPoints) {
-    //     setMessage({
-    //         msg: 'Maximum number of points reached.',
-    //         type: 'error'
-    //     });
-    //     return;
-    // }
-    console.log('Store point', point)
+export const getControlPoints = (e, canvas, props, setProps, options) => {
+    // check if the maximum number of control points has been reached
+    if (props.pts.length === options.controlPtMax) {
+        return { error: getError('maxControlPoints', 'canvas')};
+    }
+    else {
+        // save control point as canvas property
+        const point = markPoint(e, canvas, props.pts.length);
+        const pts = props.pts.concat(point);
+        // set canvas properties
+        setProps(data => ({ ...data, pts: pts }));
+        return {}
+    }
 }
 
 /**
  * Apply alignment transformation to image data.
+ * - Uses four control points (x,y)
+ *
+ * Reference: https://franklinta.com/2014/09/08/computing-css-matrix3d-transforms/
  *
  * @public
- * @param image1
- * @param image2
- * @param controlPoints
  * @return {JSX.Element}
+ * @param canvas1
+ * @param canvas2
+ * @param options
  */
 
-export const alignImages = (image1, image2, controlPoints) => {
+export const align = (canvas1, canvas2, options) => {
+    
+    console.log(canvas1, canvas2, options)
 
-    console.log('Do image alignment:', controlPoints)
+    // convert control points to vector array
+    const pts = canvas1.pts.concat(canvas2.pts);
+    let p = pts.reduce((o, pt) => {
+        o.push([parseFloat(pt.x), parseFloat(pt.y)]);
+        return o;
+    }, []);
+
+    console.log('Control Points:', p)
+
+    let i,j,k,l,m, n=p.length;
+    let x,y, u,v, d;
+    let s,q,e;
+    let dx,dy,dd;
+
+    // Compute percentage
+    let getPercent = function(x){return Math.floor((x+.001)*100)/100;};
+    //var pf = function(x){return Math.floor(x*100)/100;};
+    //var pf = function(x){return x;};
+    let ii,jj; // determinant
+
+    // Note the inverse matrix should be just as easy to compute,
+    // reversing the roles of [0,2,4,6] with [1,3,5,7]
+    // (Would this be truly the inverse matrix?)
+
+    matrix.swapPts( pts );
+
+    let M88 = [
+        [p[0][0],p[0][1],1,0,0,0, -p[0][0]*p[1][0], -p[0][1]*p[1][0]],
+        [0,0,0,p[0][0],p[0][1],1, -p[0][0]*p[1][1], -p[0][1]*p[1][1]],
+        [p[2][0],p[2][1],1,0,0,0, -p[2][0]*p[3][0], -p[2][1]*p[3][0]],
+        [0,0,0,p[2][0],p[2][1],1, -p[2][0]*p[3][1], -p[2][1]*p[3][1]],
+        [p[4][0],p[4][1],1,0,0,0, -p[4][0]*p[5][0], -p[4][1]*p[5][0]],
+        [0,0,0,p[4][0],p[4][1],1, -p[4][0]*p[5][1], -p[4][1]*p[5][1]],
+        [p[6][0],p[6][1],1,0,0,0, -p[6][0]*p[7][0], -p[6][1]*p[7][0]],
+        [0,0,0,p[6][0],p[6][1],1, -p[6][0]*p[7][1], -p[6][1]*p[7][1]]
+    ];
+    let B8 = [p[1][0],p[1][1], p[3][0],p[3][1], p[5][0],p[5][1], p[7][0],p[7][1]];
+    let X8 = matrix.lusolve(M88,B8,true);
+
+    // Could put a sanity check here? Run the 4 pairs back through X8
+    // So ... could we not do this directly with the other points?
+
+    // Check quality of the above 8x8 matrix (or its parts??)
+    // Note M88 has been made diagonal by lusolve()
+    for ( ii=0,jj=1; ii<8; ii++ )
+    {
+        x = M88[ii][ii]; jj *= x/100;
+        console.log('Matrix entry '+x);
+    }
+    ///console.log('Align4: Matrix88 determinant '+((jj*100>>0)/100));
+
+    // Code copied from alignfunc3 and modified for 4 points 20180201
+    // Figure out best fit among all points by taking 4 at a time
+    console.log('');
+    console.log('Alignment 4 experiments: '+n+' points');
+    for ( i=m=0; i<n; i+=2 ) for ( j=i+2; j<n; j+=2 )
+        for ( k=j+2; k<n; k+=2 ) for ( l=k+2; l<n; l+=2,m++ )
+        {
+            M88 = [
+                [p[i][0],p[i][1],1,0,0,0, -p[i][0]*p[i+1][0], -p[i][1]*p[i+1][0]],
+                [0,0,0,p[i][0],p[i][1],1, -p[i][0]*p[i+1][1], -p[i][1]*p[i+1][1]],
+                [p[j][0],p[j][1],1,0,0,0, -p[j][0]*p[j+1][0], -p[j][1]*p[j+1][0]],
+                [0,0,0,p[j][0],p[j][1],1, -p[j][0]*p[j+1][1], -p[j][1]*p[j+1][1]],
+                [p[k][0],p[k][1],1,0,0,0, -p[k][0]*p[k+1][0], -p[k][1]*p[k+1][0]],
+                [0,0,0,p[k][0],p[k][1],1, -p[k][0]*p[k+1][1], -p[k][1]*p[k+1][1]],
+                [p[l][0],p[l][1],1,0,0,0, -p[l][0]*p[l+1][0], -p[l][1]*p[l+1][0]],
+                [0,0,0,p[l][0],p[l][1],1, -p[l][0]*p[l+1][1], -p[l][1]*p[l+1][1]]
+            ];
+            B8 = [p[i+1][0],p[i+1][1], p[j+1][0],p[j+1][1], p[k+1][0],p[k+1][1], p[l+1][0],p[l+1][1]];
+            X8 = matrix.lusolve(M88,B8,true);
+
+            // Check quality of this 8x8 matrix
+            // Note M88 has been made diagonal by lusolve()
+            for ( ii=0,jj=1; ii<8; ii++ ) jj *= M88[ii][ii]/100;
+            console.log('Matrix '+(m+1)+': ('+(i+1)+','+(j+1)+','+(k+1)+','+(l+1)+') determinant '+((jj*100>>0)/100));
+
+            // Run the other (n-4) points through the matrix
+            for ( s='',q=e=0; q<n-1; q+=2 ) if (q!==i && q!==j && q!==k && q!==l)
+            {
+                x = p[q][0];
+                y = p[q][1];
+                d = X8[6]*x + X8[7]*y + 1;
+                u = X8[0]*x + X8[1]*y + X8[2];
+                v = X8[3]*x + X8[4]*y + X8[5];
+                u = u/d;
+                v = v/d;
+
+                dx = u - p[q+1][0];
+                dy = v - p[q+1][1];
+                dd = dx*dx + dy*dy;
+                s += ' '+(q+1)+'('+getPercent(dx)+','+getPercent(dy)+')';
+                e += dd;
+                ///console.log('Align4: u='+pf(u)+' v='+pf(v));
+            }
+            let RMSE = Math.sqrt(e/(n/2-4));
+            //console.log('Points '+i+','+j+','+k+' e='+pf(e)+' RMSE='+pf(RMSE));
+            console.log('   d:'+s);
+            console.log('   e='+getPercent(e)+' RMSE='+getPercent(RMSE));
+
+        }
+
+    console.log(X8)
+
+    //
+    // // Get the backing canvas
+    // let I1 = bmpf && ecv1.width ? ecv1 : img1;
+    // // let I2 = bmpf && ecv2.width ? ecv2 : img2; // Unused?!
+    //
+    // bcv1.width = I1.width;
+    // bcv1.height = I1.height;
+    // console.log('Alignment 4: bmpf='+bmpf+' w='+bcv1.width);
+    //
+    // let ctx1 = gctx(bcv1);
+    // let ctx2 = gctx(bcv2);
+    // ctx1.drawImage( I1, 0,0 ); // Why do this? Perhaps the image had been moved??
+    //
+    // // Use a SIMD and DIMD global here?? Help JS with memory? (sourceImageData)
+    // let src = ctx1.getImageData( 0,0, bcv1.width, bcv1.height ); // 2
+    // //var dst = ctx2.getImageData( 0,0, bcv1.width,bcv1.height ); // new/create??
+    // let dst = ctx1.createImageData( bcv1.width,bcv1.height ); // BAD!
+    //
+    // ///if (!DIMD) DIMD = new ImageData( bcv1.width, bcv1.height );
+    // ///var dst = DIMD; // Will the JS lose track and delay garbage collect??
+    //
+    // let A = new Uint32Array( src.data.buffer );
+    // let B = new Uint32Array( dst.data.buffer );
+    // homography( X8, A, B, bcv1.width, bcv1.height );
+    // ctx1.putImageData(dst,0,0); // 2
+
+    //drawimages(); // How much time saved by improving this call? Eg. just left canvas?
+
+    //swappointpairs( CtrlPts );
+
 }
 
 /**
@@ -104,22 +251,30 @@ export const alignImages = (image1, image2, controlPoints) => {
  * @public
  * @param e
  * @param canvas
+ * @param index
  */
 
-export const markPoint = (e, canvas) => {
+export const markPoint = (e, canvas, index=0) => {
     let ctx = canvas.getContext('2d');
     const point = getPos(e, canvas);
+    const x = parseInt(point.x)
+    const y = parseInt(point.y)
     const drawCrosshair = () => {
+        // cross hair
         ctx.beginPath();
-        ctx.strokeStyle = "#2ea591";
-        ctx.moveTo(point.x - 10, point.y);
-        ctx.lineTo(point.x + 10, point.y);
-        ctx.moveTo(point.x, point.y - 10);
-        ctx.lineTo(point.x, point.y + 10);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#E34234";
+        ctx.moveTo(x - 20, y);
+        ctx.lineTo(x + 20, y);
+        ctx.moveTo(x, y - 20);
+        ctx.lineTo(x, y + 20);
         ctx.stroke();
+        // index
+        ctx.font = '1em sans-serif';
+        ctx.fillStyle = '#e3347e';
+        ctx.fillText(String(index + 1), x + 7, y + 17);
     }
     drawCrosshair();
-
     return point;
 };
 
@@ -177,32 +332,6 @@ function DragMouse(e, canvas) {
     magnifyRegion(mx, my, canvas);
 }
 
-/**
- * Initialize crosshair.
- *
- * @public
- * @param canvas
- */
-
-export const initCrosshair = (canvas) => {
-    let ctx = canvas.getContext('2d');
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // H
-    ctx.beginPath();
-    ctx.strokeStyle = "#333";
-    ctx.lineWidth = 1;
-    ctx.moveTo(0, canvas.height/2);
-    ctx.lineTo(500, canvas.height/2);
-    ctx.stroke();
-
-    // V
-    ctx.beginPath();
-    ctx.moveTo(canvas.width/2, 0);
-    ctx.lineTo(canvas.width/2, 500);
-    ctx.stroke();
-};
 
 /**
  * Image Processing Utilities
@@ -6252,155 +6381,7 @@ Consider HTML/CSS/panels/canvases with no drawing nor images
 //     return s;
 // }
 //
-//
-//
-//
-// // This used to help make invese transforms for the alignment functions
-// function swappointpairs( P )
-// {
-//     let i,t,n=P.length;
-//     for ( i=0; i<n; i+=2 ) t=P[i],P[i]=P[i+1],P[i+1]=t;
-// }
-//
-//
-// /**
-//  * Align Function: Uses 3 Control Points
-//  */
-//
-// function alignfunc4() // 20180105 20180131
-// {
-//     // Copy alignfunc3() and internet stuff with matrix3d
-//     // https://franklinta.com/2014/09/08/computing-css-matrix3d-transforms/
-//
-//     let p = CtrlPts;
-//     let i,j,k,l, m, n=p.length;
-//     let x,y, u,v, d;
-//     let s,q,e;
-//     let dx,dy,dd;
-//
-//     // Compute percentage
-//     let getPercent = function(x){return Math.floor((x+.001)*100)/100;};
-//     //var pf = function(x){return Math.floor(x*100)/100;};
-//     //var pf = function(x){return x;};
-//     let ii,jj; // determinant
-//
-//     // Note the inverse matrix should be just as easy to compute,
-//     // reversing the roles of [0,2,4,6] with [1,3,5,7]
-//     // (Would this be truly the inverse matrix?)
-//
-//     swappointpairs( CtrlPts );
-//
-//     let M88 = [
-//         [p[0][0],p[0][1],1,0,0,0, -p[0][0]*p[1][0], -p[0][1]*p[1][0]],
-//         [0,0,0,p[0][0],p[0][1],1, -p[0][0]*p[1][1], -p[0][1]*p[1][1]],
-//         [p[2][0],p[2][1],1,0,0,0, -p[2][0]*p[3][0], -p[2][1]*p[3][0]],
-//         [0,0,0,p[2][0],p[2][1],1, -p[2][0]*p[3][1], -p[2][1]*p[3][1]],
-//         [p[4][0],p[4][1],1,0,0,0, -p[4][0]*p[5][0], -p[4][1]*p[5][0]],
-//         [0,0,0,p[4][0],p[4][1],1, -p[4][0]*p[5][1], -p[4][1]*p[5][1]],
-//         [p[6][0],p[6][1],1,0,0,0, -p[6][0]*p[7][0], -p[6][1]*p[7][0]],
-//         [0,0,0,p[6][0],p[6][1],1, -p[6][0]*p[7][1], -p[6][1]*p[7][1]]
-//     ];
-//     let B8 = [p[1][0],p[1][1], p[3][0],p[3][1], p[5][0],p[5][1], p[7][0],p[7][1]];
-//     let X8 = lusolve(M88,B8,true);
-//
-//     // Could put a sanity check here? Run the 4 pairs back through X8
-//     // So ... could we not do this directly with the other points?
-//
-//     // Check quality of the above 8x8 matrix (or its parts??)
-//     // Note M88 has been made diagonal by lusolve()
-//     for ( ii=0,jj=1; ii<8; ii++ )
-//     {
-//         x = M88[ii][ii]; jj *= x/100;
-//         ///cl('Matrix entry '+x);
-//     }
-//     ///cl('Align4: Matrix88 determinant '+((jj*100>>0)/100));
-//
-//     // Code copied from alignfunc3 and modified for 4 points 20180201
-//     // Figure out best fit among all points by taking 4 at a time
-//     cl('');
-//     cl('Alignment 4 experiments: '+n+' points');
-//     for ( i=m=0; i<n; i+=2 ) for ( j=i+2; j<n; j+=2 )
-//         for ( k=j+2; k<n; k+=2 ) for ( l=k+2; l<n; l+=2,m++ )
-//         {
-//             M88 = [
-//                 [p[i][0],p[i][1],1,0,0,0, -p[i][0]*p[i+1][0], -p[i][1]*p[i+1][0]],
-//                 [0,0,0,p[i][0],p[i][1],1, -p[i][0]*p[i+1][1], -p[i][1]*p[i+1][1]],
-//                 [p[j][0],p[j][1],1,0,0,0, -p[j][0]*p[j+1][0], -p[j][1]*p[j+1][0]],
-//                 [0,0,0,p[j][0],p[j][1],1, -p[j][0]*p[j+1][1], -p[j][1]*p[j+1][1]],
-//                 [p[k][0],p[k][1],1,0,0,0, -p[k][0]*p[k+1][0], -p[k][1]*p[k+1][0]],
-//                 [0,0,0,p[k][0],p[k][1],1, -p[k][0]*p[k+1][1], -p[k][1]*p[k+1][1]],
-//                 [p[l][0],p[l][1],1,0,0,0, -p[l][0]*p[l+1][0], -p[l][1]*p[l+1][0]],
-//                 [0,0,0,p[l][0],p[l][1],1, -p[l][0]*p[l+1][1], -p[l][1]*p[l+1][1]]
-//             ];
-//             B8 = [p[i+1][0],p[i+1][1], p[j+1][0],p[j+1][1], p[k+1][0],p[k+1][1], p[l+1][0],p[l+1][1]];
-//             X8 = lusolve(M88,B8,true);
-//
-//             // Check quality of this 8x8 matrix
-//             // Note M88 has been made diagonal by lusolve()
-//             for ( ii=0,jj=1; ii<8; ii++ ) jj *= M88[ii][ii]/100;
-//             cl('Matrix '+(m+1)+': ('+(i+1)+','+(j+1)+','+(k+1)+','+(l+1)+') determinant '+((jj*100>>0)/100));
-//
-//             // Run the other (n-4) points through the matrix
-//             for ( s='',q=e=0; q<n-1; q+=2 ) if (q!==i && q!==j && q!==k && q!==l)
-//             {
-//                 x = p[q][0];
-//                 y = p[q][1];
-//                 d = X8[6]*x + X8[7]*y + 1;
-//                 u = X8[0]*x + X8[1]*y + X8[2];
-//                 v = X8[3]*x + X8[4]*y + X8[5];
-//                 u = u/d;
-//                 v = v/d;
-//
-//                 dx = u - p[q+1][0];
-//                 dy = v - p[q+1][1];
-//                 dd = dx*dx + dy*dy;
-//                 s += ' '+(q+1)+'('+getPercent(dx)+','+getPercent(dy)+')';
-//                 e += dd;
-//                 ///cl('Align4: u='+pf(u)+' v='+pf(v));
-//             }
-//             let RMSE = Math.sqrt(e/(n/2-4));
-//             //cl('Points '+i+','+j+','+k+' e='+pf(e)+' RMSE='+pf(RMSE));
-//             cl('   d:'+s);
-//             cl('   e='+getPercent(e)+' RMSE='+getPercent(RMSE));
-//
-//         }
-//
-//     gtime = ts();
-//
-//     // Get the backing canvas
-//     let I1 = bmpf && ecv1.width ? ecv1 : img1;
-//     let I2 = bmpf && ecv2.width ? ecv2 : img2; // Unused?!
-//
-//     bcv1.width = I1.width;
-//     bcv1.height = I1.height;
-//     cl('Alignment 4: bmpf='+bmpf+' w='+bcv1.width);
-//
-//     let ctx1 = gctx(bcv1);
-//     let ctx2 = gctx(bcv2);
-//     ctx1.drawImage( I1, 0,0 ); // Why do this? Perhaps the image had been moved??
-//
-//     // Use a SIMD and DIMD global here?? Help JS with memory? (sourceImageData)
-//     let src = ctx1.getImageData( 0,0, bcv1.width,bcv1.height ); // 2
-//     //var dst = ctx2.getImageData( 0,0, bcv1.width,bcv1.height ); // new/create??
-//     let dst = ctx1.createImageData( bcv1.width,bcv1.height ); // BAD!
-//
-//     ///if (!DIMD) DIMD = new ImageData( bcv1.width, bcv1.height );
-//     ///var dst = DIMD; // Will the JS lose track and delay garbage collect??
-//
-//     let A = new Uint32Array( src.data.buffer );
-//     let B = new Uint32Array( dst.data.buffer );
-//     homography( X8, A, B, bcv1.width, bcv1.height );
-//     ctx1.putImageData(dst,0,0); // 2
-//
-//     gtime = ts()-gtime;
-//     //messfns();
-//     mess('ms-tm',gtime+' ms');
-//
-//     drawimages(); // How much time saved by improving this call? Eg. just left canvas?
-//
-//     swappointpairs( CtrlPts );
-//
-// } // alignfunc4
+
 //
 // /**
 //  * Align Function: Uses 3 Control Points
@@ -6500,38 +6481,7 @@ Consider HTML/CSS/panels/canvases with no drawing nor images
 // // imagedata.data.set()
 // // new ImageData()
 //
-// function homography( X8, A, B, w, h )
-// {
-//     let x,y;
-//     let c=0;
-//     let u,v,d;
-//
-//     let h0=X8[0],h1=X8[1],h2=X8[2],h3=X8[3],
-//         h4=X8[4],h5=X8[5],h6=X8[6],h7=X8[7];
-//
-//     for ( y=0; y<h; y++ )
-//     {
-//         let yw=y*w,y7=y*h7+1,y1=y*h1+h2,y4=y*h4+h5;
-//         for ( d=y7,x=0; x<w; y1+=h0,y4+=h3,d+=h6,x++ )
-//         {
-//             u = y1/d;
-//             u >>= 0;
-//
-//             v = y4/d;
-//             v >>= 0;
-//
-//             // When would we need these dumb conditions??
-//             // We already know that x and y are within range
-//             // Should transform 4 corners and see ahead of time (sufficient?)
-//             // If out-of-bounds assign 0x00000000?
-//             if (u>=0&&u<w) if (v>=0&&v<h)
-//                 ///{ B[v*w+u] = A[yw+x]; c++; } // under/overflow?
-//             { B[yw+x] = A[v*w+u]; c++; } // inverse: under/overflow?
-//         }
-//     }
-//     cl('homography: '+(w*h)+' pixels, '+c+' pixels processed');
-//
-// } // homography
+
 //
 //
 // // Called from savefile(), for saving JSON txt
@@ -7199,130 +7149,7 @@ Consider HTML/CSS/panels/canvases with no drawing nor images
 // }
 //
 //
-// /*
-// Thanks to Rosetta:
-// http://rosettacode.org/wiki/Gaussian_elimination#JavaScript
-// See also for determinant: http://www.aip.de/groups/soe/local/numres/bookcpdf/c2-3.pdf
-// MJW: This code shouldn't be needed anymore, but I need to work on Cramer and 2 3x3 systems yet
-// Also missing: what to do with 4 control points or more. Best numerical stability?
-// */
-//
-// // Lower Upper Solver
-// function lusolve(A, b, update) {
-//     let lu = ludcmp(A, update)
-//     if (lu === undefined) return // Singular Matrix!
-//     for (let i=0,j=lu.d?1:-1; i<lu.A.length; i++ ) j*=lu.A[i][i]/100;
-//
-// //cl('lu.A='+lu.A);
-// //cl('lu.A.length='+lu.A.length);
-// //cl('lu.idx='+lu.idx);
-// //cl('lu.d='+lu.d);
-// //cl('j='+(Math.floor(j*100)/100));
-//
-//     return lubksb(lu, b, update)
-// }
-//
-// // Lower Upper Decomposition
-// function ludcmp(A, update) {
-//     // A is a matrix that we want to decompose into Lower and Upper matrices.
-//     let d = true // MJW: I think d says if det(A) is positive or negative
-//     let n = A.length
-//     let idx = new Array(n) // Output vector with row permutations from partial pivoting
-//     let vv = new Array(n)  // Scaling information
-//
-//     for (let i=0; i<n; i++) {
-//         let max = 0
-//         for (let j=0; j<n; j++) {
-//             let temp = Math.abs(A[i][j])
-//             if (temp > max) max = temp
-//         }
-//         if (max === 0) return // Singular Matrix!
-//         vv[i] = 1 / max // Scaling
-//     }
-//
-//     if (!update) { // make a copy of A
-//         let Acpy = new Array(n)
-//         for (let i=0; i<n; i++) {
-//             let Ai = A[i]
-//             let Acpyi = new Array(Ai.length)
-//             for (let j=0; j<Ai.length; j+=1) Acpyi[j] = Ai[j]
-//             Acpy[i] = Acpyi
-//         }
-//         A = Acpy
-//     }
-//
-//     let tiny = 1e-20 // in case pivot element is zero
-//     for (let i=0; ; i++) {
-//         for (let j=0; j<i; j++) {
-//             let sum = A[j][i]
-//             for (var k=0; k<j; k++) sum -= A[j][k] * A[k][i];
-//             A[j][i] = sum
-//         }
-//         let jmax = 0
-//         let max = 0;
-//         for (let j=i; j<n; j++) {
-//             let sum = A[j][i]
-//             for (var k=0; k<i; k++) sum -= A[j][k] * A[k][i];
-//             A[j][i] = sum
-//             let temp = vv[j] * Math.abs(sum)
-//             if (temp >= max) {
-//                 max = temp
-//                 jmax = j
-//             }
-//         }
-//         if (i <= jmax) {
-//             for (let j=0; j<n; j++) {
-//                 let temp = A[jmax][j]
-//                 A[jmax][j] = A[i][j]
-//                 A[i][j] = temp
-//             }
-//             d = !d;
-//             vv[jmax] = vv[i]
-//         }
-//         idx[i] = jmax;
-//         if (i == n-1) break;
-//         let temp = A[i][i]
-//         if (temp == 0) A[i][i] = temp = tiny
-//         temp = 1 / temp
-//         for (let j=i+1; j<n; j++) A[j][i] *= temp
-//     }
-//     return {A:A, idx:idx, d:d}
-// }
-//
-// // Lower Upper Back Substitution
-// function lubksb(lu, b, update) {
-//     // solves the set of n linear equations A*x = b.
-//     // lu is the object containing A, idx and d as determined by the routine ludcmp.
-//     let A = lu.A
-//     let idx = lu.idx
-//     let n = idx.length
-//
-//     if (!update) { // make a copy of b
-//         let bcpy = new Array(n)
-//         for (let i=0; i<b.length; i+=1) bcpy[i] = b[i]
-//         b = bcpy
-//     }
-//
-//     for (let ii=-1, i=0; i<n; i++) {
-//         let ix = idx[i]
-//         let sum = b[ix]
-//         b[ix] = b[i]
-//         if (ii > -1)
-//             for (let j=ii; j<i; j++) sum -= A[i][j] * b[j]
-//         else if (sum)
-//             ii = i
-//         b[i] = sum
-//     }
-//     for (let i=n-1; i>=0; i--) {
-//         let sum = b[i]
-//         for (let j=i+1; j<n; j++) sum -= A[i][j] * b[j]
-//         b[i] = sum / A[i][i]
-//     }
-//     return b // solution vector x
-// }
-//
-//
-//
+
 // // EXPORT (for minifier)
 // // These need to be removed, except for CB() (or is that cb()? or both?)
 // // cb renamed cbk because minification seemed to conflict with new cb?

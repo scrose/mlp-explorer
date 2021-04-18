@@ -10,7 +10,7 @@ import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import { genSchema, getModelLabel } from '../../_services/schema.services.client';
 import Button from '../common/button';
-import Importer from '../views/importer.view';
+import Importer from '../tools/import.tools';
 import Dialog from '../common/dialog';
 import MetadataView from '../views/metadata.view';
 import { useData } from '../../_providers/data.provider.client';

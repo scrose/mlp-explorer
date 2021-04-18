@@ -70,7 +70,7 @@ const SearchNavigator = ({filter=null, limit=10, offset=0}) => {
 
     // filter options by owner ID
     const onSubmit = () => {
-        router.get(`/search?${serialize(searchQuery)}&offset=${searchOffset}&limit=${limit}`)
+        router.get(`/search', ?${serialize(searchQuery)}&offset=${searchOffset}&limit=${limit}`)
             .then(res => {
                 console.log(res)
                 const {data=[]} = res || {};

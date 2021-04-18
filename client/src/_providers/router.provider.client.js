@@ -35,8 +35,11 @@ function RouterProvider(props) {
     // client route in state
     const [route, setRoute] = React.useState(filterPath());
 
-    // query filter in state
+    // node filter in state
     const [filter, setFilter] = React.useState({});
+
+    // query filter in state
+    const [query, setQuery] = React.useState({});
 
     // static view state: static views do not require API requests
     const [staticView, setStaticView] = React.useState(getStaticView(filterPath()));
@@ -60,7 +63,11 @@ function RouterProvider(props) {
         setRoute(uri);
 
         // set static view (if applicable)
-        setStaticView(getStaticView(uri));
+        const {route='', query=''} = getStaticView(uri);
+        setStaticView(route);
+
+        // set query variables
+        setQuery(query);
 
         // update route in browser
         reroute(uri);
@@ -132,17 +139,19 @@ function RouterProvider(props) {
      * @public
      * @param {String} uri
      *
+     * @param params
      */
-    const get = async (uri) => {
-        if (!uri) return null;
-        let res = await makeRequest({url: getAPIURL(uri), method:'GET'})
+
+    const get = async (uri, params) => {
+        if (!uri || !online) return null;
+        let res = await makeRequest({url: getAPIURL(uri, params), method:'GET'})
             .catch(err => {
                 // handle API connection errors
                 console.error('An API error occurred:', err)
                 setOnline(false);
                 return null;
             });
-        return res ? handleResponse(res) : res;
+        return res ? handleResponse(res) : setOnline(false);
     };
 
     /**
@@ -156,7 +165,7 @@ function RouterProvider(props) {
     const post = async (uri, formData= null) => {
         const parsedData = formData ? Object.fromEntries(formData) : {};
 
-        if (!uri) return null;
+        if (!uri || !online) return null;
 
         let res = await makeRequest({
             url: getAPIURL(uri),

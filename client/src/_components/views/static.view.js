@@ -14,6 +14,7 @@ import NotfoundError from '../error/notfound.error';
 import UnavailableError from '../error/unavailable.error';
 import ServerError from '../error/server.error';
 import Loading from '../common/icon';
+import ImageTools from '../tools/image.tools';
 
 /**
  * Build requested static page view.
@@ -30,6 +31,7 @@ const StaticView = ({ type }) => {
         dashboardEdit: () => <DashboardEditor />,
         login: () => <LoginUsers />,
         logout: () => <LogoutUsers />,
+        imageToolkit: () => <ImageTools />,
         notFound: () => <NotfoundError />,
         serverError: () => <ServerError />,
         unavailable: () => <UnavailableError />,
@@ -38,9 +40,9 @@ const StaticView = ({ type }) => {
 
     // render static view
     return (
-        <div className={'view'}>
+        <>
             { renders.hasOwnProperty(type) ? renders[type]() : <Loading/> }
-        </div>
+        </>
         )
 
 }

@@ -13,11 +13,15 @@ import { capitalize } from '../_utils/data.utils.client';
  * views, static views do not require input data from API requests.
  *
  * @public
- * @param {String} route
  * @return {String} static view type
+ * @param path
  */
 
-export const getStaticView = (route) => {
+export const getStaticView = (path) => {
+    console.log(path)
+    const url = new URL(path);
+    console.log(url)
+    const [route, query] = url.split("?");
     const routeData = getStaticRoute(route);
     return routeData.hasOwnProperty('name') ? routeData.name : null;
 }

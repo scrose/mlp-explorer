@@ -143,6 +143,10 @@ ul.list {
     width:40%;
     min-width: 400px;
 }
+.navigator.hidden {
+    width:40px;
+    min-width: 0;
+}
 
 /* Navigator Panel: Tree */
 
@@ -150,6 +154,14 @@ ul.list {
     height: 75vh;
     overflow: auto;
     width: auto;
+    transition: width 2s;
+    transition-timing-function: ease-in-out;
+}
+.navigator.hidden .tree{
+    transform: translate(-600px,0);
+    -webkit-transform: translate(-600px,0); /** Chrome & Safari **/
+    -o-transform: translate(-600px,0); /** Opera **/
+    -moz-transform: translate(-600px,0); /** Firefox **/
 }
 
 .tree ul {
@@ -246,7 +258,7 @@ div.main {
 }
 
 .viewer, .editor {
-    width: 60%;
+    width: 100%;
 }
 .viewer .header, .editor .header {
     color: #282c34;
@@ -321,6 +333,16 @@ header .navbar {
 /*
 Logo
 */
+
+.logo {
+    text-align: center;
+    color: #282c34;
+    text-decoration: none;
+}
+.logo a {
+    color: #282c34;
+    text-decoration: none;
+}
 
 header .navbar .logo {
     padding: 0 15px;
@@ -675,19 +697,29 @@ nav.breadcrumb ul li a:hover {
     width: 100%;
     background-color: #57BECC;
 }
+.navigator.hidden .navigator-tools {
+    width: 40px;
+    height: 100%;
+}
 .navigator-tools .h-menu ul {
     background-color: #57BECC;
 }
-.navigator-tools .h-menu ul li  {
+.navigator-tools .v-menu  {
+    padding: 0;
+}
+.navigator-tools .h-menu ul li,
+.navigator-tools .v-menu ul li   {
     color: white !important;
     width: auto;
     height: 40px;
     line-height: 40px;
 }
-.navigator-tools .h-menu ul li button.active {
+.navigator-tools .h-menu ul li button.active,
+.navigator-tools .v-menu ul li button.active {
     background-color: #01447e;
 }
-.navigator-tools .h-menu ul li button, .editor-tools .v-menu ul li button  {
+.navigator-tools .h-menu ul li button,
+.navigator-tools .v-menu ul li button  {
     background-color: transparent;
     color: white !important;
 }
@@ -1452,6 +1484,7 @@ fieldset.submit {
 }
 fieldset.submit button {
     background-color: #008896 !important;
+    color: #FFFFFF !important;
 }
 form .addField {
     text-align: center;
@@ -1693,9 +1726,8 @@ Messages
     justify-content: space-between;
     align-items: center;
     flex-wrap: nowrap;
-    min-height: 30px;
+    min-height: 40px;
     margin: 10px auto;
-
 }
 .msg-text {
     text-align: left;
@@ -1846,21 +1878,103 @@ Messages
     opacity: 0.6;
 }
 
-/* Image Editor (Canvas) */
+/*
+Image Editor (Canvas)
+*/
 
 canvas {
-    cursor: crosshair;
-    margin: 10px;
     background-color: #FFFFFF;
     border: 1px solid #282c34;
+    margin:0;
+    padding:0;
 }
-.image-canvas {
-    text-align: center;
+/* canvas layers */
+.layer {
+    position: absolute;
+}
+.canvas-layer-control-default {
+    cursor: default;
+    z-index: 40;
+}
+.canvas-layer-control-select {
+    cursor: crosshair;
+    z-index: 40;
+}
+.canvas-layer-markup {
+    z-index: 30;
+}
+.canvas-layer-image {
+    z-index: 20;
+}
+.canvas-layer-base {
+    z-index: 10;
+}
+.canvas-board {
+    display: flex;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
     width: auto;
 }
-.image-canvas img {
+.canvas-board .canvas {
+    border-radius: 5px;
+    background-color: #282c34;
+    width: auto;
+}
+.canvas-board img {
     display: none;
 }
+.canvas-option-controls button {
+    min-width: 30px;
+}
+.canvas-option-controls button.active {
+    background-color: #2ea591;
+    color: #FFFFFF;
+}
+.canvas-placeholder {
+    border: 1px solid #282c34;
+    padding-top: 150px;
+    text-align: center;
+    width: 350px;
+    height: 350px;
+    background-color: #DDDDDD;
+}
+#canvas-top-menu {
+    justify-content: left;
+    margin: 4px;
+}
+#canvas-top-menu button {
+    margin: 4px;
+}
+.canvas-view-info {
+    padding: 3px;
+    text-align: left;
+    line-height: 100%;
+    font-size: smaller;
+    vertical-align: middle;
+    background-color: #282c34;
+    color: #ffffff;
+    border: 1px solid #282c34;
+}
+.canvas-view-info table {
+    width: 100%;
+}
+.canvas-view-info table tr td div {
+    min-height: 35px;
+}
+.canvas-view-info table tr th {
+    width: 20%;
+}
+.canvas-view-info button {
+    background-color: transparent;
+}
+.canvas-view-controls {
+    background-color: #FFFFFF;
+    padding: 5px;
+}
+.canvas-view-controls ul {
+    justify-content: space-evenly;
+}
+
 
 /*
 Manage Options Editor
@@ -1890,11 +2004,11 @@ Progress Bar
 /* Maintenance Mode */
 
 .maintenance {
-    color: #E34234;
+    color: #2ea591;
     background-color: #FFFFFF;
-    border: 2px solid #E34234;
+    border: 2px solid #2ea591;
     width: 60%;
-    text-align: center;
+    text-align: left;
     margin: 20% auto;
     padding: 20px;
 }

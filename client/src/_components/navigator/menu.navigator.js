@@ -12,10 +12,25 @@ import { setNavView } from '../../_services/session.services.client';
 /**
  * Navigator menu component.
  *
+ * @param view
+ * @param set
+ * @param setData
+ * @param toggle
+ * @param setToggle
+ * @param setFilter
+ * @param filtered
  * @public
  */
 
-const MenuNavigator = ({view, set, setData, setFilter, filtered}) => {
+const MenuNavigator = ({
+                           view,
+                           set,
+                           setData,
+                           toggle,
+                           setToggle,
+                           setFilter,
+                           filtered
+}) => {
 
     // dropdown toggle for tools menu items
     const [dropdownToggle, setDropdownToggle] = React.useState(false);
@@ -45,6 +60,8 @@ const MenuNavigator = ({view, set, setData, setFilter, filtered}) => {
     const setView = (navView) => {
         // reset node data
         setData(null);
+        // toggle navigator
+        setToggle(true);
         // set navigator view
         set(navView);
         setNavView(navView);
@@ -54,8 +71,15 @@ const MenuNavigator = ({view, set, setData, setFilter, filtered}) => {
 
     return (
         <div className={'navigator-tools'}>
-            <div className={'h-menu'}>
+            <div className={toggle ? 'h-menu' : 'v-menu'}>
                 <ul className={`v-menu`}>
+                    <li>
+                        <Button
+                            icon={toggle ? 'hopenleft' : 'hcloseleft'}
+                            title={`Minimize the navigator.`}
+                            onClick={() => setToggle(!toggle)}
+                        />
+                    </li>
                     <li>
                         <Button
                             icon={'tree'}

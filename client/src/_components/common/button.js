@@ -65,6 +65,7 @@ const Button = ({
                     title={title}
                     className={className}
                     onClick={onClick}
+                    name={name}
                 >
                     { label ? <span>{label}</span> : ''}{ icon ? <Icon type={icon} size={size} /> : ''}
                 </button>)
@@ -75,6 +76,7 @@ const Button = ({
                     title={title}
                     className={className}
                     onClick={onClick}
+                    name={name}
                 >
                     { icon ? <Icon type={icon} size={size} /> : ''}{ label ? <span>{label}</span> : ''}
                 </button>

@@ -32,6 +32,10 @@ export const schema = {
             name: 'login',
             label: 'Sign In'
         },
+        '/iat': {
+            name: 'imageToolkit',
+            label: 'Image Analysis Toolkit'
+        },
         '/not_found': {
             name: 'notFound',
             label: '404 Not Found'
@@ -66,6 +70,11 @@ export const schema = {
         },
         authentication: {
             noAuth: 'Authentication failed. Please contact the site administrator.'
+        },
+        canvas: {
+            emptyCanvas: `One or more canvases are not loaded.`,
+            missingControlPoints: `Too few control points for operation.`,
+            maxControlPoints: 'Maximum number of control points selected.'
         }
     },
     messages: {

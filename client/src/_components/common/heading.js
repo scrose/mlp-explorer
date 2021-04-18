@@ -46,7 +46,6 @@ const Heading = () => {
             edit: `${getViewLabel('edit')}: ${nodeLabel}`,
             filter: `${getViewLabel('filter')}: ${getModelLabel(api.model, 'label')}`,
             import: `${getViewLabel('import')}: ${getModelLabel(api.model, 'label')}`,
-            master: `${getViewLabel('master')}: ${nodeLabel}`,
             default: `${getViewLabel(api.view)}: ${modelLabel}`
         }
         return headings.hasOwnProperty(api.view) && headings[api.view]
