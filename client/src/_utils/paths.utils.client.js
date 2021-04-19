@@ -45,7 +45,7 @@ export function getQuery(key) {
  */
 
 export function getRoot() {
-    return _CLIENT;
+    return `${_CLIENT.protocol}${_CLIENT.host}:${_CLIENT.port}`;
 }
 
 /**

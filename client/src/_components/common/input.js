@@ -46,7 +46,6 @@ const DateTimeSelector = ({value, filter='default'}) => {
 
 const Autocomplete = ({}) => {
     // variables
-    const input = document.querySelector('input');
     const people = ['john doe', 'maria', 'paul', 'george', 'jimmy'];
     let results = [];
 

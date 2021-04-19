@@ -8,6 +8,18 @@
 
 import { getError } from '../_services/schema.services.client';
 import * as matrix from '../_utils/matrix.utils.client';
+import * as geotiff from 'geotiff';
+
+/**
+ * Read TIFF image buffer.
+ *
+ * @public
+ * @param buffer
+ */
+
+export const readTIFF = async (buffer) => {
+    return await geotiff.fromBlob(buffer);
+}
 
 /**
  * Get API url for given image.

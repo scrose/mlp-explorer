@@ -13,7 +13,6 @@ import { genSchema, getError } from '../../_services/schema.services.client';
 import Dialog from '../common/dialog';
 import { align, getControlPoints, scaleToFit } from '../../_utils/image.utils.client';
 import { ImageSelector } from './selector.menu';
-import OptionsView from '../views/options.view';
 
 /**
  * No operation.
@@ -197,7 +196,7 @@ export const CanvasMenu = ({
                 title={`Select an Image`}
                 setToggle={setDialogToggle}>
                 <ImageSelector
-                    id={id}
+                    canvasID={id}
                     selection={selection}
                     setSelected={id === canvas1.id ? setCanvas1 : setCanvas2}
                     setToggle={setDialogToggle}

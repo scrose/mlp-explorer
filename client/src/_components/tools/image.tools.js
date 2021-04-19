@@ -26,8 +26,11 @@ const ImageTools = () => {
 
     const router = useRouter();
 
+    // canvas identifiers
     const canvas1ID = 'canvas1';
     const canvas2ID = 'canvas2';
+
+    // initial inputs (optional)
     let input1 = null, input2 = null;
 
     const [options, setOptions] = React.useState({

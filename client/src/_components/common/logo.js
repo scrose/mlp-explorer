@@ -8,7 +8,7 @@
 import React from 'react';
 import { getRoot } from '../../_utils/paths.utils.client';
 import { getAppTitle } from '../../_services/schema.services.client';
-import Icon from './icon';
+import {ReactComponent as MLPLogo} from '../svg/logo.svg';
 
 /**
  * Render branding heading (logo + wordmark).
@@ -17,10 +17,14 @@ import Icon from './icon';
  */
 
 const Logo = () => {
+
     return (
         <div className={'logo'}>
             <a href={ getRoot() }>
-                <h1><Icon type={'logo'} /> { getAppTitle() }</h1>
+                <h1>
+                    <div className={'logo-svg'}><MLPLogo /></div>
+                    <div className={'wordmark'}>{ getAppTitle() }</div>
+                </h1>
             </a>
         </div>
     );

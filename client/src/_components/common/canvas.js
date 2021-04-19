@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { getPos } from '../../_utils/image.utils.client';
+import { getPos, readTIFF } from '../../_utils/image.utils.client';
 import Button from './button';
 import { CanvasControls} from '../menus/canvas.menu';
 
@@ -18,9 +18,20 @@ import { CanvasControls} from '../menus/canvas.menu';
  */
 
 export const initCanvas = (canvasID, inputData) => {
-    const {file={}, metadata={}, url={}, filename=''} = inputData || {};
-    const {id='', file_type=''} = file || {};
+
+    console.log('Input data', inputData)
+
+    // Get metadata from node data
+    const {
+        file={},
+        fileData={},
+        metadata={},
+        url='',
+        filename='',
+        loaded=false} = inputData || {};
+    const {id='', file_type='', file_size=0} = file || {};
     const {x_dim=0, y_dim=0, image_state=''} = metadata || {};
+
     return {
         redraw: false,
         id: canvasID,
@@ -28,13 +39,15 @@ export const initCanvas = (canvasID, inputData) => {
         offset: { x: 0, y: 0 },
         origin: { x: 0, y: 0 },
         hidden: false,
-        loaded: false,
+        loaded: loaded,
         img_original_dims: { x: x_dim, y: y_dim },
         img_dims: { x: x_dim, y: y_dim },
         files_id: id,
         filename: filename,
         file_type: file_type,
-        url: url.hasOwnProperty('medium') ? url.medium : '',
+        file_size: file_size,
+        file: fileData,
+        url: url,
         pts: [],
         image_state: image_state,
     }
@@ -132,6 +145,9 @@ export const Canvas = ({
     const controlLayerRef = React.useRef(null);
     const baseLayerRef = React.useRef(null);
 
+    // error state
+    const [error, setError] = React.useState(null);
+
     /**
      * Get image pixel data.
      */
@@ -153,6 +169,27 @@ export const Canvas = ({
             return dataBuffer;
         }
     }
+
+    /**
+     * Draw image on canvas.
+     * @param ctx
+     * @param img
+     * @param canvas
+     */
+
+    const draw = (ctx, img, canvas) => {
+        setMessage(null);
+        // clear canvas and redraw image data
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(
+            img,
+            properties.offset.x,
+            properties.offset.x,
+            properties.img_dims.x,
+            properties.img_dims.y,
+        );
+        setProperties(data => ({ ...data, loaded: true, redraw: false }));
+    };
 
     /**
      * Signal a redraw of the canvas.
@@ -212,39 +249,62 @@ export const Canvas = ({
 
     React.useEffect(() => {
 
-        // redraw image on canvas
-        const redraw = (ctx, img, canvas) => {
-            setMessage(null);
-            // clear canvas and redraw image data
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(
-                img,
-                properties.offset.x,
-                properties.offset.x,
-                properties.img_dims.x,
-                properties.img_dims.y,
-            );
-            setProperties(data => ({ ...data, loaded: true, redraw: false }));
-        };
+        console.log('Canvas', id, properties, imgLayerRef, imgRef.current)
+
+        // // load image 1 (if available)
+        // if (imgRef.current) {
+        //     imgRef.current.src = properties.url;
+        //     const imgDecoded = readTIFF(properties.url);
+        //     console.log(imgDecoded)
+        // }
 
         // load canvas
         if (imgLayerRef.current && imgLayerRef.current.getContext) {
             let ctx = imgLayerRef.current.getContext('2d');
+            ctx.createImageData(properties.img_dims.x, properties.img_dims.y);
+            console.log('Ready to draw canvas', properties);
+
+            // Handle image uploaded from local filesystem
+            if (!error && properties.file) {
+                (async function() {
+                    try {
+                        console.log('Import data from blob')
+                        const data = await properties.file.readRGB()
+                        console.log(data)
+                        //const uint8clamped = new Uint8ClampedArray.from(data[0].buffer);
+                        console.log(data)
+                        const imgData = new ImageData(
+                            data,
+                            properties.img_dims.x,
+                            properties.img_dims.y
+                        );
+
+                        ctx.putImageData(imgData, 0, 0);
+                    }
+                    catch (err) {
+                        setError(true);
+                        console.error(err)
+                    }
+                })();
+
+            }
 
             // load image 1 (if available)
             if (imgRef.current) {
-                // redraw canvas on signal
-                if (imgRef.current.complete && properties.redraw) {
-                    redraw(ctx, imgRef.current, imgLayerRef.current);
-                }
-                // redraw canvas on image load
-                imgRef.current.onload = () => {
-                    redraw(ctx, imgRef.current, imgLayerRef.current);
-                };
+
+                // // redraw canvas on signal
+                // if (imgRef.current.complete && properties.redraw) {
+                //     draw(ctx, imgRef.current, imgLayerRef.current);
+                // }
+                // // redraw canvas on image load
+                // imgRef.current.onload = () => {
+                //     draw(ctx, imgRef.current, imgLayerRef.current);
+                // };
+
             }
         }
 
-    }, [properties, setProperties, setMessage]);
+    }, [imgLayerRef, imgRef, draw, properties, setProperties, setMessage]);
 
     return !hidden && Object.keys(properties).length > 0 &&
         <>
@@ -322,13 +382,13 @@ export const Canvas = ({
                             Image Layer: Canvas API Not Supported
                         </canvas>
                         <canvas
-                            ref={imgLayerRef}
+                            ref={baseLayerRef}
                             id={`${id}_base_layer`}
-                            className={`layer canvas-layer-base`}
+                            className={`canvas-layer-base`}
                             width={properties.dims.x}
                             height={properties.dims.y}
                         >
-                            Image Layer: Canvas API Not Supported
+                            Base Layer: Canvas API Not Supported
                         </canvas>
                     </>
                     : <div className={'canvas-placeholder'}>
@@ -342,7 +402,7 @@ export const Canvas = ({
                 <CanvasInfo id={id} properties={properties} options={options} />
                 {
                     // hidden image instance
-                    properties.url &&
+                    properties && properties.url &&
                     <img ref={imgRef} src={properties.url} alt={`Canvas ${id} loaded data.`} />
                 }
             </div>
