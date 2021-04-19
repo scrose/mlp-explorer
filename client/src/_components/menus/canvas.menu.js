@@ -8,7 +8,7 @@
 import React from 'react';
 import Button from '../common/button';
 import Form from '../common/form';
-import { getNodeURI } from '../../_utils/paths.utils.client';
+import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { genSchema, getError } from '../../_services/schema.services.client';
 import Dialog from '../common/dialog';
 import { align, getControlPoints, scaleToFit } from '../../_utils/image.utils.client';
@@ -144,6 +144,7 @@ const OptionsMenu = ({option, callback=noop}) => {
  * @param setCanvas1
  * @param setCanvas2
  * @param setMethods
+ * @param selection
  * @param dialogToggle
  * @param setDialogToggle
  * @param setMessage
@@ -158,6 +159,7 @@ export const CanvasMenu = ({
                                setCanvas1 = noop,
                                setCanvas2 = noop,
                                setMethods = noop,
+                               selection={},
                                dialogToggle = null,
                                setDialogToggle = noop,
                                setMessage = noop,
@@ -196,7 +198,7 @@ export const CanvasMenu = ({
                 setToggle={setDialogToggle}>
                 <ImageSelector
                     id={id}
-                    reference={id === canvas1.id ? canvas2 : canvas1}
+                    selection={selection}
                     setSelected={id === canvas1.id ? setCanvas1 : setCanvas2}
                     setToggle={setDialogToggle}
                 />
@@ -208,7 +210,7 @@ export const CanvasMenu = ({
                 title={`Confirm Image Pair Alignment`}
                 setToggle={setDialogToggle}>
                 <Form
-                    route={getNodeURI('modern_images', 'master', id)}
+                    route={createNodeRoute('modern_images', 'master', id)}
                     schema={genSchema('master', 'modern_captures')}
                     model={'modern_captures'}
                     callback={() => {
@@ -223,7 +225,7 @@ export const CanvasMenu = ({
                 title={`Confirm Image Pair Master`}
                 setToggle={setDialogToggle}>
                 <Form
-                    route={getNodeURI('modern_images', 'master', id)}
+                    route={createNodeRoute('modern_images', 'master', id)}
                     schema={genSchema('master', 'modern_captures')}
                     model={'modern_captures'}
                     callback={() => {
@@ -299,12 +301,6 @@ export const CanvasMenu = ({
                 <Button label={'Help'} onClick={() => {
                     setMenuToggle('mshelp');
                 }} />
-                <Button label={'Swap'} onClick={() => {
-                    setMenuToggle('msswap');
-                }} />
-                <Button label={'Fit'} onClick={() => {
-                    setMenuToggle('msfit');
-                }} />
 
                 {/*<select id={'rs'} onChange={callback}>*/}
                 {/*    <option label={'Scale'} />*/}
@@ -347,6 +343,14 @@ export const CanvasMenu = ({
                         />
                     </li>
                     <li className={'push'}><Button
+                        icon={'swap'}
+                        label={'Swap'}
+                        title={'Swap images in canvases.'}
+                        onClick={() => {
+                            _filterMethods('swap');
+                        }}
+                    /></li>
+                    <li><Button
                         icon={'master'}
                         label={'Align'}
                         title={'Align images using selected control points.'}

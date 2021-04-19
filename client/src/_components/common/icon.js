@@ -62,10 +62,12 @@ import {
     faUsers,
     faCrosshairs,
     faMousePointer,
-    faEraser
+    faEraser,
+    faExchangeAlt,
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
+    faExchangeAlt,
     faEraser,
     faAngleDoubleLeft,
     faAngleDoubleRight,
@@ -157,6 +159,7 @@ const getIconClass = (iconType) => {
         search: 'search',
         undo: 'undo',
         erase: 'eraser',
+        swap: 'exchange-alt',
         success: 'check-circle',
         error: 'times-circle',
         cancel: 'times-circle',

@@ -14,29 +14,15 @@ import { capitalize } from '../_utils/data.utils.client';
  *
  * @public
  * @return {String} static view type
- * @param path
+ * @param uri
  */
 
-export const getStaticView = (path) => {
-    console.log(path)
-    const url = new URL(path);
-    console.log(url)
-    const [route, query] = url.split("?");
-    const routeData = getStaticRoute(route);
-    return routeData.hasOwnProperty('name') ? routeData.name : null;
-}
-
-/**
- * Get route data from schema.
- *
- * @public
- * @param {String} route
- * @return {String} static route
- */
-
-export const getStaticRoute = (route) => {
+export const getStaticView = (uri) => {
     const routes = getRoutes();
-    return routes.hasOwnProperty(route) ? routes[route] : {};
+    // filter route of query string
+    const route = uri.split('?')[0];
+    const routeData = routes.hasOwnProperty(route) ? routes[route] : {};
+    return routeData.hasOwnProperty('name') ? routeData.name : null;
 }
 
 /**

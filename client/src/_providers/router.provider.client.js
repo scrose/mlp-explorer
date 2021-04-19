@@ -7,7 +7,7 @@
 
 import * as React from 'react'
 import { makeRequest } from '../_services/api.services.client';
-import { getAPIURL, getNodeURI, filterPath, reroute, getRoot } from '../_utils/paths.utils.client';
+import { createNodeRoute, filterPath, reroute, getRoot, createURL } from '../_utils/paths.utils.client';
 import { getStaticView } from '../_services/schema.services.client';
 import { clearNodes } from '../_services/session.services.client';
 
@@ -32,8 +32,8 @@ function RouterProvider(props) {
     // API status state
     const [online, setOnline] = React.useState(true);
 
-    // client route in state
-    const [route, setRoute] = React.useState(filterPath());
+    // current client route in state
+    const [currentRoute, setCurrentRoute] = React.useState(filterPath());
 
     // node filter in state
     const [filter, setFilter] = React.useState({});
@@ -43,9 +43,6 @@ function RouterProvider(props) {
 
     // static view state: static views do not require API requests
     const [staticView, setStaticView] = React.useState(getStaticView(filterPath()));
-
-    // client route in state
-    const [error, setError] = React.useState({});
 
     // clear node path in session state
     clearNodes();
@@ -60,14 +57,11 @@ function RouterProvider(props) {
     const update = async function(uri) {
 
         // set app route state
-        setRoute(uri);
+        setCurrentRoute(uri);
 
         // set static view (if applicable)
-        const {route='', query=''} = getStaticView(uri);
-        setStaticView(route);
-
-        // set query variables
-        setQuery(query);
+        setStaticView(getStaticView(uri));
+        setQuery({});
 
         // update route in browser
         reroute(uri);
@@ -80,95 +74,60 @@ function RouterProvider(props) {
         const uri = window.location.pathname;
 
         // set app route state
-        setRoute(uri);
+        setCurrentRoute(uri);
 
         // update route in browser
         reroute(uri);
     });
 
     /**
-     * Error router.
-     *
-     * @public
-     * @param status
-     * @param response
-     */
-
-    const errorRouter = (status, response) => {
-        const routes = {
-            // '404': () => {
-            //     return update('/not_found');
-            // },
-            // '401': () => {
-            //     return redirect('/login');
-            // },
-            // '403': () => {
-            //     return update('/login');
-            // },
-            // '500': () => {
-            //     return update('/server_error');
-            // }
-        }
-        return routes.hasOwnProperty(status) ? routes[status]() : response;
-    }
-
-    /**
-     * Router to handle route requests.
-     *
-     * @public
-     * @param {Object} res
-     */
-
-    const handleResponse = (res) => {
-
-        // get _static portion of fetched response data
-        const { response } = res || {};
-
-        // handle exceptions
-        if (!res.success) {
-            setError(response.message);
-            response.reroute = errorRouter(res.status, response);
-        }
-
-        return response;
-    }
-
-    /**
      * Data request method to fetch data from API.
      *
      * @public
-     * @param {String} uri
+     * @param {String} route
      *
      * @param params
      */
 
-    const get = async (uri, params) => {
-        if (!uri || !online) return null;
-        let res = await makeRequest({url: getAPIURL(uri, params), method:'GET'})
+    const get = async (route, params=null) => {
+
+        // reject null paths or when API is offline
+        if (!route || !online ) return null;
+
+        let res = await makeRequest({url: createURL(route, params), method:'GET'})
             .catch(err => {
                 // handle API connection errors
                 console.error('An API error occurred:', err)
                 setOnline(false);
                 return null;
             });
-        return res ? handleResponse(res) : setOnline(false);
+
+        // No response: API is unavailable
+        if (!res) return setOnline(false);
+
+        // return response (and error flag)
+        const { response={} } = res || {};
+        return {hasError: !res.success, response: response};
     };
 
     /**
      * Request method to post data from API.
      *
      * @public
-     * @param {String} uri
+     * @param {String} route
      * @param {Object} formData
      */
 
-    const post = async (uri, formData= null) => {
+    const post = async (route, formData= null) => {
+
+        // reject null paths or when API is offline
+        if (!route || !online ) return null;
+
+        // parse form data
         const parsedData = formData ? Object.fromEntries(formData) : {};
 
-        if (!uri || !online) return null;
-
         let res = await makeRequest({
-            url: getAPIURL(uri),
+            url: createURL(route),
             method:'POST',
             data: parsedData
         })
@@ -178,7 +137,13 @@ function RouterProvider(props) {
                 setOnline(false);
                 return null;
             });
-        return res ? handleResponse(res) : res;
+
+        // No response: API is unavailable
+        if (!res) return setOnline(false);
+
+        // return response (and error flag)
+        const { response={} } = res || {};
+        return {hasError: !res.success, response: response};
     };
 
     /**
@@ -265,12 +230,16 @@ function RouterProvider(props) {
      * Request method to download file.
      *
      * @public
-     * @param uri
+     * @param route
      * @param format
      */
 
-    const download = async (uri, format) => {
-        return await makeRequest({url: getAPIURL(uri), method:'GET', download: format})
+    const download = async (route, format) => {
+
+        // reject null paths or when API is offline
+        if (!route || !online ) return null;
+
+        return await makeRequest({url: createURL(route), method:'GET', download: format})
             .then(res => {
                 return new Blob([res.response]);
             })
@@ -288,7 +257,11 @@ function RouterProvider(props) {
      */
 
     const remove = async (id, model, group='', callback) => {
-        const route = getNodeURI(model, 'remove', id, group);
+        const route = createNodeRoute(model, 'remove', id, group);
+
+        // reject null paths or when API is offline, error found
+        if (!route || !online ) return null;
+
         post(route)
             .then(res => {
                 callback(res);
@@ -305,7 +278,8 @@ function RouterProvider(props) {
             {
                 update,
                 base: getRoot(),
-                route,
+                route: currentRoute,
+                query,
                 filter,
                 setFilter,
                 staticView,
@@ -314,8 +288,6 @@ function RouterProvider(props) {
                 upload,
                 download,
                 remove,
-                error,
-                setError,
                 online,
                 setOnline
             }

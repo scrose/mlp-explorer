@@ -9,11 +9,12 @@ import React from 'react';
 import { Canvas, initCanvas } from '../common/canvas';
 import { CanvasMenu } from '../menus/canvas.menu';
 import { ValidationMessage } from '../common/input';
-import { getQuery } from '../../_utils/paths.utils.client';
+import { createNodeRoute, getQuery } from '../../_utils/paths.utils.client';
+import { useRouter } from '../../_providers/router.provider.client';
 
 const CanvasMessage = ({message}) => {
     const {msg='', type=''} = message || {};
-    return message && <ValidationMessage msg={[msg]} type={type} />
+    return msg && <ValidationMessage msg={[msg]} type={type} />
 }
 /**
  * Canvas API image editor component.
@@ -22,6 +23,8 @@ const CanvasMessage = ({message}) => {
  */
 
 const ImageTools = () => {
+
+    const router = useRouter();
 
     const canvas1ID = 'canvas1';
     const canvas2ID = 'canvas2';
@@ -38,11 +41,27 @@ const ImageTools = () => {
     const [methods, setMethods] = React.useState({});
     const [message, setMessage] = React.useState({});
 
-    // load image data (if requested)
+    // set image selection state
+    const [selection, setSelection] = React.useState([]);
+
+    // get query parameter for master option
+    // - must correspond to a modern image file ID
+    const modernImageID = getQuery('master') || '';
+
+    // load input image data (if requested)
     React.useEffect(() => {
-        const inputRequest = getQuery('master');
-        console.log(inputRequest)
-    }, []);
+        // get available historic image selection for given modern capture image
+        if (modernImageID) {
+            router.get(createNodeRoute('modern_images', 'master', modernImageID))
+                .then(res => {
+                    const { hasError=false, response={} } = res || {};
+                    const { data = {} } = response || {};
+                    const { historic_captures = [], modern_capture={} } = data || {};
+                    setSelection(historic_captures);
+                    setImage2Data(modern_capture);
+                });
+        }
+    }, [modernImageID, router, setSelection, setImage2Data]);
 
     // menu dialog toggle
     const [dialogToggle, setDialogToggle] = React.useState(null);
@@ -65,6 +84,7 @@ const ImageTools = () => {
                 setImage1={setImage1Data}
                 image2={image2Data}
                 setImage2={setImage2Data}
+                selection={selection}
                 setMethods={setMethods}
                 dialogToggle={dialogToggle}
                 setDialogToggle={setDialogToggle}

@@ -9,7 +9,7 @@ import React from 'react';
 import Image from './image';
 import Download from './download';
 import { useRouter } from '../../_providers/router.provider.client';
-import { getNodeURI } from '../../_utils/paths.utils.client';
+import { createNodeRoute } from '../../_utils/paths.utils.client';
 import Loading from './icon';
 
 /**
@@ -44,7 +44,7 @@ const File = ({ data, callback=null, scale='thumb' }) => {
             onClick={()=>{
                 callback
                     ? callback()
-                    : router.update(getNodeURI('historic_captures', 'show', owner_id))
+                    : router.update(createNodeRoute('historic_captures', 'show', owner_id))
             }}
         />,
         modern_images: () => <Image
@@ -53,7 +53,7 @@ const File = ({ data, callback=null, scale='thumb' }) => {
             label={label}
             title={filename}
             onClick={()=>{
-                router.update(getNodeURI('modern_captures', 'show', owner_id))
+                router.update(createNodeRoute('modern_captures', 'show', owner_id))
             }}
         />,
         supplemental_images: () => <Image
@@ -62,7 +62,7 @@ const File = ({ data, callback=null, scale='thumb' }) => {
             label={label}
             title={filename}
             onClick={()=>{
-                router.update(getNodeURI('supplemental_images', 'show', id))
+                router.update(createNodeRoute('supplemental_images', 'show', id))
             }}
         />,
         metadata_files: () => <Download

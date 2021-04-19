@@ -8,7 +8,7 @@
 import React from 'react';
 import { getModelLabel } from '../../_services/schema.services.client';
 import Dialog from '../common/dialog';
-import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
+import { createNodeRoute, redirect } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import Table from '../common/table';
 import EditorMenu from '../menus/editor.menu';
@@ -107,7 +107,7 @@ const OptionsView = ({
             : {};
 
         // refresh data
-        _refresh(name, getNodeURI(name, 'show', id));
+        _refresh(name, createNodeRoute(name, 'show', id));
     }
 
     // filter options for table rows
@@ -139,7 +139,7 @@ const OptionsView = ({
                                 // update state of option selection
                                 setSelectedIDs(data => ({...data, [optType]: null}));
                                 _refreshOptions();
-                                _refresh(optType, getNodeURI(optType, 'show', id));
+                                _refresh(optType, createNodeRoute(optType, 'show', id));
                             }}
                         />
             };

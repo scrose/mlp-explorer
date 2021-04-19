@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { getNodeURI } from '../../_utils/paths.utils.client';
+import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import Button from './button';
 
@@ -70,7 +70,7 @@ const Accordion = ({
                                 title={`Go to ${label}.`}
                                 onClick={() => {
                                     id
-                                        ? router.update(getNodeURI(type, 'show', id))
+                                        ? router.update(createNodeRoute(type, 'show', id))
                                         : setToggle(!toggle)
                                 }}
                                 label={label}

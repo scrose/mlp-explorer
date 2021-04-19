@@ -206,6 +206,6 @@ export function homography( X8, A, B, w, h )
             { B[yw+x] = A[v*w+u]; c++; } // inverse: under/overflow?
         }
     }
-    cl('homography: '+(w*h)+' pixels, '+c+' pixels processed');
+    console.log('homography: '+(w*h)+' pixels, '+c+' pixels processed');
 
 } // homography

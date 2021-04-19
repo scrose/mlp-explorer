@@ -216,6 +216,7 @@ export const search = async (req, res, next) => {
         // get query parameters
         const { q='', offset=0, limit=10 } = req.query || {};
 
+        // get query results
         const resultData = await srchserve.fulltext(q, offset, limit);
 
         res.status(200).json(

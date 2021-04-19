@@ -1,12 +1,20 @@
 /*!
- * MLP.Client.Helpers.Data
+ * MLP.Client.Utilities.Data
  * File: data.utils.client.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
-import React from 'react';
-import { useData } from '../_providers/data.provider.client';
+export const genHash = function(str) {
+    let hash = 0, i, chr;
+    if (str.length === 0) return hash;
+    for (i = 0; i < str.length; i++) {
+        chr   = str.charCodeAt(i);
+        hash  = ((hash << 5) - hash) + chr;
+        hash |= 0; // Convert to 32bit integer
+    }
+    return hash * hash;
+};
 
 /**
  * Capitalize first letter of string.
@@ -152,11 +160,10 @@ export const sanitize = (
         text: ({ value }) => {
             return value ? String(value) : '-';
         },
-        coord: ({ value }) => {
+        integer: ({ value }) => {
             return value
-                ? <span className={'coord'}>
-                    { parseFloat(value).toFixed(2) }
-                    &#160;/&#160;<span>{convertCoordDMS(value)}</span>
+                ? <span className={'float'}>
+                    {prefix}{ parseInt(value) }{suffix}
                   </span>
                 : '-';
         },
@@ -164,6 +171,14 @@ export const sanitize = (
             return value
                 ? <span className={'float'}>
                     {prefix}{ parseFloat(value).toFixed(2) }{suffix}
+                  </span>
+                : '-';
+        },
+        coord: ({ value }) => {
+            return value
+                ? <span className={'coord'}>
+                    { parseFloat(value).toFixed(2) }
+                    &#160;/&#160;<span>{convertCoordDMS(value)}</span>
                   </span>
                 : '-';
         },

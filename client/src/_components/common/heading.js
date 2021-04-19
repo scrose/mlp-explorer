@@ -44,7 +44,7 @@ const Heading = () => {
             show: nodeLabel,
             new: `${getViewLabel('new')}: ${modelLabel}`,
             edit: `${getViewLabel('edit')}: ${nodeLabel}`,
-            filter: `${getViewLabel('filter')}: ${getModelLabel(api.model, 'label')}`,
+            filter: `${getViewLabel('filter')} Stations`,
             import: `${getViewLabel('import')}: ${getModelLabel(api.model, 'label')}`,
             default: `${getViewLabel(api.view)}: ${modelLabel}`
         }

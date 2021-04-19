@@ -8,7 +8,7 @@
 import React from 'react'
 import { useRouter } from '../../_providers/router.provider.client';
 import Icon, { Loading } from '../common/icon';
-import { getNodeURI } from '../../_utils/paths.utils.client';
+import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { getModelLabel, getNodeOrder } from '../../_services/schema.services.client';
 import { addNode, checkNode, removeNode } from '../../_services/session.services.client';
 import { useData } from '../../_providers/data.provider.client';
@@ -58,7 +58,7 @@ const TreeNodeMenu = ({
         // add node to session path
         addNode(id);
         // reroute to requested data view
-        router.update(getNodeURI(model, 'show', id));
+        router.update(createNodeRoute(model, 'show', id));
     }
 
     // handle status of nodes: cascades status levels
@@ -158,7 +158,7 @@ const TreeNode = ({id, type, label, hasDependents, status}) => {
         }
 
         if (hasDependents && toggle && Array.isArray(loadedData) && loadedData.length === 0) {
-            const route = getNodeURI('nodes', 'show', id);
+            const route = createNodeRoute('nodes', 'show', id);
             router.get(route)
                 .then(res => {
                     // update state with response data

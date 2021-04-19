@@ -6,7 +6,7 @@
  */
 
 import React, { useCallback } from 'react';
-import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
+import { createNodeRoute, redirect } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import { genSchema, getModelLabel } from '../../_services/schema.services.client';
 import Button from '../common/button';
@@ -59,8 +59,8 @@ const EditorMenu = ({
     // - dependents return to the owner view
     // - owners return to themselves
     const redirectURI = owner
-        ? getNodeURI(owner.type, 'show', owner.id)
-        : getNodeURI(model, 'show', id);
+        ? createNodeRoute(owner.type, 'show', owner.id)
+        : createNodeRoute(model, 'show', id);
 
     // visibility of menu items
     const isVisible = {
@@ -114,7 +114,7 @@ const EditorMenu = ({
                         model={model}
                         options={api.options}
                         schema={genSchema('new', model)}
-                        route={getNodeURI(model, 'new')}
+                        route={createNodeRoute(model, 'new')}
                         callback={() => {
                             console.log('Callback new!')
                             setDialogToggle(null);
@@ -131,7 +131,7 @@ const EditorMenu = ({
                             model={model}
                             options={api.options}
                             schema={genSchema('edit', model, group_type)}
-                            route={getNodeURI(model, 'edit', id)}
+                            route={createNodeRoute(model, 'edit', id)}
                             data={metadata}
                             callback={() => {
                                 setDialogToggle(null);
@@ -168,7 +168,7 @@ const EditorMenu = ({
                             options={api.options}
                             batchType={'historic_images'}
                             schema={genSchema('import', 'historic_captures')}
-                            route={getNodeURI('historic_captures', 'import', id)}
+                            route={createNodeRoute('historic_captures', 'import', id)}
                             callback={() => {
                                 setDialogToggle(null);
                                 callback ? callback() : redirect(router.route);
@@ -189,7 +189,7 @@ const EditorMenu = ({
                 batchType={'modern_images'}
                 schema={genSchema('import', 'modern_captures')}
                 hasUploads={true}
-                route={getNodeURI('modern_captures', 'import', id)}
+                route={createNodeRoute('modern_captures', 'import', id)}
                 callback={() => {
                     setDialogToggle(null);
                     callback ? callback() : redirect(router.route);
@@ -209,7 +209,7 @@ const EditorMenu = ({
                 model={dependent}
                 options={api.options}
                 schema={genSchema('new', dependent)}
-                route={getNodeURI(dependent, 'new', id)}
+                route={createNodeRoute(dependent, 'new', id)}
                 callback={() => {
                     setDialogToggle(null);
                     callback ? callback() : redirect(router.route);
@@ -252,7 +252,7 @@ const EditorMenu = ({
     // handle click events -> routing
     function onClick(e, model, view, id) {
         e.preventDefault();
-        router.update(getNodeURI(model, view, id));
+        router.update(createNodeRoute(model, view, id));
     }
 
     return (

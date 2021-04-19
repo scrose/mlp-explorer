@@ -49,19 +49,6 @@ export const initCanvas = (canvasID, inputData) => {
  * @public
  */
 
-const CanvasLayer = ({ id, properties, options }) => {
-
-}
-
-/**
- * Canvas info status.
- *
- * @param id
- * @param properties
- * @param options
- * @public
- */
-
 const CanvasInfo = ({ id, properties, options }) => {
     return <div id={`canvas-view-${id}-footer`} className={'canvas-view-info'}>
         <table>

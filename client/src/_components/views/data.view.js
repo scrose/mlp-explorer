@@ -11,7 +11,7 @@ import NotfoundError from '../error/notfound.error';
 import ServerError from '../error/server.error';
 import { useData } from '../../_providers/data.provider.client';
 import { genSchema, getRenderType } from '../../_services/schema.services.client';
-import { getNodeURI, redirect } from '../../_utils/paths.utils.client';
+import { createNodeRoute, redirect } from '../../_utils/paths.utils.client';
 import Importer from '../tools/import.tools';
 import FilterTools from '../tools/filter.tools';
 import { Loading } from '../common/icon';
@@ -46,10 +46,10 @@ const DataView = () => {
                 model={api.model}
                 schema={schema}
                 data={api.metadata}
-                route={getNodeURI(api.model, api.view, api.id)}
+                route={createNodeRoute(api.model, api.view, api.id)}
                 callback={(err, model, id) => {
                     if (err || !id) return;
-                    redirect(getNodeURI(api.model, 'show', id));
+                    redirect(createNodeRoute(api.model, 'show', id));
                 }}
             />),
         import: () => (
@@ -58,10 +58,10 @@ const DataView = () => {
                 model={api.model}
                 schema={schema}
                 data={api.metadata}
-                route={getNodeURI(api.model, 'import', api.id)}
+                route={createNodeRoute(api.model, 'import', api.id)}
                 callback={() => {
                     redirect(
-                        getNodeURI(api.model, 'show', api.id)
+                        createNodeRoute(api.model, 'show', api.id)
                     );
                 }}
             />),
@@ -75,7 +75,7 @@ const DataView = () => {
             {
                 renders.hasOwnProperty(render)
                     ? renders[render]()
-                    : !router.error
+                    : !router.hasError
                     ? <Loading/>
                     : <ServerError />
             }

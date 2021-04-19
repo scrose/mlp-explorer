@@ -9,7 +9,7 @@ import React from 'react';
 import ImageView from './image.view';
 import LocationsView from './locations.view';
 import StationsView from './stations.view';
-import { getNodeURI } from '../../_utils/paths.utils.client';
+import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import { getDependentTypes, getModelLabel } from '../../_services/schema.services.client';
 import Accordion from '../common/accordion';
@@ -133,7 +133,7 @@ const DefaultView = ({
                          data,
                      }) => {
     const api = useData();
-    const { node, dependents, metadata, attached, owner } = api.destructure(data) || {};
+    const { node, dependents, metadata, attached } = api.destructure(data) || {};
     return (
         <>
             <Accordion
@@ -178,7 +178,7 @@ const NodesView = ({
 
         // API call
         if (loaded && model && node) {
-            const route = getNodeURI(model, 'show', node.id);
+            const route = createNodeRoute(model, 'show', node.id);
             router.get(route)
                 .then(res => {
                     // update state with response data

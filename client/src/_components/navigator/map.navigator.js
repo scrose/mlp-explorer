@@ -10,7 +10,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useRouter } from '../../_providers/router.provider.client';
 import { useData } from '../../_providers/data.provider.client';
-import { getNodeFilterURI } from '../../_utils/paths.utils.client';
+import { createRoute } from '../../_utils/paths.utils.client';
 import { debounce } from '../../_utils/events.utils.client';
 
 /**
@@ -60,8 +60,7 @@ function MapNavigator({ data, filter }) {
 
     // request stations in selected cluster
     const loadView = React.useCallback((ids = []) => {
-        console.log('load view')
-        router.update(getNodeFilterURI(ids));
+        router.update(createRoute('/filter', { ids: ids }));
     }, [router]);
 
     // refresh map each render
@@ -216,7 +215,7 @@ function MapNavigator({ data, filter }) {
                                 mapObj.current.flyTo(coord, zoomLevel);
                             }, 400)();
                         })
-                        .on('dblclick', (e) => {
+                        .on('dblclick', () => {
                             // clicking on marker loads filter results in data pane
                             loadView(
                                 cluster.stations.map(station => {

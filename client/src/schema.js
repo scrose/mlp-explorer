@@ -15,6 +15,10 @@
 
 export const schema = {
     app: {
+        protocol: 'http://',
+        host: 'localhost',
+        apiPort: 3001,
+        clientPort: 3000,
         project: "Mountain Legacy Project",
         name: "Explorer",
         title: "Welcome to the Mountain Legacy Project Explorer"

@@ -12,7 +12,7 @@ import Slider from '../common/slider';
 import Table from '../common/table';
 import { sanitize } from '../../_utils/data.utils.client';
 import { useUser } from '../../_providers/user.provider.client';
-import { getNodeURI } from '../../_utils/paths.utils.client';
+import { createNodeRoute } from '../../_utils/paths.utils.client';
 import Image from '../common/image';
 import { useRouter } from '../../_providers/router.provider.client';
 import EditorMenu from '../menus/editor.menu';
@@ -66,7 +66,7 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
                 label={filename}
                 title={filename}
                 onClick={()=>{
-                    router.update(getNodeURI(file_type, 'show', id))
+                    router.update(createNodeRoute(file_type, 'show', id))
                 }}
             />,
             image_state: imageState && imageState.hasOwnProperty('label') ? imageState.label : '',

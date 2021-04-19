@@ -6,6 +6,7 @@
  */
 
 import { getRoutes } from '../_services/schema.services.client';
+import { schema } from '../schema';
 
 /**
  * Root API/Client urls.
@@ -13,44 +14,16 @@ import { getRoutes } from '../_services/schema.services.client';
  * @private
  */
 
-const _API = new URL(process.env.API_HOST);
-_API.port = process.env.API_PORT;
-const _CLIENT = new URL(process.env.API_HOST);
-_CLIENT.port = process.env.CLIENT_PORT;
-
-/**
- * Get full client URL from path.
- *
- * @public
- */
-
-export function getURL() {
-    return `${_CLIENT}${filterPath()}`;
-}
-
-/**
- * Filter current client pathname using schema settings.
- *
- * @public
- */
-
-export function filterPath() {
-
-    // get current location path
-    const url = `${window.location.pathname}${window.location.search}`;
-
-    // filter "nonviewable" static routes
-    // - e.g. full nodes listing at '/nodes'
-    // - filtered routes are defined in the schema
-    const staticRoutes = getRoutes();
-    const filteredURI = Object.keys(staticRoutes)
-        .filter(key => url.match(`^${key}`) && staticRoutes[key].hasOwnProperty('redirect'))
-        .reduce((o, key) => {
-            return staticRoutes[key].redirect;
-        }, '');
-
-    return filteredURI ? filteredURI : url.toString();
-}
+const _API = {
+    protocol: schema.app.protocol,
+    host: schema.app.host,
+    port: schema.app.apiPort
+};
+const _CLIENT = {
+    protocol: schema.app.protocol,
+    host: schema.app.host,
+    port: schema.app.clientPort
+};
 
 /**
  * Get query value from path.
@@ -76,15 +49,92 @@ export function getRoot() {
 }
 
 /**
- * Get current client URL.
+ * Create node route for requested model, view, id, group.
+ * - format: <MODEL>/<VIEW>/<ID>/<GROUP>
  *
- * @param {String} uri
  * @public
  */
 
-export function getAPIURL(uri=null) {
-    const route = uri ? uri : filterPath();
-    return `${_API}${route}`
+export function createNodeRoute(model='', view='', id='', group='') {
+    const modelSlug = model ? `/${model}` : '';
+    const viewSlug = view ? `/${view}` : '';
+    const idSlug = id ? `/${id}` : '';
+    const groupSlug = group ? `/${group}` : '';
+    return `${modelSlug}${viewSlug}${idSlug}${groupSlug}`;
+}
+
+/**
+ * Create API route for requested path and parameters.
+ * - format: <URI>?<PARAMS>
+ *
+ * @param {String} path
+ * @param {Object} params
+ * @public
+ */
+
+export function createRoute(path='/', params) {
+    const query = serialize((params || {}));
+    return `${path}?${query}`;
+}
+
+/**
+ * Build full API path for requests.
+ *
+ * @param route
+ * @param params
+ */
+
+export function createURL(route, params={}) {
+    const query = serialize((params || {}));
+    const base = `${_API.protocol}${_API.host}:${_API.port}`;
+    return `${base}${route}${params && Object.keys(params).length > 0 ? '?' + query : ''}`
+}
+
+/**
+ * Serialize query object for url parameters.
+ *
+ * @public
+ */
+
+export function serialize(obj) {
+    return Object.keys(obj)
+        .map(p => {
+            // handle array or string query
+            let qStr = Array.isArray(obj[p])
+                ? obj[p].join('_')
+                : String(obj[p]).replace(/\s+/g, "_");
+
+            // encode uri components for query string
+            qStr = encodeURIComponent(qStr).replace(/_/g, '+')
+            return encodeURIComponent(p) + "=" + qStr;
+        })
+        .join("&");
+}
+
+/**
+ * Filter current client pathname using schema settings.
+ *
+ * @public
+ */
+
+export function filterPath() {
+
+    // get current location path
+    const path = window.location.pathname;
+    const query = window.location.search;
+    const uri = `${path}${query ? query : ''}`
+
+    // filter "nonviewable" static routes
+    // - e.g. full nodes listing at '/nodes'
+    // - filtered routes are defined in the schema
+    const staticRoutes = getRoutes();
+    const filteredURI = Object.keys(staticRoutes)
+        .filter(key => path.match(`^${key}`) && staticRoutes[key].hasOwnProperty('redirect'))
+        .reduce((o, key) => {
+            return staticRoutes[key].redirect;
+        }, '');
+
+    return filteredURI ? filteredURI : uri;
 }
 
 /**
@@ -108,52 +158,4 @@ export function redirect(uri=null) {
 
 export function reroute(uri=null) {
     window.history.pushState(null, null, uri);
-}
-
-/**
- * Create node path for requested model, view, id, group.
- * - format: <MODEL>/<VIEW>/<ID>/<GROUP>
- *
- * @public
- */
-
-export function getNodeURI(model='', view='', id='', group='') {
-    const modelSlug = model ? `/${model}` : '';
-    const viewSlug = view ? `/${view}` : '';
-    const idSlug = id ? `/${id}` : '';
-    const groupSlug = group ? `/${group}` : '';
-    return `${modelSlug}${viewSlug}${idSlug}${groupSlug}`;
-}
-
-/**
- * Create node path for requested node filtered view.
- *
- * @public
- */
-
-export function getNodeFilterURI(ids=[], offset=0, limit=10) {
-    const idfilter = ids.join('+');
-    return `/filter?ids=${idfilter}&offset=${offset}&limit=${limit}`;
-}
-
-/**
- * Serialize query object.
- *
- * @public
- */
-
-export function serialize(obj) {
-    let str = [];
-    for (let p in obj)
-        if (obj.hasOwnProperty(p)) {
-            let qStr = obj[p].replaceAll(' ', '+');
-            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(qStr));
-        }
-    return str.join("&");
-}
-
-export function apiURL(path, params) {
-    const myUrlWithParams = new URL(_API);
-    // myUrlWithParams.searchParams.append("city", "Rome");
-    // myUrlWithParams.searchParams.append("price", "200");
 }

@@ -42,7 +42,7 @@ export const fulltext = async (q, offset, limit) => {
     if (!q) return null;
 
     // sanitize + convert query string to term array
-    q = sanitize(q.replace(/[^a-zA-Z0-9-_]/g, ''), 'text').split('+');
+    q = sanitize(q.replace(/[^a-zA-Z0-9-_ ]/g, ''), 'text').split(' ');
     // filter stop words
     q = q.filter(term => !stopWords.includes(term));
 

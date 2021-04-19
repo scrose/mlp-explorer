@@ -12,7 +12,7 @@ import { getModelLabel } from '../../_services/schema.services.client';
 import Accordion from '../common/accordion';
 import PageMenu from '../menus/page.menu';
 import { useRouter } from '../../_providers/router.provider.client';
-import { getNodeFilterURI } from '../../_utils/paths.utils.client';
+import { createRoute } from '../../_utils/paths.utils.client';
 
 /**
  * Generate unique key.
@@ -31,8 +31,8 @@ const keyID = genID();
 const FilterTools = ({data}) => {
 
     let {query='', offset=0, limit=10, results=[], count=0} = data || {};
-    offset = parseInt(offset);
-    limit = parseInt(limit);
+    limit = parseInt(String(limit));
+    offset = parseInt(String(offset))
 
     const router = useRouter();
 
@@ -43,14 +43,26 @@ const FilterTools = ({data}) => {
     const onPrev = () => {
         const updatedOffset = searchOffset - limit
         setSearchOffset(updatedOffset);
-        router.update(getNodeFilterURI(query, updatedOffset, limit));
+        console.log(searchOffset, updatedOffset, limit)
+        const params = {
+            ids: query,
+            offset: updatedOffset,
+            limit: limit
+        }
+        router.update(createRoute('/filter', params));
     }
 
     // handle next page request
     const onNext = () => {
         const updatedOffset = limit + searchOffset
         setSearchOffset(updatedOffset);
-        router.update(getNodeFilterURI(query, updatedOffset, limit));
+        console.log(searchOffset, updatedOffset, limit)
+        const params = {
+            ids: query,
+            offset: updatedOffset,
+            limit: limit
+        }
+        router.update(createRoute('/filter', params));
     }
 
     // prepare item data for list

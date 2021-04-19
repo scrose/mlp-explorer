@@ -40,6 +40,9 @@ function DataProvider(props) {
     const [options, setOptions] = React.useState({});
     const [path, setPath] = React.useState([]);
 
+    // data error
+    const [error, setError] = React.useState(false);
+
     // messenger
     const [message, setMessage] = React.useState(getSessionMsg());
 
@@ -118,7 +121,7 @@ function DataProvider(props) {
         _isMounted.current = true;
 
         // call API for metadata options (if user is logged in)
-        if (user && Object.keys(options).length === 0) {
+        if (!error && user && Object.keys(options).length === 0) {
             if (_isMounted.current) {
                 loadOptions();
             }
@@ -132,24 +135,23 @@ function DataProvider(props) {
     React.useEffect(() => {
         _isMounted.current = true;
 
-        if (router.error && Object.keys(router.error).length > 0) {
-            console.error(router.error)
-            setMessage(router.error);
-            return;
-        }
-
         // request data if not static view
-        if (!router.staticView && router.online) {
+        if (!error && !router.staticView && router.online) {
             // set view to loading
             setAPIData({});
             setView('');
             setModel('');
 
+            console.log('Route:', router.route)
+
             // call API for page data
             router.get(router.route)
                 .then(res => {
 
+                    const {hasError=false, response } = res || {};
+
                     console.log('\nResponse >>>\n', res)
+
                     // destructure API data for settings
                     const {
                         data=null,
@@ -157,8 +159,14 @@ function DataProvider(props) {
                         model={},
                         path={},
                         message={}
-                    } = res || {};
+                    } = response || {};
                     const { name='', attributes={} } = model || {};
+
+                    // check if response data is empty (set error flag to true)
+                    if ( hasError ) {
+                        setMessage(message);
+                        return setError(true);
+                    }
 
                     // update states with response data
                     if (_isMounted.current) {

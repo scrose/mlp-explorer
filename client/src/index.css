@@ -78,9 +78,14 @@ div#root {
     margin-top: 60px;
     color: #01447e;
 }
-
 ul.list {
     display: block !important;
+}
+h3 {
+    padding: 10px;
+}
+p {
+    padding: 10px;
 }
 
 /* Load spinner  */

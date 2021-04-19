@@ -7,7 +7,7 @@
 
 import React from 'react';
 import Icon from '../common/icon';
-import { getNodeURI, filterPath, getRoot } from '../../_utils/paths.utils.client';
+import { createNodeRoute, filterPath, getRoot } from '../../_utils/paths.utils.client';
 import { capitalize } from '../../_utils/data.utils.client';
 import { useData } from '../../_providers/data.provider.client';
 
@@ -73,7 +73,7 @@ const BreadcrumbMenu = () => {
             .map(key => {
                 // use node or file metadata
                 const {node={}, file={}, label=''} = nodes[key] || {};
-                const href = getNodeURI(
+                const href = createNodeRoute(
                     node.type || file.file_type,
                     'show',
                     node.id || file.id);

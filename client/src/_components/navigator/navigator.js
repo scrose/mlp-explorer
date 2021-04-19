@@ -59,19 +59,26 @@ const Navigator = () => {
     // API call to retrieve node tree top level
     React.useEffect(() => {
         _isMounted.current = true;
+        // proceed if:
+        // - no error found (e.g. empty response)
+        // - navigator route is defined
+        // - node data not yet loaded
         if (!error && route && (!nodeData || Object.keys(nodeData).length === 0)) {
             router.get(route)
                 .then(res => {
 
                     // destructure map data
-                    const { data = {} } = res || {};
+                    const {hasError=false, response={} } = res || {};
+                    const { data = {} } = response || {};
                     const { options={}, nodes={} } = data || {};
 
-                    // check if data is empty (set error flag if true)
-                    if ( nodes.length === 0 ) {
+                    // check if response data is empty (set error flag if true)
+                    if ( Object.keys(nodes).length === 0 ) {
+                        console.error('Error: Navigator data is empty.')
                         return setError(true);
                     }
 
+                    // load options and node data to provider
                     if (_isMounted.current) {
                         setOptionsData(options)
                         setNodeData(nodes);

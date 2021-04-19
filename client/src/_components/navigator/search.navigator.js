@@ -9,7 +9,7 @@ import React from 'react'
 import { useRouter } from '../../_providers/router.provider.client';
 import Button from '../common/button';
 import Form from '../common/form';
-import { getNodeURI, serialize } from '../../_utils/paths.utils.client';
+import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { genID, sanitize } from '../../_utils/data.utils.client';
 import { getModelLabel } from '../../_services/schema.services.client';
 import PageMenu from '../menus/page.menu';
@@ -25,8 +25,8 @@ const keyID = genID();
  *
  * @public
  * @param {Object} filter
- * @param {integer} limit
- * @param {integer} offset
+ * @param {int} limit
+ * @param {int} offset
  * @return
  */
 
@@ -42,38 +42,41 @@ const SearchNavigator = ({filter=null, limit=10, offset=0}) => {
 
     // handle previous page request
     const onPrev = () => {
-        const delta = sanitize(searchOffset - limit, 'integer');
+        const delta = searchOffset - limit;
         setSearchOffset(delta);
         onSubmit();
     }
 
     // handle next page request
     const onNext = () => {
-        setSearchOffset(10 + searchOffset);
+        const delta = searchOffset + limit;
+        setSearchOffset(delta);
         onSubmit();
     }
 
-    // filter options by owner ID
-    const onChange = (e) => {
+    // update query string value
+    const updateQuery = (e) => {
 
         const {target={}} = e || {};
-        const { name='', value=''} = target;
-
-        console.log(searchQuery)
+        const { value=''} = target;
 
         // reset search offset
         setSearchOffset(0);
 
         // update filter data state with input selection
-        setSearchQuery(data => ({...data, [name]: value}));
+        setSearchQuery(value);
     }
 
     // filter options by owner ID
     const onSubmit = () => {
-        router.get(`/search', ?${serialize(searchQuery)}&offset=${searchOffset}&limit=${limit}`)
+        const params = {
+            q: searchQuery,
+            offset: searchOffset,
+            limit: limit
+        }
+        router.get('/search', params)
             .then(res => {
-                console.log(res)
-                const {data=[]} = res || {};
+                const { data={} } = res || {};
                 const {query=[], results=[]} = data || {};
                 // ensure data is an array
                 if (Array.isArray(results) && Array.isArray(query)) {
@@ -127,7 +130,7 @@ const SearchNavigator = ({filter=null, limit=10, offset=0}) => {
                     name={'q'}
                     aria-label={'Search the site content.'}
                     placeholder={'Search..'}
-                    onChange={onChange}
+                    onChange={updateQuery}
                 />
                 <Button
                     icon={'search'}
@@ -155,7 +158,7 @@ const SearchNavigator = ({filter=null, limit=10, offset=0}) => {
                     (searchResults || []).map((item, index) => {
                         const {id='', type='', last_modified='', blurb='' } = item || {};
                         return <li key={`${keyID}_searchresults_${index}`} className={'search-item'}>
-                            <h4 onClick={()=>{router.update(getNodeURI(type, 'show', id))}}>
+                            <h4 onClick={()=>{router.update(createNodeRoute(type, 'show', id))}}>
                                 {getModelLabel(item.type)}: {sanitize(item.heading, 'date')}
                             </h4>
                             <div className={'subtext'}>
