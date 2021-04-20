@@ -8,17 +8,38 @@
 
 import { getError } from '../_services/schema.services.client';
 import * as matrix from '../_utils/matrix.utils.client';
-import * as geotiff from 'geotiff';
+import * as UTIF from 'utif';
 
 /**
- * Read TIFF image buffer.
+ * Loads TIFF format image file.
  *
- * @public
- * @param buffer
+ * @param file
+ * @return {Promise<unknown>}
  */
 
-export const readTIFF = async (buffer) => {
-    return await geotiff.fromBlob(buffer);
+export const loadTIFF = (file) => {
+
+    if (!file) return null;
+
+    const reader = new FileReader();
+    return new Promise((resolve, reject) => {
+        reader.onerror = () => {
+            reader.abort();
+            reject(new DOMException("Problem parsing input file."));
+        };
+        reader.onload = (e) => {
+            let buffer = e.target.result;
+            let ifds = UTIF.decode(buffer);
+            UTIF.decodeImage(e.target.result, ifds[0])
+            let rgba  = UTIF.toRGBA8(ifds[0]);  // Uint8Array with RGBA pixels
+            resolve({
+                data: rgba,
+                width: ifds[0].width,
+                height: ifds[0].height
+            });
+        };
+        reader.readAsArrayBuffer(file);
+    });
 }
 
 /**

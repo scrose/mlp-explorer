@@ -6,9 +6,325 @@
  */
 
 import React from 'react';
-import { getPos, readTIFF } from '../../_utils/image.utils.client';
+import { getPos, loadTIFF } from '../../_utils/image.utils.client';
 import Button from './button';
 import { CanvasControls} from '../menus/canvas.menu';
+
+/**
+ * No operation.
+ */
+
+const noop = () => {};
+
+/**
+ * Canvas Image Viewer component
+ *
+ * NOTES:
+ * FILE: Adapted from Image Analysis Toolkit (IAT), Mike Whitney
+ *
+ * @param id
+ * @param dims
+ * @param hidden
+ * @param options
+ * @param pointer
+ * @param setPointer
+ * @param setMessage
+ * @param onClick
+ * @param onMouseMove
+ * @public
+ */
+
+export const Canvas = ({
+                           id='canvas0',
+                           options = {},
+                           setOptions = noop,
+                           properties = {},
+                           setProperties = noop,
+                           setImgData=noop,
+                           hidden = false,
+                           pointer = {},
+                           setPointer = noop,
+                           setMessage = noop,
+                           setDialogToggle=noop,
+                           onClick = noop,
+                           onMouseMove = noop,
+                       }) => {
+
+    // create DOM references
+    // - canvas consists of three layers (from top):
+    // -- control layer to handle user events
+    // -- markup layer to annotate image data
+    // -- image layer to display image data
+    // -- base layer
+    const imgRef = React.useRef(null);
+    const markupLayerRef = React.useRef(null);
+    const controlLayerRef = React.useRef(null);
+    const imgLayerRef = React.useRef(null);
+    const baseLayerRef = React.useRef(null);
+
+    // error state
+    const [error, setError] = React.useState(null);
+
+    // /**
+    //  * Get image pixel data.
+    //  */
+    //
+    // const getImageData = () => {
+    //
+    //     // load canvas 1
+    //     if (imgLayerRef.current && imgLayerRef.current.getContext) {
+    //         let ctx = imgLayerRef.current.getContext('2d');
+    //
+    //         // Use a SIMD and DIMD global here?? Help JS with memory? (sourceImageData)
+    //         let imgData = ctx.getImageData(0, 0, properties.dims.x, properties.dims.y);
+    //
+    //         ///if (!DIMD) DIMD = new ImageData( bcv1.width, bcv1.height );
+    //         ///var dst = DIMD; // Will the JS lose track and delay garbage collect??
+    //
+    //         let dataBuffer = new Uint32Array(imgData.data.buffer);
+    //         setImgData(dataBuffer);
+    //         return dataBuffer;
+    //     }
+    // }
+    //
+    // /**
+    //  * Draw image on canvas.
+    //  * @param ctx
+    //  * @param img
+    //  * @param canvas
+    //  */
+    //
+    // const draw = (ctx, img, canvas) => {
+    //     setMessage(null);
+    //     // clear canvas and redraw image data
+    //     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    //     ctx.drawImage(
+    //         img,
+    //         properties.offset.x,
+    //         properties.offset.x,
+    //         properties.img_dims.x,
+    //         properties.img_dims.y,
+    //     );
+    //     setProperties(data => ({ ...data, loaded: true, redraw: false }));
+    // };
+    //
+    // /**
+    //  * Signal a redraw of the canvas.
+    //  */
+    //
+    // const redraw = () => {
+    //     setProperties(data => ({ ...data, redraw: true }));
+    // }
+
+    /**
+     * Handle canvas mouse move event.
+     */
+
+    const _handleMouseMove = e => {
+        setPointer(data => ({
+            ...data, [id]: getPos(e, imgLayerRef.current),
+        }));
+    };
+
+    /**
+     * Handle canvas mouse move event.
+     */
+
+    const _handleMouseOut = () => {
+        setPointer(data => ({
+            ...data, [id]: { x: 0, y: 0 },
+        }));
+    };
+
+    /**
+     * Handle canvas mouse move event.
+     */
+
+    const _handleOnClick = e => {
+        const { data = {}, error = '' } = onClick(
+            e,
+            imgLayerRef.current,
+            properties,
+            setProperties,
+            options) || {};
+        setMessage(null);
+        if (error) setMessage({ msg: error, type: 'error' });
+        return data;
+    };
+
+    /**
+     * Handle canvas image loading.
+     */
+
+    const _handleImageLoad = () => {
+        setDialogToggle({type: 'selectImage', id: id});
+    };
+
+    /**
+     * Load canvas data.
+     */
+
+    React.useEffect(() => {
+
+        // load canvas
+        if (imgLayerRef.current && imgLayerRef.current.getContext) {
+            let ctx = imgLayerRef.current.getContext('2d');
+
+            console.log(properties, properties.loaded, !!properties.file)
+
+            // Handle image data loaded from input
+            if (!properties.loaded && properties.file) {
+                // load TIFF format image
+                loadTIFF(properties.file)
+                    .then(tiff => {
+
+                        const imgData = new ImageData(
+                            new Uint8ClampedArray(tiff.data),
+                            tiff.width,
+                            tiff.height,
+                        );
+
+                        ctx.putImageData(imgData, 0, 0);
+                        setProperties(data => ({
+                            ...data,
+                            loaded: true,
+                            redraw: false,
+                            img_dims: {
+                                x: tiff.width,
+                                y: tiff.height,
+                            },
+                            url: '',
+                        }));
+                    }).catch(err => {
+                    setError(true);
+                    console.error('Error:', err);
+                });
+            }
+
+
+
+            // load image 1 (if available)
+            if (imgRef.current) {
+
+                // // redraw canvas on signal
+                // if (imgRef.current.complete && properties.redraw) {
+                //     draw(ctx, imgRef.current, imgLayerRef.current);
+                // }
+                // // redraw canvas on image load
+                // imgRef.current.onload = () => {
+                //     draw(ctx, imgRef.current, imgLayerRef.current);
+                // };
+
+            }
+        }
+
+    }, [error, id, imgLayerRef, imgRef, properties, setProperties, setMessage]);
+
+    return !hidden && Object.keys(properties).length > 0 &&
+        <>
+            <div className={'canvas'}>
+                <CanvasControls
+                    id={id}
+                    options={options}
+                    setOptions={setOptions}
+                    setDialogToggle = {setDialogToggle}
+                    properties={properties}
+                    update={setProperties}
+                    setMessage={setMessage}
+                />
+                <div id={`canvas-view-${id}-header`} className={'canvas-view-info h-menu'}>
+                    <table>
+                        <tbody>
+                        <tr>
+                            <th>Cursor:</th>
+                            <td>({pointer.x},{pointer.y})</td>
+                        </tr>
+                        <tr>
+                            <th>Selected:</th>
+                            <td>
+                                <div>
+                                    {
+                                        // show selected control points
+                                        properties.pts.map((pt, index) => {
+                                            return  <Button
+                                                key={`${id}_selected_pt_${index}`}
+                                                icon={'crosshairs'}
+                                                label={index + 1}
+                                                title={`(${pt.x}, ${pt.y})`}
+                                                onClick={()=>{}}
+                                            />
+                                        })
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div className={'canvas-layers'}>
+                    {
+                        !properties.loaded &&
+                        <div className={'layer canvas-placeholder'}>
+                            <Button
+                                icon={'download'}
+                                label={'Click to load image'}
+                                onClick={_handleImageLoad}
+                            />
+                        </div>
+                    }
+                    <canvas
+                        ref={controlLayerRef}
+                        id={`${id}_control_layer`}
+                        className={`layer canvas-layer-control-${options.mode}`}
+                        width={properties.dims.x}
+                        height={properties.dims.y}
+                        onMouseMove={_handleMouseMove}
+                        onMouseOut={_handleMouseOut}
+                        onClick={_handleOnClick}
+                    >
+                        Control Layer: Canvas API Not Supported
+                    </canvas>
+                    <canvas
+                        ref={markupLayerRef}
+                        id={`${id}_markup_layer`}
+                        className={`layer canvas-layer-markup`}
+                        width={properties.dims.x}
+                        height={properties.dims.y}
+                    >
+                        Markup Layer: Canvas API Not Supported
+                    </canvas>
+                    <canvas
+                        ref={imgLayerRef}
+                        id={`${id}_image_layer`}
+                        className={`layer canvas-layer-image`}
+                        width={properties.dims.x}
+                        height={properties.dims.y}
+                    >
+                        Image Layer: Canvas API Not Supported
+                    </canvas>
+                    <canvas
+                        ref={baseLayerRef}
+                        id={`${id}_base_layer`}
+                        className={`canvas-layer-base`}
+                        width={properties.dims.x}
+                        height={properties.dims.y}
+                    >
+                        Base Layer: Canvas API Not Supported
+                    </canvas>
+                </div>
+                }
+                <CanvasInfo id={id} properties={properties} options={options} />
+                {
+                    // hidden image instance
+                    properties && properties.url &&
+                    <img ref={imgRef} src={properties.url} alt={`Canvas ${id} loaded data.`} />
+                }
+            </div>
+        </>;
+};
+
+export default React.memo(Canvas);
+
 
 /**
  * Initialize input data.
@@ -19,12 +335,10 @@ import { CanvasControls} from '../menus/canvas.menu';
 
 export const initCanvas = (canvasID, inputData) => {
 
-    console.log('Input data', inputData)
-
-    // Get metadata from node data
+    // Destructure input data
     const {
         file={},
-        fileData={},
+        fileData=null,
         metadata={},
         url='',
         filename='',
@@ -92,321 +406,3 @@ const CanvasInfo = ({ id, properties, options }) => {
         </table>
     </div>;
 };
-
-/**
- * No operation.
- */
-
-const noop = () => {};
-
-/**
- * Canvas Image Viewer component
- *
- * NOTES:
- * FILE: Adapted from Image Analysis Toolkit (IAT), Mike Whitney
- *
- * @param id
- * @param dims
- * @param hidden
- * @param options
- * @param pointer
- * @param setPointer
- * @param setMessage
- * @param onClick
- * @param onMouseMove
- * @public
- */
-
-export const Canvas = ({
-                           id='canvas0',
-                           options = {},
-                           setOptions = noop,
-                           properties = {},
-                           setProperties = noop,
-                           setImgData=noop,
-                           hidden = false,
-                           pointer = {},
-                           setPointer = noop,
-                           setMessage = noop,
-                           setDialogToggle=noop,
-                           onClick = noop,
-                           onMouseMove = noop,
-                       }) => {
-
-    // create DOM references
-    // - canvas consists of three layers (from top):
-    // -- control layer to handle user events
-    // -- markup layer to annotate image data
-    // -- image layer to display image data
-    // -- base layer
-    const imgRef = React.useRef(null);
-    const imgLayerRef = React.useRef(null);
-    const markupLayerRef = React.useRef(null);
-    const controlLayerRef = React.useRef(null);
-    const baseLayerRef = React.useRef(null);
-
-    // error state
-    const [error, setError] = React.useState(null);
-
-    /**
-     * Get image pixel data.
-     */
-
-    const getImageData = () => {
-
-        // load canvas 1
-        if (imgLayerRef.current && imgLayerRef.current.getContext) {
-            let ctx = imgLayerRef.current.getContext('2d');
-
-            // Use a SIMD and DIMD global here?? Help JS with memory? (sourceImageData)
-            let imgData = ctx.getImageData(0, 0, properties.dims.x, properties.dims.y);
-
-            ///if (!DIMD) DIMD = new ImageData( bcv1.width, bcv1.height );
-            ///var dst = DIMD; // Will the JS lose track and delay garbage collect??
-
-            let dataBuffer = new Uint32Array(imgData.data.buffer);
-            setImgData(dataBuffer);
-            return dataBuffer;
-        }
-    }
-
-    /**
-     * Draw image on canvas.
-     * @param ctx
-     * @param img
-     * @param canvas
-     */
-
-    const draw = (ctx, img, canvas) => {
-        setMessage(null);
-        // clear canvas and redraw image data
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(
-            img,
-            properties.offset.x,
-            properties.offset.x,
-            properties.img_dims.x,
-            properties.img_dims.y,
-        );
-        setProperties(data => ({ ...data, loaded: true, redraw: false }));
-    };
-
-    /**
-     * Signal a redraw of the canvas.
-     */
-
-    const redraw = () => {
-        setProperties(data => ({ ...data, redraw: true }));
-    }
-
-    /**
-     * Handle canvas mouse move event.
-     */
-
-    const _handleMouseMove = e => {
-        setPointer(data => ({
-            ...data, [id]: getPos(e, imgLayerRef.current),
-        }));
-    };
-
-    /**
-     * Handle canvas mouse move event.
-     */
-
-    const _handleMouseOut = () => {
-        setPointer(data => ({
-            ...data, [id]: { x: 0, y: 0 },
-        }));
-    };
-
-    /**
-     * Handle canvas mouse move event.
-     */
-
-    const _handleOnClick = e => {
-        const { data = {}, error = '' } = onClick(
-            e,
-            imgLayerRef.current,
-            properties,
-            setProperties,
-            options) || {};
-        setMessage(null);
-        if (error) setMessage({ msg: error, type: 'error' });
-        return data;
-    };
-
-    /**
-     * Handle canvas image loading.
-     */
-
-    const _handleImageLoad = () => {
-        setDialogToggle({type: 'selectImage', id: id});
-    };
-
-    /**
-     * Load canvas data.
-     */
-
-    React.useEffect(() => {
-
-        console.log('Canvas', id, properties, imgLayerRef, imgRef.current)
-
-        // // load image 1 (if available)
-        // if (imgRef.current) {
-        //     imgRef.current.src = properties.url;
-        //     const imgDecoded = readTIFF(properties.url);
-        //     console.log(imgDecoded)
-        // }
-
-        // load canvas
-        if (imgLayerRef.current && imgLayerRef.current.getContext) {
-            let ctx = imgLayerRef.current.getContext('2d');
-            ctx.createImageData(properties.img_dims.x, properties.img_dims.y);
-            console.log('Ready to draw canvas', properties);
-
-            // Handle image uploaded from local filesystem
-            if (!error && properties.file) {
-                (async function() {
-                    try {
-                        console.log('Import data from blob')
-                        const data = await properties.file.readRGB()
-                        console.log(data)
-                        //const uint8clamped = new Uint8ClampedArray.from(data[0].buffer);
-                        console.log(data)
-                        const imgData = new ImageData(
-                            data,
-                            properties.img_dims.x,
-                            properties.img_dims.y
-                        );
-
-                        ctx.putImageData(imgData, 0, 0);
-                    }
-                    catch (err) {
-                        setError(true);
-                        console.error(err)
-                    }
-                })();
-
-            }
-
-            // load image 1 (if available)
-            if (imgRef.current) {
-
-                // // redraw canvas on signal
-                // if (imgRef.current.complete && properties.redraw) {
-                //     draw(ctx, imgRef.current, imgLayerRef.current);
-                // }
-                // // redraw canvas on image load
-                // imgRef.current.onload = () => {
-                //     draw(ctx, imgRef.current, imgLayerRef.current);
-                // };
-
-            }
-        }
-
-    }, [imgLayerRef, imgRef, draw, properties, setProperties, setMessage]);
-
-    return !hidden && Object.keys(properties).length > 0 &&
-        <>
-            <div className={'canvas'}>
-                <CanvasControls
-                    id={id}
-                    options={options}
-                    setOptions={setOptions}
-                    setDialogToggle = {setDialogToggle}
-                    properties={properties}
-                    update={setProperties}
-                    setMessage={setMessage}
-                />
-                <div id={`canvas-view-${id}-header`} className={'canvas-view-info h-menu'}>
-                    <table>
-                        <tbody>
-                        <tr>
-                            <th>Cursor:</th>
-                            <td>({pointer.x},{pointer.y})</td>
-                        </tr>
-                        <tr>
-                            <th>Selected:</th>
-                            <td>
-                                <div>
-                                    {
-                                        // show selected control points
-                                        properties.pts.map((pt, index) => {
-                                            return  <Button
-                                                key={`${id}_selected_pt_${index}`}
-                                                icon={'crosshairs'}
-                                                label={index + 1}
-                                                title={`(${pt.x}, ${pt.y})`}
-                                                onClick={()=>{}}
-                                            />
-                                        })
-                                    }
-                                </div>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-                {
-                    // load canvas layers if image data is loaded
-                    properties.loaded
-                    ? <>
-                        <canvas
-                            ref={controlLayerRef}
-                            id={`${id}_control_layer`}
-                            className={`layer canvas-layer-control-${options.mode}`}
-                            width={properties.dims.x}
-                            height={properties.dims.y}
-                            onMouseMove={_handleMouseMove}
-                            onMouseOut={_handleMouseOut}
-                            onClick={_handleOnClick}
-                        >
-                            Control Layer: Canvas API Not Supported
-                        </canvas>
-                        <canvas
-                            ref={markupLayerRef}
-                            id={`${id}_markup_layer`}
-                            className={`layer canvas-layer-markup`}
-                            width={properties.dims.x}
-                            height={properties.dims.y}
-                        >
-                            Markup Layer: Canvas API Not Supported
-                        </canvas>
-                        <canvas
-                            ref={imgLayerRef}
-                            id={`${id}_image_layer`}
-                            className={`layer canvas-layer-image`}
-                            width={properties.dims.x}
-                            height={properties.dims.y}
-                        >
-                            Image Layer: Canvas API Not Supported
-                        </canvas>
-                        <canvas
-                            ref={baseLayerRef}
-                            id={`${id}_base_layer`}
-                            className={`canvas-layer-base`}
-                            width={properties.dims.x}
-                            height={properties.dims.y}
-                        >
-                            Base Layer: Canvas API Not Supported
-                        </canvas>
-                    </>
-                    : <div className={'canvas-placeholder'}>
-                        <Button
-                            icon={'download'}
-                            label={'Click to load image'}
-                            onClick={_handleImageLoad}
-                        />
-                    </div>
-                }
-                <CanvasInfo id={id} properties={properties} options={options} />
-                {
-                    // hidden image instance
-                    properties && properties.url &&
-                    <img ref={imgRef} src={properties.url} alt={`Canvas ${id} loaded data.`} />
-                }
-            </div>
-        </>;
-};
-
-export default React.memo(Canvas);

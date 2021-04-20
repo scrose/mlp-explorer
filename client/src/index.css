@@ -1902,13 +1902,24 @@ Image Editor (Canvas)
 
 canvas {
     background-color: transparent;
-    border: 1px solid #282c34;
     margin:0;
     padding:0;
 }
 /* canvas layers */
 .layer {
     position: absolute;
+}
+.canvas-layers {
+    position: relative;
+}
+.canvas-placeholder {
+    z-index: 50;
+    border: 1px solid #282c34;
+    padding-top: 150px;
+    text-align: center;
+    width: 350px;
+    height: 350px;
+    background-color: #DDDDDD;
 }
 .canvas-layer-control-default {
     cursor: default;
@@ -1947,14 +1958,6 @@ canvas {
 .canvas-option-controls button.active {
     background-color: #2ea591;
     color: #FFFFFF;
-}
-.canvas-placeholder {
-    border: 1px solid #282c34;
-    padding-top: 150px;
-    text-align: center;
-    width: 350px;
-    height: 350px;
-    background-color: #DDDDDD;
 }
 #canvas-top-menu {
     justify-content: left;

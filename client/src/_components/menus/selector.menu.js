@@ -12,7 +12,6 @@ import Image from '../common/image';
 import { initCanvas } from '../common/canvas';
 import Input from '../common/input';
 import Messenger from '../common/messenger';
-import { readTIFF } from '../../_utils/image.utils.client';
 
 /**
  * Image selector widget.
@@ -31,6 +30,7 @@ export const ImageSelector = ({
 
     const [selectedImage, setSelectedImage] = React.useState(null);
     const [error, setError] = React.useState(null);
+    const allowedFileTypes = ['image/jpeg', 'image/png', 'image/tiff'];
 
     // submit selection for canvas loading
     const _handleSubmit = () => {
@@ -43,60 +43,36 @@ export const ImageSelector = ({
         // reset error message
         setError(null);
 
+        // reject empty file list
+        if (!e.target || !e.target.files) {
+            return;
+        }
+
         // Get requested image file
         const {target={}} = e || {};
-        if (target.files && Object.keys(target.files).length > 0) {
 
-            // get local file data
-            const file = target.files[0];
+        // get local file data
+        const file = target.files[0];
 
-            console.log(file.type)
-
-            // Handle TIFF format images
-            if (file.type === 'image/tiff') {
-                (async function() {
-                    try {
-                        const tiff = await readTIFF(target.files[0]);
-                        const image = await tiff.getImage();
-
-                        // set canvas properties
-                        setSelectedImage({
-                            loaded: true,
-                            file: {
-                                file_type: file.type,
-                                file_size: file.size,
-                            },
-                            metadata: {
-                                x_dim: image.getWidth(),
-                                y_dim: image.getHeight(),
-                            },
-                            filename: file.name,
-                            url: '',
-                            fileData: image,
-                        });
-                    }
-                    catch (err) {
-                        setError('TIFF file could not be read.')
-                    }
-                })();
-                return;
-            }
-            if (['image/jpeg', 'image/png'].includes(file.type)) {
-                // Non-TIFF formats
-                setSelectedImage({
-                    loaded: true,
-                    file: {
-                        file_type: file.type,
-                        file_size: file.size
-                    },
-                    filename: file.name,
-                    url: URL.createObjectURL(file),
-                    fileData: null
-                });
-            }
-            else {
-                setError(`Image format ${file.type} is not supported.`)
-            }
+        // Handle TIFF images
+        if (allowedFileTypes.includes(file.type)) {
+            // set canvas properties
+            setSelectedImage({
+                file: {
+                    file_type: file.type,
+                    file_size: file.size,
+                },
+                filename: file.name,
+                url: file.type !== 'image/tiff'
+                    ? URL.createObjectURL(file)
+                    : '',
+                fileData: file.type !== 'image/tiff'
+                    ? null
+                    : target.files[0],
+            });
+        }
+        else {
+            setError(`Image format ${file.type} is not supported.`)
         }
     }
 
