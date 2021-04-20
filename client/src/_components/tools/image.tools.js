@@ -11,11 +11,8 @@ import { CanvasMenu } from '../menus/canvas.menu';
 import { ValidationMessage } from '../common/input';
 import { createNodeRoute, getQuery } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
+import { moveAt, moveCanvasEnd, moveStart } from '../../_utils/image.utils.client';
 
-const CanvasMessage = ({message}) => {
-    const {msg='', type=''} = message || {};
-    return msg && <ValidationMessage msg={[msg]} type={type} />
-}
 /**
  * Canvas API image editor component.
  *
@@ -37,11 +34,18 @@ const ImageTools = () => {
         mode: 'default',
         controlPtMax: 4
     });
+
     const [canvas1Data, setCanvas1Data] = React.useState(initCanvas(canvas1ID, input1));
     const [canvas2Data, setCanvas2Data] = React.useState(initCanvas(canvas2ID, input2));
-    const [image1Data, setImage1Data] = React.useState(input1);
-    const [image2Data, setImage2Data] = React.useState(input2);
-    const [methods, setMethods] = React.useState({});
+
+    // initialize default methods for control canvas
+    // - default mode
+    const [methods, setMethods] = React.useState({
+        onDragStart: moveStart,
+        onDrag: moveAt
+    });
+
+    // initialize error/info messages
     const [message, setMessage] = React.useState({});
 
     // set image selection state
@@ -51,7 +55,7 @@ const ImageTools = () => {
     // - must correspond to a modern image file ID
     const modernImageID = getQuery('master') || '';
 
-    // load input image data (if requested)
+    // load initial input image data (if requested)
     React.useEffect(() => {
         // get available historic image selection for given modern capture image
         if (modernImageID) {
@@ -61,15 +65,15 @@ const ImageTools = () => {
                     const { data = {} } = response || {};
                     const { historic_captures = [], modern_capture={} } = data || {};
                     setSelection(historic_captures);
-                    setImage2Data(modern_capture);
+                    setCanvas2Data(initCanvas(canvas2ID, modern_capture))
                 });
         }
-    }, [modernImageID, router, setSelection, setImage2Data]);
+    }, [modernImageID, router, setSelection, setCanvas2Data]);
 
-    // menu dialog toggle
+    // initialize menu dialog toggle
     const [dialogToggle, setDialogToggle] = React.useState(null);
 
-    // canvas pointer event data
+    // initialize canvas pointer event data
     const [pointer, setPointer] = React.useState({
         canvas1: { x: 0, y: 0 },
         canvas2: { x: 0, y: 0 }
@@ -83,10 +87,6 @@ const ImageTools = () => {
                 setCanvas1={setCanvas1Data}
                 canvas2={canvas2Data}
                 setCanvas2={setCanvas2Data}
-                image1={image1Data}
-                setImage1={setImage1Data}
-                image2={image2Data}
-                setImage2={setImage2Data}
                 selection={selection}
                 setMethods={setMethods}
                 dialogToggle={dialogToggle}
@@ -108,6 +108,8 @@ const ImageTools = () => {
                     setMessage={setMessage}
                     setDialogToggle={setDialogToggle}
                     onClick={methods.onClick}
+                    onDragStart={methods.onDragStart}
+                    onDrag={methods.onDrag}
                     hidden={canvas1Data.hidden}
                 />
                 <Canvas
@@ -121,6 +123,7 @@ const ImageTools = () => {
                     setMessage={setMessage}
                     setDialogToggle={setDialogToggle}
                     onClick={methods.onClick}
+                    onDrag={methods.onDrag}
                     hidden={canvas2Data.hidden}
                 />
             </div>
@@ -129,4 +132,13 @@ const ImageTools = () => {
 
 export default React.memo(ImageTools);
 
+/**
+ * Messages for canvas events.
+ *
+ * @public
+ */
 
+const CanvasMessage = ({message}) => {
+    const {msg='', type=''} = message || {};
+    return msg && <ValidationMessage msg={[msg]} type={type} />
+}

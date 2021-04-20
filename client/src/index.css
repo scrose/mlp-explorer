@@ -1911,10 +1911,10 @@ canvas {
 }
 .canvas-layers {
     position: relative;
+    margin: 5px;
 }
 .canvas-placeholder {
     z-index: 50;
-    border: 1px solid #282c34;
     padding-top: 150px;
     text-align: center;
     width: 350px;
@@ -1922,7 +1922,7 @@ canvas {
     background-color: #DDDDDD;
 }
 .canvas-layer-control-default {
-    cursor: default;
+    cursor: move;
     z-index: 40;
 }
 .canvas-layer-control-select {
@@ -1932,10 +1932,15 @@ canvas {
 .canvas-layer-markup {
     z-index: 30;
 }
-.canvas-layer-image {
-    z-index: 20;
+.canvas-layer-edit {
+    z-index: 25;
+    border-color: #D8000C;
+    border-width: 2px;
+    border-style: dotted;
 }
 .canvas-layer-base {
+    position: relative;
+    background-color: #FFFFFF;
     z-index: 10;
 }
 .canvas-board {
@@ -1945,12 +1950,17 @@ canvas {
     width: auto;
 }
 .canvas-board .canvas {
-    border-radius: 5px;
-    background-color: #282c34;
     width: auto;
+    margin: 2px;
+    z-index: 60;
+    border: 1px solid #282c34;
+    background-color: #282c34;
 }
 .canvas-board img {
     /*display: none;*/
+}
+.canvas-option-controls {
+    margin: 20px;
 }
 .canvas-option-controls button {
     min-width: 30px;
@@ -1985,11 +1995,12 @@ canvas {
 .canvas-view-info table tr th {
     width: 20%;
 }
-.canvas-view-info button {
+.canvas-view-info button, .canvas-view-controls button {
     background-color: transparent;
 }
 .canvas-view-controls {
-    background-color: #FFFFFF;
+    background-color: transparent;
+    color: #FFFFFF;
     padding: 5px;
 }
 .canvas-view-controls ul {

@@ -9,6 +9,7 @@ import React from 'react';
 import { getPos, loadTIFF } from '../../_utils/image.utils.client';
 import Button from './button';
 import { CanvasControls} from '../menus/canvas.menu';
+import { sanitize } from '../../_utils/data.utils.client';
 
 /**
  * No operation.
@@ -40,26 +41,30 @@ export const Canvas = ({
                            setOptions = noop,
                            properties = {},
                            setProperties = noop,
-                           setImgData=noop,
                            hidden = false,
                            pointer = {},
                            setPointer = noop,
                            setMessage = noop,
                            setDialogToggle=noop,
                            onClick = noop,
+                           onDragStart=noop,
+                           onDrag=noop,
                            onMouseMove = noop,
                        }) => {
+
+    // source image data state
+    const imgRef = React.useRef(null);
+    const [sourceData, setSourceData] = React.useState(null);
 
     // create DOM references
     // - canvas consists of three layers (from top):
     // -- control layer to handle user events
     // -- markup layer to annotate image data
-    // -- image layer to display image data
+    // -- edit layer to display transformed image data
     // -- base layer
-    const imgRef = React.useRef(null);
-    const markupLayerRef = React.useRef(null);
     const controlLayerRef = React.useRef(null);
-    const imgLayerRef = React.useRef(null);
+    const markupLayerRef = React.useRef(null);
+    const editLayerRef = React.useRef(null);
     const baseLayerRef = React.useRef(null);
 
     // error state
@@ -87,26 +92,7 @@ export const Canvas = ({
     //     }
     // }
     //
-    // /**
-    //  * Draw image on canvas.
-    //  * @param ctx
-    //  * @param img
-    //  * @param canvas
-    //  */
-    //
-    // const draw = (ctx, img, canvas) => {
-    //     setMessage(null);
-    //     // clear canvas and redraw image data
-    //     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    //     ctx.drawImage(
-    //         img,
-    //         properties.offset.x,
-    //         properties.offset.x,
-    //         properties.img_dims.x,
-    //         properties.img_dims.y,
-    //     );
-    //     setProperties(data => ({ ...data, loaded: true, redraw: false }));
-    // };
+
     //
     // /**
     //  * Signal a redraw of the canvas.
@@ -122,12 +108,13 @@ export const Canvas = ({
 
     const _handleMouseMove = e => {
         setPointer(data => ({
-            ...data, [id]: getPos(e, imgLayerRef.current),
+            ...data, [id]: getPos(e, controlLayerRef.current),
         }));
     };
 
     /**
      * Handle canvas mouse move event.
+     * - reset pointer to (0, 0)
      */
 
     const _handleMouseOut = () => {
@@ -143,7 +130,39 @@ export const Canvas = ({
     const _handleOnClick = e => {
         const { data = {}, error = '' } = onClick(
             e,
-            imgLayerRef.current,
+            markupLayerRef.current,
+            properties,
+            setProperties,
+            options) || {};
+        setMessage(null);
+        if (error) setMessage({ msg: error, type: 'error' });
+        return data;
+    };
+
+    /**
+     * Handle canvas drag start event.
+     */
+
+    const _handleOnDragStart = e => {
+        const { data = {}, error = '' } = onDragStart(
+            e,
+            controlLayerRef.current,
+            properties,
+            setProperties,
+            options) || {};
+        setMessage(null);
+        if (error) setMessage({ msg: error, type: 'error' });
+        return data;
+    };
+
+    /**
+     * Handle canvas drag event.
+     */
+
+    const _handleOnDrag = e => {
+        const { data = {}, error = '' } = onDrag(
+            e,
+            controlLayerRef.current,
             properties,
             setProperties,
             options) || {};
@@ -166,59 +185,111 @@ export const Canvas = ({
 
     React.useEffect(() => {
 
-        // load canvas
-        if (imgLayerRef.current && imgLayerRef.current.getContext) {
-            let ctx = imgLayerRef.current.getContext('2d');
+        /**
+         * Transform Image Data (Canvas API)
+         * Reference: https://gist.github.com/mauriciomassaia/b9e7ef6667a622b104c00249f77f8c03
+         *
+         * @public
+         * @param imageData
+         * @param properties
+         */
 
-            console.log(properties, properties.loaded, !!properties.file)
+        async function redraw (imageData, properties) {
 
-            // Handle image data loaded from input
-            if (!properties.loaded && properties.file) {
-                // load TIFF format image
-                loadTIFF(properties.file)
-                    .then(tiff => {
+            const dx = properties.offset.x;
+            const dy = properties.offset.y;
+            const x = properties.edit_dims.x;
+            const y = properties.edit_dims.y;
 
-                        const imgData = new ImageData(
-                            new Uint8ClampedArray(tiff.data),
-                            tiff.width,
-                            tiff.height,
-                        );
+            const resizeWidth = x >> 0;
+            const resizeHeight = y >> 0;
+            const ibm = await window.createImageBitmap(imageData, 0, 0, imageData.width, imageData.height, {
+                resizeWidth, resizeHeight
+            });
 
-                        ctx.putImageData(imgData, 0, 0);
-                        setProperties(data => ({
-                            ...data,
-                            loaded: true,
-                            redraw: false,
-                            img_dims: {
-                                x: tiff.width,
-                                y: tiff.height,
-                            },
-                            url: '',
-                        }));
-                    }).catch(err => {
-                    setError(true);
-                    console.error('Error:', err);
-                });
+            // set new canvas dimensions
+            editLayerRef.current.width = Math.min(resizeWidth, properties.dims.x);
+            editLayerRef.current.height = Math.min(resizeHeight, properties.dims.y);
+            const ctxEdit = editLayerRef.current.getContext('2d');
+
+            // Handle Markup: set points
+            if (properties.pts.length === 0) {
+                const ctxMarkUp = markupLayerRef.current.getContext('2d');
+                ctxMarkUp.clearRect(0, 0, properties.dims.x, properties.dims.y)
             }
 
-
-
-            // load image 1 (if available)
-            if (imgRef.current) {
-
-                // // redraw canvas on signal
-                // if (imgRef.current.complete && properties.redraw) {
-                //     draw(ctx, imgRef.current, imgLayerRef.current);
-                // }
-                // // redraw canvas on image load
-                // imgRef.current.onload = () => {
-                //     draw(ctx, imgRef.current, imgLayerRef.current);
-                // };
-
-            }
+            //ctx.scale(resizeWidth / imageData.width, resizeHeight / imageData.height);
+            ctxEdit.drawImage(ibm, dx, dy);
+            return ctxEdit.getImageData(0, 0, resizeWidth, resizeHeight);
         }
 
-    }, [error, id, imgLayerRef, imgRef, properties, setProperties, setMessage]);
+        /**
+         * Load or redraw canvas layers.
+         */
+
+        if (!editLayerRef.current) return;
+
+        // get canvas layer contexts
+        let ctxEdit = editLayerRef.current.getContext('2d');
+
+        // Handle image data loaded from input
+        if (!properties.loaded && properties.file) {
+
+            // load TIFF format image
+            loadTIFF(properties.file)
+                .then(tiff => {
+                    const imgData = new ImageData(
+                        new Uint8ClampedArray(tiff.data),
+                        tiff.width,
+                        tiff.height,
+                    );
+
+                    // store source image data
+                    setSourceData(imgData);
+
+                    // put image data on edit layer
+                    ctxEdit.putImageData(imgData, 0, 0);
+
+                    // initialize canvas properties
+                    setProperties(data => ({
+                        ...data,
+                        loaded: true,
+                        redraw: false,
+                        edit_dims: {
+                            x: tiff.width,
+                            y: tiff.height,
+                        },
+                        source_dims: {
+                            x: tiff.width,
+                            y: tiff.height,
+                        },
+                        url: '',
+                    }));
+                }).catch(err => {
+                setError(true);
+                console.error('Error:', err);
+            });
+        }
+
+        // redraw canvas on signal
+        if (properties.redraw) {
+            setMessage(null);
+
+            // put transformed data onto edit layer
+            redraw(
+                sourceData,
+                properties
+            ).then (res => {
+                setProperties(data => ({ ...data, loaded: true, redraw: false }));
+            }).catch(err => {
+                console.error(err);
+                setMessage({msg:'Error: could not complete operation.', type: 'error'});
+            })
+
+        }
+
+
+    }, [error, id, sourceData, setSourceData, properties, setProperties, options, setMessage]);
 
     return !hidden && Object.keys(properties).length > 0 &&
         <>
@@ -278,9 +349,12 @@ export const Canvas = ({
                         className={`layer canvas-layer-control-${options.mode}`}
                         width={properties.dims.x}
                         height={properties.dims.y}
+                        draggable={true}
                         onMouseMove={_handleMouseMove}
                         onMouseOut={_handleMouseOut}
                         onClick={_handleOnClick}
+                        onDragStart={_handleOnDragStart}
+                        onDrag={_handleOnDrag}
                     >
                         Control Layer: Canvas API Not Supported
                     </canvas>
@@ -294,9 +368,9 @@ export const Canvas = ({
                         Markup Layer: Canvas API Not Supported
                     </canvas>
                     <canvas
-                        ref={imgLayerRef}
-                        id={`${id}_image_layer`}
-                        className={`layer canvas-layer-image`}
+                        ref={editLayerRef}
+                        id={`${id}_edit_layer`}
+                        className={`layer canvas-layer-edit`}
                         width={properties.dims.x}
                         height={properties.dims.y}
                     >
@@ -330,7 +404,7 @@ export default React.memo(Canvas);
  * Initialize input data.
  * @param canvasID
  * @param inputData
- * @return {{dims: {x: number, y: number}, offset: {x: number, y: number}, hidden: boolean, origin: {x: number, y: number}, img_dims: {x: number, y: number}, url: ({width: number}|number|{path: string, size: *}|string), pts: [], loaded: boolean, filename: string, files_id: string, file_type: string, id: string, img_original_dims: {x: number, y: number}, image_state: string}}
+ * @return {{dims: {x: number, y: number}, offset: {x: number, y: number}, hidden: boolean, origin: {x: number, y: number}, edit_dims: {x: number, y: number}, url: ({width: number}|number|{path: string, size: *}|string), pts: [], loaded: boolean, filename: string, files_id: string, file_type: string, id: string, source_dims: {x: number, y: number}, image_state: string}}
  */
 
 export const initCanvas = (canvasID, inputData) => {
@@ -351,11 +425,12 @@ export const initCanvas = (canvasID, inputData) => {
         id: canvasID,
         dims: { x: 350, y: 350 },
         offset: { x: 0, y: 0 },
+        move: { x: 0, y: 0 },
         origin: { x: 0, y: 0 },
         hidden: false,
         loaded: loaded,
-        img_original_dims: { x: x_dim, y: y_dim },
-        img_dims: { x: x_dim, y: y_dim },
+        source_dims: { x: x_dim, y: y_dim },
+        edit_dims: { x: x_dim, y: y_dim },
         files_id: id,
         filename: filename,
         file_type: file_type,
@@ -381,26 +456,32 @@ const CanvasInfo = ({ id, properties, options }) => {
         <table>
             <tbody>
             <tr>
+                <th>File</th>
+                <td colSpan={3}>{properties.filename} {properties.file_type ? `(${properties.file_type})` : '' }</td>
+            </tr>
+            <tr>
                 <th>Image</th>
-                <td>({properties.img_dims.x}, {properties.img_dims.y})</td>
+                <td>({properties.edit_dims.x}, {properties.edit_dims.y})</td>
                 <th>Canvas</th>
                 <td>({properties.dims.x}, {properties.dims.y})</td>
             </tr>
             <tr>
                 <th>Origin</th>
                 <td>({properties.origin.x},{properties.origin.y})</td>
-                <th>Move</th>
-                <td>({properties.offset.x},{properties.offset.y})</td>
-            </tr>
-            <tr>
-                <th>File</th>
-                <td colSpan={3}>{properties.filename}</td>
+                <th>Offset</th>
+                <td>(
+                    {Math.floor(properties.offset.x).toFixed(2)},
+                    {Math.floor(properties.offset.y).toFixed(2)}
+                    )
+                </td>
             </tr>
             <tr>
                 <th>(W, H)</th>
-                <td colSpan={3}>
-                    ({properties.img_original_dims.x}, {properties.img_original_dims.y})
+                <td>
+                    ({properties.source_dims.x}, {properties.source_dims.y})
                 </td>
+                <th>Size</th>
+                <td colSpan={3}>{sanitize(properties.file_size, 'filesize')}</td>
             </tr>
             </tbody>
         </table>

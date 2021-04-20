@@ -61,13 +61,46 @@ export const getImageURL = (image) => {
  */
 
 export const scaleToFit = (x_dim, y_dim, maxWidth) => {
-    console.log(x_dim, y_dim, maxWidth)
     const ratio = (y_dim + 0.1) / (x_dim + 0.1)
     return {
         x: maxWidth,
         y: Math.floor( ratio * maxWidth)
     }
 }
+
+/**
+ * Get local mouse position on canvas.
+ * Reference: https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas
+ *
+ * @public
+ * @param e
+ * @param canvas
+ * @param properties
+ * @param setProps
+ */
+
+export function moveStart(e, canvas, properties, setProps) {
+    const pos = getPos(e, canvas);
+    setProps(data => ({ ...data, move: pos, redraw: false }));
+}
+
+export function moveAt(e, canvas, properties, setProps) {
+    e.preventDefault();
+    const pos = getPos(e, canvas);
+    // only update move if position is positive
+    if (pos.x > 0 && pos.y > 0) {
+        const newOffset = {
+            x: properties.offset.x + Math.sign(pos.x - properties.move.x),
+            y: properties.offset.y + Math.sign(pos.y - properties.move.y),
+        };
+        setProps(data => ({ ...data,
+            offset: newOffset,
+            move: pos,
+            redraw: true
+        }));
+    }
+}
+
 
 /**
  * Get local mouse position on canvas.
@@ -87,14 +120,14 @@ export const getPos = (e, canvas) => {
     return {
         x: Math.max(
             Math.min(
-                (e.clientX - rect.left) * scaleX, canvas.width
+                Math.floor((e.clientX - rect.left) * scaleX), canvas.width
             ), 0
-        ).toFixed(2),
+        ),
         y: Math.max(
             Math.min(
-                (e.clientY - rect.top) * scaleY, canvas.height
+                Math.floor((e.clientY - rect.top) * scaleY), canvas.height
             ), 0
-        ).toFixed(2)
+        )
     }
 };
 
@@ -111,6 +144,7 @@ export const getPos = (e, canvas) => {
  */
 
 export const getControlPoints = (e, canvas, props, setProps, options) => {
+
     // check if the maximum number of control points has been reached
     if (props.pts.length === options.controlPtMax) {
         return { error: getError('maxControlPoints', 'canvas')};
@@ -132,15 +166,13 @@ export const getControlPoints = (e, canvas, props, setProps, options) => {
  * Reference: https://franklinta.com/2014/09/08/computing-css-matrix3d-transforms/
  *
  * @public
- * @return {JSX.Element}
+ * @return {*[]}
  * @param canvas1
  * @param canvas2
  * @param options
  */
 
 export const align = (canvas1, canvas2, options) => {
-    
-    console.log(canvas1, canvas2, options)
 
     // convert control points to vector array
     const pts = canvas1.pts.concat(canvas2.pts);
@@ -148,8 +180,6 @@ export const align = (canvas1, canvas2, options) => {
         o.push([parseFloat(pt.x), parseFloat(pt.y)]);
         return o;
     }, []);
-
-    console.log('Control Points:', p)
 
     let i,j,k,l,m, n=p.length;
     let x,y, u,v, d;
@@ -243,7 +273,8 @@ export const align = (canvas1, canvas2, options) => {
 
         }
 
-    console.log(X8)
+        console.log('Transformation Mat:', X8);
+        return X8;
 
     //
     // // Get the backing canvas
@@ -345,11 +376,6 @@ export const magnifyRegion = (e, canvas, posX, posY) => {
     ctx.stroke();
 };
 
-
-
-function onMouseDown() {
-    console.log('mouse down!');
-}
 
 //
 function DragMouse(e, canvas) {

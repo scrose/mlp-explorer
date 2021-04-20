@@ -11,8 +11,15 @@ import Form from '../common/form';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { genSchema, getError } from '../../_services/schema.services.client';
 import Dialog from '../common/dialog';
-import { align, getControlPoints, scaleToFit } from '../../_utils/image.utils.client';
+import {
+    align,
+    getControlPoints,
+    scaleToFit,
+    moveStart,
+    moveAt,
+} from '../../_utils/image.utils.client';
 import { ImageSelector } from './selector.menu';
+import { homography } from '../../_utils/matrix.utils.client';
 
 /**
  * No operation.
@@ -156,6 +163,7 @@ export const CanvasMenu = ({
                                canvas1 = {},
                                canvas2 = {},
                                setCanvas1 = noop,
+
                                setCanvas2 = noop,
                                setMethods = noop,
                                selection={},
@@ -243,6 +251,8 @@ export const CanvasMenu = ({
 
     /**
      * Canvas methods filter.
+     * - selects methods for given view mode.
+     * -- Default:
      *
      * @return {JSX.Element}
      */
@@ -251,19 +261,27 @@ export const CanvasMenu = ({
         const _methods = {
             default: () => {
                 setOptions(data => ({ ...data, mode: 'default' }));
+                setMethods(data => ({ ...data,
+                    onDragStart: moveStart,
+                    onDrag: moveAt
+                }));
             },
             selectPoints: () => {
                 setOptions(data => ({ ...data, mode: 'select' }));
                 setMethods(data => ({ ...data, onClick: getControlPoints }));
             },
-            align: () => {
+            align: (imgData) => {
                 if (!canvas1.loaded || !canvas2.loaded) {
                     return setMessage({ msg: getError('emptyCanvas', 'canvas') });
                 }
                 if (canvas1.pts.length < options.controlPtMax || canvas2.pts.length < options.controlPtMax) {
                     return setMessage({ msg: getError('missingControlPoints', 'canvas')});
                 }
-                align(canvas1, canvas2, options);
+                const transform = align(canvas1, canvas2, options);
+                let A = new Uint32Array( imgData.data.buffer );
+                let B = new Uint32Array( dst.data.buffer );
+                homography( transform, A, B, p.width, bcv1.height );
+                // ctx1.putImageData(dst,0,0); // 2
                 return
                 setDialogToggle({type: 'align', id: canvas2.files_id });
             },
@@ -401,13 +419,15 @@ export const CanvasControls = ({
             fit: () => {
                 if (properties.loaded) {
                     const dims = scaleToFit(
-                        properties.img_original_dims.x,
-                        properties.img_original_dims.y,
+                        properties.source_dims.x,
+                        properties.source_dims.y,
                         properties.dims.x,
                     );
+                    // update canvas properties
                     update(data => ({
                         ...data,
-                        img_dims: dims,
+                        offset: {x: 0, y: 0},
+                        edit_dims: dims,
                         pts: [],
                         redraw: true,
                     }));
@@ -415,16 +435,20 @@ export const CanvasControls = ({
             },
             expand: () => {
                 if (properties.loaded)
+                    // update canvas properties
                     update(data => ({
                         ...data,
-                        img_dims: properties.img_original_dims,
+                        edit_dims: properties.source_dims,
                         pts: [],
                         redraw: true,
                     }));
             },
             erase: () => {
                 if (properties.loaded)
-                    update(data => ({ ...data, pts: [], redraw: true }));
+                    update(data => ({ ...data,
+                        pts: [],
+                        redraw: true
+                    }));
             },
             load: () => {
                 setDialogToggle({type: 'selectImage', id: properties.id});
