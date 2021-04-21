@@ -20,6 +20,7 @@ import { insertMetadata } from './import.services.js';
 import * as cserve from './construct.services.js';
 import * as metaserve from '../services/metadata.services.js';
 import ModelServices from './model.services.js';
+import * as http from 'http';
 
 /**
  * Get file record by ID. NOTE: returns single object.
@@ -66,7 +67,7 @@ export const get = async (id, client = pool) => {
         label: await metaserve.getFileLabel(file),
         filename: (filename || '').replace(`_${secure_token}`, ''),
         metadata: metadata,
-        url: genSrc(file_type, metadata),
+        url: getResizedImgSrc(file_type, metadata),
     };
 
 };
@@ -98,7 +99,7 @@ export const selectByOwner = async (id, client = pool) => {
                     label: await metaserve.getFileLabel(file),
                     filename: (filename || '').replace(`_${secure_token}`, ''),
                     metadata: fileMetadata,
-                    url: genSrc(file_type, fileMetadata),
+                    url: getResizedImgSrc(file_type, fileMetadata),
                 };
             }),
     );
@@ -332,7 +333,6 @@ export const update = async(item, client=pool) => {
 
 export const remove = async(file, filepaths, client=pool) => {
 
-    //console.log(file, filepaths)
     let error = null;
     let { sql, data } = queries.files.remove(file);
     let response = await client.query(sql, data);
@@ -355,25 +355,26 @@ export const remove = async(file, filepaths, client=pool) => {
  * Download file stream.
  *
  * @src public
- * @param fileName
- * @param contentType
- * @param contentStream
- * @param data
+ * @param src
+ * @param dst
  */
 
-export const download = async (fileName, contentType, contentStream, data) => {
+export const download = async (src, dst) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const fileStream = fs.createWriteStream(fileName);
-            const contentStream = fs.createReadStream(data);
-            contentStream.pipe(data);
+            const file = fs.createWriteStream(dst);
+            const contentStream = fs.createReadStream(src);
+            contentStream.pipe(file);
             contentStream.on('error', reject);
-            fileStream.on('error', reject);
-            fileStream.on('finish', () => {
+            file.on('error', reject);
+            file.on('finish', () => {
+                file.close();
                 try {
                     resolve();
                 } catch (err) {
-                    console.log(err);
+                    // Delete the file async. (But we don't check the result)
+                    fs.unlink(dst, console.error);
+                    console.warn(err);
                     reject(err);
                 }
             });
@@ -384,7 +385,7 @@ export const download = async (fileName, contentType, contentStream, data) => {
 };
 
 /**
- * Create file source URLs from file data.
+ * Get image file URL for raw image.
  *
  * @public
  * @param {String} type
@@ -392,15 +393,54 @@ export const download = async (fileName, contentType, contentStream, data) => {
  * @return {Promise} result
  */
 
-export const genSrc = (type = '', data = {}) => {
+export const getRawImgSrc = (type = '', data = {}) => {
+
+    // generate raw image source URL
+    const imgSrc = () => {
+        console.log(data)
+    };
+
+    // handle image source URLs differently than metadata files
+    // - images use scaled versions of raw files
+    // - metadata uses PDF downloads
+    const fileHandlers = {
+        historic_images: () => {
+            return imgSrc();
+        },
+        modern_images: () => {
+            return imgSrc();
+        },
+        supplemental_images: () => {
+            return imgSrc();
+        },
+        metadata_files: () => {
+            return null;
+        },
+    };
+
+    // Handle file types
+    return fileHandlers.hasOwnProperty(type) ? fileHandlers[type]() : null;
+}
+
+/**
+ * Create file source URLs for resampled images from file data.
+ *
+ * @public
+ * @param {String} type
+ * @param {Object} data
+ * @return {Promise} result
+ */
+
+export const getResizedImgSrc = (type = '', data = {}) => {
 
     const { secure_token = '' } = data || {};
 
     // generate image source URLs
     const imgSrc = (token) => {
+        // include resampled image URLs
         return Object.keys(imageSizes).reduce((o, key) => {
-            // const rootURI = `${process.env.API_HOST}:${process.env.API_PORT}/resources/versions/`;
-            const rootURI = 'http://meat.uvic.ca/uploads/versions/';
+            const rootURI = `${process.env.API_HOST}:${process.env.API_PORT}/resources/versions/`;
+            // const rootURI = 'http://meat.uvic.ca/uploads/versions/';
             o[key] = new URL(`${key}_${token}.jpeg`, rootURI);
             return o;
         }, {});

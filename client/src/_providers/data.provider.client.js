@@ -8,7 +8,7 @@
 import * as React from 'react'
 import { useRouter } from './router.provider.client';
 import { getRootNode } from '../_utils/data.utils.client';
-import { getSessionMsg } from '../_services/session.services.client';
+import { getSessionMsg, setSessionMsg } from '../_services/session.services.client';
 import { useUser } from './user.provider.client';
 import { useMessage } from './message.provider.client';
 
@@ -98,7 +98,9 @@ function DataProvider(props) {
     const loadOptions = React.useCallback((type='options') => {
         router.get(`/${type}`)
             .then(res => {
-                console.log('\nOptions >>>\n', res);
+                if (!res) return null;
+                //console.log('\nOptions >>>\n', res);
+                if (res.error) return setError(res.error);
                 // destructure API data for options
                 const { response = {} } = res || {};
                 const { data = {}, message = {} } = response || {};
@@ -145,10 +147,10 @@ function DataProvider(props) {
             // call API for page data
             router.get(router.route)
                 .then(res => {
+                    if (!res) return null;
+                    const { response={} } = res || {};
 
-                    const {hasError=false, response } = res || {};
-
-                    console.log('\nResponse >>>\n', res)
+                    console.log('\n>>> Response >>>\n', res)
 
                     // destructure API data for settings
                     const {
@@ -161,9 +163,9 @@ function DataProvider(props) {
                     const { name='', attributes={} } = model || {};
 
                     // check if response data is empty (set error flag to true)
-                    if ( hasError ) {
+                    if ( res && res.error ) {
                         msg.setMessage(message);
-                        return setError(true);
+                        return setError(message);
                     }
 
                     // update states with response data
@@ -173,7 +175,7 @@ function DataProvider(props) {
                         setView(view);
                         setModel(name);
                         setPath(path);
-                        msg.setMessage(message);
+                        setSessionMsg(message);
                     }
                 })
                 .catch(err => console.error(err));

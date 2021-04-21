@@ -16,6 +16,8 @@ import { useRouter } from '../../_providers/router.provider.client';
 import ServerError from '../error/server.error';
 import SearchNavigator from './search.navigator';
 import Loading from '../common/icon';
+import { getError } from '../../_services/schema.services.client';
+import Button from '../common/button';
 
 /**
  * Main navigator component.
@@ -67,19 +69,20 @@ const Navigator = () => {
             router.get(route)
                 .then(res => {
 
-                    // destructure map data
-                    const {hasError=false, response={} } = res || {};
-                    const { data = {} } = response || {};
-                    const { options={}, nodes={} } = data || {};
-
-                    // check if response data is empty (set error flag if true)
-                    if ( Object.keys(nodes).length === 0 ) {
-                        console.error('Error: Navigator data is empty.')
-                        return setError(true);
-                    }
-
-                    // load options and node data to provider
                     if (_isMounted.current) {
+
+                        // destructure map data
+                        if (res.error) return setError(res.error);
+                        const {response={} } = res || {};
+                        const { data = {} } = response || {};
+                        const { options={}, nodes={} } = data || {};
+
+                        // check if response data is empty (set error flag if true)
+                        if ( Object.keys(nodes).length === 0 ) {
+                            return setError(true);
+                        }
+
+                        // load options and node data to provider
                         setOptionsData(options)
                         setNodeData(nodes);
                     }
@@ -116,7 +119,11 @@ const Navigator = () => {
                         : ''
                 }
                 {
-                    navView ? navViews[navView] : <Loading />
+                    error
+                        ? <Button className={'msg error'} label={'An error occurred'} icon={'error'} />
+                        : navView
+                        ? navViews[navView]
+                        : <Loading />
                 }
             </div>
             : <ServerError/>

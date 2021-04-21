@@ -239,7 +239,7 @@ export function selectMetadataOptionsByModel(
     labelCols = ['id'],
     delimiter=''
 ) {
-    console.log(model, valueCol, labelCols)
+
     let sql = `SELECT 
                 id,
                 ${valueCol} AS value, 

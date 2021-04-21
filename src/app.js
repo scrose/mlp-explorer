@@ -20,6 +20,7 @@ import cookieParser from 'cookie-parser';
 import { globalHandler, notFoundHandler } from './error.js';
 import router from './routes/index.routes.js';
 import path from 'path';
+import serveStatic from 'serve-static';
 
 /**
  * Get current working directory.
@@ -131,7 +132,7 @@ export default () => {
      * Serve static assets.
      */
 
-    app.use('/resources', express.static(process.env.UPLOAD_DIR));
+    app.use('/resources', express.static(process.env.LIBRARY_DIR));
 
     /**
      * Initialize router.

@@ -26,7 +26,6 @@ import { useRouter } from '../../_providers/router.provider.client';
 const DataView = () => {
 
     const api = useData();
-    const router = useRouter();
 
     // select render type and schema
     const render = getRenderType(api.view, api.model);
@@ -65,6 +64,7 @@ const DataView = () => {
                     );
                 }}
             />),
+        download: () => <div>File Download</div>,
         notFound: () => <NotfoundError />,
         serverError: () => <ServerError />
     }
@@ -75,9 +75,7 @@ const DataView = () => {
             {
                 renders.hasOwnProperty(render)
                     ? renders[render]()
-                    : !router.hasError
-                    ? <Loading/>
-                    : <ServerError />
+                    : <Loading/>
             }
         </>
     )

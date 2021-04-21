@@ -157,6 +157,12 @@ export const schema = {
             legend: 'Search',
             submit: '',
             render: 'form'
+        },
+        download: {
+            label: 'Download File',
+            legend: 'Download',
+            submit: 'Download',
+            render: 'download'
         }
     },
     models: {

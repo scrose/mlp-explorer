@@ -252,16 +252,10 @@ export default function FilesController(modelType) {
             const {owner_id='', owner_type=''} = file || {};
             const imported = await importer.receive(req, owner_id, owner_type);
 
-
-            console.log('Imported data:', imported)
-
             // overwrite metadata
             Object.keys(imported.data).forEach((field) => {
-                console.log(field)
                 metadata[field] = imported.data[field];
             })
-
-            console.log('Updated metadata:', metadata);
 
             // update file metadata record
             await fserve.update(new Model(metadata));
@@ -295,6 +289,7 @@ export default function FilesController(modelType) {
 
     /**
      * Delete file and file metadata.
+     * TODO: update to retrieve file paths
      *
      * @param req
      * @param res
@@ -317,7 +312,7 @@ export default function FilesController(modelType) {
             // create file instance
             const item = new Model(fileData.metadata);
             let file = await cserve.createFile(item, fileData);
-            const filepaths = ['/Users/boutrous/Workspace/NodeJS/images/versions/medium_BotoQMBg516RnHixpJvAWb8HqokbEsyELUHxnoy7GiZ703u9.jpg']
+            const filepaths = [];
 
             // delete file
             const resData = await fserve.remove(file, filepaths);
@@ -357,33 +352,30 @@ export default function FilesController(modelType) {
         try {
 
             // get requested file ID
-            const ownerID = this.getId(req);
+            const fileID = this.getId(req);
 
             // get owner node; check that node exists in database
             // and corresponds to requested owner type.
-            const node = await nserve.select(ownerID);
+            const file = await fserve.select(fileID);
 
-            // check relation exists for file type and node type
-            const nodeRelations = await fserve.getFileTypesByOwner(model.name);
-
-            if (!node || true)
+            if (!file)
                 return next(new Error('invalidRequest'));
 
-            // initialize file metadata
-            let metadata = {
-                file: {
-                    file_type: model.name,
-                    mimetype: null,
-                    filename: null,
-                    owner_id: node.id,
-                    owner_type: node.type,
-                    file_size: 0,
-                    fs_path: null
-                }
-            };
+            // get the source and destination path
+            const src = fserve.getRawImgSrc(file.file_type, file)
+            const dst = file.filename;
 
-            // stream uploaded files to server
-            await fserve.receive(req, res, next, metadata);
+            console.log(src, dst)
+
+            res.status(200).json(
+                prepare({
+                    view: 'download',
+                    data: { src: src, dst: src },
+                }));
+
+            return
+            // download file
+            await fserve.download(src, dst);
 
         } catch (err) {
             return next(err);

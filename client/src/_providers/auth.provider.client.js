@@ -30,7 +30,9 @@ function AuthProvider(props) {
 
     const _isMounted = React.useRef(false);
     let [data, setData] = React.useState(null);
+
     const router = useRouter();
+    const msg = useMessage();
 
     /**
      * User login request.
@@ -44,7 +46,8 @@ function AuthProvider(props) {
             .then(res => {
                 // create user session
                 const { response={} } = res || {};
-                const { user=null } = response || {};
+                const { user=null, message={} } = response || {};
+                msg.setMessage(message);
                 if (user) setData(user);
             });
     }

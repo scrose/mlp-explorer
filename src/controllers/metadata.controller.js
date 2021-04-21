@@ -144,7 +144,6 @@ export default function MetadataController(metadataType) {
 
             // get item metadata and filter through instance
             let data = await metaserve.select(sanitize(id, 'integer'), metadataModel);
-            console.log(metadataType, metadataModel, data)
             const item = new Metadata(data);
 
             // item record and/or node not found in database
@@ -211,7 +210,7 @@ export default function MetadataController(metadataType) {
                     model: metadataModel,
                     data: data,
                     message: {
-                        msg: `${metadataModel.label} item created successfully!`,
+                        msg: `${metadataModel.label} record created successfully!`,
                         type: 'success'
                     }
                 }));
@@ -261,8 +260,6 @@ export default function MetadataController(metadataType) {
             const mdData = await fserve.receive(req, ownerID, ownerType);
             let item = new Metadata(mdData.data);
 
-            console.log(mdData)
-
             // include requested ID / owner ID
             item.id = id;
             item.owner = ownerID;
@@ -277,7 +274,7 @@ export default function MetadataController(metadataType) {
                     model: metadataModel,
                     data: data,
                     message: {
-                        msg: `${metadataModel.label} item updated successfully!`,
+                        msg: `${metadataModel.label} record updated successfully!`,
                         type: 'success'
                     }
                 }));
@@ -321,7 +318,7 @@ export default function MetadataController(metadataType) {
                     model: metadataModel,
                     data: data,
                     message: {
-                        msg: `${metadataModel.label} item deleted successfully!`,
+                        msg: `${metadataModel.label} record deleted successfully!`,
                         type: 'success'
                     }
                 }));
@@ -359,9 +356,6 @@ export default function MetadataController(metadataType) {
             // - saves any attached files to library
             // - collates metadata
             const mdData = await fserve.receive(req, owner.id, owner.type);
-
-
-            console.log('Create', mdData)
 
             // Handle Groups
             // - creates new group for participants sent in request
@@ -425,8 +419,6 @@ export default function MetadataController(metadataType) {
             const owner = await nserve.select(selectData.owner_id, client);
             // create metadata item from request data
             const mdData = await fserve.receive(req, owner.id, owner.type);
-
-            console.log('Update', mdData)
 
             // update all items in group
             const { group_type='' } = mdData.data || {};

@@ -26,7 +26,6 @@ export default function App() {
 
     const router = useRouter();
     const user = useUser();
-    console.log(user)
     const timeout = 1000 * 60 * 60;
 
     const handleOnIdle = () => {

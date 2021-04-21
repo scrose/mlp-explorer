@@ -221,7 +221,6 @@ export const removeGroup = async (
     client = pool
 ) => {
     let { sql, data } = queries.metadata.removeGroup(ownerID, modelType, groupType, groupCol);
-    console.log(sql, data);
     let response = await client.query(sql, data);
     return response.hasOwnProperty('rows') && response.rows.length > 0
         ? response.rows[0]

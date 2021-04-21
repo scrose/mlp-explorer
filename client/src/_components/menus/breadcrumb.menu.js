@@ -10,6 +10,7 @@ import Icon from '../common/icon';
 import { createNodeRoute, filterPath, getRoot } from '../../_utils/paths.utils.client';
 import { capitalize } from '../../_utils/data.utils.client';
 import { useData } from '../../_providers/data.provider.client';
+import { getStaticLabel } from '../../_services/schema.services.client';
 
 /**
  * Breadcrumb navigation menu component.
@@ -41,18 +42,9 @@ const BreadcrumbMenu = () => {
         // convert breadcrumbs -> components and extend array
         return breadcrumbs
             .map((item, i) => {
-                // build accumulative url
-                const uri = breadcrumbs
-                    .filter((item, j) => j <= i)
-                    .reduce((o, item) => {
-                        o.push(item);
-                        return o;
-                    }, [])
-                    .join('/');
 
-                // create label text: use placeholder for very long slugs
-                const slug = item.length > 25 ? '...' : item;
-                const label = capitalize(slug.split('_').join(' '));
+                // create label text
+                const label = getStaticLabel(`/${item}`) || capitalize(item.split('_').join(' '));
 
                 // render last item without link
                 return <span key={`bnav_${i}`}>{label}</span>

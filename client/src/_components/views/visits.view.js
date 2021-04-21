@@ -13,6 +13,7 @@ import { getDependentTypes, getModelLabel } from '../../_services/schema.service
 import MetadataView, { MetadataAttached } from './metadata.view';
 import EditorMenu from '../menus/editor.menu';
 import { useData } from '../../_providers/data.provider.client';
+import { groupBy } from '../../_utils/data.utils.client';
 
 /**
  * Model view component.
@@ -37,6 +38,10 @@ const VisitsView = ({ model, data }) => {
         hasDependents,
         attached} = api.destructure(data) || {};
     const hasCaptures = type === 'historic_captures' || type === 'modern_captures';
+
+    // filter dependents by type
+    const captures = (dependents || []).filter(dependent => dependent.node.type === 'modern_captures');
+    const locations = (dependents || []).filter(dependent => dependent.node.type === 'locations');
 
     return !hasCaptures && <>
         {
@@ -74,13 +79,20 @@ const VisitsView = ({ model, data }) => {
                     </Accordion>
                     <MetadataAttached owner={node} attached={attached} />
                     {
-                        dependents.map((location, index) => {
-                            return <NodesView
-                                key={`location_${index}`}
-                                model={'locations'}
-                                data={location} />;
-                        })
+                        locations
+                            .map((dependent, index) => {
+                                return <NodesView
+                                    key={`visit_dependent_${index}`}
+                                    model={'locations'}
+                                    data={dependent} />;
+                            })
                     }
+                    <Accordion
+                        type={'unsorted_captures'}
+                        label={`Unsorted Captures`}
+                    >
+                        <CapturesView captures={captures} fileType={'modern_images'} />
+                    </Accordion>
                 </>
         }
     </>;

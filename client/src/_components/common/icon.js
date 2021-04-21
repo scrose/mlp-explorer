@@ -64,9 +64,15 @@ import {
     faMousePointer,
     faEraser,
     faExchangeAlt,
+    faTools,
+    faObjectGroup,
+    faToolbox
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
+    faToolbox,
+    faObjectGroup,
+    faTools,
     faExchangeAlt,
     faEraser,
     faAngleDoubleLeft,
@@ -197,6 +203,7 @@ const getIconClass = (iconType) => {
         modern_visits: 'calendar-day',
         historic_captures: 'camera-retro',
         modern_captures: 'camera-retro',
+        unsorted_captures: 'images',
         historic_images: 'image',
         modern_images: 'image',
         locations: 'compass',
@@ -204,6 +211,7 @@ const getIconClass = (iconType) => {
         maps: 'map',
         participant_groups: 'users',
         comparisons: 'images',
+        iat: 'images',
         default: 'star'
     };
     return iconComponents.hasOwnProperty(iconType)

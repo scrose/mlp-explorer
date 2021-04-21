@@ -15,6 +15,9 @@ import UnavailableError from '../error/unavailable.error';
 import ServerError from '../error/server.error';
 import Loading from '../common/icon';
 import ImageTools from '../tools/image.tools';
+import Portal from '../common/portal';
+import Image from '../common/image';
+import { useRouter } from '../../_providers/router.provider.client';
 
 /**
  * Build requested static page view.
@@ -25,8 +28,11 @@ import ImageTools from '../tools/image.tools';
 
 const StaticView = ({ type }) => {
 
+    const router = useRouter();
+
     // view components indexed by render type
     const renders = {
+        resources: () => <Image url={router.route} />,
         dashboardView: () => <DashboardViewer />,
         dashboardEdit: () => <DashboardEditor />,
         login: () => <LoginUsers />,

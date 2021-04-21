@@ -163,6 +163,7 @@ const NodesView = ({
 
     // create dynamic data states
     const [loadedData, setLoadedData] = React.useState(data);
+    const [error, setError] = React.useState(data);
     const _isMounted = React.useRef(true);
     const router = useRouter();
 
@@ -177,13 +178,15 @@ const NodesView = ({
         const loaded = hasDependents && dependents.length === 0;
 
         // API call
-        if (loaded && model && node) {
+        if (!error && loaded && model && node) {
             const route = createNodeRoute(model, 'show', node.id);
             router.get(route)
                 .then(res => {
                     // update state with response data
                     if (_isMounted.current) {
-                        const { data = {} } = res || {};
+                        if (res.error) return setError(res.error);
+                        const {response={} } = res || {};
+                        const { data = {} } = response || {};
                         setLoadedData(data);
                     }
                 })

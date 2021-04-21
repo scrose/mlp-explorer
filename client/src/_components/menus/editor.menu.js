@@ -434,13 +434,22 @@ const EditorMenu = ({
                     }
                     {
                         isEditor &&
-                        <li className={'push'} key={`${menuID}_menuitem_options`}>
-                            <Button
-                                icon={'options'}
-                                title={`Edit metadata options.`}
-                                onClick={() => setDialogToggle('options')}
-                            />
-                        </li>
+                        <>
+                            <li className={'push'} key={`viewer_menuitem_iat`}>
+                                <Button
+                                    icon={'iat'}
+                                    title={`Image Analysis Toolkit`}
+                                    onClick={() => {redirect('/iat')}}
+                                />
+                            </li>
+                            <li key={`${menuID}_menuitem_options`}>
+                                <Button
+                                    icon={'options'}
+                                    title={`Edit metadata options.`}
+                                    onClick={() => setDialogToggle('options')}
+                                />
+                            </li>
+                        </>
                     }
                 </ul>
             </div>

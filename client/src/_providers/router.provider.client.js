@@ -10,7 +10,6 @@ import { makeRequest } from '../_services/api.services.client';
 import { createNodeRoute, filterPath, reroute, getRoot, createURL } from '../_utils/paths.utils.client';
 import { getStaticView } from '../_services/schema.services.client';
 import { clearNodes } from '../_services/session.services.client';
-import { useMessage } from './message.provider.client';
 
 /**
  * Global data provider.
@@ -60,10 +59,10 @@ function RouterProvider(props) {
         // No response: API is unavailable
         if (!res) return setOnline(false);
 
-        // return response (and error flag)
+        // return response (and error)
         const { response={} } = res || {};
-
-        return {hasError: !res.success, response: response};
+        const { message={} } = response || {};
+        return {error: !res.success ? message : null, response: response};
     }
 
     /**

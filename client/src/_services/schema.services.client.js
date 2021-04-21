@@ -7,6 +7,7 @@
 
 import { schema } from '../schema';
 import { capitalize } from '../_utils/data.utils.client';
+import { filterPath } from '../_utils/paths.utils.client';
 
 /**
  * Get static view render index from given route. Unlike data
@@ -19,8 +20,15 @@ import { capitalize } from '../_utils/data.utils.client';
 
 export const getStaticView = (uri) => {
     const routes = getRoutes();
+
+    // filter static files
+    if (uri.indexOf('/resources') === 0) {
+        return 'resources';
+    }
+
     // filter route of query string
     const route = uri.split('?')[0];
+
     const routeData = routes.hasOwnProperty(route) ? routes[route] : {};
     return routeData.hasOwnProperty('name') ? routeData.name : null;
 }
@@ -46,6 +54,8 @@ export const getRoutes = () => {
  */
 
 export const getStaticLabel = (route) => {
+    // remove query
+    route = route.split('?')[0];
     const { routes={} } = schema || {};
     return routes.hasOwnProperty(route) ? routes[route].label : '';
 }

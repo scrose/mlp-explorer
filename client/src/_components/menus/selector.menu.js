@@ -51,6 +51,10 @@ export const ImageSelector = ({
         // Get requested image file
         const {target={}} = e || {};
 
+        // get metadata (for capture images)
+        console.log(selectedImage)
+        const { url={} } = selectedImage || {};
+
         // get local file data
         const file = target.files[0];
 
@@ -63,12 +67,8 @@ export const ImageSelector = ({
                     file_size: file.size,
                 },
                 filename: file.name,
-                url: file.type !== 'image/tiff'
-                    ? URL.createObjectURL(file)
-                    : '',
-                fileData: file.type !== 'image/tiff'
-                    ? null
-                    : target.files[0],
+                url: url,
+                fileData: target.files[0],
             });
         }
         else {
@@ -93,7 +93,7 @@ export const ImageSelector = ({
             </Accordion>
         }
         {
-            <Accordion label={'Select Image'} type={'image'} open={true}>
+            <Accordion label={'Select Image'} type={'image'} open={false}>
                 <Message closeable={false} message={error} level={'error'} />
                 <Input
                     type={'file'}
@@ -120,7 +120,7 @@ const CaptureSelector = ({selection, setSelectedImage, onSubmit}) => {
 
     const [tabIndex, setTabIndex] = React.useState(0);
     const [imageIndex, setImageIndex] = React.useState(0);
-    const [captureIndex, setCaptureIndex] = React.useState(0);
+    const [captureIndex, setCaptureIndex] = React.useState(-1);
 
     // destructure selected capture
     const selectedCapture = selection[tabIndex];

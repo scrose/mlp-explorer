@@ -138,6 +138,7 @@ const TreeNode = ({id, type, label, hasDependents, status}) => {
     const [isCurrent, setCurrent] = React.useState(false);
     const [loadedData, setLoadedData] = React.useState([]);
     const [statusData, setStatusData] = React.useState(status);
+    const [error, setError] = React.useState(null);
     const treeNode = React.createRef();
     const _isMounted = React.useRef(true);
 
@@ -147,6 +148,7 @@ const TreeNode = ({id, type, label, hasDependents, status}) => {
 
     // API call to retrieve node data (if not yet loaded)
     React.useEffect(() => {
+
         _isMounted.current = true;
 
         // include current node path as toggled
@@ -157,14 +159,18 @@ const TreeNode = ({id, type, label, hasDependents, status}) => {
             treeNode.current.scrollIntoView();
         }
 
-        if (hasDependents && toggle && Array.isArray(loadedData) && loadedData.length === 0) {
+        if (!error && hasDependents && toggle && Array.isArray(loadedData) && loadedData.length === 0) {
             const route = createNodeRoute('nodes', 'show', id);
             router.get(route)
                 .then(res => {
                     // update state with response data
                     if (_isMounted.current) {
+
+                        if (res.error) return setError(res.error);
+
                         // destructure any available dependent nodes
-                        let { data = {} } = res || {};
+                        const {response={} } = res || {};
+                        let { data = {} } = response || {};
                         const { dependents=[], status=null } =  data || {};
                         setLoadedData(dependents);
                         setStatusData(status);
@@ -204,11 +210,11 @@ const TreeNode = ({id, type, label, hasDependents, status}) => {
                 }
                 {
                     toggle && hasDependents
-                        ?
-                        Array.isArray(loadedData) && loadedData.length > 0
-                            ? <TreeNodeList items={loadedData} />
-                            : <Loading />
-                        : ''
+                        ? error
+                            ? <Button className={'msg error'} label={'An error occurred'} icon={'error'} />
+                            : Array.isArray(loadedData) && loadedData.length > 0
+                                ? <TreeNodeList items={loadedData} />
+                                : <Loading /> : <></>
                 }
             </div>
 

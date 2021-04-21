@@ -40,6 +40,9 @@ const SearchNavigator = ({filter=null, limit=10, offset=0}) => {
     const [searchResults, setSearchResults] = React.useState(null);
     const [searchOffset, setSearchOffset] = React.useState(offset);
 
+    // error flag
+    const [error, setError] = React.useState(null);
+
     // handle previous page request
     const onPrev = () => {
         const delta = searchOffset - limit;
@@ -74,16 +77,20 @@ const SearchNavigator = ({filter=null, limit=10, offset=0}) => {
             offset: searchOffset,
             limit: limit
         }
-        router.get('/search', params)
-            .then(res => {
-                const { data={} } = res || {};
-                const {query=[], results=[]} = data || {};
-                // ensure data is an array
-                if (Array.isArray(results) && Array.isArray(query)) {
-                    setSearchResults(results);
-                    setSearchTerms(query);
-                }
-            });
+        if (!error) {
+            router.get('/search', params)
+                .then(res => {
+                    if (res.error) return setError(res.error);
+                    const { response = {} } = res || {};
+                    const { data = {} } = response || {};
+                    const { query = [], results = [] } = data || {};
+                    // ensure data is an array
+                    if (Array.isArray(results) && Array.isArray(query)) {
+                        setSearchResults(results);
+                        setSearchTerms(query);
+                    }
+                });
+        }
     };
 
     // extract an excerpt from the search results item

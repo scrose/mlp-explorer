@@ -22,6 +22,7 @@ import { moveAt, moveCanvasEnd, moveStart } from '../../_utils/image.utils.clien
 const ImageTools = () => {
 
     const router = useRouter();
+    const _isMounted = React.useRef(false);
 
     // canvas identifiers
     const canvas1ID = 'canvas1';
@@ -56,33 +57,44 @@ const ImageTools = () => {
     // set image selection state
     const [selection, setSelection] = React.useState([]);
 
-    // get query parameter for master option
-    // - must correspond to a modern image file ID
-    const modernImageID = getQuery('master') || '';
-
-    // load initial input image data (if requested)
-    React.useEffect(() => {
-        // get available historic image selection for given modern capture image
-        if (modernImageID) {
-            router.get(createNodeRoute('modern_images', 'master', modernImageID))
-                .then(res => {
-                    const { hasError=false, response={} } = res || {};
-                    const { data = {} } = response || {};
-                    const { historic_captures = [], modern_capture={} } = data || {};
-                    setSelection(historic_captures);
-                    setCanvas2Data(initCanvas(canvas2ID, modern_capture))
-                });
-        }
-    }, [modernImageID, router, setSelection, setCanvas2Data]);
-
     // initialize menu dialog toggle
     const [dialogToggle, setDialogToggle] = React.useState(null);
+
+    // initialize error flag
+    const [error, setError] = React.useState(null);
 
     // initialize canvas pointer event data
     const [pointer, setPointer] = React.useState({
         canvas1: { x: 0, y: 0 },
         canvas2: { x: 0, y: 0 }
     });
+
+    // get query parameter for master option
+    // - must correspond to a modern image file ID
+    const modernImageID = getQuery('master') || '';
+
+    /**
+     * Load initial input image data (if requested)
+     */
+
+    React.useEffect(() => {
+        _isMounted.current = true;
+        // get available historic image selection for given modern capture image
+        if (modernImageID) {
+            router.get(createNodeRoute('modern_images', 'master', modernImageID))
+                .then(res => {
+                    if (_isMounted.current) {
+                        setError(res.error);
+                        const { response = {} } = res || {};
+                        const { data = {} } = response || {};
+                        const { historic_captures = [], modern_capture = {} } = data || {};
+                        setSelection(historic_captures);
+                        setCanvas2Data(initCanvas(canvas2ID, modern_capture));
+                    }
+                });
+        }
+        return ()=>{_isMounted.current = false;}
+    }, [modernImageID, router, setSelection, setCanvas2Data]);
 
     return <>
             <CanvasMenu

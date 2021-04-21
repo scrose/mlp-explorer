@@ -21,7 +21,7 @@ const ViewerMenu = () => {
                 <ul>
                     <li className={'push'} key={`viewer_menuitem_iat`}>
                             <Button
-                                icon={'master'}
+                                icon={'iat'}
                                 title={`Image Analysis Toolkit`}
                                 onClick={() => {redirect('/iat')}}
                             />

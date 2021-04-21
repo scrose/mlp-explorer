@@ -199,8 +199,6 @@ export default function ModelController(nodeType) {
             // - collates metadata
             const metadata = await importer.receive(req, owner_id, type);
 
-            console.log(metadata)
-
             // check if files are present
             const hasFiles = Object.keys(metadata.files).length > 0;
 

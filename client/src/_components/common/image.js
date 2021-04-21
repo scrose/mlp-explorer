@@ -18,13 +18,15 @@ const Image = ({
                    url='',
                    title='',
                    label='',
-                   scale='thumb',
+                   scale='',
                    onClick=()=>{},
                    onDoubleClick=()=>{}
 }) => {
 
+    console.log(url, scale)
+
     const fallbackSrc = '/logo192.png';
-    const [src, setSrc] = React.useState(url[scale]);
+    const [src, setSrc] = React.useState(scale ? url[scale] : url);
     const [error, setError] = React.useState(false);
 
     // Handler for resource loading errors.

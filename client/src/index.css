@@ -341,18 +341,24 @@ header .navbar {
 Logo
 */
 
+.logo {
+}
 .logo h1 {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 .logo-svg {
+    border-radius: 5px;
+    background-image: linear-gradient( #C9ABDD, #282c34);
+    padding: 2px 5px;
     margin-right: 10px;
-    width: 30px;
+    width: 35px;
     display: flex;
     align-items: center;
 }
 .logo .wordmark {
+    color: #D8C3E7;
     line-height: 100%;
     vertical-align: middle;
 }
@@ -1190,6 +1196,10 @@ nav.breadcrumb ul li a:hover {
     color: #008896 !important;
     border-color: #008896 !important;
 }
+.unsorted_captures {
+    color: #E34234 !important;
+    border-color: #E34234 !important;
+}
 
 /* Participants */
 .participants h5 {
@@ -1915,8 +1925,6 @@ canvas {
 .canvas-layers {
     position: relative;
     margin: 5px;
-    width: 356px;
-    height: 356px;
 }
 .canvas-placeholder {
     z-index: 50;
@@ -1962,7 +1970,7 @@ canvas {
     background-color: #282c34;
 }
 .canvas-board img {
-    /*display: none;*/
+    display: none;
 }
 .canvas-option-controls {
     margin: 20px;
@@ -2048,4 +2056,14 @@ Progress Bar
     text-align: left;
     margin: 10% auto;
     padding: 20px;
+}
+.maintenance .logo-svg {
+    border-radius: 5px;
+    background-image: none;
+    width: 50px;
+    display: flex;
+    align-items: center;
+}
+.maintenance .logo .wordmark {
+    color: #2ea591;
 }

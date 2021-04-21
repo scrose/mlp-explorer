@@ -54,7 +54,7 @@ export const Canvas = ({
                            onMouseMove = noop,
                        }) => {
 
-    // source image data state
+    // source image data state (used for images referenced by URLs)
     const imgRef = React.useRef(null);
 
     // internal image data source
@@ -74,38 +74,6 @@ export const Canvas = ({
 
     // error state
     const [error, setError] = React.useState(null);
-
-    // /**
-    //  * Get image pixel data.
-    //  */
-    //
-    // const getImageData = () => {
-    //
-    //     // load canvas 1
-    //     if (imgLayerRef.current && imgLayerRef.current.getContext) {
-    //         let ctx = imgLayerRef.current.getContext('2d');
-    //
-    //         // Use a SIMD and DIMD global here?? Help JS with memory? (sourceImageData)
-    //         let imgData = ctx.getImageData(0, 0, properties.dims.x, properties.dims.y);
-    //
-    //         ///if (!DIMD) DIMD = new ImageData( bcv1.width, bcv1.height );
-    //         ///var dst = DIMD; // Will the JS lose track and delay garbage collect??
-    //
-    //         let dataBuffer = new Uint32Array(imgData.data.buffer);
-    //         setImgData(dataBuffer);
-    //         return dataBuffer;
-    //     }
-    // }
-    //
-
-    //
-    // /**
-    //  * Signal a redraw of the canvas.
-    //  */
-    //
-    // const redraw = () => {
-    //     setProperties(data => ({ ...data, redraw: true }));
-    // }
 
     /**
      * Handle canvas mouse move event.
@@ -189,132 +157,147 @@ export const Canvas = ({
      */
 
     React.useEffect(() => {
+        try {
+            /**
+             * Initialize source and edit layer image data.
+             *
+             * @private
+             */
 
-        /**
-         * Redraw Image Data to canvas (Canvas API)
-         * Reference: https://gist.github.com/mauriciomassaia/b9e7ef6667a622b104c00249f77f8c03
-         *
-         * @private
-         */
+            async function _init (imgData, w, h) {
 
-        async function _redraw () {
+                const imgDataSource = new ImageData(
+                    new Uint8ClampedArray(imgData.data), w, h,
+                );
 
-            // reset image data to source
-            if (properties.reset) {
-                setInputImage(new ImageData(
-                    new Uint8ClampedArray(source.data),
-                    source.width,
-                    source.height,
-                ));
-            }
+                const imgDataEdit = new ImageData(
+                    new Uint8ClampedArray(imgData.data), w, h,
+                );
 
-            const dx = properties.offset.x;
-            const dy = properties.offset.y;
-            const x = properties.edit_dims.x;
-            const y = properties.edit_dims.y;
+                // store source image data
+                setSource(imgDataSource);
 
-            const resizeWidth = x >> 0;
-            const resizeHeight = y >> 0;
-            const ibm = await window.createImageBitmap(
-                inputImage, 0, 0, inputImage.width, inputImage.height, {
-                resizeWidth, resizeHeight
-            });
+                // initialize editable image date
+                setInputImage(imgDataEdit);
 
-            // set new canvas dimensions
-            editLayerRef.current.width = Math.min(resizeWidth, properties.dims.x);
-            editLayerRef.current.height = Math.min(resizeHeight, properties.dims.y);
-            const ctxEdit = editLayerRef.current.getContext('2d');
+                // put image data on edit layer
+                ctxEdit.putImageData(imgDataEdit, 0, 0);
 
-            // Handle Markup: set points
-            if (properties.pts.length === 0) {
-                const ctxMarkUp = markupLayerRef.current.getContext('2d');
-                ctxMarkUp.clearRect(0, 0, properties.dims.x, properties.dims.y)
-            }
-
-            // Save teh current context state
-            // if (properties.restore) {
-            //     ctxEdit.restore();
-            //     return;
-            // }
-
-            // Save the current context state
-            // ctxEdit.save();
-
-            ctxEdit.drawImage(ibm, dx, dy);
-            return ctxEdit.getImageData(0, 0, resizeWidth, resizeHeight);
-        }
-
-        /**
-         * Load or redraw canvas layers.
-         */
-
-        if (!editLayerRef.current) return;
-
-        // get canvas layer contexts
-        let ctxEdit = editLayerRef.current.getContext('2d');
-
-        // Handle image data loaded from input
-        if (!properties.loaded && properties.file) {
-
-            // load TIFF format image
-            loadTIFF(properties.file)
-                .then(tiff => {
-                    const imgDataSource = new ImageData(
-                        new Uint8ClampedArray(tiff.data),
-                        tiff.width,
-                        tiff.height,
-                    );
-
-                    const imgDataEdit = new ImageData(
-                        new Uint8ClampedArray(tiff.data),
-                        tiff.width,
-                        tiff.height,
-                    );
-
-                    // store source image data
-                    setSource(imgDataSource);
-
-                    // initialize editable image date
-                    setInputImage(imgDataEdit);
-
-                    // put image data on edit layer
-                    ctxEdit.putImageData(imgDataEdit, 0, 0);
-
-                    // initialize canvas properties
-                    setProperties(data => ({
-                        ...data,
-                        file: null,
-                        loaded: true,
-                        redraw: false,
-                        edit_dims: {
-                            x: tiff.width,
-                            y: tiff.height,
-                        },
-                        source_dims: {
-                            x: tiff.width,
-                            y: tiff.height,
-                        },
-                        url: '',
-                    }));
-                }).catch(err => {
-                setError(true);
-                console.error('Error:', err);
-            });
-        }
-
-        // redraw canvas on signal
-        if (properties.redraw) {
-            // put transformed data onto edit layer
-            _redraw()
-                .then (res => {
-                setProperties(data => ({ ...data,
+                // initialize canvas properties
+                setProperties(data => ({
+                    ...data,
+                    file: null,
                     loaded: true,
                     redraw: false,
-                    reset: false }));
-            }).catch(err => {
-                console.error(err);
-                setMessage({msg:'Error: could not complete operation.', type: 'error'});
-            })
+                    edit_dims: {
+                        x: w,
+                        y: h,
+                    },
+                    source_dims: {
+                        x: w,
+                        y: h,
+                    },
+                    url: '',
+                }));
+            }
+
+            /**
+             * Redraw Image Data to canvas (Canvas API)
+             * Reference: https://gist.github.com/mauriciomassaia/b9e7ef6667a622b104c00249f77f8c03
+             *
+             * @private
+             */
+
+            async function _redraw () {
+
+                // reset image data to source
+                if (properties.reset) {
+                    setInputImage(new ImageData(
+                        new Uint8ClampedArray(source.data),
+                        source.width,
+                        source.height,
+                    ));
+                }
+
+                const resizeWidth = properties.edit_dims.x >> 0;
+                const resizeHeight = properties.edit_dims.y >> 0;
+                const ibm = await window.createImageBitmap(
+                    inputImage, 0, 0, inputImage.width, inputImage.height, {
+                    resizeWidth, resizeHeight
+                });
+
+                // set new canvas dimensions
+                editLayerRef.current.width = Math.min(resizeWidth, properties.dims.x);
+                editLayerRef.current.height = Math.min(resizeHeight, properties.dims.y);
+                const ctxEdit = editLayerRef.current.getContext('2d');
+
+                // Handle Markup: set points
+                if (properties.pts.length === 0) {
+                    const ctxMarkUp = markupLayerRef.current.getContext('2d');
+                    ctxMarkUp.clearRect(0, 0, properties.dims.x, properties.dims.y)
+                }
+
+                ctxEdit.drawImage(ibm, properties.offset.x, properties.offset.y);
+                return ctxEdit.getImageData(0, 0, resizeWidth, resizeHeight);
+            }
+
+
+            /**
+             * Load or redraw canvas layers.
+             */
+
+            // reject if layer not ready in DOM
+            if (!editLayerRef.current) return;
+
+            // get canvas layer contexts
+            let ctxEdit = editLayerRef.current.getContext('2d');
+
+            console.log(properties)
+
+            // [url] Handle image data loaded from URL
+            // - loads image data from url
+            // - stores in source/edit states
+            if (!properties.loaded && properties.url) {
+                imgRef.current.onload = function() {
+                    ctxEdit.drawImage(imgRef.current, 0, 0);
+                    const imgData = ctxEdit.getImageData(
+                        0, 0, properties.source_dims.x, properties.source_dims.y);
+                    return _init(imgData, properties.source_dims.x, properties.source_dims.y);
+                };
+            }
+
+            // [file] Handle image data loaded from input file
+            // - loads TIFF format image data
+            // - stores in source/edit states
+            if (!properties.loaded && properties.file) {
+                loadTIFF(properties.file)
+                    .then(tiff => {
+                        return _init(tiff, tiff.width, tiff.height);
+                    }).catch(err => {
+                    setError(true);
+                    console.error('Error:', err);
+                });
+            }
+
+            // [redraw] redraw canvas on signal
+            if (properties.redraw) {
+                // put transformed data onto edit layer
+                _redraw()
+                    .then(res => {
+                        setProperties(data => ({
+                            ...data,
+                            loaded: true,
+                            redraw: false,
+                            reset: false
+                        }));
+                    }).catch(err => {
+                    console.error(err);
+                    setMessage({ msg: 'Error: could not complete operation.', type: 'error' });
+                })
+            }
+        } catch (err) {
+            console.error(err);
+            setMessage({ msg: 'Error: could not complete operation.', type: 'error' });
         }
 
 
@@ -323,6 +306,7 @@ export const Canvas = ({
         id,
         source,
         setSource,
+        imgRef,
         inputImage,
         setInputImage,
         properties,
@@ -431,7 +415,7 @@ export const Canvas = ({
                 {
                     // hidden image instance
                     properties && properties.url &&
-                    <img ref={imgRef} src={properties.url} alt={`Canvas ${id} loaded data.`} />
+                    <img ref={imgRef} crossOrigin={'anonymous'} src={properties.url} alt={`Canvas ${id} loaded data.`} />
                 }
             </div>
         </>;
@@ -486,7 +470,7 @@ export const initCanvas = (canvasID, inputData) => {
         file_type: file_type,
         file_size: file_size,
         file: fileData,
-        url: url,
+        url: url.hasOwnProperty('medium') ? url.medium : '',
         pts: [],
         image_state: image_state,
     }

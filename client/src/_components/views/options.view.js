@@ -13,6 +13,7 @@ import { useRouter } from '../../_providers/router.provider.client';
 import Table from '../common/table';
 import EditorMenu from '../menus/editor.menu';
 import Input from '../common/input';
+import { useMessage } from '../../_providers/message.provider.client';
 
 /**
  * Render metadata options component.
@@ -30,6 +31,8 @@ const OptionsView = ({
 }) => {
 
     const router = useRouter();
+    const msg = useMessage();
+    const _isMounted = React.useRef(false);
 
     // initialize option data
     const [options, setOptions] = React.useState({});
@@ -49,13 +52,19 @@ const OptionsView = ({
      */
 
     const _refreshOptions = React.useCallback(() => {
+        _isMounted.current = true;
         router.get(`/${type}`)
             .then(res => {
-                const { data={} } = res || {};
-                setOptions(data);
+                if (_isMounted.current) {
+                    // destructure API data for options
+                    const { response = {} } = res || {};
+                    const { data = {} } = response || {};
+                    setOptions(data);
+                }
             })
             .catch(err => console.error(err));
-    }, [type, router])
+        return ()=>{_isMounted.current = false}
+    }, [type, router, msg])
 
     /**
      * Refresh options data state upon rendering.
@@ -70,7 +79,7 @@ const OptionsView = ({
     }, [_refreshOptions]);
 
     /**
-     * Refresh options data state.
+     * Refresh data state.
      *
      * @public
      * @param optType
@@ -80,7 +89,10 @@ const OptionsView = ({
     const _refresh = (optType, uri) => {
         router.get(uri)
             .then(res => {
-                const { data={} } = res || {};
+                // destructure API data for options
+                const { response = {} } = res || {};
+                const { data = {}, message={} } = response || {};
+                msg.setMessage(message);
                 setOptionData(optData => ({...optData, [optType]: data}));
             })
             .catch(err => console.error(err));

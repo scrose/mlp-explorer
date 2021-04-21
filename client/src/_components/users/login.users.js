@@ -26,7 +26,6 @@ const LoginUsers = () => {
 
     const user = useUser();
     const auth = useAuth();
-    const msg = useMessage();
     const schema = genSchema('login', 'users');
 
     // Redirect to dashboard if logged in
