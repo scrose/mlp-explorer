@@ -22,7 +22,7 @@ const MainMenu = () => {
                 <ul>
                     <li><a href={rootURL}>Home</a></li>
                     <li><a href={rootURL}>About</a></li>
-                    <li><a href={rootURL}>Tools</a></li>
+                    <li><a href={'/iat'}>IAT</a></li>
                     <li><a href={rootURL}>MLP</a></li>
                     <li><a href={rootURL}>Help</a></li>
                 </ul>

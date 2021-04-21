@@ -9,10 +9,10 @@ import React from 'react'
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
 import { getModelLabel } from '../../_services/schema.services.client';
-import Messenger from './messenger';
 import { convertCoordDMS, sorter } from '../../_utils/data.utils.client';
 import Icon from './icon';
 import Button from './button';
+import Message from './message';
 
 const noop = ()=>{};
 
@@ -584,7 +584,7 @@ export const Input = ({
     // get input element
     const input = _inputElements.hasOwnProperty(type)
         ?   _inputElements[type]()
-        :   <Messenger message={'Loading Error'} level={'error'} closeable={false} />
+        :   <Message message={'Loading Error'} level={'error'} closeable={false} />
 
     return type !== 'hidden' && type !== 'file'
         ?   <>

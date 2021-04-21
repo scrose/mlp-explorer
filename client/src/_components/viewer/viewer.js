@@ -6,12 +6,12 @@
  */
 
 import React from 'react';
-import Messenger from '../common/messenger';
+import Message from '../common/message';
 import DataView from '../views/data.view';
 import StaticView from '../views/static.view';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
-import MenuViewer from './menu.viewer';
+import ViewerMenu from '../menus/viewer.menu';
 
 /**
  * Render viewer panel component (unauthenticated).
@@ -26,10 +26,10 @@ const Viewer = () => {
 
     return (
         <div className={'viewer'}>
-            <MenuViewer/>
+            <ViewerMenu />
             <div className={'view'}>
                 <Heading />
-                <Messenger />
+                <Message />
                 {
                     router.staticView
                     ? <StaticView type={

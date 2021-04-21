@@ -10,7 +10,7 @@ import { useAuth } from '../../_providers/auth.provider.client';
 import { useUser } from '../../_providers/user.provider.client';
 import Loading from '../common/icon';
 import { redirect } from '../../_utils/paths.utils.client';
-import { popSessionMsg } from '../../_services/session.services.client';
+import { setSessionMsg } from '../../_services/session.services.client';
 
 const LogoutUsers = () => {
 
@@ -20,9 +20,9 @@ const LogoutUsers = () => {
     // Delete session data and redirect
     React.useEffect(() => {
         if (user) {
-            popSessionMsg();
             auth.logout();
-            redirect('/');
+            setSessionMsg({msg: 'User is signed out.', type:'info'});
+            redirect('/?redirect=true');
         }
         return () => {};
     }, [auth, user]);

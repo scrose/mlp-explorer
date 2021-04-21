@@ -122,7 +122,7 @@ export function filterPath() {
     // get current location path
     const path = window.location.pathname;
     const query = window.location.search;
-    const uri = `${path}${query ? query : ''}`
+    const uri = `${path}${query ? query : ''}`;
 
     // filter "nonviewable" static routes
     // - e.g. full nodes listing at '/nodes'
@@ -146,7 +146,7 @@ export function filterPath() {
 
 export function redirect(uri=null) {
     const route = uri ? uri : filterPath();
-    return window.location.href = `${_CLIENT}${route}`;
+    return window.location.href = `${getRoot()}${route}`;
 }
 
 /**

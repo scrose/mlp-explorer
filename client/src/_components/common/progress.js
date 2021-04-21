@@ -8,7 +8,7 @@
 import React from 'react';
 import Button from './button';
 import Dialog from './dialog';
-import Messenger from './messenger';
+import Message from './message';
 
 /**
  * Alert dialog component.
@@ -71,7 +71,7 @@ const Progress = ({
                     // render progress indicator for imports
                     return (
                         <div key={`${key}_msg_progress`}>
-                            <Messenger closeable={false} message={msg} level={type} />
+                            <Message closeable={false} message={msg} level={type} />
                             {
                                 // show progress bar if import has file uploads and no errors
                                 hasUploads && !error &&

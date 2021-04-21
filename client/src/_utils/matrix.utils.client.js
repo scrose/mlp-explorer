@@ -13,7 +13,7 @@
 
 /**
  * Swap pairs of control points.
- * - used to help make invese transforms for the alignment functions
+ * - used to help make inverse transforms for the alignment functions
  *
  * @param P
  */

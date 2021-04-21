@@ -10,6 +10,7 @@ import { makeRequest } from '../_services/api.services.client';
 import { createNodeRoute, filterPath, reroute, getRoot, createURL } from '../_utils/paths.utils.client';
 import { getStaticView } from '../_services/schema.services.client';
 import { clearNodes } from '../_services/session.services.client';
+import { useMessage } from './message.provider.client';
 
 /**
  * Global data provider.
@@ -46,6 +47,24 @@ function RouterProvider(props) {
 
     // clear node path in session state
     clearNodes();
+
+    /**
+     * Handle response data.
+     *
+     * @public
+     * @param {Object} res
+     */
+
+    const handleResponse = (res) => {
+
+        // No response: API is unavailable
+        if (!res) return setOnline(false);
+
+        // return response (and error flag)
+        const { response={} } = res || {};
+
+        return {hasError: !res.success, response: response};
+    }
 
     /**
      * Router to handle route requests.
@@ -102,18 +121,14 @@ function RouterProvider(props) {
                 return null;
             });
 
-        // No response: API is unavailable
-        if (!res) return setOnline(false);
-
-        // return response (and error flag)
-        const { response={} } = res || {};
-        return {hasError: !res.success, response: response};
+        return handleResponse(res);
     };
 
     /**
      * Request method to post data from API.
      *
      * @public
+     *
      * @param {String} route
      * @param {Object} formData
      */
@@ -138,12 +153,7 @@ function RouterProvider(props) {
                 return null;
             });
 
-        // No response: API is unavailable
-        if (!res) return setOnline(false);
-
-        // return response (and error flag)
-        const { response={} } = res || {};
-        return {hasError: !res.success, response: response};
+        return handleResponse(res);
     };
 
     /**
@@ -267,6 +277,7 @@ function RouterProvider(props) {
                 callback(res);
             })
             .catch(console.error);
+
     }
 
     /**

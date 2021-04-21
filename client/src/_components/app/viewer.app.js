@@ -11,7 +11,7 @@ import Viewer from '../viewer/viewer';
 import Footer from '../common/footer';
 import React from 'react';
 import HeaderViewer from '../viewer/header.viewer';
-import MenuViewer from '../viewer/menu.viewer';
+import ViewerMenu from '../menus/viewer.menu';
 
 /**
  * Main app component for unauthenticated users.

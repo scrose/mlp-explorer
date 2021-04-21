@@ -41,6 +41,8 @@ export const Canvas = ({
                            setOptions = noop,
                            properties = {},
                            setProperties = noop,
+                           inputImage=null,
+                           setInputImage=noop,
                            hidden = false,
                            pointer = {},
                            setPointer = noop,
@@ -54,7 +56,10 @@ export const Canvas = ({
 
     // source image data state
     const imgRef = React.useRef(null);
-    const [sourceData, setSourceData] = React.useState(null);
+
+    // internal image data source
+    // - used to reset canvas data
+    const [source, setSource] = React.useState(null);
 
     // create DOM references
     // - canvas consists of three layers (from top):
@@ -186,15 +191,22 @@ export const Canvas = ({
     React.useEffect(() => {
 
         /**
-         * Transform Image Data (Canvas API)
+         * Redraw Image Data to canvas (Canvas API)
          * Reference: https://gist.github.com/mauriciomassaia/b9e7ef6667a622b104c00249f77f8c03
          *
-         * @public
-         * @param imageData
-         * @param properties
+         * @private
          */
 
-        async function redraw (imageData, properties) {
+        async function _redraw () {
+
+            // reset image data to source
+            if (properties.reset) {
+                setInputImage(new ImageData(
+                    new Uint8ClampedArray(source.data),
+                    source.width,
+                    source.height,
+                ));
+            }
 
             const dx = properties.offset.x;
             const dy = properties.offset.y;
@@ -203,7 +215,8 @@ export const Canvas = ({
 
             const resizeWidth = x >> 0;
             const resizeHeight = y >> 0;
-            const ibm = await window.createImageBitmap(imageData, 0, 0, imageData.width, imageData.height, {
+            const ibm = await window.createImageBitmap(
+                inputImage, 0, 0, inputImage.width, inputImage.height, {
                 resizeWidth, resizeHeight
             });
 
@@ -218,7 +231,15 @@ export const Canvas = ({
                 ctxMarkUp.clearRect(0, 0, properties.dims.x, properties.dims.y)
             }
 
-            //ctx.scale(resizeWidth / imageData.width, resizeHeight / imageData.height);
+            // Save teh current context state
+            // if (properties.restore) {
+            //     ctxEdit.restore();
+            //     return;
+            // }
+
+            // Save the current context state
+            // ctxEdit.save();
+
             ctxEdit.drawImage(ibm, dx, dy);
             return ctxEdit.getImageData(0, 0, resizeWidth, resizeHeight);
         }
@@ -238,21 +259,31 @@ export const Canvas = ({
             // load TIFF format image
             loadTIFF(properties.file)
                 .then(tiff => {
-                    const imgData = new ImageData(
+                    const imgDataSource = new ImageData(
+                        new Uint8ClampedArray(tiff.data),
+                        tiff.width,
+                        tiff.height,
+                    );
+
+                    const imgDataEdit = new ImageData(
                         new Uint8ClampedArray(tiff.data),
                         tiff.width,
                         tiff.height,
                     );
 
                     // store source image data
-                    setSourceData(imgData);
+                    setSource(imgDataSource);
+
+                    // initialize editable image date
+                    setInputImage(imgDataEdit);
 
                     // put image data on edit layer
-                    ctxEdit.putImageData(imgData, 0, 0);
+                    ctxEdit.putImageData(imgDataEdit, 0, 0);
 
                     // initialize canvas properties
                     setProperties(data => ({
                         ...data,
+                        file: null,
                         loaded: true,
                         redraw: false,
                         edit_dims: {
@@ -273,23 +304,32 @@ export const Canvas = ({
 
         // redraw canvas on signal
         if (properties.redraw) {
-            setMessage(null);
-
             // put transformed data onto edit layer
-            redraw(
-                sourceData,
-                properties
-            ).then (res => {
-                setProperties(data => ({ ...data, loaded: true, redraw: false }));
+            _redraw()
+                .then (res => {
+                setProperties(data => ({ ...data,
+                    loaded: true,
+                    redraw: false,
+                    reset: false }));
             }).catch(err => {
                 console.error(err);
                 setMessage({msg:'Error: could not complete operation.', type: 'error'});
             })
-
         }
 
 
-    }, [error, id, sourceData, setSourceData, properties, setProperties, options, setMessage]);
+    }, [
+        error,
+        id,
+        source,
+        setSource,
+        inputImage,
+        setInputImage,
+        properties,
+        setProperties,
+        options,
+        setMessage
+    ]);
 
     return !hidden && Object.keys(properties).length > 0 &&
         <>
@@ -370,7 +410,7 @@ export const Canvas = ({
                     <canvas
                         ref={editLayerRef}
                         id={`${id}_edit_layer`}
-                        className={`layer canvas-layer-edit`}
+                        className={`layer canvas-layer-edit${!properties.loaded ? ' hidden' : ''}`}
                         width={properties.dims.x}
                         height={properties.dims.y}
                     >
@@ -397,14 +437,22 @@ export const Canvas = ({
         </>;
 };
 
-export default React.memo(Canvas);
-
-
 /**
  * Initialize input data.
  * @param canvasID
  * @param inputData
- * @return {{dims: {x: number, y: number}, offset: {x: number, y: number}, hidden: boolean, origin: {x: number, y: number}, edit_dims: {x: number, y: number}, url: ({width: number}|number|{path: string, size: *}|string), pts: [], loaded: boolean, filename: string, files_id: string, file_type: string, id: string, source_dims: {x: number, y: number}, image_state: string}}
+ * @return {{dims: {x: number, y: number},
+ * offset: {x: number, y: number},
+ * hidden: boolean,
+ * origin: {x: number, y: number},
+ * edit_dims: {x: number, y: number},
+ * url: ({width: number}|number|{path: string, size: *}|string),
+ * pts: [], loaded: boolean, filename: string,
+ * files_id: string,
+ * file_type: string,
+ * id: string,
+ * source_dims: {x: number, y: number},
+ * image_state: string}}
  */
 
 export const initCanvas = (canvasID, inputData) => {
@@ -422,6 +470,8 @@ export const initCanvas = (canvasID, inputData) => {
 
     return {
         redraw: false,
+        reset: false,
+        restore: false,
         id: canvasID,
         dims: { x: 350, y: 350 },
         offset: { x: 0, y: 0 },

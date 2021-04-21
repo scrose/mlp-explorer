@@ -7,7 +7,7 @@
 
 import React from 'react';
 import DataView from '../views/data.view';
-import Messenger from '../common/messenger';
+import Message from '../common/message';
 import StaticView from '../views/static.view';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
@@ -43,7 +43,7 @@ const Editor = () => {
                 />
                 <div className={'view'}>
                     <Heading/>
-                    <Messenger/>
+                    <Message/>
                     {
                         router.staticView
                             ? <StaticView type={

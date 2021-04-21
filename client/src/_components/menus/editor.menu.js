@@ -256,7 +256,7 @@ const EditorMenu = ({
     }
 
     return (
-        // restrict to authenticated users
+        // restrict menu to authenticated users
         user &&
         <>
             {

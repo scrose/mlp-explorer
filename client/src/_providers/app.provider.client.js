@@ -10,18 +10,21 @@ import { AuthProvider } from './auth.provider.client';
 import { RouterProvider } from './router.provider.client';
 import { UserProvider } from './user.provider.client';
 import { DataProvider } from './data.provider.client';
+import { MessageProvider } from './message.provider.client';
 
 function AppProviders({ children }) {
     return (
-        <RouterProvider>
-            <AuthProvider>
-                <UserProvider>
-                    <DataProvider>
-                        {children}
-                    </DataProvider>
-                </UserProvider>
-            </AuthProvider>
-        </RouterProvider>
+        <MessageProvider>
+            <RouterProvider>
+                <AuthProvider>
+                    <UserProvider>
+                        <DataProvider>
+                            {children}
+                        </DataProvider>
+                    </UserProvider>
+                </AuthProvider>
+            </RouterProvider>
+        </MessageProvider>
     );
 }
 

@@ -11,7 +11,7 @@ import Button from '../common/button';
 import Image from '../common/image';
 import { initCanvas } from '../common/canvas';
 import Input from '../common/input';
-import Messenger from '../common/messenger';
+import Message from '../common/message';
 
 /**
  * Image selector widget.
@@ -94,7 +94,7 @@ export const ImageSelector = ({
         }
         {
             <Accordion label={'Select Image'} type={'image'} open={true}>
-                <Messenger closeable={false} message={error} level={'error'} />
+                <Message closeable={false} message={error} level={'error'} />
                 <Input
                     type={'file'}
                     name={'image_file'}
@@ -106,7 +106,7 @@ export const ImageSelector = ({
         {
             selectedImage &&
             <fieldset className={'submit'}>
-                <Messenger closeable={false} message={`Image ${selectedFile} selected.`} level={'info'} />
+                <Message closeable={false} message={`Image ${selectedFile} selected.`} level={'info'} />
                 <Button
                     label={'Load Image'}
                     onClick={_handleSubmit}

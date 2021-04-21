@@ -35,8 +35,13 @@ const ImageTools = () => {
         controlPtMax: 4
     });
 
+    // Canvas properties
     const [canvas1Data, setCanvas1Data] = React.useState(initCanvas(canvas1ID, input1));
     const [canvas2Data, setCanvas2Data] = React.useState(initCanvas(canvas2ID, input2));
+
+    // Editable image data
+    const [img1Data, setImg1Data] = React.useState(null);
+    const [img2Data, setImg2Data] = React.useState(null);
 
     // initialize default methods for control canvas
     // - default mode
@@ -87,6 +92,10 @@ const ImageTools = () => {
                 setCanvas1={setCanvas1Data}
                 canvas2={canvas2Data}
                 setCanvas2={setCanvas2Data}
+                image1={img1Data}
+                setImage1={setImg1Data}
+                image2={img2Data}
+                setImage2={setImg2Data}
                 selection={selection}
                 setMethods={setMethods}
                 dialogToggle={dialogToggle}
@@ -103,6 +112,8 @@ const ImageTools = () => {
                     setOptions={setOptions}
                     properties={canvas1Data}
                     setProperties={setCanvas1Data}
+                    inputImage={img1Data}
+                    setInputImage={setImg1Data}
                     pointer={pointer.canvas1}
                     setPointer={setPointer}
                     setMessage={setMessage}
@@ -118,6 +129,8 @@ const ImageTools = () => {
                     setOptions={setOptions}
                     properties={canvas2Data}
                     setProperties={setCanvas2Data}
+                    inputImage={img2Data}
+                    setInputImage={setImg2Data}
                     pointer={pointer.canvas2}
                     setPointer={setPointer}
                     setMessage={setMessage}
@@ -139,6 +152,6 @@ export default React.memo(ImageTools);
  */
 
 const CanvasMessage = ({message}) => {
-    const {msg='', type=''} = message || {};
+    const {msg='', type='error'} = message || {};
     return msg && <ValidationMessage msg={[msg]} type={type} />
 }

@@ -10,6 +10,7 @@ import { useRouter } from './router.provider.client';
 import { getRootNode } from '../_utils/data.utils.client';
 import { getSessionMsg } from '../_services/session.services.client';
 import { useUser } from './user.provider.client';
+import { useMessage } from './message.provider.client';
 
 /**
  * Global data provider.
@@ -29,6 +30,7 @@ const DataContext = React.createContext({})
 
 function DataProvider(props) {
 
+    const msg = useMessage();
     const router = useRouter();
     const user= useUser();
 
@@ -42,9 +44,6 @@ function DataProvider(props) {
 
     // data error
     const [error, setError] = React.useState(false);
-
-    // messenger
-    const [message, setMessage] = React.useState(getSessionMsg());
 
     // Addresses: Can't perform a React state update on unmounted component.
     // This is a no-op, but it indicates a memory leak in your
@@ -101,13 +100,14 @@ function DataProvider(props) {
             .then(res => {
                 console.log('\nOptions >>>\n', res);
                 // destructure API data for options
-                const { data = {}, message = {} } = res || {};
+                const { response = {} } = res || {};
+                const { data = {}, message = {} } = response || {};
                 // update states with response data
-                if (message.type === 'error') setMessage(message);
+                if (message.type === 'error') msg.setMessage(message);
                 setOptions(data);
             })
             .catch(err => console.error(err));
-    }, [router, setOptions, setMessage]);
+    }, [router, setOptions, error]);
 
     /**
      * Load API data.
@@ -142,8 +142,6 @@ function DataProvider(props) {
             setView('');
             setModel('');
 
-            console.log('Route:', router.route)
-
             // call API for page data
             router.get(router.route)
                 .then(res => {
@@ -164,7 +162,7 @@ function DataProvider(props) {
 
                     // check if response data is empty (set error flag to true)
                     if ( hasError ) {
-                        setMessage(message);
+                        msg.setMessage(message);
                         return setError(true);
                     }
 
@@ -175,7 +173,7 @@ function DataProvider(props) {
                         setView(view);
                         setModel(name);
                         setPath(path);
-                        setMessage(message);
+                        msg.setMessage(message);
                     }
                 })
                 .catch(err => console.error(err));
@@ -184,7 +182,7 @@ function DataProvider(props) {
         return () => {
             _isMounted.current = false;
         };
-    }, [router]);
+    }, [router, msg]);
 
     // destructure API data
     const root = getRootNode(path);
@@ -224,8 +222,6 @@ function DataProvider(props) {
                 options,
                 setOptions,
                 loadOptions,
-                message,
-                setMessage,
                 destructure
             }
         } {...props} />

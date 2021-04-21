@@ -8,6 +8,7 @@
 import * as React from 'react'
 import { useRouter } from './router.provider.client';
 import { setSessionMsg } from '../_services/session.services.client';
+import { useMessage } from './message.provider.client';
 
 /**
  * Global authentication context.
@@ -35,17 +36,16 @@ function AuthProvider(props) {
      * User login request.
      *
      * @public
+     *
      */
 
     const login = async (route, credentials) => {
         return await router.post('/login', credentials)
             .then(res => {
-                const { user=null } = res || {};
-                // create user session on success
-                if (user) {
-                    setData(user);
-                }
-                return res
+                // create user session
+                const { response={} } = res || {};
+                const { user=null } = response || {};
+                if (user) setData(user);
             });
     }
 
@@ -58,9 +58,8 @@ function AuthProvider(props) {
     const logout = async () => {
         await router.post('/logout')
             .then(res => {
-                // Note: Keycloak logout operation returns no _static (204)
+                // Note: Keycloak logout operation returns no_static (204)
                 setData(null);
-                setSessionMsg(res.message);
             });
     }
 
@@ -74,12 +73,10 @@ function AuthProvider(props) {
         _isMounted.current = true;
 
         // request new token
-        router.post('/refresh')
+        router.post('/refresh', null, true)
             .then(res => {
-                // console.log('Refresh:', res)
-                // reset user session data
-                const { user = null } = res || {};
-                // update states with response data
+                const { response={} } = res || {};
+                const { user = null } = response || {};
                 if (_isMounted.current) {
                     setData(user);
                 }

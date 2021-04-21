@@ -9,6 +9,7 @@
 import { getError } from '../_services/schema.services.client';
 import * as matrix from '../_utils/matrix.utils.client';
 import * as UTIF from 'utif';
+import { homography } from './matrix.utils.client';
 
 /**
  * Loads TIFF format image file.
@@ -43,14 +44,43 @@ export const loadTIFF = (file) => {
 }
 
 /**
- * Get API url for given image.
+ * Transform images data for alignment.
  *
  * @public
- * @param image
+ * @param imgData1
+ * @param imgData2
+ * @param canvas1
+ * @param canvas2
+ * @param options
  */
 
-export const getImageURL = (image) => {
-    return image && typeof image.url != 'undefined' ? image.url.medium : '';
+export const alignImages = (imgData1, imgData2, canvas1, canvas2, options) => {
+
+    if (!imgData1 || !imgData2 || !canvas1.loaded || !canvas2.loaded) {
+        return { data: null, error: { msg: getError('emptyCanvas', 'canvas') } };
+    }
+    if (canvas1.pts.length < options.controlPtMax || canvas2.pts.length < options.controlPtMax) {
+        return { data: null, error: { msg: getError('missingControlPoints', 'canvas') } };
+    }
+
+    // compute alignment transformation matrix
+    const transform = getAlignmentTransform(canvas1.pts, canvas2.pts);
+
+    // prepare data for transform
+    let img1 = new Uint32Array( imgData1.data.buffer );
+    let img2 = new Uint32Array( imgData2.data.buffer );
+
+    // apply transformation to image 2 (img2) on left hand side
+    homography( transform, img1, img2, canvas1.source_dims.x, canvas1.source_dims.y );
+
+    // convert image array from Uint32 to Uint8ClampedArray (for ImageData obj)
+    const imgData = new ImageData(
+        new Uint8ClampedArray(img2.buffer),
+        canvas2.edit_dims.x,
+        canvas2.edit_dims.y,
+    );
+
+    return { data: imgData, error: null};
 }
 
 /**
@@ -160,22 +190,21 @@ export const getControlPoints = (e, canvas, props, setProps, options) => {
 }
 
 /**
- * Apply alignment transformation to image data.
- * - Uses four control points (x,y)
+ * Compute alignment transformation matrix image data.
+ * - Uses four control points (x,y) given in each canvas
  *
  * Reference: https://franklinta.com/2014/09/08/computing-css-matrix3d-transforms/
  *
  * @public
  * @return {*[]}
- * @param canvas1
- * @param canvas2
- * @param options
+ * @param pts1
+ * @param pts2
  */
 
-export const align = (canvas1, canvas2, options) => {
+export const getAlignmentTransform = (pts1, pts2) => {
 
     // convert control points to vector array
-    const pts = canvas1.pts.concat(canvas2.pts);
+    const pts = pts1.concat(pts2);
     let p = pts.reduce((o, pt) => {
         o.push([parseFloat(pt.x), parseFloat(pt.y)]);
         return o;
@@ -190,7 +219,7 @@ export const align = (canvas1, canvas2, options) => {
     let getPercent = function(x){return Math.floor((x+.001)*100)/100;};
     //var pf = function(x){return Math.floor(x*100)/100;};
     //var pf = function(x){return x;};
-    let ii,jj; // determinant
+    let ii, jj; // determinant
 
     // Note the inverse matrix should be just as easy to compute,
     // reversing the roles of [0,2,4,6] with [1,3,5,7]
@@ -270,7 +299,6 @@ export const align = (canvas1, canvas2, options) => {
             //console.log('Points '+i+','+j+','+k+' e='+pf(e)+' RMSE='+pf(RMSE));
             console.log('   d:'+s);
             console.log('   e='+getPercent(e)+' RMSE='+getPercent(RMSE));
-
         }
 
         console.log('Transformation Mat:', X8);

@@ -13,7 +13,6 @@ import { redirect } from '../../_utils/paths.utils.client';
 import BreadcrumbMenu from '../menus/breadcrumb.menu';
 import Accordion from '../common/accordion';
 import Button from '../common/button';
-import Icon from '../common/icon';
 
 /**
  * User navigation menu (authenticated).

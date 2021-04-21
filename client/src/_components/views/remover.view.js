@@ -8,7 +8,7 @@
 import React from "react";
 import { useRouter } from '../../_providers/router.provider.client';
 import { getModelLabel } from '../../_services/schema.services.client';
-import Messenger from '../common/messenger';
+import Message from '../common/message';
 import Button from '../common/button';
 import Dialog from '../common/dialog';
 import { popSessionMsg } from '../../_services/session.services.client';
@@ -95,7 +95,7 @@ const Remover = ({
                 response &&
                     <div>
                         <div className={'alert-box-buttons'}>
-                            <Messenger closeable={false} message={msg} level={type} />
+                            <Message closeable={false} message={msg} level={type} />
                             <Button icon={'success'} name={'done'} label={'OK'} onClick={() => {
                                 popSessionMsg();
                                 callback();

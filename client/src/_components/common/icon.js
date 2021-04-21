@@ -186,6 +186,7 @@ const getIconClass = (iconType) => {
         upload: 'file-upload',
         download: 'file-download',
         image: 'image',
+        images: 'images',
         metadata_files: 'file-download',
         projects: 'project-diagram',
         surveyors: 'hiking',

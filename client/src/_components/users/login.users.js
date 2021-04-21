@@ -14,6 +14,7 @@ import { getSessionMsg, popSessionMsg, setSessionMsg } from '../../_services/ses
 import { genSchema } from '../../_services/schema.services.client';
 import Loading from '../common/icon';
 import { useData } from '../../_providers/data.provider.client';
+import { useMessage } from '../../_providers/message.provider.client';
 
 /**
  * User sign in form component.
@@ -25,16 +26,14 @@ const LoginUsers = () => {
 
     const user = useUser();
     const auth = useAuth();
+    const msg = useMessage();
     const schema = genSchema('login', 'users');
-
-    // clear session messages
-    popSessionMsg();
 
     // Redirect to dashboard if logged in
     React.useEffect(() => {
         if (user) {
             setSessionMsg({msg: 'User is signed in.', type:'info'});
-            redirect('/');
+            redirect('/?redirect=true');
         }
         return () => {};
     }, [user]);
