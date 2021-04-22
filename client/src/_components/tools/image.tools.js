@@ -71,7 +71,9 @@ const ImageTools = () => {
 
     // get query parameter for master option
     // - must correspond to a modern image file ID
-    const modernImageID = getQuery('master') || '';
+    const input1ImgID = getQuery('input1') || '';
+    const input2ImgID = getQuery('input2') || '';
+    const masterID = getQuery('master') || '';
 
     /**
      * Load initial input image data (if requested)
@@ -80,8 +82,8 @@ const ImageTools = () => {
     React.useEffect(() => {
         _isMounted.current = true;
         // get available historic image selection for given modern capture image
-        if (modernImageID) {
-            router.get(createNodeRoute('modern_images', 'master', modernImageID))
+        if (masterID) {
+            router.get(createNodeRoute('modern_images', 'master', masterID))
                 .then(res => {
                     if (_isMounted.current) {
                         setError(res.error);
@@ -94,7 +96,7 @@ const ImageTools = () => {
                 });
         }
         return ()=>{_isMounted.current = false;}
-    }, [modernImageID, router, setSelection, setCanvas2Data]);
+    }, [input2ImgID, router, setSelection, setCanvas2Data]);
 
     return <>
             <CanvasMenu

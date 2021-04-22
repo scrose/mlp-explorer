@@ -6,6 +6,8 @@
  */
 
 import React from 'react';
+import { schema } from '../../schema';
+const fallbackSrc = schema.errors.image.fallbackSrc;
 
 /**
  * Defines image component.
@@ -15,7 +17,7 @@ import React from 'react';
  */
 
 const Image = ({
-                   url='',
+                   url=fallbackSrc,
                    title='',
                    label='',
                    scale='',
@@ -23,15 +25,13 @@ const Image = ({
                    onDoubleClick=()=>{}
 }) => {
 
-    console.log(url, scale)
 
-    const fallbackSrc = '/logo192.png';
     const [src, setSrc] = React.useState(scale ? url[scale] : url);
     const [error, setError] = React.useState(false);
 
     // Handler for resource loading errors.
     // - uses fallback image
-    const onError = (err) => {
+    const onError = () => {
         if (!error) {
             setSrc(fallbackSrc);
             setError(true);

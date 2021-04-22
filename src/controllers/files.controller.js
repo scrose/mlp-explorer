@@ -309,15 +309,14 @@ export default function FilesController(modelType) {
             if (!fileData)
                 return next(new Error('notFound'));
 
-            // create file instance
+            // create file metadata instance
             const item = new Model(fileData.metadata);
             let file = await cserve.createFile(item, fileData);
-            const filepaths = [];
 
-            // delete file
-            const resData = await fserve.remove(file, filepaths);
-            if (resData.error) {
-                return next(resData.error);
+            // delete files
+            const resData = await fserve.remove(file, fileData.url);
+            if (resData) {
+                return next(new Error('fileDeleteError'));
             }
 
             res.status(200).json(

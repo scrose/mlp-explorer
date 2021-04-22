@@ -87,12 +87,15 @@ const VisitsView = ({ model, data }) => {
                                     data={dependent} />;
                             })
                     }
-                    <Accordion
+                    {
+                        captures.length > 0 &&
+                        <Accordion
                         type={'unsorted_captures'}
                         label={`Unsorted Captures`}
                     >
-                        <CapturesView captures={captures} fileType={'modern_images'} />
-                    </Accordion>
+                            <CapturesView captures={captures} fileType={'modern_images'}/>
+                        </Accordion>
+                    }
                 </>
         }
     </>;

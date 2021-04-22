@@ -325,8 +325,9 @@ const EditorMenu = ({
                             <Button
                                 icon={'master'}
                                 title={`Master ${getModelLabel(fileType)} ${label}.`}
-                                onClick={e =>
-                                    onClick(e, fileType, 'master', id)
+                                onClick={() =>
+                                    // launch IAT tool with 'master' option
+                                    router.update(`/iat?master=${id}`)
                                 }
                             />
                         </li>

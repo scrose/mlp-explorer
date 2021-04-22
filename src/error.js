@@ -123,6 +123,12 @@ export const errors = {
         status: 422,
         type: 'error'
     },
+    fileDeleteError: {
+        hint: 'NodeJS Filesystem Error: ENOENT: no such file or directory, unlink .',
+        msg: 'File could not be deleted.',
+        status: 500,
+        type: 'error'
+    },
     notFound: {
         hint: 'Route is not implemented in the router.',
         msg: 'Requested route not found.',

@@ -10,6 +10,7 @@ import { getPos, loadTIFF } from '../../_utils/image.utils.client';
 import Button from './button';
 import { CanvasControls} from '../menus/canvas.menu';
 import { sanitize } from '../../_utils/data.utils.client';
+import { getModelLabel } from '../../_services/schema.services.client';
 
 /**
  * No operation.
@@ -210,6 +211,8 @@ export const Canvas = ({
 
             async function _redraw () {
 
+                console.log('Redraw', properties, inputImage)
+
                 // reset image data to source
                 if (properties.reset) {
                     setInputImage(new ImageData(
@@ -226,17 +229,19 @@ export const Canvas = ({
                     resizeWidth, resizeHeight
                 });
 
-                // set new canvas dimensions
-                editLayerRef.current.width = Math.min(resizeWidth, properties.dims.x);
-                editLayerRef.current.height = Math.min(resizeHeight, properties.dims.y);
-                const ctxEdit = editLayerRef.current.getContext('2d');
-
                 // Handle Markup: set points
                 if (properties.pts.length === 0) {
                     const ctxMarkUp = markupLayerRef.current.getContext('2d');
                     ctxMarkUp.clearRect(0, 0, properties.dims.x, properties.dims.y)
                 }
 
+                // Handle Image Edits:
+                // - set new canvas dimensions
+                editLayerRef.current.width = Math.min(resizeWidth, properties.dims.x);
+                editLayerRef.current.height = Math.min(resizeHeight, properties.dims.y);
+                const ctxEdit = editLayerRef.current.getContext('2d');
+
+                // redraw image from data
                 ctxEdit.drawImage(ibm, properties.offset.x, properties.offset.y);
                 return ctxEdit.getImageData(0, 0, resizeWidth, resizeHeight);
             }
@@ -252,12 +257,11 @@ export const Canvas = ({
             // get canvas layer contexts
             let ctxEdit = editLayerRef.current.getContext('2d');
 
-            console.log(properties)
-
             // [url] Handle image data loaded from URL
             // - loads image data from url
             // - stores in source/edit states
             if (!properties.loaded && properties.url) {
+                console.log('Load from URL:', properties)
                 imgRef.current.onload = function() {
                     ctxEdit.drawImage(imgRef.current, 0, 0);
                     const imgData = ctxEdit.getImageData(
@@ -270,6 +274,7 @@ export const Canvas = ({
             // - loads TIFF format image data
             // - stores in source/edit states
             if (!properties.loaded && properties.file) {
+                console.log('Load from File:', properties)
                 loadTIFF(properties.file)
                     .then(tiff => {
                         return _init(tiff, tiff.width, tiff.height);
@@ -410,11 +415,10 @@ export const Canvas = ({
                         Base Layer: Canvas API Not Supported
                     </canvas>
                 </div>
-                }
                 <CanvasInfo id={id} properties={properties} options={options} />
                 {
                     // hidden image instance
-                    properties && properties.url &&
+                    properties &&
                     <img ref={imgRef} crossOrigin={'anonymous'} src={properties.url} alt={`Canvas ${id} loaded data.`} />
                 }
             </div>
@@ -491,7 +495,8 @@ const CanvasInfo = ({ id, properties, options }) => {
             <tbody>
             <tr>
                 <th>File</th>
-                <td colSpan={3}>{properties.filename} {properties.file_type ? `(${properties.file_type})` : '' }</td>
+                <td colSpan={3}>{properties.filename} {
+                    properties.file_type ? `(${getModelLabel(properties.file_type)})` : '' }</td>
             </tr>
             <tr>
                 <th>Image</th>

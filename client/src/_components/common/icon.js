@@ -66,10 +66,14 @@ import {
     faExchangeAlt,
     faTools,
     faObjectGroup,
-    faToolbox
+    faToolbox,
+    faExclamationCircle,
+    faQuestionCircle
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
+    faQuestionCircle,
+    faExclamationCircle,
     faToolbox,
     faObjectGroup,
     faTools,
@@ -166,7 +170,9 @@ const getIconClass = (iconType) => {
         undo: 'undo',
         erase: 'eraser',
         swap: 'exchange-alt',
+        help: 'question-circle',
         success: 'check-circle',
+        warning: 'exclamation-circle',
         error: 'times-circle',
         cancel: 'times-circle',
         logo: 'mountain',

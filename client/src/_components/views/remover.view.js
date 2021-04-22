@@ -40,8 +40,6 @@ const Remover = ({
     const [response, setResponse] = React.useState(null);
     const [resMessage, setMessage] = React.useState({});
 
-    console.log(id, model)
-
     /**
      * Handle delete request.
      *
@@ -62,8 +60,9 @@ const Remover = ({
      */
 
     const _handleCompletion = (res) => {
-        const {message={}} = res || {};
-        setResponse(res);
+        const {response = {}} = res || {};
+        const {message={}} = response || {};
+        setResponse(response);
         setMessage(message);
     }
 

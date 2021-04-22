@@ -20,7 +20,6 @@ import { insertMetadata } from './import.services.js';
 import * as cserve from './construct.services.js';
 import * as metaserve from '../services/metadata.services.js';
 import ModelServices from './model.services.js';
-import * as http from 'http';
 
 /**
  * Get file record by ID. NOTE: returns single object.
@@ -333,15 +332,24 @@ export const update = async(item, client=pool) => {
 
 export const remove = async(file, filepaths, client=pool) => {
 
-    let error = null;
     let { sql, data } = queries.files.remove(file);
-    let response = await client.query(sql, data);
+    let response = await client.query(sql, data) || [];
+    const staticSlug = '/resources';
 
     // delete attached files
     // - assumes file paths are to regular files.
+    // - requires removal of static slug from file path
+    //   as set in Express static-serve
     await Promise.all(
-        filepaths.map( async(path) => {
-            await unlink(path);
+        Object.keys(filepaths).map( async(key) => {
+            let filepath = filepaths[key].pathname;
+            // remove resources slug from url path
+            if (filepath.indexOf(staticSlug) === 0)
+                filepath = filepath.slice(staticSlug.length, filepath.length);
+            console.warn('Delete File:', path.join(process.env.UPLOAD_DIR, filepath))
+            let res = await unlink(path.join(process.env.UPLOAD_DIR, filepath));
+            if (res)
+                throw new Error('')
         })
     );
 
@@ -604,11 +612,11 @@ export const saveFile = function(index, metadata) {
                 size: { width: null },
             },
             thumb: {
-                path: path.join(outDir, 'versions', `thumb_${imgToken}.jpg`),
+                path: path.join(outDir, 'versions', `thumb_${imgToken}.jpeg`),
                 size: imageSizes.thumb,
             },
             medium: {
-                path: path.join(outDir, 'versions', `medium_${imgToken}.jpg`),
+                path: path.join(outDir, 'versions', `medium_${imgToken}.jpeg`),
                 size: imageSizes.medium,
             },
         };

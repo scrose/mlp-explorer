@@ -52,7 +52,6 @@ export const ImageSelector = ({
         const {target={}} = e || {};
 
         // get metadata (for capture images)
-        console.log(selectedImage)
         const { url={} } = selectedImage || {};
 
         // get local file data
@@ -178,6 +177,7 @@ const CaptureSelector = ({selection, setSelectedImage, onSubmit}) => {
                                         </input>
                                         <Image
                                             url={url}
+                                            scale={'thumb'}
                                             title={`Select ${file.filename || ''}.`}
                                             label={label}
                                             onClick={() => {

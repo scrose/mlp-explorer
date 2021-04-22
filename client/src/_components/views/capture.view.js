@@ -93,7 +93,7 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
     });
 
     return  <>
-                <h5>Capture Images</h5>
+                <h4>Capture Images</h4>
                 <Table rows={rows} cols={cols} className={'files'} />
             </>
 

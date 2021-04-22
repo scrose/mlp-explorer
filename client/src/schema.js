@@ -60,6 +60,9 @@ export const schema = {
         }
     },
     errors: {
+        image: {
+          fallbackSrc: '/logo192.png'
+        },
         validation: {
             isRequired: 'This field is required.',
             isSelected: 'Please select an item.',
@@ -795,9 +798,9 @@ export const schema = {
             },
             fieldsets: [
                 {
+                    restrict: ['edit'],
                     files_id: {
-                        render: 'hidden',
-                        restrict: ['edit']
+                        render: 'hidden'
                     }
                 },
                 {

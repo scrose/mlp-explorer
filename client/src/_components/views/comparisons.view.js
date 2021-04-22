@@ -24,15 +24,11 @@ const ComparisonOverlay = ({
                                },
                            }) => {
 
-    console.log(captures)
-
     const [historic, modern] = captures || [];
     const historicImage = typeof historic.files.historic_images != null
         ? historic.files.historic_images.find(img => img.metadata.image_state === 'master') : {};
     const modernImage = typeof historic.files.modern_images != null
         ? modern.files.modern_images.find(img => img.metadata.image_state === 'master') : {};
-
-    console.log(historicImage, modernImage)
 
     return <Slider images={[historicImage, modernImage]} />;
 
@@ -45,8 +41,6 @@ const ComparisonOverlay = ({
  */
 
 const ComparisonsView = ({data = {}, callback = () => {} }) => {
-
-    const router = useRouter();
 
     // toggle to dhow/hide popup dialogs
     const [dialogToggle, setDialogToggle] = React.useState('');
@@ -68,11 +62,20 @@ const ComparisonsView = ({data = {}, callback = () => {} }) => {
             : '';
     };
 
-    const { id = '', historic_capture = {}, modern_capture = {} } = data || {};
+    const { historic_capture = {}, modern_capture = {} } = data || {};
+
+    // check if captures have no files
+    const hasMissingFiles = (
+        modern_capture.hasOwnProperty('files')
+        && Object.keys(modern_capture.files).length === 0
+        ) || (
+            historic_capture.hasOwnProperty('files')
+            && Object.keys(historic_capture.files).length === 0
+        )
 
     return <>
         { showDialog() }
-        <div className={'comparisons-item'}>
+        <div className={`comparisons-item${hasMissingFiles ? ' missing' : ''}`}>
             <div className={'h-menu'}>
                 <CapturesView
                     captures={[historic_capture]}
@@ -95,6 +98,18 @@ const ComparisonsView = ({data = {}, callback = () => {} }) => {
                             }}
                         />
                     </li>
+                    {
+                        hasMissingFiles &&
+                        <li>
+                            <Button
+                                className={'msg warning'}
+                                icon={'warning'}
+                                label={'Missing Image'}
+                                onClick={() => {
+                                }}
+                            />
+                        </li>
+                    }
                     {/*<li>*/}
                     {/*    <Button*/}
                     {/*        icon={'master'}*/}

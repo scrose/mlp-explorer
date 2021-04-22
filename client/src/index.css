@@ -350,7 +350,7 @@ Logo
 }
 .logo-svg {
     border-radius: 5px;
-    background-image: linear-gradient( #C9ABDD, #282c34);
+    background-image: linear-gradient( #008896, #282c34);
     padding: 2px 5px;
     margin-right: 10px;
     width: 35px;
@@ -358,7 +358,7 @@ Logo
     align-items: center;
 }
 .logo .wordmark {
-    color: #D8C3E7;
+    color: #CCCCCC;
     line-height: 100%;
     vertical-align: middle;
 }
@@ -1763,6 +1763,7 @@ Messages
     flex-grow: 4;
 }
 .msg-icon {
+    width: auto !important;
     padding: 10px 20px;
 }
 .msg .close {

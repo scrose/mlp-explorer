@@ -276,7 +276,6 @@ function RouterProvider(props) {
                 callback(res);
             })
             .catch(console.error);
-
     }
 
     /**
