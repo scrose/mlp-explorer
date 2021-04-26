@@ -9,6 +9,7 @@ import React from 'react';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import Button from './button';
+import Icon from './icon';
 
 /**
  * Inline vertical accordion menu component.
@@ -20,7 +21,7 @@ import Button from './button';
  */
 
 const Accordion = ({
-                       type,
+                       type='',
                        label='',
                        id='',
                        open=false,
@@ -33,11 +34,7 @@ const Accordion = ({
     const [toggle, setToggle] = React.useState(open);
     const router = useRouter();
 
-    // use toggle icon to show state of loading
-    const onToggle = () => {
-        return toggle ? 'vopen' : 'vclose';
-    }
-
+    // toggle accordion data
     const onClick = () => {
         setToggle(!toggle);
     }
@@ -49,18 +46,19 @@ const Accordion = ({
                     (hasDependents || children) &&
                         <li key={`accordion_toggle`}>
                             <Button
-                                icon={onToggle()}
-                                title={`Expand this item.`}
-                                onClick={() => {
-                                    setToggle(!toggle);
-                                }}
+                                icon={toggle ? 'vopen' : 'vclose'}
+                                title={toggle ? 'Collapse' : 'Expand'}
+                                onClick={onClick}
                             />
                         </li>
                 }
                 {
                     type && children &&
                         <li key={`accordion_icon`}>
-                            <Button icon={type} onClick={onClick} />
+                            <Button
+                                icon={type}
+                                title={toggle ? 'Collapse' : 'Expand'}
+                                onClick={onClick} />
                         </li>
                 }
                 {
@@ -82,11 +80,12 @@ const Accordion = ({
                 }
             </ul>
         </div>
-        <div className={`accordion-data ${toggle ? 'open' : ''}`}>
-            {
-                toggle && <>{children}</>
-            }
-        </div>
+        {
+            toggle &&
+            <div className={`accordion-data ${toggle ? 'open' : ''}`}>
+                <>{children}</>
+            </div>
+        }
     </div>
 }
 

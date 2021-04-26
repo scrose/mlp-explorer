@@ -53,6 +53,7 @@ const Fieldset = ({
      */
 
     const _handleChange = e => {
+        console.log(e)
 
         const {target={}} = e || {};
         const { name='', value='' } = target;
@@ -115,7 +116,6 @@ const Fieldset = ({
         setFiles(data => ({ ...data, [name]: dt.files }));
     }
     const _handleDragLeave = (e) =>{
-        return;
         e.stopPropagation();
         e.preventDefault();
 

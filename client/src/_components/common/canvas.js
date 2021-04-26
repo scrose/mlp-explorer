@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { getPos, loadTIFF } from '../../_utils/image.utils.client';
+import { getPos, loadTIFF, scale } from '../../_utils/image.utils.client';
 import Button from './button';
 import { CanvasControls} from '../menus/canvas.menu';
 import { sanitize } from '../../_utils/data.utils.client';
@@ -70,7 +70,8 @@ export const Canvas = ({
     // -- base layer
     const controlLayerRef = React.useRef(null);
     const markupLayerRef = React.useRef(null);
-    const editLayerRef = React.useRef(null);
+    const dataLayerRef = React.useRef(null);
+    const renderLayerRef = React.useRef(null);
     const baseLayerRef = React.useRef(null);
 
     // error state
@@ -182,7 +183,7 @@ export const Canvas = ({
                 setInputImage(imgDataEdit);
 
                 // put image data on edit layer
-                ctxEdit.putImageData(imgDataEdit, 0, 0);
+                ctxData.putImageData(imgDataEdit, 0, 0);
 
                 // initialize canvas properties
                 setProperties(data => ({
@@ -211,7 +212,7 @@ export const Canvas = ({
 
             async function _redraw () {
 
-                console.log('Redraw', properties, inputImage)
+                console.log('Redraw', properties, inputImage);
 
                 // reset image data to source
                 if (properties.reset) {
@@ -222,28 +223,73 @@ export const Canvas = ({
                     ));
                 }
 
-                const resizeWidth = properties.edit_dims.x >> 0;
-                const resizeHeight = properties.edit_dims.y >> 0;
-                const ibm = await window.createImageBitmap(
-                    inputImage, 0, 0, inputImage.width, inputImage.height, {
-                    resizeWidth, resizeHeight
-                });
-
                 // Handle Markup: set points
                 if (properties.pts.length === 0) {
                     const ctxMarkUp = markupLayerRef.current.getContext('2d');
                     ctxMarkUp.clearRect(0, 0, properties.dims.x, properties.dims.y)
                 }
 
-                // Handle Image Edits:
-                // - set new canvas dimensions
-                editLayerRef.current.width = Math.min(resizeWidth, properties.dims.x);
-                editLayerRef.current.height = Math.min(resizeHeight, properties.dims.y);
-                const ctxEdit = editLayerRef.current.getContext('2d');
+                // Get data context
+                const ctxData = dataLayerRef.current.getContext('2d');
+                const ctxRender = renderLayerRef.current.getContext('2d');
+
+                /**
+                 * Scale: set new data canvas dimensions
+                 * - void ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+                 * - sx Optional
+                 *   The x-axis coordinate of the top left corner of the sub-rectangle of the source
+                 *   image to draw into the destination context.
+                 * - sy Optional
+                 *   The y-axis coordinate of the top left corner of the sub-rectangle of the source
+                 *   image to draw into the destination context. Note that this argument is not
+                 *   included in the 3- or 5-argument syntax.
+                 * - sWidth Optional
+                 *   The width of the sub-rectangle of the source image to draw into the destination
+                 *   context. If not specified, the entire rectangle from the coordinates specified
+                 *   by sx and sy to the bottom-right corner of the image is used.
+                 * - sHeight Optional
+                 *   The height of the sub-rectangle of the source image to draw into the destination
+                 *   context. Note that this argument is not included in the 3- or 5-argument syntax.
+                 * - dx
+                 *   The x-axis coordinate in the destination canvas at which to place the top-left
+                 *   corner of the source image.
+                 * - dy
+                 *   The y-axis coordinate in the destination canvas at which to place the top-left
+                 *   corner of the source image.
+                 * - dWidth
+                 *   The width to draw the image in the destination canvas. This allows scaling of the
+                 *   drawn image. If not specified, the image is not scaled in width when drawn.
+                 * - dHeight
+                 *   The height to draw the image in the destination canvas. This allows scaling of
+                 *   the drawn image. If not specified, the image is not scaled in height when drawn.
+                 */
+
+                const sx = 0;
+                const sy = 0;
+                const dx = 0;
+                const dy = 0;
+                const sWidth = inputImage.width;
+                const sHeight = inputImage.height;
+                const dWidth = properties.edit_dims.x >> 0;
+                const dHeight = properties.edit_dims.y >> 0;
+
+                ctxRender.putImageData(inputImage, 0, 0);
+
+                // clear data canvas
+                ctxData.clearRect(0, 0, properties.dims.x, properties.dims.y);
+
+                // resize data canvas
+                dataLayerRef.current.width = dWidth;
+                dataLayerRef.current.height = dHeight;
+
+                ctxData.drawImage(renderLayerRef.current, 0, 0, dWidth, dHeight);
+
+                //scale(renderLayerRef.current, dataLayerRef.current, resizeWidth, resizeHeight);
+
+                console.log('Redraw:', inputImage, dWidth, dHeight)
 
                 // redraw image from data
-                ctxEdit.drawImage(ibm, properties.offset.x, properties.offset.y);
-                return ctxEdit.getImageData(0, 0, resizeWidth, resizeHeight);
+                return ctxData.getImageData(0, 0, dWidth, dHeight);
             }
 
 
@@ -252,10 +298,10 @@ export const Canvas = ({
              */
 
             // reject if layer not ready in DOM
-            if (!editLayerRef.current) return;
+            if (!dataLayerRef.current) return;
 
             // get canvas layer contexts
-            let ctxEdit = editLayerRef.current.getContext('2d');
+            let ctxData = dataLayerRef.current.getContext('2d');
 
             // [url] Handle image data loaded from URL
             // - loads image data from url
@@ -263,8 +309,8 @@ export const Canvas = ({
             if (!properties.loaded && properties.url) {
                 console.log('Load from URL:', properties)
                 imgRef.current.onload = function() {
-                    ctxEdit.drawImage(imgRef.current, 0, 0);
-                    const imgData = ctxEdit.getImageData(
+                    ctxData.drawImage(imgRef.current, 0, 0);
+                    const imgData = ctxData.getImageData(
                         0, 0, properties.source_dims.x, properties.source_dims.y);
                     return _init(imgData, properties.source_dims.x, properties.source_dims.y);
                 };
@@ -397,9 +443,18 @@ export const Canvas = ({
                         Markup Layer: Canvas API Not Supported
                     </canvas>
                     <canvas
-                        ref={editLayerRef}
+                        ref={dataLayerRef}
+                        id={`${id}_data_layer`}
+                        className={`layer canvas-layer-data${!properties.loaded ? ' hidden' : ''}`}
+                        width={properties.dims.x}
+                        height={properties.dims.y}
+                    >
+                        Image Layer: Canvas API Not Supported
+                    </canvas>
+                    <canvas
+                        ref={renderLayerRef}
                         id={`${id}_edit_layer`}
-                        className={`layer canvas-layer-edit${!properties.loaded ? ' hidden' : ''}`}
+                        className={`layer canvas-layer-data hidden`}
                         width={properties.dims.x}
                         height={properties.dims.y}
                     >

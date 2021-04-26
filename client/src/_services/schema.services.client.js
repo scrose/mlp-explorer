@@ -7,7 +7,6 @@
 
 import { schema } from '../schema';
 import { capitalize } from '../_utils/data.utils.client';
-import { filterPath } from '../_utils/paths.utils.client';
 
 /**
  * Get static view render index from given route. Unlike data

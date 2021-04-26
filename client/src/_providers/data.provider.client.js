@@ -8,9 +8,8 @@
 import * as React from 'react'
 import { useRouter } from './router.provider.client';
 import { getRootNode } from '../_utils/data.utils.client';
-import { getSessionMsg, setSessionMsg } from '../_services/session.services.client';
+import { setSessionMsg } from '../_services/session.services.client';
 import { useUser } from './user.provider.client';
-import { useMessage } from './message.provider.client';
 
 /**
  * Global data provider.
@@ -30,7 +29,6 @@ const DataContext = React.createContext({})
 
 function DataProvider(props) {
 
-    const msg = useMessage();
     const router = useRouter();
     const user= useUser();
 
@@ -98,18 +96,19 @@ function DataProvider(props) {
     const loadOptions = React.useCallback((type='options') => {
         router.get(`/${type}`)
             .then(res => {
+                console.log('Options', res)
                 if (!res) return null;
-                //console.log('\nOptions >>>\n', res);
+                console.log('\nOptions >>>\n', res);
                 if (res.error) return setError(res.error);
                 // destructure API data for options
                 const { response = {} } = res || {};
                 const { data = {}, message = {} } = response || {};
                 // update states with response data
-                if (message.type === 'error') msg.setMessage(message);
+                if (message.type === 'error') setSessionMsg(message);
                 setOptions(data);
             })
             .catch(err => console.error(err));
-    }, [router, setOptions, error]);
+    }, [router, setOptions, setError]);
 
     /**
      * Load API data.
@@ -123,7 +122,7 @@ function DataProvider(props) {
         _isMounted.current = true;
 
         // call API for metadata options (if user is logged in)
-        if (!error && user && Object.keys(options).length === 0) {
+        if (user && Object.keys(options).length === 0) {
             if (_isMounted.current) {
                 loadOptions();
             }
@@ -136,9 +135,10 @@ function DataProvider(props) {
     // non-static views: fetch API data and set view data in state
     React.useEffect(() => {
         _isMounted.current = true;
+        setError(null);
 
         // request data if not static view
-        if (!error && !router.staticView && router.online) {
+        if (!router.staticView && router.online) {
             // set view to loading
             setAPIData({});
             setView('');
@@ -164,8 +164,7 @@ function DataProvider(props) {
 
                     // check if response data is empty (set error flag to true)
                     if ( res && res.error ) {
-                        msg.setMessage(message);
-                        return setError(message);
+                        setError(message);
                     }
 
                     // update states with response data
@@ -184,7 +183,7 @@ function DataProvider(props) {
         return () => {
             _isMounted.current = false;
         };
-    }, [router, msg]);
+    }, [router]);
 
     // destructure API data
     const root = getRootNode(path);
@@ -198,7 +197,7 @@ function DataProvider(props) {
     } = destructure(apiData);
 
     // provide current path node IDs
-    const currentNodes = Object.keys(path)
+    const currentNodes = Object.keys((path || {}))
         .map(key => {
             const {node={}} = path[key] || {};
             const {id=''} = node || {};
@@ -214,6 +213,7 @@ function DataProvider(props) {
                 nodes: currentNodes,
                 root,
                 data: apiData,
+                error,
                 label,
                 type,
                 id,

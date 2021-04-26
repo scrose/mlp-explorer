@@ -247,7 +247,7 @@ function setData(data=null) {
         Object.keys(inputData)
             .filter(key => !(this.attributes && this.attributes.hasOwnProperty(key)))
             .map(key => {
-                console.warn(`Attribute key \'${key}\' was not in model schema.`);
+                console.warn(`Attribute key \'${key}\' was not in model schema for \'${this.name}\'.`);
                 throw Error('schemaMismatch')
             });
 

@@ -8,7 +8,7 @@
 import React from 'react';
 import Button from './button';
 import Icon from './icon';
-import { useMessage } from '../../_providers/message.provider.client';
+import { getSessionMsg, popSessionMsg } from '../../_services/session.services.client';
 import { getQuery } from '../../_utils/paths.utils.client';
 
 /**
@@ -19,12 +19,14 @@ import { getQuery } from '../../_utils/paths.utils.client';
 
 const Message = ({closeable=true, message='', level=''}) => {
 
-    const messenger = useMessage();
+    // check if redirect
+    const redirected = getQuery('redirect');
+    const [msgData, setMsgData] = React.useState(
+        { msg: message, type: level } || redirected ? getSessionMsg() : popSessionMsg()
+    );
 
     // get current or set message
-    const { msg = '', type = '' }  = messenger.message || {};
-    let messageText = message ? message : msg;
-    let messageType = level ? level : type;
+    const { msg = message, type = level }  = msgData || {};
 
     /**
      * Handle close of message.
@@ -33,15 +35,14 @@ const Message = ({closeable=true, message='', level=''}) => {
      */
 
     const handleClose = () => {
-        messageText = null;
-        messageType = null;
-        messenger.setMessage(null);
+        setMsgData(null)
+        popSessionMsg();
     };
 
-    return messageText && messageType &&
-        <div className={`msg ${messageType}`}>
-            <div className={'msg-icon'}><Icon type={messageType}/></div>
-            <div className={'msg-text'}>{messageText}</div>
+    return msg && type &&
+        <div className={`msg ${type}`}>
+            <div className={'msg-icon'}><Icon type={type}/></div>
+            <div className={'msg-text'}>{msg}</div>
             {
                 closeable &&
                 <div className={'close'}>
@@ -51,4 +52,4 @@ const Message = ({closeable=true, message='', level=''}) => {
         </div>;
 };
 
-export default React.memo(Message);
+export default Message;

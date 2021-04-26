@@ -7,10 +7,9 @@
 
 import React from 'react';
 import Dialog from '../common/dialog';
-import { useRouter } from '../../_providers/router.provider.client';
-import CapturesView from './captures.view';
 import Button from '../common/button';
-import Slider from '../common/comparator';
+import { FilesList } from './files.view';
+import Comparator from '../common/comparator';
 
 /**
  * Render metadata capture image comparison overlay component.
@@ -30,7 +29,7 @@ const ComparisonOverlay = ({
     const modernImage = typeof historic.files.modern_images != null
         ? modern.files.modern_images.find(img => img.metadata.image_state === 'master') : {};
 
-    return <Slider images={[historicImage, modernImage]} />;
+    return <Comparator images={[historicImage, modernImage]} />;
 
 };
 
@@ -48,11 +47,11 @@ const ComparisonsView = ({data = {}, callback = () => {} }) => {
 
     const comparisonDialogs = {
         overlay: <Dialog title={'Overlay'} setToggle={setDialogToggle}>
-                <ComparisonOverlay captures={comparison} />
-            </Dialog>,
+            <ComparisonOverlay captures={comparison} />
+        </Dialog>,
         remaster: <Dialog title={'Remaster'} setToggle={setDialogToggle}>
-                Remaster
-            </Dialog>
+            Remaster
+        </Dialog>
     };
 
     // show dialog popup
@@ -64,26 +63,21 @@ const ComparisonsView = ({data = {}, callback = () => {} }) => {
 
     const { historic_capture = {}, modern_capture = {} } = data || {};
 
-    // check if captures have no files
+    // check if capture has no files
     const hasMissingFiles = (
         modern_capture.hasOwnProperty('files')
         && Object.keys(modern_capture.files).length === 0
-        ) || (
-            historic_capture.hasOwnProperty('files')
-            && Object.keys(historic_capture.files).length === 0
-        )
+    ) || (
+        historic_capture.hasOwnProperty('files')
+        && Object.keys(historic_capture.files).length === 0
+    )
 
     return <>
         { showDialog() }
         <div className={`comparisons-item${hasMissingFiles ? ' missing' : ''}`}>
             <div className={'h-menu'}>
-                <CapturesView
-                    captures={[historic_capture]}
-                    fileType={'historic_images'}
-                />
-                <CapturesView
-                    captures={[modern_capture]}
-                    fileType={'modern_images'}
+                <FilesList
+                    files={[historic_capture.refImage, modern_capture.refImage]}
                 />
             </div>
             <div className={'h-menu'}>

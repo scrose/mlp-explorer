@@ -9,11 +9,10 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
-    faCompress,
-    faBars,
     faAngleDoubleLeft,
     faAngleDoubleRight,
     faArchive,
+    faBars,
     faBinoculars,
     faCalendar,
     faCalendarDay,
@@ -23,16 +22,22 @@ import {
     faChevronCircleDown,
     faChevronCircleLeft,
     faChevronCircleRight,
-    faCompass,
+    faCog,
     faColumns,
+    faCompass,
+    faCompress,
+    faCrosshairs,
     faEdit,
-    faUndo,
     faEllipsisV,
+    faEraser,
+    faExchangeAlt,
+    faExclamationCircle,
+    faExpand,
+    faFile,
     faFileDownload,
     faFileExport,
     faFileImport,
     faFileUpload,
-    faCog,
     faFilter,
     faHiking,
     faHome,
@@ -45,33 +50,32 @@ import {
     faMapMarkerAlt,
     faMinus,
     faMinusCircle,
-    faPlusSquare,
     faMountain,
+    faMousePointer,
+    faObjectGroup,
     faPlus,
     faPlusCircle,
+    faPlusSquare,
     faProjectDiagram,
+    faQuestionCircle,
     faSearch,
     faSignInAlt,
     faSignOutAlt,
     faStar,
     faTimes,
     faTimesCircle,
-    faTrashAlt,
-    faUser,
-    faExpand,
-    faUsers,
-    faCrosshairs,
-    faMousePointer,
-    faEraser,
-    faExchangeAlt,
-    faTools,
-    faObjectGroup,
     faToolbox,
-    faExclamationCircle,
-    faQuestionCircle
+    faTools,
+    faTrashAlt,
+    faUndo,
+    faUser,
+    faUsers,
+    faArrowsAltH
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
+    faArrowsAltH,
+    faFile,
     faQuestionCircle,
     faExclamationCircle,
     faToolbox,
@@ -170,12 +174,14 @@ const getIconClass = (iconType) => {
         undo: 'undo',
         erase: 'eraser',
         swap: 'exchange-alt',
+        slide: 'arrows-alt-h',
         help: 'question-circle',
         success: 'check-circle',
         warning: 'exclamation-circle',
         error: 'times-circle',
         cancel: 'times-circle',
         logo: 'mountain',
+        file: 'file',
         map: 'map-marked-alt',
         tree: 'list-alt',
         close: 'times-circle',
@@ -199,7 +205,8 @@ const getIconClass = (iconType) => {
         download: 'file-download',
         image: 'image',
         images: 'images',
-        metadata_files: 'file-download',
+        files: 'file',
+        metadata_files: 'file',
         projects: 'project-diagram',
         surveyors: 'hiking',
         surveys: 'binoculars',
@@ -212,6 +219,7 @@ const getIconClass = (iconType) => {
         unsorted_captures: 'images',
         historic_images: 'image',
         modern_images: 'image',
+        supplemental_images: 'image',
         locations: 'compass',
         glass_plate_listings: 'archive',
         maps: 'map',
@@ -237,17 +245,3 @@ const Icon = ({type, size='lg', spin=false}) => {
 }
 export default Icon;
 
-/**
- * Render loading spinner component.
- *
- * @public
- */
-
-export const Loading = ({overlay=false}) => {
-
-    return  <div className={`spinner ${overlay ? 'overlay' : ''}`}>
-                <div className={`spinner-icon ${overlay ? 'overlay' : ''}`}>
-                    <Icon type={'spinner'} size={'lg'} spin={true} />
-                </div>
-            </div>;
-};

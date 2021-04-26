@@ -101,6 +101,27 @@ export function selectByNode(node) {
 }
 
 /**
+ * Generate query: Find record by field.
+ *
+ * @param {String} model
+ * @param value
+ * @param {String }field
+ * @param {String} datatype
+ * @return {Function} query
+ * @public
+ */
+
+export function selectByField(model, field, value, datatype) {
+    let sql = `SELECT * 
+            FROM ${model} 
+            WHERE ${field} = $1::${datatype};`;
+    return {
+        sql: sql,
+        data: [value]
+    };
+}
+
+/**
  * Generate query: Find record by associated file.
  *
  * @param {Object} file

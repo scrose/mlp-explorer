@@ -61,7 +61,7 @@ export const schema = {
     },
     errors: {
         image: {
-          fallbackSrc: '/logo192.png'
+            fallbackSrc: '/logo192.png'
         },
         validation: {
             isRequired: 'This field is required.',
@@ -168,6 +168,11 @@ export const schema = {
             render: 'download'
         }
     },
+    captures: {
+        types: ['historic_captures', 'modern_captures'],
+        sorted: ['historic_visits', 'locations'],
+        unsorted: ['projects', 'surveys', 'survey_seasons', 'modern_visits']
+    },
     models: {
         users: {
             fieldsets: [
@@ -197,9 +202,9 @@ export const schema = {
             },
             fieldsets: [
                 {
+                    restrict: ['edit', 'delete'],
                     nodes_id: {
                         render: 'hidden',
-                        restrict: ['edit', 'delete'],
                     }
                 },
                 {
@@ -411,9 +416,9 @@ export const schema = {
             },
             fieldsets: [
                 {
+                    restrict: ['edit', 'delete'],
                     nodes_id: {
-                        render: 'hidden',
-                        restrict: ['edit', 'delete'],
+                        render: 'hidden'
                     },
                     owner_id: {
                         render: 'hidden'
@@ -454,14 +459,16 @@ export const schema = {
                 {
                     legend: 'Visit Details',
                     date: {
-                        render: 'date',
-                        label: 'Visit Date'
+                        label: 'Visit Date',
+                        render: 'date'
                     },
                     start_time: {
-                        label: 'Start Time'
+                        label: 'Start Time',
+                        render: 'time'
                     },
                     finish_time: {
-                        label: 'Finish Time'
+                        label: 'Finish Time',
+                        render: 'time'
                     },
                     pilot: {
                         label: 'Pilot'
@@ -504,10 +511,14 @@ export const schema = {
                         render: 'float'
                     },
                     weather_rh: {
-                        label: 'Relative Humidity'
+                        label: 'Relative Humidity',
+                        render: 'int',
+                        suffix: '%'
                     },
                     weather_wb: {
-                        label: 'Wet Bulb'
+                        label: 'Wet Bulb',
+                        render: 'float',
+                        suffix: '°C'
                     }
                 }
             ]
@@ -571,7 +582,7 @@ export const schema = {
                     },
                     digitization_datetime: {
                         label: 'Digitization Datetime',
-                        render: 'date',
+                        render: 'datetime',
                     },
                     comments: {
                         label: 'Comments'
@@ -916,9 +927,9 @@ export const schema = {
             },
             fieldsets: [
                 {
+                    restrict: ['edit'],
                     files_id: {
-                        render: 'hidden',
-                        restrict: ['edit']
+                        render: 'hidden'
                     }
                 },
                 {
@@ -1041,27 +1052,34 @@ export const schema = {
             },
             fieldsets: [
                 {
+                    restrict: ['edit'],
+                    files_id: {
+                        render: 'hidden'
+                    }
+                },
+                {
+                    legend: 'Image Upload',
+                    restrict: ['new'],
+                    supplemental_images: {
+                        label: 'Image File',
+                        render: 'file',
+                        validate: ['filesSelected']
+                    }
+                },
+                {
                     legend: 'Image Details',
                     image_type: {
-                        label: 'Type'
+                        label: 'Image Type',
+                        render: 'select',
+                        reference: 'image_types'
                     },
                     capture_datetime: {
-                        label: 'Capture Datetime'
-                    },
-                    file_size: {
-                        label: 'File size'
-                    },
-                    x_dim: {
-                        label: 'Image Width'
-                    },
-                    y_dim: {
-                        label: 'Image Height'
-                    },
-                    bit_depth: {
-                        label: 'Bit Depth'
+                        label: 'Capture Datetime',
+                        render: 'datetime'
                     },
                     comments: {
-                        label: 'Comments'
+                        label: 'Comments',
+                        render: 'textarea'
                     }
                 },
                 {
@@ -1119,9 +1137,26 @@ export const schema = {
             },
             fieldsets: [
                 {
+                    restrict: ['edit'],
+                    files_id: {
+                        render: 'hidden'
+                    }
+                },
+                {
+                    legend: 'File Upload',
+                    restrict: ['new'],
+                    metadata_files: {
+                        label: 'Metadata File (PDF)',
+                        render: 'file',
+                        validate: ['filesSelected']
+                    }
+                },
+                {
                     legend: 'File Details',
                     type: {
-                        label: 'Type'
+                        label: 'Type',
+                        render: 'select',
+                        reference: 'metadata_file_types'
                     }
                 }]
         },
@@ -1241,6 +1276,40 @@ export const schema = {
                     modern_capture: {
                         label: 'Modern Capture',
                         validate: ['isRequired']
+                    },
+                }]
+        },
+        image_types: {
+            attributes: {
+                label: 'Image Types',
+                singular: 'Image Type'
+            },
+            fieldsets: [
+                {
+                    legend: 'Image Type Settings',
+                    name: {
+                        label: 'Name',
+                        validate: ['isRequired']
+                    },
+                    label: {
+                        label: 'Label'
+                    },
+                }]
+        },
+        metadata_file_types: {
+            attributes: {
+                label: 'Metadata File Types',
+                singular: 'Metadata File Type'
+            },
+            fieldsets: [
+                {
+                    legend: 'Metadata File Type Settings',
+                    name: {
+                        label: 'Name',
+                        validate: ['isRequired']
+                    },
+                    label: {
+                        label: 'Label'
                     },
                 }]
         },

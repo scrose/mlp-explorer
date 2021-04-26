@@ -91,7 +91,7 @@ const Slider = ({ images = [] }) => {
                         key={`slide_${selectedIndex}`}
                         url={url}
                         title={label}
-                        scale={'full'}
+                        scale={'medium'}
                     />
                 </Dialog>
             }

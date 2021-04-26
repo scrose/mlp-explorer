@@ -9,7 +9,7 @@ import React from "react";
 
 const ServerError = () => {
     return (
-        <div className={'error'}>
+        <div>
             <h3>Server Error</h3>
             <p>An error has occurred. <em>Please contact the site administrator for assistance.</em></p>
         </div>

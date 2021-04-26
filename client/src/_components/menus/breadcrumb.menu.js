@@ -31,24 +31,13 @@ const BreadcrumbMenu = () => {
      */
 
     const _parseRoute = function() {
-
-        const breadcrumbs = filterPath()
+        const path = filterPath()
             .split("/")
             .filter(item => item !== '');
 
         // hide breadcrumb menu on front page
-        if (breadcrumbs.length === 0) return [];
-
-        // convert breadcrumbs -> components and extend array
-        return breadcrumbs
-            .map((item, i) => {
-
-                // create label text
-                const label = getStaticLabel(`/${item}`) || capitalize(item.split('_').join(' '));
-
-                // render last item without link
-                return <span key={`bnav_${i}`}>{label}</span>
-            });
+        if (path.length === 0) return [];
+        return [<span>{getStaticLabel(`/${path[0]}`) || 'Not Found'}</span>]
     };
 
     /**
@@ -78,7 +67,7 @@ const BreadcrumbMenu = () => {
     };
 
     // select method of extracting path elements: node path or route path
-    const isNode = Object.keys(path).length > 0 && typeof path === 'object';
+    const isNode = typeof path === 'object' && Object.keys((path || {})).length > 0;
     const breadcrumbs = isNode ? _parseNodes(path) : _parseRoute();
 
     return (

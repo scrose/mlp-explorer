@@ -123,9 +123,15 @@ export const errors = {
         status: 422,
         type: 'error'
     },
-    fileDeleteError: {
-        hint: 'NodeJS Filesystem Error: ENOENT: no such file or directory, unlink .',
-        msg: 'File could not be deleted.',
+    EEXIST: {
+        hint: 'NodeJS Filesystem Error: file already exists, createWriteStream / copyfile failed.',
+        msg: 'The attached file already exists in the library. Please rename the file before uploading.',
+        status: 500,
+        type: 'error'
+    },
+    ENOENT: {
+        hint: 'NodeJS Filesystem Error: ENOENT: no such file or directory, unlink failed.',
+        msg: 'Request could not be completed: No such file or directory found.',
         status: 500,
         type: 'error'
     },
@@ -134,7 +140,13 @@ export const errors = {
         msg: 'Requested route not found.',
         status: 404,
         type: 'error'
-    }
+    },
+    invalidMaster: {
+        hint: 'Only captures that are associated with stations can be mastered.',
+        msg: 'This capture image is not available for mastering. To initiate a master, move the capture to a project or survey station.',
+        status: 422,
+        type: 'error'
+    },
 };
 
 

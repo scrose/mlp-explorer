@@ -24,7 +24,9 @@ values ('glass_plate_listings', 'Glass Plate Listings'),
        ('cameras', 'Cameras'),
        ('lens', 'Lens'),
        ('participants', 'Participants'),
-       ('participant_groups', 'Participant Groups');
+       ('participant_groups', 'Participant Groups'),
+       ('image_types', 'Image Types'),
+       ('metadata_file_types', 'Metadata Types');
 
 -- -------------------------------------------------------------
 -- Metadata Relations Table

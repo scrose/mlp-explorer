@@ -71,7 +71,7 @@ const EditorMenu = ({
         remove: !!(id && model && metadata && !removeExclude.includes(view)),
         attach: view === 'attach',
         attachItem: view === 'attachItem',
-        master: fileType === 'modern_images',
+        master: fileType === 'modern_images' && owner.hasOwnProperty('sorted') && owner.sorted,
         dependents: !dependentsExclude.includes(view),
         dropdown: !!(isEditor || dependents.length > 0),
         import_hc: !!(dependents || [])

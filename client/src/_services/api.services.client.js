@@ -55,6 +55,9 @@ const getFetchOptions = ({ data=null, files=null, download=null, method='POST'})
             const downloadOpts = {
                 csv: {
                     Accept: 'text/csv; charset=utf-8'
+                },
+                pdf: {
+                    Accept: 'application/pdf; charset=utf-8'
                 }
             }
             opts.headers = downloadOpts[download];

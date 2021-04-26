@@ -80,6 +80,7 @@ div#root {
     margin-top: 60px;
     color: #01447e;
 }
+
 ul.list {
     display: block !important;
 }
@@ -287,11 +288,26 @@ div.main {
     padding: 10px;
     margin: 0;
 }
-.view h3 button {
-    cursor: default;
+.heading .badge {
+    height: 100%;
+    padding: 10px;
 }
-.view h5 {
-    color: #4E4372;
+
+/* Badge */
+
+.badge {
+    cursor: default;
+    font-size: 0.8em;
+    background-color: transparent !important;
+    color: #008896;
+}
+.badge:focus {
+    border: none;
+    opacity: 1;
+}
+.badge:hover {
+    border: none;
+    opacity: 1;
 }
 
 /*
@@ -349,11 +365,11 @@ Logo
     justify-content: center;
 }
 .logo-svg {
-    border-radius: 5px;
+    border-radius: 10px;
     background-image: linear-gradient( #008896, #282c34);
     padding: 2px 5px;
     margin-right: 10px;
-    width: 35px;
+    width: 30px;
     display: flex;
     align-items: center;
 }
@@ -568,7 +584,7 @@ nav.breadcrumb ul li a:hover {
 }
 
 .h-menu div {
-    width: 100%;
+
 }
 
 .h-menu ul {
@@ -836,11 +852,13 @@ nav.breadcrumb ul li a:hover {
     width: auto;
     min-width: auto;
     max-width: 400px;
+    flex-direction: column;
 }
 .tab.h-menu {
     padding: 0;
     margin-top:0;
     flex-wrap: nowrap;
+    justify-content: flex-start !important;
 }
 .tab.h-menu ul li {
     overflow: hidden;
@@ -870,8 +888,10 @@ nav.breadcrumb ul li a:hover {
     margin:0;
     padding:0;
 }
-.tab .active {
-    background-color: #2B5A6B;
+.tab-data label.active {
+    background-color: #FFFFFF;
+    color: #FFFFFF;
+    border: 1px solid #2B5A6B;
 }
 
 /* Accordion List Menu */
@@ -922,7 +942,7 @@ nav.breadcrumb ul li a:hover {
     /*transition: max-height 0.5s ease-in-out;*/
 }
 .accordion .accordion-data.open {
-    max-height: 2000px;
+    max-height: 6000px;
     overflow: visible;
     padding: 8px;
     /*-webkit-transition: max-height 0.5s ease-in;*/
@@ -1032,6 +1052,69 @@ nav.breadcrumb ul li a:hover {
 .slider .thumbnails.h-menu{
     background-color: #DDDDDD;
     justify-content: left;
+}
+
+/* Image Comparator */
+
+* {box-sizing: border-box;}
+.comparator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.comparator figure {
+    margin: 0;
+    padding: 0;
+}
+.comparator figcaption {
+    text-align: right;
+    background-color: #FFFFFF;
+}
+.comparator-container {
+    position: relative;
+    display: block;
+    margin: auto;
+    height: auto; /*should be the same height as the images*/
+}
+.comparator-img {
+    overflow: hidden;
+}
+.comparator-img img {
+    display: block;
+    vertical-align: middle;
+    margin: 0;
+    padding: 0;
+    height: 600px;
+    max-width: none;
+    max-height: none;
+}
+.comparator-img.overlay{
+    position: absolute;
+    left:0;
+    z-index: 999;
+}
+/* set the appearance of the slider: */
+.comparator-slider {
+    z-index: 9999;
+    position: absolute;
+    display: inline-block;
+    vertical-align: middle;
+    cursor: ew-resize !important;
+    width: 40px !important;
+    height: 40px !important;
+}
+.comparator-slider.hidden {
+    display: none;
+}
+.comparator-slider button {
+    cursor: ew-resize !important;
+    color: #FFFFFF;
+    background-color: #57BECC;
+    opacity: 0.7;
+
+    border-radius: 5px;
+    width: 40px;
+    height: 40px;
 }
 
 /* MetadataView Edit Menu */
@@ -1145,7 +1228,7 @@ nav.breadcrumb ul li a:hover {
     align-items: center;
     color: #2B5A6B !important;
 }
-.comparisons div {
+.comparisons-item div {
     width: auto !important;
 }
 .comparisons .h-menu.comparison{
@@ -1200,6 +1283,14 @@ nav.breadcrumb ul li a:hover {
     color: #E34234 !important;
     border-color: #E34234 !important;
 }
+.supplemental_images {
+    color: #889600 !important;
+    border-color: #889600 !important;
+}
+.metadata_files {
+    color: #960088 !important;
+    border-color: #960088 !important;
+}
 
 /* Participants */
 .participants h5 {
@@ -1245,13 +1336,15 @@ figcaption {
     font-size: 11px;
     color: #008896;
 }
-
 .thumb img {
     object-fit: cover;
     width: 100px;
     height: 100px;
     border-radius: 5px;
     cursor: pointer;
+}
+th.image-thumbnail {
+    width: 150px;
 }
 
 .medium {
@@ -1313,6 +1406,7 @@ table.item {
     text-align: left;
     border-collapse: collapse;
     color: #444;
+    background-color: #EEEEEE;
     margin: 10px auto 10px auto;
 }
 table.item tr:nth-child(even) {
@@ -1556,7 +1650,7 @@ label {
 }
 label .label-text {
     display: inline-block;
-    min-width: 150px;
+    min-width: 180px;
 
 }
 label .prefix, label .suffix {
@@ -1565,6 +1659,10 @@ label .prefix, label .suffix {
 }
 label.checkbox {
     float:right;
+}
+.units {
+    color: #888;
+    font-size: smaller;
 }
 
 /* Style inputs with type="text", select elements and textareas */
@@ -1772,19 +1870,19 @@ Messages
 .msg .close button {
     background-color: transparent;
 }
-.msg.info {
+.info {
     color: #2ea591;
     background-color: #C5FCEF;
 }
-.msg.success {
+.success {
     color: #4F8A10;
     background-color: #DFF2BF;
 }
-.msg.warning {
+.warning {
     color: #9F6000;
     background-color: #FEEFB3;
 }
-.msg.error {
+.error {
     color: #E34234;
     background-color: #FFD2D2;
 }
@@ -1835,15 +1933,14 @@ Messages
     font-weight: normal;
     position: absolute;
     width: auto;
-    height: 80%;
-    left: 5%;
-    right: 5%;
-    top: 5%;
-    bottom: 5%;
+    height: 85%;
+    left: 2%;
+    right: 2%;
+    top: 2%;
+    bottom: 2%;
     margin: auto;
     background: #FFFFFF;
     color: #282c34;
-    max-height: 600px;
 }
 .dialog .dialog-header {
     height: fit-content !important;
@@ -1866,12 +1963,12 @@ Messages
     line-height: normal;
 }
 .dialog .dialog-body {
-    max-height: 500px;
     line-height: normal;
     margin: auto;
     padding: 10px;
     text-align: inherit;
     overflow: auto;
+    max-height: 70vh;
 }
 .dialog .dialog-body p {
     margin: 20px;
@@ -1946,7 +2043,7 @@ canvas {
 .canvas-layer-markup {
     z-index: 30;
 }
-.canvas-layer-edit {
+.canvas-layer-data {
     z-index: 25;
     border-color: #D8000C;
     border-width: 2px;

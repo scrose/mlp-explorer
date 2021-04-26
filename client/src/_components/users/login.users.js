@@ -10,11 +10,9 @@ import Form from '../common/form';
 import { useUser } from '../../_providers/user.provider.client';
 import { useAuth } from '../../_providers/auth.provider.client';
 import { redirect } from '../../_utils/paths.utils.client';
-import { getSessionMsg, popSessionMsg, setSessionMsg } from '../../_services/session.services.client';
+import { setSessionMsg } from '../../_services/session.services.client';
 import { genSchema } from '../../_services/schema.services.client';
-import Loading from '../common/icon';
-import { useData } from '../../_providers/data.provider.client';
-import { useMessage } from '../../_providers/message.provider.client';
+import Loading from '../common/loading';
 
 /**
  * User sign in form component.

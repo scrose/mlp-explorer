@@ -10,7 +10,7 @@ import Table from '../common/table';
 import { useUser } from '../../_providers/user.provider.client';
 import { genSchema } from '../../_services/schema.services.client';
 import { sanitize } from '../../_utils/data.utils.client';
-import Loading from '../common/icon';
+import Loading from '../common/loading';
 
 /**
  * User list component to view/edit/delete records.

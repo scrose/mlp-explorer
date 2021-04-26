@@ -9,7 +9,7 @@
 
 import path from 'path';
 import fs from 'fs';
-import { unlink } from 'fs/promises';
+import { copyFile, unlink } from 'fs/promises';
 import sharp from 'sharp';
 import { Readable, Transform } from 'stream';
 import pool from './db.services.js';
@@ -20,6 +20,7 @@ import { insertMetadata } from './import.services.js';
 import * as cserve from './construct.services.js';
 import * as metaserve from '../services/metadata.services.js';
 import ModelServices from './model.services.js';
+import Stream from "stream";
 
 /**
  * Get file record by ID. NOTE: returns single object.
@@ -57,7 +58,7 @@ export const get = async (id, client = pool) => {
 
     // get associated file metadata
     const metadata = await selectByFile(file, client) || {};
-    const {secure_token=''} = metadata || {};
+    const { type='', secure_token=''} = metadata || {};
     const { file_type = '', filename='' } = file || {};
 
     // include alternate extracted filename (omit the security token)
@@ -66,7 +67,8 @@ export const get = async (id, client = pool) => {
         label: await metaserve.getFileLabel(file),
         filename: (filename || '').replace(`_${secure_token}`, ''),
         metadata: metadata,
-        url: getResizedImgSrc(file_type, metadata),
+        metadata_type: await metaserve.selectByName('metadata_file_types', type),
+        url: getFileURL(file_type, metadata),
     };
 
 };
@@ -92,13 +94,14 @@ export const selectByOwner = async (id, client = pool) => {
             async (file) => {
                 const { file_type = '', filename='' } = file || {};
                 const fileMetadata = await selectByFile(file, client);
-                const {secure_token=''} = fileMetadata || {};
+                const { type='', secure_token=''} = fileMetadata || {};
                 return {
                     file: file,
                     label: await metaserve.getFileLabel(file),
                     filename: (filename || '').replace(`_${secure_token}`, ''),
                     metadata: fileMetadata,
-                    url: getResizedImgSrc(file_type, fileMetadata),
+                    metadata_type: await metaserve.selectByName('metadata_file_types', type),
+                    url: getFileURL(file_type, fileMetadata),
                 };
             }),
     );
@@ -174,25 +177,26 @@ export const getOwnerByFileType = async function(fileType, client = pool) {
 
 export const insert = async (importData, model, fileOwner=null) => {
 
-    const captures = ['historic_captures', 'modern_captures'];
+    const captureTypes = ['historic_captures', 'modern_captures'];
     const {files={}, data={}, owner={}} = importData || {};
+    const metadata = data;
 
     // filter image states from imported metadata
-    const imageState = data.image_state;
+    const imageState = metadata.image_state;
 
     // reject null parameters
     if (
         Object.keys(files).length === 0
         || Object.keys(owner).length === 0
-        || Object.keys(data).length === 0
+        || Object.keys(metadata).length === 0
     ) {
         return null;
     }
 
-    // transaction result
+    // init transaction result
     let res;
 
-    // initialize immediate file owners
+    // initialize immediate file owners for given file type
     const initFileOwners = {
 
         // file is a capture image
@@ -203,10 +207,10 @@ export const insert = async (importData, model, fileOwner=null) => {
             const mserve = new ModelServices(new CaptureModel());
 
             // remove image state from capture data (not in model)
-            delete data.image_state;
+            delete metadata.image_state;
 
             // insert new capture owner for image file
-            const capture = new CaptureModel(data);
+            const capture = new CaptureModel(metadata);
             const captureData = await mserve.insert(capture);
 
             // update file data with capture owner
@@ -237,55 +241,68 @@ export const insert = async (importData, model, fileOwner=null) => {
         // use existing or create file owner instance
         fileOwner = fileOwner
             ? fileOwner
-            : captures.includes(model)
+            : captureTypes.includes(model)
                 ? await initFileOwners.captures()
                 : await initFileOwners.default();
 
-        // save files and insert metadata record for each
-        res = await Promise.all(Object.keys(files).map(async (key) => {
+        // saves attached files and inserts metadata record for each
+        res = await Promise
+            .all(Object.keys(files)
+                .map(async (key) => {
 
-            // upload file
-            await saveFile(key, importData);
+                    // upload file and save to library
+                    await saveFile(key, importData, fileOwner);
 
-            // get imported metadata
-            const {data={}, file={}} = files[key] || {};
-            const {file_type=''} = file || {};
+                    // get imported metadata
+                    const { data={}, file={} } = files[key] || {};
+                    const {file_type=''} = file || {};
 
-            // update file owner data
-            data.image_state = typeof imageState === 'string' ? imageState : imageState[key];
-            data.owner_id = fileOwner.id;
-            file.owner_id = fileOwner.id;
-            file.owner_type = fileOwner.type;
+                    // update file owner data
+                    data.owner_id = fileOwner.id;
+                    file.owner_id = fileOwner.id;
+                    file.owner_type = fileOwner.type;
 
-            // initialize file model services
-            const FileModel = await cserve.create(file_type);
+                    // include image state for capture images
+                    if (imageState)
+                        data.image_state = typeof imageState === 'string' ? imageState : imageState[key];
 
-            // create and insert new file instance
-            const fileItem = new FileModel(data);
-            let fileNode = await cserve.createFile(fileItem, file);
-            const stmtFileNode = queries.files.insert(fileNode);
-            let fileRes = await client.query(stmtFileNode.sql, stmtFileNode.data);
+                    // initialize file model services
+                    const FileModel = await cserve.create(file_type);
 
-            // update file metadata files_id with created file ID, defined image state
-            const {id=''} = fileRes.hasOwnProperty('rows') && fileRes.rows.length > 0
-                ? fileRes.rows[0] || {}
-                : {};
-            fileItem.id = id;
+                    // create new file model instance from file-specific data
+                    const fileItem = new FileModel(data);
 
-            // insert file metadata as new record
-            // NOTE: need to define different query than current services object model
-            const stmtFileData = queries.defaults.insert(fileItem)(fileItem);
-            let modelRes = await client.query(stmtFileData.sql, stmtFileData.data);
+                    // include model-specific data if NOT handling capture file
+                    if (!captureTypes.includes(model)) {
+                        fileItem.setData(metadata);
+                    }
 
-            // return confirmation data
-            return modelRes.hasOwnProperty('rows') && modelRes.rows.length > 0
-                ? {
-                    file: fileRes.rows[0],
-                    metadata: modelRes.rows[0]
-                  }
-                : null;
+                    // create file node instance using file model instance
+                    // and extracted file data
+                    let fileNode = await cserve.createFile(fileItem, file);
+                    const stmtFileNode = queries.files.insert(fileNode);
+                    let fileRes = await client.query(stmtFileNode.sql, stmtFileNode.data);
 
-        }));
+                    // update file metadata files_id with created file ID, defined image state
+                    const {id=''} = fileRes.hasOwnProperty('rows') && fileRes.rows.length > 0
+                        ? fileRes.rows[0] || {}
+                        : {};
+                    fileItem.id = id;
+
+                    // insert file metadata as new record
+                    // NOTE: need to define different query than current services object model
+                    const stmtFileData = queries.defaults.insert(fileItem)(fileItem);
+                    let modelRes = await client.query(stmtFileData.sql, stmtFileData.data);
+
+                    // return confirmation data
+                    return modelRes.hasOwnProperty('rows') && modelRes.rows.length > 0
+                        ? {
+                            file: fileRes.rows[0],
+                            metadata: modelRes.rows[0]
+                        }
+                        : null;
+
+                }));
 
         await client.query('COMMIT');
 
@@ -347,9 +364,8 @@ export const remove = async(file, filepaths, client=pool) => {
             if (filepath.indexOf(staticSlug) === 0)
                 filepath = filepath.slice(staticSlug.length, filepath.length);
             console.warn('Delete File:', path.join(process.env.UPLOAD_DIR, filepath))
-            let res = await unlink(path.join(process.env.UPLOAD_DIR, filepath));
-            if (res)
-                throw new Error('')
+            let err = await unlink(path.join(process.env.UPLOAD_DIR, filepath));
+            if (err) throw err;
         })
     );
 
@@ -363,29 +379,28 @@ export const remove = async(file, filepaths, client=pool) => {
  * Download file stream.
  *
  * @src public
+ * @param res
  * @param src
  * @param dst
  */
 
-export const download = async (src, dst) => {
+export const download = async (res, src) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const file = fs.createWriteStream(dst);
-            const contentStream = fs.createReadStream(src);
-            contentStream.pipe(file);
-            contentStream.on('error', reject);
-            file.on('error', reject);
-            file.on('finish', () => {
-                file.close();
-                try {
-                    resolve();
-                } catch (err) {
-                    // Delete the file async. (But we don't check the result)
-                    fs.unlink(dst, console.error);
-                    console.warn(err);
-                    reject(err);
-                }
+            const readStream = fs.createReadStream(src);
+            readStream.pipe(res);
+
+            readStream.on('error', (err) => {
+                console.log('Error in read stream...');
             });
+            res.on('error', (err) => {
+                console.log('Error in write stream...');
+            });
+
+            setTimeout(() => {
+                readStream.emit('end');
+            }, 20);
+
         } catch (err) {
             reject(err);
         }
@@ -401,7 +416,7 @@ export const download = async (src, dst) => {
  * @return {Promise} result
  */
 
-export const getRawImgSrc = (type = '', data = {}) => {
+export const getFilePath = (type = '', data = {}) => {
 
     // generate raw image source URL
     const imgSrc = () => {
@@ -422,7 +437,7 @@ export const getRawImgSrc = (type = '', data = {}) => {
             return imgSrc();
         },
         metadata_files: () => {
-            return null;
+            return fileURL();
         },
     };
 
@@ -439,9 +454,15 @@ export const getRawImgSrc = (type = '', data = {}) => {
  * @return {Promise} result
  */
 
-export const getResizedImgSrc = (type = '', data = {}) => {
+export const getFileURL = (type = '', data = {}) => {
 
     const { secure_token = '' } = data || {};
+
+    // generate image source URLs
+    const fileURL = () => {
+        const rootURI = `${process.env.API_HOST}:${process.env.API_PORT}/resources/versions/`;
+        return '/Users/boutrous/Workspace/NodeJS/resources/metadata/test_pdf.pdf';
+    };
 
     // generate image source URLs
     const imgSrc = (token) => {
@@ -467,9 +488,9 @@ export const getResizedImgSrc = (type = '', data = {}) => {
         supplemental_images: () => {
             return imgSrc(secure_token);
         },
-        metadata_files: () => {
-            return null;
-        },
+        // metadata_files: () => {
+        //     return fileURL();
+        // },
     };
 
     // Handle file types
@@ -526,19 +547,19 @@ export const getImageInfo = function(imgPath, file) {
  *
  * @return {Object} output file data
  * @src public
- * @param inPath
+ * @param srcPath
  * @param output
  * @param format
  */
 
-export const copyImage = function(inPath, output, format) {
-
+export const copyImage = function(srcPath, output, format) {
     // handle conversion to requested formats
     const handleFormats = {
         tif: () => {
             // get sharp pipeline + write stream for uploading image
-            const pipeline = sharp(inPath);
-            const writeStream = fs.createWriteStream(output.path);
+            // - fails if the dest path exists
+            const pipeline = sharp(srcPath);
+            const writeStream = fs.createWriteStream(output.path, {flags: 'wx'});
             pipeline
                 .resize(output.size.width)
                 .tif()
@@ -549,10 +570,11 @@ export const copyImage = function(inPath, output, format) {
                     .on('error', reject),
             );
         },
-        jpg: () => {
+        jpeg: () => {
             // get sharp pipeline + write stream for uploading image
-            const pipeline = sharp(inPath);
-            const writeStream = fs.createWriteStream(output.path);
+            // - fails if the dest path exists
+            const pipeline = sharp(srcPath);
+            const writeStream = fs.createWriteStream(output.path, {flags: 'wx'});
             pipeline
                 .resize(output.size.width)
                 .jpeg({
@@ -568,9 +590,8 @@ export const copyImage = function(inPath, output, format) {
         },
         default: () => {
             // default handler streams temporary file to new destination
-            return fs.copyFile(inPath, output.path, (err) => {
-                if (err) throw err;
-            });
+            // - The copy operation will fail if dest already exists.
+            return copyFile(srcPath, output.path, fs.constants.COPYFILE_EXCL);
         },
     };
 
@@ -587,9 +608,10 @@ export const copyImage = function(inPath, output, format) {
  * @src public
  * @param index
  * @param metadata
+ * @param owner
  */
 
-export const saveFile = function(index, metadata) {
+export const saveFile = function(index, metadata, owner) {
 
     // get file data object
     let fileData = metadata.files[index];
@@ -606,9 +628,14 @@ export const saveFile = function(index, metadata) {
 
     // initialize image versions
     const createVersions = () => {
+        // insert token into filename
+        const tokenizedFilename = [
+            fileData.file.filename.slice(0, fileData.file.filename.lastIndexOf('.')),
+            imgToken,
+            fileData.file.filename.slice(fileData.file.filename.lastIndexOf('.'))].join('');
         return {
             raw: {
-                path: path.join(outDir, 'raw', fileData.file.filename),
+                path: path.join(outDir, 'raw', tokenizedFilename),
                 size: { width: null },
             },
             thumb: {
@@ -626,11 +653,11 @@ export const saveFile = function(index, metadata) {
     fileData.data.secure_token = imgToken;
     // metadata.data.fn_photo_reference = path.parse(file.filename).name;
 
+    // create image versions
+    metadata.versions = createVersions();
+
     // process capture images
     const captureHandler = () => {
-
-        // create image versions
-        metadata.versions = createVersions();
 
         // update file metadata
         fileData.file.owner_type = metadata.owner.type;
@@ -648,8 +675,8 @@ export const saveFile = function(index, metadata) {
         filePromises.push(
             copyImage(fileData.tmp, metadata.versions.raw),
             getImageInfo(fileData.tmp, fileData.data),
-            copyImage(fileData.tmp, metadata.versions.medium, 'jpg'),
-            copyImage(fileData.tmp, metadata.versions.thumb, 'jpg'),
+            copyImage(fileData.tmp, metadata.versions.medium, 'jpeg'),
+            copyImage(fileData.tmp, metadata.versions.thumb, 'jpeg'),
         );
     };
 
@@ -661,8 +688,8 @@ export const saveFile = function(index, metadata) {
             filePromises.push(
                 copyImage(fileData.tmp, metadata.versions.raw),
                 getImageInfo(fileData.tmp, fileData.data),
-                copyImage(fileData.tmp, metadata.versions.medium, 'jpg'),
-                copyImage(fileData.tmp, metadata.versions.thumb, 'jpg'),
+                copyImage(fileData.tmp, metadata.versions.medium, 'jpeg'),
+                copyImage(fileData.tmp, metadata.versions.thumb, 'jpeg'),
             );
         },
         default: () => {
@@ -677,6 +704,32 @@ export const saveFile = function(index, metadata) {
 
     return Promise.all(filePromises);
 };
+
+/**
+ * Create readable stream for non-image data.
+ *
+ * @public
+ * @param data
+ * @return {Stream} readable stream
+ */
+
+export const streamData = async (data) => {
+    let sent = false;
+    const readable = new Stream.Readable();
+    readable.on('error', console.error)
+
+    // required stream read
+    readable._read = () => {
+        if (!sent) {
+            const buffer = Buffer.from(data, 'utf-8');
+            readable.push(buffer);
+            sent = true;
+        } else {
+            readable.push(null);
+        }
+    }
+    return readable;
+}
 
 /**
  * Create readable stream for non-image data.
@@ -705,40 +758,13 @@ export class ArrayStream extends Readable {
 }
 
 /**
- * Create a new transform stream class that can validate files.
+ * Validate file for upload.
  *
- * @param {Request} req
- * @param {String} inFilepath
- * @param {String} outFilepath
- * @param {Object} downsample
+ * @param {String} file
+ * @param {Object} options
  * @src public
  */
 
-export class FileValidator extends Transform {
-    constructor(options) {
-        super(options.streamOptions);
+export const validate = (file, options) => {
 
-        this.maxFileSize = options.maxFileSize;
-        this.totalBytesInBuffer = 0;
-    }
-
-    _transform(chunk, encoding, callback) {
-        this.totalBytesInBuffer += chunk.length;
-
-        // Look to see if the file size is too large.
-        if (this.totalBytesInBuffer > this.maxFileSize) {
-            const err = new Error(`The file size exceeded the limit of ${this.maxFileSize} bytes`);
-            err.code = 'MAXFILESIZEEXCEEDED';
-            callback(err);
-            return;
-        }
-
-        this.push(chunk);
-
-        callback(null);
-    }
-
-    _flush(done) {
-        done();
-    }
 }

@@ -10,7 +10,7 @@ import Image from './image';
 import Download from './download';
 import { useRouter } from '../../_providers/router.provider.client';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
-import Loading from './icon';
+import Loading from './loading';
 
 /**
  * Defines file component.
@@ -19,15 +19,16 @@ import Loading from './icon';
  * @param {Object} data
  * @param {String} callback
  * @param {String} scale
+ * @param owner
  * @return {JSX.Element}
  */
 
-const File = ({ data, callback=null, scale='thumb' }) => {
+const File = ({ data, callback=null, scale='thumb', owner={} }) => {
 
     const router = useRouter();
 
     // destructure file data
-    const {label='', file={}, metadata={}, url={}} = data || {};
+    const {label='', file={}, url={}} = data || {};
     const {id='', owner_id='', file_type='', filename='', file_size='' } = file || {};
 
     // file components indexed by render type
@@ -39,7 +40,7 @@ const File = ({ data, callback=null, scale='thumb' }) => {
         historic_images: () => <Image
             url={url}
             scale={scale}
-            label={label}
+            label={`${label} ${owner.hasOwnProperty('type') && owner.type !== 'historic_visits' ? '(unsorted)' : ''}`}
             title={filename}
             onClick={()=>{
                 callback
@@ -50,10 +51,12 @@ const File = ({ data, callback=null, scale='thumb' }) => {
         modern_images: () => <Image
             url={url}
             scale={scale}
-            label={label}
+            label={`${label} ${owner.hasOwnProperty('type') && owner.type !== 'locations' ? '(unsorted)' : ''}`}
             title={filename}
             onClick={()=>{
-                router.update(createNodeRoute('modern_captures', 'show', owner_id))
+                callback
+                    ? callback()
+                    : router.update(createNodeRoute('modern_captures', 'show', owner_id))
             }}
         />,
         supplemental_images: () => <Image
@@ -68,8 +71,8 @@ const File = ({ data, callback=null, scale='thumb' }) => {
         metadata_files: () => <Download
             label={label}
             type={file_type}
-            id={id}
-            url={url}
+            format={'pdf'}
+            route={createNodeRoute(file_type, 'download', id)}
             size={file_size}
         />
     }

@@ -152,7 +152,8 @@ const CaptureSelector = ({selection, setSelectedImage, onSubmit}) => {
                 <ul>
                     {
                         historic_images.map(imgData => {
-                            const { file = {}, url = {}, label = '' } = imgData || {};
+                            const { metadata={}, file = {}, url = {}, label = '' } = imgData || {};
+                            const { image_state='' } = metadata || {};
                             return (
                                 <li
                                     key={`capture_gallery_file_${file.id || ''}`}

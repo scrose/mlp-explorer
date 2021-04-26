@@ -13,7 +13,7 @@ import { useRouter } from '../../_providers/router.provider.client';
 import Table from '../common/table';
 import EditorMenu from '../menus/editor.menu';
 import Input from '../common/input';
-import { useMessage } from '../../_providers/message.provider.client';
+import { setSessionMsg } from '../../_services/session.services.client';
 
 /**
  * Render metadata options component.
@@ -31,7 +31,6 @@ const OptionsView = ({
 }) => {
 
     const router = useRouter();
-    const msg = useMessage();
     const _isMounted = React.useRef(false);
 
     // initialize option data
@@ -64,7 +63,7 @@ const OptionsView = ({
             })
             .catch(err => console.error(err));
         return ()=>{_isMounted.current = false}
-    }, [type, router, msg])
+    }, [type, router])
 
     /**
      * Refresh options data state upon rendering.
@@ -92,7 +91,7 @@ const OptionsView = ({
                 // destructure API data for options
                 const { response = {} } = res || {};
                 const { data = {}, message={} } = response || {};
-                msg.setMessage(message);
+                setSessionMsg(message);
                 setOptionData(optData => ({...optData, [optType]: data}));
             })
             .catch(err => console.error(err));

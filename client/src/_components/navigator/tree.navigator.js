@@ -7,13 +7,14 @@
 
 import React from 'react'
 import { useRouter } from '../../_providers/router.provider.client';
-import Icon, { Loading } from '../common/icon';
+import Icon from '../common/icon';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { getModelLabel, getNodeOrder } from '../../_services/schema.services.client';
 import { addNode, checkNode, removeNode } from '../../_services/session.services.client';
 import { useData } from '../../_providers/data.provider.client';
 import Button from '../common/button';
 import { sorter } from '../../_utils/data.utils.client';
+import Loading from '../common/loading';
 
 /**
  * Inline tree node menu component.

@@ -37,7 +37,6 @@ export function select(id, model) {
     return fn({id: id});
 }
 
-
 /**
  * Query: Insert metadata entry for given item instance.
  *
@@ -133,7 +132,6 @@ export function getModernCapturesByStationID(id) {
         data: [id],
     };
 }
-
 
 /**
  * Query: Get historic captures for given station.

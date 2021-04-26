@@ -84,6 +84,24 @@ export const alignImages = (imgData1, imgData2, canvas1, canvas2, options) => {
 }
 
 /**
+ * Draws scaled image to context.
+ *
+ * @param img
+ * @param canvas
+ * @param x
+ * @param y
+ */
+
+export const scale = function(img, canvas, x, y) {
+    canvas.getContext('2d').drawImage(img,
+        Math.min(Math.max(0, x - 5), img.width - 10),
+        Math.min(Math.max(0, y - 5), img.height - 10),
+        10, 10,
+        0, 0,
+        200, 200);
+};
+
+/**
  * compute scale-to-fit image to defined width dimension.
  *
  * @public

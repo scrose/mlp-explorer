@@ -5,7 +5,7 @@
  * MIT Licensed
  */
 
-import React, { useCallback } from 'react';
+import React  from 'react';
 import Button from '../common/button';
 import { setNavView } from '../../_services/session.services.client';
 
@@ -32,29 +32,6 @@ const MenuNavigator = ({
                            filtered
 }) => {
 
-    // dropdown toggle for tools menu items
-    const [dropdownToggle, setDropdownToggle] = React.useState(false);
-
-    // Initialize map using reference callback to access DOM
-    const dropdown = useCallback(domNode => {
-
-        // create hide dropdown function
-        const hideDropdown = (e) => {
-            if (!domNode.contains(e.target)) {
-                setDropdownToggle(false);
-                document.removeEventListener('click', hideDropdown);
-            }
-        };
-
-        // create event listener to close menu upon click
-        if (domNode && dropdownToggle) {
-            document.addEventListener('click', hideDropdown);
-        } else {
-            document.removeEventListener('click', hideDropdown);
-        }
-
-    }, [dropdownToggle, setDropdownToggle]);
-
     // Sets the current navigation view (tree/map)
     // - set in state and persistent session variable
     const setView = (navView) => {
@@ -65,8 +42,6 @@ const MenuNavigator = ({
         // set navigator view
         set(navView);
         setNavView(navView);
-        // open navigator menu
-        setDropdownToggle(false);
     }
 
     return (
@@ -76,7 +51,7 @@ const MenuNavigator = ({
                     <li>
                         <Button
                             icon={toggle ? 'hopenleft' : 'hcloseleft'}
-                            title={`Minimize the navigator.`}
+                            title={toggle ? 'Minimize navigator.' : 'Maximize navigator'}
                             onClick={() => setToggle(!toggle)}
                         />
                     </li>

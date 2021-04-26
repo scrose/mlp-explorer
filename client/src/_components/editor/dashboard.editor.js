@@ -33,7 +33,7 @@ const NodePanel = () => {
                             label={'Export GIS CSV'}
                             format={'csv'}
                             type={'export'}
-                            uri={'/nodes/export/gis/csv'}
+                            route={'/nodes/export/gis/csv'}
                         />
                     </p>
                 </li>
@@ -43,7 +43,7 @@ const NodePanel = () => {
                             label={'Export GIS JSON'}
                             format={'json'}
                             type={'export'}
-                            uri={'/nodes/export/gis/json'}
+                            route={'/nodes/export/gis/json'}
                         />
                     </p>
                 </li>

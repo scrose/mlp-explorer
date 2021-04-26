@@ -9,7 +9,6 @@ import React from 'react';
 import { genSchema, getDependentTypes, getModelLabel } from '../../_services/schema.services.client';
 import { genID, sanitize } from '../../_utils/data.utils.client';
 import Button from '../common/button';
-import CapturesView from './captures.view';
 import Accordion from '../common/accordion';
 import EditorMenu from '../menus/editor.menu';
 import { useData } from '../../_providers/data.provider.client';
@@ -32,6 +31,9 @@ const keyID = genID();
 
 export const MetadataAttached = ({ owner, attached }) => {
         const attachedViews = {
+            comparisons: (data) => {
+                return <ComparisonsView key={`${keyID}_${genID()}_comparison`} data={data} />;
+            },
             participant_groups: (data) => {
                 return Object.keys(data || {})
                     .sort()
@@ -60,12 +62,10 @@ export const MetadataAttached = ({ owner, attached }) => {
                     />;
                 });
             },
-            comparisons: (data) => {
-                return <ComparisonsView data={data} />;
-            },
             default: (mdData, model) => {
                 const {label='', data={}} = mdData || {};
                 return <MetadataView
+                    key={`${keyID}_${model}_${label}_metadata`}
                     view={'attachItem'}
                     model={model}
                     owner={owner}
@@ -93,14 +93,10 @@ export const MetadataAttached = ({ owner, attached }) => {
                 >
                     <div className={`${attachedModel} h-menu`}>
                         {
-                            attached[attachedModel].map((attachedMD, index) => {
-                                return <div key={`${keyID}_${attachedModel}_${index}`}>
-                                    {
-                                        attachedViews.hasOwnProperty(attachedModel)
-                                            ? attachedViews[attachedModel](attachedMD)
-                                            : attachedViews.default(attachedMD, attachedModel)
-                                    }
-                                </div>;
+                            attached[attachedModel].map((attachedMD) => {
+                                return  attachedViews.hasOwnProperty(attachedModel)
+                                    ? attachedViews[attachedModel](attachedMD)
+                                    : attachedViews.default(attachedMD, attachedModel)
                             })
                         }
                     </div>

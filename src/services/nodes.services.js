@@ -17,7 +17,7 @@ import queries from '../queries/index.queries.js';
 import { mapToObj, sanitize } from '../lib/data.utils.js';
 import * as mserve from './metadata.services.js';
 import * as fserve from './files.services.js';
-import { getStatus } from './metadata.services.js';
+import { getCaptureImage, getStatus } from './metadata.services.js';
 
 /**
  * Get node by ID. Returns single node object.
@@ -74,17 +74,21 @@ export const get = async (id, client=pool) => {
     // check that node exists
     if (!node) return null;
 
+    // get node model metadata
     const metadata = await selectByNode(node, client);
+    const files = await fserve.selectByOwner(id, client) || [];
 
     // append model data, files and dependents (child nodes)
     return {
+        type: node.type,
         node: node,
         metadata: metadata,
-        label: await mserve.getNodeLabel(node),
-        files: await fserve.selectByOwner(id, client) || [],
+        label: await mserve.getNodeLabel(node, files, client),
+        files: files,
+        refImage: getCaptureImage(files),
         dependents: await selectByOwner(id, client) || [],
         hasDependents: await hasDependents(id, client) || false,
-        status: await getStatus(node, metadata, client)
+        status: await getStatus(node, metadata, client),
     }
 };
 
@@ -120,6 +124,7 @@ export const getTree = async function(model) {
                 return {
                     node: node,
                     label: await mserve.getNodeLabel(node),
+                    type: node.type,
                     metadata: metadata,
                     hasDependents: await hasDependents(node.id, client) || false,
                     status: await getStatus(node, metadata, client)
@@ -205,11 +210,14 @@ export const selectByOwner = async (id, client=pool) => {
     nodes = await Promise.all(
         nodes.map(async (node) => {
             const metadata = await selectByNode(node, client);
+            const files = await fserve.selectByOwner(node.id, client);
             return {
                 node: node,
                 label: await mserve.getNodeLabel(node),
+                type: node.type,
                 metadata: metadata,
-                files: await fserve.selectByOwner(node.id, client),
+                files: files,
+                refImage: getCaptureImage(files),
                 hasDependents: await hasDependents(node.id, client),
                 status: await getStatus(node, metadata, client)
             }

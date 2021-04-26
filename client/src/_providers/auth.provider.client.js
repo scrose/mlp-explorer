@@ -8,7 +8,6 @@
 import * as React from 'react'
 import { useRouter } from './router.provider.client';
 import { setSessionMsg } from '../_services/session.services.client';
-import { useMessage } from './message.provider.client';
 
 /**
  * Global authentication context.
@@ -32,7 +31,6 @@ function AuthProvider(props) {
     let [data, setData] = React.useState(null);
 
     const router = useRouter();
-    const msg = useMessage();
 
     /**
      * User login request.
@@ -47,7 +45,7 @@ function AuthProvider(props) {
                 // create user session
                 const { response={} } = res || {};
                 const { user=null, message={} } = response || {};
-                msg.setMessage(message);
+                setSessionMsg(message);
                 if (user) setData(user);
             });
     }

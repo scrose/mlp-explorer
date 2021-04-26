@@ -39,7 +39,7 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
 
     // prepare capture images columns
     const cols = [
-        { name: 'thumbnail', label: 'Image'},
+        { name: 'thumbnail', label: 'Image', class: 'image-thumbnail'},
         { name: 'image_state', label: 'State'},
         { name: 'width', label: 'Width'},
         { name: 'height', label: 'Height'},
@@ -69,7 +69,7 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
                     router.update(createNodeRoute(file_type, 'show', id))
                 }}
             />,
-            image_state: imageState && imageState.hasOwnProperty('label') ? imageState.label : '',
+            image_state: imageState && imageState.hasOwnProperty('label') ? imageState.label : 'n/a',
             width: sanitize(metadata.x_dim, 'imgsize'),
             height: sanitize(metadata.y_dim, 'imgsize'),
             file_size: sanitize(file.file_size, 'filesize')
@@ -96,7 +96,6 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
                 <h4>Capture Images</h4>
                 <Table rows={rows} cols={cols} className={'files'} />
             </>
-
 }
 
 /**
@@ -121,6 +120,9 @@ const CaptureView = ({model, data, fileType}) => {
         node={},
         attached={} } = api.destructure(data);
 
+    // get capture status
+    const { status={sorted: false} } = data || {};
+
     // get capture images
     const captureImages = files.hasOwnProperty(fileType)
         ? files[fileType]
@@ -142,7 +144,7 @@ const CaptureView = ({model, data, fileType}) => {
                     <Slider images={captureImages} />
                     <CaptureImagesTable
                         type={fileType}
-                        owner={{ id: id, type: model}}
+                        owner={{ id: id, type: model, sorted: status.sorted}}
                         files={captureImages}
                     />
                 </>

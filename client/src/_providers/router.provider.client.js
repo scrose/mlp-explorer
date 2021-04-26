@@ -9,7 +9,7 @@ import * as React from 'react'
 import { makeRequest } from '../_services/api.services.client';
 import { createNodeRoute, filterPath, reroute, getRoot, createURL } from '../_utils/paths.utils.client';
 import { getStaticView } from '../_services/schema.services.client';
-import { clearNodes } from '../_services/session.services.client';
+import { clearNodes, popSessionMsg } from '../_services/session.services.client';
 
 /**
  * Global data provider.
@@ -80,6 +80,9 @@ function RouterProvider(props) {
         // set static view (if applicable)
         setStaticView(getStaticView(uri));
         setQuery({});
+
+        // clear session messages
+        popSessionMsg();
 
         // update route in browser
         reroute(uri);
@@ -245,12 +248,21 @@ function RouterProvider(props) {
 
     const download = async (route, format) => {
 
+        console.log(route, online)
+
         // reject null paths or when API is offline
         if (!route || !online ) return null;
 
         return await makeRequest({url: createURL(route), method:'GET', download: format})
             .then(res => {
-                return new Blob([res.response]);
+                console.log(res)
+                if (!res) return null;
+                const {error=null} = res || {};
+                return {
+                    error: error,
+                    data: new Blob([res.response])
+                }
+
             })
             .catch(console.error);
     }

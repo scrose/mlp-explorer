@@ -20,6 +20,8 @@ import * as metaserve from '../services/metadata.services.js';
 import { sanitize } from '../lib/data.utils.js';
 import * as importer from '../services/import.services.js';
 import * as cserve from '../services/construct.services.js';
+import {errors} from '../error.js';
+import fs from "fs";
 
 /**
  * Export controller constructor.
@@ -151,10 +153,10 @@ export default function FilesController(modelType) {
 
             // filter metadata through importer
             // - saves attached files to library
-            // - collates metadata
+            // - collates input metadata (applies to all files)
             const metadata = await importer.receive(req, owner_id, type);
 
-            // check if files are present
+            // check if files are present in request data
             if (Object.keys(metadata.files).length === 0) {
                 return next(new Error('invalidRequest'));
             }
@@ -169,7 +171,7 @@ export default function FilesController(modelType) {
                     model: model,
                     data: resData[0],
                     message: {
-                        msg: `${resData.length} ${model.label} items created successfully!`,
+                        msg: `${resData.length} ${model.label} created successfully!`,
                         type: 'success'
                     },
                 }));
@@ -203,9 +205,14 @@ export default function FilesController(modelType) {
 
             // get file data
             const fileData = await fserve.get(id, client);
-            const { file = null } = fileData || {};
+
+            // check that file entry exists
+            if (!fileData) {
+                return next(new Error('notFound'));
+            }
 
             // get path of owner node in hierarchy
+            const { file = null } = fileData || {};
             const path = await nserve.getPath(file);
 
             // send form data response
@@ -255,7 +262,9 @@ export default function FilesController(modelType) {
             // overwrite metadata
             Object.keys(imported.data).forEach((field) => {
                 metadata[field] = imported.data[field];
-            })
+            });
+
+            console.log('Update Data:', metadata)
 
             // update file metadata record
             await fserve.update(new Model(metadata));
@@ -316,7 +325,7 @@ export default function FilesController(modelType) {
             // delete files
             const resData = await fserve.remove(file, fileData.url);
             if (resData) {
-                return next(new Error('fileDeleteError'));
+                return next(new Error('ENOENT'));
             }
 
             res.status(200).json(
@@ -360,21 +369,19 @@ export default function FilesController(modelType) {
             if (!file)
                 return next(new Error('invalidRequest'));
 
-            // get the source and destination path
-            const src = fserve.getRawImgSrc(file.file_type, file)
-            const dst = file.filename;
+            // get the source path
+            let { fs_path='' } = file;
+            fs_path = '/Users/boutrous/Workspace/NodeJS/resources/metadata/test_pdf.pdf';
 
-            console.log(src, dst)
-
-            res.status(200).json(
-                prepare({
-                    view: 'download',
-                    data: { src: src, dst: src },
-                }));
-
-            return
             // download file
-            await fserve.download(src, dst);
+            const readStream = fs.createReadStream(fs_path);
+            readStream.pipe(res);
+            readStream.on('error', (err) => {
+                return next(err);
+            });
+            res.on('error', (err) => {
+                return next(err)
+            });
 
         } catch (err) {
             return next(err);
@@ -400,6 +407,12 @@ export default function FilesController(modelType) {
             // get node ID from parameters
             const id = this.getId(req);
 
+            // message
+            let msg = null;
+
+            // init historic captures available
+            let historicCaptures = null;
+
             // get file data
             const fileData = await fserve.get(id, client);
             const { file = null } = fileData || {};
@@ -415,10 +428,16 @@ export default function FilesController(modelType) {
                     return type === 'stations';
                 });
 
-            if (!stationKey)
-                return next(new Error('invalidRequest'));
-
-            const station = path[stationKey].node;
+            // Station found: include historic capture data
+            if (stationKey) {
+                const station = path[stationKey].node;
+                historicCaptures = await metaserve.getHistoricCapturesByStation(station, client)
+            }
+            // Station not found: invalid master
+            // - respond with master data
+            else {
+                msg = errors.invalidMaster;
+            }
 
             // send form data response
             // - include possible historic images for alignment (mastering)
@@ -426,9 +445,10 @@ export default function FilesController(modelType) {
                 prepare({
                     view: 'master',
                     model: model,
+                    message: msg,
                     data: {
                         modern_capture: fileData,
-                        historic_captures: await metaserve.getHistoricCapturesByStation(station, client)
+                        historic_captures: historicCaptures
                     },
                     path: path
                 }));

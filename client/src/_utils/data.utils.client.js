@@ -5,6 +5,8 @@
  * MIT Licensed
  */
 
+import { getNodeOrder } from '../_services/schema.services.client';
+
 export const genHash = function(str) {
     let hash = 0, i, chr;
     if (str.length === 0) return hash;
@@ -125,6 +127,25 @@ export function sorter(a, b) {
 }
 
 /**
+ * Natural sort items by node order.
+ *
+ * @param {Object} a
+ * @param {Object} b
+ * @src public
+ */
+
+export function sortByNodeOrder(a, b) {
+    try {
+        return getNodeOrder(a.node.type)
+            .localeCompare(
+                a.node.type, undefined, { numeric: true, sensitivity: 'base' }
+            );
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+/**
  * Render datum by render settings.
  *
  * @public
@@ -153,6 +174,10 @@ export const sanitize = (
             const month = date.toLocaleString('default', { month: 'long' });
             return value ? `${month} ${date.getDate()}, ${date.getFullYear()}` : '-';
         },
+        datetime: ({ value }) => {
+            const date = new Date(value);
+            return value ? date.toLocaleString('default', {timeZone: 'UTC', timeZoneName: 'short'}) : '-';
+        },
         timestamp: ({ value }) => {
             const date = new Date(value);
             return `${date.toLocaleString()}`;
@@ -177,16 +202,16 @@ export const sanitize = (
         coord: ({ value }) => {
             return value
                 ? <span className={'coord'}>
-                    { parseFloat(value).toFixed(2) }
-                    &#160;/&#160;<span>{convertCoordDMS(value)}</span>
+                    { parseFloat(value).toFixed(3) }
+                    &#160;&#160;<span>({convertCoordDMS(value)})</span>
                   </span>
                 : '-';
         },
         lat: ({ value }) => {
             return value
                 ? <span className={'coord'}>
-                    { parseFloat(value).toFixed(2) }
-                    &#160;/&#160;<span>{convertCoordDMS(value)}</span>
+                    { parseFloat(value).toFixed(3) }
+                    &#160;&#160;<span>({convertCoordDMS(value)})</span>
                   </span>
                 : '-';
         },

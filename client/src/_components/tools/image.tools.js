@@ -11,7 +11,7 @@ import { CanvasMenu } from '../menus/canvas.menu';
 import { ValidationMessage } from '../common/input';
 import { createNodeRoute, getQuery } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
-import { moveAt, moveCanvasEnd, moveStart } from '../../_utils/image.utils.client';
+import { moveAt, moveStart } from '../../_utils/image.utils.client';
 
 /**
  * Canvas API image editor component.
@@ -86,9 +86,11 @@ const ImageTools = () => {
             router.get(createNodeRoute('modern_images', 'master', masterID))
                 .then(res => {
                     if (_isMounted.current) {
-                        setError(res.error);
+                        if (res.error) setMessage(res.error);
                         const { response = {} } = res || {};
-                        const { data = {} } = response || {};
+                        const { data = {}, message={} } = response || {};
+                        setMessage(message);
+                        // get capture data (if available)
                         const { historic_captures = [], modern_capture = {} } = data || {};
                         setSelection(historic_captures);
                         setCanvas2Data(initCanvas(canvas2ID, modern_capture));
@@ -99,6 +101,7 @@ const ImageTools = () => {
     }, [input2ImgID, router, setSelection, setCanvas2Data]);
 
     return <>
+        <CanvasMessage message={message} />
             <CanvasMenu
                 options={options}
                 setOptions={setOptions}
@@ -118,7 +121,6 @@ const ImageTools = () => {
                 setPointer={setPointer}
                 setMessage={setMessage}
             />
-            <CanvasMessage message={message} />
             <div className={'canvas-board'}>
                 <Canvas
                     id={canvas1ID}

@@ -66,17 +66,17 @@ create TABLE IF NOT EXISTS "public"."files"
 (
     "id"      serial PRIMARY KEY,
     "old_id" integer not null,
-    "file_type"  character varying(40) not null,
+    "file_type"  character varying(40) NOT NULL,
     "mimetype"  character varying(40),
     "filename" varchar(255),
     "file_size" bigint,
-    "owner_id" integer,
-    "owner_type"  varchar(40),
+    "owner_id" integer NOT NULL,
+    "owner_type"  varchar(40) NOT NULL,
     "created_at" timestamp without time zone NOT NULL,
     "updated_at" timestamp without time zone NOT NULL,
     "published" boolean,
     "legacy_path" text,
-    "fs_path" text,
+    "fs_path" text NOT NULL,
     "filename_tmp" character varying(255),
     CONSTRAINT fk_ownerid FOREIGN KEY (owner_id, owner_type)
         REFERENCES nodes (id, type),
@@ -108,7 +108,8 @@ create TABLE"public"."image_types"
 
 insert into "public"."image_types" (name, label)
 values ('scenic', 'Scenic Image'),
-       ('location', 'Location Image');
+       ('location', 'Location Image'),
+       ('other', 'Other Image');
 
 -- categories of capture image states
 
@@ -162,7 +163,7 @@ CREATE TABLE if not exists "public"."supplemental_images"
 (
     "files_id"         integer primary key,
     "owner_id"         integer not null,
-    "image_type"       character varying(40),
+    "image_type"       character varying(40) NOT NULL DEFAULT 'other',
     "format"           character varying(255),
     "channels"         integer,
     "density"          integer,
@@ -497,16 +498,16 @@ order by id;
 
 -- categories of metadata
 
-drop table if exists "metadata_types" CASCADE;
+drop table if exists "metadata_file_types" CASCADE;
 
-create TABLE"public"."metadata_types"
+create TABLE"public"."metadata_file_types"
 (
     id    serial PRIMARY KEY,
     name  VARCHAR(40) UNIQUE NOT NULL,
     label VARCHAR(40) UNIQUE NOT NULL
 );
 
-insert into "public"."metadata_types" (name, label)
+insert into "public"."metadata_file_types" (name, label)
 values ('ancillary', 'Ancillary Metadata'),
        ('field_notes', 'Field Notes');
 
@@ -519,13 +520,13 @@ DROP TABLE IF EXISTS "metadata_files";
 CREATE TABLE "public"."metadata_files" (
    "files_id" integer not null,
    "owner_id" integer not null,
-   "type" varchar(40),
+   "type" varchar(40) not null,
    CONSTRAINT fk_file_id FOREIGN KEY (files_id)
        REFERENCES files (id) ON DELETE CASCADE,
    CONSTRAINT fk_owner_id FOREIGN KEY (owner_id)
        REFERENCES nodes (id) ON DELETE CASCADE,
-   CONSTRAINT fk_metadata_type FOREIGN KEY (type)
-       REFERENCES metadata_types (name) ON DELETE CASCADE
+   CONSTRAINT fk_metadata_file_type FOREIGN KEY (type)
+       REFERENCES metadata_file_types (name) ON DELETE CASCADE
 ) WITH (oids = false);
 
 

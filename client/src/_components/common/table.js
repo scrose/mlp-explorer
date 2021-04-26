@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import Loading from './icon';
+import Loading from './loading';
 
 /**
  * Render table header.

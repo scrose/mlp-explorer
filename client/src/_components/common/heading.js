@@ -13,7 +13,7 @@ import {
 } from '../../_services/schema.services.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import { useData } from '../../_providers/data.provider.client';
-import Icon from './icon';
+import Badge from './badge';
 
 /**
  * Render view heading component.
@@ -41,6 +41,8 @@ const Heading = () => {
         if (staticLabel) return staticLabel;
 
         const headings = {
+            notFound: getStaticLabel('/not_found'),
+            404: 'Not Found',
             show: nodeLabel,
             new: `${getViewLabel('new')}: ${modelLabel}`,
             edit: `${getViewLabel('edit')}: ${nodeLabel}`,
@@ -48,12 +50,33 @@ const Heading = () => {
             import: `${getViewLabel('import')}: ${getModelLabel(api.model, 'label')}`,
             default: `${getViewLabel(api.view)}: ${modelLabel}`
         }
-        return headings.hasOwnProperty(api.view) && headings[api.view]
+        return headings.hasOwnProperty(api.view) &&
+            <>
+                {
+                    headings[api.view]
+                }
+            </>
     }
 
     const headingText = genHeading();
 
-    return headingText && <h3><Icon type={icon} size={'lg'} /> <span>{headingText}</span></h3>
+    return headingText && <div className={'heading h-menu'}>
+        <ul>
+            <li><h3>{headingText}</h3></li>
+            {
+                api.model &&
+                <li className={'push'}>
+                    <Badge
+                        className={api.model}
+                        icon={api.model}
+                        title={modelLabel}
+                        label={modelLabel}
+
+                    />
+                </li>
+            }
+        </ul>
+    </div>
 }
 
 export default Heading;

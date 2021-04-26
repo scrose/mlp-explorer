@@ -7,7 +7,6 @@
 
 import React from 'react';
 import MetadataView from './metadata.view';
-import { getModelLabel } from '../../_services/schema.services.client';
 import Accordion from '../common/accordion';
 import File from '../common/file';
 
@@ -22,13 +21,12 @@ import File from '../common/file';
 
 const ImageView = ({data, model}) => {
 
-    const { file={}, metadata={} } = data || {};
-
+    const { file={}, metadata={}, label='' } = data || {};
     return (
         <>
             <Accordion
                 type={'info'}
-                label={`${getModelLabel(model)} Metadata`}
+                label={`${label} Metadata`}
                 hasDependents={true}
                 open={false}
             >

@@ -7,21 +7,17 @@
 
 import React from 'react';
 import ImageView from './image.view';
-import LocationsView from './locations.view';
-import StationsView from './stations.view';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import { getDependentTypes, getModelLabel } from '../../_services/schema.services.client';
 import Accordion from '../common/accordion';
 import MetadataView, { MetadataAttached } from './metadata.view';
 import CaptureView from './capture.view';
-import VisitsView from './visits.view';
 import { sorter } from '../../_utils/data.utils.client';
-import Loading from '../common/icon';
+import Loading from '../common/loading';
 import EditorMenu from '../menus/editor.menu';
 import { useData } from '../../_providers/data.provider.client';
-import CapturesView from './captures.view';
-
+import FilesView from './files.view';
 
 /**
  * Node list component.
@@ -33,30 +29,14 @@ import CapturesView from './captures.view';
  * @return {JSX.Element}
  */
 
-export const NodeList = ({ owner, items }) => {
+export const NodesList = ({ owner, items }) => {
 
     const api = useData();
 
-    // check for empty of invalid nodes
+    // check for empty of invalid node list
     if (!Array.isArray(items) || items.length === 0) return null;
 
-    // filter captures
-    const captures = {
-        historic_captures: {
-            fileType: 'historic_images',
-            captures: items.filter(
-                item => item.node.type === 'historic_captures',
-            )
-        },
-        modern_captures: {
-            fileType: 'modern_images',
-            captures: items.filter(
-                item => item.node.type === 'modern_captures'
-            )
-        }
-    };
-
-    // filter non-captures
+    // filter and sort non-captures
     const nodes = items.filter(
         item => item.node.type !== 'historic_captures' && item.node.type !== 'modern_captures'
     ).sort(sorter);
@@ -90,31 +70,23 @@ export const NodeList = ({ owner, items }) => {
                     );
                 })
             }
-            {
-                Object.keys(captures).map((captureType, index) => {
-                    return captures[captureType].captures.length > 0 &&
-                        <Accordion
-                            key={`${captureType}_${index}`}
-                            type={captureType}
-                            label={getModelLabel(captureType, 'label')}
-                            hasDependents={true}
-                            open={true}
-                            menu={
-                                <EditorMenu
-                                    model={owner.type}
-                                    id={owner.id}
-                                    owner={owner}
-                                    label={getModelLabel(captureType, 'label')}
-                                    dependents={[captureType]}
-                                />
-                            }>
-                            <CapturesView
-                                captures={captures[captureType].captures}
-                                fileType={captures[captureType].fileType}
-                            />
-                        </Accordion>
-                })
-            }
+            <FilesView
+                files={
+                    {
+                        'historic_captures': items
+                            .filter(item => item.node.type === 'historic_captures')
+                            .map(item => {
+                                return item.refImage;
+                            }),
+                        'modern_captures': items
+                            .filter(item => item.node.type === 'modern_captures')
+                            .map(item => {
+                                return item.refImage;
+                            }),
+                    }
+                }
+                owner={owner}
+            />
         </>
     );
 };
@@ -133,17 +105,18 @@ const DefaultView = ({
                          data,
                      }) => {
     const api = useData();
-    const { node, dependents, metadata, attached } = api.destructure(data) || {};
+    const { node, dependents, metadata, attached, files } = api.destructure(data) || {};
     return (
         <>
             <Accordion
                 type={'show'}
-                label={`${getModelLabel(model)} Info`}
+                label={`Details`}
             >
                 <MetadataView key={`${model}_${node.id}`} model={model} metadata={metadata} />
             </Accordion>
             <MetadataAttached owner={node} attached={attached} />
-            <NodeList owner={node} items={dependents} />
+            <FilesView owner={node} files={files} />
+            <NodesList owner={node} items={dependents} />
         </>
     );
 };
@@ -158,17 +131,20 @@ const DefaultView = ({
 
 const NodesView = ({
                        model,
-                       data = {},
+                       data = {}
                    }) => {
 
     // create dynamic data states
     const [loadedData, setLoadedData] = React.useState(data);
-    const [error, setError] = React.useState(data);
+    const [error, setError] = React.useState(null);
     const _isMounted = React.useRef(true);
     const router = useRouter();
 
     // get dependents data
-    const { hasDependents = false, dependents = [], node = {} } = loadedData || data || {};
+    const {
+        hasDependents = false,
+        dependents = [],
+        node = {} } = loadedData || data || {};
 
     // API call to retrieve node data (if not yet loaded)
     React.useEffect(() => {
@@ -196,63 +172,52 @@ const NodesView = ({
         return () => {
             _isMounted.current = false;
         };
-    }, [dependents, setLoadedData, router, model, node, hasDependents]);
+    }, [error, dependents, setLoadedData, router, model, node, hasDependents]);
 
     // view components indexed by model type
-    const itemViews = {
-        stations: () => <StationsView
-            data={loadedData}
-        />,
-        historic_visits: () => <VisitsView
-            model={'historic_visits'}
-            data={loadedData}
-        />,
-        modern_visits: () => <VisitsView
-            model={'modern_visits'}
-            data={loadedData}
-        />,
-        locations: () => <LocationsView
-            data={loadedData}
-        />,
-        historic_captures: () => <CaptureView
-            fileType={'historic_images'}
-            model={'historic_captures'}
-            data={loadedData}
-        />,
-        modern_captures: () => <CaptureView
-            fileType={'modern_images'}
-            model={'modern_captures'}
-            data={loadedData}
-        />,
-        historic_images: () => <ImageView
-            model={'historic_images'}
-            data={loadedData}
-        />,
-        modern_images: () => <ImageView
-            model={'modern_images'}
-            data={loadedData}
-        />,
-        supplemental_images: () => <ImageView
-            model={'supplemental_images'}
-            data={loadedData}
-        />,
-        default: () => <DefaultView
-            model={model}
-            data={loadedData}
-        />,
+    const nodeViews = {
+            historic_captures: () => <CaptureView
+                fileType={'historic_images'}
+                model={'historic_captures'}
+                data={loadedData}
+            />,
+            modern_captures: () => <CaptureView
+                fileType={'modern_images'}
+                model={'modern_captures'}
+                data={loadedData}
+            />,
+            historic_images: () => <ImageView
+                model={'historic_images'}
+                data={loadedData}
+            />,
+            modern_images: () => <ImageView
+                model={'modern_images'}
+                data={loadedData}
+            />,
+            supplemental_images: () => <ImageView
+                model={'supplemental_images'}
+                data={loadedData}
+            />,
+            default: () => <DefaultView
+                model={model}
+                data={loadedData}
+            />
     };
 
-    return (
-        model && (dependents.length > 0 || !hasDependents)
-            ?
+    return <>
+
+        {
+            model && (dependents.length > 0 || !hasDependents) ?
             <>
                 {
-                    itemViews.hasOwnProperty(model)
-                        ? itemViews[model]()
-                        : itemViews.default()
+                    nodeViews.hasOwnProperty(model)
+                            ? nodeViews[model]()
+                            : nodeViews.default()
                 }
             </>
-            : <Loading />);
+                : <Loading />
+        }
+        </>
 };
 
 export default NodesView;

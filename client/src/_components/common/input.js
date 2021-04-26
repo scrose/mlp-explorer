@@ -21,21 +21,51 @@ const noop = ()=>{};
  *
  * @public
  * @param value
+ * @param name
  * @param filter
  */
 
-const DateTimeSelector = ({value, filter='default'}) => {
-
-    // create date state
-    const [date, setDate] = React.useState({ val: value ? new Date(value) : new Date() });
-
+const DateTimeSelector = ({value, name, filter='datetime'}) => {
+    const [date, setDate] = React.useState(value ? new Date(value) : new Date());
     const dateSelectors = {
-        default: <Flatpickr
-            data-enable-time
-            value={date.val}
-            onChange={setDate} />
+        datetime: <Flatpickr
+            name={name}
+            options={{
+                altInput: true,
+                dateFormat: 'Z'
+            }}
+            data-enable-time={true}
+            value={date}
+            onChange={(newDate) => {setDate(newDate)}} />,
+        date: <Flatpickr
+            name={name}
+            options={{
+                altInput: true,
+                dateFormat: 'Y-m-d',
+                altFormat: 'F d, Y'
+            }}
+            data-enable-time={false}
+            value={date}
+            onChange={(newDate) => {setDate(newDate)}} />,
+        time: <Flatpickr
+            name={name}
+            options={{
+                altInput: true,
+                dateFormat: 'H:i:s',
+                altFormat: 'H:i:ss',
+                noCalendar: true
+            }}
+            data-enable-time={true}
+            value={date}
+            onChange={(newDate) => {setDate(newDate)}} />
     }
-    return dateSelectors.hasOwnProperty(filter) ? dateSelectors[filter] : dateSelectors.default;
+    return <>
+        {
+            dateSelectors.hasOwnProperty(filter)
+                ? dateSelectors[filter]
+                : dateSelectors.default
+        }
+        </>
 }
 
 /**
@@ -457,15 +487,24 @@ export const Input = ({
 
         date: () => {
             return <DateTimeSelector
-                value={value || ''}
-                required={required}
-            />
+                    name={name}
+                    value={value || ''}
+                    filter={'date'} />
         },
 
         datetime: () => {
             return <DateTimeSelector
+                    name={name}
+                    value={value || ''}
+                    filter={'datetime'}
+                />
+        },
+
+        time: () => {
+            return <DateTimeSelector
+                name={name}
                 value={value || ''}
-                required={required}
+                filter={'time'}
             />
         },
 
@@ -590,7 +629,9 @@ export const Input = ({
         ?   <>
             <label key={`label_${name}`} htmlFor={id}>
                 <span className={'label-text'}>{label}</span>
-                {prefix}{input}{suffix}
+                <span className={'units'}>{prefix}</span>
+                {input}
+                <span className={'units'}>{suffix}</span>
             </label>
             { Array.isArray(error) && error.length > 0 && <ValidationMessage msg={error}/> }
         </>

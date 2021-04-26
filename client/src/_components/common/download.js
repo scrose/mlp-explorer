@@ -9,7 +9,7 @@ import React from 'react';
 import { saveAs } from 'file-saver';
 import { useRouter } from '../../_providers/router.provider.client';
 import Button from './button';
-import { useData } from '../../_providers/data.provider.client';
+import Badge from './badge';
 
 /**
  * Defines download button.
@@ -18,38 +18,52 @@ import { useData } from '../../_providers/data.provider.client';
  * @return {JSX.Element}
  */
 
-const Download = ({ type='', format='', label='', uri='' }) => {
+const Download = ({ type='', format='', label='', route=null }) => {
 
     // download link
     const router = useRouter();
-    const api = useData();
+
+    const [loading, setLoading] = React.useState(false);
+    const [error, setError] = React.useState(null);
 
     // create download filename
     const filename = `${type}.${format}`;
     const id = `${type}_${format}`;
 
-    // Handler for viewing image on click.
-    const clickHandler = async () => {
-        const blob = await router.download(uri, format);
+    // Handler for file download request.
+    const onDownload = async () => {
         // save data stream to file
         try {
-            saveAs(blob, filename);
+            setError(null);
+            setLoading(true);
+            const res = await router.download(route, format);
+            console.log(res)
+            if (!res || res.error) {
+                setLoading(false);
+                return setError(true);
+            }
+            saveAs(res.data, filename);
+            setLoading(false);
         }
         catch (err) {
-            console.error(err)
-            api.setMessage({msg: 'A download error occurred. Please contact the site administrator.', type: 'error'})
+            console.error(err);
+            setLoading(false);
+            setError(true)
         }
     }
 
     // render download button
-    return (
+    return <>
         <Button
             name={id}
-            icon={type}
+            icon={loading ? 'spinner' : 'download'}
+            spin={loading}
             label={label}
-            onClick={clickHandler}
-        />
-    )
+            title={`Download ${label}`}
+            onClick={onDownload}>
+        </Button>
+        { error && <Badge icon={'error'} label={'Download Error'} className={'error'} /> }
+    </>
 }
 
 export default Download;

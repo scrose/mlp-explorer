@@ -13,9 +13,8 @@ import LogoutUsers from '../users/logout.users';
 import NotfoundError from '../error/notfound.error';
 import UnavailableError from '../error/unavailable.error';
 import ServerError from '../error/server.error';
-import Loading from '../common/icon';
+import Loading from '../common/loading';
 import ImageTools from '../tools/image.tools';
-import Portal from '../common/portal';
 import Image from '../common/image';
 import { useRouter } from '../../_providers/router.provider.client';
 

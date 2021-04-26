@@ -153,6 +153,10 @@ export const exporter = async (req, res, next) => {
             ? exportHandler[format]()
             : exportHandler.default();
 
+        // // create data stream and buffer to destination
+        // const readable = await streamData(filtered);
+        // readable.pipe(res);
+
         // create data stream
         let rs = new ArrayStream(filtered);
 
@@ -161,7 +165,7 @@ export const exporter = async (req, res, next) => {
 
     } catch (err) {
         console.error(err)
-        next(err);
+        return next(err);
     }
 };
 

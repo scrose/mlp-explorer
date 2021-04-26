@@ -23,6 +23,7 @@ const Button = ({
                     icon,
                     size='lg',
                     className='',
+                    spin=false,
                     onClick=()=>{}
 }) => {
 
@@ -78,7 +79,7 @@ const Button = ({
                     onClick={onClick}
                     name={name}
                 >
-                    { icon ? <Icon type={icon} size={size} /> : ''}{ label ? <span>{label}</span> : ''}
+                    { icon ? <Icon type={icon} size={size} spin={spin} /> : ''}{ label ? <span>{label}</span> : ''}
                 </button>
             )
         }

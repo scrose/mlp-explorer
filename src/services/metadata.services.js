@@ -43,6 +43,24 @@ export const select = async (id, model, client=pool) => {
 };
 
 /**
+ * Get metadata by name. Returns single metadata object.
+ *
+ * @public
+ * @param {String} model
+ * @param value
+ * @param client
+ * @return {Promise} result
+ */
+
+export const selectByName = async (model, value, client=pool) => {
+    let { sql, data } = queries.defaults.selectByField(model, 'name', value, 'varchar');
+    let metadata = await client.query(sql, data);
+    return metadata.hasOwnProperty('rows') && metadata.rows.length > 0
+        ? metadata.rows[0]
+        : null;
+};
+
+/**
  * Get metadata by Owner ID. Returns list of metadata objects.
  *
  * @public
@@ -126,7 +144,7 @@ export const update = async(item, model, client=pool) => {
  * @param {String} ownerID
  * @param {String} groupType
  * @param {String} idKey
- * @return {Object} updated data
+ * @return updated data
  * @public
  */
 
@@ -164,7 +182,6 @@ export const updateGroup = async (
         const upserted = await Promise.all(
             newItems
                 .map(async (pNew) => {
-                    // console.log('Upsert', pNew.participant_id)
                     return await insert(new ItemModel(pNew), true, client);
                 }));
 
@@ -250,9 +267,9 @@ export const getAll = async function(model, client=pool) {
  */
 
 const findMetadataOptions = async (model, valueCol, labelCols, delimiter, client=pool) => {
-        let { sql, data } = queries.metadata.selectMetadataOptionsByModel(model, valueCol, labelCols, delimiter);
-        let metadata = await client.query(sql, data);
-        return metadata.rows;
+    let { sql, data } = queries.metadata.selectMetadataOptionsByModel(model, valueCol, labelCols, delimiter);
+    let metadata = await client.query(sql, data);
+    return metadata.rows;
 }
 
 /**
@@ -278,9 +295,37 @@ export const getMetadataOptions = async function(client=pool) {
         ),
         participant_group_types: await findMetadataOptions(
             'participant_group_types', 'name', ['label'], '', client
+        ),
+        image_types: await findMetadataOptions(
+            'image_types', 'name', ['label'], '', client
+        ),
+        metadata_file_types: await findMetadataOptions(
+            'metadata_file_types', 'name', ['label'], '', client
         )
     }
 };
+
+/**
+ * Get representative capture image file data.
+ * - filters capture files by image state
+ *
+ * @param files
+ * @param client
+ * @return {*}
+ */
+
+export const getCaptureImage = (files, client=pool) => {
+
+    const { historic_images=null, modern_images=null } = files || {};
+    const captureImages = historic_images || modern_images || [];
+
+    return captureImages.find(file => file.metadata.image_state === 'master')
+    || captureImages.find(file => file.metadata.image_state === 'interim')
+    || captureImages.find(file => file.metadata.image_state === 'raw')
+    || captureImages.find(file => file.metadata.image_state === 'gridded')
+    || captureImages.find(file => file.metadata.image_state === 'misc')
+    || {};
+}
 
 /**
  * Get node options for given model;
@@ -500,6 +545,7 @@ export const getStatus = async (node, metadata = {}, client = pool) => {
             return {
                 comparisons: comparisons,
                 compared: comparisons.length > 0,
+                sorted: node.owner_type === 'historic_visits'
             };
         },
         modern_captures: async () => {
@@ -507,6 +553,7 @@ export const getStatus = async (node, metadata = {}, client = pool) => {
             return {
                 comparisons: comparisons,
                 compared: comparisons.length > 0,
+                sorted: node.owner_type === 'locations'
             };
         },
     };
@@ -520,11 +567,12 @@ export const getStatus = async (node, metadata = {}, client = pool) => {
  *
  * @public
  * @param {Object} node
+ * @param {Array} files
  * @param client
  * @return {Promise} result
  */
 
-export const getNodeLabel = async (node, client=pool) => {
+export const getNodeLabel = async (node, files=[], client=pool) => {
 
     if (!node) return [];
     let label = '';
@@ -559,7 +607,7 @@ export const getNodeLabel = async (node, client=pool) => {
             id, type, ['fn_photo_reference'], 'Historic Capture'
         ),
         modern_captures: queries.metadata.selectLabel(
-            id, type, ['fn_photo_reference'], 'Capture'
+            id, type, ['fn_photo_reference'], 'Modern Capture'
         ),
         glass_plate_listings: queries.metadata.selectLabel(
             id, type, ['container', 'plates'], '', ', ', 'id'

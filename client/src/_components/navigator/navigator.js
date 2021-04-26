@@ -15,8 +15,7 @@ import FilterNavigator from './filter.navigator';
 import { useRouter } from '../../_providers/router.provider.client';
 import ServerError from '../error/server.error';
 import SearchNavigator from './search.navigator';
-import Loading from '../common/icon';
-import { getError } from '../../_services/schema.services.client';
+import Loading from '../common/loading';
 import Button from '../common/button';
 
 /**
@@ -53,6 +52,7 @@ const Navigator = () => {
     const route = routes.hasOwnProperty(navView) ? routes[navView] : null;
 
     const navViews = {
+        hidden: <></>,
         tree: <TreeNavigator view={navView} data={nodeData} filter={filterData} />,
         map: <MapNavigator view={navView} data={nodeData} filter={filterData} />,
         search: <SearchNavigator view={navView} data={nodeData} filter={filterData} />
@@ -122,7 +122,7 @@ const Navigator = () => {
                     error
                         ? <Button className={'msg error'} label={'An error occurred'} icon={'error'} />
                         : navView
-                        ? navViews[navView]
+                        ? ( navToggle ? navViews[navView] : navViews.hidden )
                         : <Loading />
                 }
             </div>
