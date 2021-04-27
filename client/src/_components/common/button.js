@@ -18,6 +18,7 @@ import Icon from './icon';
 const Button = ({
                     type,
                     name,
+                    disabled=false,
                     label='',
                     title,
                     icon,
@@ -41,6 +42,7 @@ const Button = ({
         submit: () => {
             return (
                 <button
+                    disabled={disabled}
                     className={className}
                     title={`Submit update.`}
                     type={'submit'}
@@ -52,6 +54,7 @@ const Button = ({
         reset: () => {
             return (
                 <input
+                    disabled={disabled}
                     className={className}
                     title={`Reset form.`}
                     type={'reset'}
@@ -63,6 +66,7 @@ const Button = ({
         rightAlign: () => {
             return (
                 <button
+                    disabled={disabled}
                     title={title}
                     className={className}
                     onClick={onClick}
@@ -74,6 +78,7 @@ const Button = ({
         default: () => {
             return (
                 <button
+                    disabled={disabled}
                     title={title}
                     className={className}
                     onClick={onClick}

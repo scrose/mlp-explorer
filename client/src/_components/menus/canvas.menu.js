@@ -9,15 +9,18 @@ import React from 'react';
 import Button from '../common/button';
 import Form from '../common/form';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
-import { genSchema } from '../../_services/schema.services.client';
+import { genSchema, getModelLabel } from '../../_services/schema.services.client';
 import Dialog from '../common/dialog';
 import {
+    alignImages,
+    filterKeyPress,
     getControlPoints,
-    scaleToFit,
+    moveAt,
     moveStart,
-    moveAt, alignImages, moveBy, filterKeyPress,
+    scaleToFit,
 } from '../../_utils/image.utils.client';
 import { ImageSelector } from './selector.menu';
+import { sanitize } from '../../_utils/data.utils.client';
 
 /**
  * No operation.
@@ -262,6 +265,7 @@ export const CanvasControls = ({
                                    id = '',
                                    options = {},
                                    setOptions=noop,
+                                   disabled=true,
                                    properties = {},
                                    update = noop,
                                    setMessage = noop,
@@ -277,25 +281,22 @@ export const CanvasControls = ({
         const _methods = {
             // fit image to canvas
             fit: () => {
-                if (properties.loaded) {
-                    const dims = scaleToFit(
-                        properties.source_dims.x,
-                        properties.source_dims.y,
-                        properties.dims.x,
-                    );
-                    // update canvas properties
-                    update(data => ({
-                        ...data,
-                        offset: {x: 0, y: 0},
-                        edit_dims: dims,
-                        pts: [],
-                        redraw: true,
-                    }));
-                }
+                const dims = scaleToFit(
+                    properties.source_dims.x,
+                    properties.source_dims.y,
+                    properties.dims.x,
+                );
+                // update canvas properties
+                update(data => ({
+                    ...data,
+                    offset: {x: 0, y: 0},
+                    edit_dims: dims,
+                    pts: [],
+                    redraw: true,
+                }));
             },
             // expand to full-sized image
             expand: () => {
-                if (properties.loaded)
                     // update canvas properties
                     update(data => ({
                         ...data,
@@ -307,15 +308,13 @@ export const CanvasControls = ({
             },
             // erase markup
             erase: () => {
-                if (properties.loaded)
                     update(data => ({ ...data,
                         pts: [],
-                        redraw: true
+                        erase: true
                     }));
             },
             // reset the image to source
             reset: () => {
-                if (properties.loaded)
                     update(data => ({ ...data,
                         pts: [],
                         edit_dims: properties.source_dims,
@@ -331,7 +330,7 @@ export const CanvasControls = ({
                 setDialogToggle({type: 'selectImage', id: properties.id});
             },
         };
-        return (properties && Object.keys(properties).length > 0) && _methods.hasOwnProperty(methodType)
+        return update && properties && _methods.hasOwnProperty(methodType)
             ? _methods[methodType]()
             : null;
     };
@@ -339,6 +338,7 @@ export const CanvasControls = ({
     return <div className={'canvas-view-controls h-menu'}>
         <ul>
             <li><Button
+                disabled={disabled}
                 icon={'undo'}
                 title={'Reset to original image.'}
                 onClick={() => {
@@ -353,6 +353,7 @@ export const CanvasControls = ({
                 }}
             /></li>
             <li><Button
+                disabled={disabled}
                 icon={'compress'}
                 title={'Scale image to fit canvas.'}
                 onClick={() => {
@@ -360,6 +361,7 @@ export const CanvasControls = ({
                 }}
             /></li>
             <li><Button
+                disabled={disabled}
                 icon={'enlarge'}
                 title={'Show full-sized image in canvas.'}
                 onClick={() => {
@@ -367,6 +369,7 @@ export const CanvasControls = ({
                 }}
             /></li>
             <li><Button
+                disabled={disabled}
                 icon={'erase'}
                 title={'Erase canvas annotations.'}
                 onClick={() => {
@@ -579,4 +582,49 @@ const OptionsMenu = ({option, callback=noop}) => {
 };
 
 
+/**
+ * Canvas info status.
+ *
+ * @param id
+ * @param properties
+ * @param options
+ * @public
+ */
 
+export const CanvasInfo = ({ id, properties, options }) => {
+    return <div id={`canvas-view-${id}-footer`} className={'canvas-view-info'}>
+        <table>
+            <tbody>
+            <tr>
+                <th>File</th>
+                <td colSpan={3}>{properties.filename} {
+                    properties.file_type ? `(${getModelLabel(properties.file_type)})` : ''}</td>
+            </tr>
+            <tr>
+                <th>Image</th>
+                <td>({properties.edit_dims.x}, {properties.edit_dims.y})</td>
+                <th>Canvas</th>
+                <td>({properties.dims.x}, {properties.dims.y})</td>
+            </tr>
+            <tr>
+                <th>Origin</th>
+                <td>({properties.origin.x},{properties.origin.y})</td>
+                <th>Offset</th>
+                <td>(
+                    {Math.floor(properties.offset.x).toFixed(2)},
+                    {Math.floor(properties.offset.y).toFixed(2)}
+                    )
+                </td>
+            </tr>
+            <tr>
+                <th>(W, H)</th>
+                <td>
+                    ({properties.source_dims.x}, {properties.source_dims.y})
+                </td>
+                <th>Size</th>
+                <td colSpan={3}>{sanitize(properties.file_size, 'filesize')}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>;
+};

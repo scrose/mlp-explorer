@@ -22,6 +22,7 @@ import * as importer from '../services/import.services.js';
 import * as cserve from '../services/construct.services.js';
 import {errors} from '../error.js';
 import fs from "fs";
+import { getMIME } from '../lib/file.utils.js';
 
 /**
  * Export controller constructor.
@@ -227,6 +228,8 @@ export default function FilesController(modelType) {
         } catch (err) {
             console.error(err)
             return next(err);
+        } finally {
+            client.release(true);
         }
     };
 
@@ -308,11 +311,13 @@ export default function FilesController(modelType) {
 
     this.remove = async (req, res, next) => {
 
+        const client = await pool.connect();
+
         try {
             const id = this.getId(req);
 
             // retrieve item data and create a file instance
-            let fileData = await fserve.get(id);
+            let fileData = await fserve.get(id, client);
 
             // check if node is valid (exists)
             if (!fileData)
@@ -342,6 +347,8 @@ export default function FilesController(modelType) {
         } catch (err) {
             console.error(err)
             return next(err);
+        } finally {
+            client.release(true);
         }
     };
 
@@ -357,6 +364,8 @@ export default function FilesController(modelType) {
 
     this.download = async (req, res, next) => {
 
+        const client = await pool.connect();
+
         try {
 
             // get requested file ID
@@ -364,14 +373,21 @@ export default function FilesController(modelType) {
 
             // get owner node; check that node exists in database
             // and corresponds to requested owner type.
-            const file = await fserve.select(fileID);
+            const file = await fserve.select(fileID, client);
 
             if (!file)
                 return next(new Error('invalidRequest'));
 
             // get the source path
             let { fs_path='' } = file;
-            fs_path = '/Users/boutrous/Workspace/NodeJS/resources/metadata/test_pdf.pdf';
+
+            const mimeType = getMIME(file.filename);
+            console.log(file, mimeType)
+
+            // set response headers
+            res.setHeader("Content-Type", mimeType);
+            res.setHeader("Content-Length", mimeType);
+            res.setHeader("Content-Disposition", `attachment; filename=${file.filename}`);
 
             // download file
             const readStream = fs.createReadStream(fs_path);
@@ -385,6 +401,8 @@ export default function FilesController(modelType) {
 
         } catch (err) {
             return next(err);
+        } finally {
+            client.release(true);
         }
     };
 

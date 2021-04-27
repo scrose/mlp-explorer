@@ -14,8 +14,8 @@ import Icon from './icon';
  * @public
  */
 
-const Loading = ({ overlay = false }) => {
-    return <div className={`spinner ${overlay ? 'overlay' : ''}`}>
+const Loading = ({ overlay = false, className='' }) => {
+    return <div className={`spinner ${overlay ? 'overlay' : ''} ${className}`}>
         <div className={`spinner-icon ${overlay ? 'overlay' : ''}`}>
             <Icon type={'spinner'} size={'lg'} spin={true} />
         </div>

@@ -12,6 +12,32 @@ import * as UTIF from 'utif';
 import { homography } from './matrix.utils.client';
 
 /**
+ * Determines image format based on file signature.
+ *
+ * @return {string} image format
+ */
+
+export const getImageType = (buffer) => {
+    const int8Array = new Uint8Array(buffer);
+    const [b0, b1, b2, b3] = int8Array.slice(0, 4);
+    const formats = {
+        "png": [],
+        "gif": [],
+        "bmp": [],
+        "jpg": [],
+        "tiff-le": [77, 77, 0, 42],
+        "tiff-be": [73, 73, 42, 0]
+    }
+    const detected = Object.keys(formats).find((type) => {
+        return b0 === formats[type][0]
+            && b1 === formats[type][1]
+            && b2 === formats[type][2]
+            && b3 === formats[type][3]
+    })
+    return detected || 'unknown';
+}
+
+/**
  * Loads TIFF format image file.
  *
  * @param file
@@ -24,15 +50,25 @@ export const loadTIFF = (file) => {
 
     const reader = new FileReader();
     return new Promise((resolve, reject) => {
-        reader.onerror = () => {
+        reader.onerror = (err) => {
+            console.error(err)
             reader.abort();
-            reject(new DOMException("Problem parsing input file."));
+            reject({msg:'Error occurred during parsing of data stream.', type:'error'});
         };
         reader.onload = (e) => {
             let buffer = e.target.result;
-            let ifds = UTIF.decode(buffer);
-            UTIF.decodeImage(e.target.result, ifds[0])
-            let rgba  = UTIF.toRGBA8(ifds[0]);  // Uint8Array with RGBA pixels
+
+            // validate TIFF data
+            const imgType = getImageType(buffer);
+            if (imgType !== 'tiff-le' && imgType !== 'tiff-be') {
+                reject({msg:`Problem parsing data stream: Image is ${imgType} format.`, type:'error'});
+                return;
+            }
+
+            // decode to Uint8Array of the image in RGBA format, 8 bits per channel
+            const ifds = UTIF.decode(buffer);
+            UTIF.decodeImage(buffer, ifds[0]);
+            let rgba = UTIF.toRGBA8(ifds[0]);  // Uint8Array with RGBA pixels
             resolve({
                 data: rgba,
                 width: ifds[0].width,
@@ -56,7 +92,7 @@ export const loadTIFF = (file) => {
 
 export const alignImages = (imgData1, imgData2, canvas1, canvas2, options) => {
 
-    if (!imgData1 || !imgData2 || !canvas1.loaded || !canvas2.loaded) {
+    if (!imgData1 || !imgData2 ) {
         return { data: null, error: { msg: getError('emptyCanvas', 'canvas') } };
     }
     if (canvas1.pts.length < options.controlPtMax || canvas2.pts.length < options.controlPtMax) {
@@ -73,14 +109,16 @@ export const alignImages = (imgData1, imgData2, canvas1, canvas2, options) => {
     // apply transformation to image 2 (img2) on left hand side
     homography( transform, img1, img2, canvas1.source_dims.x, canvas1.source_dims.y );
 
-    // convert image array from Uint32 to Uint8ClampedArray (for ImageData obj)
-    const imgData = new ImageData(
-        new Uint8ClampedArray(img2.buffer),
-        canvas2.edit_dims.x,
-        canvas2.edit_dims.y,
-    );
+    console.log(new Uint8ClampedArray(img2.buffer))
 
-    return { data: imgData, error: null};
+    // // convert image array from Uint32 to Uint8ClampedArray (for ImageData obj)
+    // const imgData = new ImageData(
+    //     new Uint8ClampedArray(img2.buffer),
+    //     canvas2.edit_dims.x,
+    //     canvas2.edit_dims.y,
+    // );
+
+    return { data: img2, error: null};
 }
 
 /**
@@ -443,7 +481,7 @@ export const markPoint = (e, canvas, index=0) => {
         ctx.stroke();
         // index
         ctx.font = '1em sans-serif';
-        ctx.fillStyle = '#e3347e';
+        ctx.fillStyle = '#333333';
         ctx.fillText(String(index + 1), x + 7, y + 17);
     }
     drawCrosshair();

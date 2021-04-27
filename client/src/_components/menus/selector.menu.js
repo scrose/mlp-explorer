@@ -83,16 +83,6 @@ export const ImageSelector = ({
 
     return <>
         {
-            selection && Object.keys(selection).length > 0 &&
-            <Accordion label={'Select Historic Image'} type={'historic_images'} open={true}>
-                <CaptureSelector
-                    selection={selection}
-                    setSelectedImage={setSelectedImage}
-                    onSubmit={_handleSubmit}
-                />
-            </Accordion>
-        }
-        {
             <Accordion label={'Select Image'} type={'image'} open={false}>
                 <Message closeable={false} message={error} level={'error'} />
                 <Input
@@ -100,6 +90,16 @@ export const ImageSelector = ({
                     name={'image_file'}
                     files={[selectedFile]}
                     onChange={_handleChange}
+                />
+            </Accordion>
+        }
+        {
+            selection && Object.keys(selection).length > 0 &&
+            <Accordion label={'Select Historic Image'} type={'historic_images'} open={true}>
+                <CaptureSelector
+                    selection={selection}
+                    setSelectedImage={setSelectedImage}
+                    onSubmit={_handleSubmit}
                 />
             </Accordion>
         }

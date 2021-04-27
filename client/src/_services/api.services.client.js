@@ -50,17 +50,9 @@ const getFetchOptions = ({ data=null, files=null, download=null, method='POST'})
             opts.body = files;
         }
 
-        // for file downloads, modify header to accept requested format
+        // for file downloads, modify header to accept requested file format
         if (download) {
-            const downloadOpts = {
-                csv: {
-                    Accept: 'text/csv; charset=utf-8'
-                },
-                pdf: {
-                    Accept: 'application/pdf; charset=utf-8'
-                }
-            }
-            opts.headers = downloadOpts[download];
+            opts.headers = { Accept: download };
         }
 
     return opts
@@ -100,4 +92,46 @@ export async function makeRequest({
                 ? await res.blob()
                 : await res.json()
     }
+}
+
+/**
+ * Lookup allowed mimetype from file extension.
+ *
+ * @src public
+ * @param filename
+ * @return {String} mimetype
+ */
+
+export function getMIME(filename) {
+    const ext = filename.split('.').pop() || '';
+    const mime_types = {
+        'pdf': 'application/pdf',
+        'bm': 'image/bmp',
+        'bmp': 'image/bmp',
+        'gif': 'image/gif',
+        'jpe': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'jpg': 'image/jpeg',
+        'png': 'image/png',
+        'tif': 'image/tiff',
+        'tiff': 'image/tiff',
+        'ARW': 'image/x-sony-arw',
+        'CR2': 'image/x-canon-cr2',
+        'CRW': 'image/x-canon-crw',
+        'DCR': 'image/x-kodak-dcr',
+        'DNG': 'image/x-adobe-dng',
+        'ERF': 'image/x-epson-erf',
+        'K25': 'image/x-kodak-k25',
+        'KDC': 'image/x-kodak-kdc',
+        'MRW': 'image/x-minolta-mrw',
+        'NEF': 'image/x-nikon-nef',
+        'ORF': 'image/x-olympus-orf',
+        'PEF': 'image/x-pentax-pef',
+        'RAF': 'image/x-fuji-raf',
+        'RAW': 'image/x-panasonic-raw',
+        'SR2': 'image/x-sony-sr2',
+        'SRF': 'image/x-sony-srf',
+        'X3F': 'image/x-sigma-x3f',
+    };
+    return mime_types.hasOwnProperty(ext) ? mime_types[ext] : null;
 }
