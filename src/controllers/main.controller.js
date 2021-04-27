@@ -7,6 +7,7 @@
 
 import { prepare } from '../lib/api.utils.js';
 import { getMetadataOptions } from '../services/metadata.services.js';
+import pool from '../services/db.services.js';
 
 /**
  * Controller initialization.
@@ -27,13 +28,19 @@ export const init = async () => {
  */
 
 export const show = async (req, res, next) => {
-  try {
-      res.status(200).json(
-          prepare({
-              view: 'dashboard',
-              options: await getMetadataOptions()
-          }));
-  } catch (err) {
-    return next(err);
-  }
+    // NOTE: client undefined if connection fails.
+    const client = await pool.connect();
+
+    try {
+        res.status(200).json(
+            prepare({
+                view: 'dashboard',
+                options: await getMetadataOptions(client)
+            }));
+    } catch (err) {
+        return next(err);
+    }
+    finally {
+        client.release(true);
+    }
 };

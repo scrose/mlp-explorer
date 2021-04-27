@@ -11,7 +11,7 @@ import { CanvasMenu } from '../menus/canvas.menu';
 import { ValidationMessage } from '../common/input';
 import { createNodeRoute, getQuery } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
-import { moveAt, moveStart } from '../../_utils/image.utils.client';
+import { filterKeyPress, moveAt, moveStart } from '../../_utils/image.utils.client';
 
 /**
  * Canvas API image editor component.
@@ -48,7 +48,8 @@ const ImageTools = () => {
     // - default mode
     const [methods, setMethods] = React.useState({
         onDragStart: moveStart,
-        onDrag: moveAt
+        onDrag: moveAt,
+        onKeyDown: filterKeyPress
     });
 
     // initialize error/info messages
@@ -81,12 +82,18 @@ const ImageTools = () => {
 
     React.useEffect(() => {
         _isMounted.current = true;
-        // get available historic image selection for given modern capture image
-        if (masterID) {
+        // Initialize IAT from input parameters
+        // - load input image (only if not currently loaded)
+        // - get available historic image selection for given modern capture image
+        if (masterID && !input2) {
             router.get(createNodeRoute('modern_images', 'master', masterID))
                 .then(res => {
                     if (_isMounted.current) {
-                        if (res.error) setMessage(res.error);
+                        if (!res || res.error) {
+                            setMessage(
+                                res.hasOwnProperty('error') ? res.error : {msg: 'Error occurred.', type:'error'}
+                                );
+}
                         const { response = {} } = res || {};
                         const { data = {}, message={} } = response || {};
                         setMessage(message);
@@ -136,6 +143,7 @@ const ImageTools = () => {
                     setDialogToggle={setDialogToggle}
                     onClick={methods.onClick}
                     onDragStart={methods.onDragStart}
+                    onKeyDown={methods.onKeyDown}
                     onDrag={methods.onDrag}
                     hidden={canvas1Data.hidden}
                 />
@@ -152,6 +160,8 @@ const ImageTools = () => {
                     setMessage={setMessage}
                     setDialogToggle={setDialogToggle}
                     onClick={methods.onClick}
+                    onDragStart={methods.onDragStart}
+                    onKeyDown={methods.onKeyDown}
                     onDrag={methods.onDrag}
                     hidden={canvas2Data.hidden}
                 />

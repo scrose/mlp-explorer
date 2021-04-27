@@ -13,6 +13,7 @@ import { sanitize } from '../lib/data.utils.js';
 import { json2csv } from '../lib/file.utils.js';
 import { getMapFilterOptions } from '../services/metadata.services.js';
 import { ArrayStream } from '../services/files.services.js';
+import pool from '../services/db.services.js';
 
 /**
  * Controller initialization.
@@ -32,10 +33,14 @@ export const init = async () => {};
  */
 
 export const show = async (req, res, next) => {
+
+    // NOTE: client undefined if connection fails.
+    const client = await pool.connect();
+
     try {
 
         const { id='' } = req.params || {};
-        const node = await nserve.get(sanitize(id, 'integer'));
+        const node = await nserve.get(sanitize(id, 'integer'), client);
 
         res.status(200).json(
             prepare({
@@ -45,6 +50,9 @@ export const show = async (req, res, next) => {
 
     } catch (err) {
         return next(err);
+    }
+    finally {
+        client.release(true);
     }
 };
 
@@ -58,6 +66,7 @@ export const show = async (req, res, next) => {
  */
 
 export const tree = async (req, res, next) => {
+
     try {
 
         // get surveyors and projects as root containers
@@ -88,6 +97,10 @@ export const tree = async (req, res, next) => {
  */
 
 export const map = async (req, res, next) => {
+
+    // NOTE: client undefined if connection fails.
+    const client = await pool.connect();
+
     try {
 
         // get surveyors and projects as root containers
@@ -96,12 +109,15 @@ export const map = async (req, res, next) => {
                 view: 'map',
                 data: {
                     nodes: await nserve.getMap() || [],
-                    options: await getMapFilterOptions()
+                    options: await getMapFilterOptions(client)
                 }
             }));
 
     } catch (err) {
         return next(err);
+    }
+    finally {
+        client.release(true);
     }
 };
 
@@ -179,6 +195,7 @@ export const exporter = async (req, res, next) => {
  */
 
 export const filter = async (req, res, next) => {
+
     try {
 
         // get query parameters

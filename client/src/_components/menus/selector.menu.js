@@ -12,6 +12,7 @@ import Image from '../common/image';
 import { initCanvas } from '../common/canvas';
 import Input from '../common/input';
 import Message from '../common/message';
+import { sorter } from '../../_utils/data.utils.client';
 
 /**
  * Image selector widget.
@@ -130,7 +131,9 @@ const CaptureSelector = ({selection, setSelectedImage, onSubmit}) => {
         <div className={`v-menu`}>
             <ul>
                 {
-                    selection.map((capture, index) => {
+                    selection
+                        .sort(sorter)
+                        .map((capture, index) => {
                         const { node = {}, label = '' } = capture || {};
                         return <li key={`tab_${node.id}`}>
                             <Button
@@ -151,7 +154,9 @@ const CaptureSelector = ({selection, setSelectedImage, onSubmit}) => {
             <div className={'gallery h-menu capture-selector'}>
                 <ul>
                     {
-                        historic_images.map(imgData => {
+                        historic_images
+                            .sort(sorter)
+                            .map((imgData, index) => {
                             const { metadata={}, file = {}, url = {}, label = '' } = imgData || {};
                             const { image_state='' } = metadata || {};
                             return (
@@ -180,7 +185,7 @@ const CaptureSelector = ({selection, setSelectedImage, onSubmit}) => {
                                             url={url}
                                             scale={'thumb'}
                                             title={`Select ${file.filename || ''}.`}
-                                            label={label}
+                                            label={`[${index + 1}] ${label} (${image_state})`}
                                             onClick={() => {
                                                 setImageIndex(file.id);
                                                 setCaptureIndex(tabIndex);

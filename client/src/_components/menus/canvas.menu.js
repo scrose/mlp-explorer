@@ -15,7 +15,7 @@ import {
     getControlPoints,
     scaleToFit,
     moveStart,
-    moveAt, alignImages,
+    moveAt, alignImages, moveBy, filterKeyPress,
 } from '../../_utils/image.utils.client';
 import { ImageSelector } from './selector.menu';
 
@@ -150,6 +150,8 @@ export const CanvasMenu = ({
     };
 
 
+
+
     /**
      * Canvas methods filter.
      * - selects methods for given view mode.
@@ -166,7 +168,8 @@ export const CanvasMenu = ({
                 setOptions(data => ({ ...data, mode: 'default' }));
                 setMethods(data => ({ ...data,
                     onDragStart: moveStart,
-                    onDrag: moveAt
+                    onDrag: moveAt,
+                    onKeyDown: filterKeyPress
                 }));
             },
 
@@ -196,7 +199,6 @@ export const CanvasMenu = ({
 
     return <>
         <div className={'canvas-menu-bar'}>
-
             <div className={'canvas-option-controls h-menu'}>
                 <ul>
                     <li>
@@ -300,6 +302,7 @@ export const CanvasControls = ({
                         edit_dims: properties.source_dims,
                         pts: [],
                         redraw: true,
+                        reset: true
                     }));
             },
             // erase markup

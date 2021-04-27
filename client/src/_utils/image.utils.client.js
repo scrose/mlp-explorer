@@ -132,6 +132,14 @@ export function moveStart(e, canvas, properties, setProps) {
     setProps(data => ({ ...data, move: pos, redraw: false }));
 }
 
+/**
+ * Update canvas offset by cursor position
+ * @param e
+ * @param canvas
+ * @param properties
+ * @param setProps
+ */
+
 export function moveAt(e, canvas, properties, setProps) {
     e.preventDefault();
     const pos = getPos(e, canvas);
@@ -147,6 +155,27 @@ export function moveAt(e, canvas, properties, setProps) {
             redraw: true
         }));
     }
+}
+
+/**
+ * Update canvas offset by dx/dy
+ * @param e
+ * @param canvas
+ * @param properties
+ * @param setProps
+ * @param dx
+ * @param dy
+ */
+
+export function moveBy(e, canvas, properties, setProps, dx=0, dy=0) {
+    e.preventDefault();
+    setProps(data => ({ ...data,
+        offset: {
+            x: properties.offset.x + dx,
+            y: properties.offset.y + dy,
+        },
+        redraw: true
+    }));
 }
 
 
@@ -178,6 +207,39 @@ export const getPos = (e, canvas) => {
         )
     }
 };
+
+/**
+ * Filter input key presses for image methods.
+ * - selects methods for given key press.
+ *
+ * @private
+ * @return {JSX.Element}
+ */
+
+export const filterKeyPress = (e, canvas, properties, setProps) => {
+    const { keyCode='' } = e || [];
+    const _methods = {
+        // move canvas left 1 pixel
+        37: () => {
+            moveBy(e, canvas, properties, setProps, -1, 0)
+        },
+        // move canvas right 1 pixel
+        39: () => {
+            moveBy(e, canvas, properties, setProps, 1, 0)
+        },
+        // move canvas up 1 pixel
+        40: () => {
+            moveBy(e, canvas, properties, setProps, 0, 1)
+        },
+        // move canvas down 1 pixel
+        38: () => {
+            moveBy(e, canvas, properties, setProps, 0, -1)
+        }
+    }
+    return _methods.hasOwnProperty(keyCode)
+        ? _methods[keyCode]()
+        : null;
+}
 
 /**
  * Store selected alignment control points.

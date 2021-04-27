@@ -457,6 +457,9 @@ export default function FilesController(modelType) {
             console.error(err)
             return next(err);
         }
+        finally {
+            client.release(true);
+        }
     }
 }
 

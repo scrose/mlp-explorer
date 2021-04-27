@@ -53,6 +53,7 @@ export const Canvas = ({
                            onDragStart=noop,
                            onDrag=noop,
                            onMouseMove = noop,
+                           onKeyDown = noop,
                        }) => {
 
     // source image data state (used for images referenced by URLs)
@@ -155,11 +156,44 @@ export const Canvas = ({
     };
 
     /**
+     * Handle key presses.
+     */
+
+    const _handleOnKeyDown = (e) => {
+        console.log(e.keyCode, onKeyDown)
+        const { data = {}, error = '' } = onKeyDown(
+            e,
+            controlLayerRef.current,
+            properties,
+            setProperties,
+            options) || {};
+        setMessage(null);
+        if (error) setMessage({ msg: error, type: 'error' });
+        return data;
+    };
+
+    /**
+     * Initialize image data in render layer.
+     */
+
+    function _initImageData (img) {
+        // load image data onto render canvas layer
+        const ctxRender = renderLayerRef.current.getContext('2d');
+        ctxRender.canvas.width = properties.source_dims.x
+        ctxRender.canvas.height = properties.source_dims.y
+        ctxRender.drawImage(img, 0, 0);
+        return ctxRender.getImageData(
+            0, 0, properties.source_dims.x, properties.source_dims.y);
+    }
+
+    /**
      * Load canvas data.
      */
 
     React.useEffect(() => {
         try {
+
+
             /**
              * Initialize source and edit layer image data.
              *
@@ -168,18 +202,13 @@ export const Canvas = ({
 
             async function _init (imgData, w, h) {
 
-                const imgDataSource = new ImageData(
-                    new Uint8ClampedArray(imgData.data), w, h,
-                );
-
-                const imgDataEdit = new ImageData(
-                    new Uint8ClampedArray(imgData.data), w, h,
-                );
+                const imgDataSource = new ImageData(new Uint8ClampedArray(imgData.data), w, h);
+                const imgDataEdit = new ImageData(new Uint8ClampedArray(imgData.data), w, h);
 
                 // store source image data
                 setSource(imgDataSource);
-
                 // initialize editable image date
+                setInputImage(imgDataEdit);
                 setInputImage(imgDataEdit);
 
                 // put image data on edit layer
@@ -191,14 +220,8 @@ export const Canvas = ({
                     file: null,
                     loaded: true,
                     redraw: false,
-                    edit_dims: {
-                        x: w,
-                        y: h,
-                    },
-                    source_dims: {
-                        x: w,
-                        y: h,
-                    },
+                    edit_dims: { x: w, y: h, },
+                    source_dims: { x: w, y: h, },
                     url: '',
                 }));
             }
@@ -214,22 +237,13 @@ export const Canvas = ({
 
                 console.log('Redraw', properties, inputImage);
 
-                // reset image data to source
-                if (properties.reset) {
-                    setInputImage(new ImageData(
-                        new Uint8ClampedArray(source.data),
-                        source.width,
-                        source.height,
-                    ));
-                }
-
                 // Handle Markup: set points
                 if (properties.pts.length === 0) {
                     const ctxMarkUp = markupLayerRef.current.getContext('2d');
                     ctxMarkUp.clearRect(0, 0, properties.dims.x, properties.dims.y)
                 }
 
-                // Get data context
+                // Get data contexts
                 const ctxData = dataLayerRef.current.getContext('2d');
                 const ctxRender = renderLayerRef.current.getContext('2d');
 
@@ -266,29 +280,33 @@ export const Canvas = ({
 
                 const sx = 0;
                 const sy = 0;
-                const dx = 0;
-                const dy = 0;
+                const dx = properties.offset.x;
+                const dy = properties.offset.y;
                 const sWidth = inputImage.width;
                 const sHeight = inputImage.height;
-                const dWidth = properties.edit_dims.x >> 0;
-                const dHeight = properties.edit_dims.y >> 0;
+                let dWidth = properties.edit_dims.x >> 0;
+                let dHeight = properties.edit_dims.y >> 0;
 
-                ctxRender.putImageData(inputImage, 0, 0);
+                // reset image data to source data
+                if (properties.reset) {
+                    dWidth = properties.source_dims.x >> 0;
+                    dHeight = properties.source_dims.y >> 0;
+                }
 
                 // clear data canvas
                 ctxData.clearRect(0, 0, properties.dims.x, properties.dims.y);
 
-                // resize data canvas
-                dataLayerRef.current.width = dWidth;
-                dataLayerRef.current.height = dHeight;
+                // resize canvas
+                ctxData.canvas.width = Math.min(dWidth, properties.dims.x);
+                ctxData.canvas.height = Math.min(dHeight, properties.dims.y);
 
-                ctxData.drawImage(renderLayerRef.current, 0, 0, dWidth, dHeight);
+                // draw image to data canvas
+                ctxData.imageSmoothingQuality = "high";
+                ctxData.drawImage( renderLayerRef.current, dx, dy, dWidth, dHeight );
 
-                //scale(renderLayerRef.current, dataLayerRef.current, resizeWidth, resizeHeight);
+                console.log('Redraw:', dWidth, dHeight)
 
-                console.log('Redraw:', inputImage, dWidth, dHeight)
-
-                // redraw image from data
+                // return image data from data layer
                 return ctxData.getImageData(0, 0, dWidth, dHeight);
             }
 
@@ -297,22 +315,20 @@ export const Canvas = ({
              * Load or redraw canvas layers.
              */
 
-            // reject if layer not ready in DOM
+            // reject if data layer not ready in DOM
             if (!dataLayerRef.current) return;
 
-            // get canvas layer contexts
+            // get data layer context
             let ctxData = dataLayerRef.current.getContext('2d');
 
             // [url] Handle image data loaded from URL
             // - loads image data from url
             // - stores in source/edit states
             if (!properties.loaded && properties.url) {
-                console.log('Load from URL:', properties)
+                console.log('Load image from URL:', properties)
                 imgRef.current.onload = function() {
-                    ctxData.drawImage(imgRef.current, 0, 0);
-                    const imgData = ctxData.getImageData(
-                        0, 0, properties.source_dims.x, properties.source_dims.y);
-                    return _init(imgData, properties.source_dims.x, properties.source_dims.y);
+                    // initialize data canvas layer
+                    return _init(_initImageData(imgRef.current), properties.source_dims.x, properties.source_dims.y);
                 };
             }
 
@@ -320,7 +336,7 @@ export const Canvas = ({
             // - loads TIFF format image data
             // - stores in source/edit states
             if (!properties.loaded && properties.file) {
-                console.log('Load from File:', properties)
+                console.log('Load image from File:', properties)
                 loadTIFF(properties.file)
                     .then(tiff => {
                         return _init(tiff, tiff.width, tiff.height);
@@ -332,7 +348,7 @@ export const Canvas = ({
 
             // [redraw] redraw canvas on signal
             if (properties.redraw) {
-                // put transformed data onto edit layer
+                // put transformed data onto data layer
                 _redraw()
                     .then(res => {
                         setProperties(data => ({
@@ -363,7 +379,8 @@ export const Canvas = ({
         properties,
         setProperties,
         options,
-        setMessage
+        setMessage,
+        _initImageData
     ]);
 
     return !hidden && Object.keys(properties).length > 0 &&
@@ -424,12 +441,14 @@ export const Canvas = ({
                         className={`layer canvas-layer-control-${options.mode}`}
                         width={properties.dims.x}
                         height={properties.dims.y}
+                        tabIndex={0}
                         draggable={true}
                         onMouseMove={_handleMouseMove}
                         onMouseOut={_handleMouseOut}
                         onClick={_handleOnClick}
                         onDragStart={_handleOnDragStart}
                         onDrag={_handleOnDrag}
+                        onKeyDown={_handleOnKeyDown}
                     >
                         Control Layer: Canvas API Not Supported
                     </canvas>

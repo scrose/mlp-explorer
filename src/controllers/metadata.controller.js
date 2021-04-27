@@ -110,16 +110,22 @@ export default function MetadataController(metadataType) {
      */
 
     this.options = async (req, res, next) => {
+        // NOTE: client undefined if connection fails.
+        const client = await pool.connect();
+
         try {
             res.status(200).json(
                 prepare({
                     view: 'options',
-                    data: await metaserve.getMetadataOptions()
+                    data: await metaserve.getMetadataOptions(client)
                 }));
 
         } catch (err) {
             console.error(err)
             return next(err);
+        }
+        finally {
+            client.release(true);
         }
     };
 

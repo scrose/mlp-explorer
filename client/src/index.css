@@ -2018,7 +2018,7 @@ canvas {
     position: absolute;
 }
 .layer.hidden {
-    visibility: hidden;
+    display: none;
 }
 .canvas-layers {
     position: relative;
