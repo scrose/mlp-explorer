@@ -81,12 +81,22 @@ export const Canvas = ({
     const renderLayerRef = React.useRef(null);
     const baseLayerRef = React.useRef(null);
 
-    // loading state
-    const [loading, setLoading] = React.useState(false);
-    const [loaded, setLoaded] = React.useState(false);
+    // loading status state
+    const statusLabel = ['Empty', 'Loading', 'Loaded', 'Error'];
+    const _EMPTY = 0, _LOADING = 1, _LOADED = 2, _ERROR = 3;
+    const [status, setStatus] = React.useState(_EMPTY);
 
-    // error state
-    const [error, setError] = React.useState(null);
+    /**
+     * Handle input control errors.
+     */
+
+    const _handleControlError = (err) => {
+        if (err) {
+            console.warn(err);
+            setStatus(_ERROR);
+            setMessage({ msg: 'Error: could not complete operation.', type: 'error' });
+        }
+    };
 
     /**
      * Handle canvas mouse move event.
@@ -121,7 +131,7 @@ export const Canvas = ({
             setProperties,
             options) || {};
         setMessage(null);
-        if (error) setMessage({ msg: error, type: 'error' });
+        _handleControlError(error);
         return data;
     };
 
@@ -137,7 +147,7 @@ export const Canvas = ({
             setProperties,
             options) || {};
         setMessage(null);
-        if (error) setMessage({ msg: error, type: 'error' });
+        _handleControlError(error);
         return data;
     };
 
@@ -153,16 +163,8 @@ export const Canvas = ({
             setProperties,
             options) || {};
         setMessage(null);
-        if (error) setMessage({ msg: error, type: 'error' });
+        _handleControlError(error);
         return data;
-    };
-
-    /**
-     * Handle canvas image loading.
-     */
-
-    const _handleImageLoad = () => {
-        setDialogToggle({ type: 'selectImage', id: id });
     };
 
     /**
@@ -177,32 +179,68 @@ export const Canvas = ({
             setProperties,
             options) || {};
         setMessage(null);
-        if (error) setMessage({ msg: error, type: 'error' });
+        _handleControlError(error);
         return data;
     };
+
+    /**
+     * Handle canvas image loading.
+     */
+
+    const _handleImageLoad = () => {
+        setDialogToggle({ type: 'selectImage', id: id });
+    };
+
 
     /**
      * Load canvas data.
      */
 
     React.useEffect(() => {
+
+        /**
+         * Handle errors.
+         */
+
+        const _handleError = (err) => {
+            console.warn(err);
+            setStatus(_ERROR);
+            setMessage(err);
+        };
+
         try {
             _isMounted.current = true;
 
             /**
-             * Initialize image data in render layer.
+             * Convert data buffer array to image data.
+             * @param data
+             * @param w
+             * @param h
              */
 
-            function _initImageData(img, w, h) {
+            const _toImageData = (data, w, h) => {
+                return new ImageData(new Uint8ClampedArray(data), w, h);
+            };
+
+            /**
+             * Load image data in canvas render layer.
+             */
+
+            function _loadRenderLayer(img, w, h) {
+
+                // initialize render layer context
                 const ctxRender = renderLayerRef.current.getContext('2d');
                 renderLayerRef.current.width = w;
                 renderLayerRef.current.height = h;
                 ctxRender.clearRect(0, 0, w, h);
+
                 // load data to render layer
+                // - Image DOM element: drawImage
+                // - ImageData object: putImageData
                 if (img instanceof HTMLImageElement) ctxRender.drawImage(img, 0, 0);
                 else ctxRender.putImageData(img, 0, 0);
-                return ctxRender.getImageData(
-                    0, 0, properties.source_dims.x, properties.source_dims.y);
+
+                return ctxRender.getImageData(0, 0, w, h);
             }
 
             /**
@@ -211,18 +249,16 @@ export const Canvas = ({
              * @private
              */
 
-            function _initCanvasData(imgData, w, h) {
+            function _loadDataLayer(imgData, w, h) {
 
-                const imgDataSource = new ImageData(new Uint8ClampedArray(imgData.data), w, h);
-                const imgDataEdit = new ImageData(new Uint8ClampedArray(imgData.data), w, h);
+                // copy to source image data
+                setSource(_toImageData(imgData.data, w, h));
 
-                // store source image data
-                setSource(imgDataSource);
                 // initialize editable image date
-                setInputImage(imgDataEdit);
+                setInputImage(imgData);
 
                 // put image data on edit layer
-                ctxData.putImageData(imgDataEdit, 0, 0);
+                ctxData.putImageData(imgData, 0, 0);
 
                 // initialize canvas properties
                 setProperties(data => ({
@@ -234,7 +270,7 @@ export const Canvas = ({
                     url: '',
                 }));
 
-                return imgDataEdit;
+                return imgData;
             }
 
             /**
@@ -247,37 +283,32 @@ export const Canvas = ({
              */
 
             function _handleFileData(fileData = null, mimeType, url = '') {
+                console.log(`Loading ${mimeType} file.`);
                 const _handlers = {
                     'image/tiff': () => {
-                        console.log('Loading TIFF image file.');
                         loadTIFF(fileData)
                             .then(tiff => {
-                                console.log(tiff);
-                                const imgData = _initCanvasData(tiff, tiff.width, tiff.height);
-                                _initImageData(imgData, tiff.width, tiff.height);
-                                setLoading(false);
-                            }).catch(err => {
-                            setError(true);
-                            setMessage(err);
-                        }).finally(() => {
-                            setLoaded(true);
-                            setLoading(false);
-                        });
+                                // convert data to Image Data object
+                                const { width = 0, height = 0, data = [] } = tiff || {};
+                                const imgData = _toImageData(data, width, height);
+                                const rendered = _loadRenderLayer(imgData, width, height);
+                                _loadDataLayer(rendered, width, height);
+                                setStatus(_LOADED);
+                            })
+                            .catch(_handleError);
                     },
                     'default': () => {
                         const src = fileData ? URL.createObjectURL(fileData) : url;
-                        imgRef.current.onerror = function() {
-                            setError(true);
-                            setLoaded(false);
-                        };
+                        imgRef.current.onerror = _handleError;
                         imgRef.current.onload = function() {
                             if (fileData) URL.revokeObjectURL(src); // free memory held by Object URL
-                            const imgData = _initImageData(
-                                imgRef.current, imgRef.current.naturalWidth, imgRef.current.naturalHeight);
-                            // initialize data canvas layer
-                            _initCanvasData(imgData, properties.source_dims.x, properties.source_dims.y);
-                            setLoading(false);
-                            setLoaded(true);
+                            const rendered = _loadRenderLayer(
+                                imgRef.current,
+                                imgRef.current.naturalWidth,
+                                imgRef.current.naturalHeight,
+                            );
+                            _loadDataLayer(rendered, properties.source_dims.x, properties.source_dims.y);
+                            setStatus(_LOADED);
                         };
                         imgRef.current.src = src;
                     },
@@ -292,12 +323,26 @@ export const Canvas = ({
              */
 
             async function _erase() {
+                if (!properties.erase) return;
+                setStatus(_LOADING);
 
-                // Handle Markup: set points
-                if (properties.pts.length === 0) {
-                    const ctxMarkUp = markupLayerRef.current.getContext('2d');
-                    ctxMarkUp.clearRect(0, 0, properties.dims.x, properties.dims.y);
-                }
+                console.log('Erase', id);
+                const ctxMarkUp = markupLayerRef.current.getContext('2d');
+                ctxMarkUp.clearRect(0, 0, properties.dims.x, properties.dims.y);
+            }
+
+            /**
+             * Reset data layer to source data.
+             *
+             * @private
+             */
+
+            async function _reset() {
+                if (!properties.reset) return;
+                setStatus(_LOADING);
+                console.log('Reset', id);
+                const imgData = _toImageData(source.data, source.width, source.height);
+                setInputImage(imgData);
             }
 
             /**
@@ -321,23 +366,21 @@ export const Canvas = ({
 
             async function _redraw() {
 
-                console.log('Redraw');
+                if (!properties.redraw) return;
+                setStatus(_LOADING);
 
-                // erase markup
-                _erase().catch((err) => {
-                    console.warn(err);
-                    setError(true);
-                });
+                console.log('Redraw', id);
 
                 const dx = properties.offset.x;
                 const dy = properties.offset.y;
                 let dWidth = properties.edit_dims.x >> 0;
                 let dHeight = properties.edit_dims.y >> 0;
 
-                // reset image data to source data
-                if (properties.reset) {
-                    dWidth = properties.source_dims.x >> 0;
-                    dHeight = properties.source_dims.y >> 0;
+                // check if input data is dirty
+                // - reload data in render layer
+                if (properties.dirty) {
+                    console.log(inputImage);
+                    _loadRenderLayer(inputImage, inputImage.width, inputImage.height);
                 }
 
                 // Get data context
@@ -364,7 +407,7 @@ export const Canvas = ({
              */
 
 
-            console.log('Rerender:', id, 'Error:', error, 'Loading:', loading, properties);
+            // console.log('Rerender:', id, 'Status:', statusLabel[status], properties);
 
             // reject if data layer neither mounted nor ready in DOM
             if (!dataLayerRef.current || !_isMounted) return;
@@ -373,39 +416,25 @@ export const Canvas = ({
             let ctxData = dataLayerRef.current.getContext('2d');
 
             // Data not yet loaded
-            if (!loaded) {
-
-                // Empty canvas
-                if (!properties.url && !properties.files_id && !properties.file) {
-                    setLoading(false);
-                }
+            if (status === _EMPTY || status === _ERROR) {
 
                 // reset data if error occurred
-                if (error) {
+                if (status === _ERROR) {
                     setProperties(initCanvas(id));
-                    setError(false);
+                    setStatus(_EMPTY);
+                    return;
                 }
 
-                // return if loading is already in progress
-                if (loading) return;
-
-                // [url] Handle image data loaded from URL
-                // - loads image data from url
-                // - stores in source/edit states
-                if (properties.url) {
-                    setLoading(true);
-                    console.log('Loading image from URL ...', properties.url);
-                    const mimeType = getMIME(properties.filename);
-                    _handleFileData(null, mimeType, properties.url);
-                }
+                // return if canvas loading is in progress
+                if (status === _LOADING) return;
 
                 // [API] Handle image data downloaded from API
                 // - download image file from MLP library
                 // - stores in source/edit states
                 if (properties.files_id && !properties.file) {
-                    console.log('Download image from API ...');
 
-                    setLoading(true);
+                    console.log('Downloading image from API ...');
+                    setStatus(_LOADING);
 
                     // get file format and generate node route
                     const mimeType = getMIME(properties.filename);
@@ -414,16 +443,10 @@ export const Canvas = ({
                     // download image data to canvas
                     router.download(route, mimeType)
                         .then(res => {
-                            if (res.error) return setError(true);
+                            if (res.error) return _handleError(res.error);
                             _handleFileData(res.data, mimeType);
                         })
-                        .catch((err) => {
-                            console.error(err);
-                            setError(true);
-                        })
-                        .finally(() => {
-                            setLoading(false);
-                        });
+                        .catch(_handleError);
                 }
 
                 // [file] Handle image data loaded from uploaded file
@@ -431,58 +454,57 @@ export const Canvas = ({
                 // - stores in source/edit states
                 if (properties.file) {
                     console.log('Loading image from File...');
-                    setLoading(true);
+                    setStatus(_LOADING);
                     const mimeType = getMIME(properties.filename);
                     _handleFileData(properties.file, mimeType);
                 }
 
-            }
+                // [url] Handle image data loaded from URL
+                // - loads image data from url
+                // - stores in source/edit states
+                if (properties.url) {
 
+                    console.log('Downloading image from URL ...', properties.url);
+                    setStatus(_LOADING);
+
+                    const mimeType = getMIME(properties.filename);
+                    _handleFileData(null, mimeType, properties.url);
+                }
+
+            }
 
             // [redraw] redraw canvas on signal
-            if (loaded) {
+            if (status === _LOADED) {
 
+                // [reset] reset image data to source
                 // [redraw] redraw image data onto data layer
-                if (properties.redraw) {
-                    setLoading(true);
-                    _redraw()
-                        .catch(err => {
-                            console.warn(err);
-                            setError(true);
-                            setMessage({ msg: 'Error: could not complete operation.', type: 'error' });
-                        })
-                        .finally(() => {
-                            setProperties(data => ({ ...data, redraw: false, reset: false }));
-                            setLoading(false);
-                        });
-                }
-                // [erase] Erase markup layer
-                if (properties.erase) {
-                    setLoading(true);
-                    _erase()
-                        .catch(err => {
-                            console.warn(err);
-                            setError(true);
-                            setMessage({ msg: 'Error: could not complete operation.', type: 'error' });
-                        })
-                        .finally(() => {
-                            setProperties(data => ({ ...data, erase: false }));
-                            setLoading(false);
-                        });
-                }
+                _reset()
+                    .then(_redraw)
+                    .then(_erase)
+                    .catch(_handleError)
+                    .finally(() => {
+                        setStatus(_LOADED)
+                        setProperties(data => ({
+                            ...data,
+                            reset: false,
+                            redraw: false,
+                            dirty: false,
+                            erase: false,
+                        }));
+                    });
             }
+
+
         } catch (err) {
-            console.error(err);
-            setMessage({ msg: 'Error: could not complete operation.', type: 'error' });
+            _handleError(err);
         }
         return () => {
             _isMounted.current = false;
         };
     }, [
         router,
-        error,
-        loading,
-        setLoading,
+        status,
+        setStatus,
         id,
         source,
         setSource,
@@ -500,7 +522,7 @@ export const Canvas = ({
             <div className={'canvas'}>
                 <CanvasControls
                     id={id}
-                    disabled={!loaded}
+                    disabled={status !== _LOADED}
                     options={options}
                     setOptions={setOptions}
                     setDialogToggle={setDialogToggle}
@@ -514,8 +536,8 @@ export const Canvas = ({
                         <tr>
                             <th>Cursor:</th>
                             <td>({pointer.x},{pointer.y})</td>
-                            <th>Status: {loaded}</th>
-                            <td>{loaded ? 'Loaded' : loading ? 'Loading' : 'Empty'}</td>
+                            <th>Status:</th>
+                            <td>{statusLabel[status]}</td>
                         </tr>
                         <tr>
                             <th>Selected:</th>
@@ -542,11 +564,11 @@ export const Canvas = ({
                 </div>
                 <div className={'canvas-layers'}>
                     {
-                        !loaded &&
+                        status !== _LOADED &&
                         <div className={'layer canvas-placeholder'}>
                             {
-                                loading
-                                    ? <Button label={'Loading'} spin={true} icon={'spinner'} />
+                                status === _LOADING
+                                    ? <Button label={'Loading'} spin={true} icon={'spinner'}/>
                                     : <Button
                                         icon={'download'}
                                         label={'Click to load image'}
@@ -555,55 +577,50 @@ export const Canvas = ({
                             }
                         </div>
                     }
-                    {
-                        loaded &&
-                        <>
-                            <canvas
-                                ref={controlLayerRef}
-                                id={`${id}_control_layer`}
-                                className={`layer canvas-layer-control-${options.mode}`}
-                                width={properties.dims.x}
-                                height={properties.dims.y}
-                                tabIndex={0}
-                                draggable={true}
-                                onMouseMove={_handleMouseMove}
-                                onMouseOut={_handleMouseOut}
-                                onClick={_handleOnClick}
-                                onDragStart={_handleOnDragStart}
-                                onDrag={_handleOnDrag}
-                                onKeyDown={_handleOnKeyDown}
-                            >
-                                Control Layer: Canvas API Not Supported
-                            </canvas>
-                            <canvas
-                                ref={markupLayerRef}
-                                id={`${id}_markup_layer`}
-                                className={`layer canvas-layer-markup`}
-                                width={properties.dims.x}
-                                height={properties.dims.y}
-                            >
-                                Markup Layer: Canvas API Not Supported
-                            </canvas>
-                            <canvas
-                                ref={dataLayerRef}
-                                id={`${id}_data_layer`}
-                                className={`layer canvas-layer-data${!loaded ? ' hidden' : ''}`}
-                                width={properties.dims.x}
-                                height={properties.dims.y}
-                            >
-                                Image Layer: Canvas API Not Supported
-                            </canvas>
-                            <canvas
-                                ref={renderLayerRef}
-                                id={`${id}_render_layer`}
-                                className={`layer canvas-layer-data hidden`}
-                                width={properties.dims.x}
-                                height={properties.dims.y}
-                            >
-                                Image Layer: Canvas API Not Supported
-                            </canvas>
-                        </>
-                    }
+                    <canvas
+                        ref={controlLayerRef}
+                        id={`${id}_control_layer`}
+                        className={`layer canvas-layer-control-${options.mode}`}
+                        width={properties.dims.x}
+                        height={properties.dims.y}
+                        tabIndex={0}
+                        draggable={true}
+                        onMouseMove={_handleMouseMove}
+                        onMouseOut={_handleMouseOut}
+                        onClick={_handleOnClick}
+                        onDragStart={_handleOnDragStart}
+                        onDrag={_handleOnDrag}
+                        onKeyDown={_handleOnKeyDown}
+                    >
+                        Control Layer: Canvas API Not Supported
+                    </canvas>
+                    <canvas
+                        ref={markupLayerRef}
+                        id={`${id}_markup_layer`}
+                        className={`layer canvas-layer-markup`}
+                        width={properties.dims.x}
+                        height={properties.dims.y}
+                    >
+                        Markup Layer: Canvas API Not Supported
+                    </canvas>
+                    <canvas
+                        ref={dataLayerRef}
+                        id={`${id}_data_layer`}
+                        className={`layer canvas-layer-data${status !== _LOADED ? ' hidden' : ''}`}
+                        width={properties.dims.x}
+                        height={properties.dims.y}
+                    >
+                        Image Layer: Canvas API Not Supported
+                    </canvas>
+                    <canvas
+                        ref={renderLayerRef}
+                        id={`${id}_render_layer`}
+                        className={`layer canvas-layer-data hidden`}
+                        width={properties.dims.x}
+                        height={properties.dims.y}
+                    >
+                        Image Layer: Canvas API Not Supported
+                    </canvas>
                     <canvas
                         ref={baseLayerRef}
                         id={`${id}_base_layer`}
@@ -614,12 +631,12 @@ export const Canvas = ({
                         Base Layer: Canvas API Not Supported
                     </canvas>
                 </div>
-                <CanvasInfo id={id} properties={properties} options={options} />
+                <CanvasInfo id={id} properties={properties} options={options}/>
                 <img
                     ref={imgRef}
                     crossOrigin={'anonymous'}
                     src={schema.errors.image.fallbackSrc}
-                    alt={`Canvas ${id} loaded data.`} />
+                    alt={`Canvas ${id} loaded data.`}/>
             </div>
         </>;
 };
@@ -656,6 +673,7 @@ export const initCanvas = (canvasID, inputData) => {
 
     return {
         redraw: false,
+        dirty: false,
         reset: false,
         restore: false,
         erase: false,

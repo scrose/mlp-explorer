@@ -75,16 +75,12 @@ export const CanvasMenu = ({
     const [menuToggle, setMenuToggle] = React.useState('');
 
     /**
-     * Menu callback.
-     *
-     * @private
-     * @return {JSX.Element}
+     * Handle errors.
      */
 
-    const _callback = (e) => {
-        const { target = {} } = e || {};
-        const { name = '', value = '' } = target || {};
-        setOptions(data => ({ ...data, [name]: value }));
+    const _handleError = (err) => {
+        console.warn(err);
+        setMessage({msg: 'Error: Image processing failed. See console for details.', type:'error'});
     };
 
     /**
@@ -152,9 +148,6 @@ export const CanvasMenu = ({
         },
     };
 
-
-
-
     /**
      * Canvas methods filter.
      * - selects methods for given view mode.
@@ -190,14 +183,21 @@ export const CanvasMenu = ({
             align: () => {
                 let result = alignImages(image1, image2, canvas1, canvas2, options);
                 console.log(result)
-                setMessage(result.error)
+                if (result.error) {
+                    return setMessage(result.error);
+                }
                 setImage2(result.data)
-                setCanvas2(data => ({ ...data, redraw: true, input: true }))
+                setCanvas2(data => ({ ...data, redraw: true, dirty: true }))
             },
         };
-        return _methods.hasOwnProperty(methodType)
-            ? _methods[methodType]()
-            : null;
+        try {
+            return _methods.hasOwnProperty(methodType)
+                ? _methods[methodType]()
+                : null;
+        } catch (err) {
+            console.log('Canvas 2', canvas2)
+            _handleError(err);
+        }
     };
 
     return <>
@@ -206,6 +206,7 @@ export const CanvasMenu = ({
                 <ul>
                     <li>
                         <Button
+                            title={'Image edit mode.'}
                             className={options.mode === 'default' ? 'active' : ''}
                             icon={'select'}
                             onClick={() => {
@@ -215,6 +216,7 @@ export const CanvasMenu = ({
                     </li>
                     <li>
                         <Button
+                            title={'Select control coordinates.'}
                             className={options.mode === 'select' ? 'active' : ''}
                             icon={'crosshairs'}
                             onClick={() => {
@@ -271,6 +273,16 @@ export const CanvasControls = ({
                                    setMessage = noop,
                                    setDialogToggle = noop
                                }) => {
+
+    /**
+     * Handle errors.
+     */
+
+    const _handleError = (err) => {
+        console.warn(err);
+        setMessage(err);
+    };
+
     /**
      * Canvas methods filter.
      *
@@ -293,6 +305,7 @@ export const CanvasControls = ({
                     edit_dims: dims,
                     pts: [],
                     redraw: true,
+                    erase: true
                 }));
             },
             // expand to full-sized image
@@ -303,6 +316,7 @@ export const CanvasControls = ({
                         edit_dims: properties.source_dims,
                         pts: [],
                         redraw: true,
+                        erase: true,
                         reset: true
                     }));
             },
@@ -322,6 +336,7 @@ export const CanvasControls = ({
                         move: { x: 0, y: 0 },
                         origin: { x: 0, y: 0 },
                         redraw: true,
+                        erase: true,
                         reset: true
                     }));
             },
@@ -330,9 +345,13 @@ export const CanvasControls = ({
                 setDialogToggle({type: 'selectImage', id: properties.id});
             },
         };
-        return update && properties && _methods.hasOwnProperty(methodType)
-            ? _methods[methodType]()
-            : null;
+        try {
+            return update && properties && _methods.hasOwnProperty(methodType)
+                ? _methods[methodType]()
+                : null;
+        } catch (err) {
+            _handleError(err);
+        }
     };
 
     return <div className={'canvas-view-controls h-menu'}>

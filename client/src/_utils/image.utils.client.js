@@ -92,6 +92,8 @@ export const loadTIFF = (file) => {
 
 export const alignImages = (imgData1, imgData2, canvas1, canvas2, options) => {
 
+    console.log(imgData1, imgData2, canvas1, canvas2, options)
+
     if (!imgData1 || !imgData2 ) {
         return { data: null, error: { msg: getError('emptyCanvas', 'canvas') } };
     }
@@ -106,19 +108,21 @@ export const alignImages = (imgData1, imgData2, canvas1, canvas2, options) => {
     let img1 = new Uint32Array( imgData1.data.buffer );
     let img2 = new Uint32Array( imgData2.data.buffer );
 
-    // apply transformation to image 2 (img2) on left hand side
+    // apply transformation to image 2 (img2) on right-hand canvas
     homography( transform, img1, img2, canvas1.source_dims.x, canvas1.source_dims.y );
 
-    console.log(new Uint8ClampedArray(img2.buffer))
+    let imgUint8 = new Uint8ClampedArray(img2.buffer)
 
-    // // convert image array from Uint32 to Uint8ClampedArray (for ImageData obj)
-    // const imgData = new ImageData(
-    //     new Uint8ClampedArray(img2.buffer),
-    //     canvas2.edit_dims.x,
-    //     canvas2.edit_dims.y,
-    // );
+    console.log(imgUint8, imgUint8.length)
 
-    return { data: img2, error: null};
+    // convert image array from Uint32 to Uint8ClampedArray (for ImageData obj)
+    const imgData = new ImageData(
+        imgUint8,
+        canvas2.source_dims.x,
+        canvas2.source_dims.y,
+    );
+
+    return { data: imgData, error: null};
 }
 
 /**

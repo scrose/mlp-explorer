@@ -95,7 +95,7 @@ export const ImageSelector = ({
         }
         {
             selection && Object.keys(selection).length > 0 &&
-            <Accordion label={'Select Historic Image'} type={'historic_images'} open={true}>
+            <Accordion label={'Select Historic Image'} type={'historic_images'} open={false}>
                 <CaptureSelector
                     selection={selection}
                     setSelectedImage={setSelectedImage}
