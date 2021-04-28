@@ -6,7 +6,6 @@
  */
 
 import React from 'react';
-import { createPortal } from 'react-dom';
 import usePortal from '../../_providers/portal.provider.client';
 
 /**
@@ -18,10 +17,7 @@ import usePortal from '../../_providers/portal.provider.client';
 
 const Portal = ({ id, children }) => {
     const target = usePortal(id);
-    return createPortal(
-        children,
-        target,
-    );
+    return <div>Not Available</div>
 };
 
 export default Portal;

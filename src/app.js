@@ -20,7 +20,6 @@ import cookieParser from 'cookie-parser';
 import { globalHandler, notFoundHandler } from './error.js';
 import router from './routes/index.routes.js';
 import path from 'path';
-import serveStatic from 'serve-static';
 
 /**
  * Get current working directory.

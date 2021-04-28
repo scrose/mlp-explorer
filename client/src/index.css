@@ -1900,8 +1900,8 @@ Messages
     font-size: small;
     padding: 10px !important;
     border-radius: 0 !important;
-    position: relative;
-    display: inline-block !important;
+    position: absolute;
+    z-index: 999;
     box-shadow: 1px 1px 1px #aaaaaa;
     margin-top: 10px;
 }
@@ -2075,7 +2075,8 @@ canvas {
     display: none;
 }
 .canvas-option-controls {
-    margin: 20px;
+    margin: 0;
+    padding: 0;
 }
 .canvas-option-controls button {
     min-width: 30px;

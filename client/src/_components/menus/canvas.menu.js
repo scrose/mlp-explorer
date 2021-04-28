@@ -202,7 +202,7 @@ export const CanvasMenu = ({
 
     return <>
         <div className={'canvas-menu-bar'}>
-            <div className={'canvas-option-controls h-menu'}>
+            <div className={'canvas-option-controls v-menu'}>
                 <ul>
                     <li>
                         <Button

@@ -322,6 +322,19 @@ export const Canvas = ({
             }
 
             /**
+             * Reload data layer from input data.
+             *
+             * @private
+             */
+
+            function _reload() {
+                if (!properties.reload) return false;
+                console.log('Reload', id);
+                setProperties(data => ({ ...data, reload: false }));
+                setStatus(_EMPTY);
+            }
+
+            /**
              * Reset data layer to source data.
              *
              * @private
@@ -428,12 +441,12 @@ export const Canvas = ({
             if (!dataLayerRef.current || !_isMounted) return;
 
             // Processing error
-            if (status === _ERROR && !properties.reload) {
+            if (status === _ERROR) {
                 return
             }
 
             // Data not yet loaded or reloading
-            if (status === _EMPTY || properties.reload) {
+            if (status === _EMPTY) {
 
                 // [API] Handle image data downloaded from API
                 // - download image file from MLP library
@@ -482,6 +495,7 @@ export const Canvas = ({
 
             // [redraw] redraw canvas on signal
             if (status === _LOADED) {
+                if (_reload()) return;
 
                 // [reset] reset image data to source
                 // [redraw] redraw image data onto data layer

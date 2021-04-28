@@ -90,7 +90,7 @@ const ImageTools = () => {
                 .then(res => {
                     if (_isMounted.current) {
                         if (!res || res.error) {
-                            setMessage(
+                            return setMessage(
                                 res.hasOwnProperty('error')
                                     ? res.error
                                     : {msg: 'Error occurred.', type:'error'}
@@ -111,25 +111,6 @@ const ImageTools = () => {
 
     return <>
         <CanvasMessage message={message} />
-        <CanvasMenu
-            options={options}
-            setOptions={setOptions}
-            canvas1={canvas1Data}
-            setCanvas1={setCanvas1Data}
-            canvas2={canvas2Data}
-            setCanvas2={setCanvas2Data}
-            image1={img1Data}
-            setImage1={setImg1Data}
-            image2={img2Data}
-            setImage2={setImg2Data}
-            selection={selection}
-            setMethods={setMethods}
-            dialogToggle={dialogToggle}
-            setDialogToggle={setDialogToggle}
-            pointer={pointer}
-            setPointer={setPointer}
-            setMessage={setMessage}
-        />
         <div className={'canvas-board'}>
             <Canvas
                 id={canvas1ID}
@@ -166,6 +147,25 @@ const ImageTools = () => {
                 onKeyDown={methods.onKeyDown}
                 onDrag={methods.onDrag}
                 hidden={canvas2Data.hidden}
+            />
+            <CanvasMenu
+                options={options}
+                setOptions={setOptions}
+                canvas1={canvas1Data}
+                setCanvas1={setCanvas1Data}
+                canvas2={canvas2Data}
+                setCanvas2={setCanvas2Data}
+                image1={img1Data}
+                setImage1={setImg1Data}
+                image2={img2Data}
+                setImage2={setImg2Data}
+                selection={selection}
+                setMethods={setMethods}
+                dialogToggle={dialogToggle}
+                setDialogToggle={setDialogToggle}
+                pointer={pointer}
+                setPointer={setPointer}
+                setMessage={setMessage}
             />
         </div>
     </>

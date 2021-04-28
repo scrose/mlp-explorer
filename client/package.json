@@ -2,7 +2,7 @@
   "name": "mlp-client-app",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:3001",
+  "proxy": "http://dev.meat.uvic.ca:3001",
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
@@ -10,16 +10,14 @@
     "react": "^17.0.1",
     "react-idle-timer": "^4.5.6",
     "react-scripts": "4.0.1",
-    "tiff": "^4.3.0",
-    "web-vitals": "^0.2.4"
+    "react-flatpickr": "^3.10.7",
+    "utif": "^3.1.0",
+    "file-saver": "^2.0.5",
+    "ssri": "^8.0.1"
   },
   "devDependencies": {
-    "file-saver": "^2.0.5",
-    "geotiff": "^1.0.4",
     "jest": "^26.6.0",
-    "react-dom": "^17.0.2",
-    "react-flatpickr": "^3.10.7",
-    "utif": "^3.1.0"
+    "web-vitals": "^0.2.4"
   },
   "scripts": {
     "start": "react-scripts start",
