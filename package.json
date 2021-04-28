@@ -1,7 +1,7 @@
 {
   "name": "mlp-api",
   "version": "1.0.0",
-  "proxy": "http://dev.meat.uvic.ca:3001",
+  "proxy": "http://localhost:3001",
   "main": "./src/app.js",
   "type": "module",
   "private": true,
