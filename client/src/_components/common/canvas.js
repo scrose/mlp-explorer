@@ -13,6 +13,7 @@ import { useRouter } from '../../_providers/router.provider.client';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { schema } from '../../schema';
 import { getMIME } from '../../_services/api.services.client';
+import { getError } from '../../_services/schema.services.client';
 
 /**
  * No operation.
@@ -93,8 +94,8 @@ export const Canvas = ({
     const _handleControlError = (err) => {
         if (err) {
             console.warn(err);
-            setStatus(_ERROR);
-            setMessage({ msg: 'Error: could not complete operation.', type: 'error' });
+            const msg = err || getError('default', 'canvas');
+            setMessage({ msg: msg, type: 'error' });
         }
     };
 
@@ -251,6 +252,9 @@ export const Canvas = ({
 
             function _loadDataLayer(imgData, w, h) {
 
+                // get data layer context
+                const ctxData = dataLayerRef.current.getContext('2d');
+
                 // copy to source image data
                 setSource(_toImageData(imgData.data, w, h));
 
@@ -263,6 +267,7 @@ export const Canvas = ({
                 // initialize canvas properties
                 setProperties(data => ({
                     ...data,
+                    reload: false,
                     file: null,
                     redraw: false,
                     edit_dims: { x: w, y: h },
@@ -317,32 +322,43 @@ export const Canvas = ({
             }
 
             /**
-             * Erase markup layer.
-             *
-             * @private
-             */
-
-            async function _erase() {
-                if (!properties.erase) return;
-                setStatus(_LOADING);
-
-                console.log('Erase', id);
-                const ctxMarkUp = markupLayerRef.current.getContext('2d');
-                ctxMarkUp.clearRect(0, 0, properties.dims.x, properties.dims.y);
-            }
-
-            /**
              * Reset data layer to source data.
              *
              * @private
              */
 
             async function _reset() {
+
                 if (!properties.reset) return;
-                setStatus(_LOADING);
+
                 console.log('Reset', id);
+                setStatus(_LOADING);
+
                 const imgData = _toImageData(source.data, source.width, source.height);
                 setInputImage(imgData);
+
+                setProperties(data => ({ ...data, reset: false }));
+                setStatus(_LOADED);
+            }
+
+            /**
+             * Erase markup layer.
+             *
+             * @private
+             */
+
+            async function _erase() {
+
+                if (!properties.erase) return;
+
+                setStatus(_LOADING);
+                console.log('Erase', id);
+
+                const ctxMarkUp = markupLayerRef.current.getContext('2d');
+                ctxMarkUp.clearRect(0, 0, properties.dims.x, properties.dims.y);
+
+                setProperties(data => ({ ...data, erase: false }));
+                setStatus(_LOADED);
             }
 
             /**
@@ -368,7 +384,6 @@ export const Canvas = ({
 
                 if (!properties.redraw) return;
                 setStatus(_LOADING);
-
                 console.log('Redraw', id);
 
                 const dx = properties.offset.x;
@@ -397,8 +412,8 @@ export const Canvas = ({
                 ctxData.imageSmoothingQuality = 'high';
                 ctxData.drawImage(renderLayerRef.current, dx, dy, dWidth, dHeight);
 
-                // return image data from data layer
-                return ctxData.getImageData(0, 0, dWidth, dHeight);
+                setProperties(data => ({ ...data, redraw: false, dirty: false }));
+                setStatus(_LOADED);
             }
 
 
@@ -412,21 +427,13 @@ export const Canvas = ({
             // reject if data layer neither mounted nor ready in DOM
             if (!dataLayerRef.current || !_isMounted) return;
 
-            // get data layer context
-            let ctxData = dataLayerRef.current.getContext('2d');
+            // Processing error
+            if (status === _ERROR && !properties.reload) {
+                return
+            }
 
-            // Data not yet loaded
-            if (status === _EMPTY || status === _ERROR) {
-
-                // reset data if error occurred
-                if (status === _ERROR) {
-                    setProperties(initCanvas(id));
-                    setStatus(_EMPTY);
-                    return;
-                }
-
-                // return if canvas loading is in progress
-                if (status === _LOADING) return;
+            // Data not yet loaded or reloading
+            if (status === _EMPTY || properties.reload) {
 
                 // [API] Handle image data downloaded from API
                 // - download image file from MLP library
@@ -478,20 +485,11 @@ export const Canvas = ({
 
                 // [reset] reset image data to source
                 // [redraw] redraw image data onto data layer
-                _reset()
+                // [erase] clear markup layer
+                    _reset()
                     .then(_redraw)
                     .then(_erase)
                     .catch(_handleError)
-                    .finally(() => {
-                        setStatus(_LOADED)
-                        setProperties(data => ({
-                            ...data,
-                            reset: false,
-                            redraw: false,
-                            dirty: false,
-                            erase: false,
-                        }));
-                    });
             }
 
 
@@ -659,7 +657,7 @@ export const Canvas = ({
  * image_state: string}}
  */
 
-export const initCanvas = (canvasID, inputData) => {
+export const initCanvas = (canvasID, inputData=null) => {
 
     // Destructure input data
     const {
@@ -672,6 +670,7 @@ export const initCanvas = (canvasID, inputData) => {
     const { x_dim = 0, y_dim = 0, image_state = '' } = metadata || {};
 
     return {
+        reload: !!inputData,
         redraw: false,
         dirty: false,
         reset: false,

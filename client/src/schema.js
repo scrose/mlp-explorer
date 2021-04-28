@@ -79,8 +79,9 @@ export const schema = {
             noAuth: 'Authentication failed. Please contact the site administrator.'
         },
         canvas: {
-            emptyCanvas: `One or more canvases are not loaded.`,
-            missingControlPoints: `Too few control points for operation.`,
+            default: 'Error: could not complete operation.',
+            emptyCanvas: `Please load both canvases to complete operation.`,
+            missingControlPoints: `Missing control points to complete operation.`,
             maxControlPoints: 'Maximum number of control points selected.'
         }
     },

@@ -182,11 +182,11 @@ export const CanvasMenu = ({
             // [transform] image alignment
             align: () => {
                 let result = alignImages(image1, image2, canvas1, canvas2, options);
-                console.log(result)
+                console.log(result, image2)
                 if (result.error) {
                     return setMessage(result.error);
                 }
-                setImage2(result.data)
+                setImage2(result.data);
                 setCanvas2(data => ({ ...data, redraw: true, dirty: true }))
             },
         };
