@@ -44,7 +44,8 @@
     "pg": "^8.5.1",
     "react": "^17.0.2",
     "sharp": "^0.27.0",
-    "uid-safe": "^2.1.5"
+    "uid-safe": "^2.1.5",
+    "yarn": "^1.22.10"
   },
   "devDependencies": {
     "chai": "^4.2.0",
