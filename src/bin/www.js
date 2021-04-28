@@ -23,7 +23,7 @@ let app = createApp();
  */
 function onListening () {
     const addr = server.address()
-    const uri = typeof addr === 'string' ? addr : `localhost:${addr.port}`
+    const uri = typeof addr === 'string' ? addr : `${process.env.API_HOST}:${addr.port}`
     console.log(`Listening on ${uri}`)
 }
 
