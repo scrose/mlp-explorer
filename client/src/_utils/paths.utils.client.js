@@ -17,12 +17,10 @@ import { schema } from '../schema';
 const _API = {
     protocol: schema.app.protocol,
     host: schema.app.host,
-    port: schema.app.apiPort
 };
 const _CLIENT = {
     protocol: schema.app.protocol,
     host: schema.app.host,
-    port: schema.app.clientPort
 };
 
 /**

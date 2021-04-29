@@ -22,8 +22,8 @@ let app = createApp();
  * Event listener for HTTP server "listening" event
  */
 function onListening () {
-    const addr = server.address()
-    const uri = typeof addr === 'string' ? addr : `${process.env.API_HOST}:${addr.port}`
+    const addr = server.address();
+    const uri = typeof addr === 'string' ? addr : `${process.env.API_HOST}`
     console.log(`Listening on ${uri}`)
 }
 

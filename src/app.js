@@ -19,14 +19,6 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import { globalHandler, notFoundHandler } from './error.js';
 import router from './routes/index.routes.js';
-import path from 'path';
-
-/**
- * Get current working directory.
- */
-
-const moduleURL = new URL(import.meta.url);
-const __dirname = path.dirname(moduleURL.pathname);
 
 /**
  * Create Express application.
@@ -69,10 +61,9 @@ export default () => {
     app.set('trust proxy', 1); // trust first proxy
 
     const allowedOrigins = [
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://localhost:5000",
-        "http://localhost:8080"
+        process.env.API_HOST,
+        process.env.CLIENT_HOST,
+        process.env.KC_SERVER_HOST
     ];
 
     app.use(cors({
@@ -137,7 +128,7 @@ export default () => {
      * Initialize router.
      */
 
-    app.use('/', router);
+    app.use('/api', router);
 
     /**
      * Set default global error handlers.
