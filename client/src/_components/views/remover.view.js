@@ -94,7 +94,7 @@ const Remover = ({
                 response &&
                     <div>
                         <div className={'alert-box-buttons'}>
-                            <Message closeable={false} message={msg} level={type} />
+                            <Message closeable={false} message={resMessage} />
                             <Button icon={'success'} name={'done'} label={'OK'} onClick={() => {
                                 popSessionMsg();
                                 callback();

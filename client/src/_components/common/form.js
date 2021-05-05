@@ -42,16 +42,6 @@ const Form = ({
     const { attributes={}, fieldsets=[] } = schema || {};
     const { submit='', method='POST' } = attributes || {};
 
-    // filter initial data against schema
-    const filterData = (initData) => {
-        return fieldsets.map(fieldset => {
-            return Object.keys(fieldset.fields || {}).reduce((o, field) => {
-                o[field] = initData[field] || '';
-                return o;
-            }, {})
-        })
-    }
-
     // initialize state for input parameters
     const [data, setData] = React.useState(init || {});
     const [files, setFiles] = React.useState({});

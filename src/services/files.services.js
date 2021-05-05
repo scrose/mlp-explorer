@@ -460,7 +460,7 @@ export const getFileURL = (type = '', data = {}) => {
 
     // generate image source URLs
     const fileURL = () => {
-        const rootURI = `${process.env.API_HOST}:${process.env.API_PORT}/resources/versions/`;
+        const rootURI = `${process.env.API_HOST}/api/resources/versions/`;
         return '/Users/boutrous/Workspace/NodeJS/resources/metadata/test_pdf.pdf';
     };
 
@@ -468,7 +468,7 @@ export const getFileURL = (type = '', data = {}) => {
     const imgSrc = (token) => {
         // include resampled image URLs
         return Object.keys(imageSizes).reduce((o, key) => {
-            const rootURI = `${process.env.API_HOST}:${process.env.API_PORT}/resources/versions/`;
+            const rootURI = `${process.env.API_HOST}/api/resources/versions/`;
             // const rootURI = 'http://meat.uvic.ca/uploads/versions/';
             o[key] = new URL(`${key}_${token}.jpeg`, rootURI);
             return o;

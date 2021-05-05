@@ -162,22 +162,25 @@ function RouterProvider(props) {
      * Request method to upload file(s) via API.
      *
      * @public
-     * @param {String} uri
+     * @param {String} route
      * @param formData
      * @param callback
      */
 
-    const upload = async (uri, formData, callback=()=>{}) => {
+    const upload = async (route, formData, callback=()=>{}) => {
 
         // DEBUG: Display the key/value pairs of form data
         // for(var pair of formData.entries()) {
         //     console.log(pair[0]+ ', '+ pair[1]);
         // }
 
+        console.log('Upload:', route)
+
         try {
 
             let xhr = new XMLHttpRequest();
-            xhr.open('POST', uri, true);
+            xhr.open('POST', createURL(route), true);
+            xhr.withCredentials = true;
             xhr.responseType = 'json';
 
             // request finished event
@@ -242,8 +245,8 @@ function RouterProvider(props) {
      * Request method to download file.
      *
      * @public
-     * @param route
-     * @param format
+     * @param {String} route
+     * @param {String} format
      */
 
     const download = async (route, format) => {

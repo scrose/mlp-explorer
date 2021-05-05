@@ -5,281 +5,20 @@
  * MIT Licensed
  */
 
-import React from 'react'
-import Flatpickr from "react-flatpickr";
-import "flatpickr/dist/themes/material_green.css";
-import { getModelLabel } from '../../_services/schema.services.client';
+import React from 'react';
+import 'flatpickr/dist/themes/material_green.css';
 import { convertCoordDMS, sorter } from '../../_utils/data.utils.client';
 import Icon from './icon';
-import Button from './button';
-import Message from './message';
-
-const noop = ()=>{};
-
-/**
- * Build datepicker widget using Pikaday module.
- *
- * @public
- * @param value
- * @param name
- * @param filter
- */
-
-const DateTimeSelector = ({value, name, filter='datetime'}) => {
-    const [date, setDate] = React.useState(value ? new Date(value) : new Date());
-    const dateSelectors = {
-        datetime: <Flatpickr
-            name={name}
-            options={{
-                altInput: true,
-                dateFormat: 'Z'
-            }}
-            data-enable-time={true}
-            value={date}
-            onChange={(newDate) => {setDate(newDate)}} />,
-        date: <Flatpickr
-            name={name}
-            options={{
-                altInput: true,
-                dateFormat: 'Y-m-d',
-                altFormat: 'F d, Y'
-            }}
-            data-enable-time={false}
-            value={date}
-            onChange={(newDate) => {setDate(newDate)}} />,
-        time: <Flatpickr
-            name={name}
-            options={{
-                altInput: true,
-                dateFormat: 'H:i:s',
-                altFormat: 'H:i:ss',
-                noCalendar: true
-            }}
-            data-enable-time={true}
-            value={date}
-            onChange={(newDate) => {setDate(newDate)}} />
-    }
-    return <>
-        {
-            dateSelectors.hasOwnProperty(filter)
-                ? dateSelectors[filter]
-                : dateSelectors.default
-        }
-        </>
-}
+import Message, { UserMessage } from './message';
+import MultiSelect from './multiselect';
+import DateTimeSelector from './datetime';
+import Autocomplete from './autocomplete';
 
 /**
- * Build autocomplete widget as component.
- *
- * @public
+ * No operation.
  */
 
-const Autocomplete = ({}) => {
-    // variables
-    const people = ['john doe', 'maria', 'paul', 'george', 'jimmy'];
-    let results = [];
-
-    // functions
-    function autocomplete(val) {
-        let people_return = [];
-
-        for (let i = 0; i < people.length; i++) {
-            if (val === people[i].slice(0, val.length)) {
-                people_return.push(people[i]);
-            }
-        }
-
-        return people_return;
-    }
-
-    // events
-    // input.onkeyup = function(e) {
-    //     const input_val = this.value; // updates the variable on each ocurrence
-    //
-    //     if (input_val.length > 0) {
-    //         let people_to_show = [];
-    //
-    //         const autocomplete_results = document.getElementById("autocomplete-results");
-    //         autocomplete_results.innerHTML = '';
-    //         people_to_show = autocomplete(input_val);
-    //
-    //         for (i = 0; i < people_to_show.length; i++) {
-    //             autocomplete_results.innerHTML += '<li>' + people_to_show[i] + '</li>';
-    //
-    //         }
-    //         autocomplete_results.style.display = 'block';
-    //     } else {
-    //         let people_to_show = [];
-    //         autocomplete_results.innerHTML = '';
-    //     }
-    // }
-}
-
-/**
- * Build multiselect widget.
- *
- * @public
- * @param id
- * @param name
- * @param selected
- *
- * @param required
- * @param disabled
- * @param options
- * @param onChange
- */
-
-const MultiSelect = ({id, name, label, selected, required, disabled, options, onSelect}) => {
-
-    // create selection list references
-    const unselectedRef = React.useRef(null);
-    const selectedRef = React.useRef(null);
-
-    // prepare options data for multiselect input
-    const getUnselectedOpts = () => {
-        return options
-            .sort(sorter)
-            .map(opt => {
-                const {value='', label=''} = opt || {};
-                return <option
-                    key={`${id}_${name}_${value}`}
-                    id={`${id}_${name}_${value}`}
-                    name={`${name}_${value}`}
-                    value={value || ''}
-                    disabled={(selected || []).some(item => parseInt(item.value) === parseInt(opt.value))}
-                >{label}</option>;
-            });
-    }
-
-    // generate option elements from selection list
-    const getSelectedOpts = () => {
-        return (selected || [])
-            .sort(sorter)
-            .map(opt => {
-                const {value='', label=''} = opt || {};
-                return <option
-                    key={`${id}_${name}_${value}`}
-                    id={`${id}_${name}_${value}`}
-                    name={`${name}_${value}`}
-                    value={value || ''}
-                >{label}</option>;
-            });
-    }
-
-    // generate hidden elements from selection list
-    const getHiddenOpts = () => {
-        return (selected || [])
-            .map((opt, index) => {
-                const {value=''} = opt || {};
-                return <Input
-                        type={'hidden'}
-                        key={`${id}_${name}_${value}`}
-                        id={`${id}_${name}_${value}`}
-                        name={`${name}[${index}]`}
-                        value={value || ''}
-                        />;
-            });
-    }
-
-    // add item to selection
-    const selectOption = (e) => {
-        e.preventDefault();
-
-        // move chosen unselected opts to selected list
-        updateSelect([...unselectedRef.current.options]
-            .filter(opt => opt.selected || (selected || []).some(
-                selectedOpt => String(selectedOpt.value) === String(opt.value))
-            ));
-    }
-
-    // remove item from selection
-    const deselectOption = (e) => {
-        e.preventDefault();
-
-        // get options chosen to be deselected
-        updateSelect([...selectedRef.current.options]
-            .filter(opt => !opt.selected));
-    }
-
-    // reset selection with initialization data
-    const reset = (e) => {
-        e.preventDefault();
-        updateSelect([]);
-    }
-
-    // update data state for field
-    const updateSelect = (options) => {
-        // update data state
-        onSelect(
-            name,
-            options.map(opt => {
-                return {
-                    label: opt.label,
-                    value: opt.value,
-                };
-            })
-        );
-    }
-
-    return <div className={'multiselect'}>
-        <div>
-            <select
-                ref={unselectedRef}
-                id={id}
-                name={'unselectedOptions'}
-                onChange={noop}
-                multiple={true}
-                placeholder={label}
-            >
-                { getUnselectedOpts() }
-            </select>
-        </div>
-        <div className={'multiselect-controls'}>
-            <Button
-                icon={'prev'}
-                onClick={deselectOption}
-            />
-            <Button
-                icon={'undo'}
-                onClick={reset} />
-            <Button
-                icon={'next'}
-                onClick={selectOption} />
-        </div>
-        <div>
-            <select
-                ref={selectedRef}
-                id={id}
-                name={'selectedOptions'}
-                onChange={noop}
-                required={required}
-                multiple={true}
-            >
-                { getSelectedOpts() }
-            </select>
-            { getHiddenOpts() }
-        </div>
-    </div>
-}
-
-/**
- * Build input help text (error messages). Only prints
- * first message to window.
- *
- * @public
- * @param error
- */
-
-export const ValidationMessage = ({msg, type=''}) => {
-    const container = React.useRef(null);
-    // scroll to position of message in form
-    React.useEffect(() => {
-        container.current.scrollIntoView();
-    }, [container])
-    return  <div ref={container} className={`validation ${type ? type : ''}`}>
-        <span>{msg.length > 0 ? msg[0] : ''}</span>
-    </div>
-}
+const noop = () => {};
 
 /**
  * Form input component.
@@ -305,25 +44,25 @@ export const Input = ({
                           id,
                           type,
                           name,
-                          label='',
-                          value='',
-                          files=[],
-                          min=0,
-                          prefix='',
-                          suffix='',
-                          error=null,
-                          reference='',
-                          required=false,
-                          readonly=false,
-                          multiple=false,
-                          disabled=false,
-                          ariaLabel='',
-                          options=null,
-                          onMultiselect=noop,
-                          onChange=noop,
-                          onSelect=noop,
-                          onDrop=noop,
-                          onDragLeave=noop
+                          label = '',
+                          value = '',
+                          files = [],
+                          min = 0,
+                          prefix = '',
+                          suffix = '',
+                          error = null,
+                          reference = '',
+                          required = false,
+                          readonly = false,
+                          multiple = false,
+                          disabled = false,
+                          ariaLabel = '',
+                          options = null,
+                          onMultiselect = noop,
+                          onChange = noop,
+                          onSelect = noop,
+                          onDrop = noop,
+                          onDragLeave = noop,
                       }) => {
 
     // input conditional states
@@ -332,7 +71,7 @@ export const Input = ({
     // create event listener for file input
     const ref = React.useCallback((domNode) => {
         if (domNode)
-            domNode.addEventListener("click", function (e) {
+            domNode.addEventListener('click', function(e) {
                 if (domNode) {
                     domNode.click();
                 }
@@ -354,48 +93,48 @@ export const Input = ({
         hidden: () => {
             return <input
                 readOnly={true}
-                type={"hidden"}
+                type={'hidden'}
                 id={id}
                 name={name}
                 value={value || ''}
                 required={required}
-            />
+            />;
         },
 
         text: () => {
             return <input
-                type={"text"}
+                type={'text'}
                 id={id}
                 name={name}
                 value={value || ''}
                 required={required}
                 onChange={onChange}
                 aria-label={ariaLabel}
-            />
+            />;
         },
 
         autocomplete: () => {
             return <Autocomplete
-                     id={id}
-                     name={name}
-                     value={value || ''}
-                     required={required}
-                     onChange={onChange}
-                     aria-label={ariaLabel}
+                id={id}
+                name={name}
+                value={value || ''}
+                required={required}
+                onChange={onChange}
+                aria-label={ariaLabel}
             />;
         },
 
         smallText: () => {
             return <input
                 className={'short'}
-                type={"text"}
+                type={'text'}
                 id={id}
                 name={name}
                 value={value || ''}
                 required={required}
                 onChange={onChange}
                 aria-label={ariaLabel}
-            />
+            />;
         },
 
         textarea: () => {
@@ -406,12 +145,13 @@ export const Input = ({
                 required={required}
                 onChange={onChange}
                 aria-label={ariaLabel}
-            />
+            />;
         },
 
         checkbox: () => {
             const isChecked = (value && value === true);
             return <input
+                disabled={disabled}
                 type={'checkbox'}
                 id={id}
                 name={name}
@@ -419,13 +159,14 @@ export const Input = ({
                 required={required}
                 onChange={onChange}
                 aria-label={ariaLabel}
-            />
+            />;
         },
 
         int: () => {
             return <>
                 <input
-                    type={"number"}
+                    disabled={disabled}
+                    type={'number'}
                     placeholder={0}
                     step={1}
                     id={id}
@@ -434,13 +175,14 @@ export const Input = ({
                     required={required}
                     onChange={onChange}
                     aria-label={ariaLabel} />
-            </>
+            </>;
         },
 
         float: () => {
             return <>
                 <input
-                    type={"number"}
+                    disabled={disabled}
+                    type={'number'}
                     placeholder={0.000}
                     min={min}
                     step={'any'}
@@ -450,12 +192,13 @@ export const Input = ({
                     required={required}
                     onChange={onChange}
                     aria-label={ariaLabel} />
-            </>
+            </>;
         },
 
         year: () => {
             return <input
-                type={"number"}
+                disabled={disabled}
+                type={'number'}
                 placeholder={new Date().getFullYear()}
                 min={1800}
                 max={new Date().getFullYear()}
@@ -465,16 +208,16 @@ export const Input = ({
                 required={required}
                 onChange={onChange}
                 aria-label={ariaLabel}
-            />
+            />;
         },
 
         coord: () => {
             return <>
                 <input
-                    type={"number"}
+                    type={'number'}
                     step={'any'}
-                    min={name==='lat' ? -85 : -180}
-                    max={name==='lat' ? 85 : 180}
+                    min={name === 'lat' ? -85 : -180}
+                    max={name === 'lat' ? 85 : 180}
                     id={id}
                     name={name}
                     value={value || ''}
@@ -482,22 +225,22 @@ export const Input = ({
                     onChange={onChange}
                     aria-label={ariaLabel} />
                 <span>{convertCoordDMS(value)}</span>
-            </>
+            </>;
         },
 
         date: () => {
             return <DateTimeSelector
-                    name={name}
-                    value={value || ''}
-                    filter={'date'} />
+                name={name}
+                value={value || ''}
+                filter={'date'} />;
         },
 
         datetime: () => {
             return <DateTimeSelector
-                    name={name}
-                    value={value || ''}
-                    filter={'datetime'}
-                />
+                name={name}
+                value={value || ''}
+                filter={'datetime'}
+            />;
         },
 
         time: () => {
@@ -505,34 +248,38 @@ export const Input = ({
                 name={name}
                 value={value || ''}
                 filter={'time'}
-            />
+            />;
         },
 
         email: () => {
             return <input
-                type={"email"}
+                type={'email'}
                 id={id}
                 name={name}
                 value={value || ''}
                 required={required}
                 onChange={onChange}
                 aria-label={ariaLabel}
-            />
+            />;
         },
 
         password: () => {
             return <input
                 readOnly={autoClick}
-                type={"password"}
+                type={'password'}
                 autoComplete="chrome-off"
                 id={id}
                 name={name}
                 value={value || ''}
                 required={required}
                 onChange={onChange}
-                onClick={()=>{setAutoClick(false)}}
-                onFocus={()=>{setAutoClick(false)}}
-            />
+                onClick={() => {
+                    setAutoClick(false);
+                }}
+                onFocus={() => {
+                    setAutoClick(false);
+                }}
+            />;
         },
 
         select: () => {
@@ -540,13 +287,13 @@ export const Input = ({
             const opts = options
                 .sort(sorter)
                 .map(opt => {
-                const {value='', label=''} = opt || {};
-                return <option
-                    key={`${id}_${name}_${value}`}
-                    id={`${id}_${name}_${value}`}
-                    name={`${name}_${value}`}
-                    value={value || ''}>{label}</option>;
-            });
+                    const { value = '', label = '' } = opt || {};
+                    return <option
+                        key={`${id}_${name}_${value}`}
+                        id={`${id}_${name}_${value}`}
+                        name={`${name}_${value}`}
+                        value={value || ''}>{label}</option>;
+                });
 
             return <select
                 id={id}
@@ -563,10 +310,10 @@ export const Input = ({
                     name={`default_${id}_${name}`}
                     value={''}
                 >
-                    Select a {getModelLabel(reference)}...
+                    {label} ...
                 </option>
-                { opts }
-            </select>
+                {opts}
+            </select>;
         },
 
 
@@ -581,7 +328,7 @@ export const Input = ({
                 options={options}
                 onChange={onChange}
                 onSelect={onMultiselect}
-            />
+            />;
         },
 
         file: () => {
@@ -604,7 +351,7 @@ export const Input = ({
                     onDragLeave={onDragLeave}>
                     <input
                         ref={ref}
-                        type={"file"}
+                        type={'file'}
                         id={id}
                         name={name}
                         required={required}
@@ -612,32 +359,32 @@ export const Input = ({
                         multiple={multiple}
                     />
 
-                    <Icon type={'upload'} />&#160;
-                    <span>{multiple ? 'Attach Multiple Files' : 'Attach File'}</span>
+                    <Icon type={'import'} />&#160;
+                    <span>{multiple ? 'Import Multiple Files' : 'Import File'}</span>
                     <div>{files.join(', ')}</div>
                 </label>
-            </>
-        }
-    }
+            </>;
+        },
+    };
 
     // get input element
     const input = _inputElements.hasOwnProperty(type)
-        ?   _inputElements[type]()
-        :   <Message message={'Loading Error'} level={'error'} closeable={false} />
+        ? _inputElements[type]()
+        : <Message message={{msg: 'Loading Error', type: 'error'}} closeable={false} />;
 
     return type !== 'hidden' && type !== 'file'
-        ?   <>
-            <label key={`label_${name}`} htmlFor={id}>
+        ? <>
+            <label key={`label_${name}`} htmlFor={id} className={type}>
                 <span className={'label-text'}>{label}</span>
                 <span className={'units'}>{prefix}</span>
                 {input}
                 <span className={'units'}>{suffix}</span>
             </label>
-            { Array.isArray(error) && error.length > 0 && <ValidationMessage msg={error}/> }
+            {<UserMessage message={error} closeable={false} />}
         </>
-        :   <>
+        : <>
             {input}
-            { Array.isArray(error) && error.length > 0 && <ValidationMessage msg={error}/> }
+            {<UserMessage message={error} closeable={false} />}
         </>;
 };
 

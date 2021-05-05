@@ -6,8 +6,9 @@
  */
 
 import React from 'react';
-import Image from './image';
 import Button from './button';
+import { schema } from '../../schema';
+import Loading from './loading';
 
 /**
  * Image comparator component.
@@ -22,14 +23,20 @@ const Comparator = ({images=[]}) => {
     // input image data
     const [image1, image2] = images || [];
 
-    // debug
-    image1.url={ medium: 'http://localhost:3001/resources/versions/medium_f8jTu1VYYFDr_n56cHFLt4ECtXiSFP4Vh2LnZ0tB8ZI514wU.jpeg' }
-    image2.url={ medium: 'http://localhost:3001/resources/versions/medium_0JQnZa1kTDiggCY4oILwza8eDjKXI7V3G4SkavpWndblqdQr.jpeg' }
+    // loading status
+    const [loading1, setLoading1] = React.useState(true);
+    const [loading2, setLoading2] = React.useState(true);
 
     // slider state
-    const [slideInit, setSlideInit] = React.useState(false);
     const [imgWidth, setImgWidth] = React.useState(0);
     let sliding = false;
+
+    // mounted status
+    const _isMounted = React.useRef(false);
+
+    // panel DOM references
+    const panel1Ref = React.useRef();
+    const panel2Ref = React.useRef();
 
     // image DOM references
     const img1Ref = React.useRef();
@@ -38,102 +45,129 @@ const Comparator = ({images=[]}) => {
     // slider DOM reference: element controls display of overlay
     const sliderRef = React.useRef();
 
-    // intialize slider button
-    React.useEffect(() => {}, [])
+    // Image labels
+    const label1 = image1 && image1.hasOwnProperty('label') ? image1.label : 'Image 1';
+    const label2 = image2 && image2.hasOwnProperty('label') ? image2.label : 'Image 2';
 
-    // prepare slider
-    function slideReady() {
-        if (!slideInit && sliderRef.current && img1Ref.current) {
+    function _slideFinish() {}
 
-            setSlideInit(true);
-
-            /* Get the width and height of the img element */
-            let w = img1Ref.current.offsetWidth;
-            let h = img1Ref.current.offsetHeight;
-            setImgWidth(w);
-
-            /* Set the width of the img element to 50%: */
-            img1Ref.current.style.width = (w / 2) + 'px';
-
-            /* Position the slider in the middle: */
-            sliderRef.current.style.top = (h / 2) - (sliderRef.current.offsetHeight / 2) + 'px';
-            sliderRef.current.style.left = (w / 2) - (sliderRef.current.offsetWidth / 2) + 'px';
-        }
-
-    }
-
-    function slideFinish() {}
-
-    function getPos(e) {
+    function _getPos(e) {
 
         // get image boundary dimensions / positions
-        let rect = img1Ref.current.getBoundingClientRect() // abs. size of element
+        let rect = panel1Ref.current.getBoundingClientRect() // abs. size of element
 
         // scale mouse coordinates after they have been adjusted to be relative to element
         return Math.max(
-                Math.min(
-                    Math.floor((e.clientX - rect.left)), imgWidth
-                ), 0)
+            Math.min(
+                Math.floor((e.clientX - rect.left)), imgWidth
+            ), 0)
     }
 
-    function slideMove(e) {
+    function _slideMove(e) {
         /* If the slider is no longer clicked, exit this function: */
         if (!sliding) return false;
         /* Get the cursor's x position: */
-        let pos = getPos(e);
+        let pos = _getPos(e);
         /* Prevent the slider from being positioned outside the image: */
         if (pos < 0) pos = 0;
         if (pos > imgWidth) pos = imgWidth;
         /* Execute a function that will resize the overlay image according to the cursor: */
-        slide(pos);
+        _slide(pos);
     }
 
-    function slide(x) {
+    function _slide(x) {
         /* Resize the image: */
-        img1Ref.current.style.width = x + "px";
+        panel1Ref.current.style.width = x + "px";
         /* Position the slider: */
-        sliderRef.current.style.left = img1Ref.current.offsetWidth - (sliderRef.current.offsetWidth / 2) + "px";
+        sliderRef.current.style.left = panel1Ref.current.offsetWidth - (sliderRef.current.offsetWidth / 2) + "px";
     }
+
+    // initialize image sources
+    // - (1) data URLs
+    // - (2) URLs
+    React.useEffect(() => {
+        _isMounted.current = true;
+
+        // initialize slider to panel dimensions
+        function _slideReady() {
+            if (sliderRef.current && img1Ref.current) {
+
+                /* Get the width and height of the img element */
+                let w = img1Ref.current.offsetWidth;
+                let h = img1Ref.current.offsetHeight;
+                setImgWidth(w);
+
+                /* Set the width of the img element to 50%: */
+                panel1Ref.current.style.width = (w / 2) + 'px';
+
+                /* Position the slider in the middle: */
+                sliderRef.current.style.top = (h / 2) - (sliderRef.current.offsetHeight / 2) + 'px';
+                sliderRef.current.style.left = (w / 2) - (sliderRef.current.offsetWidth / 2) + 'px';
+            }
+
+        }
+
+        if (
+            _isMounted.current
+            && image1
+            && image2
+            && img1Ref.current
+            && img2Ref.current
+        ) {
+
+            const url1 =  image1 && image1.hasOwnProperty('url')
+                ? image1.url.medium : image1;
+            const url2 =  image2 && image2.hasOwnProperty('url')
+                ? image2.url.medium : image2;
+
+            img1Ref.current.src = url1;
+            img1Ref.current.onload = function() {
+                _slideReady()
+                if (_isMounted.current) setLoading1(false);
+            };
+            img2Ref.current.src = url2;
+            img2Ref.current.onload = function() {
+                _slideReady()
+                if (_isMounted.current) setLoading2(false);
+            };
+        }
+        return () => { _isMounted.current = false }
+    }, [image1, image2, setImgWidth]);
 
     return <div className={'comparator'}>
         <div
             className={`comparator-container`}
-            onMouseEnter={slideReady}
-            onMouseLeave={slideFinish}
+            onMouseLeave={_slideFinish}
             onMouseUp={(e) => {sliding=false}}
-            onMouseMove={slideMove}
+            onMouseMove={_slideMove}
         >
+        <div
+                    className={`comparator-slider`}
+                    ref={sliderRef}
+                    onTouchStart={() => {sliding=true}}
+                    onTouchMove={_slideMove}
+                    onTouchEnd={(e) => {e.preventDefault(); }}
+                    onMouseDown={() => {sliding=true}}
+                >
+            { !loading1 && !loading2 ? <Button icon={'slide'} /> : <Loading /> }
+        </div>
         {
-            <div
-                className={`comparator-slider`}
-                ref={sliderRef}
-                onTouchStart={() => {sliding=true}}
-                onTouchMove={slideMove}
-                onTouchEnd={(e) => {e.preventDefault(); }}
-                onMouseDown={() => {sliding=true}}
-            >
-                <Button icon={'slide'} />
-            </div>
-        }
-        {
-            image1 &&
-            <div ref={img1Ref} className="comparator-img overlay">
-                <Image
-                    url={image1.url}
-                    title={image1.label}
-                    label={image1.label}
-                    scale={'medium'}
+            <div ref={panel1Ref} className="comparator-img overlay">
+                <img
+                    ref={img1Ref}
+                    crossOrigin={'anonymous'}
+                    src={schema.errors.image.fallbackSrc}
+                    alt={label1}
                 />
             </div>
         }
         {
-            image2 &&
-            <div ref={img2Ref} className="comparator-img">
-                <Image
-                    url={image2.url}
-                    title={image2.label}
-                    label={image2.label}
-                    scale={'medium'}
+            <div ref={panel2Ref} className="comparator-img">
+                <img
+                    ref={img2Ref}
+                    crossOrigin={'anonymous'}
+                    src={schema.errors.image.fallbackSrc}
+                    alt={label2}
                 />
             </div>
         }

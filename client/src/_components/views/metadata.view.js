@@ -10,7 +10,7 @@ import { genSchema, getDependentTypes, getModelLabel } from '../../_services/sch
 import { genID, sanitize } from '../../_utils/data.utils.client';
 import Button from '../common/button';
 import Accordion from '../common/accordion';
-import EditorMenu from '../menus/editor.menu';
+import MenuEditor from '../editor/menu.editor';
 import { useData } from '../../_providers/data.provider.client';
 import ComparisonsView from './comparisons.view';
 
@@ -83,7 +83,7 @@ export const MetadataAttached = ({ owner, attached }) => {
                     key={`${keyID}_${attachedModel}`}
                     type={attachedModel}
                     label={`${getModelLabel(attachedModel, 'label')}`}
-                    menu={<EditorMenu
+                    menu={<MenuEditor
                         model={attachedModel}
                         id={owner && owner.hasOwnProperty('id') ? owner.id : ''}
                         view={'attach'}
@@ -208,7 +208,7 @@ const MetadataView = ({
                                         <ul>
                                             <li><Button label={fieldset.legend} /></li>
                                             <li className={'accordion-menu'}>{
-                                                menu && <EditorMenu
+                                                menu && <MenuEditor
                                                             id={itemID}
                                                             model={model}
                                                             owner={owner}

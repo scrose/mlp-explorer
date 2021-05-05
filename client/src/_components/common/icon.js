@@ -70,10 +70,18 @@ import {
     faUndo,
     faUser,
     faUsers,
-    faArrowsAltH
+    faArrowsAltH,
+    faSave,
+    faSlidersH,
+    faRulerCombined,
+    faFileImage
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
+    faFileImage,
+    faRulerCombined,
+    faSlidersH,
+    faSave,
     faArrowsAltH,
     faFile,
     faQuestionCircle,
@@ -163,7 +171,10 @@ const getIconClass = (iconType) => {
         minus: 'minus',
         select: 'mouse-pointer',
         crosshairs: 'crosshairs',
+        adjust: 'sliders-h',
+        resize: 'ruler-combined',
         edit: 'edit',
+        load: 'file-image',
         delete: 'trash-alt',
         import: 'file-import',
         export: 'file-export',
@@ -174,6 +185,7 @@ const getIconClass = (iconType) => {
         undo: 'undo',
         erase: 'eraser',
         swap: 'exchange-alt',
+        save: 'save',
         slide: 'arrows-alt-h',
         help: 'question-circle',
         success: 'check-circle',
@@ -214,6 +226,7 @@ const getIconClass = (iconType) => {
         stations: 'map-marker-alt',
         historic_visits: 'calendar-day',
         modern_visits: 'calendar-day',
+        captures: 'camera-retro',
         historic_captures: 'camera-retro',
         modern_captures: 'camera-retro',
         unsorted_captures: 'images',

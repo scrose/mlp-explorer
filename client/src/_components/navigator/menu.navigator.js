@@ -7,7 +7,8 @@
 
 import React  from 'react';
 import Button from '../common/button';
-import { setNavView } from '../../_services/session.services.client';
+import { setNavView, setPref } from '../../_services/session.services.client';
+import { redirect } from '../../_utils/paths.utils.client';
 
 /**
  * Navigator menu component.
@@ -39,6 +40,7 @@ const MenuNavigator = ({
         setData(null);
         // toggle navigator
         setToggle(true);
+        setPref('navToggle', true);
         // set navigator view
         set(navView);
         setNavView(navView);
@@ -50,9 +52,13 @@ const MenuNavigator = ({
                 <ul className={`v-menu`}>
                     <li>
                         <Button
+                            disabled={view === 'iat'}
                             icon={toggle ? 'hopenleft' : 'hcloseleft'}
                             title={toggle ? 'Minimize navigator.' : 'Maximize navigator'}
-                            onClick={() => setToggle(!toggle)}
+                            onClick={() => {
+                                setToggle(!toggle);
+                                setPref('navToggle', !toggle);
+                            }}
                         />
                     </li>
                     <li>
@@ -91,6 +97,23 @@ const MenuNavigator = ({
                             onClick={() => setView('search')}
                         />
                     </li>
+                        <li>
+                            <Button
+                                icon={'iat'}
+                                className={view === 'iat' ? 'active' : ''}
+                                title={`Image Analysis Toolkit`}
+                                onClick={() => {
+                                    // collapse navigator
+                                    setToggle(false);
+                                    setPref('navToggle', false);
+                                    // set navigator view
+                                    set('iat');
+                                    setNavView('iat');
+                                    // redirect to IAT in viewer/editor
+                                    redirect('/iat')
+                                }}
+                            />
+                        </li>
                 </ul>
             </div>
         </div>

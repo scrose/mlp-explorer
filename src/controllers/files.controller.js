@@ -382,7 +382,7 @@ export default function FilesController(modelType) {
             let { fs_path='' } = file;
 
             const mimeType = getMIME(file.filename);
-            console.log(file, mimeType)
+            console.log(fs_path, mimeType)
 
             // set response headers
             res.setHeader("Content-Type", mimeType);
@@ -407,7 +407,7 @@ export default function FilesController(modelType) {
     };
 
     /**
-     * Get image data for mastering.
+     * Get image data for registration -> mastering.
      *
      * @param req
      * @param res
@@ -415,7 +415,7 @@ export default function FilesController(modelType) {
      * @src public
      */
 
-    this.master = async (req, res, next) => {
+    this.register = async (req, res, next) => {
 
         // NOTE: client undefined if connection fails.
         const client = await pool.connect();
@@ -477,6 +477,86 @@ export default function FilesController(modelType) {
         }
         finally {
             client.release(true);
+        }
+    }
+
+    /**
+     * Upload image data as mastered.
+     *
+     * @param req
+     * @param res
+     * @param next
+     * @src public
+     */
+
+    this.master = async (req, res, next) => {
+
+        // NOTE: client undefined if connection fails.
+        const client = await pool.connect();
+
+        try {
+
+            // get file data from parameters
+            const id = this.getId(req);
+            const fileData = await fserve.get(id, client);
+
+            // check that file entry exists
+            if (!fileData) {
+                return next(new Error('invalidRequest'));
+            }
+
+            // get metadata fields
+            const {metadata='', file=''} = fileData || {};
+            const {owner_id='', owner_type=''} = file || {};
+            const imported = await importer.receive(req, owner_id, owner_type);
+
+            // overwrite metadata
+            Object.keys(imported.data).forEach((field) => {
+                metadata[field] = imported.data[field];
+            });
+
+            console.log('Update Data:', metadata)
+
+            // send response
+            res.status(200).json(
+                prepare({
+                    view: 'show',
+                    model: model,
+                    data: metadata,
+                    message: {
+                        msg: `Test updated successfully!`,
+                        type: 'success'
+                    },
+                    path: path
+                }));
+
+            // update file metadata record
+            await fserve.update(new Model(metadata));
+
+            // get updated file
+            let updatedItem = await fserve.get(id);
+
+            // get path of owner node in hierarchy
+            const path = await nserve.getPath(file);
+
+            // send response
+            res.status(200).json(
+                prepare({
+                    view: 'show',
+                    model: model,
+                    data: {},
+                    message: {
+                        msg: `'${updatedItem.label}' updated successfully!`,
+                        type: 'success'
+                    },
+                    path: path
+                }));
+
+        } catch (err) {
+            console.error(err)
+            return next(err);
+        } finally {
+            client.release();
         }
     }
 }

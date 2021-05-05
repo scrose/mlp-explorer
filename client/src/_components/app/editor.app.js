@@ -11,7 +11,7 @@ import BoundaryError from '../error/boundary.error';
 import Footer from '../common/footer';
 import Editor from '../editor/editor';
 import HeaderEditor from '../editor/header.editor';
-import EditorMenu from '../menus/editor.menu';
+import MenuEditor from '../editor/menu.editor';
 
 /**
  * Main app component for authenticated users.

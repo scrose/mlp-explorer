@@ -15,7 +15,7 @@ import { useUser } from '../../_providers/user.provider.client';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
 import Image from '../common/image';
 import { useRouter } from '../../_providers/router.provider.client';
-import EditorMenu from '../menus/editor.menu';
+import MenuEditor from '../editor/menu.editor';
 import { useData } from '../../_providers/data.provider.client';
 
 /**
@@ -80,7 +80,7 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
 
         // add editor menu for logged-in users
         if (user) {
-            rows.menu =  <EditorMenu
+            rows.menu =  <MenuEditor
                             fileType={type}
                             model={type}
                             id={id}

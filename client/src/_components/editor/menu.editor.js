@@ -10,7 +10,7 @@ import { createNodeRoute, redirect } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import { genSchema, getModelLabel } from '../../_services/schema.services.client';
 import Button from '../common/button';
-import Importer from '../tools/import.tools';
+import Importer from '../tools/importer/import.tools';
 import Dialog from '../common/dialog';
 import MetadataView from '../views/metadata.view';
 import { useData } from '../../_providers/data.provider.client';
@@ -24,7 +24,7 @@ import OptionsView from '../views/options.view';
  * @public
  */
 
-const EditorMenu = ({
+const MenuEditor = ({
                         className='node',
                         model = '',
                         view='show',
@@ -436,13 +436,6 @@ const EditorMenu = ({
                     {
                         isEditor &&
                         <>
-                            <li className={'push'} key={`viewer_menuitem_iat`}>
-                                <Button
-                                    icon={'iat'}
-                                    title={`Image Analysis Toolkit`}
-                                    onClick={() => {redirect('/iat')}}
-                                />
-                            </li>
                             <li key={`${menuID}_menuitem_options`}>
                                 <Button
                                     icon={'options'}
@@ -458,4 +451,4 @@ const EditorMenu = ({
     );
 };
 
-export default EditorMenu;
+export default MenuEditor;

@@ -174,7 +174,6 @@ export const updateGroup = async (
                     newItems.length === 0 || newItems.some(pNew =>
                     parseInt(pOld[idKey]) !== parseInt(pNew[idKey])))
                 .map(async (pOld) => {
-                    // console.log('Remove', pOld.participant_id)
                     return await remove(new ItemModel(pOld), client);
                 }));
 

@@ -11,7 +11,8 @@ import DataView from '../views/data.view';
 import StaticView from '../views/static.view';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
-import ViewerMenu from '../menus/viewer.menu';
+import MenuViewer from './menu.viewer';
+import { getNavView } from '../../_services/session.services.client';
 
 /**
  * Render viewer panel component (unauthenticated).
@@ -26,8 +27,8 @@ const Viewer = () => {
 
     return (
         <div className={'viewer'}>
-            <ViewerMenu />
-            <div className={'view'}>
+            <MenuViewer />
+            <div className={`view ${getNavView()}`}>
                 <Heading />
                 <Message />
                 {

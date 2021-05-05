@@ -6,13 +6,13 @@
  */
 
 import React from "react";
-import { genID } from '../../_utils/data.utils.client';
-import MetadataView from '../views/metadata.view';
-import { getModelLabel } from '../../_services/schema.services.client';
-import Accordion from '../common/accordion';
-import PageMenu from '../menus/page.menu';
-import { useRouter } from '../../_providers/router.provider.client';
-import { createRoute } from '../../_utils/paths.utils.client';
+import { genID } from '../../../_utils/data.utils.client';
+import MetadataView from '../../views/metadata.view';
+import { getModelLabel } from '../../../_services/schema.services.client';
+import Accordion from '../../common/accordion';
+import PageMenu from '../../menus/page.menu';
+import { useRouter } from '../../../_providers/router.provider.client';
+import { createRoute } from '../../../_utils/paths.utils.client';
 
 /**
  * Generate unique key.

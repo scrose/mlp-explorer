@@ -6,11 +6,11 @@
  */
 
 import React from "react";
-import Form from '../common/form';
-import { useRouter } from '../../_providers/router.provider.client';
-import Progress from '../common/progress';
-import { getModelLabel, getViewLabel } from '../../_services/schema.services.client';
-import { useData } from '../../_providers/data.provider.client';
+import Form from '../../common/form';
+import { useRouter } from '../../../_providers/router.provider.client';
+import Progress from '../../common/progress';
+import { getModelLabel, getViewLabel } from '../../../_services/schema.services.client';
+import { useData } from '../../../_providers/data.provider.client';
 
 /**
  * File/metadata importer.
@@ -98,7 +98,7 @@ const Importer = ({
             formData,
             _updateProgress.bind(this, 0, null),
         )
-            .catch(err => {console.error(err)});
+            .catch(console.error);
     }
 
     /**

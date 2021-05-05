@@ -9,13 +9,13 @@ import React from 'react';
 import ImageView from './image.view';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
-import { getDependentTypes, getModelLabel } from '../../_services/schema.services.client';
+import { getDependentTypes } from '../../_services/schema.services.client';
 import Accordion from '../common/accordion';
 import MetadataView, { MetadataAttached } from './metadata.view';
 import CaptureView from './capture.view';
 import { sorter } from '../../_utils/data.utils.client';
 import Loading from '../common/loading';
-import EditorMenu from '../menus/editor.menu';
+import MenuEditor from '../editor/menu.editor';
 import { useData } from '../../_providers/data.provider.client';
 import FilesView from './files.view';
 
@@ -55,7 +55,7 @@ export const NodesList = ({ owner, items }) => {
                             hasDependents={hasDependents}
                             open={false}
                             menu={
-                                <EditorMenu
+                                <MenuEditor
                                     model={type}
                                     id={id}
                                     owner={owner}

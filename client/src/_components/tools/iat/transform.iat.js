@@ -6,25 +6,45 @@
  * MIT Licensed
  */
 
-import { getError } from '../_services/schema.services.client';
-import * as matrix from '../_utils/matrix.utils.client';
+import { getError } from '../../../_services/schema.services.client';
+import * as matrix from '../../../_utils/matrix.utils.client';
+import { homography } from '../../../_utils/matrix.utils.client';
 import * as UTIF from 'utif';
-import { homography } from './matrix.utils.client';
 
 /**
  * Determines image format based on file signature.
- *
+ * Bitmap format .bmp 42 4d BM
+ * FITS format .fits 53 49 4d 50 4c 45 SIMPL
+ * GIF format .gif 47 49 46 38 GIF
+ * Graphics Kernel System .gks 47 4b 53 4d GKS
+ * IRIS rgb format .rgb 01 da
+ * ITC (CMU WM) format .itc f1 00 40 bb
+ * JPEG File Interchange Format .jpg ff d8 ff e0
+ * NIFF (Navy TIFF) .nif 49 49 4e 31 IIN
+ * PM format .pm 56 49 45 57 VIE
+ * PNG format .png 89 50 4e 47 .PN
+ * Postscript format .[e]ps 25 21 %
+ * Sun Rasterfile .ras 59 a6 6a 95 Y.j
+ * Targa format .tga xx xx xx ..
+ * TIFF format (Motorola - big endian) .tif 4d 4d 00 2a MM.
+ * TIFF format (Intel - little endian) .tif 49 49 2a 00 II*
+ * X11 Bitmap format .xbm xx x
+ * XCF Gimp file structure .xcf 67 69 6d 70 20 78 63 66 20 76 gimp xc
+ * Xfig format .fig 23 46 49 47 #FI
+ * XPM format .xpm 2f 2a 20 58 50 4d 20 2a 2f
  * @return {string} image format
  */
 
 export const getImageType = (buffer) => {
     const int8Array = new Uint8Array(buffer);
     const [b0, b1, b2, b3] = int8Array.slice(0, 4);
+
+    console.log(b0, b1, b2, b3)
     const formats = {
         "png": [],
         "gif": [],
         "bmp": [],
-        "jpg": [],
+        "jpg": [255, 216, 255, 219],
         "tiff-le": [77, 77, 0, 42],
         "tiff-be": [73, 73, 42, 0]
     }
@@ -61,7 +81,7 @@ export const loadTIFF = (file) => {
             // validate TIFF data
             const imgType = getImageType(buffer);
             if (imgType !== 'tiff-le' && imgType !== 'tiff-be') {
-                reject({msg:`Problem parsing data stream: Image is ${imgType} format.`, type:'error'});
+                reject({msg:`Problem parsing TIFF data stream: Image is of ${imgType.toUpperCase()} format.`, type:'error'});
                 return;
             }
 
@@ -83,6 +103,7 @@ export const loadTIFF = (file) => {
  * Transform images data for alignment.
  *
  * @public
+ * @param control
  * @param imgData1
  * @param imgData2
  * @param canvas1
@@ -92,13 +113,14 @@ export const loadTIFF = (file) => {
 
 export const alignImages = (imgData1, imgData2, canvas1, canvas2, options) => {
 
-    console.log(imgData1, imgData2, canvas1, canvas2, options)
-
     if (!imgData1 || !imgData2 ) {
         return { data: null, error: { msg: getError('emptyCanvas', 'canvas') } };
     }
     if (canvas1.pts.length < options.controlPtMax || canvas2.pts.length < options.controlPtMax) {
         return { data: null, error: { msg: getError('missingControlPoints', 'canvas') } };
+    }
+    if ( imgData1.width !== imgData2.width ) {
+        return { data: null, error: { msg: getError('mismatchedDims', 'canvas') } };
     }
 
     // compute alignment transformation matrix
@@ -111,11 +133,8 @@ export const alignImages = (imgData1, imgData2, canvas1, canvas2, options) => {
     // apply transformation to image 2 (img2) on right-hand canvas
     homography( transform, img1, img2, canvas1.source_dims.x, canvas1.source_dims.y );
 
-    let imgUint8 = new Uint8ClampedArray(img2.buffer)
-
-    console.log(imgUint8, imgUint8.length)
-
     // convert image array from Uint32 to Uint8ClampedArray (for ImageData obj)
+    let imgUint8 = new Uint8ClampedArray(img2.buffer);
     const imgData = new ImageData(
         imgUint8,
         canvas2.source_dims.x,
@@ -124,24 +143,6 @@ export const alignImages = (imgData1, imgData2, canvas1, canvas2, options) => {
 
     return { data: imgData, error: null};
 }
-
-/**
- * Draws scaled image to context.
- *
- * @param img
- * @param canvas
- * @param x
- * @param y
- */
-
-export const scale = function(img, canvas, x, y) {
-    canvas.getContext('2d').drawImage(img,
-        Math.min(Math.max(0, x - 5), img.width - 10),
-        Math.min(Math.max(0, y - 5), img.height - 10),
-        10, 10,
-        0, 0,
-        200, 200);
-};
 
 /**
  * compute scale-to-fit image to defined width dimension.
@@ -159,32 +160,41 @@ export const scaleToFit = (x_dim, y_dim, maxWidth) => {
 }
 
 /**
- * Get local mouse position on canvas.
+ * Get mouse start position on canvas.
  * Reference: https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas
  *
  * @public
  * @param e
  * @param canvas
+ * @param setTrigger
  * @param properties
- * @param setProps
+ * @param setProperties
+ * @param controlPoints
+ * @param setControlPoints
+ * @param options
+ * @param pointer
  */
 
-export function moveStart(e, canvas, properties, setProps) {
+export function moveStart(e, canvas, setTrigger, properties, setProperties, controlPoints, setControlPoints, options, pointer) {
     const pos = getPos(e, canvas);
-    setProps(data => ({ ...data, move: pos, redraw: false }));
+    setControlPoints(data => ({ ...data, [properties.id]: {
+        pts: '',
+            selected: '',
+            index: ''
+    } }));
 }
 
 /**
  * Update canvas offset by cursor position
  * @param e
- * @param canvas
+ * @param layers
  * @param properties
  * @param setProps
  */
 
-export function moveAt(e, canvas, properties, setProps) {
+export function moveAt(e, layers, properties, setProps) {
     e.preventDefault();
-    const pos = getPos(e, canvas);
+    const pos = getPos(e, layers.control);
     // only update move if position is positive
     if (pos.x > 0 && pos.y > 0) {
         const newOffset = {
@@ -220,6 +230,22 @@ export function moveBy(e, canvas, properties, setProps, dx=0, dy=0) {
     }));
 }
 
+/**
+ * Returns in-range function for 2D coordinate.
+ *
+ * @public
+ * @param x
+ * @param y
+ * @param u
+ * @param v
+ * @param radius
+ */
+
+export function inRange(x, y, u, v, radius) {
+    return (u - (x + radius)) * (u - (x - radius)) < 0
+        && (v - (y + radius)) * (v - (y - radius)) < 0
+}
+
 
 /**
  * Get local mouse position on canvas.
@@ -231,23 +257,26 @@ export function moveBy(e, canvas, properties, setProps, dx=0, dy=0) {
  */
 
 export const getPos = (e, canvas) => {
-    let rect = canvas.getBoundingClientRect(), // abs. size of element
+    console.log(canvas)
+    // select control layer to read mouse position
+    const rect = canvas.getBoundingClientRect(), // abs. size of element
         scaleX = canvas.width / rect.width,   // relationship bitmap vs. element for X
         scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for Y
 
+    const radius = 20;
+    const x = Math.max(
+        Math.min(
+            Math.floor((e.clientX - rect.left) * scaleX), canvas.width
+        ), 0
+    );
+    const y = Math.max(
+        Math.min(
+            Math.floor((e.clientY - rect.top) * scaleY), canvas.height
+        ), 0
+    );
+
     // scale mouse coordinates after they have been adjusted to be relative to element
-    return {
-        x: Math.max(
-            Math.min(
-                Math.floor((e.clientX - rect.left) * scaleX), canvas.width
-            ), 0
-        ),
-        y: Math.max(
-            Math.min(
-                Math.floor((e.clientY - rect.top) * scaleY), canvas.height
-            ), 0
-        )
-    }
+    return { x: x, y: y }
 };
 
 /**
@@ -284,36 +313,19 @@ export const filterKeyPress = (e, canvas, properties, setProps) => {
 }
 
 /**
- * Store selected alignment control points.
- *
- * @public
- * @param e
- * @param canvas
- * @param props
- * @param setProps
- * @param options
- * @return {Object}
- */
-
-export const getControlPoints = (e, canvas, props, setProps, options) => {
-
-    // check if the maximum number of control points has been reached
-    if (props.pts.length === options.controlPtMax) {
-        return { error: getError('maxControlPoints', 'canvas')};
-    }
-    else {
-        // save control point as canvas property
-        const point = markPoint(e, canvas, props.pts.length);
-        const pts = props.pts.concat(point);
-        // set canvas properties
-        setProps(data => ({ ...data, pts: pts }));
-        return {}
-    }
-}
-
-/**
  * Compute alignment transformation matrix image data.
  * - Uses four control points (x,y) given in each canvas
+ * - Solves the linear problem H[x,y] = k[u,v] for h
+ * - where  h = [h0, h1, h2, h3, h4, h5, h6, h7]
+ *          x = [x0, x1, x2, x3], y = [y0, y1, y2, y3]
+ *          u = [u0, u1, u2, u3], v = [v0, v1, v2, v3]
+ *          p = [[x0, y0], [u0, v0], [x1, y1], [u1, v1],
+ *              [x2, y2], [u2, v2], [x3, y3], [u4, v4]]
+ * - The transformation matrix H is then defined as:
+ *      H = |h0  h1  0  h2|
+ *          |h3  h4  0  h5|
+ *          |0   0   1   0|
+ *          |h6  h7  0   1|
  *
  * Reference: https://franklinta.com/2014/09/08/computing-css-matrix3d-transforms/
  *
@@ -326,7 +338,8 @@ export const getControlPoints = (e, canvas, props, setProps, options) => {
 export const getAlignmentTransform = (pts1, pts2) => {
 
     // convert control points to vector array
-    const pts = pts1.concat(pts2);
+    // - interleave [x,y] with [u,v]
+    const pts = [pts1[0], pts2[0], pts1[1], pts2[1], pts1[2], pts2[2], pts1[3], pts2[3]];
     let p = pts.reduce((o, pt) => {
         o.push([parseFloat(pt.x), parseFloat(pt.y)]);
         return o;
@@ -343,11 +356,9 @@ export const getAlignmentTransform = (pts1, pts2) => {
     //var pf = function(x){return x;};
     let ii, jj; // determinant
 
-    // Note the inverse matrix should be just as easy to compute,
+    // Note the inverse matrix should be just as easy to compute
     // reversing the roles of [0,2,4,6] with [1,3,5,7]
-    // (Would this be truly the inverse matrix?)
-
-    matrix.swapPts( pts );
+    //matrix.swapPts( pts );
 
     let M88 = [
         [p[0][0],p[0][1],1,0,0,0, -p[0][0]*p[1][0], -p[0][1]*p[1][0]],
@@ -457,90 +468,6 @@ export const getAlignmentTransform = (pts1, pts2) => {
     //swappointpairs( CtrlPts );
 
 }
-
-/**
- * Get local mouse position on canvas.
- * Reference: https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas
- *
- * @public
- * @param e
- * @param canvas
- * @param index
- */
-
-export const markPoint = (e, canvas, index=0) => {
-    let ctx = canvas.getContext('2d');
-    const point = getPos(e, canvas);
-    const x = parseInt(point.x)
-    const y = parseInt(point.y)
-    const drawCrosshair = () => {
-        // cross hair
-        ctx.beginPath();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "#E34234";
-        ctx.moveTo(x - 20, y);
-        ctx.lineTo(x + 20, y);
-        ctx.moveTo(x, y - 20);
-        ctx.lineTo(x, y + 20);
-        ctx.stroke();
-        // index
-        ctx.font = '1em sans-serif';
-        ctx.fillStyle = '#333333';
-        ctx.fillText(String(index + 1), x + 7, y + 17);
-    }
-    drawCrosshair();
-    return point;
-};
-
-/**
- * Image position crosshair event handler.
- *
- * @public
- * @param e
- * @param posX
- * @param posY
- * @param canvas
- */
-
-export const magnifyRegion = (e, canvas, posX, posY) => {
-
-    if (!canvas) return;
-
-    console.log(getPos(e, canvas))
-
-    let ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // H
-    ctx.beginPath();
-    ctx.strokeStyle = '#333';
-
-    ctx.moveTo(0, posY - 1);
-    ctx.lineTo(500, posY + 1);
-    ctx.stroke();
-
-    // V
-    ctx.beginPath();
-    ctx.moveTo(posX - 1, 0);
-    ctx.lineTo(posX + 1, 500);
-    ctx.stroke();
-};
-
-
-//
-function DragMouse(e, canvas) {
-    const mousePos = getPos(e);
-    let mx = mousePos.x;
-    let my = mousePos.y;
-
-    if (isNaN(mx)) {
-        mx = e.originalEvent.touches[0].pageX;
-        my = e.originalEvent.touches[0].pageY;
-    }
-
-    magnifyRegion(mx, my, canvas);
-}
-
 
 /**
  * Image Processing Utilities

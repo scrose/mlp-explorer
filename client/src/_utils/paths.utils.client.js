@@ -6,22 +6,6 @@
  */
 
 import { getRoutes } from '../_services/schema.services.client';
-import { schema } from '../schema';
-
-/**
- * Root API/Client urls.
- *
- * @private
- */
-
-const _API = {
-    protocol: schema.app.protocol,
-    host: schema.app.host,
-};
-const _CLIENT = {
-    protocol: schema.app.protocol,
-    host: schema.app.host,
-};
 
 /**
  * Get query value from path.
@@ -43,7 +27,7 @@ export function getQuery(key) {
  */
 
 export function getRoot() {
-    return `${_CLIENT.protocol}${_CLIENT.host}:${_CLIENT.port}`;
+    return process.env.REACT_APP_CLIENT_HOST;
 }
 
 /**
@@ -84,7 +68,7 @@ export function createRoute(path='/', params) {
 
 export function createURL(route, params={}) {
     const query = serialize((params || {}));
-    const base = `${_API.protocol}${_API.host}:${_API.port}`;
+    const base = process.env.REACT_APP_API_HOST + '/api';
     return `${base}${route}${params && Object.keys(params).length > 0 ? '?' + query : ''}`
 }
 

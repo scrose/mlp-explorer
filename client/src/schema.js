@@ -57,7 +57,7 @@ export const schema = {
     },
     errors: {
         image: {
-            fallbackSrc: '/logo192.png'
+            fallbackSrc: '/fallback_img.png'
         },
         validation: {
             isRequired: 'This field is required.',
@@ -77,8 +77,10 @@ export const schema = {
         canvas: {
             default: 'Error: could not complete operation.',
             emptyCanvas: `Please load both canvases to complete operation.`,
+            collinearPts: 'Control points should not be collinear (form a line).',
             missingControlPoints: `Missing control points to complete operation.`,
-            maxControlPoints: 'Maximum number of control points selected.'
+            maxControlPoints: 'Maximum number of control points selected.',
+            mismatchedDims: `Images must be scaled to the same width to complete operation.`
         }
     },
     messages: {
@@ -137,7 +139,7 @@ export const schema = {
         master: {
             label: 'Master',
             legend: 'Master Images',
-            submit: 'Apply Alignment',
+            submit: 'Upload Mastered Image',
             render: 'master'
         },
         mapFilter: {
@@ -924,8 +926,12 @@ export const schema = {
             },
             fieldsets: [
                 {
-                    restrict: ['edit'],
+                    restrict: ['edit', 'master'],
                     files_id: {
+                        render: 'hidden'
+                    },
+                    historic_images: {
+                        restrict: ['master'],
                         render: 'hidden'
                     }
                 },

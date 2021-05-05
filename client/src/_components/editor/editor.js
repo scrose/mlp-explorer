@@ -11,9 +11,10 @@ import Message from '../common/message';
 import StaticView from '../views/static.view';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
-import EditorMenu from '../menus/editor.menu';
+import MenuEditor from './menu.editor';
 import { useData } from '../../_providers/data.provider.client';
 import { getDependentTypes } from '../../_services/schema.services.client';
+import { getNavView } from '../../_services/session.services.client';
 
 /**
  * Render editor panel component (authenticated).
@@ -30,7 +31,7 @@ const Editor = () => {
     return (
         <>
             <div className={'editor'}>
-                <EditorMenu
+                <MenuEditor
                     className={'editor-tools'}
                     model={api.model}
                     view={api.view}
@@ -41,7 +42,7 @@ const Editor = () => {
                     fileType={api.type}
                     dependents={getDependentTypes(api.model)}
                 />
-                <div className={'view'}>
+                <div className={`view ${getNavView()}`}>
                     <Heading/>
                     <Message/>
                     {

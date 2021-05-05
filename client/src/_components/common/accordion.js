@@ -9,7 +9,6 @@ import React from 'react';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import Button from './button';
-import Icon from './icon';
 
 /**
  * Inline vertical accordion menu component.

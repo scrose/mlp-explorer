@@ -53,9 +53,9 @@ function Validator(validations) {
 Validator.prototype.check = function check(val1, val2='') {
     return this.checks
         .filter(check => !check.run(val1, val2))
-        .map(check => {
-            return getError(check.name, 'validation')
-        });
+        .reduce((o, check) => {
+            return { msg: getError(check.name, 'validation'), type: 'error' };
+        }, {});
 }
 
 /**

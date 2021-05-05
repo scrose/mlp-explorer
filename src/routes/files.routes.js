@@ -72,9 +72,9 @@ function FilesRoutes(modelType) {
     if (this.model === 'modern_images') {
         this.routes.master = {
             path: path.join('/', this.model, 'master', ':' + this.key),
-            get: this.controller.master,
+            get: this.controller.register,
             put: null,
-            post: null,
+            post: this.controller.master,
             delete: null,
         }
     }

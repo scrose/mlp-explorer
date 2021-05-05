@@ -96,7 +96,6 @@ function DataProvider(props) {
     const loadOptions = React.useCallback((type='options') => {
         router.get(`/${type}`)
             .then(res => {
-                console.log('Options', res)
                 if (!res) return null;
                 console.log('\nOptions >>>\n', res);
                 if (res.error) return setError(res.error);

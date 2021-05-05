@@ -53,8 +53,6 @@ const Fieldset = ({
      */
 
     const _handleChange = e => {
-        console.log(e)
-
         const {target={}} = e || {};
         const { name='', value='' } = target;
         const attachedFiles = target.files && Object.keys(target.files).length > 0

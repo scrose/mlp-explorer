@@ -9,10 +9,12 @@ import React from 'react';
 import Accordion from '../common/accordion';
 import Button from '../common/button';
 import Image from '../common/image';
-import { initCanvas } from '../common/canvas';
 import Input from '../common/input';
 import Message from '../common/message';
-import { sorter } from '../../_utils/data.utils.client';
+import { sanitize, sorter } from '../../_utils/data.utils.client';
+import Table from '../common/table';
+import { useData } from '../../_providers/data.provider.client';
+import { initCanvas } from '../tools/iat/iat';
 
 /**
  * Image selector widget.
@@ -53,7 +55,7 @@ export const ImageSelector = ({
         const {target={}} = e || {};
 
         // get metadata (for capture images)
-        const { url={} } = selectedImage || {};
+        const { files_id={} } = selectedImage || {};
 
         // get local file data
         const file = target.files[0];
@@ -62,12 +64,12 @@ export const ImageSelector = ({
         if (allowedFileTypes.includes(file.type)) {
             // set canvas properties
             setSelectedImage({
+                files_id: files_id,
                 file: {
                     file_type: file.type,
                     file_size: file.size,
                 },
                 filename: file.name,
-                url: url,
                 fileData: target.files[0],
             });
         }
@@ -83,8 +85,8 @@ export const ImageSelector = ({
 
     return <>
         {
-            <Accordion label={'Select Image'} type={'image'} open={false}>
-                <Message closeable={false} message={error} level={'error'} />
+            <Accordion label={'Select Image'} type={'image'} open={true}>
+                <Message closeable={false} message={{ msg: error, type: 'error' }} />
                 <Input
                     type={'file'}
                     name={'image_file'}
@@ -106,17 +108,30 @@ export const ImageSelector = ({
         {
             selectedImage &&
             <fieldset className={'submit'}>
-                <Message closeable={false} message={`Image ${selectedFile} selected.`} level={'info'} />
+                <Message
+                    closeable={false}
+                    message={{ msg: `Image ${selectedFile} selected.`, type: 'info' }}
+                />
                 <Button
                     label={'Load Image'}
                     onClick={_handleSubmit}
                 />
             </fieldset>
         }
-        </>;
+    </>;
 };
 
-const CaptureSelector = ({selection, setSelectedImage, onSubmit}) => {
+
+/**
+ * Image selector widget.
+ *
+ * @public
+ * @param {Array} selection
+ * @param setSelectedImage
+ * @param onSubmit
+ */
+
+export const CaptureSelector = ({selection, setSelectedImage, onSubmit}) => {
 
     const [tabIndex, setTabIndex] = React.useState(0);
     const [imageIndex, setImageIndex] = React.useState(0);
@@ -127,6 +142,13 @@ const CaptureSelector = ({selection, setSelectedImage, onSubmit}) => {
     const { node = {}, files = {} } = selectedCapture || {};
     const { historic_images = [] } = files || {};
 
+    // handle thumbnail click
+    const _handleClick = (id, data) => {
+        setImageIndex(id);
+        setCaptureIndex(tabIndex);
+        setSelectedImage(data);
+    }
+
     return <div className={`tab h-menu`}>
         <div className={`v-menu`}>
             <ul>
@@ -134,72 +156,106 @@ const CaptureSelector = ({selection, setSelectedImage, onSubmit}) => {
                     selection
                         .sort(sorter)
                         .map((capture, index) => {
-                        const { node = {}, label = '' } = capture || {};
-                        return <li key={`tab_${node.id}`}>
-                            <Button
-                                className={index === captureIndex ? 'active' : ''}
-                                icon={tabIndex === index ? 'collapse' : 'expand'}
-                                title={`View ${label}.`}
-                                label={label}
-                                onClick={() => {
-                                    setTabIndex(index);
-                                }}
-                            />
-                        </li>;
-                    })
+                            const { node = {}, label = '' } = capture || {};
+                            return <li key={`tab_${node.id}`}>
+                                <Button
+                                    className={index === captureIndex ? 'active' : ''}
+                                    icon={tabIndex === index ? 'collapse' : 'expand'}
+                                    title={`View ${label}.`}
+                                    label={label}
+                                    onClick={() => {
+                                        setTabIndex(index);
+                                    }}
+                                />
+                            </li>;
+                        })
                 }
             </ul>
         </div>
         <div key={`tab_data_${node.id}`} className={'tab-data'}>
             <div className={'gallery h-menu capture-selector'}>
-                <ul>
-                    {
-                        historic_images
-                            .sort(sorter)
-                            .map((imgData, index) => {
-                            const { metadata={}, file = {}, url = {}, label = '' } = imgData || {};
-                            const { image_state='' } = metadata || {};
-                            return (
-                                <li
-                                    key={`capture_gallery_file_${file.id || ''}`}
-                                >
-                                    <label
-                                        className={imageIndex === file.id ? 'active' : ''}
-                                        key={`label_selection`}
-                                        htmlFor={file.id}
-                                    >
-                                        <input
-                                            readOnly={true}
-                                            checked={imageIndex === file.id}
-                                            type={'radio'}
-                                            name={'historic_captures'}
-                                            id={file.id}
-                                            value={file.id}
-                                            onClick={() => {
-                                                setImageIndex(file.id);
-                                                setCaptureIndex(tabIndex);
-                                                setSelectedImage(imgData);
-                                            }}>
-                                        </input>
-                                        <Image
-                                            url={url}
-                                            scale={'thumb'}
-                                            title={`Select ${file.filename || ''}.`}
-                                            label={`[${index + 1}] ${label} (${image_state})`}
-                                            onClick={() => {
-                                                setImageIndex(file.id);
-                                                setCaptureIndex(tabIndex);
-                                                setSelectedImage(imgData);
-                                            }}
-                                            onDoubleClick={onSubmit}
-                                        />
-                                    </label>
-                                </li>
-                            );
-                        })
-                    }
-                </ul>
+                <CaptureImagesSelector
+                    files={historic_images}
+                    imageIndex={imageIndex}
+                    onClick={_handleClick}
+                    onDblClick={onSubmit}
+                />
             </div>
         </div>
     </div>
 }
+
+/**
+ * Image selector widget.
+ *
+ * @public
+ * @param {Array} captures
+ * @param {Array} files
+ */
+
+export const CaptureImagesSelector = ({
+                                          files,
+                                          imageIndex,
+                                          onClick=()=>{},
+                                          onDblClick=()=>{}}) => {
+
+    const api = useData();
+
+    // prepare capture images columns
+    const cols = [
+        { name: 'thumbnail', label: 'Image', class: 'image-thumbnail'},
+        { name: 'image_state', label: 'State'},
+        { name: 'width', label: 'Width'},
+        { name: 'height', label: 'Height'},
+        { name: 'file_size', label: 'File Size'}
+    ];
+
+    // prepare capture image data rows
+    const rows = files.map(fileData => {
+        const { file={}, metadata={}, url={}, filename='' } = fileData || {};
+        const { id={} } = file || {};
+        const { image_states=[] } = api.options || {};
+        // select image state label for value (if available)
+        const imageState = image_states.find(opt => opt.value === metadata.image_state);
+        const rows = {
+            thumbnail: <label
+                className={imageIndex ===  id ? 'active' : ''}
+                key={`label_selection`}
+                htmlFor={ id}
+            >
+                <input
+                    readOnly={true}
+                    checked={imageIndex === id}
+                    type={'radio'}
+                    name={'historic_captures'}
+                    id={id}
+                    value={id}
+                    onClick={() => {onClick( id, fileData)}}
+                >
+                </input>
+                <Image
+                    url={url}
+                    scale={'thumb'}
+                    title={`Select ${filename || ''}.`}
+                    label={filename}
+                    onClick={() => {onClick(id, fileData)}}
+                    onDoubleClick={onDblClick}
+                />
+            </label>,
+            image_state: imageState && imageState.hasOwnProperty('label') ? imageState.label : 'n/a',
+            width: sanitize(metadata.x_dim, 'imgsize'),
+            height: sanitize(metadata.y_dim, 'imgsize'),
+            file_size: sanitize(file.file_size, 'filesize')
+        };
+        // include file size in metadata
+        metadata.file_size = file.file_size;
+
+        return rows;
+    });
+
+    return <>
+        <Table rows={rows} cols={cols} className={'files'} />
+    </>
+}
+
+

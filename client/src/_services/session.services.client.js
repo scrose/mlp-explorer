@@ -116,3 +116,51 @@ export const getNavView = () => {
 export const setNavView = (view) => {
     sessionStorage.setItem('navView', JSON.stringify(view));
 }
+
+
+/**
+ * Retrieve all user preferences from session storage.
+ *
+ * @public
+ */
+
+export const getPrefs = () => {
+    const prefsJSON = sessionStorage.getItem('prefs') || JSON.stringify({});
+    return JSON.parse(prefsJSON);
+}
+
+/**
+ * Retrieve user preference setting from session storage.
+ *
+ * @public
+ * @param {String} name
+ */
+
+export const getPref = (name) => {
+    const prefs = getPrefs();
+    return prefs.hasOwnProperty(name) ? prefs[name] : null;
+}
+
+/**
+ * Update user preferences data in session storage.
+ *
+ * @public
+ * @param {String} name
+ * @param value
+ */
+
+export const setPref = (name, value) => {
+    const prefs = getPrefs();
+    prefs[name] = value;
+    sessionStorage.setItem('prefs', JSON.stringify(prefs));
+}
+
+/**
+ * Delete user preferences from session storage.
+ *
+ * @public
+ */
+
+export const clearPrefs = () => {
+    sessionStorage.setItem('prefs', JSON.stringify([]));
+}

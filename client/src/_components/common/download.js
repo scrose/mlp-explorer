@@ -31,7 +31,7 @@ const Download = ({ type='', format='', label='', route=null }) => {
     const id = `${type}_${format}`;
 
     // Handler for file download request.
-    const onDownload = async () => {
+    const _handleDownload = async () => {
         // save data stream to file
         try {
             setError(null);
@@ -60,10 +60,11 @@ const Download = ({ type='', format='', label='', route=null }) => {
             spin={loading}
             label={label}
             title={`Download ${label}`}
-            onClick={onDownload}>
+            onClick={_handleDownload}>
         </Button>
         { error && <Badge icon={'error'} label={'Download Error'} className={'error'} /> }
     </>
 }
 
 export default Download;
+

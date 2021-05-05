@@ -282,6 +282,10 @@ div.main {
     overflow: auto;
     padding: 0 10px 40px 10px;
 }
+.view.iat {
+    background-color: #282c34;
+    color: #FFFFFF;
+}
 .view .data {
     display:inline-block;
 }
@@ -852,10 +856,10 @@ nav.breadcrumb ul li a:hover {
 .tab  {
     border-top: none;
 }
+.tab .v-menu {
+    width: 25%;
+}
 .tab .v-menu, .tab .v-menu ul, .tab .v-menu ul li {
-    width: auto;
-    min-width: auto;
-    max-width: 400px;
     flex-direction: column;
 }
 .tab.h-menu {
@@ -889,6 +893,7 @@ nav.breadcrumb ul li a:hover {
 }
 /* Tab data panel */
 .tab .tab-data {
+    width: 100%;
     margin:0;
     padding:0;
 }
@@ -1084,7 +1089,7 @@ nav.breadcrumb ul li a:hover {
     overflow: hidden;
 }
 .comparator-img img {
-    display: block;
+    display: block !important;
     vertical-align: middle;
     margin: 0;
     padding: 0;
@@ -1248,6 +1253,9 @@ nav.breadcrumb ul li a:hover {
 .capture-selector label {
     border-radius: 10px;
 }
+.capture-selector {
+    width: 100% !important;
+}
 
 /* Model colour schema */
 .show {
@@ -1317,7 +1325,7 @@ nav.breadcrumb ul li a:hover {
     font-size: small;
     padding: 8px;
     color: #FFFFFF;
-    background-color: #282c34;
+    background-color: #008896;
 }
 
 /*
@@ -1396,6 +1404,9 @@ th.image-thumbnail {
 .gallery.h-menu ul li button.active {
     background-color: #E34234;
     color: #FFFFFF;
+}
+.gallery img {
+    display: block !important;
 }
 
 /*
@@ -1655,6 +1666,10 @@ label {
 label .label-text {
     display: inline-block;
     min-width: 180px;
+}
+label.checkbox .label-text {
+    display: inline-block;
+    min-width: auto;
 
 }
 label .prefix, label .suffix {
@@ -1694,7 +1709,10 @@ input[type=number] {
     width: auto; /* auto width */
 }
 /* Style inputs with type="text", select elements and textareas */
-input[type=checkbox] {}
+input[type=checkbox] {
+    width: auto;
+    margin: 15px;
+}
 
 /* Style inputs with type="text", select elements and textareas */
 input[type=date] {}
@@ -1856,10 +1874,13 @@ Messages
     justify-content: space-between;
     align-items: center;
     flex-wrap: nowrap;
-    min-height: 40px;
+    min-height: 30px;
+    height: auto;
     margin: 10px auto;
 }
 .msg-text {
+    height: auto;
+    width: auto;
     text-align: left;
     padding: 10px;
     flex-grow: 4;
@@ -1895,8 +1916,6 @@ Messages
 
 .validation{
     width: auto !important;
-    background: #c51244 !important;
-    color: #FFFFFF;
     font-size: small;
     padding: 10px !important;
     border-radius: 0 !important;
@@ -1905,16 +1924,16 @@ Messages
     box-shadow: 1px 1px 1px #aaaaaa;
     margin-top: 10px;
 }
-.validation:before{
-    content: '';
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 10px solid #c51244;
-    position: absolute;
-    top: -10px;
-}
+/*.validation:before{*/
+/*    content: '';*/
+/*    width: 0;*/
+/*    height: 0;*/
+/*    border-left: 10px solid transparent;*/
+/*    border-right: 10px solid transparent;*/
+/*    border-bottom: 10px solid inherit;*/
+/*    position: absolute;*/
+/*    top: -10px;*/
+/*}*/
 
 /* Pop-up dialog component */
 
@@ -2030,11 +2049,9 @@ canvas {
 }
 .canvas-placeholder {
     z-index: 50;
-    padding-top: 150px;
     text-align: center;
-    width: 350px;
-    height: 350px;
     background-color: #DDDDDD;
+    color: #282c34;
 }
 .canvas-layer-control-default {
     cursor: move;
@@ -2060,16 +2077,25 @@ canvas {
 }
 .canvas-board {
     display: flex;
-    justify-content: space-evenly;
+    justify-content: center;
     flex-wrap: wrap;
     width: auto;
+    background-color: #282c34;
+    color: #FFFFFF;
+}
+.canvas-board .msg, .canvas-message {
+    left:0;
+    right:0;
+    margin-left: auto;
+    margin-right: auto;
+    position: absolute;
+    width: 40%;
+    z-index: 9999;
 }
 .canvas-board .canvas {
     width: auto;
     margin: 2px;
     z-index: 60;
-    border: 1px solid #282c34;
-    background-color: #282c34;
 }
 .canvas-board img {
     display: none;
@@ -2080,6 +2106,8 @@ canvas {
 }
 .canvas-option-controls button {
     min-width: 30px;
+    background-color: #FFFFFF;
+    color: #282c34;
 }
 .canvas-option-controls button.active {
     background-color: #2ea591;
@@ -2120,8 +2148,8 @@ canvas {
 .canvas-view-info table tr td div {
     min-height: 35px;
 }
-.canvas-view-info table tr th {
-    width: 6em;
+.canvas-view-info table tr th, .canvas-view-info table tr td {
+    width: 25%;
 }
 .canvas-view-info button, .canvas-view-controls button {
     background-color: transparent;
@@ -2134,7 +2162,21 @@ canvas {
 .canvas-view-controls ul {
     justify-content: space-evenly;
 }
-
+/* Canvas magnifier */
+.canvas-magnifier {
+    background-repeat: no-repeat;
+    position: absolute;
+    border: 3px solid #000;
+    border-radius: 50%;
+    cursor: none;
+    /*Set the size of the magnifier glass:*/
+    width: 100px;
+    height: 100px;
+    z-index: 29;
+}
+.canvas-magnifier.hidden {
+    display: none;
+}
 
 /*
 Manage Options Editor

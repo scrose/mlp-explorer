@@ -60,10 +60,6 @@ const Progress = ({
 
                     // get progress indicator data
                     const data = progress[key];
-
-                    // get progress status message (if available)
-                    const { msg = '', type = '' } = messages[key] || {};
-
                     const progressBar = {
                         width: `${data.percent}%`,
                     };
@@ -71,7 +67,7 @@ const Progress = ({
                     // render progress indicator for imports
                     return (
                         <div key={`${key}_msg_progress`}>
-                            <Message closeable={false} message={msg} level={type} />
+                            <Message closeable={false} message={messages[key]}  />
                             {
                                 // show progress bar if import has file uploads and no errors
                                 hasUploads && !error &&

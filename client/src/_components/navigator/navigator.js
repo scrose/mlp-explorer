@@ -9,7 +9,7 @@ import React from 'react'
 import MenuNavigator from './menu.navigator';
 import TreeNavigator from './tree.navigator';
 import MapNavigator from './map.navigator';
-import { getNavView } from '../../_services/session.services.client';
+import { getNavView, getPref } from '../../_services/session.services.client';
 import Dialog from '../common/dialog';
 import FilterNavigator from './filter.navigator';
 import { useRouter } from '../../_providers/router.provider.client';
@@ -31,7 +31,7 @@ const Navigator = () => {
 
     // initialize navigation view settings
     const [navView, setNavView] = React.useState(getNavView() || 'tree');
-    const [navToggle, setNavToggle] = React.useState(true);
+    const [navToggle, setNavToggle] = React.useState(getPref('navToggle') || false);
     const [filterToggle, setFilterToggle] = React.useState(false);
 
     // node data state
@@ -47,7 +47,8 @@ const Navigator = () => {
     const routes = {
         tree: '/nodes/tree',
         map: '/nodes/map',
-        search: null
+        search: null,
+        iat: null
     }
     const route = routes.hasOwnProperty(navView) ? routes[navView] : null;
 
@@ -55,7 +56,8 @@ const Navigator = () => {
         hidden: <></>,
         tree: <TreeNavigator view={navView} data={nodeData} filter={filterData} />,
         map: <MapNavigator view={navView} data={nodeData} filter={filterData} />,
-        search: <SearchNavigator view={navView} data={nodeData} filter={filterData} />
+        search: <SearchNavigator view={navView} data={nodeData} filter={filterData} />,
+        iat: <></>
     }
 
     // API call to retrieve node tree top level

@@ -25,7 +25,7 @@ const Image = ({
                    onDoubleClick=()=>{}
 }) => {
 
-
+    // image URL: with scale settings / URL string
     const [src, setSrc] = React.useState(scale ? url[scale] : url);
     const [error, setError] = React.useState(false);
 

@@ -12,21 +12,24 @@ import { getSessionMsg, popSessionMsg } from '../../_services/session.services.c
 import { getQuery } from '../../_utils/paths.utils.client';
 
 /**
- * Message component.
+ * System message component.
  *
+ * @param closeable
+ * @param message
+ * @param level
  * @public
  */
 
-const Message = ({closeable=true, message='', level=''}) => {
+const Message = ({closeable=true, message=''}) => {
 
     // check if redirect
     const redirected = getQuery('redirect');
-    const [msgData, setMsgData] = React.useState(
-        { msg: message, type: level } || redirected ? getSessionMsg() : popSessionMsg()
-    );
+    const [msgData, setMsgData] = React.useState(message || redirected ? getSessionMsg() : popSessionMsg());
 
-    // get current or set message
-    const { msg = message, type = level }  = msgData || {};
+    // clear session messages
+    React.useEffect(() => {
+        return ()=> { if(redirected) popSessionMsg() }
+    }, [redirected]);
 
     /**
      * Handle close of message.
@@ -34,22 +37,56 @@ const Message = ({closeable=true, message='', level=''}) => {
      * @public
      */
 
-    const handleClose = () => {
+    const _handleClose = () => {
         setMsgData(null)
         popSessionMsg();
     };
 
-    return msg && type &&
-        <div className={`msg ${type}`}>
-            <div className={'msg-icon'}><Icon type={type}/></div>
+    return <UserMessage closeable={closeable} message={msgData} onClose={_handleClose} />;
+};
+
+export default Message;
+
+/**
+ * Generic user message component.
+ * - Prints first message to page
+ * - use for form and control validation
+ *
+ * @public
+ * @param message
+ * @param closeable
+ * @param className
+ * @param error
+ */
+
+export const UserMessage = ({
+                                message,
+                                closeable = true,
+                                onClose = () => {},
+                                scrollTo=false,
+                                className = '',
+                                icon=null
+                            }) => {
+
+    const container = React.useRef(null);
+    const { msg = '', type = 'error' } = message || {};
+
+    // scroll to position of message on page
+    React.useEffect(() => {
+        if (scrollTo && container.current) container.current.scrollIntoView();
+    }, [container, scrollTo]);
+
+    return !!msg && !!type &&
+        <div className={`msg ${type} ${className}`}>
+            {
+                icon && <div className={`msg-icon`}><Icon type={icon} /></div>
+            }
             <div className={'msg-text'}>{msg}</div>
             {
                 closeable &&
                 <div className={'close'}>
-                    <Button icon={'close'} onClick={handleClose}/>
+                    <Button icon={'close'} onClick={onClose}/>
                 </div>
             }
         </div>;
 };
-
-export default Message;

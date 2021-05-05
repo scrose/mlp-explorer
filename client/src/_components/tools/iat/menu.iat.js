@@ -6,27 +6,31 @@
  */
 
 import React from 'react';
-import Button from '../common/button';
-import Form from '../common/form';
-import { createNodeRoute } from '../../_utils/paths.utils.client';
-import { genSchema, getModelLabel } from '../../_services/schema.services.client';
-import Dialog from '../common/dialog';
+import Button from '../../common/button';
+import Form from '../../common/form';
+import { createNodeRoute } from '../../../_utils/paths.utils.client';
+import { genSchema, getError } from '../../../_services/schema.services.client';
+import Dialog from '../../common/dialog';
 import {
     alignImages,
     filterKeyPress,
-    getControlPoints,
     moveAt,
     moveStart,
-    scaleToFit,
-} from '../../_utils/image.utils.client';
-import { ImageSelector } from './selector.menu';
-import { sanitize } from '../../_utils/data.utils.client';
+} from './transform.iat';
+import { ImageSelector } from '../../menus/selector.menu';
+import { useUser } from '../../../_providers/user.provider.client';
+import { UserMessage } from '../../common/message';
+import Comparator from '../../common/comparator';
+import { SaveAs } from './download.iat';
+import Resizer from './resizer.iat';
+import { deselectControlPoint, moveControlPoint, selectControlPoint } from './canvas.points.iat';
 
 /**
  * No operation.
  */
 
-const noop = ()=>{};
+const noop = () => {
+};
 
 /**
  * Image Analysis Toolkit main menu.
@@ -50,23 +54,25 @@ const noop = ()=>{};
  * @return {JSX.Element}
  */
 
-export const CanvasMenu = ({
-                               options = {},
-                               setOptions = noop,
-                               canvas1 = {},
-                               canvas2 = {},
-                               setCanvas1 = noop,
-                               setCanvas2 = noop,
-                               image1 = null,
-                               setImage1 = noop,
-                               image2 = null,
-                               setImage2 = noop,
-                               setMethods = noop,
-                               selection={},
-                               dialogToggle = null,
-                               setDialogToggle = noop,
-                               setMessage = noop,
-                           }) => {
+export const MenuIat = ({
+                            canvas1 = {},
+                            canvas2 = {},
+                            setCanvas1 = noop,
+                            setCanvas2 = noop,
+                            image1 = null,
+                            setImage1 = noop,
+                            image2 = null,
+                            setImage2 = noop,
+                            setMethods = noop,
+                            selection = {},
+                            dialogToggle = null,
+                            setDialogToggle = noop,
+                            options = {},
+                            setOptions = noop,
+                        }) => {
+
+    const [message, setMessage] = React.useState(null);
+    const user = useUser();
 
     // generate unique ID value for canvas inputs
     const menuID = Math.random().toString(16).substring(2);
@@ -74,13 +80,19 @@ export const CanvasMenu = ({
     // toggle to show/hide menu panels and popup dialogs
     const [menuToggle, setMenuToggle] = React.useState('');
 
+    // do the canvases have capture images loaded?
+    const hasCaptures = canvas1.files_id && canvas2.files_id;
+
     /**
      * Handle errors.
      */
 
     const _handleError = (err) => {
         console.warn(err);
-        setMessage({msg: 'Error: Image processing failed. See console for details.', type:'error'});
+        const msg = err.hasOwnProperty('message')
+            ? err.message
+            : getError('default', 'canvas');
+        setMessage({ msg: msg, type: 'error' });
     };
 
     /**
@@ -91,8 +103,8 @@ export const CanvasMenu = ({
      */
 
     const _showDialog = (dialogKey) => {
-        const { type = '', id = '' } = dialogKey || {};
-        return _menuDialogs.hasOwnProperty(type) && _menuDialogs[type](id);
+        const { type = '', id = '', callback=()=>{} } = dialogKey || {};
+        return _menuDialogs.hasOwnProperty(type) && _menuDialogs[type](id, callback);
     };
 
     /**
@@ -116,34 +128,52 @@ export const CanvasMenu = ({
                 />
             </Dialog>;
         },
-        align: (id) => {
+        uploadImage: (id) => {
             return <Dialog
-                key={`${menuID}_dialog_align`}
-                title={`Image Alignment`}
+                key={`${menuID}_dialog_master`}
+                title={`Upload Image to Library?`}
                 setToggle={setDialogToggle}>
                 <Form
+                    init={{}}
                     route={createNodeRoute('modern_images', 'master', id)}
-                    schema={genSchema('master', 'modern_captures')}
+                    schema={genSchema('master', 'modern_images')}
                     model={'modern_captures'}
                     callback={() => {
                         console.log('mastered!');
-                    }}
+                    }}>
+                </Form>
+            </Dialog>;
+        },
+        saveImage: (id) => {
+            return <Dialog
+                key={`${menuID}_dialog_save_image`}
+                title={`Save Image As File`}
+                setToggle={setDialogToggle}>
+                <SaveAs canvasID={id}
+                        setSelected={id === canvas1.id ? setCanvas1 : setCanvas2}
+                        setToggle={setDialogToggle}
+                        options={options.formats} />
+            </Dialog>;
+        },
+        resize: (id) => {
+            return <Dialog
+                key={`${menuID}_dialog_resize`}
+                title={`Resize Image / Canvas`}
+                setToggle={setDialogToggle}>
+                <Resizer
+                    id={id}
+                    setSize={id === canvas1.id ? setCanvas1 : setCanvas2}
+                    props={id === canvas1.id ? canvas1 : canvas2}
+                    setToggle={setDialogToggle}
                 />
             </Dialog>;
         },
-        master: (id) => {
+        compareImages: () => {
             return <Dialog
-                key={`${menuID}_dialog_master`}
-                title={`Confirm Image Pair Master`}
+                key={`${menuID}_dialog_compare`}
+                title={`Image Comparison`}
                 setToggle={setDialogToggle}>
-                <Form
-                    route={createNodeRoute('modern_images', 'master', id)}
-                    schema={genSchema('master', 'modern_captures')}
-                    model={'modern_captures'}
-                    callback={() => {
-                        console.log('mastered!');
-                    }}
-                />
+                <Comparator images={[canvas1.dataURL, canvas2.dataURL]} />
             </Dialog>;
         },
     };
@@ -162,32 +192,54 @@ export const CanvasMenu = ({
             // [mode] default settings
             default: () => {
                 setOptions(data => ({ ...data, mode: 'default' }));
-                setMethods(data => ({ ...data,
-                    onDragStart: moveStart,
-                    onDrag: moveAt,
-                    onKeyDown: filterKeyPress
+                setMethods(data => ({
+                    ...data,
+                    onMouseDown: moveStart,
+                    onMouseMove: moveAt,
+                    onMouseUp: moveStart,
+                    onKeyDown: filterKeyPress,
                 }));
             },
 
             // [mode] select control points on canvas
             selectPoints: () => {
                 setOptions(data => ({ ...data, mode: 'select' }));
-                setMethods(data => ({ ...data,
-                    onClick: getControlPoints,
-                    onDragStart: noop,
-                    onDrag: noop,
+                setMethods(data => ({
+                    ...data,
+                    onMouseDown: selectControlPoint,
+                    onMouseUp: deselectControlPoint,
+                    onMouseMove: moveControlPoint,
+                    onMouseOut: deselectControlPoint
                 }));
             },
 
             // [transform] image alignment
             align: () => {
                 let result = alignImages(image1, image2, canvas1, canvas2, options);
-                console.log(result, image2)
                 if (result.error) {
                     return setMessage(result.error);
                 }
                 setImage2(result.data);
-                setCanvas2(data => ({ ...data, redraw: true, dirty: true }))
+                setCanvas2(data => ({ ...data, dirty: true }));
+            },
+            // upload new mastered image to library
+            upload: () => {
+                setDialogToggle({ type: 'uploadImage', id: canvas2.id });
+            },
+            // compare images in comparator overlay
+            compare: () => {
+
+                // reject if both images are not loaded in canvas
+                if (!image1 || !image2) {
+                    setMessage({ msg: getError('emptyCanvas', 'canvas') });
+                    return null;
+                }
+                // get data URL from canvas data
+                setCanvas1(data => ({ ...data, getURL: true }));
+                setCanvas2(data => ({ ...data, getURL: true }));
+
+                // open image comparator
+                setDialogToggle({ type: 'compareImages'});
             },
         };
         try {
@@ -195,12 +247,12 @@ export const CanvasMenu = ({
                 ? _methods[methodType]()
                 : null;
         } catch (err) {
-            console.log('Canvas 2', canvas2)
             _handleError(err);
         }
     };
 
     return <>
+        <UserMessage message={message} onClose={()=>{setMessage(null)}} />
         <div className={'canvas-menu-bar'}>
             <div className={'canvas-option-controls v-menu'}>
                 <ul>
@@ -240,6 +292,27 @@ export const CanvasMenu = ({
                             _filterMethods('align');
                         }}
                     /></li>
+                    <li><Button
+                        icon={'compare'}
+                        label={'Compare'}
+                        title={'Compare images using comparison overlay.'}
+                        onClick={() => {
+                            _filterMethods('compare');
+                        }}
+                    /></li>
+                    {
+                        user && hasCaptures &&
+                        <li>
+                            <Button
+                                title={'Upload as mastered capture image.'}
+                                icon={'upload'}
+                                label={'Upload'}
+                                onClick={() => {
+                                    _filterMethods('upload');
+                                }}
+                            />
+                        </li>
+                    }
                 </ul>
             </div>
             <OptionsMenu option={menuToggle} />
@@ -254,190 +327,13 @@ export const CanvasMenu = ({
  * Inline menu component to edit node items.
  *
  * @public
- * @param {String} id
- * @param {Object} options
- * @param {Function} setOptions
- * @param {Object} properties
- * @param {Function} setProperties
- * @param {Function} setMessage
- * @return {JSX.Element}
- */
-
-export const CanvasControls = ({
-                                   id = '',
-                                   options = {},
-                                   setOptions=noop,
-                                   disabled=true,
-                                   properties = {},
-                                   update = noop,
-                                   setMessage = noop,
-                                   setDialogToggle = noop
-                               }) => {
-
-    /**
-     * Handle errors.
-     */
-
-    const _handleError = (err) => {
-        console.warn(err);
-        setMessage(err);
-    };
-
-    /**
-     * Canvas methods filter.
-     *
-     * @return {JSX.Element}
-     */
-
-    const _filterMethods = (methodType) => {
-        const _methods = {
-            // fit image to canvas
-            fit: () => {
-                const dims = scaleToFit(
-                    properties.source_dims.x,
-                    properties.source_dims.y,
-                    properties.dims.x,
-                );
-                // update canvas properties
-                update(data => ({
-                    ...data,
-                    offset: {x: 0, y: 0},
-                    edit_dims: dims,
-                    pts: [],
-                    redraw: true,
-                    erase: true
-                }));
-            },
-            // expand to full-sized image
-            expand: () => {
-                    // update canvas properties
-                    update(data => ({
-                        ...data,
-                        edit_dims: properties.source_dims,
-                        pts: [],
-                        redraw: true,
-                        erase: true,
-                        reset: true
-                    }));
-            },
-            // erase markup
-            erase: () => {
-                    update(data => ({ ...data,
-                        pts: [],
-                        erase: true
-                    }));
-            },
-            // reset the image to source
-            reset: () => {
-                    update(data => ({ ...data,
-                        pts: [],
-                        edit_dims: properties.source_dims,
-                        offset: { x: 0, y: 0 },
-                        move: { x: 0, y: 0 },
-                        origin: { x: 0, y: 0 },
-                        redraw: true,
-                        erase: true,
-                        reset: true
-                    }));
-            },
-            // load new image to canvas
-            load: () => {
-                setDialogToggle({type: 'selectImage', id: properties.id});
-            },
-        };
-        try {
-            return update && properties && _methods.hasOwnProperty(methodType)
-                ? _methods[methodType]()
-                : null;
-        } catch (err) {
-            _handleError(err);
-        }
-    };
-
-    return <div className={'canvas-view-controls h-menu'}>
-        <ul>
-            <li><Button
-                disabled={disabled}
-                icon={'undo'}
-                title={'Reset to original image.'}
-                onClick={() => {
-                    _filterMethods('reset');
-                }}
-            /></li>
-            <li><Button
-                icon={'image'}
-                title={'Load image into canvas.'}
-                onClick={() => {
-                    _filterMethods('load');
-                }}
-            /></li>
-            <li><Button
-                disabled={disabled}
-                icon={'compress'}
-                title={'Scale image to fit canvas.'}
-                onClick={() => {
-                    _filterMethods('fit');
-                }}
-            /></li>
-            <li><Button
-                disabled={disabled}
-                icon={'enlarge'}
-                title={'Show full-sized image in canvas.'}
-                onClick={() => {
-                    _filterMethods('expand');
-                }}
-            /></li>
-            <li><Button
-                disabled={disabled}
-                icon={'erase'}
-                title={'Erase canvas annotations.'}
-                onClick={() => {
-                    _filterMethods('erase');
-                }}
-            /></li>
-        </ul>
-        {/*    <Button label={'w'} />*/}
-        {/*    <Button label={'H'} />*/}
-        {/*    <Button label={'h'} />*/}
-        {/*    <Button label={'L'} />*/}
-        {/*    <Button label={'R'} />*/}
-        {/*    <Button label={'U'} />*/}
-        {/*    <Button label={'D'} />*/}
-        {/*    <Button label={'C'} />*/}
-        {/*    <Button label={'A'} />*/}
-        {/*    <Button label={'F'} />*/}
-        {/*</div>*/}
-        {/*<div>*/}
-        {/*    <option label={'Above'} />*/}
-        {/*    <select onChange={callback}>*/}
-        {/*        <option label={'Above'} />*/}
-        {/*        <option label={'Beside'} />*/}
-        {/*        <option label={'Auto'} />*/}
-        {/*        <option label={'Max'} />*/}
-        {/*    </select>*/}
-        {/*    <select onChange={callback}>*/}
-        {/*        <option label={'Show Normal'} />*/}
-        {/*        <option label={'Show All'} />*/}
-        {/*        <option label={'Images Only'} />*/}
-        {/*        <option label={'Objects Only'} />*/}
-        {/*        <option label={'All Objects'} />*/}
-        {/*        <option label={'Inverted'} />*/}
-        {/*    </select>*/}
-    </div>;
-
-};
-
-/**
- * Inline menu component to edit node items.
- *
- * @public
  * @param {Function} setMenuToggle
  * @return {JSX.Element}
  */
 
 export const CanvasTopMenu = ({
-                   setMenuToggle = noop
-               }) => {
+                                  setMenuToggle = noop,
+                              }) => {
     return (
         <div id={'canvas-top-menu'} className={'h-menu'}>
             <Button label={'File'} onClick={() => {
@@ -485,8 +381,8 @@ export const CanvasTopMenu = ({
             {/*<input value={100} onChange={callback} />*/}
 
         </div>
-    )
-}
+    );
+};
 
 
 /**
@@ -495,7 +391,7 @@ export const CanvasTopMenu = ({
  * - Choices here must coordinate with the canvas tool main menu
  */
 
-const OptionsMenu = ({option, callback=noop}) => {
+const OptionsMenu = ({ option, callback = noop }) => {
 
     const _menus = {
 
@@ -558,7 +454,7 @@ const OptionsMenu = ({option, callback=noop}) => {
         </fieldset>,
 
         // Tools Options
-        mstools:    <fieldset>
+        mstools: <fieldset>
             <Button label={'Grid'} />
             <select id={'fs'} onChange={callback}>
                 <option label={'Grey'} />
@@ -594,56 +490,10 @@ const OptionsMenu = ({option, callback=noop}) => {
             <div>
                 <Button label={'Delete'} />
             </div>
-        </fieldset>
-    }
+        </fieldset>,
+    };
 
     return _menus.hasOwnProperty(option) && _menus[option];
 };
 
 
-/**
- * Canvas info status.
- *
- * @param id
- * @param properties
- * @param options
- * @public
- */
-
-export const CanvasInfo = ({ id, properties, options }) => {
-    return <div id={`canvas-view-${id}-footer`} className={'canvas-view-info'}>
-        <table>
-            <tbody>
-            <tr>
-                <th>File</th>
-                <td colSpan={3}>{properties.filename} {
-                    properties.file_type ? `(${getModelLabel(properties.file_type)})` : ''}</td>
-            </tr>
-            <tr>
-                <th>Image</th>
-                <td>({properties.edit_dims.x}, {properties.edit_dims.y})</td>
-                <th>Canvas</th>
-                <td>({properties.dims.x}, {properties.dims.y})</td>
-            </tr>
-            <tr>
-                <th>Origin</th>
-                <td>({properties.origin.x},{properties.origin.y})</td>
-                <th>Offset</th>
-                <td>(
-                    {Math.floor(properties.offset.x).toFixed(2)},
-                    {Math.floor(properties.offset.y).toFixed(2)}
-                    )
-                </td>
-            </tr>
-            <tr>
-                <th>(W, H)</th>
-                <td>
-                    ({properties.source_dims.x}, {properties.source_dims.y})
-                </td>
-                <th>Size</th>
-                <td colSpan={3}>{sanitize(properties.file_size, 'filesize')}</td>
-            </tr>
-            </tbody>
-        </table>
-    </div>;
-};

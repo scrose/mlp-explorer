@@ -74,13 +74,17 @@ const File = ({ data, callback=null, scale='thumb', owner={} }) => {
             format={'pdf'}
             route={createNodeRoute(file_type, 'download', id)}
             size={file_size}
+        />,
+        default: () => <Image
+            scale={'thumb'}
+            label={'File Not Found'}
         />
     }
 
     // render file view
     return (
         <div className={file_type}>
-            { renders.hasOwnProperty(file_type) ? renders[file_type]() : <Loading/> }
+            { renders.hasOwnProperty(file_type) ? renders[file_type]() : renders.default() }
         </div>
     )
 }

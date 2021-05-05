@@ -8,7 +8,6 @@
 import React from 'react';
 import Icon from '../common/icon';
 import { createNodeRoute, filterPath, getRoot } from '../../_utils/paths.utils.client';
-import { capitalize } from '../../_utils/data.utils.client';
 import { useData } from '../../_providers/data.provider.client';
 import { getStaticLabel } from '../../_services/schema.services.client';
 

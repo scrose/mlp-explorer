@@ -11,7 +11,7 @@ import Dialog from '../common/dialog';
 import { createNodeRoute, redirect } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import Table from '../common/table';
-import EditorMenu from '../menus/editor.menu';
+import MenuEditor from '../editor/menu.editor';
 import Input from '../common/input';
 import { setSessionMsg } from '../../_services/session.services.client';
 
@@ -141,7 +141,7 @@ const OptionsView = ({
                             type={'select'}
                             onChange={_handleChange}
                         />,
-                edit:   <EditorMenu
+                edit:   <MenuEditor
                             id={id}
                             view={'options'}
                             model={optType}

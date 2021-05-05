@@ -10,7 +10,7 @@ import React from 'react';
 import File from '../common/file';
 import Accordion from '../common/accordion';
 import { getModelLabel } from '../../_services/schema.services.client';
-import EditorMenu from '../menus/editor.menu';
+import MenuEditor from '../editor/menu.editor';
 import { useUser } from '../../_providers/user.provider.client';
 import { sanitize } from '../../_utils/data.utils.client';
 import Table from '../common/table';
@@ -58,7 +58,7 @@ export const FilesTable = ({owner, files=[]}) => {
 
         // add editor menu for logged-in users
         if (user) {
-            rows.menu =  <EditorMenu
+            rows.menu =  <MenuEditor
                 fileType={file_type}
                 model={file_type}
                 id={id}
@@ -80,24 +80,22 @@ export const FilesTable = ({owner, files=[]}) => {
  * @public
  * @param {Array} files
  * @param {Object} owner
- * @return {unknown[]}
+ * @return
  */
 
 export const FilesList = ({files, owner}) => {
-    return (
-        files.length > 0
-            ?   <div className={'gallery h-menu'}>
-                <ul>
-                    {
-                        files.map((fileData, index) =>
-                            <li key={`gallery_file_${index}`}>
-                                <File data={fileData} scale={'thumb'} owner={owner} />
-                            </li>)
-                    }
-                </ul>
-            </div>
-            : ''
-    )
+    return files.length > 0 &&
+        <div className={'gallery h-menu'}>
+            <ul>
+                {
+                    files.map((fileData, index) =>
+                        <li key={`gallery_file_${index}`}>
+                            <File data={fileData} scale={'thumb'} owner={owner} />
+                        </li>
+                    )
+                }
+            </ul>
+        </div>
 }
 
 /**
@@ -115,26 +113,26 @@ export const FilesView = ({ files, owner }) => {
     return Object.keys(files).map((fileType, index) => {
         return files[fileType].length > 0 &&
             <Accordion
-            key={`${fileType}_${index}`}
-            type={fileType}
-            label={getModelLabel(fileType, 'label')}
-            hasDependents={false}
-            open={false}
-            menu={
-                <EditorMenu
-                    model={owner.type}
-                    id={owner.id}
-                    owner={owner}
-                    label={getModelLabel(fileType, 'label')}
-                    dependents={[fileType]}
-                />
-            }>
-            {
-                fileType === 'metadata_files'
-                    ? <FilesTable files={files[fileType]} owner={owner} />
-                    : <FilesList files={files[fileType]} owner={owner} />
-            }
-        </Accordion>
+                key={`${fileType}_${index}`}
+                type={fileType}
+                label={getModelLabel(fileType, 'label')}
+                hasDependents={false}
+                open={false}
+                menu={
+                    <MenuEditor
+                        model={owner.type}
+                        id={owner.id}
+                        owner={owner}
+                        label={getModelLabel(fileType, 'label')}
+                        dependents={[fileType]}
+                    />
+                }>
+                {
+                    fileType === 'metadata_files'
+                        ? <FilesTable files={files[fileType]} owner={owner} />
+                        : <FilesList files={files[fileType]} owner={owner} />
+                }
+            </Accordion>
     });
 };
 
