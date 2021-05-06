@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { getPos, loadTIFF } from './transform.iat';
+import { loadTIFF } from './transform.iat';
 import Button from '../../common/button';
 import { useRouter } from '../../../_providers/router.provider.client';
 import { createNodeRoute } from '../../../_utils/paths.utils.client';
@@ -16,7 +16,7 @@ import CanvasControls from './canvas.controls.iat';
 import { saveAs } from 'file-saver';
 import { initCanvas } from './iat';
 import CanvasInfo from './canvas.info.iat';
-import ControlPoints from './canvas.points.iat';
+import ControlPoints, { createPointer } from './canvas.points.iat';
 import Magnifier from './magnifier.iat';
 
 /**
@@ -33,14 +33,27 @@ const noop = () => {
  * FILE: Adapted from Image Analysis Toolkit (IAT), Mike Whitney
  *
  * @param id
- * @param dims
+ * @param label
  * @param hidden
  * @param options
+ * @param properties
+ * @param setProperties
+ * @param trigger
+ * @param setTrigger
+ * @param inputImage
+ * @param setInputImage
  * @param pointerProps
  * @param setPointerProps
  * @param setMessage
+ * @param setDialogToggle
  * @param onClick
+ * @param onMouseUp
+ * @param onMouseDown
+ * @param onMouseOver
+ * @param onMouseOut
  * @param onMouseMove
+ * @param onKeyDown
+ * @param onKeyUp
  * @public
  */
 
@@ -56,7 +69,7 @@ export const PanelIat = ({
                              setInputImage = noop,
                              hidden = false,
                              pointerProps = {},
-                             setPointerProps = noop,
+                             setPointer = noop,
                              setMessage = noop,
                              setDialogToggle = noop,
                              onClick = noop,
@@ -66,14 +79,22 @@ export const PanelIat = ({
                              onMouseOut = noop,
                              onMouseMove = noop,
                              onKeyDown = noop,
+                             onKeyUp = noop,
                          }) => {
 
     const router = useRouter();
     const _isMounted = React.useRef(false);
 
-    // initialize actions
+    // initialize trigger options and actions
     const _NOOP = 0, _REDRAW = 1, _RELOAD = 2, _ERASE = 3, _SAVE = 4, _RESET=5;
-
+    const action = {
+        clear: ()=>{setTrigger(_NOOP)},
+        redraw: ()=>{setTrigger(_REDRAW)},
+        reload: ()=>{setTrigger(_RELOAD)},
+        erase: ()=>{setTrigger(_ERASE)},
+        save: ()=>{setTrigger(_SAVE)},
+        reset: ()=>{setTrigger(_RESET)}
+    }
 
     // create DOM references
     // - canvas consists of three layers (from top):
@@ -108,31 +129,20 @@ export const PanelIat = ({
     // - used to reset canvas data
     const [source, setSource] = React.useState(null);
 
-    // create wrapper for pointer operations
-    const pointer = {
-        get: () => {
-            return pointerProps;
-        },
-        set: (e) => {
-            const pos = getPos(e, layers.control);
-            setPointerProps(data => ({ ...data, x: pos.x, y: pos.y }));
-        },
-        select: (x, y) => {
-            setPointerProps(data => ({ ...data, selected: { x: x, y: y } }));
-        },
-        deselect: () => {
-            setPointerProps(data => ({ ...data, selected: null }));
-        },
-        reset: () => {
-            setPointerProps(data => ({ ...data, x: 0, y: 0, selected: null }));
-        },
-    };
+    /**
+     * Create pointer.
+     */
 
+    const pointer = createPointer(layers.control, pointerProps, setPointer);
 
     /**
      * Create wrapper for panel properties operations
      */
+
     const panel = {
+        id: properties.id,
+        pts: properties.pts,
+        props: properties,
         get: (key) => {
             return properties[key];
         },
@@ -173,7 +183,7 @@ export const PanelIat = ({
             e,
             layers,
             panel,
-            trigger,
+            action,
             pointer,
             options
         ) || {};
@@ -187,6 +197,7 @@ export const PanelIat = ({
      */
 
     const _handleMouseUp = (e) => {
+        console.log('mouseout')
         pointer.reset();
         return _handleEvent(e, onMouseUp);
     };
@@ -197,13 +208,12 @@ export const PanelIat = ({
      */
 
     const _handleMouseDown = (e) => {
-        pointer.set(e);
+        pointer.select(e);
         return _handleEvent(e, onMouseDown);
     };
 
     /**
      * Handle canvas mouse over event.
-     * - reset pointer to (0, 0)
      */
 
     const _handleMouseOver = e => {
@@ -226,6 +236,7 @@ export const PanelIat = ({
      */
 
     const _handleMouseOut = (e) => {
+        console.log('mouseout')
         pointer.reset();
         return _handleEvent(e, onMouseOut);
     };
@@ -239,11 +250,19 @@ export const PanelIat = ({
     };
 
     /**
-     * Handle key presses.
+     * Handle key down.
      */
 
     const _handleOnKeyDown = (e) => {
         return _handleEvent(e, onKeyDown);
+    };
+
+    /**
+     * Handle key up.
+     */
+
+    const _handleOnKeyUp = (e) => {
+        return _handleEvent(e, onKeyUp);
     };
 
     /**
@@ -259,6 +278,8 @@ export const PanelIat = ({
      */
 
     React.useEffect(() => {
+
+        console.log(properties, trigger)
 
         // create wrapper for panel properties operations
         const _panel = {
@@ -382,7 +403,7 @@ export const PanelIat = ({
                 console.log('Load data layer', img, w, h);
 
                 // get data layer context
-                const ctxData = dataLayerRef.current.getContext('2d');
+                const ctxData = _layers.data.getContext('2d');
 
                 // put image data on data layer canvas
                 ctxData.putImageData(img, 0, 0);
@@ -553,7 +574,11 @@ export const PanelIat = ({
                 if (!override && trigger !== _REDRAW) return;
 
                 setStatus(_LOADING);
+                setTrigger(_NOOP);
+
                 console.log('Redraw', id);
+
+                return
 
                 try {
 
@@ -574,10 +599,11 @@ export const PanelIat = ({
 
                     // clear data layer canvas
                     const ctxData = _layers.data.getContext('2d');
+                    console.log(ctxData.getImageData(0, 0, 100, 100))
                     ctxData.clearRect(0, 0, properties.base_dims.x, properties.base_dims.y);
 
                     // draw image to data layer canvas
-                    ctxData.imageSmoothingQuality = 'high';
+                    //ctxData.imageSmoothingQuality = 'high';
                     ctxData.drawImage(_layers.render, dx, dy, dWidth, dHeight);
 
                     // re-encode data url
@@ -663,11 +689,8 @@ export const PanelIat = ({
                 // [save] save blob data from render layer canvas to file
                 _reset()
                     .then(_redraw)
-                    .then(_erase)
-                    .then(_save)
-                    .then(() => {
-                        setTrigger(_NOOP)
-                    })
+                    // .then(_erase)
+                    // .then(_save)
                     .catch(_handleError);
             }
 
@@ -704,12 +727,18 @@ export const PanelIat = ({
                     id={id}
                     disabled={status !== _LOADED}
                     panel={panel}
-                    trigger={setTrigger}
+                    trigger={action}
                     pointer={pointer}
+                    options={options}
                     setMessage={setMessage}
                     setDialogToggle={setDialogToggle}
                 />
                 <div className={'canvas-layers'}>
+                    <Magnifier
+                        pointer={pointer}
+                        panel={panel}
+                        options={options}
+                    />
                     {
                         status !== _LOADED &&
                         <div
@@ -734,6 +763,7 @@ export const PanelIat = ({
                     <canvas
                         ref={controlLayerRef}
                         id={`${id}_control_layer`}
+                        tabIndex={0}
                         className={`layer canvas-layer-control-${options.mode}`}
                         width={properties.base_dims.x}
                         height={properties.base_dims.y}
@@ -744,6 +774,7 @@ export const PanelIat = ({
                         onMouseOver={_handleMouseOver}
                         onClick={_handleOnClick}
                         onKeyDown={_handleOnKeyDown}
+                        onKeyUp={_handleOnKeyUp}
                     >
                         Control Layer: Canvas API Not Supported
                     </canvas>
@@ -784,22 +815,15 @@ export const PanelIat = ({
                         Base Layer: Canvas API Not Supported
                     </canvas>
                 </div>
-                <Magnifier
-                    enable={true}
-                    pointer={pointer}
-                    panel={panel}
-                    options={options}
-                />
                 <ControlPoints
-                    canvas={layers.markup}
+                    layers={layers}
                     panel={panel}
                     pointer={pointer}
-                    trigger={trigger}
+                    trigger={action}
                     options={options}
                 />
                 <CanvasInfo
-                    id={id}
-                    properties={properties}
+                    panel={panel}
                     pointer={pointer}
                     status={statusLabel[status]} />
                 <img

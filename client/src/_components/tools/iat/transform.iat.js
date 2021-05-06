@@ -10,6 +10,7 @@ import { getError } from '../../../_services/schema.services.client';
 import * as matrix from '../../../_utils/matrix.utils.client';
 import { homography } from '../../../_utils/matrix.utils.client';
 import * as UTIF from 'utif';
+import { getPos } from './canvas.points.iat';
 
 /**
  * Determines image format based on file signature.
@@ -39,23 +40,23 @@ export const getImageType = (buffer) => {
     const int8Array = new Uint8Array(buffer);
     const [b0, b1, b2, b3] = int8Array.slice(0, 4);
 
-    console.log(b0, b1, b2, b3)
+    console.log(b0, b1, b2, b3);
     const formats = {
-        "png": [],
-        "gif": [],
-        "bmp": [],
-        "jpg": [255, 216, 255, 219],
-        "tiff-le": [77, 77, 0, 42],
-        "tiff-be": [73, 73, 42, 0]
-    }
+        'png': [],
+        'gif': [],
+        'bmp': [],
+        'jpg': [255, 216, 255, 219],
+        'tiff-le': [77, 77, 0, 42],
+        'tiff-be': [73, 73, 42, 0],
+    };
     const detected = Object.keys(formats).find((type) => {
         return b0 === formats[type][0]
             && b1 === formats[type][1]
             && b2 === formats[type][2]
-            && b3 === formats[type][3]
-    })
+            && b3 === formats[type][3];
+    });
     return detected || 'unknown';
-}
+};
 
 /**
  * Loads TIFF format image file.
@@ -71,9 +72,9 @@ export const loadTIFF = (file) => {
     const reader = new FileReader();
     return new Promise((resolve, reject) => {
         reader.onerror = (err) => {
-            console.error(err)
+            console.error(err);
             reader.abort();
-            reject({msg:'Error occurred during parsing of data stream.', type:'error'});
+            reject({ msg: 'Error occurred during parsing of data stream.', type: 'error' });
         };
         reader.onload = (e) => {
             let buffer = e.target.result;
@@ -81,7 +82,10 @@ export const loadTIFF = (file) => {
             // validate TIFF data
             const imgType = getImageType(buffer);
             if (imgType !== 'tiff-le' && imgType !== 'tiff-be') {
-                reject({msg:`Problem parsing TIFF data stream: Image is of ${imgType.toUpperCase()} format.`, type:'error'});
+                reject({
+                    msg: `Problem parsing TIFF data stream: Image is of ${imgType.toUpperCase()} format.`,
+                    type: 'error',
+                });
                 return;
             }
 
@@ -92,12 +96,12 @@ export const loadTIFF = (file) => {
             resolve({
                 data: rgba,
                 width: ifds[0].width,
-                height: ifds[0].height
+                height: ifds[0].height,
             });
         };
         reader.readAsArrayBuffer(file);
     });
-}
+};
 
 /**
  * Transform images data for alignment.
@@ -113,13 +117,13 @@ export const loadTIFF = (file) => {
 
 export const alignImages = (imgData1, imgData2, canvas1, canvas2, options) => {
 
-    if (!imgData1 || !imgData2 ) {
+    if (!imgData1 || !imgData2) {
         return { data: null, error: { msg: getError('emptyCanvas', 'canvas') } };
     }
     if (canvas1.pts.length < options.controlPtMax || canvas2.pts.length < options.controlPtMax) {
         return { data: null, error: { msg: getError('missingControlPoints', 'canvas') } };
     }
-    if ( imgData1.width !== imgData2.width ) {
+    if (imgData1.width !== imgData2.width) {
         return { data: null, error: { msg: getError('mismatchedDims', 'canvas') } };
     }
 
@@ -127,11 +131,11 @@ export const alignImages = (imgData1, imgData2, canvas1, canvas2, options) => {
     const transform = getAlignmentTransform(canvas1.pts, canvas2.pts);
 
     // prepare data for transform
-    let img1 = new Uint32Array( imgData1.data.buffer );
-    let img2 = new Uint32Array( imgData2.data.buffer );
+    let img1 = new Uint32Array(imgData1.data.buffer);
+    let img2 = new Uint32Array(imgData2.data.buffer);
 
     // apply transformation to image 2 (img2) on right-hand canvas
-    homography( transform, img1, img2, canvas1.source_dims.x, canvas1.source_dims.y );
+    homography(transform, img1, img2, canvas1.source_dims.x, canvas1.source_dims.y);
 
     // convert image array from Uint32 to Uint8ClampedArray (for ImageData obj)
     let imgUint8 = new Uint8ClampedArray(img2.buffer);
@@ -141,8 +145,8 @@ export const alignImages = (imgData1, imgData2, canvas1, canvas2, options) => {
         canvas2.source_dims.y,
     );
 
-    return { data: imgData, error: null};
-}
+    return { data: imgData, error: null };
+};
 
 /**
  * compute scale-to-fit image to defined width dimension.
@@ -152,12 +156,12 @@ export const alignImages = (imgData1, imgData2, canvas1, canvas2, options) => {
  */
 
 export const scaleToFit = (x_dim, y_dim, maxWidth) => {
-    const ratio = (y_dim + 0.1) / (x_dim + 0.1)
+    const ratio = (y_dim + 0.1) / (x_dim + 0.1);
     return {
         x: maxWidth,
-        y: Math.floor( ratio * maxWidth)
-    }
-}
+        y: Math.floor(ratio * maxWidth),
+    };
+};
 
 /**
  * Get mouse start position on canvas.
@@ -165,69 +169,98 @@ export const scaleToFit = (x_dim, y_dim, maxWidth) => {
  *
  * @public
  * @param e
- * @param canvas
- * @param setTrigger
- * @param properties
- * @param setProperties
- * @param controlPoints
- * @param setControlPoints
+ * @param layers
+ * @param panel
+ * @param trigger
  * @param options
  * @param pointer
  */
 
-export function moveStart(e, canvas, setTrigger, properties, setProperties, controlPoints, setControlPoints, options, pointer) {
-    const pos = getPos(e, canvas);
-    setControlPoints(data => ({ ...data, [properties.id]: {
-        pts: '',
-            selected: '',
-            index: ''
-    } }));
+export function moveStart(e,
+                          layers,
+                          panel,
+                          trigger,
+                          pointer,
+                          options) {
+    const pos = getPos(e, layers.control);
+    pointer.select(pos);
 }
 
 /**
  * Update canvas offset by cursor position
  * @param e
  * @param layers
- * @param properties
- * @param setProps
+ * @param panel
+ * @param trigger
+ * @param pointer
+ * @param options
  */
 
-export function moveAt(e, layers, properties, setProps) {
+export function moveAt(e,
+                       layers,
+                       panel,
+                       trigger,
+                       pointer,
+                       options) {
+
+    // check that mouse start position was selected
+    if (!pointer.selected) return;
+
     e.preventDefault();
+
+    // get current mouse position
     const pos = getPos(e, layers.control);
     // only update move if position is positive
     if (pos.x > 0 && pos.y > 0) {
         const newOffset = {
-            x: properties.offset.x + Math.sign(pos.x - properties.move.x),
-            y: properties.offset.y + Math.sign(pos.y - properties.move.y),
+            x: panel.props.offset.x + Math.sign(pos.x - panel.props.move.x),
+            y: panel.props.offset.y + Math.sign(pos.y - panel.props.move.y),
         };
-        setProps(data => ({ ...data,
-            offset: newOffset,
-            move: pos,
-            redraw: true
-        }));
+        panel.update({ offset: newOffset, move: pos });
+        trigger.redraw();
     }
+}
+
+/**
+ * Get mouse end position on canvas.
+ * Reference: https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas
+ *
+ * @public
+ * @param e
+ * @param layers
+ * @param panel
+ * @param trigger
+ * @param options
+ * @param pointer
+ */
+
+export function moveEnd(e,
+                          layers,
+                          panel,
+                          trigger,
+                          pointer,
+                          options) {
+    pointer.reset();
 }
 
 /**
  * Update canvas offset by dx/dy
  * @param e
- * @param canvas
- * @param properties
- * @param setProps
+ * @param panel
+ * @param trigger
  * @param dx
  * @param dy
  */
 
-export function moveBy(e, canvas, properties, setProps, dx=0, dy=0) {
+export function moveBy(e, panel, trigger, dx = 0, dy = 0) {
     e.preventDefault();
-    setProps(data => ({ ...data,
+    panel.update({
         offset: {
-            x: properties.offset.x + dx,
-            y: properties.offset.y + dy,
+            x: panel.props.offset.x + dx,
+            y: panel.props.offset.y + dy,
         },
-        redraw: true
-    }));
+    });
+    trigger.redraw();
 }
 
 /**
@@ -243,74 +276,9 @@ export function moveBy(e, canvas, properties, setProps, dx=0, dy=0) {
 
 export function inRange(x, y, u, v, radius) {
     return (u - (x + radius)) * (u - (x - radius)) < 0
-        && (v - (y + radius)) * (v - (y - radius)) < 0
+        && (v - (y + radius)) * (v - (y - radius)) < 0;
 }
 
-
-/**
- * Get local mouse position on canvas.
- * Reference: https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas
- *
- * @public
- * @param e
- * @param canvas
- */
-
-export const getPos = (e, canvas) => {
-    console.log(canvas)
-    // select control layer to read mouse position
-    const rect = canvas.getBoundingClientRect(), // abs. size of element
-        scaleX = canvas.width / rect.width,   // relationship bitmap vs. element for X
-        scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for Y
-
-    const radius = 20;
-    const x = Math.max(
-        Math.min(
-            Math.floor((e.clientX - rect.left) * scaleX), canvas.width
-        ), 0
-    );
-    const y = Math.max(
-        Math.min(
-            Math.floor((e.clientY - rect.top) * scaleY), canvas.height
-        ), 0
-    );
-
-    // scale mouse coordinates after they have been adjusted to be relative to element
-    return { x: x, y: y }
-};
-
-/**
- * Filter input key presses for image methods.
- * - selects methods for given key press.
- *
- * @private
- * @return {JSX.Element}
- */
-
-export const filterKeyPress = (e, canvas, properties, setProps) => {
-    const { keyCode='' } = e || [];
-    const _methods = {
-        // move canvas left 1 pixel
-        37: () => {
-            moveBy(e, canvas, properties, setProps, -1, 0)
-        },
-        // move canvas right 1 pixel
-        39: () => {
-            moveBy(e, canvas, properties, setProps, 1, 0)
-        },
-        // move canvas up 1 pixel
-        40: () => {
-            moveBy(e, canvas, properties, setProps, 0, 1)
-        },
-        // move canvas down 1 pixel
-        38: () => {
-            moveBy(e, canvas, properties, setProps, 0, -1)
-        }
-    }
-    return _methods.hasOwnProperty(keyCode)
-        ? _methods[keyCode]()
-        : null;
-}
 
 /**
  * Compute alignment transformation matrix image data.
@@ -345,13 +313,15 @@ export const getAlignmentTransform = (pts1, pts2) => {
         return o;
     }, []);
 
-    let i,j,k,l,m, n=p.length;
-    let x,y, u,v, d;
-    let s,q,e;
-    let dx,dy,dd;
+    let i, j, k, l, m, n = p.length;
+    let x, y, u, v, d;
+    let s, q, e;
+    let dx, dy, dd;
 
     // Compute percentage
-    let getPercent = function(x){return Math.floor((x+.001)*100)/100;};
+    let getPercent = function(x) {
+        return Math.floor((x + .001) * 100) / 100;
+    };
     //var pf = function(x){return Math.floor(x*100)/100;};
     //var pf = function(x){return x;};
     let ii, jj; // determinant
@@ -361,81 +331,79 @@ export const getAlignmentTransform = (pts1, pts2) => {
     //matrix.swapPts( pts );
 
     let M88 = [
-        [p[0][0],p[0][1],1,0,0,0, -p[0][0]*p[1][0], -p[0][1]*p[1][0]],
-        [0,0,0,p[0][0],p[0][1],1, -p[0][0]*p[1][1], -p[0][1]*p[1][1]],
-        [p[2][0],p[2][1],1,0,0,0, -p[2][0]*p[3][0], -p[2][1]*p[3][0]],
-        [0,0,0,p[2][0],p[2][1],1, -p[2][0]*p[3][1], -p[2][1]*p[3][1]],
-        [p[4][0],p[4][1],1,0,0,0, -p[4][0]*p[5][0], -p[4][1]*p[5][0]],
-        [0,0,0,p[4][0],p[4][1],1, -p[4][0]*p[5][1], -p[4][1]*p[5][1]],
-        [p[6][0],p[6][1],1,0,0,0, -p[6][0]*p[7][0], -p[6][1]*p[7][0]],
-        [0,0,0,p[6][0],p[6][1],1, -p[6][0]*p[7][1], -p[6][1]*p[7][1]]
+        [p[0][0], p[0][1], 1, 0, 0, 0, -p[0][0] * p[1][0], -p[0][1] * p[1][0]],
+        [0, 0, 0, p[0][0], p[0][1], 1, -p[0][0] * p[1][1], -p[0][1] * p[1][1]],
+        [p[2][0], p[2][1], 1, 0, 0, 0, -p[2][0] * p[3][0], -p[2][1] * p[3][0]],
+        [0, 0, 0, p[2][0], p[2][1], 1, -p[2][0] * p[3][1], -p[2][1] * p[3][1]],
+        [p[4][0], p[4][1], 1, 0, 0, 0, -p[4][0] * p[5][0], -p[4][1] * p[5][0]],
+        [0, 0, 0, p[4][0], p[4][1], 1, -p[4][0] * p[5][1], -p[4][1] * p[5][1]],
+        [p[6][0], p[6][1], 1, 0, 0, 0, -p[6][0] * p[7][0], -p[6][1] * p[7][0]],
+        [0, 0, 0, p[6][0], p[6][1], 1, -p[6][0] * p[7][1], -p[6][1] * p[7][1]],
     ];
-    let B8 = [p[1][0],p[1][1], p[3][0],p[3][1], p[5][0],p[5][1], p[7][0],p[7][1]];
-    let X8 = matrix.lusolve(M88,B8,true);
+    let B8 = [p[1][0], p[1][1], p[3][0], p[3][1], p[5][0], p[5][1], p[7][0], p[7][1]];
+    let X8 = matrix.lusolve(M88, B8, true);
 
     // Could put a sanity check here? Run the 4 pairs back through X8
     // So ... could we not do this directly with the other points?
 
     // Check quality of the above 8x8 matrix (or its parts??)
     // Note M88 has been made diagonal by lusolve()
-    for ( ii=0,jj=1; ii<8; ii++ )
-    {
-        x = M88[ii][ii]; jj *= x/100;
-        console.log('Matrix entry '+x);
+    for (ii = 0, jj = 1; ii < 8; ii++) {
+        x = M88[ii][ii];
+        jj *= x / 100;
+        console.log('Matrix entry ' + x);
     }
     ///console.log('Align4: Matrix88 determinant '+((jj*100>>0)/100));
 
     // Code copied from alignfunc3 and modified for 4 points 20180201
     // Figure out best fit among all points by taking 4 at a time
     console.log('');
-    console.log('Alignment 4 experiments: '+n+' points');
-    for ( i=m=0; i<n; i+=2 ) for ( j=i+2; j<n; j+=2 )
-        for ( k=j+2; k<n; k+=2 ) for ( l=k+2; l<n; l+=2,m++ )
-        {
+    console.log('Alignment 4 experiments: ' + n + ' points');
+    for (i = m = 0; i < n; i += 2) for (j = i + 2; j < n; j += 2)
+        for (k = j + 2; k < n; k += 2) for (l = k + 2; l < n; l += 2, m++) {
             M88 = [
-                [p[i][0],p[i][1],1,0,0,0, -p[i][0]*p[i+1][0], -p[i][1]*p[i+1][0]],
-                [0,0,0,p[i][0],p[i][1],1, -p[i][0]*p[i+1][1], -p[i][1]*p[i+1][1]],
-                [p[j][0],p[j][1],1,0,0,0, -p[j][0]*p[j+1][0], -p[j][1]*p[j+1][0]],
-                [0,0,0,p[j][0],p[j][1],1, -p[j][0]*p[j+1][1], -p[j][1]*p[j+1][1]],
-                [p[k][0],p[k][1],1,0,0,0, -p[k][0]*p[k+1][0], -p[k][1]*p[k+1][0]],
-                [0,0,0,p[k][0],p[k][1],1, -p[k][0]*p[k+1][1], -p[k][1]*p[k+1][1]],
-                [p[l][0],p[l][1],1,0,0,0, -p[l][0]*p[l+1][0], -p[l][1]*p[l+1][0]],
-                [0,0,0,p[l][0],p[l][1],1, -p[l][0]*p[l+1][1], -p[l][1]*p[l+1][1]]
+                [p[i][0], p[i][1], 1, 0, 0, 0, -p[i][0] * p[i + 1][0], -p[i][1] * p[i + 1][0]],
+                [0, 0, 0, p[i][0], p[i][1], 1, -p[i][0] * p[i + 1][1], -p[i][1] * p[i + 1][1]],
+                [p[j][0], p[j][1], 1, 0, 0, 0, -p[j][0] * p[j + 1][0], -p[j][1] * p[j + 1][0]],
+                [0, 0, 0, p[j][0], p[j][1], 1, -p[j][0] * p[j + 1][1], -p[j][1] * p[j + 1][1]],
+                [p[k][0], p[k][1], 1, 0, 0, 0, -p[k][0] * p[k + 1][0], -p[k][1] * p[k + 1][0]],
+                [0, 0, 0, p[k][0], p[k][1], 1, -p[k][0] * p[k + 1][1], -p[k][1] * p[k + 1][1]],
+                [p[l][0], p[l][1], 1, 0, 0, 0, -p[l][0] * p[l + 1][0], -p[l][1] * p[l + 1][0]],
+                [0, 0, 0, p[l][0], p[l][1], 1, -p[l][0] * p[l + 1][1], -p[l][1] * p[l + 1][1]],
             ];
-            B8 = [p[i+1][0],p[i+1][1], p[j+1][0],p[j+1][1], p[k+1][0],p[k+1][1], p[l+1][0],p[l+1][1]];
-            X8 = matrix.lusolve(M88,B8,true);
+            B8 = [p[i + 1][0], p[i + 1][1], p[j + 1][0], p[j + 1][1], p[k + 1][0], p[k + 1][1], p[l + 1][0], p[l + 1][1]];
+            X8 = matrix.lusolve(M88, B8, true);
 
             // Check quality of this 8x8 matrix
             // Note M88 has been made diagonal by lusolve()
-            for ( ii=0,jj=1; ii<8; ii++ ) jj *= M88[ii][ii]/100;
-            console.log('Matrix '+(m+1)+': ('+(i+1)+','+(j+1)+','+(k+1)+','+(l+1)+') determinant '+((jj*100>>0)/100));
+            for (ii = 0, jj = 1; ii < 8; ii++) jj *= M88[ii][ii] / 100;
+            console.log('Matrix ' + (m + 1) + ': (' + (i + 1) + ',' + (j + 1) + ',' + (k + 1) + ',' + (l + 1) + ') determinant ' + ((jj * 100 >> 0) / 100));
 
             // Run the other (n-4) points through the matrix
-            for ( s='',q=e=0; q<n-1; q+=2 ) if (q!==i && q!==j && q!==k && q!==l)
-            {
+            for (s = '', q = e = 0; q < n - 1; q += 2) if (q !== i && q !== j && q !== k && q !== l) {
                 x = p[q][0];
                 y = p[q][1];
-                d = X8[6]*x + X8[7]*y + 1;
-                u = X8[0]*x + X8[1]*y + X8[2];
-                v = X8[3]*x + X8[4]*y + X8[5];
-                u = u/d;
-                v = v/d;
+                d = X8[6] * x + X8[7] * y + 1;
+                u = X8[0] * x + X8[1] * y + X8[2];
+                v = X8[3] * x + X8[4] * y + X8[5];
+                u = u / d;
+                v = v / d;
 
-                dx = u - p[q+1][0];
-                dy = v - p[q+1][1];
-                dd = dx*dx + dy*dy;
-                s += ' '+(q+1)+'('+getPercent(dx)+','+getPercent(dy)+')';
+                dx = u - p[q + 1][0];
+                dy = v - p[q + 1][1];
+                dd = dx * dx + dy * dy;
+                s += ' ' + (q + 1) + '(' + getPercent(dx) + ',' + getPercent(dy) + ')';
                 e += dd;
                 ///console.log('Align4: u='+pf(u)+' v='+pf(v));
             }
-            let RMSE = Math.sqrt(e/(n/2-4));
+            let RMSE = Math.sqrt(e / (n / 2 - 4));
             //console.log('Points '+i+','+j+','+k+' e='+pf(e)+' RMSE='+pf(RMSE));
-            console.log('   d:'+s);
-            console.log('   e='+getPercent(e)+' RMSE='+getPercent(RMSE));
+            console.log('   d:' + s);
+            console.log('   e=' + getPercent(e) + ' RMSE=' + getPercent(RMSE));
         }
 
-        console.log('Transformation Mat:', X8);
-        return X8;
+    console.log('Transformation Mat:', X8);
+    return X8;
 
     //
     // // Get the backing canvas
@@ -467,7 +435,7 @@ export const getAlignmentTransform = (pts1, pts2) => {
 
     //swappointpairs( CtrlPts );
 
-}
+};
 
 /**
  * Image Processing Utilities
@@ -475,22 +443,22 @@ export const getAlignmentTransform = (pts1, pts2) => {
  * CORS and file: * Protocol Summary: (incomplete)  * 20200211
  * postMessage() (Categories - but does not seem to be a problem anymore?)
  * GC: chrome://version AFAFF --allow-file-access-from-files tchf tchrome()
-//	(must not have non-AFAFF version running separately)
+ //    (must not have non-AFAFF version running separately)
  * FF: about:config security.fileuri.strict_origin_policy privacy.file_unique_origin
-//	(both default true); Version 68 changed behaviour
+ //    (both default true); Version 68 changed behaviour
  * corsflag crossOrigin
  * toDataURL() getImageData() toBlob(); tainted canvas; AJAX XMLHttpRequest
  * access-control-allow-origin
 
-NOTES: Candidates for removal to separate files:
-(1) Geometry
-(2) Linear algebra
-(3) HashSet
-(4) Categories string
-(5) XML/AJAX stuff?
-Should also more strongly separate DOM/HTML/drawing from the rest
-Consider HTML/CSS/panels/canvases with no drawing nor images
-*/
+ NOTES: Candidates for removal to separate files:
+ (1) Geometry
+ (2) Linear algebra
+ (3) HashSet
+ (4) Categories string
+ (5) XML/AJAX stuff?
+ Should also more strongly separate DOM/HTML/drawing from the rest
+ Consider HTML/CSS/panels/canvases with no drawing nor images
+ */
 
 /**
  * IAT Constants

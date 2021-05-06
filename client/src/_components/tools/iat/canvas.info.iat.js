@@ -20,35 +20,30 @@ import React from 'react';
  * @public
  */
 
-const CanvasInfo = ({ properties, pointer, status }) => {
-    const router = useRouter();
-    const captureRoute = createNodeRoute('modern_captures', 'show', properties.owner_id);
-    return <div id={`canvas-view-${properties.id}-footer`} className={'canvas-view-info'}>
-        {
-            properties.filename && properties.file_type &&
-            <table>
-                <tbody>
+const CanvasInfo = ({ panel, pointer, status }) => {
 
-                </tbody>
-            </table>
-        }
+    // if capture image: provide link to metadata
+    const router = useRouter();
+    const captureRoute = createNodeRoute('modern_captures', 'show', panel.props.owner_id);
+
+    return <div id={`canvas-view-${panel.id}-footer`} className={'canvas-view-info'}>
         <table>
             <tbody>
             <tr>
                 <th>File</th>
                 <td colSpan={3}>
                     <span>{
-                        properties.filename ? properties.filename : '<Not loaded>'}</span>
+                        panel.props.filename ? panel.props.filename : '<Not loaded>'}</span>
                     {
-                        properties.file_type &&
+                        panel.props.file_type &&
                         <span>{
-                            properties.files_id
-                                ? ` (${getModelLabel(properties.file_type)})`
-                                : ` (${properties.file_type})`
+                            panel.props.files_id
+                                ? ` (${getModelLabel(panel.props.file_type)})`
+                                : ` (${panel.props.file_type})`
                         }</span>
                     }
                     {
-                        properties.owner_id && properties.owner_id &&
+                        panel.props.owner_id && panel.props.owner_id &&
                         <Button icon={'captures'} onClick={() => {
                             router.update(captureRoute);
                         }} />
@@ -63,27 +58,23 @@ const CanvasInfo = ({ properties, pointer, status }) => {
             </tr>
             <tr>
                 <th>Edit</th>
-                <td>({properties.data_dims.x}, {properties.data_dims.y})</td>
+                <td>({panel.props.data_dims.x}, {panel.props.data_dims.y})</td>
                 <th>Canvas</th>
-                <td>({properties.base_dims.x}, {properties.base_dims.y})</td>
+                <td>({panel.props.base_dims.x}, {panel.props.base_dims.y})</td>
             </tr>
             <tr>
                 <th>Origin</th>
-                <td>({properties.origin.x}, {properties.origin.y})</td>
+                <td>({panel.props.origin.x}, {panel.props.origin.y})</td>
                 <th>Offset</th>
-                <td>(
-                    {Math.floor(properties.offset.x).toFixed(2)},
-                    {Math.floor(properties.offset.y).toFixed(2)}
-                    )
-                </td>
+                <td>({Math.floor(panel.props.offset.x)}, {Math.floor(panel.props.offset.y)})</td>
             </tr>
             <tr>
                 <th>Image</th>
                 <td>
-                    ({properties.source_dims.x}, {properties.source_dims.y})
+                    ({panel.props.source_dims.x}, {panel.props.source_dims.y})
                 </td>
                 <th>Size</th>
-                <td colSpan={3}>{sanitize(properties.file_size, 'filesize')}</td>
+                <td colSpan={3}>{sanitize(panel.props.file_size, 'filesize')}</td>
             </tr>
             </tbody>
         </table>

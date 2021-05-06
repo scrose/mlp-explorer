@@ -13,7 +13,6 @@ import { genSchema, getError } from '../../../_services/schema.services.client';
 import Dialog from '../../common/dialog';
 import {
     alignImages,
-    filterKeyPress,
     moveAt,
     moveStart,
 } from './transform.iat';
@@ -24,6 +23,7 @@ import Comparator from '../../common/comparator';
 import { SaveAs } from './download.iat';
 import Resizer from './resizer.iat';
 import { deselectControlPoint, moveControlPoint, selectControlPoint } from './canvas.points.iat';
+import { filterKeyDown } from './canvas.controls.iat';
 
 /**
  * No operation.
@@ -197,7 +197,7 @@ export const MenuIat = ({
                     onMouseDown: moveStart,
                     onMouseMove: moveAt,
                     onMouseUp: moveStart,
-                    onKeyDown: filterKeyPress,
+                    onKeyDown: filterKeyDown,
                 }));
             },
 

@@ -10,8 +10,9 @@ import { PanelIat } from './panel.iat';
 import { MenuIat } from './menu.iat';
 import { createNodeRoute, getQuery } from '../../../_utils/paths.utils.client';
 import { useRouter } from '../../../_providers/router.provider.client';
-import { filterKeyPress, moveAt, moveStart } from './transform.iat';
+import { moveAt, moveStart, moveEnd } from './transform.iat';
 import { UserMessage } from '../../common/message';
+import { filterKeyDown, filterKeyUp } from './canvas.controls.iat';
 
 /**
  * Default settings.
@@ -64,10 +65,12 @@ const Iat = () => {
 
     // initialize default methods for control canvas
     const [methods, setMethods] = React.useState({
-        onMouseStart: moveStart,
+        onMouseDown: moveStart,
         onMouseMove: moveAt,
+        onMouseUp: moveEnd,
         onMouseOver: ()=>{},
-        onKeyDown: filterKeyPress,
+        onKeyDown: filterKeyDown,
+        onKeyUp: filterKeyUp,
     });
 
     // initialize error/info messages
@@ -80,12 +83,14 @@ const Iat = () => {
     const [dialogToggle, setDialogToggle] = React.useState(null);
 
     // initialize panel pointer event data
-    const [pointer1Props, setPointer1Props] = React.useState({x: 0, y:0, selected: null});
-    const [pointer2Props, setPointer2Props] = React.useState({x: 0, y:0, selected: null});
+    const [pointer1Props, setPointer1Props] = React.useState(
+        {x: 0, y:0, cX: 0, cY: 0, selected: null, magnify: false});
+    const [pointer2Props, setPointer2Props] = React.useState(
+        {x: 0, y:0, cX: 0, cY: 0, selected: null, magnify: false});
 
     // initialize panel trigger event data
-    const [triggerPanel1, setTriggerPanel1] = React.useState(null);
-    const [triggerPanel2, setTriggerPanel2] = React.useState(null);
+    const [triggerPanel1, setTriggerPanel1] = React.useState(0);
+    const [triggerPanel2, setTriggerPanel2] = React.useState(0);
 
     // get query parameter for master option
     // - must correspond to a modern image file ID
@@ -161,6 +166,7 @@ const Iat = () => {
                 onMouseMove={methods.onMouseMove}
                 onClick={methods.onClick}
                 onKeyDown={methods.onKeyDown}
+                onKeyUp={methods.onKeyUp}
                 hidden={panel1Data.hidden}
             />
             <MenuIat
@@ -204,6 +210,7 @@ const Iat = () => {
                 onMouseOut={methods.onMouseOut}
                 onMouseMove={methods.onMouseMove}
                 onKeyDown={methods.onKeyDown}
+                onKeyUp={methods.onKeyUp}
                 hidden={panel2Data.hidden}
             />
         </div>

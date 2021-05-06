@@ -19,14 +19,27 @@ import React from 'react';
  * @return {JSX.Element}
  */
 
-export const Magnifier = ({ enable=false, pointer, panel, options})  => {
+export const Magnifier = ({ pointer, panel, options, offset})  => {
 
     // canvas magnifier reference
     const magnifierRef = React.useRef(null);
 
-    const [startPt, setStartPt] = React.useState(null);
+    const [startPt, setStartPt] = React.useState(offset);
+
+    /**
+     * Image region magnifier.
+     * Reference: https://www.w3schools.com/howto/howto_js_image_magnifier_glass.asp
+     *
+     * @public
+     * @param x
+     * @param y
+     */
 
     React.useEffect(() => {
+
+        const zoom = options.magnifyZoom;
+        const w = magnifierRef.current.offsetWidth / 2;
+        const h = magnifierRef.current.offsetHeight / 2;
 
         /**
          * Initialize magnifier. Sets background properties
@@ -35,56 +48,44 @@ export const Magnifier = ({ enable=false, pointer, panel, options})  => {
          * @private
          */
 
-        async function _init () {
-            const bgSizeX = panel.base_dims.x * options.magnifyZoom;
-            const bgSizeY = panel.base_dims.y * options.magnifyZoom;
-            const w = magnifierRef.current.offsetWidth / 2;
-            const h = magnifierRef.current.offsetHeight / 2;
-            magnifierRef.current.style.left = (pointer.x - w) + 'px';
-            magnifierRef.current.style.top = (pointer.y - h) + 'px';
-            magnifierRef.current.style.backgroundImage = `url('${panel.dataURL}')`;
-            magnifierRef.current.style.backgroundSize = `${bgSizeX}px ${bgSizeY}px`;
+        function _init () {
+            if (!magnifierRef.current.style.backgroundImage) {
+                // set magnification parameters
+                const bgSizeX = panel.props.base_dims.x * options.magnifyZoom;
+                const bgSizeY = panel.props.base_dims.y * options.magnifyZoom;
+                magnifierRef.current.style.left = (pointer.x - w) + 'px';
+                magnifierRef.current.style.top = (pointer.y - h) + 'px';
+                magnifierRef.current.style.backgroundImage = `url('${panel.props.dataURL}')`;
+                magnifierRef.current.style.backgroundSize = `${bgSizeX}px ${bgSizeY}px`;
+            }
         }
 
-        /**
-         * Image region magnifier.
-         * Reference: https://www.w3schools.com/howto/howto_js_image_magnifier_glass.asp
-         *
-         * @public
-         * @param x
-         * @param y
-         */
+        // apply magnifier over region
+        if (pointer.magnify) {
+            _init();
 
-        const _magnify = (x, y) => {
+            const x = pointer.x;
+            const y = pointer.y;
 
-            // set magnification parameters
-            const zoom = options.magnifyZoom;
-            const bw = 3;
-            const w = magnifierRef.current.offsetWidth / 2;
-            const h = magnifierRef.current.offsetHeight / 2;
             magnifierRef.current.style.left = (x - w) + 'px';
             magnifierRef.current.style.top = (y - h) + 'px';
 
             /* Display what the magnifier glass "sees": */
             magnifierRef.current.style.backgroundPosition =
-                '-' + ((x * zoom) - w + bw) + 'px -' + ((y * zoom) - h + bw) + 'px';
-        };
-
-        if (enable) {
-            _magnify(pointer.x, pointer.y);
+                '-' + ((x * zoom) - w) + 'px -' + ((y * zoom) - h) + 'px';
         }
         else {
             magnifierRef.current.style.backgroundImage = '';
             magnifierRef.current.style.backgroundSize = '';
         }
 
-    }, [enable, pointer, panel, options])
+    }, [pointer, panel, options])
 
 
     // render canvas magnifier
     return <div
             ref={magnifierRef}
-            className={`canvas-magnifier${!enable ? ' hidden' : ''}`}
+            className={`canvas-magnifier${!pointer.magnify ? ' hidden' : ''}`}
            />
 };
 

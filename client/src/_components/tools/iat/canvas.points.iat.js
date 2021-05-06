@@ -6,9 +6,8 @@
  */
 import Button from '../../common/button';
 import React from 'react';
-import { getPos, inRange } from './transform.iat';
+import { inRange } from './transform.iat';
 import { getError } from '../../../_services/schema.services.client';
-import Magnifier from './magnifier.iat';
 
 /**
  * Show selected control points. Allows for deletion of last point.
@@ -21,9 +20,9 @@ import Magnifier from './magnifier.iat';
  * @public
  */
 
-const ControlPoints = ({ canvas, panel, pointer, trigger, options }) => {
+const ControlPoints = ({ layers, panel, pointer, trigger, options }) => {
     const enabled = options.mode === 'select';
-
+    const canvas = layers.control;
     return <>
 
         {
@@ -66,6 +65,36 @@ export default ControlPoints;
 
 /**
  * Get local mouse position on canvas.
+ * Reference: https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas
+ *
+ * @public
+ * @param e
+ * @param canvas
+ */
+
+export const getPos = (e, canvas) => {
+    // select control layer to read mouse position
+    const rect = canvas.getBoundingClientRect(), // abs. size of element
+        scaleX = canvas.width / rect.width,   // relationship bitmap vs. element for X
+        scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for Y
+
+    const x = Math.max(
+        Math.min(
+            Math.floor((e.clientX - rect.left) * scaleX), canvas.width,
+        ), 0,
+    );
+    const y = Math.max(
+        Math.min(
+            Math.floor((e.clientY - rect.top) * scaleY), canvas.height,
+        ), 0,
+    );
+
+    // scale mouse coordinates after they have been adjusted to be relative to element
+    return { x: x, y: y };
+};
+
+/**
+ * Get local mouse position on canvas.
  * Reference: http://jsfiddle.net/m1erickson/sEBAC/
  *
  * @public
@@ -98,6 +127,47 @@ export const moveControlPoint = (e,
 
 
 };
+
+/**
+ * Create pointer object.
+ * @param canvas
+ * @param props
+ * @param setProps
+ * @return pointer
+ */
+
+export const createPointer = (canvas, props, setProps) => {
+    return {
+        x: props.x,
+        y: props.y,
+        selected: props.select,
+        magnify: props.magnify,
+        get: () => {
+            return props;
+        },
+        set: (e) => {
+            const pos = getPos(e, canvas);
+            setProps(data => ({ ...data, x: pos.x, y: pos.y, cX: pos.cX, cY: pos.cY }));
+        },
+        magnifyOn: () => {
+            setProps(data => ({ ...data, magnify: true }));
+        },
+        magnifyOff: () => {
+            setProps(data => ({ ...data, magnify: false }));
+        },
+        select: (e) => {
+            const pos = getPos(e, canvas);
+            setProps(data => ({ ...data, selected: { x: pos.x, y: pos.y } }));
+        },
+        deselect: () => {
+            setProps(data => ({ ...data, selected: null }));
+        },
+        reset: () => {
+            setProps(data => ({ ...data, x: 0, y: 0, selected: null }));
+        }
+    }
+};
+
 /**
  * Store selected alignment control points.
  *
