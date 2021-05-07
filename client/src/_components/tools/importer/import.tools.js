@@ -11,6 +11,7 @@ import { useRouter } from '../../../_providers/router.provider.client';
 import Progress from '../../common/progress';
 import { getModelLabel, getViewLabel } from '../../../_services/schema.services.client';
 import { useData } from '../../../_providers/data.provider.client';
+import { upload } from '../../../_services/api.services.client';
 
 /**
  * File/metadata importer.
@@ -93,10 +94,11 @@ const Importer = ({
      */
 
     const _importData = (uri, formData) => {
-        return router.upload(
+        return upload(
             uri,
             formData,
             _updateProgress.bind(this, 0, null),
+            router.online
         )
             .catch(console.error);
     }
@@ -118,10 +120,11 @@ const Importer = ({
         // import files individually with same metadata
         fileList.map((file, index) => {
             formData.set(batchType, file);
-            return router.upload(
+            return upload(
                 uri,
                 formData,
                 _updateProgress.bind(this, index, file.name),
+                router.online
             )
                 .catch(err => {console.error(err)});
         });

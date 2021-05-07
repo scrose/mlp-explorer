@@ -7,6 +7,8 @@
  * Reference: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
  */
 
+import { createURL } from '../_utils/paths.utils.client';
+
 /**
  * Fetch options for JSON API request.
  * Options:
@@ -92,6 +94,120 @@ export async function makeRequest({
                 ? await res.blob()
                 : await res.json()
     }
+}
+
+
+/**
+ * Request method to upload file(s) via API.
+ *
+ * @public
+ * @param {String} route
+ * @param formData
+ * @param callback
+ * @param online
+ */
+
+export const upload = async (route, formData, callback=()=>{}, online=true) => {
+
+    // reject null paths or when API is offline
+    if (!route || !online ) return null;
+
+    // DEBUG: Display the key/value pairs of form data
+    // for(var pair of formData.entries()) {
+    //     console.log(pair[0]+ ', '+ pair[1]);
+    // }
+
+    try {
+
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', createURL(route), true);
+        xhr.withCredentials = true;
+        xhr.responseType = 'json';
+
+        // request finished event
+        xhr.onload = function(e) {
+            if (xhr.readyState === 4) {
+                const {statusText='An API Error Occurred.'} = e.currentTarget || {};
+                const { response={} } = e.currentTarget || {};
+                const { message={} } = response || {};
+                const {msg=statusText} = message || {};
+
+                // success
+                if (xhr.status === 200) {
+                    return callback(null, {msg: msg, type: 'success'}, response);
+                }
+                // error
+                else {
+                    return callback(null, {msg: msg, type: 'error'});
+                }
+            }
+        };
+
+        // error in sending network request
+        xhr.onerror = function(e) {
+            const {statusText='API Error Occurred.'} = e.currentTarget || {};
+            return callback(null, {msg: statusText, type: 'error'});
+        };
+
+        // Upload progress callback
+        xhr.upload.onprogress = function(e) {
+            return callback(e);
+        };
+
+        // Upload error callback
+        xhr.upload.onerror = function() {
+            return callback(null, {msg: 'Upload error has occurred.', type: 'error'});
+        };
+
+        // Upload timeout callback
+        xhr.upload.ontimeout = function() {
+            return callback(null, {msg: 'Upload has timed out.', type: 'error'});
+        };
+
+        // Upload abort callback
+        xhr.upload.onabort = function() {
+            return callback(null, {msg: 'Upload was aborted.', type: 'warn'});
+        };
+
+        // Upload end callback
+        xhr.upload.onloadend = function() {
+            return callback(null, {msg: 'Upload completed!', type: 'success'});
+        };
+
+        // send POST request to server
+        xhr.send(formData);
+
+    } catch (err) {
+        return callback(null, {msg: 'Submission Failed. Please try again.', type: 'error'});
+    }
+};
+
+/**
+ * Request method to download file.
+ *
+ * @public
+ * @param {String} route
+ * @param {String} format
+ * @param online
+ */
+
+export const download = async (route, format, online=true) => {
+
+    // reject null paths or when API is offline
+    if (!route || !online ) return null;
+
+    return await makeRequest({url: createURL(route), method:'GET', download: format})
+        .then(res => {
+            console.log(res)
+            if (!res) return null;
+            const {error=null} = res || {};
+            return {
+                error: error,
+                data: new Blob([res.response])
+            }
+
+        })
+        .catch(console.error);
 }
 
 /**

@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Utilities.Image
- * File: image.utils.client.js
+ * MLP.Client.IAT.Transform
+ * File: transform.iat.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * Adapted from IAT web application
  * MIT Licensed
@@ -9,110 +9,18 @@
 import { getError } from '../../../_services/schema.services.client';
 import * as matrix from '../../../_utils/matrix.utils.client';
 import { homography } from '../../../_utils/matrix.utils.client';
-import * as UTIF from 'utif';
-import { getPos } from './canvas.points.iat';
-
-/**
- * Determines image format based on file signature.
- * Bitmap format .bmp 42 4d BM
- * FITS format .fits 53 49 4d 50 4c 45 SIMPL
- * GIF format .gif 47 49 46 38 GIF
- * Graphics Kernel System .gks 47 4b 53 4d GKS
- * IRIS rgb format .rgb 01 da
- * ITC (CMU WM) format .itc f1 00 40 bb
- * JPEG File Interchange Format .jpg ff d8 ff e0
- * NIFF (Navy TIFF) .nif 49 49 4e 31 IIN
- * PM format .pm 56 49 45 57 VIE
- * PNG format .png 89 50 4e 47 .PN
- * Postscript format .[e]ps 25 21 %
- * Sun Rasterfile .ras 59 a6 6a 95 Y.j
- * Targa format .tga xx xx xx ..
- * TIFF format (Motorola - big endian) .tif 4d 4d 00 2a MM.
- * TIFF format (Intel - little endian) .tif 49 49 2a 00 II*
- * X11 Bitmap format .xbm xx x
- * XCF Gimp file structure .xcf 67 69 6d 70 20 78 63 66 20 76 gimp xc
- * Xfig format .fig 23 46 49 47 #FI
- * XPM format .xpm 2f 2a 20 58 50 4d 20 2a 2f
- * @return {string} image format
- */
-
-export const getImageType = (buffer) => {
-    const int8Array = new Uint8Array(buffer);
-    const [b0, b1, b2, b3] = int8Array.slice(0, 4);
-
-    console.log(b0, b1, b2, b3);
-    const formats = {
-        'png': [],
-        'gif': [],
-        'bmp': [],
-        'jpg': [255, 216, 255, 219],
-        'tiff-le': [77, 77, 0, 42],
-        'tiff-be': [73, 73, 42, 0],
-    };
-    const detected = Object.keys(formats).find((type) => {
-        return b0 === formats[type][0]
-            && b1 === formats[type][1]
-            && b2 === formats[type][2]
-            && b3 === formats[type][3];
-    });
-    return detected || 'unknown';
-};
-
-/**
- * Loads TIFF format image file.
- *
- * @param file
- * @return {Promise<unknown>}
- */
-
-export const loadTIFF = (file) => {
-
-    if (!file) return null;
-
-    const reader = new FileReader();
-    return new Promise((resolve, reject) => {
-        reader.onerror = (err) => {
-            console.error(err);
-            reader.abort();
-            reject({ msg: 'Error occurred during parsing of data stream.', type: 'error' });
-        };
-        reader.onload = (e) => {
-            let buffer = e.target.result;
-
-            // validate TIFF data
-            const imgType = getImageType(buffer);
-            if (imgType !== 'tiff-le' && imgType !== 'tiff-be') {
-                reject({
-                    msg: `Problem parsing TIFF data stream: Image is of ${imgType.toUpperCase()} format.`,
-                    type: 'error',
-                });
-                return;
-            }
-
-            // decode to Uint8Array of the image in RGBA format, 8 bits per channel
-            const ifds = UTIF.decode(buffer);
-            UTIF.decodeImage(buffer, ifds[0]);
-            let rgba = UTIF.toRGBA8(ifds[0]);  // Uint8Array with RGBA pixels
-            resolve({
-                data: rgba,
-                width: ifds[0].width,
-                height: ifds[0].height,
-            });
-        };
-        reader.readAsArrayBuffer(file);
-    });
-};
+import { getPos } from './point.iat';
 
 /**
  * Transform images data for alignment.
  *
  * @public
- * @param control
  * @param imgData1
  * @param imgData2
  * @param canvas1
  * @param canvas2
  * @param options
+ * @param callback
  */
 
 export const alignImages = (imgData1, imgData2, canvas1, canvas2, options) => {
@@ -171,7 +79,6 @@ export const scaleToFit = (x_dim, y_dim, maxWidth) => {
  * @param e
  * @param layers
  * @param panel
- * @param trigger
  * @param options
  * @param pointer
  */
@@ -179,11 +86,16 @@ export const scaleToFit = (x_dim, y_dim, maxWidth) => {
 export function moveStart(e,
                           layers,
                           panel,
-                          trigger,
                           pointer,
                           options) {
-    const pos = getPos(e, layers.control);
-    pointer.select(pos);
+
+    // reject uninitialized elements
+    if (!layers.loaded()) return null;
+
+    console.log(pointer)
+
+    // select current mouse position
+    pointer.select(e);
 }
 
 /**
@@ -191,7 +103,6 @@ export function moveStart(e,
  * @param e
  * @param layers
  * @param panel
- * @param trigger
  * @param pointer
  * @param options
  */
@@ -199,9 +110,11 @@ export function moveStart(e,
 export function moveAt(e,
                        layers,
                        panel,
-                       trigger,
                        pointer,
                        options) {
+
+    // reject uninitialized elements
+    if (!layers.loaded()) return null;
 
     // check that mouse start position was selected
     if (!pointer.selected) return;
@@ -209,7 +122,7 @@ export function moveAt(e,
     e.preventDefault();
 
     // get current mouse position
-    const pos = getPos(e, layers.control);
+    const pos = getPos(e, layers.control());
     // only update move if position is positive
     if (pos.x > 0 && pos.y > 0) {
         const newOffset = {
@@ -217,7 +130,7 @@ export function moveAt(e,
             y: panel.props.offset.y + Math.sign(pos.y - panel.props.move.y),
         };
         panel.update({ offset: newOffset, move: pos });
-        trigger.redraw();
+        return { data: null, error: null, redraw:true }
     }
 }
 
@@ -229,38 +142,37 @@ export function moveAt(e,
  * @param e
  * @param layers
  * @param panel
- * @param trigger
  * @param options
  * @param pointer
  */
 
 export function moveEnd(e,
-                          layers,
-                          panel,
-                          trigger,
-                          pointer,
-                          options) {
+                        layers,
+                        panel,
+                        pointer,
+                        options,) {
     pointer.reset();
 }
 
 /**
  * Update canvas offset by dx/dy
  * @param e
+ * @param layers
  * @param panel
- * @param trigger
  * @param dx
  * @param dy
  */
 
-export function moveBy(e, panel, trigger, dx = 0, dy = 0) {
+export function moveBy(e, layers, panel, dx = 0, dy = 0) {
     e.preventDefault();
+    console.log(layers, panel, dx, dy)
     panel.update({
         offset: {
             x: panel.props.offset.x + dx,
             y: panel.props.offset.y + dy,
         },
     });
-    trigger.redraw();
+    redraw(layers, panel);
 }
 
 /**

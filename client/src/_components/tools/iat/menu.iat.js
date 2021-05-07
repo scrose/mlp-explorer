@@ -16,14 +16,14 @@ import {
     moveAt,
     moveStart,
 } from './transform.iat';
-import { ImageSelector } from '../../menus/selector.menu';
+import { ImageSelector } from './selector.iat';
 import { useUser } from '../../../_providers/user.provider.client';
 import { UserMessage } from '../../common/message';
 import Comparator from '../../common/comparator';
 import { SaveAs } from './download.iat';
-import Resizer from './resizer.iat';
-import { deselectControlPoint, moveControlPoint, selectControlPoint } from './canvas.points.iat';
-import { filterKeyDown } from './canvas.controls.iat';
+import Resizer from './resize.iat';
+import { deselectControlPoint, moveControlPoint, selectControlPoint } from './point.iat';
+import { filterKeyDown } from './panel.controls.iat';
 
 /**
  * No operation.
@@ -36,12 +36,10 @@ const noop = () => {
  * Image Analysis Toolkit main menu.
  *
  * @public
- * @param options
- * @param setOptions
- * @param canvas1
- * @param canvas2
- * @param setCanvas1
- * @param setCanvas2
+ * @param panel1
+ * @param panel2
+ * @param setPanel1
+ * @param setPanel2
  * @param image1
  * @param setImage1
  * @param image2
@@ -51,14 +49,16 @@ const noop = () => {
  * @param dialogToggle
  * @param setDialogToggle
  * @param setMessage
+ * @param options
+ * @param setOptions
  * @return {JSX.Element}
  */
 
 export const MenuIat = ({
-                            canvas1 = {},
-                            canvas2 = {},
-                            setCanvas1 = noop,
-                            setCanvas2 = noop,
+                            panel1 = {},
+                            panel2 = {},
+                            setPanel1 = noop,
+                            setPanel2 = noop,
                             image1 = null,
                             setImage1 = noop,
                             image2 = null,
@@ -81,7 +81,7 @@ export const MenuIat = ({
     const [menuToggle, setMenuToggle] = React.useState('');
 
     // do the canvases have capture images loaded?
-    const hasCaptures = canvas1.files_id && canvas2.files_id;
+    const hasCaptures = panel1.files_id && panel2.files_id;
 
     /**
      * Handle errors.
@@ -102,9 +102,14 @@ export const MenuIat = ({
      * @return {JSX.Element}
      */
 
-    const _showDialog = (dialogKey) => {
-        const { type = '', id = '', callback=()=>{} } = dialogKey || {};
-        return _menuDialogs.hasOwnProperty(type) && _menuDialogs[type](id, callback);
+    const _showDialog = (dialog) => {
+        const {
+            type = '',
+            id = '',
+            label='',
+            callback = ()=>{},
+        } = dialog || {};
+        return _menuDialogs.hasOwnProperty(type) && _menuDialogs[type](id, label, callback);
     };
 
     /**
@@ -115,20 +120,21 @@ export const MenuIat = ({
      */
 
     const _menuDialogs = {
-        selectImage: (id) => {
+        selectImage: (id, label, callback) => {
             return <Dialog
                 key={`${id}_dialog_select_image`}
-                title={`Select an Image`}
+                title={`Select Image for ${label}`}
                 setToggle={setDialogToggle}>
                 <ImageSelector
-                    canvasID={id}
+                    panelID={id}
+                    panelLabel={label}
                     selection={selection}
-                    setSelected={id === canvas1.id ? setCanvas1 : setCanvas2}
                     setToggle={setDialogToggle}
+                    callback={callback}
                 />
             </Dialog>;
         },
-        uploadImage: (id) => {
+        uploadImage: (id, label, callback) => {
             return <Dialog
                 key={`${menuID}_dialog_master`}
                 title={`Upload Image to Library?`}
@@ -138,9 +144,7 @@ export const MenuIat = ({
                     route={createNodeRoute('modern_images', 'master', id)}
                     schema={genSchema('master', 'modern_images')}
                     model={'modern_captures'}
-                    callback={() => {
-                        console.log('mastered!');
-                    }}>
+                    callback={callback}>
                 </Form>
             </Dialog>;
         },
@@ -150,21 +154,23 @@ export const MenuIat = ({
                 title={`Save Image As File`}
                 setToggle={setDialogToggle}>
                 <SaveAs canvasID={id}
-                        setSelected={id === canvas1.id ? setCanvas1 : setCanvas2}
+                        setSelected={id === panel1.id ? setPanel1 : setPanel2}
                         setToggle={setDialogToggle}
-                        options={options.formats} />
+                        options={options.formats}
+                />
             </Dialog>;
         },
-        resize: (id) => {
+        resize: (id, callback) => {
             return <Dialog
                 key={`${menuID}_dialog_resize`}
                 title={`Resize Image / Canvas`}
                 setToggle={setDialogToggle}>
                 <Resizer
                     id={id}
-                    setSize={id === canvas1.id ? setCanvas1 : setCanvas2}
-                    props={id === canvas1.id ? canvas1 : canvas2}
+                    setSize={id === panel1.id ? setPanel1 : setPanel2}
+                    props={id === panel1.id ? panel1 : panel2}
                     setToggle={setDialogToggle}
+                    callback={callback}
                 />
             </Dialog>;
         },
@@ -173,7 +179,7 @@ export const MenuIat = ({
                 key={`${menuID}_dialog_compare`}
                 title={`Image Comparison`}
                 setToggle={setDialogToggle}>
-                <Comparator images={[canvas1.dataURL, canvas2.dataURL]} />
+                <Comparator images={[panel1.dataURL, panel2.dataURL]} />
             </Dialog>;
         },
     };
@@ -209,22 +215,22 @@ export const MenuIat = ({
                     onMouseDown: selectControlPoint,
                     onMouseUp: deselectControlPoint,
                     onMouseMove: moveControlPoint,
-                    onMouseOut: deselectControlPoint
+                    onMouseOut: deselectControlPoint,
                 }));
             },
 
             // [transform] image alignment
             align: () => {
-                let result = alignImages(image1, image2, canvas1, canvas2, options);
+                let result = alignImages(image1, image2, panel1, panel2, options);
                 if (result.error) {
                     return setMessage(result.error);
                 }
                 setImage2(result.data);
-                setCanvas2(data => ({ ...data, dirty: true }));
+                setPanel2(data => ({ ...data, dirty: true }));
             },
             // upload new mastered image to library
             upload: () => {
-                setDialogToggle({ type: 'uploadImage', id: canvas2.id });
+                setDialogToggle({ type: 'uploadImage', id: panel2.id });
             },
             // compare images in comparator overlay
             compare: () => {
@@ -235,11 +241,11 @@ export const MenuIat = ({
                     return null;
                 }
                 // get data URL from canvas data
-                setCanvas1(data => ({ ...data, getURL: true }));
-                setCanvas2(data => ({ ...data, getURL: true }));
+                setPanel1(data => ({ ...data, getURL: true }));
+                setPanel2(data => ({ ...data, getURL: true }));
 
                 // open image comparator
-                setDialogToggle({ type: 'compareImages'});
+                setDialogToggle({ type: 'compareImages' });
             },
         };
         try {
@@ -252,7 +258,9 @@ export const MenuIat = ({
     };
 
     return <>
-        <UserMessage message={message} onClose={()=>{setMessage(null)}} />
+        <UserMessage message={message} onClose={() => {
+            setMessage(null);
+        }} />
         <div className={'canvas-menu-bar'}>
             <div className={'canvas-option-controls v-menu'}>
                 <ul>

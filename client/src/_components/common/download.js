@@ -8,6 +8,7 @@
 import React from 'react';
 import { saveAs } from 'file-saver';
 import { useRouter } from '../../_providers/router.provider.client';
+import { download } from '../../_services/api.services.client'
 import Button from './button';
 import Badge from './badge';
 
@@ -36,7 +37,7 @@ const Download = ({ type='', format='', label='', route=null }) => {
         try {
             setError(null);
             setLoading(true);
-            const res = await router.download(route, format);
+            const res = await download(route, format, router.online);
             console.log(res)
             if (!res || res.error) {
                 setLoading(false);

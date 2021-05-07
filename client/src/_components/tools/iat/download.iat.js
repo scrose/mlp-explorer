@@ -9,6 +9,33 @@ import React from 'react';
 import Button from '../../common/button';
 import Message from '../../common/message';
 import Input from '../../common/input';
+import { saveAs } from 'file-saver';
+
+/**
+ * Creates a Blob object representing the image contained in
+ * the canvas; this file may be cached on the disk or stored
+ * in memory at the discretion of the user agent. If type
+ * is not specified, the image type is image/png. The created
+ * image is in a resolution of 96dpi.
+ *
+ * @private
+ */
+
+export function save(layers, panel) {
+
+    // reject uninitialized elements
+    if (!layers.loaded()) return;
+    if (!panel.props.blobType) return false;
+
+    // create download filename
+    const filename = `${panel.props.id}.${panel.props.blobType.ext}`;
+    console.log('Saving to file ...', filename);
+
+    // save canvas blob as file to local disk (file-saver)
+    layers.render().toBlob((blob) => {
+        saveAs(blob, filename);
+    }, panel.props.blobType, panel.props.blobQuality);
+}
 
 /**
  * Defines download local file button. Expects callback to retrieve data

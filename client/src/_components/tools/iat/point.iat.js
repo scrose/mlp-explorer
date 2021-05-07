@@ -22,7 +22,7 @@ import { getError } from '../../../_services/schema.services.client';
 
 const ControlPoints = ({ layers, panel, pointer, trigger, options }) => {
     const enabled = options.mode === 'select';
-    const canvas = layers.control;
+    const canvas = layers.control();
     return <>
 
         {
@@ -113,11 +113,14 @@ export const moveControlPoint = (e,
                                  pointer,
                                  options) => {
 
+    // reject uninitialized elements
+    if (!layers.loaded()) return null;
+
     // proceed if mouse is down (selected point)
     if (!pointer.selected) return;
 
     // get the current mouse pointer position
-    const point = getPos(e, layers.control);
+    const point = getPos(e, layers.control());
     const x = point.x;
     const y = point.y;
 
@@ -140,7 +143,7 @@ export const createPointer = (canvas, props, setProps) => {
     return {
         x: props.x,
         y: props.y,
-        selected: props.select,
+        selected: props.selected,
         magnify: props.magnify,
         get: () => {
             return props;
@@ -188,10 +191,13 @@ export const selectControlPoint = (e,
                                    pointer,
                                    options) => {
 
+    // reject uninitialized elements
+    if (!layers.loaded()) return null;
+
     e.preventDefault();
 
     // get current cursor position
-    const pt = getPos(e, layers.control);
+    const pt = getPos(e, layers.control());
     const x = pt.x;
     const y = pt.y;
     const radius = 20;
@@ -220,7 +226,7 @@ export const selectControlPoint = (e,
         const pts = panel.pts.concat(pt);
         pointer.selected({ x: x, y: y, index: pts.length - 1 });
         panel.set('pts', pts);
-        drawControlPoints(layers.markup, pts);
+        drawControlPoints(layers.markup(), pts);
         return {};
     }
 };
@@ -266,7 +272,7 @@ export const deselectControlPoint = (e,
     // });
 
     // draw final control point
-    drawControlPoints(layers.markup, panel.pts);
+    drawControlPoints(layers.markup(), panel.pts);
     pointer.deselect();
 };
 

@@ -1,34 +1,38 @@
 /*!
- * MLP.Client.Components.Menus.Selector
- * File: selector.menu.js
+ * MLP.Client.Components.IAT.Load
+ * File: load.iat.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
 import React from 'react';
-import Accordion from '../common/accordion';
-import Button from '../common/button';
-import Image from '../common/image';
-import Input from '../common/input';
-import Message from '../common/message';
-import { sanitize, sorter } from '../../_utils/data.utils.client';
-import Table from '../common/table';
-import { useData } from '../../_providers/data.provider.client';
-import { initCanvas } from '../tools/iat/iat';
+import Accordion from '../../common/accordion';
+import Button from '../../common/button';
+import Image from '../../common/image';
+import Input from '../../common/input';
+import Message from '../../common/message';
+import { sanitize, sorter } from '../../../_utils/data.utils.client';
+import Table from '../../common/table';
+import { useData } from '../../../_providers/data.provider.client';
+import { initPanel } from './iat';
 
 /**
  * Image selector widget.
  *
  * @public
- * @param {Array} captures
- * @param {Function} setSelected
+ * @param {String} panelID
+ * @param {String} pandelLabel
+ * @param selection
+ * @param setToggle
+ * @param callback
  */
 
 export const ImageSelector = ({
-                                  canvasID,
+                                  panelID,
+                                  panelLabel='',
                                   selection={},
-                                  setSelected = () => {},
-                                  setToggle=()=>{}
+                                  setToggle=()=>{},
+                                  callback=()=>{}
                               }) => {
 
     const [selectedImage, setSelectedImage] = React.useState(null);
@@ -37,7 +41,7 @@ export const ImageSelector = ({
 
     // submit selection for canvas loading
     const _handleSubmit = () => {
-        setSelected(initCanvas(canvasID, selectedImage));
+        callback(initPanel(panelID, panelLabel, selectedImage));
         setToggle(false);
     }
 

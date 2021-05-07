@@ -7,7 +7,9 @@
 
 import React from 'react';
 import Button from '../../common/button';
-import { moveBy, scaleToFit } from './transform.iat';
+import { moveBy } from './transform.iat';
+import { erase, fit, reset } from './canvas.iat';
+import { loadImageData } from './load.iat';
 
 /**
  * No operation.
@@ -17,39 +19,29 @@ const noop = () => {
 };
 
 /**
- * Inline menu component to edit node items.
+ * Control menu for IAT panel.
  *
  * @public
- * @param {String} id
- * @param disabled
- * @param {Object} panel
- * @param trigger
+ * @param {boolean} disabled
+ * @param {Object} properties
  * @param pointer
  * @param options
- * @param {Function} setMessage
+ * @param source
+ * @param callback
  * @param setDialogToggle
  * @return {JSX.Element}
  */
 
-const CanvasControls = ({
-                            id = '',
-                            disabled = true,
-                            panel = {},
-                            trigger = {},
-                            pointer = {},
-                            options = {},
-                            setMessage = noop,
-                            setDialogToggle = noop,
-                        }) => {
+const PanelControls = ({
+                           disabled = true,
+                           properties = {},
+                           pointer = {},
+                           options = {},
+                           source = {},
+                           callback=noop,
+                           setDialogToggle = noop,
+                       }) => {
 
-    /**
-     * Handle errors.
-     */
-
-    const _handleError = (err) => {
-        console.warn(err);
-        setMessage(err);
-    };
 
     /**
      * Canvas methods.
@@ -57,75 +49,48 @@ const CanvasControls = ({
      * @return {JSX.Element}
      */
 
-        // fit image to base layer width
-    const _fit = () => {
-            const dims = scaleToFit(
-                panel.props.source_dims.x,
-                panel.props.source_dims.y,
-                panel.props.base_dims.x,
-            );
-            // update panel properties
-            panel.update({
-                offset: { x: 0, y: 0 },
-                data_dims: dims,
-                pts: [],
-            });
-            // trigger update
-            trigger.redraw();
-            trigger.erase();
-        };
-
     // expand to full-sized image
     const _expand = () => {
         // update panel properties
-        panel.update({
-            data_dims: {
-                x: Math.min(panel.props.source_dims.x, panel.props.base_dims.x),
-                y: Math.min(panel.props.source_dims.y, panel.props.base_dims.y),
-            },
-            pts: [],
-        });
-        // trigger update
-        trigger.redraw();
-        trigger.erase();
-        trigger.reset();
+        return {
+            data: {
+                data_dims: {
+                    x: Math.min(properties.source_dims.x, properties.base_dims.x),
+                    y: Math.min(properties.source_dims.y, properties.base_dims.y),
+                },
+                pts: []
+            }
+        };
     };
 
     // show image / canvas resize options
     const _resize = () => {
-        setDialogToggle({ type: 'resize', id: panel.id });
+        setDialogToggle({ type: 'resize', id: properties.id });
     };
 
     // erase markup
     const _erase = () => {
-        trigger.erase();
-        panel.set('pts', []);
+        callback({ data: { 'pts': []} });
     };
 
     // reset the image data to source
     const _reset = () => {
-        panel.update({
-            render_dims: panel.props.source_dims,
-            data_dims: {
-                x: Math.min(panel.props.source_dims.x, panel.props.base_dims.x),
-                y: Math.min(panel.props.source_dims.y, panel.props.base_dims.y),
-            },
-            offset: { x: 0, y: 0 },
-            move: { x: 0, y: 0 },
-            origin: { x: 0, y: 0 },
-            pts: [],
-        });
-        trigger.reset();
+        reset(properties, source, options).catch(callback);
     };
 
     // load new image to panel
     const _load = () => {
-        setDialogToggle({ type: 'selectImage', id: panel.id });
+        setDialogToggle({
+            type: 'selectImage',
+            id: properties.id,
+            label: properties.label,
+            callback: (data) => {loadImageData(data, callback).catch(callback)}
+        });
     };
 
     // save image data as file
     const _save = () => {
-        setDialogToggle({ type: 'saveImage', id: panel.id });
+        setDialogToggle({ type: 'saveImage', id: properties.id });
     };
 
 
@@ -159,7 +124,7 @@ const CanvasControls = ({
                     disabled={disabled}
                     icon={'compress'}
                     title={'Scale image to fit canvas.'}
-                    onClick={_fit}
+                    onClick={()=>{fit(properties, callback).catch(callback)}}
                 /></li>
                 <li><Button
                     disabled={disabled}
@@ -204,7 +169,7 @@ const CanvasControls = ({
         </div>
     </>;
 };
-export default CanvasControls;
+export default PanelControls;
 
 /**
  * Filter input key presses for image methods.
@@ -215,33 +180,33 @@ export default CanvasControls;
  */
 
 export const filterKeyDown = (e,
-                              layers,
-                              panel,
+                              properties,
                               trigger,
                               pointer,
                               options) => {
+
     const { keyCode = '' } = e || {};
     const _methods = {
         // move canvas left 1 pixel
         37: () => {
-            moveBy(e, panel, trigger, -1, 0);
+            moveBy(e, properties, trigger, -1, 0);
         },
         // move canvas right 1 pixel
         39: () => {
-            moveBy(e, panel, trigger, 1, 0);
+            moveBy(e, properties, trigger, 1, 0);
         },
         // move canvas up 1 pixel
         40: () => {
-            moveBy(e, panel, trigger, 0, 1);
+            moveBy(e, properties, trigger, 0, 1);
         },
         // move canvas down 1 pixel
         38: () => {
-            moveBy(e, panel, trigger, 0, -1);
+            moveBy(e, properties, trigger, 0, -1);
         },
         // enable magnifier
         32: () => {
             pointer.magnifyOn();
-        }
+        },
     };
     return _methods.hasOwnProperty(keyCode)
         ? _methods[keyCode]()
@@ -257,17 +222,16 @@ export const filterKeyDown = (e,
  */
 
 export const filterKeyUp = (e,
-                            layers,
-                            panel,
-                            trigger,
+                            properties,
                             pointer,
                             options) => {
+
     const { keyCode = '' } = e || [];
     const _methods = {
         // disable magnifier
         32: () => {
             pointer.magnifyOff();
-        }
+        },
     };
     return _methods.hasOwnProperty(keyCode)
         ? _methods[keyCode]()

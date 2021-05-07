@@ -12,7 +12,7 @@ import { createNodeRoute, getQuery } from '../../../_utils/paths.utils.client';
 import { useRouter } from '../../../_providers/router.provider.client';
 import { moveAt, moveStart, moveEnd } from './transform.iat';
 import { UserMessage } from '../../common/message';
-import { filterKeyDown, filterKeyUp } from './canvas.controls.iat';
+import { filterKeyDown, filterKeyUp } from './panel.controls.iat';
 
 /**
  * Default settings.
@@ -56,8 +56,8 @@ const Iat = () => {
     });
 
     // Panel properties
-    const [panel1Data, setPanel1Data] = React.useState(initCanvas(panel1ID, input1));
-    const [panel2Data, setPanel2Data] = React.useState(initCanvas(panel2ID, input2));
+    const [panel1Data, setPanel1Data] = React.useState(initPanel(panel1ID, panel1Label, input1));
+    const [panel2Data, setPanel2Data] = React.useState(initPanel(panel2ID, panel2Label, input2));
 
     // renderable image data state
     const [img1Data, setImg1Data] = React.useState(null);
@@ -87,10 +87,6 @@ const Iat = () => {
         {x: 0, y:0, cX: 0, cY: 0, selected: null, magnify: false});
     const [pointer2Props, setPointer2Props] = React.useState(
         {x: 0, y:0, cX: 0, cY: 0, selected: null, magnify: false});
-
-    // initialize panel trigger event data
-    const [triggerPanel1, setTriggerPanel1] = React.useState(0);
-    const [triggerPanel2, setTriggerPanel2] = React.useState(0);
 
     // get query parameter for master option
     // - must correspond to a modern image file ID
@@ -127,7 +123,7 @@ const Iat = () => {
                         // get capture data (if available)
                         const { historic_captures = [], modern_capture = {} } = data || {};
                         setSelection(historic_captures);
-                        setPanel2Data(initCanvas(panel2ID, modern_capture));
+                        setPanel2Data(initPanel(panel2ID, panel2Label, modern_capture));
 
                     }
                 });
@@ -153,8 +149,6 @@ const Iat = () => {
                 setProperties={setPanel1Data}
                 inputImage={img1Data}
                 setInputImage={setImg1Data}
-                trigger={triggerPanel1}
-                setTrigger={setTriggerPanel1}
                 pointerProps={pointer1Props}
                 setPointer={setPointer1Props}
                 setMessage={setMessage}
@@ -170,14 +164,10 @@ const Iat = () => {
                 hidden={panel1Data.hidden}
             />
             <MenuIat
-                trigger1={triggerPanel1}
-                setTrigger1={setTriggerPanel1}
-                trigger2={triggerPanel2}
-                setTrigger2={setTriggerPanel2}
-                canvas1={panel1Data}
-                setCanvas1={setPanel1Data}
-                canvas2={panel2Data}
-                setCanvas2={setPanel2Data}
+                panel1={panel1Data}
+                setPanel1={setPanel1Data}
+                panel2={panel2Data}
+                setPanel2={setPanel2Data}
                 image1={img1Data}
                 setImage1={setImg1Data}
                 image2={img2Data}
@@ -195,8 +185,6 @@ const Iat = () => {
                 options={options}
                 properties={panel2Data}
                 setProperties={setPanel2Data}
-                trigger={triggerPanel2}
-                setTrigger={setTriggerPanel2}
                 pointerProps={pointer2Props}
                 setPointer={setPointer2Props}
                 inputImage={img2Data}
@@ -221,13 +209,14 @@ export default React.memo(Iat);
 
 
 /**
- * Initialize input data.
- * @param canvasID
+ * Initialize IAT panel properties.
+ * @param panelID
+ * @param panelLabel
  * @param inputData
  * @return {Object} default properties
  */
 
-export const initCanvas = (canvasID, inputData = null) => {
+export const initPanel = (panelID, panelLabel='', inputData = null) => {
 
     // Destructure input data
     const {
@@ -246,7 +235,9 @@ export const initCanvas = (canvasID, inputData = null) => {
     };
 
     return {
-        id: canvasID,
+        redraw: false,
+        id: panelID,
+        label: panelLabel,
         offset: { x: 0, y: 0 },
         move: { x: 0, y: 0 },
         origin: { x: 0, y: 0 },
