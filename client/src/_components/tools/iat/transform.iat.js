@@ -9,7 +9,7 @@
 import { getError } from '../../../_services/schema.services.client';
 import * as matrix from '../../../_utils/matrix.utils.client';
 import { homography } from '../../../_utils/matrix.utils.client';
-import { getPos } from './point.iat';
+import { getPos } from './pointer.iat';
 
 /**
  * Transform images data for alignment.
@@ -23,7 +23,7 @@ import { getPos } from './point.iat';
  * @param callback
  */
 
-export const alignImages = (imgData1, imgData2, canvas1, canvas2, options) => {
+export const alignImages = (imgData1, imgData2, canvas1, canvas2, options, callback) => {
 
     if (!imgData1 || !imgData2) {
         return { data: null, error: { msg: getError('emptyCanvas', 'canvas') } };
@@ -77,22 +77,12 @@ export const scaleToFit = (x_dim, y_dim, maxWidth) => {
  *
  * @public
  * @param e
- * @param layers
- * @param panel
+ * @param properties
  * @param options
  * @param pointer
  */
 
-export function moveStart(e,
-                          layers,
-                          panel,
-                          pointer,
-                          options) {
-
-    // reject uninitialized elements
-    if (!layers.loaded()) return null;
-
-    console.log(pointer)
+export function moveStart(e, properties, pointer, options) {
 
     // select current mouse position
     pointer.select(e);
@@ -101,20 +91,12 @@ export function moveStart(e,
 /**
  * Update canvas offset by cursor position
  * @param e
- * @param layers
- * @param panel
+ * @param properties
  * @param pointer
  * @param options
  */
 
-export function moveAt(e,
-                       layers,
-                       panel,
-                       pointer,
-                       options) {
-
-    // reject uninitialized elements
-    if (!layers.loaded()) return null;
+export function moveAt(e, properties, pointer, options) {
 
     // check that mouse start position was selected
     if (!pointer.selected) return;
@@ -122,15 +104,14 @@ export function moveAt(e,
     e.preventDefault();
 
     // get current mouse position
-    const pos = getPos(e, layers.control());
+    const pos = getPos(e);
     // only update move if position is positive
     if (pos.x > 0 && pos.y > 0) {
         const newOffset = {
-            x: panel.props.offset.x + Math.sign(pos.x - panel.props.move.x),
-            y: panel.props.offset.y + Math.sign(pos.y - panel.props.move.y),
+            x: properties.offset.x + Math.sign(pos.x - properties.move.x),
+            y: properties.offset.y + Math.sign(pos.y - properties.move.y),
         };
-        panel.update({ offset: newOffset, move: pos });
-        return { data: null, error: null, redraw:true }
+        return { data: { offset: newOffset, move: pos }, redraw:true }
     }
 }
 
@@ -140,39 +121,33 @@ export function moveAt(e,
  *
  * @public
  * @param e
- * @param layers
- * @param panel
+ * @param properties
  * @param options
  * @param pointer
  */
 
-export function moveEnd(e,
-                        layers,
-                        panel,
-                        pointer,
-                        options,) {
+export function moveEnd(e, properties, pointer, options) {
     pointer.reset();
 }
 
 /**
  * Update canvas offset by dx/dy
  * @param e
- * @param layers
- * @param panel
+ * @param properties
  * @param dx
  * @param dy
  */
 
-export function moveBy(e, layers, panel, dx = 0, dy = 0) {
+export function moveBy(e, properties, dx = 0, dy = 0) {
     e.preventDefault();
-    console.log(layers, panel, dx, dy)
-    panel.update({
-        offset: {
-            x: panel.props.offset.x + dx,
-            y: panel.props.offset.y + dy,
-        },
-    });
-    redraw(layers, panel);
+    return {
+        data: {
+            offset: {
+                x: properties.offset.x + dx,
+                y: properties.offset.y + dy
+            }
+        }
+    }
 }
 
 /**

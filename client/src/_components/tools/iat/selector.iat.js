@@ -1,6 +1,6 @@
 /*!
  * MLP.Client.Components.IAT.Load
- * File: load.iat.js
+ * File: loader.iat.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -10,7 +10,7 @@ import Accordion from '../../common/accordion';
 import Button from '../../common/button';
 import Image from '../../common/image';
 import Input from '../../common/input';
-import Message from '../../common/message';
+import Message, { UserMessage } from '../../common/message';
 import { sanitize, sorter } from '../../../_utils/data.utils.client';
 import Table from '../../common/table';
 import { useData } from '../../../_providers/data.provider.client';
@@ -29,10 +29,12 @@ import { initPanel } from './iat';
 
 export const ImageSelector = ({
                                   panelID,
-                                  panelLabel='',
-                                  selection={},
-                                  setToggle=()=>{},
-                                  callback=()=>{}
+                                  panelLabel = '',
+                                  selection = {},
+                                  setToggle = () => {
+                                  },
+                                  callback = () => {
+                                  },
                               }) => {
 
     const [selectedImage, setSelectedImage] = React.useState(null);
@@ -43,7 +45,7 @@ export const ImageSelector = ({
     const _handleSubmit = () => {
         callback(initPanel(panelID, panelLabel, selectedImage));
         setToggle(false);
-    }
+    };
 
     // update selected image file for canvas loading
     const _handleChange = (e) => {
@@ -56,10 +58,10 @@ export const ImageSelector = ({
         }
 
         // Get requested image file
-        const {target={}} = e || {};
+        const { target = {} } = e || {};
 
         // get metadata (for capture images)
-        const { files_id={} } = selectedImage || {};
+        const { files_id = {} } = selectedImage || {};
 
         // get local file data
         const file = target.files[0];
@@ -76,11 +78,10 @@ export const ImageSelector = ({
                 filename: file.name,
                 fileData: target.files[0],
             });
+        } else {
+            setError(`Image format ${file.type} is not supported.`);
         }
-        else {
-            setError(`Image format ${file.type} is not supported.`)
-        }
-    }
+    };
 
     // get name from file
     const selectedFile = selectedImage && selectedImage.hasOwnProperty('filename')
@@ -90,7 +91,7 @@ export const ImageSelector = ({
     return <>
         {
             <Accordion label={'Select Image'} type={'image'} open={true}>
-                <Message closeable={false} message={{ msg: error, type: 'error' }} />
+                <Message closeable={false} message={{ msg: error, type: 'error' }}/>
                 <Input
                     type={'file'}
                     name={'image_file'}
@@ -110,16 +111,31 @@ export const ImageSelector = ({
             </Accordion>
         }
         {
-            selectedImage &&
-            <fieldset className={'submit'}>
-                <Message
-                    closeable={false}
-                    message={{ msg: `Image ${selectedFile} selected.`, type: 'info' }}
-                />
-                <Button
-                    label={'Load Image'}
-                    onClick={_handleSubmit}
-                />
+            <fieldset className={'submit h-menu'}>
+                {
+                    selectedImage &&
+                    <UserMessage
+                        closeable={false}
+                        message={{ msg: `Image ${selectedFile} selected.`, type: 'info' }}
+                    />
+                }
+                <ul>
+                    {
+                        selectedImage &&
+                        <li key={'submit_selector'}><Button
+                            label={'Load Image'}
+                            onClick={_handleSubmit}
+                        /></li>
+                    }
+                    <li key={'cancel_selector'}>
+                        <Button
+                            label={'Cancel'}
+                            onClick={() => {
+                                setToggle(false);
+                            }}
+                        />
+                    </li>
+                </ul>
             </fieldset>
         }
     </>;
@@ -135,7 +151,7 @@ export const ImageSelector = ({
  * @param onSubmit
  */
 
-export const CaptureSelector = ({selection, setSelectedImage, onSubmit}) => {
+export const CaptureSelector = ({ selection, setSelectedImage, onSubmit }) => {
 
     const [tabIndex, setTabIndex] = React.useState(0);
     const [imageIndex, setImageIndex] = React.useState(0);
@@ -151,7 +167,7 @@ export const CaptureSelector = ({selection, setSelectedImage, onSubmit}) => {
         setImageIndex(id);
         setCaptureIndex(tabIndex);
         setSelectedImage(data);
-    }
+    };
 
     return <div className={`tab h-menu`}>
         <div className={`v-menu`}>
@@ -186,8 +202,8 @@ export const CaptureSelector = ({selection, setSelectedImage, onSubmit}) => {
                 />
             </div>
         </div>
-    </div>
-}
+    </div>;
+};
 
 /**
  * Image selector widget.
@@ -200,32 +216,35 @@ export const CaptureSelector = ({selection, setSelectedImage, onSubmit}) => {
 export const CaptureImagesSelector = ({
                                           files,
                                           imageIndex,
-                                          onClick=()=>{},
-                                          onDblClick=()=>{}}) => {
+                                          onClick = () => {
+                                          },
+                                          onDblClick = () => {
+                                          },
+                                      }) => {
 
     const api = useData();
 
     // prepare capture images columns
     const cols = [
-        { name: 'thumbnail', label: 'Image', class: 'image-thumbnail'},
-        { name: 'image_state', label: 'State'},
-        { name: 'width', label: 'Width'},
-        { name: 'height', label: 'Height'},
-        { name: 'file_size', label: 'File Size'}
+        { name: 'thumbnail', label: 'Image', class: 'image-thumbnail' },
+        { name: 'image_state', label: 'State' },
+        { name: 'width', label: 'Width' },
+        { name: 'height', label: 'Height' },
+        { name: 'file_size', label: 'File Size' },
     ];
 
     // prepare capture image data rows
     const rows = files.map(fileData => {
-        const { file={}, metadata={}, url={}, filename='' } = fileData || {};
-        const { id={} } = file || {};
-        const { image_states=[] } = api.options || {};
+        const { file = {}, metadata = {}, url = {}, filename = '' } = fileData || {};
+        const { id = {} } = file || {};
+        const { image_states = [] } = api.options || {};
         // select image state label for value (if available)
         const imageState = image_states.find(opt => opt.value === metadata.image_state);
         const rows = {
             thumbnail: <label
-                className={imageIndex ===  id ? 'active' : ''}
+                className={imageIndex === id ? 'active' : ''}
                 key={`label_selection`}
-                htmlFor={ id}
+                htmlFor={id}
             >
                 <input
                     readOnly={true}
@@ -234,7 +253,9 @@ export const CaptureImagesSelector = ({
                     name={'historic_captures'}
                     id={id}
                     value={id}
-                    onClick={() => {onClick( id, fileData)}}
+                    onClick={() => {
+                        onClick(id, fileData);
+                    }}
                 >
                 </input>
                 <Image
@@ -242,14 +263,16 @@ export const CaptureImagesSelector = ({
                     scale={'thumb'}
                     title={`Select ${filename || ''}.`}
                     label={filename}
-                    onClick={() => {onClick(id, fileData)}}
+                    onClick={() => {
+                        onClick(id, fileData);
+                    }}
                     onDoubleClick={onDblClick}
                 />
             </label>,
             image_state: imageState && imageState.hasOwnProperty('label') ? imageState.label : 'n/a',
             width: sanitize(metadata.x_dim, 'imgsize'),
             height: sanitize(metadata.y_dim, 'imgsize'),
-            file_size: sanitize(file.file_size, 'filesize')
+            file_size: sanitize(file.file_size, 'filesize'),
         };
         // include file size in metadata
         metadata.file_size = file.file_size;
@@ -258,8 +281,8 @@ export const CaptureImagesSelector = ({
     });
 
     return <>
-        <Table rows={rows} cols={cols} className={'files'} />
-    </>
-}
+        <Table rows={rows} cols={cols} className={'files'}/>
+    </>;
+};
 
 

@@ -21,20 +21,17 @@ import { saveAs } from 'file-saver';
  * @private
  */
 
-export function save(layers, panel) {
+export const downloader = async (id, canvas, format) => {
 
-    // reject uninitialized elements
-    if (!layers.loaded()) return;
-    if (!panel.props.blobType) return false;
-
-    // create download filename
-    const filename = `${panel.props.id}.${panel.props.blobType.ext}`;
+    console.log(format)
+    const filename = `${id}.${format.ext}`;
     console.log('Saving to file ...', filename);
 
     // save canvas blob as file to local disk (file-saver)
-    layers.render().toBlob((blob) => {
+    canvas.toBlob((blob) => {
+        console.log(blob)
         saveAs(blob, filename);
-    }, panel.props.blobType, panel.props.blobQuality);
+    }, format.type, format.quality);
 }
 
 /**
@@ -45,7 +42,7 @@ export function save(layers, panel) {
  * @return {JSX.Element}
  */
 
-export const SaveAs = ({ options = [], setSelected=()=>{}, setToggle=()=>{} }) => {
+export const SaveAs = ({ options = [], setToggle=()=>{}, callback=()=>{} }) => {
 
     const [format, setFormat] = React.useState(null);
 
@@ -56,18 +53,18 @@ export const SaveAs = ({ options = [], setSelected=()=>{}, setToggle=()=>{} }) =
         const opt = options.find(opt => value === opt.value);
         setFormat({
             type: value,
-            ext: opt ? opt.label : null
+            ext: opt ? opt.label : null,
+            quality: 0.95
         });
     };
 
     // Handler for file save as request.
     // - set canvas properties for file save
     const _handleDownload = () => {
-        setSelected(data => ({
-            ...data,
-            save: true,
-            blobType: format
-        }));
+        callback({
+            status: 6,
+            props: format
+        });
         setToggle(false);
     };
 

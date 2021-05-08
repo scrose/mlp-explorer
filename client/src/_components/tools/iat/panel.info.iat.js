@@ -4,6 +4,7 @@
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
+
 import { useRouter } from '../../../_providers/router.provider.client';
 import { createNodeRoute } from '../../../_utils/paths.utils.client';
 import { getModelLabel } from '../../../_services/schema.services.client';
@@ -20,30 +21,21 @@ import React from 'react';
  * @public
  */
 
-const CanvasInfo = ({ panel, pointer, status }) => {
+const PanelInfo = ({ properties, pointer, status }) => {
 
     // if capture image: provide link to metadata
     const router = useRouter();
-    const captureRoute = createNodeRoute('modern_captures', 'show', panel.props.owner_id);
+    const captureRoute = createNodeRoute('modern_captures', 'show', properties.owner_id);
 
-    return <div id={`canvas-view-${panel.id}-footer`} className={'canvas-view-info'}>
+    return <div id={`canvas-view-${properties.id}-footer`} className={'canvas-view-info'}>
         <table>
             <tbody>
             <tr>
                 <th>File</th>
                 <td colSpan={3}>
-                    <span>{
-                        panel.props.filename ? panel.props.filename : '<Not loaded>'}</span>
+                    <span>{properties.filename ? properties.filename : 'not loaded'}</span>
                     {
-                        panel.props.file_type &&
-                        <span>{
-                            panel.props.files_id
-                                ? ` (${getModelLabel(panel.props.file_type)})`
-                                : ` (${panel.props.file_type})`
-                        }</span>
-                    }
-                    {
-                        panel.props.owner_id && panel.props.owner_id &&
+                        properties.owner_id && properties.owner_id &&
                         <Button icon={'captures'} onClick={() => {
                             router.update(captureRoute);
                         }} />
@@ -57,28 +49,32 @@ const CanvasInfo = ({ panel, pointer, status }) => {
                 <td>({pointer.x}, {pointer.y})</td>
             </tr>
             <tr>
-                <th>Edit</th>
-                <td>({panel.props.data_dims.x}, {panel.props.data_dims.y})</td>
-                <th>Canvas</th>
-                <td>({panel.props.base_dims.x}, {panel.props.base_dims.y})</td>
-            </tr>
-            <tr>
                 <th>Origin</th>
-                <td>({panel.props.origin.x}, {panel.props.origin.y})</td>
+                <td>({properties.origin.x}, {properties.origin.y})</td>
                 <th>Offset</th>
-                <td>({Math.floor(panel.props.offset.x)}, {Math.floor(panel.props.offset.y)})</td>
+                <td>({Math.floor(properties.offset.x)}, {Math.floor(properties.offset.y)})</td>
             </tr>
             <tr>
+                <th>Crop</th>
+                <td>[{properties.data_dims.x}, {properties.data_dims.y}]</td>
+                <th>Render</th>
+                <td>[{properties.render_dims.x}, {properties.render_dims.y}]</td>
+            </tr>
+            <tr>
+                <th>Canvas</th>
+                <td>[{properties.base_dims.x}, {properties.base_dims.y}]</td>
                 <th>Image</th>
-                <td>
-                    ({panel.props.source_dims.x}, {panel.props.source_dims.y})
-                </td>
+                <td>[{properties.source_dims.x}, {properties.source_dims.y}]</td>
+            </tr>
+            <tr>
+                <th>File Type</th>
+                <td>{properties.files_id ? getModelLabel(properties.file_type) : properties.file_type}</td>
                 <th>Size</th>
-                <td colSpan={3}>{sanitize(panel.props.file_size, 'filesize')}</td>
+                <td colSpan={3}>{sanitize(properties.file_size, 'filesize')}</td>
             </tr>
             </tbody>
         </table>
     </div>;
 };
 
-export default CanvasInfo;
+export default PanelInfo;

@@ -8,8 +8,8 @@
 import React from 'react';
 import Button from '../../common/button';
 import { moveBy } from './transform.iat';
-import { erase, fit, reset } from './canvas.iat';
-import { loadImageData } from './load.iat';
+import { erase, expand, fit, reset } from './canvas.iat';
+import { loadImageData } from './loader.iat';
 
 /**
  * No operation.
@@ -49,33 +49,11 @@ const PanelControls = ({
      * @return {JSX.Element}
      */
 
-    // expand to full-sized image
-    const _expand = () => {
-        // update panel properties
-        return {
-            data: {
-                data_dims: {
-                    x: Math.min(properties.source_dims.x, properties.base_dims.x),
-                    y: Math.min(properties.source_dims.y, properties.base_dims.y),
-                },
-                pts: []
-            }
-        };
-    };
 
-    // show image / canvas resize options
-    const _resize = () => {
-        setDialogToggle({ type: 'resize', id: properties.id });
-    };
 
     // erase markup
     const _erase = () => {
         callback({ data: { 'pts': []} });
-    };
-
-    // reset the image data to source
-    const _reset = () => {
-        reset(properties, source, options).catch(callback);
     };
 
     // load new image to panel
@@ -86,11 +64,6 @@ const PanelControls = ({
             label: properties.label,
             callback: (data) => {loadImageData(data, callback).catch(callback)}
         });
-    };
-
-    // save image data as file
-    const _save = () => {
-        setDialogToggle({ type: 'saveImage', id: properties.id });
     };
 
 
@@ -106,31 +79,51 @@ const PanelControls = ({
                     icon={'save'}
                     disabled={disabled}
                     title={'Save image file.'}
-                    onClick={_save}
+                    onClick={() => {
+                        setDialogToggle({
+                            type: 'saveImage',
+                            id: properties.id,
+                            callback: callback
+                        });
+                    }}
                 /></li>
                 <li><Button
                     disabled={disabled}
                     icon={'resize'}
                     title={'Resize Image / Canvas.'}
-                    onClick={_resize}
+                    onClick={() => {
+                        setDialogToggle({
+                            type: 'resize',
+                            id: properties.id,
+                            callback: callback
+                        });
+                    }}
                 /></li>
                 <li><Button
                     disabled={disabled}
                     icon={'undo'}
                     title={'Reset to original image.'}
-                    onClick={_reset}
+                    onClick={() => {
+                        // reset the image data to source
+                        reset(properties, options, callback).catch(callback)}
+                    }
                 /></li>
                 <li><Button
                     disabled={disabled}
                     icon={'compress'}
                     title={'Scale image to fit canvas.'}
-                    onClick={()=>{fit(properties, callback).catch(callback)}}
+                    onClick={()=>{
+                        fit(properties, callback).catch(callback)}
+                    }
                 /></li>
                 <li><Button
                     disabled={disabled}
                     icon={'enlarge'}
                     title={'Show full-sized image in canvas.'}
-                    onClick={_expand}
+                    onClick={()=>{
+                        expand(properties, callback).catch(callback)
+                    }
+                    }
                 /></li>
                 <li><Button
                     disabled={disabled}

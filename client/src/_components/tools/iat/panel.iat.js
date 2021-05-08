@@ -9,12 +9,11 @@ import React from 'react';
 import Button from '../../common/button';
 import { schema } from '../../../schema';
 import PanelControls from './panel.controls.iat';
-import { initPanel } from './iat';
-import CanvasInfo from './panel.info.iat';
-import ControlPoints, { createPointer } from './point.iat';
+import PanelInfo from './panel.info.iat';
+import ControlPoints, { usePointer } from './pointer.iat';
 import Magnifier from './magnify.iat';
-import { loadCanvas, loadImageData, loadRenderLayer, toImageData } from './load.iat';
-import { useRenderCanvas } from './canvas.iat';
+import { loadImageData } from './loader.iat';
+import { downloader } from './downloader.iat';
 
 /**
  * No operation.
@@ -37,7 +36,6 @@ const noop = () => {
  * @param properties
  * @param setProperties
  * @param trigger
- * @param pointerProps
  * @param setMessage
  * @param setDialogToggle
  * @param onClick
@@ -56,12 +54,10 @@ export const PanelIat = ({
                              label = '',
                              hidden = false,
                              options = {},
-                             inputImage = null,
-                             setInputImage = noop,
                              properties = {},
                              setProperties = noop,
-                             pointerProps = {},
-                             setPointer = noop,
+                             inputImage = null,
+                             setInputImage = noop,
                              onClick = noop,
                              onMouseUp = noop,
                              onMouseDown = noop,
@@ -74,70 +70,70 @@ export const PanelIat = ({
                              setDialogToggle = noop,
                          }) => {
 
+    const _isMounted = React.useRef(false);
+
     // create DOM references
     // - canvas consists of three layers (from top):
     // -- control layer to handle user events
     // -- markup layer to annotate image data
     // -- edit layer to display transformed image data
     // -- base layer
-    const controlLayerRef = React.useRef(null);
-    const markupLayerRef = React.useRef(null);
-    const dataLayerRef = React.useRef(null);
-    // const renderLayerRef = React.useRef(null);
-    const baseLayerRef = React.useRef(null);
+    const controlCanvasRef = React.useRef(null);
+    const markupCanvasRef = React.useRef(null);
+    const dataCanvasRef = React.useRef(null);
+    const renderCanvasRef = React.useRef(null);
+    const baseCanvasRef = React.useRef(null);
 
     // source image data state (used for images referenced by URLs)
     const imgRef = React.useRef(null);
 
-    // create layers objects
-    const layers = {
-        control: () => { return controlLayerRef.current},
-        markup: () => { return markupLayerRef.current},
-        data: () => { return dataLayerRef.current},
-        base: () => { return baseLayerRef.current},
-        image: () => { return imgRef.current},
-        loaded: () => {return !!baseLayerRef.current}
-    };
-
-    const [renderLayerRef, imgData] = useRenderCanvas(inputImage);
-
     // loading status state
-    const statusLabel = ['Empty', 'Loading', 'Redraw', 'Loaded', 'Error'];
-    const _EMPTY = 0, _LOADING = 1, _REDRAW = 2, _LOADED = 3, _ERROR = 4;
-    const [status, setStatus] = React.useState(_EMPTY);
+    const statusLabel = ['Empty', 'Load', 'Redraw', 'Reset', 'Loading', 'Loaded', 'Save', 'Error'];
+    const _EMPTY = 0, _LOAD = 1, _REDRAW = 2, _RESET = 3, _LOADING = 4, _LOADED = 5, _SAVE = 6, _ERROR = 7;
+    const [_status, _setStatus] = React.useState(_EMPTY);
 
     // internal image data source
     // - used to reset canvas data
-    const [source, setSource] = React.useState(null);
-    const [imgSrc, setImgSrc] = React.useState(null);
+    const [_source, _setSource] = React.useState(null);
 
     /**
      * Create pointer.
      */
 
-    const pointer = createPointer(controlLayerRef.current, pointerProps, setPointer);
-
-    /**
-     * Create wrapper for panel properties operations
-     */
-
-    const panel = createPanel(properties, setProperties);
+    const pointer = usePointer(properties);
 
     /**
      * Handle file processing and input control responses.
      */
 
     const _callback = (response) => {
-        const {error='', data=null, props={}, src=null} = response || {};
+        const {
+            error = null,
+            data = null,
+            props = null,
+            status = 0
+        } = response || {};
         if (error || response.hasOwnProperty('message')) {
             console.warn(error);
-            setMessage(error)
-            setStatus(_ERROR);
-            return
+            setMessage(error);
+            _setStatus(_ERROR);
+            return;
         }
-        if (props) panel.update(props);
-        if (data) setInputImage(data);
-        if (src) setImgSrc(src);
+        // update local states
+        if (status === _LOAD) {setInputImage(data)}
+        if (status === _LOAD) {_setSource(data)}
+        if (status === _RESET) {setInputImage(_source)}
+        if (status === _SAVE) { downloader(id, renderCanvasRef.current, props).catch(console.error) }
+        if (status === _REDRAW || status === _LOAD || status === _RESET) {
+            setProperties(data => (
+                Object.keys(props).reduce((o, key) => {
+                    o[key] = props[key];
+                    return o;
+                }, data)),
+            );
+            _setStatus(_REDRAW)
+        }
+
     };
 
     /**
@@ -146,7 +142,6 @@ export const PanelIat = ({
      */
 
     const _handleEvent = (e, _handler) => {
-        //setStatus(_LOADING);
         const { data = {}, error = '' } = _handler(
             e,
             properties,
@@ -240,41 +235,120 @@ export const PanelIat = ({
             id: id,
             label: label,
             callback: (data) => {
-                setStatus(_LOADING);
-                loadImageData(_callback, data).catch(_callback)
-            } });
+                loadImageData(data, _callback).catch(_callback);
+            },
+        });
     };
 
     React.useEffect(() => {
+        _isMounted.current = true;
 
-        // reject uninitialized elements
-        if (!properties.redraw) return;
-        if (!dataLayerRef.current || !renderLayerRef.current) return;
+        // convenience method for updating panel properties
+        const _updateProps = (props) => {
+            setProperties(data => (
+                Object.keys(props).reduce((o, key) => {
+                    o[key] = props[key];
+                    return o;
+                }, data)),
+            );
+        };
 
-        const dataCanvas = dataLayerRef.current;
-        const renderCanvas = renderLayerRef.current;
+        // reject if uninitialized DOM
+        if (!dataCanvasRef.current || !renderCanvasRef.current) return;
 
+        // redraw conditions
+        if (_isMounted.current && _status === _REDRAW) {
 
-        // console.log(properties, inputImage)
+            // set status to loading
+            _setStatus(_LOADING);
 
-        console.log('Redraw!')
+            /**
+             * Redraws image data to canvas
+             * Note: Scale sets new data canvas dimensions
+             * - dx
+             *   The x-axis coordinate in the destination canvas at which to place the top-left
+             *   corner of the source image.
+             * - dy
+             *   The y-axis coordinate in the destination canvas at which to place the top-left
+             *   corner of the source image.
+             * - dWidth
+             *   The width to draw the image in the destination canvas. This allows scaling of the
+             *   drawn image. If not specified, the image is not scaled in width when drawn.
+             * - dHeight
+             *   The height to draw the image in the destination canvas. This allows scaling of
+             *   the drawn image. If not specified, the image is not scaled in height when drawn.
+             *
+             * @private
+             */
 
-        // get data layer dims (upper limit is the base canvas)
-        const dWidth = Math.min(properties.data_dims.x, properties.base_dims.x);
-        const dHeight = Math.min(properties.data_dims.y, properties.base_dims.y);
+            try {
 
-        // clear data layer canvas
-        const ctx = dataCanvas.getContext('2d');
-        ctx.clearRect(0, 0, dataCanvas.width, dataCanvas.height);
+                console.log(statusLabel[_status]);
 
-        // draw image to data layer canvas
-        //ctxData.imageSmoothingQuality = 'high';
-        ctx.drawImage(renderCanvas, properties.offset.x, properties.offset.y, dWidth, dHeight);
+                // get canvases
+                const dataCanvas = dataCanvasRef.current;
+                const renderCanvas = renderCanvasRef.current;
 
-        panel.set('redraw', false);
-        setStatus(_LOADED)
+                // clear render canvas
+                const rctx = renderCanvas.getContext('2d');
+                rctx.clearRect(0, 0, renderCanvas.width, renderCanvas.height);
+                renderCanvas.width = properties.render_dims.x;
+                renderCanvas.height = properties.render_dims.y;
 
-    }, [status, inputImage, dataLayerRef, renderLayerRef, properties, setStatus]);
+                // load data to render layer
+                // - Image DOM element: drawImage
+                // - ImageData object: putImageData
+                if (inputImage instanceof HTMLImageElement) rctx.drawImage(
+                    inputImage, 0, 0, properties.render_dims.x, properties.render_dims.y);
+                else rctx.putImageData(inputImage, 0, 0);
+
+                // set absolute client dimensions
+                const bounds = baseCanvasRef.current.getBoundingClientRect();
+                _updateProps({
+                    'bounds': {
+                        top: bounds.top,
+                        left: bounds.left,
+                        x: bounds.width,
+                        y: bounds.height,
+                    },
+                });
+
+                // clear data layer canvas
+                const dctx = dataCanvas.getContext('2d');
+                dctx.clearRect(0, 0, dataCanvas.width, dataCanvas.height);
+
+                // draw image to data layer canvas
+                dctx.imageSmoothingQuality = 'high';
+                dctx.drawImage(
+                    renderCanvas,
+                    properties.offset.x,
+                    properties.offset.y,
+                    properties.render_dims.x,
+                    properties.render_dims.y
+                );
+
+                // set status to loaded
+                _setStatus(_LOADED);
+
+            } catch (err) {
+                _setStatus(_ERROR);
+                console.warn(err);
+            }
+        }
+
+        return (() => {
+            _isMounted.current = false;
+        });
+
+    }, [
+        _status,
+        _setStatus,
+        inputImage,
+        setInputImage,
+        dataCanvasRef,
+        renderCanvasRef,
+        properties,
+        setProperties]);
 
     /**
      * Render Panel
@@ -283,7 +357,7 @@ export const PanelIat = ({
         <>
             <div className={'canvas'}>
                 <PanelControls
-                    disabled={status !== _LOADED}
+                    disabled={_status !== _LOADED}
                     properties={properties}
                     pointer={pointer}
                     options={options}
@@ -293,11 +367,11 @@ export const PanelIat = ({
                 <div className={'canvas-layers'}>
                     <Magnifier
                         pointer={pointer}
-                        panel={panel}
+                        properties={properties}
                         options={options}
                     />
                     {
-                        status !== _LOADED &&
+                        _status !== _LOADED &&
                         <div
                             className={'layer canvas-placeholder'}
                             style={{
@@ -307,8 +381,8 @@ export const PanelIat = ({
                             }}
                         >
                             {
-                                status === _LOADING
-                                    ? <Button label={'Loading'} spin={true} icon={'spinner'} />
+                                _status !== _EMPTY
+                                    ? <Button label={'Loading'} spin={true} icon={'spinner'}/>
                                     : <Button
                                         icon={'download'}
                                         label={'Click to load image'}
@@ -318,7 +392,7 @@ export const PanelIat = ({
                         </div>
                     }
                     <canvas
-                        ref={controlLayerRef}
+                        ref={controlCanvasRef}
                         id={`${id}_control_layer`}
                         tabIndex={0}
                         className={`layer canvas-layer-control-${options.mode}`}
@@ -336,7 +410,7 @@ export const PanelIat = ({
                         Control Layer: Canvas API Not Supported
                     </canvas>
                     <canvas
-                        ref={markupLayerRef}
+                        ref={markupCanvasRef}
                         id={`${id}_markup_layer`}
                         className={`layer canvas-layer-markup`}
                         width={properties.base_dims.x}
@@ -345,16 +419,16 @@ export const PanelIat = ({
                         Markup Layer: Canvas API Not Supported
                     </canvas>
                     <canvas
-                        ref={dataLayerRef}
+                        ref={dataCanvasRef}
                         id={`${id}_data_layer`}
-                        className={`layer canvas-layer-data${status !== _LOADED ? 'hidden' : ''}`}
+                        className={`layer canvas-layer-data${_status !== _LOADED ? 'hidden' : ''}`}
                         width={properties.base_dims.x}
                         height={properties.base_dims.y}
                     >
                         Image Layer: Canvas API Not Supported
                     </canvas>
                     <canvas
-                        ref={renderLayerRef}
+                        ref={renderCanvasRef}
                         id={`${id}_render_layer`}
                         className={`layer canvas-layer-data hidden`}
                         width={properties.render_dims.x}
@@ -363,7 +437,7 @@ export const PanelIat = ({
                         Image Layer: Canvas API Not Supported
                     </canvas>
                     <canvas
-                        ref={baseLayerRef}
+                        ref={baseCanvasRef}
                         id={`${id}_base_layer`}
                         className={`canvas-layer-base`}
                         width={properties.base_dims.x}
@@ -377,49 +451,15 @@ export const PanelIat = ({
                     pointer={pointer}
                     options={options}
                 />
-                <CanvasInfo
-                    panel={panel}
+                <PanelInfo
+                    properties={properties}
                     pointer={pointer}
-                    status={statusLabel[status]} />
+                    status={statusLabel[_status]}/>
                 <img
                     ref={imgRef}
                     crossOrigin={'anonymous'}
                     src={schema.errors.image.fallbackSrc}
-                    alt={`Canvas ${id} loaded data.`} />
+                    alt={`Canvas ${id} loaded data.`}/>
             </div>
         </>;
-};
-
-
-/**
- * Create wrapper for panel properties operations
-
- * @return pointer
- * @param properties
- * @param setProperties
- */
-
-export const createPanel = (properties, setProperties) => {
-    return {
-            id: properties.id,
-            pts: properties.pts,
-            props: properties,
-            get: (key) => {
-                return properties[key];
-            },
-            set: (key, value) => {
-                setProperties(data => ({ ...data, [key]: value }));
-            },
-            update: (inputData) => {
-                setProperties(data => (
-                    Object.keys(inputData).reduce((o, key) => {
-                        o[key] = inputData[key];
-                        return o;
-                    }, data)),
-                );
-            },
-            reset: () => {
-                setProperties(initPanel(properties.id, properties.label));
-            },
-        };
 };

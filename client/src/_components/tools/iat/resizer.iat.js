@@ -27,36 +27,48 @@ const MAX_RENDER_HEIGHT = 20000;
  */
 
 export const Resizer = ({
-                            id = '', setSize = () => {
-    }, props = () => {
-    }, setToggle = () => {
-    },
+                            id = '',
+                            properties = () => {
+                            },
+                            setToggle = () => {},
+                            callback=()=>{}
                         }) => {
 
     const [baseDims, setBaseDims] = React.useState(
-        { x: props.base_dims.x, y: props.base_dims.y },
+        { x: properties.base_dims.x, y: properties.base_dims.y },
     );
     const [renderDims, setRenderDims] = React.useState(
-        { x: props.render_dims.x, y: props.render_dims.y },
+        { x: properties.render_dims.x, y: properties.render_dims.y },
     );
+
+    // error state
+    const [error, setError] = React.useState(null);
 
     // Handle dimension change submission
     const _handleUpdate = () => {
-        setSize(data => ({
-            ...data,
-            resize: true,
-            base_dims: baseDims,
-            render_dims: renderDims,
-        }));
+        callback({
+            status: 2,
+            props: {
+                base_dims: baseDims,
+                render_dims: renderDims,
+            }
+        });
         setToggle(false);
     };
 
     return <div>
+        <UserMessage
+            message={{ msg: error, type: 'error' }}
+            onClose={() => {
+                setError(null);
+            }}
+        />
         <ResizeOptions
             id={id}
             label={'Image Size'}
             data={renderDims}
             update={setRenderDims}
+            setError={setError}
             max={{ x: MAX_RENDER_WIDTH, y: MAX_RENDER_HEIGHT }}
         />
         <ResizeOptions
@@ -64,11 +76,13 @@ export const Resizer = ({
             label={'Canvas Size'}
             data={baseDims}
             update={setBaseDims}
+            setError={setError}
             max={{ x: MAX_CANVAS_WIDTH, y: MAX_CANVAS_HEIGHT }}
         />
         <fieldset className={'submit h-menu'}>
             <ul>
             <li><Button
+                disabled={!!error}
                 icon={'success'}
                 label={`Update`}
                 title={`Update layer dimensions.`}
@@ -97,12 +111,12 @@ export const ResizeOptions = ({
                                   label = '',
                                   data = {},
                                   update = () => {},
+                                  setError = () =>{},
                                   max={x: 300, y: 300}
                               }) => {
 
     // set resize parameter states
     // - ensure deep copy of initial values
-    const [error, setError] = React.useState(null);
     const [init, setInit] = React.useState(data);
     const [aspect, setAspect] = React.useState(true);
     const [scale, setScale] = React.useState(false);
@@ -113,17 +127,13 @@ export const ResizeOptions = ({
         setError(null);
         if (x === 0 || y === 0) {
             setError(`Cannot have zero width or height.` );
-            return false;
         }
         if (x > max.x) {
             setError(`Width cannot exceed maximum of ${max.x} px.`);
-            return false;
         }
         if (y > max.y) {
             setError(`Height cannot exceed maximum of ${max.y} px.`);
-            return false;
         }
-        return true;
     }
 
     // Toggle aspect ratio toggle
@@ -165,7 +175,8 @@ export const ResizeOptions = ({
                 : data.y;
 
         // update data
-        if (_filterDims(_x, _y)) update({ x: _x, y: _y });
+        _filterDims(_x, _y)
+        update({ x: _x, y: _y });
     };
 
     // Handle scaling factor
@@ -174,13 +185,12 @@ export const ResizeOptions = ({
         const { value = 1.0 } = target;
         setScaleFactor(value);
         // update dimensions
-        if (_filterDims(init.x * value, init.y * value)) {
-            update({ x: Math.floor(init.x * value), y: Math.floor(init.y * value) });
-        }
+        _filterDims(init.x * value, init.y * value)
+        update({ x: Math.floor(init.x * value), y: Math.floor(init.y * value) });
     };
 
     // Handle reset
-    const _handleReset = (e) => {
+    const _handleReset = () => {
         setAspect(true);
         setScale(false);
         setScaleFactor(1.0);
@@ -189,12 +199,6 @@ export const ResizeOptions = ({
 
     // render download-as button
     return <>
-        <UserMessage
-            message={{ msg: error, type: 'error' }}
-            onClose={() => {
-                setError(null);
-            }}
-        />
         <fieldset>
             <legend>{label}</legend>
             <div className={'h-menu'}>

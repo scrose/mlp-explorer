@@ -9,6 +9,7 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
+    faFolderOpen,
     faAngleDoubleLeft,
     faAngleDoubleRight,
     faArchive,
@@ -146,7 +147,8 @@ library.add(
     faUsers,
     faColumns,
     faExpand,
-    faStar)
+    faStar,
+    faFolderOpen)
 
 /**
  * Select icon class. Uses FontAwesome icon library.
@@ -174,7 +176,7 @@ const getIconClass = (iconType) => {
         adjust: 'sliders-h',
         resize: 'ruler-combined',
         edit: 'edit',
-        load: 'file-image',
+        load: 'folder-open',
         delete: 'trash-alt',
         import: 'file-import',
         export: 'file-export',

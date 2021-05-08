@@ -10,31 +10,88 @@ import { inRange } from './transform.iat';
 import { getError } from '../../../_services/schema.services.client';
 
 /**
+ * Create pointer hook.
+ *
+ * @param properties
+ * @return pointer
+ */
+
+export function usePointer (properties) {
+    const [current, setCurrent] = React.useState({ x: 0, y: 0 });
+    const [selected, setSelected] = React.useState(null);
+    const [index, setIndex] = React.useState(null);
+    const [magnify, setMagnify] = React.useState(false);
+
+    const set = (e) => {
+        const pos = getPos(e, properties);
+        setCurrent(pos);
+    };
+    const magnifyOn = () => {
+        setMagnify(true);
+    };
+    const magnifyOff = () => {
+        setMagnify(false);
+    };
+    const select = (e) => {
+        const pos = getPos(e, properties);
+        setSelected(pos);
+    };
+    const deselect = () => {
+        setSelected(null);
+    };
+    const reset = () => {
+        setCurrent({x: 0, y: 0})
+        setSelected(null);
+    }
+
+    return {
+        x: current.x,
+        y: current.y,
+        set,
+        magnify,
+        magnifyOn,
+        magnifyOff,
+        select,
+        deselect,
+        reset,
+        selected,
+        index,
+        setIndex
+    }
+}
+
+export const createPointer = (panelProps, properties, setProperties) => {
+    return {
+        x: properties.x,
+        y: properties.y,
+        selected: properties.selected,
+        magnify: properties.magnify,
+
+    }
+};
+
+/**
  * Show selected control points. Allows for deletion of last point.
  *
- * @param canvas
- * @param panel
+ * @param properties
  * @param pointer
- * @param trigger
  * @param options
  * @public
  */
 
-const ControlPoints = ({ layers, panel, pointer, trigger, options }) => {
-    const enabled = options.mode === 'select';
-    const canvas = layers.control();
+const ControlPoints = ({ properties, pointer, options }) => {
     return <>
 
         {
-            ( panel.pts || [] ).length > 0 &&
+            ( properties.pts || [] ).length > 0 &&
             <div className={'canvas-view-controls h-menu'}>
                 <ul>
                     {
                         // show selected control points
-                        panel.pts.map((pt, index) => {
+                        properties.pts.map((pt, index) => {
                             return <li>
                                 <Button
-                                    key={`${panel.id}_selected_pt_${index}`}
+                                    key={`${properties.id}_selected_pt_${index}`}
                                     icon={'crosshairs'}
                                     label={index + 1}
                                     title={`Control point at (${pt.x}, ${pt.y})`}
@@ -45,13 +102,12 @@ const ControlPoints = ({ layers, panel, pointer, trigger, options }) => {
                     <li>
                         <Button
                             className={'push'}
-                            key={`${panel.id}_delete_pt`}
+                            key={`${properties.id}_delete_pt`}
                             icon={'delete'}
-                            title={`Delete control point ${panel.pts.length}`}
+                            title={`Delete control point ${properties.pts.length}`}
                             onClick={() => {
                                 // delete last control point
-                                panel.set('pts', panel.pts.splice(-1, 1));
-                                trigger.reload();
+                                return { data: {'pts': properties.pts.splice(-1, 1) } };
                             }}
                         />
                     </li>
@@ -69,23 +125,27 @@ export default ControlPoints;
  *
  * @public
  * @param e
- * @param canvas
+ * @param properties
  */
 
-export const getPos = (e, canvas) => {
-    // select control layer to read mouse position
-    const rect = canvas.getBoundingClientRect(), // abs. size of element
-        scaleX = canvas.width / rect.width,   // relationship bitmap vs. element for X
-        scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for Y
+export const getPos = (e, properties) => {
+
+    // current canvas dimensions
+    const canvasDims = properties.base_dims;
+    const bounds = properties.bounds;
+
+    // compute scaling relationship bitmap vs. element for X, y
+    const scaleX = (canvasDims.x + 0.0001) / (bounds.x);
+    const scaleY = (canvasDims.y + 0.0001) / (bounds.y);
 
     const x = Math.max(
         Math.min(
-            Math.floor((e.clientX - rect.left) * scaleX), canvas.width,
+            Math.floor((e.clientX - bounds.left) * scaleX), canvasDims.x,
         ), 0,
     );
     const y = Math.max(
         Math.min(
-            Math.floor((e.clientY - rect.top) * scaleY), canvas.height,
+            Math.floor((e.clientY - bounds.top) * scaleY), canvasDims.y,
         ), 0,
     );
 
@@ -99,28 +159,21 @@ export const getPos = (e, canvas) => {
  *
  * @public
  * @param e
- * @param layers
- * @param panel
- * @param trigger
+ * @param properties
  * @param options
  * @param pointer
  */
 
 export const moveControlPoint = (e,
-                                 layers,
-                                 panel,
-                                 trigger,
+                                 properties,
                                  pointer,
                                  options) => {
-
-    // reject uninitialized elements
-    if (!layers.loaded()) return null;
 
     // proceed if mouse is down (selected point)
     if (!pointer.selected) return;
 
     // get the current mouse pointer position
-    const point = getPos(e, layers.control());
+    const point = getPos(e);
     const x = point.x;
     const y = point.y;
 
@@ -128,47 +181,8 @@ export const moveControlPoint = (e,
     const _x = x - pointer.selected.x;
     const _y = y - pointer.selected.y;
 
+    return {data: {x: _x, y: _y}}
 
-};
-
-/**
- * Create pointer object.
- * @param canvas
- * @param props
- * @param setProps
- * @return pointer
- */
-
-export const createPointer = (canvas, props, setProps) => {
-    return {
-        x: props.x,
-        y: props.y,
-        selected: props.selected,
-        magnify: props.magnify,
-        get: () => {
-            return props;
-        },
-        set: (e) => {
-            const pos = getPos(e, canvas);
-            setProps(data => ({ ...data, x: pos.x, y: pos.y, cX: pos.cX, cY: pos.cY }));
-        },
-        magnifyOn: () => {
-            setProps(data => ({ ...data, magnify: true }));
-        },
-        magnifyOff: () => {
-            setProps(data => ({ ...data, magnify: false }));
-        },
-        select: (e) => {
-            const pos = getPos(e, canvas);
-            setProps(data => ({ ...data, selected: { x: pos.x, y: pos.y } }));
-        },
-        deselect: () => {
-            setProps(data => ({ ...data, selected: null }));
-        },
-        reset: () => {
-            setProps(data => ({ ...data, x: 0, y: 0, selected: null }));
-        }
-    }
 };
 
 /**
@@ -176,35 +190,25 @@ export const createPointer = (canvas, props, setProps) => {
  *
  * @public
  * @param e
- * @param layers
- * @param panel
- * @param trigger
+ * @param properties
  * @param options
  * @param pointer
  * @return {Object}
  */
 
-export const selectControlPoint = (e,
-                                   layers,
-                                   panel,
-                                   trigger,
-                                   pointer,
-                                   options) => {
-
-    // reject uninitialized elements
-    if (!layers.loaded()) return null;
+export const selectControlPoint = (e, properties, pointer, options) => {
 
     e.preventDefault();
 
     // get current cursor position
-    const pt = getPos(e, layers.control());
+    const pt = getPos(e, properties);
     const x = pt.x;
     const y = pt.y;
     const radius = 20;
     let selected = null;
 
     // get existing control points
-    const pts = panel.pts;
+    const pts = properties.pts;
 
     // check if mouse cursor proximate to existing control point
     pts.forEach((pt, index) => {
@@ -218,16 +222,14 @@ export const selectControlPoint = (e,
     if (selected) return {};
 
     // check if the maximum number of control points has been reached
-    if (panel.pts.length >= options.controlPtMax) {
+    if (properties.pts.length >= options.controlPtMax) {
         return { error: getError('maxControlPoints', 'canvas') };
     }
     // otherwise, draw new control point and save as canvas property
     else {
-        const pts = panel.pts.concat(pt);
+        const pts = properties.pts.concat(pt);
         pointer.selected({ x: x, y: y, index: pts.length - 1 });
-        panel.set('pts', pts);
-        drawControlPoints(layers.markup(), pts);
-        return {};
+        return { data:{ pts: pts} };
     }
 };
 
@@ -236,20 +238,13 @@ export const selectControlPoint = (e,
  *
  * @public
  * @param e
- * @param layers
- * @param panel
- * @param trigger
+ * @param properties
  * @param pointer
  * @param options
  * @return {Object}
  */
 
-export const deselectControlPoint = (e,
-                                     layers,
-                                     panel,
-                                     trigger,
-                                     pointer,
-                                     options) => {
+export const deselectControlPoint = (e, properties, pointer, options) => {
 
     // check if destination control point proximate to existing point
     // const updatedPts = props.pts.map((pt, index) => {
@@ -272,7 +267,6 @@ export const deselectControlPoint = (e,
     // });
 
     // draw final control point
-    drawControlPoints(layers.markup(), panel.pts);
     pointer.deselect();
 };
 
@@ -287,7 +281,7 @@ export const deselectControlPoint = (e,
  * @param index
  */
 
-const drawControlPoint = (ctx, x, y, index) => {
+export const drawControlPoint = (ctx, x, y, index) => {
 
     // draw cross hair
     ctx.beginPath();

@@ -20,9 +20,9 @@ import { ImageSelector } from './selector.iat';
 import { useUser } from '../../../_providers/user.provider.client';
 import { UserMessage } from '../../common/message';
 import Comparator from '../../common/comparator';
-import { SaveAs } from './download.iat';
-import Resizer from './resize.iat';
-import { deselectControlPoint, moveControlPoint, selectControlPoint } from './point.iat';
+import { SaveAs } from './downloader.iat';
+import Resizer from './resizer.iat';
+import { deselectControlPoint, moveControlPoint, selectControlPoint } from './pointer.iat';
 import { filterKeyDown } from './panel.controls.iat';
 
 /**
@@ -148,27 +148,25 @@ export const MenuIat = ({
                 </Form>
             </Dialog>;
         },
-        saveImage: (id) => {
+        saveImage: (id, label, callback) => {
             return <Dialog
                 key={`${menuID}_dialog_save_image`}
-                title={`Save Image As File`}
+                title={`Save ${label} Image Data as File`}
                 setToggle={setDialogToggle}>
-                <SaveAs canvasID={id}
-                        setSelected={id === panel1.id ? setPanel1 : setPanel2}
+                <SaveAs options={options.formats}
                         setToggle={setDialogToggle}
-                        options={options.formats}
+                        callback={callback}
                 />
             </Dialog>;
         },
-        resize: (id, callback) => {
+        resize: (id, label, callback) => {
             return <Dialog
                 key={`${menuID}_dialog_resize`}
-                title={`Resize Image / Canvas`}
+                title={`Resize ${label}`}
                 setToggle={setDialogToggle}>
                 <Resizer
                     id={id}
-                    setSize={id === panel1.id ? setPanel1 : setPanel2}
-                    props={id === panel1.id ? panel1 : panel2}
+                    properties={id === panel1.id ? panel1 : panel2}
                     setToggle={setDialogToggle}
                     callback={callback}
                 />

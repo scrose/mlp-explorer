@@ -82,12 +82,6 @@ const Iat = () => {
     // initialize menu dialog toggle
     const [dialogToggle, setDialogToggle] = React.useState(null);
 
-    // initialize panel pointer event data
-    const [pointer1Props, setPointer1Props] = React.useState(
-        {x: 0, y:0, cX: 0, cY: 0, selected: null, magnify: false});
-    const [pointer2Props, setPointer2Props] = React.useState(
-        {x: 0, y:0, cX: 0, cY: 0, selected: null, magnify: false});
-
     // get query parameter for master option
     // - must correspond to a modern image file ID
     // const input1ImgID = getQuery('input1') || '';
@@ -149,8 +143,6 @@ const Iat = () => {
                 setProperties={setPanel1Data}
                 inputImage={img1Data}
                 setInputImage={setImg1Data}
-                pointerProps={pointer1Props}
-                setPointer={setPointer1Props}
                 setMessage={setMessage}
                 setDialogToggle={setDialogToggle}
                 onMouseUp={methods.onMouseUp}
@@ -185,8 +177,6 @@ const Iat = () => {
                 options={options}
                 properties={panel2Data}
                 setProperties={setPanel2Data}
-                pointerProps={pointer2Props}
-                setPointer={setPointer2Props}
                 inputImage={img2Data}
                 setInputImage={setImg2Data}
                 setMessage={setMessage}
@@ -205,7 +195,7 @@ const Iat = () => {
     </>;
 };
 
-export default React.memo(Iat);
+export default Iat;
 
 
 /**
@@ -235,7 +225,6 @@ export const initPanel = (panelID, panelLabel='', inputData = null) => {
     };
 
     return {
-        redraw: false,
         id: panelID,
         label: panelLabel,
         offset: { x: 0, y: 0 },
@@ -243,10 +232,11 @@ export const initPanel = (panelID, panelLabel='', inputData = null) => {
         origin: { x: 0, y: 0 },
         hidden: false,
         dirty: false,
+        bounds: {},
+        source_dims: { x: 0, y: 0 },
         base_dims: { x: DEFAULT_DIMS_X, y: DEFAULT_DIMS_Y },
-        data_dims: defaultDims,
-        source_dims: defaultDims,
         render_dims: { x: DEFAULT_DIMS_X, y: DEFAULT_DIMS_Y },
+        data_dims: defaultDims,
         files_id: id,
         owner_id: owner_id,
         owner_type: owner_type,
@@ -255,9 +245,6 @@ export const initPanel = (panelID, panelLabel='', inputData = null) => {
         file_size: file_size,
         image_state: image_state,
         file: fileData,
-        blob: null,
-        blobType: { type: 'image/png', ext: 'png' },
-        blobQuality: 0.95,
         url: null,
         getURL: false,
         dataURL: null,
