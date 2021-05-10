@@ -7,8 +7,9 @@
  */
 
 import * as UTIF from 'utif';
-import { download, getMIME } from '../../../_services/api.services.client';
-import { createNodeRoute } from '../../../_utils/paths.utils.client';
+import { download, getMIME } from '../../_services/api.services.client';
+import { createNodeRoute } from '../../_utils/paths.utils.client';
+import { getError } from '../../_services/schema.services.client';
 
 /**
  * Prepares image file data for use in canvas layers.
@@ -35,16 +36,16 @@ export const loadImageData = async (properties, callback) => {
                         const { width = 0, height = 0, data = [] } = tiff || {};
 
                         // update panel properties
-                        properties.status = _LOAD;
                         properties.source_dims = { x: width, y: height };
                         properties.render_dims = { x: width, y: height };
-                        properties.data_dims = {
+                        properties.image_dims = { x: width, y: height };
+                        properties.crop_dims = {
                             x: Math.min(width, properties.base_dims.x),
                             y: Math.min(height, properties.base_dims.y)
                         };
-                        callback({status: 1, data: toImageData(data, width, height), props:  properties});
+                        callback({status: 'load', data: toImageData(data, width, height), props:  properties});
                     })
-                    .catch(callback);
+                    .catch((err) => {callback({error: err})});
             },
             'default': () => {
                 const src = fileData ? URL.createObjectURL(fileData) : url;
@@ -54,14 +55,14 @@ export const loadImageData = async (properties, callback) => {
                 img.onload = function() {
                     URL.revokeObjectURL(src); // free memory held by Object URL
                     // update panel properties
-                    properties.status = _LOAD;
                     properties.source_dims = { x: img.width, y: img.height };
                     properties.render_dims = { x: img.width, y: img.height };
-                    properties.data_dims = {
+                    properties.image_dims = { x: img.width, y: img.height };
+                    properties.crop_dims = {
                             x: Math.min(img.width, properties.base_dims.x),
                             y: Math.min(img.height, properties.base_dims.y)
                     };
-                    callback({status: 1, data: img, props: properties});
+                    callback({status: 'load', data: img, props: properties});
                 }
                 img.src = src;
             }
@@ -128,7 +129,8 @@ export const loadImageData = async (properties, callback) => {
     if (file) return loaders.file();
     // Load file from URL
     if (url) return loaders.url();
-
+    // invalid load request
+    return callback({error: {msg: 'Image load cancelled.', type:'info'}})
 }
 
 /**
@@ -147,7 +149,7 @@ export const loadTIFF = (file) => {
         reader.onerror = (err) => {
             console.error(err);
             reader.abort();
-            reject({ msg: 'Error occurred during parsing of data stream.', type: 'error' });
+            reject({ msg: getError('streamError', 'canvas'), type: 'error' });
         };
         reader.onload = (e) => {
             let buffer = e.target.result;

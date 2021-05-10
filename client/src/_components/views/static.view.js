@@ -14,7 +14,7 @@ import NotfoundError from '../error/notfound.error';
 import UnavailableError from '../error/unavailable.error';
 import ServerError from '../error/server.error';
 import Loading from '../common/loading';
-import ImageTools from '../tools/iat/iat';
+import ImageTools from '../iat/iat';
 import Image from '../common/image';
 import { useRouter } from '../../_providers/router.provider.client';
 

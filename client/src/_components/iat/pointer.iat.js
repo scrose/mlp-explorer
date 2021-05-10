@@ -4,27 +4,40 @@
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
-import Button from '../../common/button';
+import Button from '../common/button';
 import React from 'react';
 import { inRange } from './transform.iat';
-import { getError } from '../../../_services/schema.services.client';
+import { getError } from '../../_services/schema.services.client';
+import { drawControlPoints } from './graphics.iat';
 
 /**
  * Create pointer hook.
  *
  * @param properties
+ * @param options
  * @return pointer
  */
 
-export function usePointer (properties) {
+export function usePointer(properties, options) {
     const [current, setCurrent] = React.useState({ x: 0, y: 0 });
     const [selected, setSelected] = React.useState(null);
     const [index, setIndex] = React.useState(null);
     const [magnify, setMagnify] = React.useState(false);
 
+    const get = () => {
+        return {
+            x: current.x,
+            y: current.y,
+            selected: selected,
+            control: index,
+        };
+    };
     const set = (e) => {
         const pos = getPos(e, properties);
         setCurrent(pos);
+    };
+    const setControl = (controlPointIndex) => {
+        setIndex(controlPointIndex);
     };
     const magnifyOn = () => {
         setMagnify(true);
@@ -40,14 +53,16 @@ export function usePointer (properties) {
         setSelected(null);
     };
     const reset = () => {
-        setCurrent({x: 0, y: 0})
+        setCurrent({ x: 0, y: 0 });
         setSelected(null);
-    }
+    };
 
     return {
         x: current.x,
         y: current.y,
+        get,
         set,
+        setControl,
         magnify,
         magnifyOn,
         magnifyOff,
@@ -56,40 +71,29 @@ export function usePointer (properties) {
         reset,
         selected,
         index,
-        setIndex
-    }
+        setIndex,
+    };
 }
-
-export const createPointer = (panelProps, properties, setProperties) => {
-    return {
-        x: properties.x,
-        y: properties.y,
-        selected: properties.selected,
-        magnify: properties.magnify,
-
-    }
-};
 
 /**
  * Show selected control points. Allows for deletion of last point.
  *
  * @param properties
- * @param pointer
- * @param options
+ * @param callback
  * @public
  */
 
-const ControlPoints = ({ properties, pointer, options }) => {
+const ControlPoints = ({ properties, callback }) => {
     return <>
 
         {
-            ( properties.pts || [] ).length > 0 &&
-            <div className={'canvas-view-controls h-menu'}>
+            (properties.pts || []).length > 0 &&
+            <div className={'canvas-view-control-points h-menu'}>
                 <ul>
                     {
                         // show selected control points
                         properties.pts.map((pt, index) => {
-                            return <li>
+                            return <li key={`${properties.id}_ctrlpt_${index}`}>
                                 <Button
                                     key={`${properties.id}_selected_pt_${index}`}
                                     icon={'crosshairs'}
@@ -99,15 +103,18 @@ const ControlPoints = ({ properties, pointer, options }) => {
                             </li>;
                         })
                     }
-                    <li>
+                    <li className={'push'}>
                         <Button
-                            className={'push'}
                             key={`${properties.id}_delete_pt`}
                             icon={'delete'}
                             title={`Delete control point ${properties.pts.length}`}
                             onClick={() => {
                                 // delete last control point
-                                return { data: {'pts': properties.pts.splice(-1, 1) } };
+                                callback({
+                                    status: 'redraw',
+                                    props: { 'pts': properties.pts.splice(0, properties.pts.length - 1) },
+                                    redraw: drawControlPoints,
+                                });
                             }}
                         />
                     </li>
@@ -154,49 +161,18 @@ export const getPos = (e, properties) => {
 };
 
 /**
- * Get local mouse position on canvas.
- * Reference: http://jsfiddle.net/m1erickson/sEBAC/
- *
- * @public
- * @param e
- * @param properties
- * @param options
- * @param pointer
- */
-
-export const moveControlPoint = (e,
-                                 properties,
-                                 pointer,
-                                 options) => {
-
-    // proceed if mouse is down (selected point)
-    if (!pointer.selected) return;
-
-    // get the current mouse pointer position
-    const point = getPos(e);
-    const x = point.x;
-    const y = point.y;
-
-    // update the pointer selected point
-    const _x = x - pointer.selected.x;
-    const _y = y - pointer.selected.y;
-
-    return {data: {x: _x, y: _y}}
-
-};
-
-/**
  * Store selected alignment control points.
  *
  * @public
  * @param e
  * @param properties
- * @param options
  * @param pointer
- * @return {Object}
+ * @param options
+ * @param callback
+ * @return
  */
 
-export const selectControlPoint = (e, properties, pointer, options) => {
+export const selectControlPoint = (e, properties, pointer, options, callback) => {
 
     e.preventDefault();
 
@@ -205,7 +181,9 @@ export const selectControlPoint = (e, properties, pointer, options) => {
     const x = pt.x;
     const y = pt.y;
     const radius = 20;
-    let selected = null;
+
+    // selected control point index
+    let selectedCtrlPtIndex = null;
 
     // get existing control points
     const pts = properties.pts;
@@ -213,24 +191,31 @@ export const selectControlPoint = (e, properties, pointer, options) => {
     // check if mouse cursor proximate to existing control point
     pts.forEach((pt, index) => {
         if (inRange(x, y, pt.x, pt.y, radius)) {
-            // set canvas pointer selection properties
-            // - generate data URL from canvas
-            selected = { x: x, y: y, index: index };
-            pointer.selected(selected)
+            // set pointer control point index
+            selectedCtrlPtIndex = { control: index}
         }
     });
-    if (selected) return {};
+
+    // return control point index if proximate
+    if (selectedCtrlPtIndex) return callback({
+        point: selectedCtrlPtIndex ,
+    });
 
     // check if the maximum number of control points has been reached
     if (properties.pts.length >= options.controlPtMax) {
-        return { error: getError('maxControlPoints', 'canvas') };
+        return callback({
+            error: {
+                msg: getError('maxControlPoints', 'canvas'),
+                type: 'error',
+            },
+        });
     }
     // otherwise, draw new control point and save as canvas property
-    else {
-        const pts = properties.pts.concat(pt);
-        pointer.selected({ x: x, y: y, index: pts.length - 1 });
-        return { data:{ pts: pts} };
-    }
+    return callback({
+        status: 'redraw',
+        props: { pts: properties.pts.concat(pt) },
+        redraw: drawControlPoints,
+    });
 };
 
 /**
@@ -241,10 +226,11 @@ export const selectControlPoint = (e, properties, pointer, options) => {
  * @param properties
  * @param pointer
  * @param options
+ * @param callback
  * @return {Object}
  */
 
-export const deselectControlPoint = (e, properties, pointer, options) => {
+export const deselectControlPoint = (e, properties, pointer, options, callback) => {
 
     // check if destination control point proximate to existing point
     // const updatedPts = props.pts.map((pt, index) => {
@@ -266,62 +252,47 @@ export const deselectControlPoint = (e, properties, pointer, options) => {
     //     return pt;
     // });
 
-    // draw final control point
-    pointer.deselect();
+    //pointer.deselect();
 };
 
-/**
- * Draw control point to canvas.
- *
- * @public
- * @return {Object}
- * @param ctx
- * @param x
- * @param y
- * @param index
- */
-
-export const drawControlPoint = (ctx, x, y, index) => {
-
-    // draw cross hair
-    ctx.beginPath();
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = '#fb5607';
-    ctx.moveTo(x - 20, y);
-    ctx.lineTo(x + 20, y);
-    ctx.moveTo(x, y - 20);
-    ctx.lineTo(x, y + 20);
-    ctx.stroke();
-
-    // write control point index
-    ctx.font = '1em sans-serif';
-    ctx.fillStyle = '#fb5607';
-    ctx.fillText(String(index + 1), x + 7, y + 17);
-
-    // write bounding box
-    ctx.beginPath();
-    ctx.fillStyle = 'rgba(227,100,20,0.1)';
-    ctx.rect(x - 20, y - 20, 40, 40);
-    ctx.fill();
-};
 
 /**
- * Draw all selected control points on markup canvas.
+ * Get local mouse position on canvas.
+ * Reference: http://jsfiddle.net/m1erickson/sEBAC/
  *
  * @public
- * @param canvas
- * @param pts
+ * @param e
+ * @param properties
+ * @param pointer
+ * @param options
+ * @param callback
  */
 
-export const drawControlPoints = (canvas, pts) => {
+export const moveControlPoint = (e, properties, pointer, options, callback) => {
 
-    // erase markup layer canvas
-    const ctx = canvas.getContext('2d');
-    const { width, height } = canvas.getBoundingClientRect();
-    ctx.clearRect(0, 0, width, height);
+    // proceed if mouse is down (selected point)
+    if (!pointer.selected) return;
 
-    // draw points separately
-    pts.forEach((pt, index) => {
-        drawControlPoint(ctx, pt.x, pt.y, index);
+    // get the current mouse pointer position
+    const point = getPos(e, properties);
+    const x = point.x;
+    const y = point.y;
+
+    // get the current selected control point position
+    const ctrlPt = properties.pts[pointer.control];
+
+    // compute direction traveled in new coordinate updated by 1 px
+    const _x = ctrlPt.x + Math.sign(x - pointer.selected.x);
+    const _y = ctrlPt.y + Math.sign(y - pointer.selected.y);
+
+    // update the pointer selected point
+    const updatedPoints = [...properties.pts];
+    updatedPoints[pointer.control] = { x: _x, y: _y };
+    console.log(pointer, updatedPoints)
+    return callback({
+        status: 'redraw',
+        props: { pts: updatedPoints },
+        redraw: drawControlPoints
     });
+
 };

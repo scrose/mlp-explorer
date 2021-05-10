@@ -6,9 +6,9 @@
  */
 
 import React from 'react';
-import Button from '../../common/button';
-import { UserMessage } from '../../common/message';
-import Input from '../../common/input';
+import Button from '../common/button';
+import { UserMessage } from '../common/message';
+import Input from '../common/input';
 
 /**
  * Dimension limits
@@ -16,8 +16,8 @@ import Input from '../../common/input';
 
 const MAX_CANVAS_WIDTH = 600;
 const MAX_CANVAS_HEIGHT = 500;
-const MAX_RENDER_WIDTH = 20000;
-const MAX_RENDER_HEIGHT = 20000;
+const MAX_IMAGE_WIDTH = 20000;
+const MAX_IMAGE_HEIGHT = 20000;
 
 /**
  * Adjustments to layer dimensions.
@@ -28,29 +28,32 @@ const MAX_RENDER_HEIGHT = 20000;
 
 export const Resizer = ({
                             id = '',
-                            properties = () => {
-                            },
-                            setToggle = () => {},
-                            callback=()=>{}
+                            properties,
+                            setToggle,
+                            callback
                         }) => {
 
-    const [baseDims, setBaseDims] = React.useState(
+    const [canvasDims, setCanvasDims] = React.useState(
         { x: properties.base_dims.x, y: properties.base_dims.y },
     );
-    const [renderDims, setRenderDims] = React.useState(
-        { x: properties.render_dims.x, y: properties.render_dims.y },
+    const [imageDims, setImageDims] = React.useState(
+        { x: properties.image_dims.x, y: properties.image_dims.y },
+    );
+    const [cropDims, setCropDims] = React.useState(
+        { x: properties.crop_dims.x, y: properties.crop_dims.y },
     );
 
     // error state
     const [error, setError] = React.useState(null);
 
-    // Handle dimension change submission
+    // Handle dimensional change submission
     const _handleUpdate = () => {
         callback({
-            status: 2,
+            status: 'render',
             props: {
-                base_dims: baseDims,
-                render_dims: renderDims,
+                base_dims: canvasDims,
+                image_dims: imageDims,
+                crop_dims: cropDims
             }
         });
         setToggle(false);
@@ -66,16 +69,24 @@ export const Resizer = ({
         <ResizeOptions
             id={id}
             label={'Image Size'}
-            data={renderDims}
-            update={setRenderDims}
+            data={imageDims}
+            update={setImageDims}
             setError={setError}
-            max={{ x: MAX_RENDER_WIDTH, y: MAX_RENDER_HEIGHT }}
+            max={{ x: MAX_IMAGE_WIDTH, y: MAX_IMAGE_HEIGHT }}
+        />
+        <ResizeOptions
+            id={id}
+            label={'Crop Size'}
+            data={cropDims}
+            update={setCropDims}
+            setError={setError}
+            max={{ x: MAX_CANVAS_WIDTH, y: MAX_CANVAS_HEIGHT }}
         />
         <ResizeOptions
             id={id}
             label={'Canvas Size'}
-            data={baseDims}
-            update={setBaseDims}
+            data={canvasDims}
+            update={setCanvasDims}
             setError={setError}
             max={{ x: MAX_CANVAS_WIDTH, y: MAX_CANVAS_HEIGHT }}
         />
@@ -199,7 +210,7 @@ export const ResizeOptions = ({
 
     // render download-as button
     return <>
-        <fieldset>
+        <fieldset className={'compact'}>
             <legend>{label}</legend>
             <div className={'h-menu'}>
                 <Input

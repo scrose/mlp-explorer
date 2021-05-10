@@ -5,11 +5,11 @@
  * MIT Licensed
  */
 
-import { useRouter } from '../../../_providers/router.provider.client';
-import { createNodeRoute } from '../../../_utils/paths.utils.client';
-import { getModelLabel } from '../../../_services/schema.services.client';
-import Button from '../../common/button';
-import { sanitize } from '../../../_utils/data.utils.client';
+import { useRouter } from '../../_providers/router.provider.client';
+import { createNodeRoute } from '../../_utils/paths.utils.client';
+import { getModelLabel } from '../../_services/schema.services.client';
+import Button from '../common/button';
+import { sanitize } from '../../_utils/data.utils.client';
 import React from 'react';
 
 /**
@@ -33,13 +33,16 @@ const PanelInfo = ({ properties, pointer, status }) => {
             <tr>
                 <th>File</th>
                 <td colSpan={3}>
-                    <span>{properties.filename ? properties.filename : 'not loaded'}</span>
                     {
                         properties.owner_id && properties.owner_id &&
-                        <Button icon={'captures'} onClick={() => {
-                            router.update(captureRoute);
-                        }} />
+                        <Button
+                            icon={'captures'}
+                            title={'Go to capture metadata.'}
+                            label={getModelLabel(properties.file_type)}
+                            onClick={() => {router.update(captureRoute);}}
+                        />
                     }
+                    <span>{properties.filename ? properties.filename : 'Not Loaded'}</span>
                 </td>
             </tr>
             <tr>
@@ -55,20 +58,20 @@ const PanelInfo = ({ properties, pointer, status }) => {
                 <td>({Math.floor(properties.offset.x)}, {Math.floor(properties.offset.y)})</td>
             </tr>
             <tr>
-                <th>Crop</th>
-                <td>[{properties.data_dims.x}, {properties.data_dims.y}]</td>
-                <th>Render</th>
+                <th>Resized</th>
                 <td>[{properties.render_dims.x}, {properties.render_dims.y}]</td>
+                <th>Image</th>
+                <td>[{properties.image_dims.x}, {properties.image_dims.y}]</td>
             </tr>
             <tr>
                 <th>Canvas</th>
                 <td>[{properties.base_dims.x}, {properties.base_dims.y}]</td>
-                <th>Image</th>
+                <th>Source</th>
                 <td>[{properties.source_dims.x}, {properties.source_dims.y}]</td>
             </tr>
             <tr>
                 <th>File Type</th>
-                <td>{properties.files_id ? getModelLabel(properties.file_type) : properties.file_type}</td>
+                <td>{properties.file_type}</td>
                 <th>Size</th>
                 <td colSpan={3}>{sanitize(properties.file_size, 'filesize')}</td>
             </tr>

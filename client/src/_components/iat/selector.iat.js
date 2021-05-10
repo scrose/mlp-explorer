@@ -6,14 +6,14 @@
  */
 
 import React from 'react';
-import Accordion from '../../common/accordion';
-import Button from '../../common/button';
-import Image from '../../common/image';
-import Input from '../../common/input';
-import Message, { UserMessage } from '../../common/message';
-import { sanitize, sorter } from '../../../_utils/data.utils.client';
-import Table from '../../common/table';
-import { useData } from '../../../_providers/data.provider.client';
+import Accordion from '../common/accordion';
+import Button from '../common/button';
+import Image from '../common/image';
+import Input from '../common/input';
+import Message, { UserMessage } from '../common/message';
+import { sanitize, sorter } from '../../_utils/data.utils.client';
+import Table from '../common/table';
+import { useData } from '../../_providers/data.provider.client';
 import { initPanel } from './iat';
 
 /**
@@ -31,8 +31,7 @@ export const ImageSelector = ({
                                   panelID,
                                   panelLabel = '',
                                   selection = {},
-                                  setToggle = () => {
-                                  },
+                                  setToggle = () => {},
                                   callback = () => {
                                   },
                               }) => {
@@ -131,6 +130,7 @@ export const ImageSelector = ({
                         <Button
                             label={'Cancel'}
                             onClick={() => {
+                                callback();
                                 setToggle(false);
                             }}
                         />

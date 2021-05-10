@@ -6,9 +6,9 @@
  */
 
 import React from 'react';
-import Button from '../../common/button';
-import Message from '../../common/message';
-import Input from '../../common/input';
+import Button from '../common/button';
+import Message from '../common/message';
+import Input from '../common/input';
 import { saveAs } from 'file-saver';
 
 /**
@@ -22,14 +22,11 @@ import { saveAs } from 'file-saver';
  */
 
 export const downloader = async (id, canvas, format) => {
-
-    console.log(format)
     const filename = `${id}.${format.ext}`;
     console.log('Saving to file ...', filename);
 
     // save canvas blob as file to local disk (file-saver)
     canvas.toBlob((blob) => {
-        console.log(blob)
         saveAs(blob, filename);
     }, format.type, format.quality);
 }
@@ -62,7 +59,7 @@ export const SaveAs = ({ options = [], setToggle=()=>{}, callback=()=>{} }) => {
     // - set canvas properties for file save
     const _handleDownload = () => {
         callback({
-            status: 6,
+            status: 'save',
             props: format
         });
         setToggle(false);

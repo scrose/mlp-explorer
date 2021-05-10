@@ -75,7 +75,7 @@ import {
     faSave,
     faSlidersH,
     faRulerCombined,
-    faFileImage
+    faFileImage, faGripLinesVertical,
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
@@ -148,7 +148,8 @@ library.add(
     faColumns,
     faExpand,
     faStar,
-    faFolderOpen)
+    faFolderOpen,
+    faGripLinesVertical)
 
 /**
  * Select icon class. Uses FontAwesome icon library.
@@ -188,7 +189,7 @@ const getIconClass = (iconType) => {
         erase: 'eraser',
         swap: 'exchange-alt',
         save: 'save',
-        slide: 'arrows-alt-h',
+        slide: 'grip-lines-vertical',
         help: 'question-circle',
         success: 'check-circle',
         warning: 'exclamation-circle',

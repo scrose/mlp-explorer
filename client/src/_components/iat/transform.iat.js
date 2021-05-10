@@ -6,9 +6,9 @@
  * MIT Licensed
  */
 
-import { getError } from '../../../_services/schema.services.client';
-import * as matrix from '../../../_utils/matrix.utils.client';
-import { homography } from '../../../_utils/matrix.utils.client';
+import { getError } from '../../_services/schema.services.client';
+import * as matrix from '../../_utils/matrix.utils.client';
+import { homography } from '../../_utils/matrix.utils.client';
 import { getPos } from './pointer.iat';
 
 /**
@@ -17,18 +17,18 @@ import { getPos } from './pointer.iat';
  * @public
  * @param imgData1
  * @param imgData2
- * @param canvas1
- * @param canvas2
+ * @param pts1
+ * @param pts2
  * @param options
  * @param callback
  */
 
-export const alignImages = (imgData1, imgData2, canvas1, canvas2, options, callback) => {
+export const alignImages = (imgData1, imgData2, pts1, pts2, options, callback) => {
 
     if (!imgData1 || !imgData2) {
         return { data: null, error: { msg: getError('emptyCanvas', 'canvas') } };
     }
-    if (canvas1.pts.length < options.controlPtMax || canvas2.pts.length < options.controlPtMax) {
+    if (pts2.length < options.controlPtMax || pts1.length < options.controlPtMax) {
         return { data: null, error: { msg: getError('missingControlPoints', 'canvas') } };
     }
     if (imgData1.width !== imgData2.width) {
@@ -36,38 +36,41 @@ export const alignImages = (imgData1, imgData2, canvas1, canvas2, options, callb
     }
 
     // compute alignment transformation matrix
-    const transform = getAlignmentTransform(canvas1.pts, canvas2.pts);
+    const transform = getAlignmentTransform(pts1, pts2);
 
     // prepare data for transform
     let img1 = new Uint32Array(imgData1.data.buffer);
     let img2 = new Uint32Array(imgData2.data.buffer);
 
     // apply transformation to image 2 (img2) on right-hand canvas
-    homography(transform, img1, img2, canvas1.source_dims.x, canvas1.source_dims.y);
+    homography(transform, img1, img2, img1.width, img1.height);
 
     // convert image array from Uint32 to Uint8ClampedArray (for ImageData obj)
     let imgUint8 = new Uint8ClampedArray(img2.buffer);
     const imgData = new ImageData(
         imgUint8,
-        canvas2.source_dims.x,
-        canvas2.source_dims.y,
+        img1.width,
+        img1.height,
     );
 
     return { data: imgData, error: null };
 };
 
 /**
- * compute scale-to-fit image to defined width dimension.
+ * Computes scale-to-fit dimensions to fit an image [ix, iy]
+ * inside a canvas [cx, cy].
+ *
  *
  * @public
  * @return {Object} dimensions
  */
 
-export const scaleToFit = (x_dim, y_dim, maxWidth) => {
-    const ratio = (y_dim + 0.1) / (x_dim + 0.1);
+export const scaleToFit = (ix, iy, cx, cy) => {
+    const ri = ix / iy;
+    const rc = cx / cy;
     return {
-        x: maxWidth,
-        y: Math.floor(ratio * maxWidth),
+        x: Math.floor(rc > ri ? ix * cy/iy : cx),
+        y: Math.floor(rc > ri ? cy : iy * cx/ix)
     };
 };
 
@@ -85,7 +88,7 @@ export const scaleToFit = (x_dim, y_dim, maxWidth) => {
 export function moveStart(e, properties, pointer, options) {
 
     // select current mouse position
-    pointer.select(e);
+    // pointer.select(e);
 }
 
 /**
@@ -94,9 +97,10 @@ export function moveStart(e, properties, pointer, options) {
  * @param properties
  * @param pointer
  * @param options
+ * @param callback
  */
 
-export function moveAt(e, properties, pointer, options) {
+export function moveAt(e, properties, pointer, options, callback) {
 
     // check that mouse start position was selected
     if (!pointer.selected) return;
@@ -104,14 +108,14 @@ export function moveAt(e, properties, pointer, options) {
     e.preventDefault();
 
     // get current mouse position
-    const pos = getPos(e);
+    const pos = getPos(e, properties);
     // only update move if position is positive
     if (pos.x > 0 && pos.y > 0) {
         const newOffset = {
             x: properties.offset.x + Math.sign(pos.x - properties.move.x),
             y: properties.offset.y + Math.sign(pos.y - properties.move.y),
         };
-        return { data: { offset: newOffset, move: pos }, redraw:true }
+        callback({ props: { offset: newOffset, move: pos }, status: 'render' })
     }
 }
 
@@ -127,7 +131,7 @@ export function moveAt(e, properties, pointer, options) {
  */
 
 export function moveEnd(e, properties, pointer, options) {
-    pointer.reset();
+
 }
 
 /**

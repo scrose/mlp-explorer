@@ -75,6 +75,7 @@ export const schema = {
             noAuth: 'Authentication failed. Please contact the site administrator.'
         },
         canvas: {
+            streamError: 'Error occurred during parsing of data stream.',
             default: 'Error: could not complete operation.',
             emptyCanvas: `Please load both canvases to complete operation.`,
             collinearPts: 'Control points should not be collinear (form a line).',

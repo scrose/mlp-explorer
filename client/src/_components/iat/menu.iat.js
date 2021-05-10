@@ -6,20 +6,20 @@
  */
 
 import React from 'react';
-import Button from '../../common/button';
-import Form from '../../common/form';
-import { createNodeRoute } from '../../../_utils/paths.utils.client';
-import { genSchema, getError } from '../../../_services/schema.services.client';
-import Dialog from '../../common/dialog';
+import Button from '../common/button';
+import Form from '../common/form';
+import { createNodeRoute } from '../../_utils/paths.utils.client';
+import { genSchema, getError } from '../../_services/schema.services.client';
+import Dialog from '../common/dialog';
 import {
     alignImages,
     moveAt,
     moveStart,
 } from './transform.iat';
 import { ImageSelector } from './selector.iat';
-import { useUser } from '../../../_providers/user.provider.client';
-import { UserMessage } from '../../common/message';
-import Comparator from '../../common/comparator';
+import { useUser } from '../../_providers/user.provider.client';
+import { UserMessage } from '../common/message';
+import Comparator from '../common/comparator';
 import { SaveAs } from './downloader.iat';
 import Resizer from './resizer.iat';
 import { deselectControlPoint, moveControlPoint, selectControlPoint } from './pointer.iat';
@@ -124,6 +124,7 @@ export const MenuIat = ({
             return <Dialog
                 key={`${id}_dialog_select_image`}
                 title={`Select Image for ${label}`}
+                callback={callback}
                 setToggle={setDialogToggle}>
                 <ImageSelector
                     panelID={id}
@@ -219,7 +220,7 @@ export const MenuIat = ({
 
             // [transform] image alignment
             align: () => {
-                let result = alignImages(image1, image2, panel1, panel2, options);
+                let result = alignImages(image1, image2, panel1.pts, panel2.pts, options);
                 if (result.error) {
                     return setMessage(result.error);
                 }

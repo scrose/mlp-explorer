@@ -8,28 +8,26 @@
 import { scaleToFit } from './transform.iat';
 
 /**
- * Resets data layer to source data.
+ * Resets image data to source data.
  *
- * @private
+ * @public
+ * @param properties
+ * @param callback
  */
 
-export const reset = async (properties, options, callback) => {
-
-    // get default dimensions
-    const defaultDims = {
-        x: Math.min(properties.source_dims.x, options.defaultX),
-        y: Math.min(properties.source_dims.y, options.defaultY),
-    };
-
-    // update panel properties
+export const reset = async (properties, callback) => {
     callback({
-        status: 3,
+        status: 'reset',
         props: {
+            image_dims: {
+                x: properties.source_dims.x,
+                y: properties.source_dims.y,
+            },
             render_dims: {
                 x: properties.source_dims.x,
                 y: properties.source_dims.y,
             },
-            data_dims: defaultDims,
+            crop_dims: properties.base_dims,
             offset: { x: 0, y: 0 },
             move: { x: 0, y: 0 },
             origin: { x: 0, y: 0 },
@@ -39,14 +37,16 @@ export const reset = async (properties, options, callback) => {
 };
 
 /**
- * Erase canvas.
+ * Erase control points.
  *
  * @private
  */
 
-export const erase = async (canvas) => {
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+export const erase = async (callback) => {
+    callback({
+        status: 'redraw',
+        props: { pts: [] }
+    });
 };
 
 /**
@@ -60,17 +60,18 @@ export const fit = async (properties, callback) => {
 
     // compute scaled dimensions
     const dims = scaleToFit(
-        properties.source_dims.x,
-        properties.source_dims.y,
-        properties.base_dims.x,
-    );
+            properties.image_dims.x,
+            properties.image_dims.y,
+            properties.base_dims.x,
+            properties.base_dims.y,
+        );
 
     // update panel properties
     return callback({
-        status: 2,
+        status: 'render',
         props: {
             offset: { x: 0, y: 0 },
-            data_dims: dims,
+            crop_dims: dims,
             render_dims: dims,
             pts: [],
         },
@@ -85,12 +86,10 @@ export const fit = async (properties, callback) => {
 
 export const expand = async (properties, callback) => {
     return callback({
-        status: 2,
+        status: 'render',
         props: {
-            render_dims: {
-                x: properties.source_dims.x,
-                y: properties.source_dims.y,
-            },
+            render_dims: properties.image_dims,
+            crop_dims: properties.base_dims,
             pts: [],
         }
     });

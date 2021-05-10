@@ -8,11 +8,12 @@
 import React from 'react';
 import { PanelIat } from './panel.iat';
 import { MenuIat } from './menu.iat';
-import { createNodeRoute, getQuery } from '../../../_utils/paths.utils.client';
-import { useRouter } from '../../../_providers/router.provider.client';
+import { createNodeRoute, getQuery } from '../../_utils/paths.utils.client';
+import { useRouter } from '../../_providers/router.provider.client';
 import { moveAt, moveStart, moveEnd } from './transform.iat';
-import { UserMessage } from '../../common/message';
+import { UserMessage } from '../common/message';
 import { filterKeyDown, filterKeyUp } from './panel.controls.iat';
+import { loadImageData } from './loader.iat';
 
 /**
  * Default settings.
@@ -52,8 +53,13 @@ const Iat = () => {
             { label: 'tiff', value: 'image/tiff'}
         ],
         defaultX: DEFAULT_DIMS_X,
-        defaultY: DEFAULT_DIMS_Y
+        defaultY: DEFAULT_DIMS_Y,
+        status: ['empty', 'load', 'render', 'redraw', 'reset', 'loading', 'loaded', 'save', 'error']
     });
+
+    // loading status state
+    const [signal1, setSignal1] = React.useState('empty');
+    const [signal2, setSignal2] = React.useState('empty');
 
     // Panel properties
     const [panel1Data, setPanel1Data] = React.useState(initPanel(panel1ID, panel1Label, input1));
@@ -94,12 +100,37 @@ const Iat = () => {
 
     React.useEffect(() => {
 
+        const _callback = (response) => {
+            const {
+                error = null,
+                data = null,
+                props = null,
+            } = response || {};
+            if (error || response.hasOwnProperty('message')) {
+                console.warn(error);
+                setMessage(error);
+                return;
+            }
+            // update Panel 2 state (reserved for modern capture images)
+            if (data) {setImg2Data(data)}
+            if (props) {
+                setPanel2Data(data => (
+                    Object.keys(props).reduce((o, key) => {
+                        o[key] = props[key];
+                        return o;
+                    }, data)),
+                );
+                setSignal2(2);
+            }
+        };
+
         _isMounted.current = true;
 
         // Initialize IAT from input parameters
         // - load input image (only if not currently loaded)
         // - get available historic image selection for given modern capture image
         if (masterID && !input2) {
+            setSignal2(4);
             router.get(createNodeRoute('modern_images', 'master', masterID))
                 .then(res => {
                     if (_isMounted.current) {
@@ -117,15 +148,17 @@ const Iat = () => {
                         // get capture data (if available)
                         const { historic_captures = [], modern_capture = {} } = data || {};
                         setSelection(historic_captures);
-                        setPanel2Data(initPanel(panel2ID, panel2Label, modern_capture));
 
+                        // download image to panel data state
+                        loadImageData(
+                            initPanel(panel2ID, panel2Label, modern_capture), _callback).catch(_callback);
                     }
                 });
         }
         return () => {
             _isMounted.current = false;
         };
-    }, [input2, input2ImgID, masterID, router, setSelection, setPanel2Data]);
+    }, [input2, input2ImgID, masterID, router, setSelection, setPanel2Data, setSignal2]);
 
     return <>
         <div className={'canvas-board'}>
@@ -142,6 +175,8 @@ const Iat = () => {
                 properties={panel1Data}
                 setProperties={setPanel1Data}
                 inputImage={img1Data}
+                signal={signal1}
+                setSignal={setSignal1}
                 setInputImage={setImg1Data}
                 setMessage={setMessage}
                 setDialogToggle={setDialogToggle}
@@ -175,6 +210,8 @@ const Iat = () => {
                 id={panel2ID}
                 label={panel2Label}
                 options={options}
+                signal={signal2}
+                setSignal={setSignal2}
                 properties={panel2Data}
                 setProperties={setPanel2Data}
                 inputImage={img2Data}
@@ -235,8 +272,9 @@ export const initPanel = (panelID, panelLabel='', inputData = null) => {
         bounds: {},
         source_dims: { x: 0, y: 0 },
         base_dims: { x: DEFAULT_DIMS_X, y: DEFAULT_DIMS_Y },
+        image_dims: { x: 0, y: 0 },
         render_dims: { x: DEFAULT_DIMS_X, y: DEFAULT_DIMS_Y },
-        data_dims: defaultDims,
+        crop_dims: defaultDims,
         files_id: id,
         owner_id: owner_id,
         owner_type: owner_type,
@@ -246,7 +284,6 @@ export const initPanel = (panelID, panelLabel='', inputData = null) => {
         image_state: image_state,
         file: fileData,
         url: null,
-        getURL: false,
         dataURL: null,
         pts: []
     };

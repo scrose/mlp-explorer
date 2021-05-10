@@ -9,6 +9,7 @@ import React from 'react';
 import Button from './button';
 import { schema } from '../../schema';
 import Loading from './loading';
+import { UserMessage } from './message';
 
 /**
  * Image comparator component.
@@ -22,6 +23,9 @@ const Comparator = ({images=[]}) => {
 
     // input image data
     const [image1, image2] = images || [];
+
+    // error status
+    const [message, setMessage] = React.useState(null);
 
     // loading status
     const [loading1, setLoading1] = React.useState(true);
@@ -88,25 +92,6 @@ const Comparator = ({images=[]}) => {
     React.useEffect(() => {
         _isMounted.current = true;
 
-        // initialize slider to panel dimensions
-        function _slideReady() {
-            if (sliderRef.current && img1Ref.current) {
-
-                /* Get the width and height of the img element */
-                let w = img1Ref.current.offsetWidth;
-                let h = img1Ref.current.offsetHeight;
-                setImgWidth(w);
-
-                /* Set the width of the img element to 50%: */
-                panel1Ref.current.style.width = (w / 2) + 'px';
-
-                /* Position the slider in the middle: */
-                sliderRef.current.style.top = (h / 2) - (sliderRef.current.offsetHeight / 2) + 'px';
-                sliderRef.current.style.left = (w / 2) - (sliderRef.current.offsetWidth / 2) + 'px';
-            }
-
-        }
-
         if (
             _isMounted.current
             && image1
@@ -115,19 +100,45 @@ const Comparator = ({images=[]}) => {
             && img2Ref.current
         ) {
 
+            const img1 = img1Ref.current;
+            const img2 = img2Ref.current;
+            const panel1 = panel1Ref.current;
+
+            const slider = sliderRef.current;
+
+            // initialize slider to panel dimensions
+            function _slideReady() {
+
+                /* Get the width and height of the img element */
+                let w = img1.offsetWidth;
+                let h = img1.offsetHeight;
+                setImgWidth(w);
+
+                /* Set the width of the img element to 50%: */
+                panel1.style.width = (w / 2) + 'px';
+
+                /* Position the slider in the middle: */
+                slider.style.top = (h / 2) - (slider.offsetHeight / 2) + 'px';
+                slider.style.left = (w / 2) - (slider.offsetWidth / 2) + 'px';
+
+            }
+            _slideReady();
+
             const url1 =  image1 && image1.hasOwnProperty('url')
                 ? image1.url.medium : image1;
             const url2 =  image2 && image2.hasOwnProperty('url')
                 ? image2.url.medium : image2;
 
-            img1Ref.current.src = url1;
-            img1Ref.current.onload = function() {
-                _slideReady()
+            img1.src = url1;
+            img1.onerror = () => {setMessage({msg: 'Image 1 loading error.', type: 'error'})}
+            img1.onload = function() {
+                _slideReady();
                 if (_isMounted.current) setLoading1(false);
             };
-            img2Ref.current.src = url2;
-            img2Ref.current.onload = function() {
-                _slideReady()
+            img2.src = url2;
+            img2.onerror = () => {setMessage({msg: 'Image 2 loading error.', type: 'error'})}
+            img2.onload = function() {
+                _slideReady();
                 if (_isMounted.current) setLoading2(false);
             };
         }
@@ -135,10 +146,16 @@ const Comparator = ({images=[]}) => {
     }, [image1, image2, setImgWidth]);
 
     return <div className={'comparator'}>
+        <UserMessage
+            message={message}
+            onClose={() => {
+                setMessage(false);
+            }}
+        />
         <div
             className={`comparator-container`}
             onMouseLeave={_slideFinish}
-            onMouseUp={(e) => {sliding=false}}
+            onMouseUp={() => {sliding=false}}
             onMouseMove={_slideMove}
         >
         <div
@@ -146,10 +163,10 @@ const Comparator = ({images=[]}) => {
                     ref={sliderRef}
                     onTouchStart={() => {sliding=true}}
                     onTouchMove={_slideMove}
-                    onTouchEnd={(e) => {e.preventDefault(); }}
+                    onTouchEnd={(e) => {e.preventDefault()}}
                     onMouseDown={() => {sliding=true}}
                 >
-            { !loading1 && !loading2 ? <Button icon={'slide'} /> : <Loading /> }
+            { !loading1 && !loading2 ? <Button icon={'slide'} /> : <Loading overlay={true} /> }
         </div>
         {
             <div ref={panel1Ref} className="comparator-img overlay">

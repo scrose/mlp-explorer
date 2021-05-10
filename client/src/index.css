@@ -75,12 +75,10 @@ div#root {
     margin:0;
     padding:0;
 }
-
 .header h3 {
     margin-top: 60px;
     color: #01447e;
 }
-
 ul.list {
     display: block !important;
 }
@@ -94,6 +92,7 @@ button:disabled {
     opacity: 0.6;
     cursor: default;
 }
+
 
 /* Load spinner  */
 
@@ -1623,6 +1622,15 @@ fieldset.submit button {
     background-color: #008896 !important;
     color: #FFFFFF !important;
 }
+fieldset.compact, fieldset.compact div, fieldset.compact input, fieldset.compact label,
+fieldset.compact label .label-text {
+    margin: 3px;
+    padding: 3px;
+    width: auto;
+    height: auto;
+    min-width: auto !important;
+    min-height: auto;
+}
 form .addField {
     text-align: center;
 }
@@ -2061,7 +2069,7 @@ canvas {
     cursor: crosshair;
     z-index: 40;
 }
-.canvas-layer-markup {
+.canvas-layer-mask {
     z-index: 30;
 }
 .canvas-layer-data {
@@ -2161,6 +2169,13 @@ canvas {
 }
 .canvas-view-controls ul {
     justify-content: space-evenly;
+}
+.canvas-view-control-points {
+    width: 100%;
+}
+.canvas-view-control-points button {
+    background-color: #282c34;
+    color: #FFFFFF;
 }
 /* Canvas magnifier */
 .canvas-magnifier {
