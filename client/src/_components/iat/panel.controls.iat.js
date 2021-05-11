@@ -10,6 +10,7 @@ import Button from '../common/button';
 import { moveBy } from './transform.iat';
 import { erase, expand, fit, reset } from './canvas.iat';
 import { loadImageData } from './loader.iat';
+import { useUser } from '../../_providers/user.provider.client';
 
 /**
  * No operation.
@@ -38,6 +39,7 @@ const PanelControls = ({
                            setDialogToggle = noop,
                        }) => {
 
+    const user = useUser();
 
     return <>
         <div className={'canvas-view-controls h-menu'}>
@@ -58,6 +60,19 @@ const PanelControls = ({
                     }}
                 /></li>
                 <li><Button
+                    icon={'upload'}
+                    disabled={disabled || !user || !properties.files_id}
+                    title={'Upload to MLP Library.'}
+                    onClick={() => {
+                        setDialogToggle({
+                            type: 'uploadImage',
+                            id: properties.id,
+                            label: properties.label,
+                            callback: callback,
+                        });
+                    }}
+                /></li>
+                <li><Button
                     icon={'save'}
                     disabled={disabled}
                     title={'Save image file.'}
@@ -66,6 +81,7 @@ const PanelControls = ({
                         setDialogToggle({
                             type: 'saveImage',
                             id: properties.id,
+                            label: properties.label,
                             callback: callback,
                         });
                     }}
@@ -98,7 +114,6 @@ const PanelControls = ({
                     icon={'compress'}
                     title={'Scale image to fit canvas.'}
                     onClick={() => {
-                        setSignal('loading');
                         fit(properties, callback).catch(callback);
                     }}
                 /></li>
@@ -107,7 +122,6 @@ const PanelControls = ({
                     icon={'enlarge'}
                     title={'Show full-sized image in canvas.'}
                     onClick={() => {
-                        setSignal('loading');
                         expand(properties, callback).catch(callback);
                     }}
                 /></li>
@@ -116,7 +130,6 @@ const PanelControls = ({
                     icon={'erase'}
                     title={'Erase Mask Overlay.'}
                     onClick={() => {
-                        setSignal('loading');
                         erase(properties, callback).catch(callback);
                     }}
                 /></li>
@@ -161,9 +174,10 @@ export default React.memo(PanelControls);
  * @return {JSX.Element}
  */
 
-export const filterKeyDown = (e, properties, options, callback) => {
+export const filterKeyDown = (e, properties, pointer, options, callback) => {
 
     const { keyCode = '' } = e || {};
+
     const _methods = {
         // move canvas left 1 pixel
         37: () => {
@@ -183,7 +197,7 @@ export const filterKeyDown = (e, properties, options, callback) => {
         },
         // enable magnifier
         32: () => {
-            callback({ magnify: true });
+            pointer.magnifyOn();
         },
     };
     return _methods.hasOwnProperty(keyCode)
@@ -199,13 +213,13 @@ export const filterKeyDown = (e, properties, options, callback) => {
  * @return {JSX.Element}
  */
 
-export const filterKeyUp = (e, properties, options, callback) => {
+export const filterKeyUp = (e, properties, pointer, options, callback) => {
 
     const { keyCode = '' } = e || [];
     const _methods = {
         // disable magnifier
         32: () => {
-            callback({ magnify: false });
+            pointer.magnifyOff();
         },
     };
     return _methods.hasOwnProperty(keyCode)

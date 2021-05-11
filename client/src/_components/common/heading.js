@@ -31,9 +31,6 @@ const Heading = () => {
     const nodeLabel = api.label;
     const modelLabel = getModelLabel(api.model);
 
-    // select icon type
-    const icon = api.model ? api.model : api.view ? api.view : getStaticView(router.route);
-
     // generate heading based on current model/view
     const genHeading = () => {
 
@@ -71,7 +68,6 @@ const Heading = () => {
                         icon={api.model}
                         title={modelLabel}
                         label={modelLabel}
-
                     />
                 </li>
             }

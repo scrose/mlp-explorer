@@ -42,11 +42,11 @@ function AuthProvider(props) {
     const login = async (route, credentials) => {
         return await router.post('/login', credentials)
             .then(res => {
-                // create user session
                 const { response={} } = res || {};
                 const { user=null, message={} } = response || {};
-                setSessionMsg(message);
+                // create user session (if user data provided)
                 if (user) setData(user);
+                return message;
             });
     }
 

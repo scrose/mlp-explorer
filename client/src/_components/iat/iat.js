@@ -47,6 +47,8 @@ const Iat = () => {
         mode: 'default',
         controlPtMax: 4,
         magnifyZoom: 4,
+        ptrRadius: 20,
+        swap: false,
         formats: [
             { label: 'png', value: 'image/png'},
             { label: 'jpeg', value: 'image/jpeg'},
@@ -112,7 +114,9 @@ const Iat = () => {
                 return;
             }
             // update Panel 2 state (reserved for modern capture images)
-            if (data) {setImg2Data(data)}
+            if (data) {
+                setImg2Data(data)
+            }
             if (props) {
                 setPanel2Data(data => (
                     Object.keys(props).reduce((o, key) => {
@@ -120,7 +124,7 @@ const Iat = () => {
                         return o;
                     }, data)),
                 );
-                setSignal2(2);
+                setSignal2('load');
             }
         };
 
@@ -130,7 +134,7 @@ const Iat = () => {
         // - load input image (only if not currently loaded)
         // - get available historic image selection for given modern capture image
         if (masterID && !input2) {
-            setSignal2(4);
+            setSignal2('loading');
             router.get(createNodeRoute('modern_images', 'master', masterID))
                 .then(res => {
                     if (_isMounted.current) {
@@ -178,6 +182,7 @@ const Iat = () => {
                 signal={signal1}
                 setSignal={setSignal1}
                 setInputImage={setImg1Data}
+                otherProperties={panel2Data}
                 setMessage={setMessage}
                 setDialogToggle={setDialogToggle}
                 onMouseUp={methods.onMouseUp}
@@ -193,7 +198,9 @@ const Iat = () => {
             <MenuIat
                 panel1={panel1Data}
                 setPanel1={setPanel1Data}
+                setSignal1={setSignal1}
                 panel2={panel2Data}
+                setSignal2={setSignal2}
                 setPanel2={setPanel2Data}
                 image1={img1Data}
                 setImage1={setImg1Data}
@@ -216,6 +223,7 @@ const Iat = () => {
                 setProperties={setPanel2Data}
                 inputImage={img2Data}
                 setInputImage={setImg2Data}
+                otherProperties={panel1Data}
                 setMessage={setMessage}
                 setDialogToggle={setDialogToggle}
                 onClick={methods.onClick}
@@ -273,8 +281,8 @@ export const initPanel = (panelID, panelLabel='', inputData = null) => {
         source_dims: { x: 0, y: 0 },
         base_dims: { x: DEFAULT_DIMS_X, y: DEFAULT_DIMS_Y },
         image_dims: { x: 0, y: 0 },
-        render_dims: { x: DEFAULT_DIMS_X, y: DEFAULT_DIMS_Y },
-        crop_dims: defaultDims,
+        render_dims: { x: 0, y: 0 },
+        crop_dims: { x: 0, y: 0 },
         files_id: id,
         owner_id: owner_id,
         owner_type: owner_type,
@@ -285,6 +293,7 @@ export const initPanel = (panelID, panelLabel='', inputData = null) => {
         file: fileData,
         url: null,
         dataURL: null,
-        pts: []
+        pts: [],
+        other_panel: false
     };
 };

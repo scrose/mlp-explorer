@@ -7,7 +7,6 @@
 
 import React from 'react';
 import Button from '../common/button';
-import Form from '../common/form';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { genSchema, getError } from '../../_services/schema.services.client';
 import Dialog from '../common/dialog';
@@ -17,13 +16,13 @@ import {
     moveStart,
 } from './transform.iat';
 import { ImageSelector } from './selector.iat';
-import { useUser } from '../../_providers/user.provider.client';
 import { UserMessage } from '../common/message';
 import Comparator from '../common/comparator';
 import { SaveAs } from './downloader.iat';
 import Resizer from './resizer.iat';
 import { deselectControlPoint, moveControlPoint, selectControlPoint } from './pointer.iat';
 import { filterKeyDown } from './panel.controls.iat';
+import Importer from '../tools/importer/import.tools';
 
 /**
  * No operation.
@@ -63,6 +62,8 @@ export const MenuIat = ({
                             setImage1 = noop,
                             image2 = null,
                             setImage2 = noop,
+                            setSignal1 = noop,
+                            setSignal2 = noop,
                             setMethods = noop,
                             selection = {},
                             dialogToggle = null,
@@ -72,7 +73,6 @@ export const MenuIat = ({
                         }) => {
 
     const [message, setMessage] = React.useState(null);
-    const user = useUser();
 
     // generate unique ID value for canvas inputs
     const menuID = Math.random().toString(16).substring(2);
@@ -80,19 +80,17 @@ export const MenuIat = ({
     // toggle to show/hide menu panels and popup dialogs
     const [menuToggle, setMenuToggle] = React.useState('');
 
-    // do the canvases have capture images loaded?
-    const hasCaptures = panel1.files_id && panel2.files_id;
-
     /**
      * Handle errors.
      */
 
     const _handleError = (err) => {
         console.warn(err);
-        const msg = err.hasOwnProperty('message')
-            ? err.message
-            : getError('default', 'canvas');
-        setMessage({ msg: msg, type: 'error' });
+        const { msg='', type='', message=''} = err || {};
+        setMessage({
+            msg: msg || message || getError('default', 'canvas'),
+            type: type || 'error'
+        });
     };
 
     /**
@@ -130,23 +128,26 @@ export const MenuIat = ({
                     panelID={id}
                     panelLabel={label}
                     selection={selection}
+                    options={options}
                     setToggle={setDialogToggle}
                     callback={callback}
                 />
             </Dialog>;
         },
         uploadImage: (id, label, callback) => {
+            const properties = id === panel1.id ? panel1 : panel2;
             return <Dialog
-                key={`${menuID}_dialog_master`}
-                title={`Upload Image to Library?`}
+                key={`${menuID}_dialog_upload`}
+                title={`Upload Image to MLP Library`}
                 setToggle={setDialogToggle}>
-                <Form
-                    init={{}}
-                    route={createNodeRoute('modern_images', 'master', id)}
-                    schema={genSchema('master', 'modern_images')}
+                <Importer
                     model={'modern_captures'}
-                    callback={callback}>
-                </Form>
+                    view={'upload'}
+                    schema={genSchema('upload', properties.file_type)}
+                    route={createNodeRoute(properties.file_type, 'new', properties.owner_id)}
+                    data={properties}
+                    callback={callback}
+                />
             </Dialog>;
         },
         saveImage: (id, label, callback) => {
@@ -206,6 +207,13 @@ export const MenuIat = ({
                 }));
             },
 
+            // [swap] set panel swap settings
+            swap: () => {
+                setOptions(data => ({ ...data, swap: !options.swap }));
+                setSignal1('reload');
+                setSignal2('reload');
+            },
+
             // [mode] select control points on canvas
             selectPoints: () => {
                 setOptions(data => ({ ...data, mode: 'select' }));
@@ -215,34 +223,51 @@ export const MenuIat = ({
                     onMouseUp: deselectControlPoint,
                     onMouseMove: moveControlPoint,
                     onMouseOut: deselectControlPoint,
+                    onKeyDown: filterKeyDown,
                 }));
             },
 
             // [transform] image alignment
             align: () => {
                 let result = alignImages(image1, image2, panel1.pts, panel2.pts, options);
+                // handle errors
                 if (result.error) {
-                    return setMessage(result.error);
+                    return _handleError(result.error);
                 }
+                // load transformed data into Panel 2
                 setImage2(result.data);
-                setPanel2(data => ({ ...data, dirty: true }));
+                setSignal2('reload');
             },
-            // upload new mastered image to library
-            upload: () => {
-                setDialogToggle({ type: 'uploadImage', id: panel2.id });
+
+            // [upload] upload mastered image into library
+            master: () => {
+                    const properties = id === panel1.id ? panel1 : panel2;
+                    return <Dialog
+                        key={`${menuID}_dialog_upload`}
+                        title={`Confirm Mastered Image`}
+                        setToggle={setDialogToggle}>
+                        <Importer
+                            model={'modern_captures'}
+                            view={'upload'}
+                            schema={genSchema('master', properties.file_type)}
+                            route={createNodeRoute(properties.file_type, 'master', properties.owner_id)}
+                            data={{
+                                historic_images: panel1.files_id,
+                                modern_images: panel2.files_id,
+                                owner_id: panel
+                            }}
+                            callback={_handleError}
+                        />
+                    </Dialog>;
             },
+
             // compare images in comparator overlay
             compare: () => {
-
-                // reject if both images are not loaded in canvas
+                // reject if either panel is not loaded
                 if (!image1 || !image2) {
                     setMessage({ msg: getError('emptyCanvas', 'canvas') });
                     return null;
                 }
-                // get data URL from canvas data
-                setPanel1(data => ({ ...data, getURL: true }));
-                setPanel2(data => ({ ...data, getURL: true }));
-
                 // open image comparator
                 setDialogToggle({ type: 'compareImages' });
             },
@@ -275,6 +300,7 @@ export const MenuIat = ({
                     </li>
                     <li>
                         <Button
+                            disabled={!image1 && !image2}
                             title={'Select control coordinates.'}
                             className={options.mode === 'select' ? 'active' : ''}
                             icon={'crosshairs'}
@@ -283,43 +309,39 @@ export const MenuIat = ({
                             }}
                         />
                     </li>
-                    <li className={'push'}><Button
-                        icon={'swap'}
-                        label={'Swap'}
-                        title={'Swap images in canvases.'}
-                        onClick={() => {
-                            _filterMethods('swap');
-                        }}
-                    /></li>
-                    <li><Button
-                        icon={'master'}
-                        label={'Align'}
-                        title={'Align images using selected control points.'}
-                        onClick={() => {
-                            _filterMethods('align');
-                        }}
-                    /></li>
-                    <li><Button
-                        icon={'compare'}
-                        label={'Compare'}
-                        title={'Compare images using comparison overlay.'}
-                        onClick={() => {
-                            _filterMethods('compare');
-                        }}
-                    /></li>
-                    {
-                        user && hasCaptures &&
-                        <li>
-                            <Button
-                                title={'Upload as mastered capture image.'}
-                                icon={'upload'}
-                                label={'Upload'}
-                                onClick={() => {
-                                    _filterMethods('upload');
-                                }}
-                            />
-                        </li>
-                    }
+                    <li>
+                        <Button
+                            disabled={!image1 || !image2}
+                            icon={'master'}
+                            label={'Align'}
+                            title={'Align images using selected control points.'}
+                            onClick={() => {
+                                _filterMethods('align');
+                            }}
+                        />
+                    </li>
+                    <li>
+                        <Button
+                            disabled={!image1 || !image2}
+                            icon={'upload'}
+                            label={'Master'}
+                            title={'Upload mastered image.'}
+                            onClick={() => {
+                                _filterMethods('master');
+                            }}
+                        />
+                    </li>
+                    <li>
+                        <Button
+                            disabled={!image1 || !image2}
+                            icon={'compare'}
+                            label={'Compare'}
+                            title={'Compare images using overlay.'}
+                            onClick={() => {
+                                _filterMethods('compare');
+                            }}
+                        />
+                    </li>
                 </ul>
             </div>
             <OptionsMenu option={menuToggle} />

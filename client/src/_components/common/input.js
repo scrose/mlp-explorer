@@ -51,7 +51,6 @@ export const Input = ({
                           prefix = '',
                           suffix = '',
                           error = null,
-                          reference = '',
                           required = false,
                           readonly = false,
                           multiple = false,
@@ -103,6 +102,7 @@ export const Input = ({
 
         text: () => {
             return <input
+                readOnly={readonly}
                 type={'text'}
                 id={id}
                 name={name}
@@ -116,6 +116,7 @@ export const Input = ({
         autocomplete: () => {
             return <Autocomplete
                 id={id}
+                readOnly={readonly}
                 name={name}
                 value={value || ''}
                 required={required}
@@ -126,6 +127,7 @@ export const Input = ({
 
         smallText: () => {
             return <input
+                readOnly={readonly}
                 className={'short'}
                 type={'text'}
                 id={id}
@@ -139,32 +141,35 @@ export const Input = ({
 
         textarea: () => {
             return <textarea
-                id={id}
-                name={name}
-                value={value || ''}
-                required={required}
-                onChange={onChange}
-                aria-label={ariaLabel}
-            />;
+                    id={id}
+                    name={name}
+                    readOnly={readonly}
+                    value={value || ''}
+                    required={required}
+                    onChange={onChange}
+                    aria-label={ariaLabel}
+                />;
         },
 
         checkbox: () => {
             const isChecked = (value && value === true);
             return <input
-                disabled={disabled}
-                type={'checkbox'}
-                id={id}
-                name={name}
-                checked={isChecked}
-                required={required}
-                onChange={onChange}
-                aria-label={ariaLabel}
-            />;
+                    readOnly={readonly}
+                    disabled={disabled}
+                    type={'checkbox'}
+                    id={id}
+                    name={name}
+                    checked={isChecked}
+                    required={required}
+                    onChange={onChange}
+                    aria-label={ariaLabel}
+                />;
         },
 
         int: () => {
             return <>
                 <input
+                    readOnly={readonly}
                     disabled={disabled}
                     type={'number'}
                     placeholder={0}
@@ -181,6 +186,7 @@ export const Input = ({
         float: () => {
             return <>
                 <input
+                    readOnly={readonly}
                     disabled={disabled}
                     type={'number'}
                     placeholder={0.000}
@@ -197,6 +203,7 @@ export const Input = ({
 
         year: () => {
             return <input
+                readOnly={readonly}
                 disabled={disabled}
                 type={'number'}
                 placeholder={new Date().getFullYear()}
@@ -214,6 +221,7 @@ export const Input = ({
         coord: () => {
             return <>
                 <input
+                    readOnly={readonly}
                     type={'number'}
                     step={'any'}
                     min={name === 'lat' ? -85 : -180}
@@ -316,10 +324,10 @@ export const Input = ({
             </select>;
         },
 
-
         multiselect: () => {
             return <MultiSelect
                 id={id}
+                readOnly={readonly}
                 name={name}
                 selected={value}
                 label={label}
@@ -350,6 +358,7 @@ export const Input = ({
                     onDragEnter={handleDragEnter}
                     onDragLeave={onDragLeave}>
                     <input
+                        readOnly={readonly}
                         ref={ref}
                         type={'file'}
                         id={id}

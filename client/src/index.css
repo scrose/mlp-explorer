@@ -1108,8 +1108,8 @@ nav.breadcrumb ul li a:hover {
     display: inline-block;
     vertical-align: middle;
     cursor: ew-resize !important;
-    width: 40px !important;
-    height: 40px !important;
+    width: 20px !important;
+    height: 20px !important;
 }
 .comparator-slider.hidden {
     display: none;
@@ -1119,9 +1119,8 @@ nav.breadcrumb ul li a:hover {
     color: #FFFFFF;
     background-color: #57BECC;
     opacity: 0.7;
-
     border-radius: 5px;
-    width: 40px;
+    width: 20px;
     height: 40px;
 }
 
@@ -2058,8 +2057,14 @@ canvas {
 .canvas-placeholder {
     z-index: 50;
     text-align: center;
-    background-color: #DDDDDD;
+    background-color: transparent;
     color: #282c34;
+}
+.canvas-placeholder button {
+    z-index: 50;
+    text-align: center;
+    background-color: #282c34;
+    color: #FFFFFF;
 }
 .canvas-layer-control-default {
     cursor: move;
@@ -2068,6 +2073,9 @@ canvas {
 .canvas-layer-control-select {
     cursor: crosshair;
     z-index: 40;
+}
+.canvas-layer-control-default.magnify, .canvas-layer-control-select.magnify {
+    cursor: none;
 }
 .canvas-layer-mask {
     z-index: 30;
@@ -2080,7 +2088,7 @@ canvas {
 }
 .canvas-layer-base {
     position: relative;
-    background-color: #FFFFFF;
+    background-color: transparent;
     z-index: 10;
 }
 .canvas-board {
@@ -2179,6 +2187,7 @@ canvas {
 }
 /* Canvas magnifier */
 .canvas-magnifier {
+    visibility: hidden;
     background-repeat: no-repeat;
     position: absolute;
     border: 3px solid #000;
@@ -2186,7 +2195,7 @@ canvas {
     /*Set the size of the magnifier glass:*/
     width: 100px;
     height: 100px;
-    z-index: 35;
+    z-index: 29;
 }
 .canvas-magnifier.hidden {
     display: none;

@@ -14,17 +14,15 @@ import React from 'react';
  * @public
  * @param enable
  * @param pointer
- * @param panel
+ * @param properties
  * @param options
  * @return {JSX.Element}
  */
 
-export const Magnifier = ({ pointer, panel, options, offset})  => {
+export const Magnifier = ({ pointer, properties, options})  => {
 
     // canvas magnifier reference
     const magnifierRef = React.useRef(null);
-
-    const [startPt, setStartPt] = React.useState(offset);
 
     /**
      * Image region magnifier.
@@ -51,17 +49,18 @@ export const Magnifier = ({ pointer, panel, options, offset})  => {
         function _init () {
             if (!magnifierRef.current.style.backgroundImage) {
                 // set magnification parameters
-                const bgSizeX = panel.props.base_dims.x * options.magnifyZoom;
-                const bgSizeY = panel.props.base_dims.y * options.magnifyZoom;
+                const bgSizeX = properties.base_dims.x * options.magnifyZoom;
+                const bgSizeY = properties.base_dims.y * options.magnifyZoom;
                 magnifierRef.current.style.left = (pointer.x - w) + 'px';
                 magnifierRef.current.style.top = (pointer.y - h) + 'px';
-                magnifierRef.current.style.backgroundImage = `url('${panel.props.dataURL}')`;
+                magnifierRef.current.style.backgroundImage = `url('${properties.dataURL}')`;
                 magnifierRef.current.style.backgroundSize = `${bgSizeX}px ${bgSizeY}px`;
+                magnifierRef.current.style.visibility = 'visible';
             }
         }
 
         // apply magnifier over region
-        if (pointer.magnify) {
+        if (pointer.magnify && properties.dataURL) {
             _init();
 
             const x = pointer.x;
@@ -77,15 +76,16 @@ export const Magnifier = ({ pointer, panel, options, offset})  => {
         else {
             magnifierRef.current.style.backgroundImage = '';
             magnifierRef.current.style.backgroundSize = '';
+            magnifierRef.current.style.visibility = 'hidden';
         }
 
-    }, [pointer, panel, options])
+    }, [pointer, properties, options])
 
 
     // render canvas magnifier
     return <div
             ref={magnifierRef}
-            className={`canvas-magnifier${!pointer.magnify ? ' hidden' : ''}`}
+            className={`canvas-magnifier`}
            />
 };
 

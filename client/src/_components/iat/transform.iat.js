@@ -9,52 +9,6 @@
 import { getError } from '../../_services/schema.services.client';
 import * as matrix from '../../_utils/matrix.utils.client';
 import { homography } from '../../_utils/matrix.utils.client';
-import { getPos } from './pointer.iat';
-
-/**
- * Transform images data for alignment.
- *
- * @public
- * @param imgData1
- * @param imgData2
- * @param pts1
- * @param pts2
- * @param options
- * @param callback
- */
-
-export const alignImages = (imgData1, imgData2, pts1, pts2, options, callback) => {
-
-    if (!imgData1 || !imgData2) {
-        return { data: null, error: { msg: getError('emptyCanvas', 'canvas') } };
-    }
-    if (pts2.length < options.controlPtMax || pts1.length < options.controlPtMax) {
-        return { data: null, error: { msg: getError('missingControlPoints', 'canvas') } };
-    }
-    if (imgData1.width !== imgData2.width) {
-        return { data: null, error: { msg: getError('mismatchedDims', 'canvas') } };
-    }
-
-    // compute alignment transformation matrix
-    const transform = getAlignmentTransform(pts1, pts2);
-
-    // prepare data for transform
-    let img1 = new Uint32Array(imgData1.data.buffer);
-    let img2 = new Uint32Array(imgData2.data.buffer);
-
-    // apply transformation to image 2 (img2) on right-hand canvas
-    homography(transform, img1, img2, img1.width, img1.height);
-
-    // convert image array from Uint32 to Uint8ClampedArray (for ImageData obj)
-    let imgUint8 = new Uint8ClampedArray(img2.buffer);
-    const imgData = new ImageData(
-        imgUint8,
-        img1.width,
-        img1.height,
-    );
-
-    return { data: imgData, error: null };
-};
 
 /**
  * Computes scale-to-fit dimensions to fit an image [ix, iy]
@@ -85,11 +39,7 @@ export const scaleToFit = (ix, iy, cx, cy) => {
  * @param pointer
  */
 
-export function moveStart(e, properties, pointer, options) {
-
-    // select current mouse position
-    // pointer.select(e);
-}
+export function moveStart(e, properties, pointer, options) {}
 
 /**
  * Update canvas offset by cursor position
@@ -107,16 +57,15 @@ export function moveAt(e, properties, pointer, options, callback) {
 
     e.preventDefault();
 
-    // get current mouse position
-    const pos = getPos(e, properties);
-    // only update move if position is positive
-    if (pos.x > 0 && pos.y > 0) {
-        const newOffset = {
-            x: properties.offset.x + Math.sign(pos.x - properties.move.x),
-            y: properties.offset.y + Math.sign(pos.y - properties.move.y),
-        };
-        callback({ props: { offset: newOffset, move: pos }, status: 'render' })
-    }
+    // compute distance traveled
+    const _x = properties.offset.x + pointer.x - pointer.selected.x;
+    const _y = properties.offset.y + pointer.y - pointer.selected.y;
+
+    // update the pointer selected point
+    pointer.setSelect({ x: pointer.x, y: pointer.y });
+
+    // update image offset coordinate
+    callback({ props: { offset: {x: _x, y: _y} }, status: 'render' })
 }
 
 /**
@@ -140,18 +89,18 @@ export function moveEnd(e, properties, pointer, options) {
  * @param properties
  * @param dx
  * @param dy
+ * @param callback
  */
 
-export function moveBy(e, properties, dx = 0, dy = 0) {
+export function moveBy(e, properties, dx = 0, dy = 0, callback) {
     e.preventDefault();
-    return {
-        data: {
-            offset: {
-                x: properties.offset.x + dx,
-                y: properties.offset.y + dy
-            }
-        }
-    }
+    return callback(
+        {   status: 'render',
+            props: {
+                    offset: {
+                        x: properties.offset.x + dx,
+                        y: properties.offset.y + dy }
+        }});
 }
 
 /**
@@ -327,6 +276,50 @@ export const getAlignmentTransform = (pts1, pts2) => {
     //swappointpairs( CtrlPts );
 
 };
+
+/**
+ * Transform images data for alignment.
+ *
+ * @public
+ * @param imgData1
+ * @param imgData2
+ * @param pts1
+ * @param pts2
+ * @param options
+ */
+
+export const alignImages = (imgData1, imgData2, pts1, pts2, options) => {
+
+    if (!imgData1 || !imgData2) {
+        return { data: null, error: { msg: getError('emptyCanvas', 'canvas'), type: 'error' } };
+    }
+    if (pts2.length < options.controlPtMax || pts1.length < options.controlPtMax) {
+        return { data: null, error: { msg: getError('missingControlPoints', 'canvas'), type: 'error' } };
+    }
+    if (imgData1.width !== imgData2.width) {
+        return { data: null, error: { msg: getError('mismatchedDims', 'canvas'), type: 'error' } };
+    }
+
+    // compute alignment transformation matrix
+    const transform = getAlignmentTransform(pts1, pts2);
+
+    // prepare data for alignment (use image 1 dimensions for destination)
+    const w = imgData2.width;
+    const h = imgData2.height;
+    let src = new Uint32Array(imgData2.data.buffer);
+    let dst = new Uint32Array(imgData2.data.buffer);
+
+    // apply transformation to image 2 (dst) loaded in right-hand panel (Panel 2)
+    homography(transform, src, dst, w, h);
+
+    // convert image array from Uint32 to Uint8ClampedArray (for ImageData obj)
+    let imgUint8 = new Uint8ClampedArray(dst.buffer);
+    return { data: new ImageData(imgUint8, w, h), error: null };
+};
+
+
+
+
 
 /**
  * Image Processing Utilities

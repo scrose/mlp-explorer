@@ -31,7 +31,6 @@ export const reset = async (properties, callback) => {
             offset: { x: 0, y: 0 },
             move: { x: 0, y: 0 },
             origin: { x: 0, y: 0 },
-            pts: [],
         },
     });
 };
@@ -39,10 +38,12 @@ export const reset = async (properties, callback) => {
 /**
  * Erase control points.
  *
- * @private
+ * @public
+ * @param properties
+ * @param callback
  */
 
-export const erase = async (callback) => {
+export const erase = async (properties, callback) => {
     callback({
         status: 'redraw',
         props: { pts: [] }
@@ -53,7 +54,8 @@ export const erase = async (callback) => {
  * Fit image to canvas
  *
  * @public
- * @return dimensions
+ * @param properties
+ * @param callback
  */
 
 export const fit = async (properties, callback) => {
@@ -73,7 +75,6 @@ export const fit = async (properties, callback) => {
             offset: { x: 0, y: 0 },
             crop_dims: dims,
             render_dims: dims,
-            pts: [],
         },
     });
 };
@@ -81,7 +82,9 @@ export const fit = async (properties, callback) => {
 /**
  * Expand to full-sized image.
  *
- * @return dimensions
+ * @public
+ * @param properties
+ * @param callback
  */
 
 export const expand = async (properties, callback) => {
@@ -90,7 +93,6 @@ export const expand = async (properties, callback) => {
         props: {
             render_dims: properties.image_dims,
             crop_dims: properties.base_dims,
-            pts: [],
         }
     });
 };

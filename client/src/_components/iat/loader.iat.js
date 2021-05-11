@@ -21,8 +21,6 @@ import { getError } from '../../_services/schema.services.client';
 
 export const loadImageData = async (properties, callback) => {
 
-    const _LOAD = 1;
-
     /**
      * Load file data into canvas layers (indexed by MIME type).
      */
@@ -130,7 +128,10 @@ export const loadImageData = async (properties, callback) => {
     // Load file from URL
     if (url) return loaders.url();
     // invalid load request
-    return callback({error: {msg: 'Image load cancelled.', type:'info'}})
+    return callback({
+        status: 'empty',
+        error: {msg: 'Image load cancelled.', type:'info'}
+    })
 }
 
 /**

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+    <defs>
+        <pattern id="grid" width="20" height="20">
+            <rect x="0" y="0" width="10" height="10" fill="#CCCCCC" />
+            <rect x="0" y="10" width="10" height="10" fill="#EEEEEE" />
+            <rect x="10" y="10" width="10" height="10" fill="#CCCCCC" />
+            <rect x="10" y="0" width="10" height="10" fill="#EEEEEE" />
+        </pattern>
+    </defs>
+    <rect x="0" y="0" width="20" height="20" fill="url(#grid)"/>
+</svg>

@@ -62,7 +62,7 @@ export function getOpts(payload=null, method='POST') {
         referrerPolicy: 'no-referrer',
     };
 
-    // add payload (if exists)
+    // add GET payload (if exists)
     if (payload) {
         // request access token
         opts.body = Object.keys(payload)

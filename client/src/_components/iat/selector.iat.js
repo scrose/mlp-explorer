@@ -32,13 +32,16 @@ export const ImageSelector = ({
                                   panelLabel = '',
                                   selection = {},
                                   setToggle = () => {},
+                                  options = {},
                                   callback = () => {
                                   },
                               }) => {
 
     const [selectedImage, setSelectedImage] = React.useState(null);
     const [error, setError] = React.useState(null);
-    const allowedFileTypes = ['image/jpeg', 'image/png', 'image/tiff'];
+    const allowedFileTypes = Object.keys(options.formats || {}).map(key => {
+        return options.formats[key].value;
+    });
 
     // submit selection for canvas loading
     const _handleSubmit = () => {

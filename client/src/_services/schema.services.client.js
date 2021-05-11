@@ -253,11 +253,16 @@ export const genSchema = (view, model, fieldsetKey='') => {
                     )
                     .map(fieldKey => {
 
+                        // get field render type
                         const _render = fieldset[fieldKey].hasOwnProperty('render')
                             ? fieldset[fieldKey].render
                             : 'text';
 
+                        // does the field have attached files?
                         hasFiles = _render === 'file' || _render === 'files' ? true : hasFiles;
+
+                        // is the field readonly?
+                        const _readonly = fieldset[fieldKey].hasOwnProperty('readonly');
 
                         return {
                             name: render === 'multiple' ? `${fieldKey}[${index}]` : fieldKey,
@@ -265,6 +270,7 @@ export const genSchema = (view, model, fieldsetKey='') => {
                             label: fieldset[fieldKey].label,
                             attributes: fieldset[fieldKey],
                             render: _render,
+                            readonly: _readonly,
                             validate: fieldset[fieldKey].hasOwnProperty('validate')
                                 ? fieldset[fieldKey].validate
                                 : [],

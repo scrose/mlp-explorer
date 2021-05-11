@@ -952,6 +952,22 @@ export const schema = {
                     }
                 },
                 {
+                    legend: 'Image Upload',
+                    restrict: ['upload'],
+                    modern_images: {
+                        label: 'Image File',
+                        render: 'file',
+                        readonly: true,
+                        validate: ['filesSelected']
+                    },
+                    image_state: {
+                        render: 'select',
+                        label: 'Image State',
+                        reference: 'image_states',
+                        validate: ['isRequired']
+                    }
+                },
+                {
                     legend: 'Capture Details',
                     restrict: ['edit', 'show'],
                     image_state: {

@@ -152,13 +152,12 @@ const Fieldset = ({
                 Object.keys(fields || {}).map(key => {
 
                     // get form schema for requested model
-                    const { label='', render='', name='', reference='', attributes={} } = fields[key];
+                    const { label='', render='', name='', reference='', attributes={}, readonly=false } = fields[key];
                     const _value = data.hasOwnProperty(key) ? data[key] : '';
                     const _files = files.hasOwnProperty(key)
                         ? Object.keys(files[key]).map(fkey => {return files[key][fkey].name})
                         : [];
                     const _error = errors.hasOwnProperty(key) ? errors[key] : '';
-                    const _readonly = readonly.hasOwnProperty(key) ? readonly[key] : false;
                     const _options = optionsData.hasOwnProperty(reference) ? optionsData[reference] : [];
                     const _disabled = disabledInputs.hasOwnProperty(name) ? disabledInputs[name]: false;
                     const _isRequired = validators.hasOwnProperty(name)
@@ -174,16 +173,15 @@ const Fieldset = ({
                             type={render}
                             name={name}
                             label={label}
+                            readonly={readonly}
                             prefix={_prefix}
                             suffix={_suffix}
                             value={_value}
                             files={_files}
-                            reference={reference}
                             required={_isRequired}
                             error={_error}
                             options={_options}
                             multiple={_multiple}
-                            readonly={_readonly}
                             disabled={_disabled}
                             onMultiselect={_handleMultiselect}
                             onChange={_handleChange}

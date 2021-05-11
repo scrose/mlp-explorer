@@ -36,9 +36,6 @@ export function usePointer(properties, options) {
         const pos = getPos(e, properties);
         setCurrent(pos);
     };
-    const setControl = (controlPointIndex) => {
-        setIndex(controlPointIndex);
-    };
     const magnifyOn = () => {
         setMagnify(true);
     };
@@ -48,6 +45,9 @@ export function usePointer(properties, options) {
     const select = (e) => {
         const pos = getPos(e, properties);
         setSelected(pos);
+    };
+    const setSelect = (selected) => {
+        setSelected(selected);
     };
     const deselect = () => {
         setSelected(null);
@@ -62,11 +62,11 @@ export function usePointer(properties, options) {
         y: current.y,
         get,
         set,
-        setControl,
         magnify,
         magnifyOn,
         magnifyOff,
         select,
+        setSelect,
         deselect,
         reset,
         selected,
@@ -79,11 +79,12 @@ export function usePointer(properties, options) {
  * Show selected control points. Allows for deletion of last point.
  *
  * @param properties
+ * @param otherProperties
  * @param callback
  * @public
  */
 
-const ControlPoints = ({ properties, callback }) => {
+const ControlPoints = ({ properties, otherProperties, callback }) => {
     return <>
 
         {
@@ -104,6 +105,22 @@ const ControlPoints = ({ properties, callback }) => {
                         })
                     }
                     <li className={'push'}>
+                        <Button
+                            disabled={otherProperties.pts.length === 0}
+                            key={`${properties.id}_view_pt`}
+                            icon={'crosshairs'}
+                            label={'Overlay'}
+                            title={`Overlay other panel control points.`}
+                            onClick={() => {
+                                return callback({
+                                    status: 'redraw',
+                                    props: { other_panel: !properties.other_panel },
+                                    redraw: drawControlPoints,
+                                });
+                            }}
+                        />
+                    </li>
+                    <li>
                         <Button
                             key={`${properties.id}_delete_pt`}
                             icon={'delete'}
@@ -176,30 +193,26 @@ export const selectControlPoint = (e, properties, pointer, options, callback) =>
 
     e.preventDefault();
 
-    // get current cursor position
-    const pt = getPos(e, properties);
-    const x = pt.x;
-    const y = pt.y;
-    const radius = 20;
-
-    // selected control point index
-    let selectedCtrlPtIndex = null;
+    // get current pointer position
+    const x = pointer.x;
+    const y = pointer.y;
 
     // get existing control points
     const pts = properties.pts;
 
     // check if mouse cursor proximate to existing control point
+    let selected = false;
     pts.forEach((pt, index) => {
-        if (inRange(x, y, pt.x, pt.y, radius)) {
+        if (inRange(x, y, pt.x, pt.y, options.ptrRadius)) {
             // set pointer control point index
-            selectedCtrlPtIndex = { control: index}
+            selected = true;
+            pointer.setIndex(index);
+            pointer.magnifyOn();
         }
     });
 
     // return control point index if proximate
-    if (selectedCtrlPtIndex) return callback({
-        point: selectedCtrlPtIndex ,
-    });
+    if (selected) return;
 
     // check if the maximum number of control points has been reached
     if (properties.pts.length >= options.controlPtMax) {
@@ -213,7 +226,7 @@ export const selectControlPoint = (e, properties, pointer, options, callback) =>
     // otherwise, draw new control point and save as canvas property
     return callback({
         status: 'redraw',
-        props: { pts: properties.pts.concat(pt) },
+        props: { pts: properties.pts.concat({x: pointer.x, y: pointer.y}) },
         redraw: drawControlPoints,
     });
 };
@@ -231,28 +244,9 @@ export const selectControlPoint = (e, properties, pointer, options, callback) =>
  */
 
 export const deselectControlPoint = (e, properties, pointer, options, callback) => {
-
-    // check if destination control point proximate to existing point
-    // const updatedPts = props.pts.map((pt, index) => {
-    //     if ( pt.inRange(x, y) ) {
-    //         const _x = pt.x + (x - selected.x);
-    //         const _y = pt.y + (y - selected.y);
-    //         selected = {x: x, y: y, index: index};
-    //
-    //         // magnify cursor region
-    //         magnify(x, y, props, magnifier);
-    //
-    //         // update position of selected control point
-    //         return {
-    //             x: _x,
-    //             y: _y,
-    //             inRange: inRange(_x, _y, radius)
-    //         }
-    //     }
-    //     return pt;
-    // });
-
-    //pointer.deselect();
+    pointer.magnifyOff();
+    pointer.setSelect(null);
+    pointer.setIndex(null);
 };
 
 
@@ -273,22 +267,21 @@ export const moveControlPoint = (e, properties, pointer, options, callback) => {
     // proceed if mouse is down (selected point)
     if (!pointer.selected) return;
 
-    // get the current mouse pointer position
-    const point = getPos(e, properties);
-    const x = point.x;
-    const y = point.y;
-
     // get the current selected control point position
-    const ctrlPt = properties.pts[pointer.control];
+    const ctrlPt = properties.pts[pointer.index];
+    if (!ctrlPt) return;
 
-    // compute direction traveled in new coordinate updated by 1 px
-    const _x = ctrlPt.x + Math.sign(x - pointer.selected.x);
-    const _y = ctrlPt.y + Math.sign(y - pointer.selected.y);
+    // compute distance traveled
+    const _x = ctrlPt.x + pointer.x - pointer.selected.x;
+    const _y = ctrlPt.y + pointer.y - pointer.selected.y;
 
     // update the pointer selected point
+    pointer.setSelect({ x: _x, y: _y });
+
+    // update panel control points
     const updatedPoints = [...properties.pts];
-    updatedPoints[pointer.control] = { x: _x, y: _y };
-    console.log(pointer, updatedPoints)
+    updatedPoints[pointer.index] = { x: _x, y: _y };
+
     return callback({
         status: 'redraw',
         props: { pts: updatedPoints },

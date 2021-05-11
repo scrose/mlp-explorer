@@ -27,6 +27,11 @@ const PanelInfo = ({ properties, pointer, status }) => {
     const router = useRouter();
     const captureRoute = createNodeRoute('modern_captures', 'show', properties.owner_id);
 
+    // compute scale
+    const scale = properties.render_dims.x > 0
+        ? `1:${(1.0 * properties.image_dims.x/properties.render_dims.x).toFixed(2)}`
+        : '-';
+
     return <div id={`canvas-view-${properties.id}-footer`} className={'canvas-view-info'}>
         <table>
             <tbody>
@@ -42,18 +47,18 @@ const PanelInfo = ({ properties, pointer, status }) => {
                             onClick={() => {router.update(captureRoute);}}
                         />
                     }
-                    <span>{properties.filename ? properties.filename : 'Not Loaded'}</span>
+                    <span>{properties.filename ? properties.filename : status}</span>
                 </td>
             </tr>
             <tr>
-                <th>Status:</th>
-                <td>{status}</td>
+                <th>Scale:</th>
+                <td>{scale}</td>
                 <th>Cursor:</th>
                 <td>({pointer.x}, {pointer.y})</td>
             </tr>
             <tr>
-                <th>Origin</th>
-                <td>({properties.origin.x}, {properties.origin.y})</td>
+                <th>Cursor</th>
+                <td>({pointer.x}, {pointer.y})</td>
                 <th>Offset</th>
                 <td>({Math.floor(properties.offset.x)}, {Math.floor(properties.offset.y)})</td>
             </tr>
