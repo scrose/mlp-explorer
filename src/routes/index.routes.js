@@ -34,7 +34,7 @@ export default baseRouter;
 async function initRoutes(routes, baseRouter) {
 
     // Generate secondary express router
-    let router = express.Router();
+    let router = express.Router({strict: true});
 
     // get user permission settings
     let permissions = await schema.getPermissions();
@@ -98,7 +98,7 @@ async function initRoutes(routes, baseRouter) {
             });
 
         // add secondary router to main router
-        baseRouter.use('/', router);
+        baseRouter.use('', router);
     });
 }
 
