@@ -23,7 +23,7 @@ import files from './files.routes.js'
  * Create base router to add routes.
  */
 
-const baseRouter = express.Router();
+const baseRouter = express.Router({strict: true});
 export default baseRouter;
 
 /**
