@@ -128,7 +128,7 @@ export default () => {
      * Initialize router.
      */
 
-    app.use('/api', router);
+    app.use('/', router);
 
     /**
      * Set default global error handlers.
