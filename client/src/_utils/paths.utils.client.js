@@ -68,7 +68,7 @@ export function createRoute(path='/', params) {
 
 export function createURL(route, params={}) {
     const query = serialize((params || {}));
-    const base = process.env.REACT_APP_API_HOST + '/api';
+    const base = process.env.REACT_APP_API_HOST;
     return `${base}${route}${params && Object.keys(params).length > 0 ? '?' + query : ''}`
 }
 
