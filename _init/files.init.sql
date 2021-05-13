@@ -10,7 +10,7 @@ begin;
 
 drop table if exists "file_types" CASCADE;
 
-create TABLE"public"."file_types"
+create TABLE "public"."file_types"
 (
     id    serial PRIMARY KEY,
     name  VARCHAR(40) UNIQUE NOT NULL CHECK (name ~ '^[\w]+$'),
@@ -64,19 +64,19 @@ drop table if exists files cascade;
 
 create TABLE IF NOT EXISTS "public"."files"
 (
-    "id"      serial PRIMARY KEY,
-    "old_id" integer not null,
-    "file_type"  character varying(40) NOT NULL,
-    "mimetype"  character varying(40),
-    "filename" varchar(255),
-    "file_size" bigint,
-    "owner_id" integer NOT NULL,
-    "owner_type"  varchar(40) NOT NULL,
-    "created_at" timestamp without time zone NOT NULL,
-    "updated_at" timestamp without time zone NOT NULL,
-    "published" boolean,
-    "legacy_path" text,
-    "fs_path" text NOT NULL,
+    "id"           serial PRIMARY KEY,
+    "old_id"       integer                     not null,
+    "file_type"    character varying(40)       NOT NULL,
+    "mimetype"     character varying(40),
+    "filename"     varchar(255),
+    "file_size"    bigint,
+    "owner_id"     integer                     NOT NULL,
+    "owner_type"   varchar(40)                 NOT NULL,
+    "created_at"   timestamp without time zone NOT NULL,
+    "updated_at"   timestamp without time zone NOT NULL,
+    "published"    boolean,
+    "legacy_path"  text,
+    "fs_path"      text                        NOT NULL,
     "filename_tmp" character varying(255),
     CONSTRAINT fk_ownerid FOREIGN KEY (owner_id, owner_type)
         REFERENCES nodes (id, type),
@@ -99,7 +99,7 @@ CREATE INDEX "index_files_on_legacy_path"
 
 drop table if exists "image_types" CASCADE;
 
-create TABLE"public"."image_types"
+create TABLE "public"."image_types"
 (
     id    serial PRIMARY KEY,
     name  VARCHAR(40) UNIQUE NOT NULL,
@@ -115,7 +115,7 @@ values ('scenic', 'Scenic Image'),
 
 drop table if exists "image_states" CASCADE;
 
-create TABLE"public"."image_states"
+create TABLE "public"."image_states"
 (
     id    serial PRIMARY KEY,
     name  VARCHAR(40) UNIQUE NOT NULL,
@@ -162,7 +162,7 @@ drop table if exists "public"."supplemental_images" cascade;
 CREATE TABLE if not exists "public"."supplemental_images"
 (
     "files_id"         integer primary key,
-    "owner_id"         integer not null,
+    "owner_id"         integer               not null,
     "image_type"       character varying(40) NOT NULL DEFAULT 'other',
     "format"           character varying(255),
     "channels"         integer,
@@ -175,7 +175,7 @@ CREATE TABLE if not exists "public"."supplemental_images"
     "secure_token"     character varying(255),
     "comments"         character varying(255),
     lat                double precision,
-    lng               double precision,
+    lng                double precision,
     elev               double precision,
     azim               double precision,
     "f_stop"           double precision,
@@ -201,8 +201,7 @@ CREATE INDEX "index_supplemental_images_on_owner_id"
     ON "public"."supplemental_images" USING btree ("owner_id");
 
 -- populate the files table
-insert into files (
-                   old_id,
+insert into files (old_id,
                    file_type,
                    mimetype,
                    filename,
@@ -213,8 +212,7 @@ insert into files (
                    updated_at,
                    legacy_path,
                    fs_path,
-                   filename_tmp
-                   )
+                   filename_tmp)
 select id,
        'supplemental_images',
        null,
@@ -231,10 +229,8 @@ from old_images
 order by id;
 
 -- populate the supplemental_images table
-insert into "public"."supplemental_images" (
-                                        files_id,
-                                        owner_id
-                                        )
+insert into "public"."supplemental_images" (files_id,
+                                            owner_id)
 select id, owner_id
 from files
 where file_type = 'supplemental_images'
@@ -291,7 +287,7 @@ DROP TABLE IF EXISTS "public"."modern_images" CASCADE;
 CREATE TABLE "public"."modern_images"
 (
     "files_id"         integer primary key,
-    "owner_id"         integer NOT NULL,
+    "owner_id"         integer               NOT NULL,
     "image_state"      character varying(40) NOT NULL,
     "format"           character varying(255),
     "channels"         integer,
@@ -330,20 +326,18 @@ CREATE INDEX "index_modern_images_on_owner_id"
     ON "public"."modern_images" USING btree ("owner_id");
 
 -- populate the files table
-insert into files (
-    old_id,
-    file_type,
-    mimetype,
-    filename,
-    file_size,
-    owner_id,
-    owner_type,
-    created_at,
-    updated_at,
-    legacy_path,
-    fs_path,
-    filename_tmp
-)
+insert into files (old_id,
+                   file_type,
+                   mimetype,
+                   filename,
+                   file_size,
+                   owner_id,
+                   owner_type,
+                   created_at,
+                   updated_at,
+                   legacy_path,
+                   fs_path,
+                   filename_tmp)
 select id,
        'modern_images',
        null,
@@ -362,16 +356,16 @@ order by id;
 
 -- populate table
 with f as (select id, old_id from files where file_type = 'modern_images')
-insert into modern_images (
-    files_id,
-    owner_id,
-    image_state,
-    x_dim,
-    y_dim,
-    bit_depth,
-    remote,
-    secure_token,
-    comments)
+insert
+into modern_images (files_id,
+                    owner_id,
+                    image_state,
+                    x_dim,
+                    y_dim,
+                    bit_depth,
+                    remote,
+                    secure_token,
+                    comments)
 select f.id,
        c.captureable_id,
        lower(c.image_state),
@@ -396,7 +390,7 @@ DROP TABLE IF EXISTS "public"."historic_images" CASCADE;
 CREATE TABLE "public"."historic_images"
 (
     "files_id"         integer primary key,
-    "owner_id"         integer NOT NULL,
+    "owner_id"         integer               NOT NULL,
     "image_state"      character varying(40) NOT NULL,
     "format"           character varying(255),
     "channels"         integer,
@@ -409,7 +403,7 @@ CREATE TABLE "public"."historic_images"
     "secure_token"     character varying(255),
     "comments"         character varying(255),
     lat                double precision,
-    lng               double precision,
+    lng                double precision,
     elev               double precision,
     azim               double precision,
     "f_stop"           double precision,
@@ -435,20 +429,18 @@ CREATE INDEX "index_historic_images_on_owner_id"
     ON "public"."historic_images" USING btree ("owner_id");
 
 -- populate the files table
-insert into files (
-    old_id,
-    file_type,
-    mimetype,
-    filename,
-    file_size,
-    owner_id,
-    owner_type,
-    created_at,
-    updated_at,
-    legacy_path,
-    fs_path,
-    filename_tmp
-)
+insert into files (old_id,
+                   file_type,
+                   mimetype,
+                   filename,
+                   file_size,
+                   owner_id,
+                   owner_type,
+                   created_at,
+                   updated_at,
+                   legacy_path,
+                   fs_path,
+                   filename_tmp)
 select id,
        'historic_images',
        null,
@@ -467,16 +459,16 @@ order by id;
 
 -- populate table
 with f as (select id, old_id from files where file_type = 'historic_images')
-insert into historic_images (
-                             files_id,
-                             owner_id,
-                             image_state,
-                             x_dim,
-                             y_dim,
-                             bit_depth,
-                             remote,
-                             secure_token,
-                             comments)
+insert
+into historic_images (files_id,
+                      owner_id,
+                      image_state,
+                      x_dim,
+                      y_dim,
+                      bit_depth,
+                      remote,
+                      secure_token,
+                      comments)
 select f.id,
        c.captureable_id,
        lower(c.image_state),
@@ -487,7 +479,7 @@ select f.id,
        c.image_secure_token,
        c.comments
 from old_capture_images c
-join f on c.id = f.old_id
+         join f on c.id = f.old_id
 where c.captureable_type = 'historic_captures'
 order by id;
 
@@ -500,7 +492,7 @@ order by id;
 
 drop table if exists "metadata_file_types" CASCADE;
 
-create TABLE"public"."metadata_file_types"
+create TABLE "public"."metadata_file_types"
 (
     id    serial PRIMARY KEY,
     name  VARCHAR(40) UNIQUE NOT NULL,
@@ -517,16 +509,17 @@ values ('ancillary', 'Ancillary Metadata'),
 
 DROP TABLE IF EXISTS "metadata_files";
 
-CREATE TABLE "public"."metadata_files" (
-   "files_id" integer not null,
-   "owner_id" integer not null,
-   "type" varchar(40) not null,
-   CONSTRAINT fk_file_id FOREIGN KEY (files_id)
-       REFERENCES files (id) ON DELETE CASCADE,
-   CONSTRAINT fk_owner_id FOREIGN KEY (owner_id)
-       REFERENCES nodes (id) ON DELETE CASCADE,
-   CONSTRAINT fk_metadata_file_type FOREIGN KEY (type)
-       REFERENCES metadata_file_types (name) ON DELETE CASCADE
+CREATE TABLE "public"."metadata_files"
+(
+    "files_id" integer     not null,
+    "owner_id" integer     not null,
+    "type"     varchar(40) not null,
+    CONSTRAINT fk_file_id FOREIGN KEY (files_id)
+        REFERENCES files (id) ON DELETE CASCADE,
+    CONSTRAINT fk_owner_id FOREIGN KEY (owner_id)
+        REFERENCES nodes (id) ON DELETE CASCADE,
+    CONSTRAINT fk_metadata_file_type FOREIGN KEY (type)
+        REFERENCES metadata_file_types (name) ON DELETE CASCADE
 ) WITH (oids = false);
 
 
@@ -537,31 +530,29 @@ CREATE TABLE "public"."metadata_files" (
 update old_metadata_files
 set metadata_owner_type=q.name
 from (select * from node_types) as q
-where old_metadata_files.metadata_owner_type=q.label;
+where old_metadata_files.metadata_owner_type = q.label;
 
 update old_metadata_files
 set metadata_owner_id=q.id
 from (select * from nodes) as q
-where old_metadata_files.metadata_owner_id=q.old_id
-  and q.type=old_metadata_files.metadata_owner_type;
+where old_metadata_files.metadata_owner_id = q.old_id
+  and q.type = old_metadata_files.metadata_owner_type;
 
 CREATE INDEX "index_metadata_files_on_owner_id"
     ON "public"."metadata_files" USING btree ("owner_id");
 
 -- populate the files table
-insert into files (
-    old_id,
-    file_type,
-    mimetype,
-    filename,
-    file_size,
-    owner_id,
-    owner_type,
-    created_at,
-    updated_at,
-    legacy_path,
-    fs_path
-)
+insert into files (old_id,
+                   file_type,
+                   mimetype,
+                   filename,
+                   file_size,
+                   owner_id,
+                   owner_type,
+                   created_at,
+                   updated_at,
+                   legacy_path,
+                   fs_path)
 select id,
        'metadata_files',
        null,
@@ -578,10 +569,10 @@ order by id;
 
 -- populate new ancillary metadata table
 with f as (select id, old_id from files where file_type = 'metadata_files')
-insert into metadata_files (
-    files_id,
-    owner_id,
-    type)
+insert
+into metadata_files (files_id,
+                     owner_id,
+                     type)
 select f.id,
        c.metadata_owner_id,
        'ancillary'
@@ -594,24 +585,24 @@ order by id;
 -- -------------------------------------------------------------
 
 -- update owner ids
-update old_field_notes set visit_id=q.id
+update old_field_notes
+set visit_id=q.id
 from (select * from nodes) as q
-where old_field_notes.visit_id=q.old_id and q.type='modern_visits';
+where old_field_notes.visit_id = q.old_id
+  and q.type = 'modern_visits';
 
 -- populate the files table
-insert into files (
-    old_id,
-    file_type,
-    mimetype,
-    filename,
-    file_size,
-    owner_id,
-    owner_type,
-    created_at,
-    updated_at,
-    legacy_path,
-    fs_path
-)
+insert into files (old_id,
+                   file_type,
+                   mimetype,
+                   filename,
+                   file_size,
+                   owner_id,
+                   owner_type,
+                   created_at,
+                   updated_at,
+                   legacy_path,
+                   fs_path)
 select id,
        'metadata_files',
        null,
@@ -628,16 +619,97 @@ order by id;
 
 -- populate new field notes table
 with f as (select id, old_id from files where file_type = 'metadata_files')
-insert into metadata_files (
-    files_id,
-    owner_id,
-    type)
+insert
+into metadata_files (files_id,
+                     owner_id,
+                     type)
 select f.id,
        c.visit_id,
        'field_notes'
 from old_field_notes c
          join f on c.id = f.old_id
 order by id;
+
+
+
+-- -------------------------------------------------------------
+-- Create Comparison Indices Table
+-- -------------------------------------------------------------
+
+DROP TABLE IF EXISTS "comparison_indices";
+
+CREATE TABLE "public"."comparison_indices"
+(
+    "id"                  serial primary key,
+    "historic_images"   integer                     not null,
+    "modern_images"     integer                     not null,
+    "historic_captures" integer                     not null,
+    "modern_captures"   integer                     not null,
+    "created_at"          timestamp without time zone NOT NULL,
+    "updated_at"          timestamp without time zone NOT NULL,
+    UNIQUE (historic_images, modern_images),
+    CONSTRAINT fk_historic_images FOREIGN KEY (historic_images)
+        REFERENCES historic_images (files_id),
+    CONSTRAINT fk_modern_images FOREIGN KEY (modern_images)
+        REFERENCES modern_images (files_id) ON DELETE CASCADE,
+    CONSTRAINT fk_historic_captures FOREIGN KEY (historic_captures)
+        REFERENCES historic_captures (nodes_id),
+    CONSTRAINT fk_modern_captures FOREIGN KEY (modern_captures)
+        REFERENCES modern_captures (nodes_id)
+) WITH (oids = false);
+
+-- Update old comparison indices
+
+update old_comparison_indices
+set historic_capture_id=q.id
+from (select * from nodes) as q
+where q.old_id = old_comparison_indices.historic_capture_id
+  and q.type = 'historic_captures';
+
+update old_comparison_indices
+set capture_id=q.id
+from (select * from nodes) as q
+where q.old_id = old_comparison_indices.capture_id
+  and q.type = 'modern_captures';
+
+ALTER TABLE old_comparison_indices
+    RENAME COLUMN capture_id TO modern_captures;
+
+ALTER TABLE old_comparison_indices
+    RENAME COLUMN historic_capture_id TO historic_captures;
+
+-- Add foreign key references
+
+ALTER TABLE old_comparison_indices
+    ADD CONSTRAINT historic_capture_id_fkey
+        FOREIGN KEY (historic_captures) REFERENCES historic_captures (nodes_id);
+
+ALTER TABLE old_comparison_indices
+    ADD CONSTRAINT modern_captures_fkey
+        FOREIGN KEY (modern_captures) REFERENCES modern_captures (nodes_id);
+
+-- migrate comparisons to new comparison table
+-- Note: shift from capture comparisons -> capture image comparisons
+
+INSERT INTO comparison_indices (modern_images,
+                                historic_images,
+                                historic_captures,
+                                modern_captures,
+                                created_at,
+                                updated_at)
+SELECT DISTINCT ON (modern_images.files_id) modern_images.files_id,
+                                            historic_images.files_id,
+                                            historic_images.owner_id,
+                                            modern_images.owner_id,
+                                            old_comparison_indices.created_at,
+                                            old_comparison_indices.updated_at
+FROM modern_images
+         INNER JOIN old_comparison_indices
+                    ON modern_images.owner_id = old_comparison_indices.modern_captures
+         INNER JOIN historic_images
+                    ON historic_images.owner_id = old_comparison_indices.historic_captures
+WHERE historic_images.image_state = 'master'
+  AND modern_images.image_state = 'master';
 
 commit;
 

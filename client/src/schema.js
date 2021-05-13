@@ -36,6 +36,9 @@ export const schema = {
             name: 'imageToolkit',
             label: 'Image Analysis Toolkit'
         },
+        '/filter': {
+            label: 'Filter Stations'
+        },
         '/not_found': {
             name: 'notFound',
             label: '404 Not Found'
@@ -927,12 +930,8 @@ export const schema = {
             },
             fieldsets: [
                 {
-                    restrict: ['edit', 'master'],
+                    restrict: ['edit'],
                     files_id: {
-                        render: 'hidden'
-                    },
-                    historic_images: {
-                        restrict: ['master'],
                         render: 'hidden'
                     }
                 },
@@ -952,19 +951,9 @@ export const schema = {
                     }
                 },
                 {
-                    legend: 'Image Upload',
-                    restrict: ['upload'],
-                    modern_images: {
-                        label: 'Image File',
-                        render: 'file',
-                        readonly: true,
-                        validate: ['filesSelected']
-                    },
-                    image_state: {
-                        render: 'select',
-                        label: 'Image State',
-                        reference: 'image_states',
-                        validate: ['isRequired']
+                    restrict: ['master'],
+                    historic_files_id: {
+                        render: 'hidden'
                     }
                 },
                 {
@@ -1062,6 +1051,39 @@ export const schema = {
                         render: 'int'
                     },
                 }]
+        },
+        master_images: {
+            attributes: {
+                filetype: 'image',
+                order: 12,
+                label: "Master Images",
+                singular: "Master Image"
+            },
+            fieldsets: [
+                {
+                    legend: 'Image Metadata',
+                    capture: {
+                        label: 'Capture',
+                        render: 'text'
+                    },
+                    filename: {
+                        label: 'Filename',
+                        render: 'int'
+                    },
+                    mime_type: {
+                        label: 'Type',
+                        render: 'text'
+                    },
+                    width: {
+                        label: 'Width',
+                        render: 'int'
+                    },
+                    height: {
+                        label: 'Height',
+                        render: 'int'
+                    },
+                },
+            ]
         },
         supplemental_images: {
             attributes: {

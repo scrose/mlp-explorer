@@ -53,6 +53,8 @@ $$
             rename to "old_photographers_visits";
         alter table if exists hiking_parties
             rename to "old_hiking_parties";
+        alter table if exists comparison_indices
+            rename to "old_comparison_indices";
     EXCEPTION
         WHEN duplicate_table THEN null;
     END

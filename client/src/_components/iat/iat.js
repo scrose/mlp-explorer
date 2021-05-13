@@ -43,6 +43,7 @@ const Iat = () => {
     // initial inputs (optional)
     let input1 = null, input2 = null;
 
+    // global panel options
     const [options, setOptions] = React.useState({
         mode: 'default',
         controlPtMax: 4,
@@ -54,6 +55,7 @@ const Iat = () => {
             { label: 'jpeg', value: 'image/jpeg'},
             { label: 'tiff', value: 'image/tiff'}
         ],
+        blobQuality: 0.95,
         defaultX: DEFAULT_DIMS_X,
         defaultY: DEFAULT_DIMS_Y,
         status: ['empty', 'load', 'render', 'redraw', 'reset', 'loading', 'loaded', 'save', 'error']
@@ -82,7 +84,7 @@ const Iat = () => {
     });
 
     // initialize error/info messages
-    const [message, setMessage] = React.useState({});
+    const [message, setMessage] = React.useState(null);
 
     // set image selection state
     const [selection, setSelection] = React.useState([]);
@@ -212,6 +214,8 @@ const Iat = () => {
                 setDialogToggle={setDialogToggle}
                 options={options}
                 setOptions={setOptions}
+                message={message}
+                setMessage={setMessage}
             />
             <PanelIat
                 id={panel2ID}
@@ -261,7 +265,7 @@ export const initPanel = (panelID, panelLabel='', inputData = null) => {
         filename = '',
     } = inputData || {};
     const { id = '', file_type = '', file_size = 0, owner_id = '', owner_type = '' } = file || {};
-    const { x_dim = 0, y_dim = 0, image_state = '' } = metadata || {};
+    const { x_dim = 0, y_dim = 0, image_state = '', mime_type='' } = metadata || {};
 
     // define default canvas dimensions
     const defaultDims = {
@@ -287,6 +291,7 @@ export const initPanel = (panelID, panelLabel='', inputData = null) => {
         owner_id: owner_id,
         owner_type: owner_type,
         filename: filename,
+        mime_type: mime_type,
         file_type: file_type,
         file_size: file_size,
         image_state: image_state,

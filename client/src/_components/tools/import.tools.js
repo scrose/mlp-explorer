@@ -1,17 +1,17 @@
 /*!
- * MLP.Client.Components.Views.Importer
- * File: importer.view.js
+ * MLP.Client.Components.Tools.Importer
+ * File: importer.tools.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
 import React from "react";
-import Form from '../../common/form';
-import { useRouter } from '../../../_providers/router.provider.client';
-import Progress from '../../common/progress';
-import { getModelLabel, getViewLabel } from '../../../_services/schema.services.client';
-import { useData } from '../../../_providers/data.provider.client';
-import { upload } from '../../../_services/api.services.client';
+import Form from '../common/form';
+import { useRouter } from '../../_providers/router.provider.client';
+import Progress from '../common/progress';
+import { getModelLabel, getViewLabel } from '../../_services/schema.services.client';
+import { useData } from '../../_providers/data.provider.client';
+import { upload } from '../../_services/api.services.client';
 
 /**
  * File/metadata importer.
@@ -21,6 +21,7 @@ import { upload } from '../../../_services/api.services.client';
  * @param schema
  * @param route
  * @param data
+ * @param files
  * @param callback
  * @public
  */
@@ -33,6 +34,8 @@ const Importer = ({
                       opts,
                       route,
                       data,
+                      files=[],
+                      onCancel=()=>{},
                       callback
 }) => {
 
@@ -85,7 +88,7 @@ const Importer = ({
     }
 
     /**
-     * Upload file data. Multiple files uploaded in combined request
+     * Upload file(s) and metadata. Multiple files uploaded in combined request
      * to API.
      *
      * @private
@@ -94,6 +97,13 @@ const Importer = ({
      */
 
     const _importData = (uri, formData) => {
+
+        // append any additional files to form data
+        files.forEach(file => {
+            const { name='', filename='', value=null } = file || {};
+            formData.append(name, value, filename);
+        });
+
         return upload(
             uri,
             formData,
@@ -138,6 +148,7 @@ const Importer = ({
 
     const _handleCompletion = () => {
         const {data={}} = response || {};
+        console.log(data)
         const { id='' } = api.destructure(data);
         callback(error, model, id);
     }
@@ -157,7 +168,10 @@ const Importer = ({
                 opts={opts}
                 init={data}
                 route={route}
-                callback={ view === 'import' && batchType ? _importBatchData : _importData }
+                onCancel={onCancel}
+                callback={
+                    view === 'import' && batchType ? _importBatchData : _importData
+                }
             />
             <Progress
                 title={`${ getViewLabel(view) } ${ getModelLabel(model) }`}
@@ -172,6 +186,6 @@ const Importer = ({
     )
 }
 
-export default React.memo(Importer);
+export default Importer;
 
 

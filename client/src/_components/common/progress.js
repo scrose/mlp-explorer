@@ -67,7 +67,7 @@ const Progress = ({
                     // render progress indicator for imports
                     return (
                         <div key={`${key}_msg_progress`}>
-                            <Message closeable={false} message={messages[key]}  />
+                            <Message closeable={true} message={messages[key]}  />
                             {
                                 // show progress bar if import has file uploads and no errors
                                 hasUploads && !error &&

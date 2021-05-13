@@ -10,7 +10,7 @@ import { createNodeRoute, redirect } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import { genSchema, getModelLabel } from '../../_services/schema.services.client';
 import Button from '../common/button';
-import Importer from '../tools/importer/import.tools';
+import Importer from '../tools/import.tools';
 import Dialog from '../common/dialog';
 import MetadataView from '../views/metadata.view';
 import { useData } from '../../_providers/data.provider.client';
@@ -115,6 +115,7 @@ const MenuEditor = ({
                         options={api.options}
                         schema={genSchema('new', model)}
                         route={createNodeRoute(model, 'new')}
+                        onCancel={setDialogToggle}
                         callback={() => {
                             console.log('Callback new!')
                             setDialogToggle(null);
@@ -133,6 +134,7 @@ const MenuEditor = ({
                             schema={genSchema('edit', model, group_type)}
                             route={createNodeRoute(model, 'edit', id)}
                             data={metadata}
+                            onCancel={setDialogToggle}
                             callback={() => {
                                 setDialogToggle(null);
                                 callback ? callback() : redirect(router.route);
@@ -169,6 +171,7 @@ const MenuEditor = ({
                             batchType={'historic_images'}
                             schema={genSchema('import', 'historic_captures')}
                             route={createNodeRoute('historic_captures', 'import', id)}
+                            onCancel={setDialogToggle}
                             callback={() => {
                                 setDialogToggle(null);
                                 callback ? callback() : redirect(router.route);
@@ -190,6 +193,7 @@ const MenuEditor = ({
                 schema={genSchema('import', 'modern_captures')}
                 hasUploads={true}
                 route={createNodeRoute('modern_captures', 'import', id)}
+                onCancel={setDialogToggle}
                 callback={() => {
                     setDialogToggle(null);
                     callback ? callback() : redirect(router.route);
@@ -323,7 +327,7 @@ const MenuEditor = ({
                         isVisible.master &&
                         <li key={`${menuID}_menuitem_master`}>
                             <Button
-                                icon={'master'}
+                                icon={'align'}
                                 title={`Master ${getModelLabel(fileType)} ${label}.`}
                                 onClick={() =>
                                     // launch IAT tool with 'master' option
@@ -436,7 +440,7 @@ const MenuEditor = ({
                     {
                         isEditor &&
                         <>
-                            <li key={`${menuID}_menuitem_options`}>
+                            <li className={'push'} key={`${menuID}_menuitem_options`}>
                                 <Button
                                     icon={'options'}
                                     title={`Edit metadata options.`}

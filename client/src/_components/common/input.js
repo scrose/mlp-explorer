@@ -68,12 +68,10 @@ export const Input = ({
     const [autoClick, setAutoClick] = React.useState(true);
 
     // create event listener for file input
-    const ref = React.useCallback((domNode) => {
+    const fileRef = React.useCallback((domNode) => {
         if (domNode)
-            domNode.addEventListener('click', function(e) {
-                if (domNode) {
-                    domNode.click();
-                }
+            domNode.addEventListener('click', function() {
+                if (domNode) {domNode.click() }
             }, false);
     }, []);
 
@@ -358,8 +356,7 @@ export const Input = ({
                     onDragEnter={handleDragEnter}
                     onDragLeave={onDragLeave}>
                     <input
-                        readOnly={readonly}
-                        ref={ref}
+                        ref={fileRef}
                         type={'file'}
                         id={id}
                         name={name}

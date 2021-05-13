@@ -31,7 +31,8 @@ export const ImageSelector = ({
                                   panelID,
                                   panelLabel = '',
                                   selection = {},
-                                  setToggle = () => {},
+                                  setToggle = () => {
+                                  },
                                   options = {},
                                   callback = () => {
                                   },
@@ -92,35 +93,33 @@ export const ImageSelector = ({
 
     return <>
         {
-            <Accordion label={'Select Image'} type={'image'} open={true}>
-                <Message closeable={false} message={{ msg: error, type: 'error' }}/>
-                <Input
-                    type={'file'}
-                    name={'image_file'}
-                    files={[selectedFile]}
-                    onChange={_handleChange}
-                />
-            </Accordion>
+            selection && Object.keys(selection).length > 0
+                ? <Accordion label={'Select Historic Image'} type={'historic_images'} open={true}>
+                    <CaptureSelector
+                        selection={selection}
+                        setSelectedImage={setSelectedImage}
+                        onSubmit={_handleSubmit}
+                    />
+                </Accordion>
+                : <Accordion label={'Select Image'} type={'image'} open={true}>
+                    <Message closeable={false} message={{ msg: error, type: 'error' }} />
+                    <Input
+                        type={'file'}
+                        name={'image_file'}
+                        files={[selectedFile]}
+                        onChange={_handleChange}
+                    />
+                </Accordion>
         }
         {
-            selection && Object.keys(selection).length > 0 &&
-            <Accordion label={'Select Historic Image'} type={'historic_images'} open={false}>
-                <CaptureSelector
-                    selection={selection}
-                    setSelectedImage={setSelectedImage}
-                    onSubmit={_handleSubmit}
-                />
-            </Accordion>
+            selectedImage &&
+            <UserMessage
+                closeable={false}
+                message={{ msg: `Image ${selectedFile} selected.`, type: 'info' }}
+            />
         }
         {
             <fieldset className={'submit h-menu'}>
-                {
-                    selectedImage &&
-                    <UserMessage
-                        closeable={false}
-                        message={{ msg: `Image ${selectedFile} selected.`, type: 'info' }}
-                    />
-                }
                 <ul>
                     {
                         selectedImage &&
@@ -173,38 +172,40 @@ export const CaptureSelector = ({ selection, setSelectedImage, onSubmit }) => {
     };
 
     return <div className={`tab h-menu`}>
-        <div className={`v-menu`}>
-            <ul>
-                {
-                    selection
-                        .sort(sorter)
-                        .map((capture, index) => {
-                            const { node = {}, label = '' } = capture || {};
-                            return <li key={`tab_${node.id}`}>
-                                <Button
-                                    className={index === captureIndex ? 'active' : ''}
-                                    icon={tabIndex === index ? 'collapse' : 'expand'}
-                                    title={`View ${label}.`}
-                                    label={label}
-                                    onClick={() => {
-                                        setTabIndex(index);
-                                    }}
-                                />
-                            </li>;
-                        })
-                }
-            </ul>
-        </div>
-        <div key={`tab_data_${node.id}`} className={'tab-data'}>
-            <div className={'gallery h-menu capture-selector'}>
+        <ul>
+            <li>
+                <div className={`v-menu`}>
+                    <ul>
+                        {
+                            selection
+                                .sort(sorter)
+                                .map((capture, index) => {
+                                    const { node = {}, label = '' } = capture || {};
+                                    return <li key={`tab_${node.id}`}>
+                                        <Button
+                                            className={index === captureIndex ? 'active' : ''}
+                                            icon={tabIndex === index ? 'collapse' : 'expand'}
+                                            title={`View ${label}.`}
+                                            label={label}
+                                            onClick={() => {
+                                                setTabIndex(index);
+                                            }}
+                                        />
+                                    </li>;
+                                })
+                        }
+                    </ul>
+                </div>
+            </li>
+            <li key={`tab_data_${node.id}`} className={'gallery tab-data capture-selector'}>
                 <CaptureImagesSelector
                     files={historic_images}
                     imageIndex={imageIndex}
                     onClick={_handleClick}
                     onDblClick={onSubmit}
                 />
-            </div>
-        </div>
+            </li>
+        </ul>
     </div>;
 };
 
@@ -284,7 +285,7 @@ export const CaptureImagesSelector = ({
     });
 
     return <>
-        <Table rows={rows} cols={cols} className={'files'}/>
+        <Table rows={rows} cols={cols} className={'files'} />
     </>;
 };
 

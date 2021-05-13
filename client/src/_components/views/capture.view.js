@@ -50,6 +50,7 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
     if (user) {
         cols.push({ name: 'menu', label: 'Edit Options' })
     }
+    console.log(api.options)
 
     // prepare capture image data rows
     const rows = files.map(fileData => {
@@ -57,8 +58,10 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
         const { file={}, metadata={}, url={}, label='', filename='' } = fileData || {};
         const {file_type='', id=''} = file || {};
         const { image_states=[] } = api.options || {};
+
         // select image state label for value (if available)
         const imageState = image_states.find(opt => opt.value === metadata.image_state);
+
         const rows = {
             thumbnail: <Image
                 url={url}

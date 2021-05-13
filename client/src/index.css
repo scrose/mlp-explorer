@@ -281,10 +281,10 @@ div.main {
     overflow: auto;
     padding: 0 10px 40px 10px;
 }
-.view.iat {
-    background-color: #282c34;
-    color: #FFFFFF;
-}
+/*.view.iat {*/
+/*    background-color: #282c34;*/
+/*    color: #DDDDDD;*/
+/*}*/
 .view .data {
     display:inline-block;
 }
@@ -518,6 +518,7 @@ Menus
     border-radius: 0 0 15px 15px;
 }
 .v-menu.user button {
+    background-color: #DDDDDD;
     color: #282c34;
 }
 
@@ -577,7 +578,9 @@ nav.breadcrumb ul li a:hover {
 
 /* Horizontal Menu */
 
-.h-menu {
+.h-menu {}
+.h-menu ul {
+    width: 100%;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -586,27 +589,13 @@ nav.breadcrumb ul li a:hover {
     -webkit-box-flex: 1;
     -ms-flex: 1;
     flex: 1;
-    justify-content: space-between;
-    padding: 0 5px;
-}
-
-.h-menu div {
-
-}
-
-.h-menu ul {
-    width: 100%;
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: flex;
-    align-items: stretch;
-    -ms-flex-wrap: wrap;
-    flex-wrap: wrap;
     list-style: none;
     margin: 0;
     padding: 0;
 }
-
+.h-menu.centered ul {
+    justify-content: center !important;
+}
 .h-menu ul li {
     font-size: small;
     display: block;
@@ -856,7 +845,6 @@ nav.breadcrumb ul li a:hover {
     border-top: none;
 }
 .tab .v-menu {
-    width: 25%;
 }
 .tab .v-menu, .tab .v-menu ul, .tab .v-menu ul li {
     flex-direction: column;
@@ -892,7 +880,7 @@ nav.breadcrumb ul li a:hover {
 }
 /* Tab data panel */
 .tab .tab-data {
-    width: 100%;
+    width: 70%;
     margin:0;
     padding:0;
 }
@@ -918,6 +906,7 @@ nav.breadcrumb ul li a:hover {
     padding: 0;
 }
 .accordion .h-menu ul {
+    justify-content: left !important;
 }
 .accordion .h-menu ul li {
     overflow: visible;
@@ -1115,9 +1104,10 @@ nav.breadcrumb ul li a:hover {
     display: none;
 }
 .comparator-slider button {
+    margin: 0 !important;
     cursor: ew-resize !important;
     color: #FFFFFF;
-    background-color: #57BECC;
+    background-color: #282c34;
     opacity: 0.7;
     border-radius: 5px;
     width: 20px;
@@ -1250,9 +1240,6 @@ nav.breadcrumb ul li a:hover {
 }
 .capture-selector label {
     border-radius: 10px;
-}
-.capture-selector {
-    width: 100% !important;
 }
 
 /* Model colour schema */
@@ -1987,6 +1974,10 @@ Messages
     opacity: 0.6;
 }
 .dialog .dialog-title {
+    font-weight: normal;
+    margin: 0 0 20px 0;
+    padding: 10px;
+    background-color: #DDDDDD;
     text-align: center;
 }
 .dialog .dialog-title p {

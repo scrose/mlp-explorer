@@ -7,8 +7,7 @@
 
 import React from 'react';
 import Button from '../common/button';
-import { createNodeRoute } from '../../_utils/paths.utils.client';
-import { genSchema, getError } from '../../_services/schema.services.client';
+import { getError } from '../../_services/schema.services.client';
 import Dialog from '../common/dialog';
 import {
     alignImages,
@@ -16,13 +15,12 @@ import {
     moveStart,
 } from './transform.iat';
 import { ImageSelector } from './selector.iat';
-import { UserMessage } from '../common/message';
 import Comparator from '../common/comparator';
 import { SaveAs } from './downloader.iat';
 import Resizer from './resizer.iat';
 import { deselectControlPoint, moveControlPoint, selectControlPoint } from './pointer.iat';
 import { filterKeyDown } from './panel.controls.iat';
-import Importer from '../tools/importer/import.tools';
+import { MasterImage } from './master.iat';
 
 /**
  * No operation.
@@ -43,8 +41,11 @@ const noop = () => {
  * @param setImage1
  * @param image2
  * @param setImage2
+ * @param setSignal1
+ * @param setSignal2
  * @param setMethods
  * @param selection
+ * @param message
  * @param dialogToggle
  * @param setDialogToggle
  * @param setMessage
@@ -66,13 +67,13 @@ export const MenuIat = ({
                             setSignal2 = noop,
                             setMethods = noop,
                             selection = {},
+                            message = null,
+                            setMessage = noop,
                             dialogToggle = null,
                             setDialogToggle = noop,
                             options = {},
                             setOptions = noop,
                         }) => {
-
-    const [message, setMessage] = React.useState(null);
 
     // generate unique ID value for canvas inputs
     const menuID = Math.random().toString(16).substring(2);
@@ -85,8 +86,8 @@ export const MenuIat = ({
      */
 
     const _handleError = (err) => {
-        console.warn(err);
         const { msg='', type='', message=''} = err || {};
+        console.warn(msg || message);
         setMessage({
             msg: msg || message || getError('default', 'canvas'),
             type: type || 'error'
@@ -101,13 +102,15 @@ export const MenuIat = ({
      */
 
     const _showDialog = (dialog) => {
+        console.log(dialog)
         const {
             type = '',
             id = '',
             label='',
+            data=null,
             callback = ()=>{},
         } = dialog || {};
-        return _menuDialogs.hasOwnProperty(type) && _menuDialogs[type](id, label, callback);
+        return _menuDialogs.hasOwnProperty(type) && _menuDialogs[type](id, label, callback, data);
     };
 
     /**
@@ -134,21 +137,20 @@ export const MenuIat = ({
                 />
             </Dialog>;
         },
-        uploadImage: (id, label, callback) => {
-            const properties = id === panel1.id ? panel1 : panel2;
+        masterImage: (id, label, callback, data) => {
             return <Dialog
-                key={`${menuID}_dialog_upload`}
-                title={`Upload Image to MLP Library`}
-                setToggle={setDialogToggle}>
-                <Importer
-                    model={'modern_captures'}
-                    view={'upload'}
-                    schema={genSchema('upload', properties.file_type)}
-                    route={createNodeRoute(properties.file_type, 'new', properties.owner_id)}
-                    data={properties}
-                    callback={callback}
-                />
-            </Dialog>;
+                        key={`${id}_dialog_master`}
+                        title={`Confirm Mastered Image`}
+                        setToggle={setDialogToggle}
+                    >
+                        <MasterImage
+                            panel1={panel1}
+                            panel2={panel2}
+                            file={data}
+                            setToggle={setDialogToggle}
+                            callback={callback}
+                        />
+                    </Dialog>;
         },
         saveImage: (id, label, callback) => {
             return <Dialog
@@ -207,13 +209,6 @@ export const MenuIat = ({
                 }));
             },
 
-            // [swap] set panel swap settings
-            swap: () => {
-                setOptions(data => ({ ...data, swap: !options.swap }));
-                setSignal1('reload');
-                setSignal2('reload');
-            },
-
             // [mode] select control points on canvas
             selectPoints: () => {
                 setOptions(data => ({ ...data, mode: 'select' }));
@@ -227,6 +222,11 @@ export const MenuIat = ({
                 }));
             },
 
+            // [upload] upload mastered image to MLP library
+            master: () => {
+                setSignal2('master');
+            },
+
             // [transform] image alignment
             align: () => {
                 let result = alignImages(image1, image2, panel1.pts, panel2.pts, options);
@@ -237,28 +237,6 @@ export const MenuIat = ({
                 // load transformed data into Panel 2
                 setImage2(result.data);
                 setSignal2('reload');
-            },
-
-            // [upload] upload mastered image into library
-            master: () => {
-                    const properties = id === panel1.id ? panel1 : panel2;
-                    return <Dialog
-                        key={`${menuID}_dialog_upload`}
-                        title={`Confirm Mastered Image`}
-                        setToggle={setDialogToggle}>
-                        <Importer
-                            model={'modern_captures'}
-                            view={'upload'}
-                            schema={genSchema('master', properties.file_type)}
-                            route={createNodeRoute(properties.file_type, 'master', properties.owner_id)}
-                            data={{
-                                historic_images: panel1.files_id,
-                                modern_images: panel2.files_id,
-                                owner_id: panel
-                            }}
-                            callback={_handleError}
-                        />
-                    </Dialog>;
             },
 
             // compare images in comparator overlay
@@ -282,9 +260,6 @@ export const MenuIat = ({
     };
 
     return <>
-        <UserMessage message={message} onClose={() => {
-            setMessage(null);
-        }} />
         <div className={'canvas-menu-bar'}>
             <div className={'canvas-option-controls v-menu'}>
                 <ul>
@@ -294,6 +269,8 @@ export const MenuIat = ({
                             className={options.mode === 'default' ? 'active' : ''}
                             icon={'select'}
                             onClick={() => {
+                                // clear messages
+                                setMessage(null);
                                 _filterMethods('default');
                             }}
                         />
@@ -305,6 +282,8 @@ export const MenuIat = ({
                             className={options.mode === 'select' ? 'active' : ''}
                             icon={'crosshairs'}
                             onClick={() => {
+                                // clear messages
+                                setMessage(null);
                                 _filterMethods('selectPoints');
                             }}
                         />
@@ -312,10 +291,12 @@ export const MenuIat = ({
                     <li>
                         <Button
                             disabled={!image1 || !image2}
-                            icon={'master'}
+                            icon={'align'}
                             label={'Align'}
                             title={'Align images using selected control points.'}
                             onClick={() => {
+                                // clear messages
+                                setMessage(null);
                                 _filterMethods('align');
                             }}
                         />
@@ -323,10 +304,11 @@ export const MenuIat = ({
                     <li>
                         <Button
                             disabled={!image1 || !image2}
-                            icon={'upload'}
                             label={'Master'}
                             title={'Upload mastered image.'}
                             onClick={() => {
+                                // clear messages
+                                setMessage(null);
                                 _filterMethods('master');
                             }}
                         />
@@ -335,9 +317,11 @@ export const MenuIat = ({
                         <Button
                             disabled={!image1 || !image2}
                             icon={'compare'}
-                            label={'Compare'}
+                            label={'Overlay'}
                             title={'Compare images using overlay.'}
                             onClick={() => {
+                                // clear messages
+                                setMessage(null);
                                 _filterMethods('compare');
                             }}
                         />

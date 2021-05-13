@@ -71,9 +71,10 @@ function FilterNavigator({data, setData, optionsData, setToggle}) {
             }
             init={filterData}
             schema={genSchema('mapFilter', 'stations')}
-            reset={()=>{
+            onReset={()=>{
                 setFilterData({})
             }}
+            onCancel={() => {setToggle(false)}}
             onChange={onChange}
             callback={()=>{
                 setData(filterData)

@@ -26,21 +26,21 @@ import { popSessionMsg } from '../../_services/session.services.client';
 const Form = ({
                   model,
                   schema,
-                  init={},
+                  init = {},
                   callback,
-                  onChange=()=>{},
-                  cancel=null,
-                  reset=null,
-                  route=null,
-                  opts=null,
-                  allowEmpty=false,
-                  disabledInputs={},
-                  children
-}) => {
+                  onChange = () => {},
+                  onCancel = null,
+                  onReset = null,
+                  route = null,
+                  opts = null,
+                  allowEmpty = false,
+                  disabledInputs = {},
+                  children,
+              }) => {
 
     // get form input settings from schema
-    const { attributes={}, fieldsets=[] } = schema || {};
-    const { submit='', method='POST' } = attributes || {};
+    const { attributes = {}, fieldsets = [] } = schema || {};
+    const { submit = '', method = 'POST' } = attributes || {};
 
     // initialize state for input parameters
     const [data, setData] = React.useState(init || {});
@@ -74,13 +74,13 @@ const Form = ({
             .reduce((o, fieldset) => {
                 Object.keys(fieldset.fields || {})
                     .map(fieldkey => {
-                        const { name='', validate = [] } = fieldset.fields[fieldkey];
+                        const { name = '', validate = [] } = fieldset.fields[fieldkey];
                         o[name] = new Validator(validate);
                         return o;
                     });
                 return o;
             }, {});
-    }
+    };
 
     // create validator for each input field using schema settings
     let validators = generateValidators();
@@ -107,7 +107,7 @@ const Form = ({
             }));
         }
         return hasData && valid;
-    }
+    };
 
     /**
      * Form submission handler.
@@ -137,8 +137,8 @@ const Form = ({
         if (!isValid(fieldData)) {
             setMessage({
                     msg: 'Data was not submitted: Form is incomplete or invalid.',
-                    type: 'error'
-                }
+                    type: 'error',
+                },
             );
             return;
         }
@@ -149,11 +149,10 @@ const Form = ({
         // callback for form data submission
         try {
             return callback(route, formData);
+        } catch (err) {
+            console.error(callback, err);
         }
-        catch (err) {
-            console.error(callback, err)
-        }
-    }
+    };
 
     /**
      * Copy fieldset in form.
@@ -191,11 +190,10 @@ const Form = ({
 
             // re-generate validators
             validators = generateValidators();
+        } catch (err) {
+            console.error(err);
         }
-        catch (err) {
-            console.error(err)
-        }
-    }
+    };
 
     /**
      * Delete fieldset in form.
@@ -206,15 +204,14 @@ const Form = ({
 
     const handleDelete = (index) => {
         try {
-            let fieldsets = [...fieldsetSchema]  ;  // make a separate copy of the array
+            let fieldsets = [...fieldsetSchema];  // make a separate copy of the array
             fieldsets.splice(index, 1);
             setFieldsetSchema(fieldsets);
             validators = generateValidators();
+        } catch (err) {
+            console.error(err);
         }
-        catch (err) {
-            console.error(err)
-        }
-    }
+    };
 
     /**
      * Render form.
@@ -250,28 +247,30 @@ const Form = ({
                                     setFiles={setFiles}
                                     setData={setData}
                                     opts={opts}
-                                    remove={()=>{handleDelete(index)}}
+                                    remove={() => {
+                                        handleDelete(index);
+                                    }}
                                     disabled={isDisabled}
                                     disabledInputs={disabledInputs}
                                     validators={validators}
                                 />
-                            {
-                                fieldset.render === 'multiple'
-                                    ? <div className={'addField'}>
+                                {
+                                    fieldset.render === 'multiple'
+                                        ? <div className={'addField'}>
                                             <Button
-                                            key={`${index}_copy_button`}
-                                            onClick={() => {
-                                                // send deep copy of fieldset
-                                                handleCopy(fieldset, index);
-                                            }}
-                                            label={`Add ${fieldset.legend}`}
-                                            icon={'add'}
+                                                key={`${index}_copy_button`}
+                                                onClick={() => {
+                                                    // send deep copy of fieldset
+                                                    handleCopy(fieldset, index);
+                                                }}
+                                                label={`Add ${fieldset.legend}`}
+                                                icon={'add'}
                                             />
                                         </div>
-                                    : ''
-                            }
+                                        : ''
+                                }
                             </div>
-                        )
+                        );
                     })
             }
             {children}
@@ -279,12 +278,12 @@ const Form = ({
                 model={model}
                 label={submit}
                 message={message}
-                submit={submit}
-                cancel={cancel}
-                reset={reset}
+                onSubmit={submit}
+                onCancel={onCancel}
+                onReset={onReset}
             />
         </form>
-        );
-}
+    );
+};
 
 export default Form;

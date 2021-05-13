@@ -159,8 +159,9 @@ export const getPos = (e, properties) => {
     const bounds = properties.bounds;
 
     // compute scaling relationship bitmap vs. element for X, y
-    const scaleX = (canvasDims.x + 0.0001) / (bounds.x);
-    const scaleY = (canvasDims.y + 0.0001) / (bounds.y);
+    const eps = 0.000000001
+    const scaleX = (canvasDims.x + eps) / (bounds.x + eps);
+    const scaleY = (canvasDims.y + eps) / (bounds.y + eps);
 
     const x = Math.max(
         Math.min(

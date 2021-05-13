@@ -16,7 +16,7 @@ import Button from './button';
  * @return {JSX.Element}
  */
 
-const Tabs = ({menu=[], data=[], highlight=null}) => {
+const Tabs = ({ menu = [], data = [], highlight = null }) => {
 
     // tab toggle state
     const [selectedIndex, setSelectedIndex] = React.useState(0);
@@ -24,36 +24,36 @@ const Tabs = ({menu=[], data=[], highlight=null}) => {
 
     // use toggle icon to show state of loading
     const onToggle = (index) => {
-        return index===selectedIndex ? 'expand' : 'collapse';
-    }
+        return index === selectedIndex ? 'expand' : 'collapse';
+    };
 
     return (
-            <div className={`tab`}>
-                <div className={`h-menu`}>
-                    <ul>
-                        {
-                            menu.map((item, index) => {
-                                const { id = '', label = '' } = item || {};
-                                return <li key={`tab_${id}`}>
-                                    <Button
-                                        className={highlight===index ? 'active' : ''}
-                                        icon={onToggle(index)}
-                                        title={`View ${label}.`}
-                                        label={label}
-                                        onClick={() => {
-                                            setSelectedIndex(index);
-                                        }}
-                                    />
-                                </li>
-                            })
-                        }
-                    </ul>
-                </div>
-                <div className={'tab-data'}>
-                    {selectedCapture}
-                </div>
-            </div>
-    )
-}
+        <div className={`tab h-menu`}>
+            <ul>
+                {
+                    menu.map((item, index) => {
+                        const { id = '', label = '' } = item || {};
+                        return <li key={`tab_${id}`}>
+                            <Button
+                                className={highlight === index ? 'active' : ''}
+                                icon={onToggle(index)}
+                                title={`View ${label}.`}
+                                label={label}
+                                onClick={() => {
+                                    setSelectedIndex(index);
+                                }}
+                            />
+                        </li>;
+                    })
+                }
+                <li>
+                    <div className={'tab-data'}>
+                        {selectedCapture}
+                    </div>
+                </li>
+            </ul>
+        </div>
+    );
+};
 
 export default Tabs;

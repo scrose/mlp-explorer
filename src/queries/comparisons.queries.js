@@ -14,11 +14,64 @@
  * @return {Object} query binding
  */
 
+export function insertComparison(
+    historicImageID,
+    modernImageID,
+    historicCaptureID,
+    modernCaptureID
+) {
+    let sql = `INSERT INTO comparison_indices (
+                                historic_images, 
+                                modern_images, 
+                                historic_captures,
+                                modern_captures,
+                                created_at, 
+                                updated_at
+                                )
+            VALUES ($1::integer, $2::integer, $3::integer, $4::integer, NOW(), NOW())
+            ON CONFLICT (historic_images, modern_images)
+            DO UPDATE SET
+                          historic_images = $1::integer,
+                          modern_images = $2::integer,
+                          updated_at = NOW()
+            RETURNING *;`;
+    return {
+        sql: sql,
+        data: [historicImageID, modernImageID, historicCaptureID, modernCaptureID],
+    };
+}
+
+/**
+ * Query: Get comparisons for given capture node. Model options
+ * include 'historic_captures' and 'modern_captures'.
+ *
+ * @return {Object} query binding
+ */
+
 export function getComparisons(node) {
     const { type = '', id = '' } = node || {};
     let sql = `SELECT * 
             FROM comparison_indices 
             WHERE ${type} = $1::integer`;
+    return {
+        sql: sql,
+        data: [id],
+    };
+}
+
+/**
+ * Query: Get comparisons for given capture image file. File options
+ * include 'historic_images' and 'modern_images'.
+ * - Returns unique image pair
+ *
+ * @return {Object} query binding
+ */
+
+export function getComparison(file) {
+    const { file_type = '', id = '' } = file || {};
+    let sql = `SELECT * 
+            FROM comparison_indices 
+            WHERE ${file_type} = $1::integer`;
     return {
         sql: sql,
         data: [id],
@@ -37,8 +90,10 @@ export function getComparisonsData(node) {
     const { type = '', id = '' } = node || {};
     let sql = `SELECT * 
             FROM comparison_indices 
-            INNER JOIN historic_captures hc ON comparison_indices.historic_captures = hc.nodes_id
-                 INNER JOIN modern_captures mc ON comparison_indices.modern_captures = mc.nodes_id
+            INNER JOIN historic_captures hc 
+                ON comparison_indices.historic_captures = hc.nodes_id
+                 INNER JOIN modern_captures mc 
+                     ON comparison_indices.modern_captures = mc.nodes_id
             WHERE ${type} = $1::integer`;
     return {
         sql: sql,

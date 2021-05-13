@@ -12,8 +12,8 @@ import ServerError from '../error/server.error';
 import { useData } from '../../_providers/data.provider.client';
 import { genSchema, getRenderType } from '../../_services/schema.services.client';
 import { createNodeRoute, redirect } from '../../_utils/paths.utils.client';
-import Importer from '../tools/importer/import.tools';
-import FilterTools from '../tools/filter/filter.tools';
+import Importer from '../tools/import.tools';
+import FilterTools from '../tools/filter.tools';
 import Loading from '../common/loading';
 
 /**

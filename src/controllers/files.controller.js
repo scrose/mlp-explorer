@@ -23,6 +23,7 @@ import * as cserve from '../services/construct.services.js';
 import {errors} from '../error.js';
 import fs from "fs";
 import { getMIME } from '../lib/file.utils.js';
+import { isCompatiblePair, addComparison } from '../services/comparisons.services.js';
 
 /**
  * Export controller constructor.
@@ -155,15 +156,15 @@ export default function FilesController(modelType) {
             // filter metadata through importer
             // - saves attached files to library
             // - collates input metadata (applies to all files)
-            const metadata = await importer.receive(req, owner_id, type);
+            const received = await importer.receive(req, owner_id, type);
 
             // check if files are present in request data
-            if (Object.keys(metadata.files).length === 0) {
+            if (Object.keys(received.files).length === 0) {
                 return next(new Error('invalidRequest'));
             }
 
             // save file(s) and insert file metadata
-            const resData = await fserve.insert(metadata, model.name, owner);
+            const resData = await fserve.insert(received, model.name, owner);
 
             // send response
             res.status(200).json(
@@ -266,8 +267,6 @@ export default function FilesController(modelType) {
             Object.keys(imported.data).forEach((field) => {
                 metadata[field] = imported.data[field];
             });
-
-            console.log('Update Data:', metadata)
 
             // update file metadata record
             await fserve.update(new Model(metadata));
@@ -497,56 +496,64 @@ export default function FilesController(modelType) {
         try {
 
             // get file data from parameters
-            const id = this.getId(req);
-            const fileData = await fserve.get(id, client);
+            const modernImageID = this.getId(req);
+            const modernImageData = await fserve.get(modernImageID, client);
 
             // check that file entry exists
-            if (!fileData) {
+            if (!modernImageData) {
                 return next(new Error('invalidRequest'));
             }
 
             // get metadata fields
-            const {metadata='', file=''} = fileData || {};
-            const {owner_id='', owner_type=''} = file || {};
-            const imported = await importer.receive(req, owner_id, owner_type);
+            const { file='' } = modernImageData || {};
+            const { owner_id='', owner_type='', filename='' } = file || {};
+            const modernCaptureID = owner_id;
+            const received = await importer.receive(req, modernCaptureID, owner_type);
 
-            // overwrite metadata
-            Object.keys(imported.data).forEach((field) => {
-                metadata[field] = imported.data[field];
-            });
+            // get associated capture for image
+            const modernCapture = await nserve.select(modernCaptureID, client);
 
-            console.log('Update Data:', metadata)
+            // get historic image file metadata
+            const { data=null } = received || {};
+            const { historic_files_id=null } = data || {};
+            const historicImage = await fserve.select(historic_files_id, client);
+
+            // check if historic image ID and files are present in request data
+            if (!historicImage || !historic_files_id || Object.keys(received.files).length === 0) {
+                return next(new Error('invalidRequest'));
+            }
+
+            // get historic capture
+            const historicCaptureID = historicImage.owner_id;
+
+            // check that image pair share a common station
+            if (!await isCompatiblePair(historic_files_id, modernImageID)) {
+                return next(new Error('invalidMaster'));
+            }
+
+            // remove historic files ID from received data
+            // - this ensures the received metadata matches the model schema
+            //   for the modern capture image.
+            delete received.data.historic_files_id;
+
+            // set image state to mastered
+            received.data.image_state = 'master';
+
+            // save file(s) and insert file metadata
+            const resData = await fserve.insert(received, model.name, modernCapture);
+            if (!resData) return next(new Error('invalidMaster'));
+
+            // insert comparisons record
+            const resCompare = await addComparison(historicCaptureID, modernCaptureID);
 
             // send response
             res.status(200).json(
                 prepare({
                     view: 'show',
                     model: model,
-                    data: metadata,
+                    data: resCompare,
                     message: {
-                        msg: `Test updated successfully!`,
-                        type: 'success'
-                    },
-                    path: path
-                }));
-
-            // update file metadata record
-            await fserve.update(new Model(metadata));
-
-            // get updated file
-            let updatedItem = await fserve.get(id);
-
-            // get path of owner node in hierarchy
-            const path = await nserve.getPath(file);
-
-            // send response
-            res.status(200).json(
-                prepare({
-                    view: 'show',
-                    model: model,
-                    data: {},
-                    message: {
-                        msg: `'${updatedItem.label}' updated successfully!`,
+                        msg: `'${filename}' mastered successfully!`,
                         type: 'success'
                     },
                     path: path

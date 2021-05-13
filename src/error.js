@@ -143,7 +143,7 @@ export const errors = {
     },
     invalidMaster: {
         hint: 'Only captures that are associated with stations can be mastered.',
-        msg: 'This capture image is not available for mastering. To initiate a master, move the capture to a project or survey station.',
+        msg: 'Capture image(s) not available for mastering. To initiate a master, move the capture under a station.',
         status: 422,
         type: 'error'
     },

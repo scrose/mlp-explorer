@@ -54,8 +54,10 @@ function MapNavigator({ data, filter }) {
 
     // set map view to new center coordinate and zoom level
     const reset = React.useCallback((coord, zoomLevel) => {
-        setCenter(coord);
-        setZoom(zoomLevel);
+        if (coord && zoomLevel) {
+            setCenter(coord);
+            setZoom(zoomLevel);
+        }
     }, [setZoom, setCenter]);
 
     // request stations in selected cluster
@@ -63,13 +65,10 @@ function MapNavigator({ data, filter }) {
         router.update(createRoute('/filter', { ids: ids }));
     }, [router]);
 
-    // refresh map each render
-    // React.useEffect(() => {
-    //     return () => destroyMap();
-    // }, []);
-
     // cluster station locations for n > 1
     const getClusterMarkers = React.useCallback((currentIDs) => {
+
+        if (!currentIDs) return;
 
         // apply user-defined filter
         const applyFilter = (station) => {

@@ -43,13 +43,13 @@ export const loadImageData = async (properties, callback) => {
                         };
                         callback({status: 'load', data: toImageData(data, width, height), props:  properties});
                     })
-                    .catch((err) => {callback({error: err})});
+                    .catch((err) => {callback({status: 'empty', error: err})});
             },
             'default': () => {
                 const src = fileData ? URL.createObjectURL(fileData) : url;
                 // load image source
                 const img = new Image();
-                img.onerror = console.error;
+                img.onerror = (err) => {callback({status: 'empty', error: err})};
                 img.onload = function() {
                     URL.revokeObjectURL(src); // free memory held by Object URL
                     // update panel properties
@@ -94,7 +94,7 @@ export const loadImageData = async (properties, callback) => {
                     if (res.error) return callback({error: res.error});
                     loadFile(res.data, mimeType);
                 })
-                .catch(err => {callback({error: err})});
+                .catch(err => {callback({status: 'empty', error: err})});
         },
 
         /**

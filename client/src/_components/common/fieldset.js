@@ -39,8 +39,6 @@ const Fieldset = ({
                       disabledInputs={}
 }) => {
 
-    const [readonly, setReadonly] = React.useState({});
-
     // get local options (if available), otherwise use global options
     const api = useData();
     const optionsData = opts || api.options;

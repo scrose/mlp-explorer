@@ -221,7 +221,7 @@ export const insert = async (importData, model, fileOwner=null) => {
             };
         },
 
-        // owner already exists (non-capture file)
+        // owner already exists
         default: async () => {
             return {
                 id: owner.id,

@@ -29,6 +29,7 @@ drop table if exists preferences cascade;
 drop table if exists pointsable_points cascade;
 drop table if exists image_reggy_alignment_images cascade;
 drop table if exists image_reggy_image_pairs cascade;
+drop table if exists old_comparison_indices cascade;
 
 -- remove old_id from nodes, files tables
 alter table nodes drop column old_id;

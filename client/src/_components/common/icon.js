@@ -181,7 +181,7 @@ const getIconClass = (iconType) => {
         delete: 'trash-alt',
         import: 'file-import',
         export: 'file-export',
-        master: 'images',
+        align: 'images',
         overlay: 'columns',
         filter: 'filter',
         search: 'search',

@@ -111,6 +111,7 @@ export const PanelIat = ({
      * -- reload: loads updated image data into input, redraws to canvas
      * -- reset: loads source image data into input data state
      * -- save: saves current image data as downloadable
+     * -- master: uploads current Panel 2 image as mastered modern capture image
      * -- draw: draws graphics to mask canvas (no clear)
      * -- redraw: draws graphics to mask canvas (with clear)
      */
@@ -314,6 +315,7 @@ export const PanelIat = ({
 
         // get canvases
         const baseCanvas = baseCanvasRef.current;
+        const controlCanvas = controlCanvasRef.current;
         const cropCanvas = cropCanvasRef.current;
         const imgCanvas = imageCanvasRef.current;
         const maskCanvas = maskCanvasRef.current;
@@ -326,9 +328,30 @@ export const PanelIat = ({
         /**
          * Initialize panel grid.
          */
+
         baseCanvas.style.backgroundImage = `url(${originMark}), url(${xTicks}), url(${yTicks}), url(${baseGrid})`;
         baseCanvas.style.backgroundRepeat = 'no-repeat, repeat-x, repeat-y, repeat';
         baseCanvas.style.backgroundPosition = 'bottom right, bottom left, top right, top left';
+
+        /**
+         * Upload image data as master.
+         */
+
+        if (signal === 'master') {
+            // save canvas blob as TIFF file to upload to library
+            imageCanvasRef.current.toBlob((blob) => {
+                setDialogToggle({
+                    type: 'masterImage',
+                    id: id,
+                    label: label,
+                    data: blob,
+                    callback: (data) => {
+                        console.log(data)
+                    },
+                });
+            }, 'image/tiff', options.blobQuality);
+            setSignal('loaded')
+        }
 
         /**
          * Draws mask canvas (bitmap graphics)
@@ -362,9 +385,6 @@ export const PanelIat = ({
         if (signal === 'render' || signal === 'load' || signal === 'reload' || signal === 'reset') {
 
             if (signal === 'load' || signal === 'reload' || signal === 'reset') setSignal('loading');
-
-            // console.log('Image data:', imgCtx.getImageData(0,0,100,100))
-
 
             /**
              * Redraws image data to canvas
@@ -430,10 +450,10 @@ export const PanelIat = ({
                 );
 
                 // get absolute base canvas dimensions
-                const bounds = baseCanvas.getBoundingClientRect();
+                const bounds = controlCanvas.getBoundingClientRect();
 
                 // update properties
-                // - set canvas boundaries for measurements
+                // - set canvas boundaries for pointer measurements
                 // - reset control points
                 // - create new data URL from image data
                 _updateProps({
@@ -477,7 +497,8 @@ export const PanelIat = ({
         options,
         setProperties,
         onDraw,
-        onRedraw
+        onRedraw,
+        setDialogToggle
     ]);
 
     /**
@@ -500,7 +521,7 @@ export const PanelIat = ({
                         options={options}
                     />
                     {
-                        ( signal === 'loading' || signal === 'empty' ) &&
+                        (!inputImage || signal === 'loading') &&
                         <div
                             className={'layer canvas-placeholder'}
                             style={{

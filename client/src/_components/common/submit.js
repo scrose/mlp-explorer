@@ -15,41 +15,44 @@ import Button from './button';
  * @param { model, label }
  */
 
-export const Submit = ({ model, label = '', message, cancel, reset, submit = true }) => {
+export const Submit = ({
+                           model,
+                           label = '',
+                           message,
+                           onCancel,
+                           onReset,
+                           onSubmit = true,
+                       }) => {
+
     const { msg = '', type = '' } = message || {};
     return (
         <fieldset className={'submit'}>
-            {msg ?
-                <div className={`msg ${type}`}>
-                    <span>{msg}</span>
-                </div>
-                : ''
-            }
-            {submit ?
-                <Button
-                    className={'submit'}
-                    type={'submit'}
-                    label={label || 'Submit'}
-                    name={`submit_${model}`}
-                /> : ''
-            }
-            {reset ?
-                <Button
-                    type={'reset'}
-                    label={'Reset'}
-                    name={`reset_${model}`}
-                    onClick={reset}
-                /> : ''
-            }
-            {cancel ?
-                <Button
-                    className={'cancel'}
-                    type={'cancel'}
-                    label={'Cancel'}
-                    name={`cancel_${model}`}
-                    onClick={cancel}
-                /> : ''
-            }
+            {msg &&
+            <div className={`msg ${type}`}>
+                <span>{msg}</span>
+            </div>}
+            {onSubmit &&
+            <Button
+                className={'submit'}
+                type={'submit'}
+                label={label || 'Submit'}
+                name={`submit_${model}`}
+            />}
+            {onReset &&
+            <Button
+                type={'reset'}
+                label={'Reset'}
+                name={`reset_${model}`}
+                onClick={onReset}
+            />}
+            {onCancel &&
+            <Button
+                className={'cancel'}
+                type={'cancel'}
+                label={'Cancel'}
+                name={`cancel_${model}`}
+                onClick={onCancel}
+            />}
         </fieldset>
 
     );
