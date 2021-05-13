@@ -41,6 +41,7 @@ async function initRoutes(routes, baseRouter) {
 
     // add API endpoints
     Object.entries(routes.routes).forEach(([view, route]) => {
+        console.log(route)
         router.route(route.path)
             .all(async (req, res, next) => {
                 try {

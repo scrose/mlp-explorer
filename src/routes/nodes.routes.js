@@ -47,7 +47,7 @@ function NodesRoutes() {
             delete: null,
         },
         tree: {
-            path: 'nodes/tree',
+            path: '/nodes/tree',
             get: this.controller.tree,
             put: null,
             post: null,
