@@ -13,6 +13,7 @@ import { redirect } from '../../_utils/paths.utils.client';
 import BreadcrumbMenu from '../menus/breadcrumb.menu';
 import Accordion from '../common/accordion';
 import Button from '../common/button';
+import Table from '../common/table';
 
 /**
  * User navigation menu (authenticated).
@@ -25,23 +26,19 @@ const UserMenu = () => {
     return (
         <nav className={'user'}>
             <Accordion type={'user'}>
-                <div className={'v-menu user'}>
-                    <ul>
-                        <li>{user.email}</li>
-                        <li>{user.label}</li>
-                        <li>
-                            <Button
-                                type={'logout'}
-                                label={'Sign Out'}
-                                onClick={() => redirect("/logout")}
-                            />
-                        </li>
-                    </ul>
+                <div>
+                    <div><b>{user.email}</b></div>
+                    <div>{user.label}</div>
+                    <div className={'centred'}><Button
+                        icon={'logout'}
+                        label={'Sign Out'}
+                        onClick={() => redirect('/logout')}
+                    /></div>
                 </div>
             </Accordion>
         </nav>
     );
-}
+};
 
 /**
  * Page header component.
@@ -53,10 +50,12 @@ const HeaderEditor = () => {
     return (
         <header>
             <div className={'banner'}>
-                <div className={'navbar'}>
-                    <Logo />
-                    <MainMenu />
-                    <UserMenu />
+                <div className={'navbar h-menu'}>
+                    <ul>
+                        <li><Logo /></li>
+                        <li><MainMenu /></li>
+                        <li className={'push'}><UserMenu /></li>
+                    </ul>
                 </div>
                 <div className={'context-menu'}>
                     <BreadcrumbMenu />
@@ -64,6 +63,6 @@ const HeaderEditor = () => {
             </div>
         </header>
     );
-}
+};
 
 export default HeaderEditor;

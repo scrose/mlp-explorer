@@ -69,3 +69,26 @@ export const drawControlPoints = (canvas, props1, props2) => {
         });
     }
 };
+
+/**
+ * Draw all selected control points on to mask canvas.
+ *
+ * @public
+ * @param ctx
+ * @param x
+ * @param y
+ * @param width
+ * @param height
+ * @param properties
+ */
+
+export const drawBoundingBox = (x, y, width, height, ctx, properties) => {
+
+    // erase mask layer canvas
+    ctx.clearRect(0, 0, properties.base_dims.x, properties.base_dims.y);
+
+    // draw bounding box
+    ctx.strokeStyle = 'blue';
+    ctx.strokeRect(x, y, width, height);
+};
+

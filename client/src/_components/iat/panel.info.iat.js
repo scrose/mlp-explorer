@@ -11,7 +11,6 @@ import { getModelLabel } from '../../_services/schema.services.client';
 import Button from '../common/button';
 import { sanitize } from '../../_utils/data.utils.client';
 import React from 'react';
-import { off } from 'leaflet/src/dom/DomEvent';
 
 /**
  * Canvas info status.
@@ -19,10 +18,11 @@ import { off } from 'leaflet/src/dom/DomEvent';
  * @param properties
  * @param pointer
  * @param status
+ * @param options
  * @public
  */
 
-const PanelInfo = ({ properties, pointer, status }) => {
+const PanelInfo = ({ properties, pointer, status, options }) => {
 
     // if capture image: provide link to metadata
     const router = useRouter();
@@ -45,18 +45,41 @@ const PanelInfo = ({ properties, pointer, status }) => {
     const actualX = Math.ceil((pointer.x - offsetX) * scaleX);
     const actualY = Math.ceil((pointer.y - offsetY) * scaleY );
 
-    return <div id={`canvas-view-${properties.id}-footer`} className={'canvas-view-info'}>
+    return <div id={`canvas-view-${properties.id}-info`} className={'canvas-view-info'}>
         <div>
             {
-                properties.owner_id && properties.owner_id &&
-                <Button
-                    icon={'captures'}
-                    title={'Go to capture metadata.'}
-                    label={getModelLabel(properties.file_type)}
-                    onClick={() => {router.update(captureRoute);}}
-                />
+                options.mode === 'crop' &&
+                <table>
+                    <tbody>
+                    <tr>
+                        <th>Crop Size</th>
+                        <td>{pointer.selected
+                            ? `[${ pointer.selected.delta.x }, ${ pointer.selected.delta.y }]`
+                            : '[0, 0]'}</td>
+                    </tr>
+                    </tbody>
+                </table>
             }
-            <span>{properties.filename ? properties.filename : status}</span>
+            <table>
+                <tbody>
+                <tr>
+                    <th>File</th>
+                    <td>{
+                            properties.filename ? properties.filename : status
+                        }
+                        {
+                            properties.owner_id &&
+                            <Button
+                                icon={'captures'}
+                                title={'Go to capture metadata.'}
+                                label={getModelLabel(properties.file_type)}
+                                onClick={() => {router.update(captureRoute);}}
+                            />
+                        }
+                    </td>
+                </tr>
+                </tbody>
+            </table>
         </div>
         <table>
             <tbody>
@@ -81,8 +104,8 @@ const PanelInfo = ({ properties, pointer, status }) => {
             <tr>
                 <th>Offset</th>
                 <td>({offsetX}, {offsetY})</td>
-                <th></th>
-                <td></td>
+                <th>Cropped</th>
+                <td>[{properties.crop_dims.x}, {properties.crop_dims.y}]</td>
             </tr>
             <tr>
                 <th>Resized</th>

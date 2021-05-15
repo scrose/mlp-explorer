@@ -25,29 +25,7 @@ import Download from '../common/download';
 const NodePanel = () => {
     return (
         <nav className={'panel'}>
-            <h4>Export Data</h4>
-            <ul>
-                <li>
-                    <p>
-                        <Download
-                            label={'Export GIS CSV'}
-                            format={'csv'}
-                            type={'export'}
-                            route={'/nodes/export/gis/csv'}
-                        />
-                    </p>
-                </li>
-                <li>
-                    <p>
-                        <Download
-                            label={'Export GIS JSON'}
-                            format={'json'}
-                            type={'export'}
-                            route={'/nodes/export/gis/json'}
-                        />
-                    </p>
-                </li>
-            </ul>
+
         </nav>
     );
 }

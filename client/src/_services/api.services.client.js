@@ -54,7 +54,8 @@ const getFetchOptions = ({ data=null, files=null, download=null, method='POST'})
 
         // for file downloads, modify header to accept requested file format
         if (download) {
-            opts.headers = { Accept: download };
+            opts.headers = { Accept: getMIME(download) };
+            console.log(opts)
         }
 
     return opts
@@ -198,7 +199,7 @@ export const download = async (route, format, online=true) => {
 
     return await makeRequest({url: createURL(route), method:'GET', download: format})
         .then(res => {
-            console.log(res)
+            console.log('Response:', res)
             if (!res) return null;
             const {error=null} = res || {};
             return {
@@ -221,6 +222,9 @@ export const download = async (route, format, online=true) => {
 export function getMIME(filename) {
     const ext = filename.split('.').pop() || '';
     const mime_types = {
+        "csv": 'text/csv',
+        "json": 'text/json',
+        "xml": 'text/xml',
         'pdf': 'application/pdf',
         'bm': 'image/bmp',
         'bmp': 'image/bmp',

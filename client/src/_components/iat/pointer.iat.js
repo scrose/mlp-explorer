@@ -21,6 +21,7 @@ import { drawControlPoints } from './graphics.iat';
 export function usePointer(properties, options) {
     const [current, setCurrent] = React.useState({ x: 0, y: 0 });
     const [selected, setSelected] = React.useState(null);
+    const [delta, setDelta] = React.useState(null);
     const [index, setIndex] = React.useState(null);
     const [magnify, setMagnify] = React.useState(false);
 
@@ -44,7 +45,11 @@ export function usePointer(properties, options) {
     };
     const select = (e) => {
         const pos = getPos(e, properties);
-        setSelected(pos);
+        setSelected({
+            x: pos.x,
+            y: pos.y,
+            delta: 0
+        });
     };
     const setSelect = (selected) => {
         setSelected(selected);

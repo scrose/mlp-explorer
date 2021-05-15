@@ -11,7 +11,6 @@ import Viewer from '../viewer/viewer';
 import Footer from '../common/footer';
 import React from 'react';
 import HeaderViewer from '../viewer/header.viewer';
-import MenuViewer from '../viewer/menu.viewer';
 
 /**
  * Main app component for unauthenticated users.
@@ -21,7 +20,7 @@ import MenuViewer from '../viewer/menu.viewer';
 
 const ViewerApp = () => {
     return (
-        <div className={"page-_static"}>
+        <div className={"page"}>
             <HeaderViewer/>
             <main>
                 <div className={'main'}>

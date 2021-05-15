@@ -75,10 +75,13 @@ import {
     faSave,
     faSlidersH,
     faRulerCombined,
-    faFileImage, faGripLinesVertical,
+    faFileImage,
+    faGripLinesVertical,
+    faCrop
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
+    faCrop,
     faFileImage,
     faRulerCombined,
     faSlidersH,
@@ -174,6 +177,7 @@ const getIconClass = (iconType) => {
         minus: 'minus',
         select: 'mouse-pointer',
         crosshairs: 'crosshairs',
+        crop: 'crop',
         adjust: 'sliders-h',
         resize: 'ruler-combined',
         edit: 'edit',

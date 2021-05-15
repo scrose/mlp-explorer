@@ -13,6 +13,7 @@ import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
 import MenuViewer from './menu.viewer';
 import { getNavView } from '../../_services/session.services.client';
+import HelpView from '../views/help.view';
 
 /**
  * Render viewer panel component (unauthenticated).

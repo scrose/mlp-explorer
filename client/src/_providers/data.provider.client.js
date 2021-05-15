@@ -110,7 +110,7 @@ function DataProvider(props) {
     }, [router, setOptions, setError]);
 
     /**
-     * Load API data.
+     * Load API global options data.
      * - uses current Window location path as default endpoint.
      *
      * @public

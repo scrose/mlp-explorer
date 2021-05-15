@@ -17,6 +17,8 @@ import { useData } from '../../_providers/data.provider.client';
 import { useUser } from '../../_providers/user.provider.client';
 import Remover from '../views/remover.view';
 import OptionsView from '../views/options.view';
+import HelpView from '../views/help.view';
+import Exporter from '../tools/export.tools';
 
 /**
  * Editor menu component.
@@ -99,6 +101,7 @@ const MenuEditor = ({
     </p>
 
     const _editorDialogs = {
+        help: <HelpView setToggle={setDialogToggle} />,
         show:   <Dialog
                     key={`${menuID}_dialog_show`}
                     title={`${modelLabel} Details`}
@@ -199,7 +202,13 @@ const MenuEditor = ({
                     callback ? callback() : redirect(router.route);
                 }}
             />
-        </Dialog>
+        </Dialog>,
+        exporter:   <Dialog
+            key={`${menuID}_dialog_export`}
+            title={`Export Metadata to File`}
+            setToggle={setDialogToggle}>
+            <Exporter setToggle={setDialogToggle} />
+        </Dialog>,
     }
 
     // create dependents dialog popups for requested model
@@ -274,6 +283,7 @@ const MenuEditor = ({
                         <li key={`${menuID}_menuitem_new`}>
                             <Button
                                 icon={'new'}
+                                label={'Add New'}
                                 title={`New ${label}.`}
                                 onClick={(e) => {
                                     isEditor
@@ -288,6 +298,7 @@ const MenuEditor = ({
                         <li key={`${menuID}_menuitem_show`}>
                             <Button
                                 icon={'show'}
+                                label={'Info'}
                                 title={`View ${modelLabel} details.`}
                                 onClick={(e) => {
                                     isEditor
@@ -302,6 +313,7 @@ const MenuEditor = ({
                         <li key={`${menuID}_menuitem_edit`}>
                             <Button
                                 icon={'edit'}
+                                label={'Edit'}
                                 title={`Edit ${label}.`}
                                 onClick={(e) => {
                                     isEditor
@@ -316,6 +328,7 @@ const MenuEditor = ({
                         <li key={`${menuID}_menuitem_remove`}>
                             <Button
                                 icon={'delete'}
+                                label={'Delete'}
                                 title={`Delete this ${label}.`}
                                 onClick={() => {
                                     setDialogToggle('remove');
@@ -328,6 +341,7 @@ const MenuEditor = ({
                         <li key={`${menuID}_menuitem_master`}>
                             <Button
                                 icon={'align'}
+                                label={'Master'}
                                 title={`Master ${getModelLabel(fileType)} ${label}.`}
                                 onClick={() =>
                                     // launch IAT tool with 'master' option
@@ -342,6 +356,7 @@ const MenuEditor = ({
                         <li ref={dropdown} key={`${menuID}_menuitem_dropdown`}>
                             <Button
                                 icon={'add'}
+                                label={'Add New'}
                                 onClick={(e) => {
                                     e.stopPropagation()
                                     setDropdownToggle(true);
@@ -440,9 +455,26 @@ const MenuEditor = ({
                     {
                         isEditor &&
                         <>
-                            <li className={'push'} key={`${menuID}_menuitem_options`}>
+                            <li className={'push'} key={`${menuID}_menuitem_export`}>
+                                <Button
+                                    icon={'export'}
+                                    label={'Export'}
+                                    title={`View data export options.`}
+                                    onClick={() => {setDialogToggle('exporter')}}
+                                />
+                            </li>
+                            <li key={`${menuID}_menuitem_help`}>
+                                <Button
+                                    icon={'help'}
+                                    label={'Help'}
+                                    title={`View the help pages.`}
+                                    onClick={() => {setDialogToggle('help')}}
+                                />
+                            </li>
+                            <li key={`${menuID}_menuitem_options`}>
                                 <Button
                                     icon={'options'}
+                                    label={'Options'}
                                     title={`Edit metadata options.`}
                                     onClick={() => setDialogToggle('options')}
                                 />

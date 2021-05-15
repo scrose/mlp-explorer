@@ -12,17 +12,18 @@ import Loading from './loading';
  * Render table header.
  *
  * @public
+ * @param tableID
  * @param { rows }
  * @return {JSX.Element}
  */
 
-const TableHeader = ({ cols }) => {
+const TableHeader = ({ tableID, cols }) => {
     return  <thead>
                 <tr>
                     {
                         cols.map((col, index) =>
                             <th
-                                key={`h_${index}`}
+                                key={`${tableID}_col_${index}`}
                                 className={col.class}
                             >
                                 {col.label}
@@ -37,16 +38,18 @@ const TableHeader = ({ cols }) => {
  * column array using column/item names as keys.
  *
  * @public
+ * @param tableID
  * @param {Array} rows: [{name: DATA}]
  * @param {Array} cols: [{name: NAME, label: DATA}]
  * @return {JSX.Element}
  */
 
-const TableBody = ({rows, cols}) => {
+const TableBody = ({tableID, rows, cols}) => {
+
     return <tbody>{
             rows.map((row, index) => {
                 return (
-                    <tr key={`table_row_${index}`}>
+                    <tr key={`${tableID}_row_${index}`}>
                         {
                             cols
                                 .filter(col => row.hasOwnProperty(col.name))
@@ -76,12 +79,15 @@ const TableBody = ({rows, cols}) => {
 
 const Table = ({ rows, cols, className=''}) => {
 
+    // generate unique ID value for table
+    const tableID = Math.random().toString(16).substring(2);
+
     // ensure data has been retrieved
     return Array.isArray(rows) && Array.isArray(cols)
         ?
             <table className={className}>
-                <TableHeader cols={cols} />
-                <TableBody rows={rows} cols={cols} />
+                <TableHeader tableID={tableID} cols={cols} />
+                <TableBody tableID={tableID} rows={rows} cols={cols} />
             </table>
         :
             <Loading/>

@@ -41,7 +41,6 @@ async function initRoutes(routes, baseRouter) {
 
     // add API endpoints
     Object.entries(routes.routes).forEach(([view, route]) => {
-        console.log(route)
         router.route(route.path)
             .all(async (req, res, next) => {
                 try {
@@ -64,7 +63,6 @@ async function initRoutes(routes, baseRouter) {
                     // authorize user access based on role permissions
                     // - user data set to null for anonymous users (visitors)
                     const { access_token=null } = req.signedCookies || [];
-
                     req.user = await auth.authorize(access_token, allowedRoles)
                         .catch(err => {
                             throw err;

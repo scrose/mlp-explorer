@@ -64,6 +64,7 @@ const MenuNavigator = ({
                     <li>
                         <Button
                             icon={'tree'}
+                            label={ toggle ? 'List' : ''}
                             className={view === 'tree' ? 'active' : ''}
                             title={`View navigation tree.`}
                             onClick={() => setView('tree')}
@@ -72,6 +73,7 @@ const MenuNavigator = ({
                     <li>
                         <Button
                             icon={'map'}
+                            label={toggle ? 'Map' : ''}
                             className={view === 'map' ? 'active' : ''}
                             title={`View navigation tree.`}
                             onClick={() => setView('map')}
@@ -82,6 +84,7 @@ const MenuNavigator = ({
                             ? <li>
                                 <Button
                                     icon={'filter'}
+                                    label={toggle ? 'Filter' : ''}
                                     className={filtered ? 'active' : ''}
                                     title={`Filter map stations.`}
                                     onClick={() => setFilter(true)}
@@ -92,6 +95,7 @@ const MenuNavigator = ({
                     <li>
                         <Button
                             icon={'search'}
+                            label={toggle ? 'Search' : ''}
                             className={view === 'search' ? 'active' : ''}
                             title={`Full-text search of metadata.`}
                             onClick={() => setView('search')}
@@ -100,6 +104,7 @@ const MenuNavigator = ({
                         <li>
                             <Button
                                 icon={'iat'}
+                                label={toggle ? 'Toolkit' : ''}
                                 className={view === 'iat' ? 'active' : ''}
                                 title={`Image Analysis Toolkit`}
                                 onClick={() => {

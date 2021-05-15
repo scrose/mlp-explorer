@@ -10,7 +10,7 @@ import Button from '../common/button';
 import { getError } from '../../_services/schema.services.client';
 import Dialog from '../common/dialog';
 import {
-    alignImages,
+    alignImages, cropBound, cropEnd, cropStart,
     moveAt,
     moveStart,
 } from './transform.iat';
@@ -102,7 +102,6 @@ export const MenuIat = ({
      */
 
     const _showDialog = (dialog) => {
-        console.log(dialog)
         const {
             type = '',
             id = '',
@@ -222,6 +221,19 @@ export const MenuIat = ({
                 }));
             },
 
+            // [mode] crop image
+            cropper: () => {
+                setOptions(data => ({ ...data, mode: 'crop' }));
+                setMethods(data => ({
+                    ...data,
+                    onMouseDown: cropStart,
+                    onMouseUp: cropEnd,
+                    onMouseMove: cropBound,
+                    onMouseOut: cropEnd,
+                    onKeyDown: filterKeyDown,
+                }));
+            },
+
             // [upload] upload mastered image to MLP library
             master: () => {
                 setSignal2('master');
@@ -268,6 +280,7 @@ export const MenuIat = ({
                             title={'Image edit mode.'}
                             className={options.mode === 'default' ? 'active' : ''}
                             icon={'select'}
+                            label={'Select'}
                             onClick={() => {
                                 // clear messages
                                 setMessage(null);
@@ -279,12 +292,27 @@ export const MenuIat = ({
                         <Button
                             disabled={!image1 && !image2}
                             title={'Select control coordinates.'}
+                            label={'Mark'}
                             className={options.mode === 'select' ? 'active' : ''}
                             icon={'crosshairs'}
                             onClick={() => {
                                 // clear messages
                                 setMessage(null);
                                 _filterMethods('selectPoints');
+                            }}
+                        />
+                    </li>
+                    <li>
+                        <Button
+                            disabled={!image1 && !image2}
+                            title={'Crop image.'}
+                            label={'Crop'}
+                            className={options.mode === 'crop' ? 'active' : ''}
+                            icon={'crop'}
+                            onClick={() => {
+                                // clear messages
+                                setMessage(null);
+                                _filterMethods('cropper');
                             }}
                         />
                     </li>
@@ -316,7 +344,6 @@ export const MenuIat = ({
                     <li>
                         <Button
                             disabled={!image1 || !image2}
-                            icon={'compare'}
                             label={'Overlay'}
                             title={'Compare images using overlay.'}
                             onClick={() => {

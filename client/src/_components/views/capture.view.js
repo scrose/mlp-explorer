@@ -50,7 +50,6 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
     if (user) {
         cols.push({ name: 'menu', label: 'Edit Options' })
     }
-    console.log(api.options)
 
     // prepare capture image data rows
     const rows = files.map(fileData => {
@@ -60,9 +59,10 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
         const { image_states=[] } = api.options || {};
 
         // select image state label for value (if available)
-        const imageState = image_states.find(opt => opt.value === metadata.image_state);
+        const imageState = image_states.find(opt => opt.value === metadata.image_state) || { label: metadata.image_state };
 
-        const rows = {
+        // create table row data
+        const row = {
             thumbnail: <Image
                 url={url}
                 scale={'thumb'}
@@ -72,7 +72,9 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
                     router.update(createNodeRoute(file_type, 'show', id))
                 }}
             />,
-            image_state: imageState && imageState.hasOwnProperty('label') ? imageState.label : 'n/a',
+            image_state: imageState && imageState.hasOwnProperty('label')
+                ? imageState.label
+                : 'n/a',
             width: sanitize(metadata.x_dim, 'imgsize'),
             height: sanitize(metadata.y_dim, 'imgsize'),
             file_size: sanitize(file.file_size, 'filesize')
@@ -83,7 +85,7 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
 
         // add editor menu for logged-in users
         if (user) {
-            rows.menu =  <MenuEditor
+            row.menu =  <MenuEditor
                             fileType={type}
                             model={type}
                             id={id}
@@ -92,7 +94,7 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
                             metadata={metadata}
                           />;
         }
-        return rows;
+        return row;
     });
 
     return  <>
@@ -135,7 +137,7 @@ const CaptureView = ({model, data, fileType}) => {
     return (
         <>
             <Accordion
-                type={'info'}
+                type={'show'}
                 label={`Capture Metadata`}
                 open={false}>
                 <MetadataView model={model} metadata={metadata} node={node} />
@@ -143,8 +145,8 @@ const CaptureView = ({model, data, fileType}) => {
             {
                 captureImages.length > 0 &&
                 <>
-                    <MetadataAttached owner={node} attached={attached} />
                     <Slider images={captureImages} />
+                    <MetadataAttached owner={node} attached={attached} />
                     <CaptureImagesTable
                         type={fileType}
                         owner={{ id: id, type: model, sorted: status.sorted}}

@@ -79,11 +79,13 @@ export const PanelIat = ({
     const _isMounted = React.useRef(false);
 
     // create DOM references
-    // - canvas consists of three layers (from top):
-    // -- control layer to handle user events
-    // -- mask layer to overlay graphics on image layer
-    // -- edit layer to display transformed image data
-    // -- base layer
+    // - canvas consists of six canvases (from top):
+    // -- control canvas to handle user events
+    // -- mask canvas to overlay graphics on image layer
+    // -- crop canvas to crop the image
+    // -- image canvas to render transformed image data
+    // -- scratch canvas as temporary rendering canvas
+    // -- base canvas to set absolute render size
     const controlCanvasRef = React.useRef(null);
     const maskCanvasRef = React.useRef(null);
     const cropCanvasRef = React.useRef(null);
@@ -148,7 +150,6 @@ export const PanelIat = ({
                 setInputImage(data);
             },
             reset: () => {
-                console.log(source.width, source.height)
                 setInputImage(source);
             },
             save: () => {
@@ -159,6 +160,7 @@ export const PanelIat = ({
             },
             draw: () => {
                 setOnDraw({ draw: draw });
+                if (!props) setSignal(status);
             },
             redraw: () => {
                 setOnRedraw({ draw: redraw });
@@ -191,7 +193,7 @@ export const PanelIat = ({
 
     /**
      * Handle canvas mouse move event.
-     * - reset pointer to (0, 0)
+     * - reset pointer selection to (0, 0)
      */
 
     const _handleMouseUp = (e) => {
@@ -201,7 +203,7 @@ export const PanelIat = ({
 
     /**
      * Handle canvas mouse down event.
-     * - reset pointer to (0, 0)
+     * - add selected click coordinate to pointer
      */
 
     const _handleMouseDown = (e) => {
@@ -360,7 +362,7 @@ export const PanelIat = ({
 
         if (signal === 'draw') {
             // apply requested drawing method
-            onDraw.draw(maskCanvas, properties, properties.other_panel ? otherProperties : null);
+            onDraw.draw(maskCtx, properties, properties.other_panel ? otherProperties : null);
             setSignal('loaded');
         }
 
@@ -484,6 +486,7 @@ export const PanelIat = ({
         });
 
     }, [
+        id, label,
         pointer,
         signal,
         setSignal,
@@ -494,6 +497,7 @@ export const PanelIat = ({
         cropCanvasRef,
         imageCanvasRef,
         properties,
+        otherProperties,
         options,
         setProperties,
         onDraw,
@@ -614,7 +618,9 @@ export const PanelIat = ({
                 <PanelInfo
                     properties={properties}
                     pointer={pointer}
-                    status={signal}/>
+                    status={signal}
+                    options={options}
+                />
             </div>
         </>;
 };

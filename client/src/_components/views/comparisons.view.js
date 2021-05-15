@@ -75,11 +75,9 @@ const ComparisonsView = ({data = {}, callback = () => {} }) => {
     return <>
         { showDialog() }
         <div className={`comparisons-item${hasMissingFiles ? ' missing' : ''}`}>
-            <div className={'h-menu'}>
-                <FilesList
-                    files={[historic_capture.refImage, modern_capture.refImage]}
-                />
-            </div>
+            <FilesList
+                files={[historic_capture.refImage, modern_capture.refImage]}
+            />
             <div className={'h-menu'}>
                 <ul>
                     <li>

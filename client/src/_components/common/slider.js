@@ -64,23 +64,26 @@ const Slider = ({ images = [] }) => {
 
             </div>
             <div className={'thumbnails h-menu'}>
+                <ul>
                 {
                     (images || []).map((image, index) => {
                         const { url = {}, label = '' } = image || {};
                         return (
-                            <Image
-                                key={`slide_button_${index}`}
-                                url={url}
-                                title={label}
-                                label={label}
-                                scale={'thumb'}
-                                onClick={() => {
-                                    setSelectedIndex(index);
-                                }}
-                            />
+                            <li key={`slide_button_${index}`}>
+                                <Image
+                                    url={url}
+                                    title={label}
+                                    label={label}
+                                    scale={'thumb'}
+                                    onClick={() => {
+                                        setSelectedIndex(index);
+                                    }}
+                                />
+                            </li>
                         );
                     })
                 }
+                </ul>
             </div>
             {
                 expandImage &&

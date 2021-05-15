@@ -20,7 +20,7 @@ import { UserMessage } from './message';
  * @return {JSX.Element}
  */
 
-const Comparator = ({images=[], scale=1.0}) => {
+const Comparator = ({ images = [], scale = 1.0 }) => {
 
     // input image data
     const [image1, image2] = images || [];
@@ -56,7 +56,8 @@ const Comparator = ({images=[], scale=1.0}) => {
     const label1 = image1 && image1.hasOwnProperty('label') ? image1.label : 'Image 1';
     const label2 = image2 && image2.hasOwnProperty('label') ? image2.label : 'Image 2';
 
-    function _slideFinish() {}
+    function _slideFinish() {
+    }
 
     function _slideMove(e) {
         const imgWidth = canvas1Ref.current.width;
@@ -67,7 +68,7 @@ const Comparator = ({images=[], scale=1.0}) => {
         // scale mouse coordinates after they have been adjusted to be relative to element
         let pos = Math.max(
             Math.min(
-                Math.floor((e.clientX - rect.left)), imgWidth
+                Math.floor((e.clientX - rect.left)), imgWidth,
             ), 0);
         /* Prevent the slider from being positioned outside the image: */
         if (pos < 0) pos = 0;
@@ -79,7 +80,7 @@ const Comparator = ({images=[], scale=1.0}) => {
     /* Position the slider and resize panel */
     function _slide(x) {
         panel1Ref.current.style.width = x + 'px';
-        sliderRef.current.style.left = x - (sliderRef.current.offsetWidth / 2) + "px";
+        sliderRef.current.style.left = x - (sliderRef.current.offsetWidth / 2) + 'px';
     }
 
     // initialize image sources
@@ -114,13 +115,16 @@ const Comparator = ({images=[], scale=1.0}) => {
             const slider = sliderRef.current;
 
             // set data urls for images
-            const url1 =  image1 && image1.hasOwnProperty('url')
+            const url1 = image1 && image1.hasOwnProperty('url')
                 ? image1.url.medium : image1;
-            const url2 =  image2 && image2.hasOwnProperty('url')
+            const url2 = image2 && image2.hasOwnProperty('url')
                 ? image2.url.medium : image2;
 
             // load image 1 (overlay)
-            img1.onerror = () => {setMessage({msg: 'Image 1 loading error.', type: 'error'})}
+            img1.onerror = () => {
+                setMessage({ msg: 'Error: Image could not be loaded.', type: 'error' });
+                img1.src = schema.errors.image.fallbackSrc;
+            };
             img1.onload = function() {
 
                 const w1 = img1.naturalWidth * scale;
@@ -143,7 +147,10 @@ const Comparator = ({images=[], scale=1.0}) => {
             img1.src = url1;
 
             // load image 2 (underlay)
-            img2.onerror = () => {setMessage({msg: 'Image 2 loading error.', type: 'error'})}
+            img2.onerror = () => {
+                setMessage({ msg: 'Error: Image could not be loaded.', type: 'error' });
+                img2.src = schema.errors.image.fallbackSrc;
+            };
             img2.onload = function() {
 
                 const w2 = img2.naturalWidth * scale;
@@ -160,7 +167,9 @@ const Comparator = ({images=[], scale=1.0}) => {
             };
             img2.src = url2;
         }
-        return () => { _isMounted.current = false }
+        return () => {
+            _isMounted.current = false;
+        };
     }, [
         image1,
         image2,
@@ -170,52 +179,64 @@ const Comparator = ({images=[], scale=1.0}) => {
         loaded1,
         setLoaded1,
         loaded2,
-        setLoaded2
+        setLoaded2,
     ]);
 
-    return <div className={'comparator'}>
+    return <>
         <UserMessage
             message={message}
             onClose={() => {
                 setMessage(false);
             }}
         />
-        <div
-            className={`comparator-container`}
-            onMouseLeave={_slideFinish}
-            onMouseUp={() => {sliding=false}}
-            onMouseMove={_slideMove}
-        >
+        <div className={'comparator'}>
             <div
-                className={`comparator-slider`}
-                ref={sliderRef}
-                onTouchStart={() => {sliding=true}}
-                onTouchMove={_slideMove}
-                onTouchEnd={(e) => {e.preventDefault()}}
-                onMouseDown={() => {sliding=true}}
+                className={`comparator-container`}
+                onMouseLeave={_slideFinish}
+                onMouseUp={() => {
+                    sliding = false;
+                }}
+                onMouseMove={_slideMove}
             >
-                { status === 2 ? <Button icon={'slide'} /> : <Loading /> }
+                <div
+                    className={`comparator-slider`}
+                    ref={sliderRef}
+                    onTouchStart={() => {
+                        sliding = true;
+                    }}
+                    onTouchMove={_slideMove}
+                    onTouchEnd={(e) => {
+                        e.preventDefault();
+                    }}
+                    onMouseDown={() => {
+                        sliding = true;
+                    }}
+                >
+                    {status === 2 ? <Button icon={'slide'} /> : <Loading />}
+                </div>
+                <div ref={panel1Ref} className={'comparator-img overlay'}>
+                    <canvas ref={canvas1Ref} />
+                </div>
+                <div ref={panel2Ref} className={'comparator-img'}>
+                    <canvas ref={canvas2Ref} />
+                </div>
+                <img
+                    style={{ 'display': 'none' }}
+                    ref={img1Ref}
+                    crossOrigin={'anonymous'}
+                    src={schema.errors.image.fallbackSrc}
+                    alt={label1}
+                />
+                <img
+                    style={{ 'display': 'none' }}
+                    ref={img2Ref}
+                    crossOrigin={'anonymous'}
+                    src={schema.errors.image.fallbackSrc}
+                    alt={label2}
+                />
             </div>
-            <div ref={panel1Ref} className={"comparator-img overlay"}>
-                <canvas ref={canvas1Ref} />
-            </div>
-            <div ref={panel2Ref} className={"comparator-img"}>
-                <canvas ref={canvas2Ref} />
-            </div>
-            <img
-                ref={img1Ref}
-                crossOrigin={'anonymous'}
-                src={schema.errors.image.fallbackSrc}
-                alt={label1}
-            />
-            <img
-                ref={img2Ref}
-                crossOrigin={'anonymous'}
-                src={schema.errors.image.fallbackSrc}
-                alt={label2}
-            />
         </div>
-    </div>
-}
+    </>;
+};
 
 export default Comparator;

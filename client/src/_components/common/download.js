@@ -10,7 +10,6 @@ import { saveAs } from 'file-saver';
 import { useRouter } from '../../_providers/router.provider.client';
 import { download } from '../../_services/api.services.client'
 import Button from './button';
-import Badge from './badge';
 
 /**
  * Defines download button.
@@ -19,13 +18,11 @@ import Badge from './badge';
  * @return {JSX.Element}
  */
 
-const Download = ({ type='', format='', label='', route=null }) => {
+const Download = ({ type='', format='', label='', route=null, callback=()=>{} }) => {
 
     // download link
     const router = useRouter();
-
     const [loading, setLoading] = React.useState(false);
-    const [error, setError] = React.useState(null);
 
     // create download filename
     const filename = `${type}.${format}`;
@@ -35,13 +32,12 @@ const Download = ({ type='', format='', label='', route=null }) => {
     const _handleDownload = async () => {
         // save data stream to file
         try {
-            setError(null);
             setLoading(true);
             const res = await download(route, format, router.online);
             console.log(res)
             if (!res || res.error) {
                 setLoading(false);
-                return setError(true);
+                callback({msg: 'Download error', type:'error'});
             }
             saveAs(res.data, filename);
             setLoading(false);
@@ -49,7 +45,7 @@ const Download = ({ type='', format='', label='', route=null }) => {
         catch (err) {
             console.error(err);
             setLoading(false);
-            setError(true)
+            callback({msg: 'Download error', type:'error'});
         }
     }
 
@@ -63,7 +59,6 @@ const Download = ({ type='', format='', label='', route=null }) => {
             title={`Download ${label}`}
             onClick={_handleDownload}>
         </Button>
-        { error && <Badge icon={'error'} label={'Download Error'} className={'error'} /> }
     </>
 }
 

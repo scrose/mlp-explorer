@@ -12,7 +12,7 @@ import * as srchserve from '../services/search.services.js';
 import { sanitize } from '../lib/data.utils.js';
 import { json2csv } from '../lib/file.utils.js';
 import { getMapFilterOptions } from '../services/metadata.services.js';
-import { ArrayStream } from '../services/files.services.js';
+import { Readable } from 'stream';
 import pool from '../services/db.services.js';
 
 /**
@@ -136,9 +136,11 @@ export const exporter = async (req, res, next) => {
         const { format='', schema='default' } = req.params || {};
 
         // get data using requested export schema
-        const data = await expserve.get(schema);
+        const exportData = await expserve.get(schema);
 
-        if (!data) return next(new Error('invalidRequest'));
+        if (!exportData) {
+            return next(new Error('invalidRequest'));
+        }
 
         // create file stream
         const filename = `export_${schema}.${format}`;
@@ -147,10 +149,9 @@ export const exporter = async (req, res, next) => {
         // Default: JSON data
         const exportHandler = {
             csv: () => {
-                res.setHeader("Content-Type", "text/csv");
-                res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
-                return json2csv(data);
-
+                res.set('Content-Type', 'text/csv');
+                res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+                return json2csv(exportData);
             },
             xml: () => {
                 res.setHeader("Content-Type", "text/xml");
@@ -160,7 +161,7 @@ export const exporter = async (req, res, next) => {
             default: () => {
                 res.setHeader("Content-Type", "text/json");
                 res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
-                return JSON.stringify(data);
+                return JSON.stringify(exportData);
             }
         };
 
@@ -169,15 +170,23 @@ export const exporter = async (req, res, next) => {
             ? exportHandler[format]()
             : exportHandler.default();
 
-        // // create data stream and buffer to destination
-        // const readable = await streamData(filtered);
-        // readable.pipe(res);
-
-        // create data stream
-        let rs = new ArrayStream(filtered);
-
-        // return CSV data as file download
-        rs.pipe(res).on('error', console.error);
+        // create data stream and pipe to response
+        res.on('error', (err) => {
+            console.error('Error in write stream:', err);
+        });
+        let rs = new Readable();
+        rs._read = () => {}; // may be redundant
+        rs.pipe(res);
+        rs.on('error',function(err) {
+                console.error(err)
+                res.status(404).end();
+            });
+        rs.on('error',function(err) {
+            console.error(err)
+            res.status(404).end();
+        });
+        rs.push(filtered);
+        rs.push(null);
 
     } catch (err) {
         console.error(err)

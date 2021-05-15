@@ -30,7 +30,7 @@ export const get = async function(schema) {
             return res.hasOwnProperty('rows') && res.rows.length > 0 ? res.rows : null;
         },
         default: async () => {
-            let res = getGIS();
+            let res = await getGIS();
             return res.hasOwnProperty('rows') && res.rows.length > 0 ? res.rows : null;
         }
     };

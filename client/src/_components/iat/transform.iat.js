@@ -9,6 +9,7 @@
 import { getError } from '../../_services/schema.services.client';
 import * as matrix from '../../_utils/matrix.utils.client';
 import { homography } from '../../_utils/matrix.utils.client';
+import { drawBoundingBox } from './graphics.iat';
 
 /**
  * Computes scale-to-fit dimensions to fit an image [ix, iy]
@@ -119,6 +120,87 @@ export function inRange(x, y, u, v, radius) {
         && (v - (y + radius)) * (v - (y - radius)) < 0;
 }
 
+
+/**
+ * Start image crop.
+ * Reference: https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas
+ *
+ * @public
+ * @param e
+ * @param properties
+ * @param options
+ * @param pointer
+ */
+
+export function cropStart(e, properties, pointer, options) {
+}
+
+/**
+ * Crop image by pointer selected dimensions.
+ * @param pointer
+ * @param callback
+ */
+
+export function crop(pointer, callback) {
+
+    console.log(pointer)
+
+    // check that mouse start position was selected
+    if (!pointer.selected) return;
+
+    // update image crop dimensions
+    callback({
+        status: 'draw',
+        props: { crop_dims: pointer.selected.delta }
+    });
+}
+
+/**
+ * Mouse up on crop bounding box.
+ * Reference: https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas
+ *
+ * @public
+ * @param e
+ * @param properties
+ * @param options
+ * @param pointer
+ */
+
+export function cropEnd(e, properties, pointer, options) {}
+
+/**
+ * Update canvas offset by cursor position
+ * @param e
+ * @param properties
+ * @param pointer
+ * @param options
+ * @param callback
+ */
+
+export function cropBound(e, properties, pointer, options, callback) {
+
+    // check that mouse start position was selected
+    if (!pointer.selected) return;
+
+    e.preventDefault();
+
+    // compute distance traveled
+    const _deltaX = properties.offset.x + pointer.x - pointer.selected.x;
+    const _deltaY = properties.offset.y + pointer.y - pointer.selected.y;
+
+    // update the pointer selected point
+    pointer.setSelect({
+        x: pointer.selected.x,
+        y: pointer.selected.y,
+        delta: {
+            x: _deltaX, y: _deltaY
+        }
+    });
+
+    // update image offset coordinate
+    callback({ status: 'draw', draw: drawBoundingBox.bind(
+            this, pointer.selected.x, pointer.selected.y, _deltaX, _deltaY) })
+}
 
 /**
  * Compute alignment transformation matrix image data.

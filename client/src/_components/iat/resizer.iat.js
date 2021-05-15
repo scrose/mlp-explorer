@@ -30,7 +30,7 @@ export const Resizer = ({
                             id = '',
                             properties,
                             setToggle,
-                            callback
+                            callback,
                         }) => {
 
     const [canvasDims, setCanvasDims] = React.useState(
@@ -48,13 +48,14 @@ export const Resizer = ({
 
     // Handle dimensional change submission
     const _handleUpdate = () => {
+        // update canvases
         callback({
             status: 'render',
             props: {
                 base_dims: canvasDims,
                 image_dims: imageDims,
-                crop_dims: cropDims
-            }
+                crop_dims: cropDims,
+            },
         });
         setToggle(false);
     };
@@ -80,32 +81,33 @@ export const Resizer = ({
             data={cropDims}
             update={setCropDims}
             setError={setError}
-            max={{ x: MAX_CANVAS_WIDTH, y: MAX_CANVAS_HEIGHT }}
+            max={{ x: Math.max(MAX_CANVAS_WIDTH), y: MAX_CANVAS_HEIGHT }}
         />
         <ResizeOptions
             id={id}
             label={'Canvas Size'}
             data={canvasDims}
             update={setCanvasDims}
+            updateDependent={setCropDims}
             setError={setError}
             max={{ x: MAX_CANVAS_WIDTH, y: MAX_CANVAS_HEIGHT }}
         />
         <fieldset className={'submit h-menu'}>
             <ul>
-            <li><Button
-                disabled={!!error}
-                icon={'success'}
-                label={`Update`}
-                title={`Update layer dimensions.`}
-                onClick={_handleUpdate}
-            /></li>
-            <li><Button
-                icon={'cancel'}
-                label={'Cancel'}
-                onClick={() => {
-                    setToggle(false);
-                }}
-            /></li>
+                <li><Button
+                    disabled={!!error}
+                    icon={'success'}
+                    label={`Update`}
+                    title={`Update layer dimensions.`}
+                    onClick={_handleUpdate}
+                /></li>
+                <li><Button
+                    icon={'cancel'}
+                    label={'Cancel'}
+                    onClick={() => {
+                        setToggle(false);
+                    }}
+                /></li>
             </ul>
         </fieldset>
     </div>;
@@ -118,12 +120,15 @@ export const Resizer = ({
  */
 
 export const ResizeOptions = ({
-                                  id='',
+                                  id = '',
                                   label = '',
                                   data = {},
-                                  update = () => {},
-                                  setError = () =>{},
-                                  max={x: 300, y: 300}
+                                  update = () => {
+                                  },
+                                  updateDependent= () => {},
+                                  setError = () => {
+                                  },
+                                  max = { x: 300, y: 300 },
                               }) => {
 
     // set resize parameter states
@@ -137,7 +142,7 @@ export const ResizeOptions = ({
     const _filterDims = (x, y) => {
         setError(null);
         if (x === 0 || y === 0) {
-            setError(`Cannot have zero width or height.` );
+            setError(`Cannot have zero width or height.`);
         }
         if (x > max.x) {
             setError(`Width cannot exceed maximum of ${max.x} px.`);
@@ -145,7 +150,7 @@ export const ResizeOptions = ({
         if (y > max.y) {
             setError(`Height cannot exceed maximum of ${max.y} px.`);
         }
-    }
+    };
 
     // Toggle aspect ratio toggle
     const _toggleAspect = () => {
@@ -176,17 +181,26 @@ export const ResizeOptions = ({
             : 1.0;
 
         // update dimensions
-        const _x = name === 'x' ? value : data.x;
+        const _x = name === 'x' ? parseInt(value) : data.x;
 
         // check if aspect ratio is locked (to scale height)
         const _y = name === 'y'
-            ? value
+            ? parseInt(value)
             : aspect
                 ? Math.floor(value * ratio)
                 : data.y;
 
         // update data
-        _filterDims(_x, _y)
+        _filterDims(_x, _y);
+
+        // update secondary dimensions (if exist)
+        // (e.g. adjust crop dimensions to be <= canvas dimensions)
+        updateDependent({
+            x: Math.max(data.x, max.x),
+            y: Math.max(data.y, max.y)
+        });
+
+        // update final dimensions
         update({ x: _x, y: _y });
     };
 
@@ -196,7 +210,7 @@ export const ResizeOptions = ({
         const { value = 1.0 } = target;
         setScaleFactor(value);
         // update dimensions
-        _filterDims(init.x * value, init.y * value)
+        _filterDims(init.x * value, init.y * value);
         update({ x: Math.floor(init.x * value), y: Math.floor(init.y * value) });
     };
 
@@ -212,58 +226,69 @@ export const ResizeOptions = ({
     return <>
         <fieldset className={'compact'}>
             <legend>{label}</legend>
-            <div className={'h-menu'}>
-                <Input
-                    id={id}
-                    name={'x'}
-                    disabled={scale}
-                    label={'Width'}
-                    type={'int'}
-                    value={data.x}
-                    onChange={_handleChange}
-                />
-                <Input
-                    id={id}
-                    disabled={aspect || scale}
-                    name={'y'}
-                    label={'Height'}
-                    type={'int'}
-                    value={data.y}
-                    onChange={_handleChange}
-                />
-                <Button
-                    icon={'undo'}
-                    onClick={_handleReset}
-                />
+            <div className={'h-menu centered'}>
+                <ul>
+                    <li>
+                        <Input
+                            id={id}
+                            name={'x'}
+                            disabled={scale}
+                            label={'Width'}
+                            type={'int'}
+                            value={data.x}
+                            onChange={_handleChange}
+                        />
+                    </li>
+                    <li>
+                        <Input
+                            id={id}
+                            disabled={aspect || scale}
+                            name={'y'}
+                            label={'Height'}
+                            type={'int'}
+                            value={data.y}
+                            onChange={_handleChange}
+                        />
+                    </li>
+                    <li className={'push'}>
+                        <Button
+                            icon={'undo'}
+                            label={'Reset'}
+                            onClick={_handleReset}
+                        /></li>
+                </ul>
             </div>
             <div className={'h-menu'}>
-                <Input
-                    id={id}
-                    name={'aspect'}
-                    disabled={scale}
-                    label={'Lock Aspect Ratio'}
-                    type={'checkbox'}
-                    value={aspect}
-                    onChange={_toggleAspect}
-                />
-                <Input
-                    id={id}
-                    disabled={!aspect}
-                    name={'scale'}
-                    label={'Scale'}
-                    type={'checkbox'}
-                    value={scale}
-                    onChange={_toggleScale}
-                />
-                <Input
-                    id={id}
-                    disabled={!aspect || !scale}
-                    name={'scale_factor'}
-                    label={'Factor'}
-                    type={'float'}
-                    value={scaleFactor}
-                    onChange={_handleScale}
-                />
+                <ul>
+                    <li>
+                        <Input
+                            id={id}
+                            name={'aspect'}
+                            disabled={scale}
+                            label={'Lock Aspect Ratio'}
+                            type={'checkbox'}
+                            value={aspect}
+                            onChange={_toggleAspect}
+                        /></li>
+                    <li><Input
+                        id={id}
+                        disabled={!aspect}
+                        name={'scale'}
+                        label={'Scale'}
+                        type={'checkbox'}
+                        value={scale}
+                        onChange={_toggleScale}
+                    /></li>
+                    <li><Input
+                        id={id}
+                        disabled={!aspect || !scale}
+                        name={'scale_factor'}
+                        label={'Factor'}
+                        type={'float'}
+                        value={scaleFactor}
+                        onChange={_handleScale}
+                    /></li>
+                </ul>
             </div>
         </fieldset>
     </>;

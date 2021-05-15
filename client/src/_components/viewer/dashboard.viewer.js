@@ -6,7 +6,6 @@
  */
 
 import React from 'react'
-import Download from '../common/download';
 
 /**
  * Node management panel.
@@ -15,32 +14,10 @@ import Download from '../common/download';
  * @return {Promise} result
  */
 
-const NodePanel = () => {
+const ViewerPanelMenu = () => {
     return (
         <nav className={'panel'}>
-            <h4>Export Data</h4>
-            <ul>
-                <li>
-                    <p>
-                        <Download
-                        label={'Export GIS CSV'}
-                        format={'csv'}
-                        type={'export'}
-                        route={'/nodes/export/gis/csv'}
-                        />
-                    </p>
-                </li>
-                <li>
-                    <p>
-                        <Download
-                            label={'Export GIS JSON'}
-                            format={'json'}
-                            type={'export'}
-                            route={'/nodes/export/gis/json'}
-                        />
-                    </p>
-                </li>
-            </ul>
+
         </nav>
     );
 }
@@ -63,7 +40,7 @@ const DashboardViewer = () => {
                 Find out about our research and how we turn remarkable photos into
                 real-world solutions for understanding climate change, ecological
                 processes, and strategies for ecological restoration.</p>
-            <NodePanel />
+            <ViewerPanelMenu />
         </div>
     );
 }

@@ -21,17 +21,11 @@ import Button from '../common/button';
 const UserMenu = () => {
     return (
         <nav className={'user'}>
-            <div>
-                <ul>
-                    <li>
-                        <Button
-                            label={'Sign In'}
-                            icon={'login'}
-                            onClick={() => redirect("/login")}
-                        />
-                    </li>
-                </ul>
-            </div>
+            <Button
+                label={'Sign In'}
+                icon={'login'}
+                onClick={() => redirect("/login")}
+            />
         </nav>
     );
 }
@@ -46,10 +40,12 @@ const HeaderViewer = () => {
     return (
         <header>
             <div className={'banner'}>
-                <div className={'navbar'}>
-                    <Logo />
-                    <MainMenu />
-                    <UserMenu />
+                <div className={'navbar h-menu'}>
+                    <ul>
+                        <li><Logo /></li>
+                        <li><MainMenu /></li>
+                        <li className={'push'}><UserMenu /></li>
+                    </ul>
                 </div>
                 <div className={'context-menu'}>
                     <BreadcrumbMenu />

@@ -7,7 +7,7 @@
 
 import React from 'react';
 import Button from '../common/button';
-import { moveBy } from './transform.iat';
+import { crop, moveBy } from './transform.iat';
 import { erase, expand, fit, reset } from './canvas.iat';
 import { loadImageData } from './loader.iat';
 import { useUser } from '../../_providers/user.provider.client';
@@ -179,6 +179,10 @@ export const filterKeyDown = (e, properties, pointer, options, callback) => {
     const { keyCode = '' } = e || {};
 
     const _methods = {
+        // update
+        13: () => {
+            crop(pointer, callback);
+        },
         // move canvas left 1 pixel
         37: () => {
             moveBy(e, properties, -1, 0, callback);

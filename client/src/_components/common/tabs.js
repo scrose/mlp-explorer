@@ -11,45 +11,63 @@ import Button from './button';
 /**
  * Tab layout.
  * - Creates tab to toggle data panels (<Tab>).
+ * - Input Data Format:
+ *   {[ID]: { label: <LABEL>, data: <CONTENT>}, ... }
  *
  * @public
  * @return {JSX.Element}
  */
 
-const Tabs = ({ menu = [], data = [], highlight = null }) => {
+const Tabs = ({
+                  items = [],
+                  defaultTab = 0,
+                  className = '',
+                  orientation = 'vertical',
+              }) => {
 
-    // tab toggle state
-    const [selectedIndex, setSelectedIndex] = React.useState(0);
-    const selectedCapture = data[selectedIndex];
+    // selected tab state
+    const [selectedTabID, setSelectedTabID] = React.useState(defaultTab);
 
-    // use toggle icon to show state of loading
-    const onToggle = (index) => {
-        return index === selectedIndex ? 'expand' : 'collapse';
+    // highlight selected tab (via classname)
+    const onToggle = (id) => {
+        return orientation === 'vertical'
+            ? id === selectedTabID ? 'hclose' : 'hopen'
+            : id === selectedTabID ? 'hopen' : 'hclose'
     };
 
+    // select view orientation
+    const tabOrientation = orientation === 'vertical' ? 'h-menu' : 'v-menu';
+    const menuOrientation = orientation === 'vertical' ? 'v-menu' : 'h-menu';
+
     return (
-        <div className={`tab h-menu`}>
+        <div className={`tab ${tabOrientation} ${className}`}>
             <ul>
-                {
-                    menu.map((item, index) => {
-                        const { id = '', label = '' } = item || {};
-                        return <li key={`tab_${id}`}>
-                            <Button
-                                className={highlight === index ? 'active' : ''}
-                                icon={onToggle(index)}
-                                title={`View ${label}.`}
-                                label={label}
-                                onClick={() => {
-                                    setSelectedIndex(index);
-                                }}
-                            />
-                        </li>;
-                    })
-                }
-                <li>
-                    <div className={'tab-data'}>
-                        {selectedCapture}
-                    </div>
+                <li className={`tab-menu ${menuOrientation}`}>
+                    <ul>
+                        {
+                            items.map((item, id) => {
+                                const { label = '' } = item || {};
+                                return <li key={`tab_${id}`}>
+                                    <Button
+                                        className={selectedTabID === id ? 'active' : ''}
+                                        icon={onToggle(id)}
+                                        title={`View ${label}.`}
+                                        label={label}
+                                        onClick={() => {
+                                            setSelectedTabID(id);
+                                        }}
+                                    />
+                                </li>;
+                            })
+                        }
+                    </ul>
+                </li>
+                <li className={`tab-data ${orientation}`}>
+                    {
+                        items.hasOwnProperty(selectedTabID)
+                            ? items[selectedTabID].data || ''
+                            : ''
+                    }
                 </li>
             </ul>
         </div>
