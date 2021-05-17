@@ -11,7 +11,6 @@ import { genSchema } from '../../_services/schema.services.client';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
 import Comparator from '../common/comparator';
 import MetadataView from '../views/metadata.view';
-import Button from '../common/button';
 
 /**
  * Image selector widget.
@@ -38,15 +37,15 @@ export const MasterImage = ({
     const historicMetadata = {
         capture: 'Historic',
         filename: panel1.filename,
-        width: panel1.image_dims.x,
-        height: panel1.image_dims.y
+        width: panel1.image_dims.w,
+        height: panel1.image_dims.h
     }
     const modernMetadata = {
         capture: 'Modern',
         mime_type: type,
         filename: panel2.filename,
-        width: panel2.image_dims.x,
-        height: panel2.image_dims.y
+        width: panel2.image_dims.w,
+        height: panel2.image_dims.h
     }
 
     return <>

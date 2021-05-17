@@ -85,7 +85,7 @@ export const drawControlPoints = (canvas, props1, props2) => {
 export const drawBoundingBox = (x, y, width, height, ctx, properties) => {
 
     // erase mask layer canvas
-    ctx.clearRect(0, 0, properties.base_dims.x, properties.base_dims.y);
+    ctx.clearRect(0, 0, properties.base_dims.w, properties.base_dims.h);
 
     // draw bounding box
     ctx.strokeStyle = 'blue';

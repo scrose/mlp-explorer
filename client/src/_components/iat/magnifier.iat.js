@@ -49,8 +49,8 @@ export const Magnifier = ({ pointer, properties, options})  => {
         function _init () {
             if (!magnifierRef.current.style.backgroundImage) {
                 // set magnification parameters
-                const bgSizeX = properties.base_dims.x * options.magnifyZoom;
-                const bgSizeY = properties.base_dims.y * options.magnifyZoom;
+                const bgSizeX = properties.base_dims.w * options.magnifyZoom;
+                const bgSizeY = properties.base_dims.h * options.magnifyZoom;
                 magnifierRef.current.style.left = (pointer.x - w) + 'px';
                 magnifierRef.current.style.top = (pointer.y - h) + 'px';
                 magnifierRef.current.style.backgroundImage = `url('${properties.dataURL}')`;

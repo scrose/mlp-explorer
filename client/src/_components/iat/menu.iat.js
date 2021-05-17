@@ -21,6 +21,7 @@ import Resizer from './resizer.iat';
 import { deselectControlPoint, moveControlPoint, selectControlPoint } from './pointer.iat';
 import { filterKeyDown } from './panel.controls.iat';
 import { MasterImage } from './master.iat';
+import { useUser } from '../../_providers/user.provider.client';
 
 /**
  * No operation.
@@ -80,6 +81,8 @@ export const MenuIat = ({
 
     // toggle to show/hide menu panels and popup dialogs
     const [menuToggle, setMenuToggle] = React.useState('');
+
+    const user = useUser();
 
     /**
      * Handle errors.
@@ -331,7 +334,7 @@ export const MenuIat = ({
                     </li>
                     <li>
                         <Button
-                            disabled={!image1 || !image2}
+                            disabled={!user || !image1 || !image2}
                             label={'Master'}
                             title={'Upload mastered image.'}
                             onClick={() => {

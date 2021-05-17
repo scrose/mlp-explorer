@@ -7,6 +7,7 @@
 
 import React from 'react';
 import Image from '../common/image';
+import Icon from '../common/icon';
 
 /**
  * IAT "Getting Started" help page.
@@ -15,11 +16,42 @@ import Image from '../common/image';
  */
 
 export const iatStartHelp = <>
-    <h4>Image Analysis Toolkit</h4>
+    <h4>Getting Started</h4>
     <p>
-        TBA
+        The Image Analysis Toolkit (IAT) is an image editor and annotator based on the
+        standalone JavaScript application of the same name developed by Michael Whitney in 2016.
+        Very much in development, this second generation IAT does not yet include all of the
+        original IAT features, though the long-term aim is for full integration of the application in Explorer.
     </p>
-</>
+        <ul className={'list'}>
+            <li><b>Basic Features:</b> Image resizing, cropping and translation. Files can be saved.</li>
+            <li><b>Comparative visualization:</b> Images can be viewed side-by-side and overlaid.</li>
+            <li><b>Image Alignment:</b> Images can be aligned using user-selected control points.</li>
+            <li><b>Image Registration:</b> Authenticated users can register aligned (mastered) images
+                in the MLP collection.
+            </li>
+            <li><b>Proposed Features:</b> Advanced markup, mask overlays, image classification and segmentation.</li>
+        </ul>
+    <h5>Setup</h5>
+    <p>
+        The IAT consists of two image panels, each of which can display a single image on its view canvas.
+        To load an image into a panel:
+    </p>
+        <ul>
+            <li>
+                <b>Local Filesystem:</b>
+                <ol className={'list'}>
+                    <li>Select the Load <Icon type={'load'} /> control to open the file selector.</li>
+                </ol>
+            </li>
+        </ul>
+
+
+
+    <p>
+    </p>
+</>;
+
 
 /**
  * IAT "Basic Features" help page.
@@ -27,7 +59,66 @@ export const iatStartHelp = <>
  * @public
  */
 
-export const iatBasicHelp = <>
+export const iatBackgroundHelp = <>
+    <h5>About the IAT</h5>
+    <p>
+        <em>Excerpt: <a
+        href={'https://bioone.org/journals/mountain-research-and-development/volume-36/issue-4/MRD-JOURNAL-D-16-00038.1/Exploring-Landscape-Change-in-Mountain-Environments-With-the-Mountain-Legacy/10.1659/MRD-JOURNAL-D-16-00038.1.full'}>
+        Exploring Landscape Change in Mountain Environments With the Mountain Legacy Online Image Analysis Toolkit
+        (November, 2016)
+        </a>
+        </em>
+    </p>
+        <p>In designing the IAT, MLP researchers worked with 4 central aims:</p>
+            <ul className={'list'}>
+                <li>
+                    Focus on oblique photographs—as Delaney (2008: 76) says, “From the earliest days of the photograph
+                    to the present, its value has been recognized by the scientific community to help them document
+                    and understand the natural world.” Much of the functionality in the IAT is based on observing
+                    practitioners from a broad range of disciplines, organizations, and communities working with
+                    photographs to better understand multifaceted mountain phenomena;
+                </li>
+                <li>
+                    Widely available access—allow anyone with an Internet connection and a modern web browser
+                    to see, manipulate, compare, and analyze their own mountain photographs from anywhere
+                    in the world and/or use images in the Mountain Legacy collection. Allow anyone to download
+                    the toolkit and use it without an Internet connection, thus making it usable in remote field
+                    locations.
+                </li>
+                <li>
+                    Comparative visualization—aligning and showing the images side by side as well as overlaid on
+                    one another. Allow for targeted, aligned window, polygon, and area views from one image onto the
+                    other
+                    in a manner similar to the Klett et al (2004) time-reveal window.
+                </li>
+                <li>
+                    Classification and interpretation—allow practitioners to apply their own expertise when exploring
+                    the images. Practitioners should be able to classify and quantify, change, annotate, mark up, and
+                    visualize images as required for their various lines of inquiry.
+                </li>
+            </ul>
+
+        <p>
+            Although some IAT components can be used on individual images, the toolkit is designed to display 2 or
+            more images and afford practitioners different methods of visualizing, annotating, and quantitatively
+            describing changes (and similarities) between the photographs. Although there is software available to
+            georeference oblique images (see for example Stockdale et al 2015), the focus of this IAT version is
+            the photographs themselves—all quantitative descriptions and visualizations are relative to the images,
+            not to a digital elevation model or map. IAT was developed with the MLP in mind, but its use is not
+            restricted to the Canadian mountain west. It is lightweight (approximately 45 KB), uses ubiquitous
+            technology, has minimal dependency on other software, and is a single file that can readily be downloaded
+            and used with any imagery and by practitioners not affiliated with the MLP.
+
+        </p>
+    </>
+
+    /**
+    * IAT "Basic Features" help page.
+    *
+    * @public
+    */
+
+    export const iatBasicHelp = <>
 
     <h4>Basic Features</h4>
     <p>
@@ -36,7 +127,7 @@ export const iatBasicHelp = <>
 
     <h5>Image Translation</h5>
     <p>
-        TBA
+        Loaded images can be moved when in the <Icon type={'select'} label={'Select'} /> mode.
     </p>
 
     <h5>Resizing Images</h5>
@@ -51,13 +142,13 @@ export const iatBasicHelp = <>
 
 </>;
 
-/**
- * IAT "Image Alignment" help page.
- *
- * @public
- */
+    /**
+    * IAT "Image Alignment" help page.
+    *
+    * @public
+    */
 
-export const alignmentIATHelp = <>
+    export const alignmentIATHelp = <>
 
     <h4>Image Alignment</h4>
     <p>
@@ -81,13 +172,13 @@ export const alignmentIATHelp = <>
 
 </>;
 
-/**
- * IAT "Image Registration" help page.
- *
- * @public
- */
+    /**
+    * IAT "Image Registration" help page.
+    *
+    * @public
+    */
 
-export const iatRegistrationHelp = <>
+    export const iatRegistrationHelp = <>
 
     <h4>Concepts</h4>
     <p>
@@ -387,4 +478,4 @@ export const iatRegistrationHelp = <>
         of the captures, as it should no longer contain capture images. </p>
 
 
-</>;
+</>;;

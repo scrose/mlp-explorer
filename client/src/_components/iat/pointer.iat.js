@@ -21,7 +21,12 @@ import { drawControlPoints } from './graphics.iat';
 export function usePointer(properties, options) {
     const [current, setCurrent] = React.useState({ x: 0, y: 0 });
     const [selected, setSelected] = React.useState(null);
-    const [delta, setDelta] = React.useState(null);
+    const [selectBox, setSelectBox] = React.useState({
+        x: 0,
+        y: 0,
+        w: 0,
+        h: 0
+    });
     const [index, setIndex] = React.useState(null);
     const [magnify, setMagnify] = React.useState(false);
 
@@ -48,7 +53,6 @@ export function usePointer(properties, options) {
         setSelected({
             x: pos.x,
             y: pos.y,
-            delta: 0
         });
     };
     const setSelect = (selected) => {
@@ -77,6 +81,8 @@ export function usePointer(properties, options) {
         selected,
         index,
         setIndex,
+        selectBox,
+        setSelectBox
     };
 }
 
@@ -165,17 +171,17 @@ export const getPos = (e, properties) => {
 
     // compute scaling relationship bitmap vs. element for X, y
     const eps = 0.000000001
-    const scaleX = (canvasDims.x + eps) / (bounds.x + eps);
-    const scaleY = (canvasDims.y + eps) / (bounds.y + eps);
+    const scaleX = (canvasDims.w + eps) / (bounds.w + eps);
+    const scaleY = (canvasDims.h + eps) / (bounds.h + eps);
 
     const x = Math.max(
         Math.min(
-            Math.floor((e.clientX - bounds.left) * scaleX), canvasDims.x,
+            Math.floor((e.clientX - bounds.left) * scaleX), canvasDims.w,
         ), 0,
     );
     const y = Math.max(
         Math.min(
-            Math.floor((e.clientY - bounds.top) * scaleY), canvasDims.y,
+            Math.floor((e.clientY - bounds.top) * scaleY), canvasDims.h,
         ), 0,
     );
 

@@ -24,8 +24,8 @@ export const scaleToFit = (ix, iy, cx, cy) => {
     const ri = ix / iy;
     const rc = cx / cy;
     return {
-        x: Math.floor(rc > ri ? ix * cy/iy : cx),
-        y: Math.floor(rc > ri ? cy : iy * cx/ix)
+        w: Math.floor(rc > ri ? ix * cy/iy : cx),
+        h: Math.floor(rc > ri ? cy : iy * cx/ix)
     };
 };
 
@@ -59,14 +59,22 @@ export function moveAt(e, properties, pointer, options, callback) {
     e.preventDefault();
 
     // compute distance traveled
-    const _x = properties.offset.x + pointer.x - pointer.selected.x;
-    const _y = properties.offset.y + pointer.y - pointer.selected.y;
+    const _x = properties.render_dims.x + pointer.x - pointer.selected.x;
+    const _y = properties.render_dims.y + pointer.y - pointer.selected.y;
 
     // update the pointer selected point
     pointer.setSelect({ x: pointer.x, y: pointer.y });
 
     // update image offset coordinate
-    callback({ props: { offset: {x: _x, y: _y} }, status: 'render' })
+    callback({
+        status: 'render',
+        props: {
+            render_dims: {
+                w: properties.render_dims.w,
+                h: properties.render_dims.h,
+                x: _x,
+                y: _y
+        } } });
 }
 
 /**
@@ -98,9 +106,12 @@ export function moveBy(e, properties, dx = 0, dy = 0, callback) {
     return callback(
         {   status: 'render',
             props: {
-                    offset: {
-                        x: properties.offset.x + dx,
-                        y: properties.offset.y + dy }
+                render_dims: {
+                    w: properties.render_dims.w,
+                    h: properties.render_dims.h,
+                    x: properties.render_dims.x + dx,
+                    y: properties.render_dims.y + dy
+                }
         }});
 }
 
@@ -122,42 +133,54 @@ export function inRange(x, y, u, v, radius) {
 
 
 /**
- * Start image crop.
- * Reference: https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas
+ * Start image crop bounding box.
  *
  * @public
  * @param e
  * @param properties
  * @param options
  * @param pointer
+ * @param callback
  */
 
-export function cropStart(e, properties, pointer, options) {
+export function cropStart(e, properties, pointer, options, callback) {
+    pointer.setSelectBox({
+        x: pointer.x,
+        y: pointer.y,
+        w: 0,
+        h: 0
+    });
+    callback({status: 'redraw', props: {}});
 }
 
 /**
  * Crop image by pointer selected dimensions.
+ * - sets image source data to the (x,y) offset and (w,h) dimensions
+ *   of the selected crop box to draw to the render canvas.
  * @param pointer
+ * @param properties
  * @param callback
  */
 
-export function crop(pointer, callback) {
-
-    console.log(pointer)
+export function crop(pointer, properties, callback) {
 
     // check that mouse start position was selected
-    if (!pointer.selected) return;
+    if (!pointer.selectBox) return;
 
-    // update image crop dimensions
+    // update image crop dimensions and rerender
     callback({
-        status: 'draw',
-        props: { crop_dims: pointer.selected.delta }
+        status: 'render',
+        props: {
+            source_dims: pointer.selectBox,
+            render_dims: pointer.selectBox
+        }
     });
+    // reset selection box
+    pointer.setSelectBox({x: 0, y: 0, w: 0, h: 0});
 }
 
 /**
  * Mouse up on crop bounding box.
- * Reference: https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas
  *
  * @public
  * @param e
@@ -185,16 +208,15 @@ export function cropBound(e, properties, pointer, options, callback) {
     e.preventDefault();
 
     // compute distance traveled
-    const _deltaX = properties.offset.x + pointer.x - pointer.selected.x;
-    const _deltaY = properties.offset.y + pointer.y - pointer.selected.y;
+    const _deltaX = properties.render_dims.x + pointer.x - pointer.selected.x;
+    const _deltaY = properties.render_dims.y + pointer.y - pointer.selected.y;
 
-    // update the pointer selected point
-    pointer.setSelect({
-        x: pointer.selected.x,
-        y: pointer.selected.y,
-        delta: {
-            x: _deltaX, y: _deltaY
-        }
+    // update the pointer select box
+    pointer.setSelectBox({
+        x: pointer.selectBox.x,
+        y: pointer.selectBox.y,
+        w: _deltaX,
+        h: _deltaY
     });
 
     // update image offset coordinate

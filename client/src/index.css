@@ -61,8 +61,17 @@ div.main {
 DOM Elements (Global)
 */
 
-ul.list {
+ul.list, ol.list {
+    flex: none !important;
     display: block !important;
+    list-style: square inside !important;
+    margin: 20px !important;
+    padding: 10px !important;
+}
+ul.list li {
+    list-style: square inside !important;
+    margin: 10px;
+    padding: 10px;
 }
 h3 {
     padding: 10px;
@@ -1945,6 +1954,9 @@ canvas {
     background-color: #282c34;
     color: #FFFFFF;
 }
+/*
+Define Canvas Layers of Panel (IAT)
+*/
 .canvas-layer-control-default {
     cursor: move;
     z-index: 40;
@@ -1956,14 +1968,15 @@ canvas {
 .canvas-layer-control-default.magnify, .canvas-layer-control-select.magnify {
     cursor: none;
 }
-.canvas-layer-mask {
+.canvas-layer-overlay {
     z-index: 30;
 }
-.canvas-layer-data {
+.canvas-layer-view {
     z-index: 25;
-    /*border-color: #FF8D3F;*/
-    /*border-width: 2px;*/
-    /*border-style: dotted;*/
+}
+.canvas-layer-image {
+    z-index: -1;
+    display: none;
 }
 .canvas-layer-base {
     position: relative;

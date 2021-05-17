@@ -30,16 +30,16 @@ const PanelInfo = ({ properties, pointer, status, options }) => {
 
     // compute scales
     const eps = 0.0000000001;
-    const scaleX = properties.render_dims.x > 0
-        ? ((properties.image_dims.x + eps)/(properties.render_dims.x + eps)).toFixed(2)
+    const scaleX = properties.render_dims.w > 0
+        ? ((properties.image_dims.w + eps)/(properties.render_dims.w + eps)).toFixed(2)
         : 1.0;
-    const scaleY = properties.render_dims.y > 0
-        ? ((properties.image_dims.y + eps)/(properties.render_dims.y + eps)).toFixed(2)
+    const scaleY = properties.render_dims.h > 0
+        ? ((properties.image_dims.h + eps)/(properties.render_dims.h + eps)).toFixed(2)
         : 1.0;
 
     // compute offsets
-    const offsetX = Math.ceil(properties.offset.x);
-    const offsetY = Math.ceil(properties.offset.y);
+    const offsetX = Math.ceil(properties.render_dims.x);
+    const offsetY = Math.ceil(properties.render_dims.y);
 
     // compute actual cursor position in image
     const actualX = Math.ceil((pointer.x - offsetX) * scaleX);
@@ -53,9 +53,12 @@ const PanelInfo = ({ properties, pointer, status, options }) => {
                     <tbody>
                     <tr>
                         <th>Crop Size</th>
-                        <td>{pointer.selected
-                            ? `[${ pointer.selected.delta.x }, ${ pointer.selected.delta.y }]`
-                            : '[0, 0]'}</td>
+                        <td>
+                            [{ pointer.selectBox.w }, { pointer.selectBox.h }]
+                        </td>
+                        <td>
+
+                        </td>
                     </tr>
                     </tbody>
                 </table>
@@ -104,20 +107,20 @@ const PanelInfo = ({ properties, pointer, status, options }) => {
             <tr>
                 <th>Offset</th>
                 <td>({offsetX}, {offsetY})</td>
-                <th>Cropped</th>
-                <td>[{properties.crop_dims.x}, {properties.crop_dims.y}]</td>
+                <th></th>
+                <td></td>
             </tr>
             <tr>
-                <th>Resized</th>
-                <td>[{properties.render_dims.x}, {properties.render_dims.y}]</td>
+                <th>Rendered</th>
+                <td>[{properties.render_dims.w}, {properties.render_dims.h}]</td>
                 <th>Image</th>
-                <td>[{properties.image_dims.x}, {properties.image_dims.y}]</td>
+                <td>[{properties.image_dims.w}, {properties.image_dims.h}]</td>
             </tr>
             <tr>
                 <th>Canvas</th>
-                <td>[{properties.base_dims.x}, {properties.base_dims.y}]</td>
+                <td>[{properties.base_dims.w}, {properties.base_dims.h}]</td>
                 <th>Source</th>
-                <td>[{properties.source_dims.x}, {properties.source_dims.y}]</td>
+                <td>[{properties.original_dims.w}, {properties.original_dims.h}]</td>
             </tr>
             </tbody>
         </table>

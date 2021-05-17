@@ -8,7 +8,7 @@
 import React from 'react';
 import {
     getModelLabel,
-    getStaticLabel, getStaticView,
+    getStaticLabel,
     getViewLabel,
 } from '../../_services/schema.services.client';
 import { useRouter } from '../../_providers/router.provider.client';

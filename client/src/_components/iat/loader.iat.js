@@ -33,13 +33,14 @@ export const loadImageData = async (properties, callback) => {
                         // convert data to Image Data object
                         const { width = 0, height = 0, data = [] } = tiff || {};
 
-                        // update panel properties
-                        properties.source_dims = { x: width, y: height };
-                        properties.render_dims = { x: width, y: height };
-                        properties.image_dims = { x: width, y: height };
-                        properties.crop_dims = {
-                            x: Math.min(width, properties.base_dims.x),
-                            y: Math.min(height, properties.base_dims.y)
+                        // update local panel properties
+                        properties.original_dims = { w: width, h: height };
+                        properties.image_dims = { w: width, h: height };
+                        properties.source_dims = { x: 0, y: 0, w: width, h: height };
+                        properties.render_dims = {
+                            x: 0, y: 0,
+                            w: Math.min(width, properties.base_dims.w),
+                            h: Math.min(height, properties.base_dims.h)
                         };
                         callback({status: 'load', data: toImageData(data, width, height), props:  properties});
                     })
@@ -52,13 +53,15 @@ export const loadImageData = async (properties, callback) => {
                 img.onerror = (err) => {callback({status: 'empty', error: err})};
                 img.onload = function() {
                     URL.revokeObjectURL(src); // free memory held by Object URL
-                    // update panel properties
-                    properties.source_dims = { x: img.width, y: img.height };
-                    properties.render_dims = { x: img.width, y: img.height };
-                    properties.image_dims = { x: img.width, y: img.height };
-                    properties.crop_dims = {
-                            x: Math.min(img.width, properties.base_dims.x),
-                            y: Math.min(img.height, properties.base_dims.y)
+
+                    // update local panel properties
+                    properties.original_dims = { w: img.width, h: img.height };
+                    properties.image_dims = { w: img.width, h: img.height };
+                    properties.source_dims = { x: 0, y: 0, w: img.width, h: img.height };
+                    properties.render_dims = {
+                            x: 0, y: 0,
+                            w: Math.min(img.width, properties.base_dims.w),
+                            h: Math.min(img.height, properties.base_dims.h)
                     };
                     callback({status: 'load', data: img, props: properties});
                 }
@@ -129,7 +132,7 @@ export const loadImageData = async (properties, callback) => {
     if (url) return loaders.url();
     // invalid load request
     return callback({
-        status: 'empty',
+        status: 'cancel',
         error: {msg: 'Image load cancelled.', type:'info'}
     })
 }

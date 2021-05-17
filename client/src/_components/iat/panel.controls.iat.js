@@ -181,7 +181,7 @@ export const filterKeyDown = (e, properties, pointer, options, callback) => {
     const _methods = {
         // update
         13: () => {
-            crop(pointer, callback);
+            crop(pointer, properties, callback);
         },
         // move canvas left 1 pixel
         37: () => {

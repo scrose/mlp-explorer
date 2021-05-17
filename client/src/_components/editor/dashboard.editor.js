@@ -6,7 +6,6 @@
  */
 
 import React from 'react'
-import Download from '../common/download';
 
 /**
  * Systems preferences management panel.

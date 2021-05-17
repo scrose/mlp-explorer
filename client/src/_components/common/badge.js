@@ -6,7 +6,6 @@
  */
 
 import React from 'react';
-import Icon from './icon';
 import Button from './button';
 
 /**
@@ -28,7 +27,7 @@ const Badge = ({
             title={title}
             label={label}
             className={`badge ${ className }`}
-            icon={icon} size={'lg'}
+            icon={icon}
             size={size}
             onClick={() => {}}
         />

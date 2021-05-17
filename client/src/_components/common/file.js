@@ -10,7 +10,6 @@ import Image from './image';
 import Download from './download';
 import { useRouter } from '../../_providers/router.provider.client';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
-import Loading from './loading';
 
 /**
  * Defines file component.

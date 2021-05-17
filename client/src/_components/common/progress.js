@@ -44,8 +44,8 @@ const Progress = ({
 
         // check if progress has completed
         setDone(true);
-        Object.keys(progress).map(key => {
-            if (!progress[key].done) setDone(false)
+        Object.keys(progress).forEach(item => {
+            if (!item.done) setDone(false);
         })
         return () => {
             _isMounted.current = false;

@@ -46,7 +46,7 @@ const Iat = () => {
     // global panel options
     const [options, setOptions] = React.useState({
         mode: 'default',
-        controlPtMax: 4,
+        controlPtMaw: 4,
         magnifyZoom: 4,
         ptrRadius: 20,
         swap: false,
@@ -56,7 +56,7 @@ const Iat = () => {
             { label: 'tiff', value: 'image/tiff'}
         ],
         blobQuality: 0.95,
-        defaultX: DEFAULT_DIMS_X,
+        defaultw: DEFAULT_DIMS_X,
         defaultY: DEFAULT_DIMS_Y,
         status: ['empty', 'load', 'render', 'redraw', 'reset', 'loading', 'loaded', 'save', 'error']
     });
@@ -265,28 +265,18 @@ export const initPanel = (panelID, panelLabel='', inputData = null) => {
         filename = '',
     } = inputData || {};
     const { id = '', file_type = '', file_size = 0, owner_id = '', owner_type = '' } = file || {};
-    const { x_dim = 0, y_dim = 0, image_state = '', mime_type='' } = metadata || {};
-
-    // define default canvas dimensions
-    const defaultDims = {
-        x: Math.min(x_dim, DEFAULT_DIMS_X),
-        y: Math.min(y_dim, DEFAULT_DIMS_Y),
-    };
+    const { image_state = '', mime_type='' } = metadata || {};
 
     return {
         id: panelID,
         label: panelLabel,
-        offset: { x: 0, y: 0 },
-        move: { x: 0, y: 0 },
-        origin: { x: 0, y: 0 },
         hidden: false,
-        dirty: false,
         bounds: {},
-        source_dims: { x: 0, y: 0 },
-        base_dims: { x: DEFAULT_DIMS_X, y: DEFAULT_DIMS_Y },
-        image_dims: { x: 0, y: 0 },
-        render_dims: { x: 0, y: 0 },
-        crop_dims: { x: 0, y: 0 },
+        original_dims: { w: 0, h: 0 },
+        base_dims: { w: DEFAULT_DIMS_X, h: DEFAULT_DIMS_Y },
+        image_dims: { w: 0, h: 0 },
+        source_dims: { x: 0, y: 0, w: 0, h: 0 },
+        render_dims: { x: 0, y: 0, w: 0, h: 0 },
         files_id: id,
         owner_id: owner_id,
         owner_type: owner_type,

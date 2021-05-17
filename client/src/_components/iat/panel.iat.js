@@ -80,15 +80,15 @@ export const PanelIat = ({
 
     // create DOM references
     // - canvas consists of six canvases (from top):
-    // -- control canvas to handle user events
-    // -- mask canvas to overlay graphics on image layer
-    // -- crop canvas to crop the image
-    // -- image canvas to render transformed image data
-    // -- scratch canvas as temporary rendering canvas
-    // -- base canvas to set absolute render size
+    // -1- control canvas to handle user events
+    // -2- overlay canvas to overlay graphics on image layer
+    // -3- render canvas to show selected view of image
+    // -4- (hidden) image canvas to hold transformed image data
+    // -5- (hidden) scratch canvas as temporary rendering canvas
+    // -6- base canvas to set absolute size of panel view
     const controlCanvasRef = React.useRef(null);
-    const maskCanvasRef = React.useRef(null);
-    const cropCanvasRef = React.useRef(null);
+    const overlayCanvasRef = React.useRef(null);
+    const viewCanvasRef = React.useRef(null);
     const imageCanvasRef = React.useRef(null);
     const scratchCanvasRef = React.useRef(null);
     const baseCanvasRef = React.useRef(null);
@@ -142,6 +142,10 @@ export const PanelIat = ({
 
         // update methods (see descriptions above)
         const _methods = {
+            cancel: () => {
+                if (!inputImage) return setSignal('empty');
+                return setSignal('loaded');
+            },
             load: () => {
                 setSource(data);
                 setInputImage(data);
@@ -313,19 +317,19 @@ export const PanelIat = ({
         };
 
         // reject if uninitialized DOM
-        if (!_isMounted.current || !cropCanvasRef.current || !imageCanvasRef.current) return;
+        if (!_isMounted.current || !viewCanvasRef.current || !imageCanvasRef.current) return;
 
         // get canvases
         const baseCanvas = baseCanvasRef.current;
         const controlCanvas = controlCanvasRef.current;
-        const cropCanvas = cropCanvasRef.current;
+        const viewCanvas = viewCanvasRef.current;
         const imgCanvas = imageCanvasRef.current;
-        const maskCanvas = maskCanvasRef.current;
+        const overlayCanvas = overlayCanvasRef.current;
 
         // get contexts
         const imgCtx = imgCanvas.getContext('2d');
-        const cropCtx = cropCanvas.getContext('2d');
-        const maskCtx = maskCanvas.getContext('2d');
+        const viewCtx = viewCanvas.getContext('2d');
+        const overlayCtx = overlayCanvas.getContext('2d');
 
         /**
          * Initialize panel grid.
@@ -362,7 +366,7 @@ export const PanelIat = ({
 
         if (signal === 'draw') {
             // apply requested drawing method
-            onDraw.draw(maskCtx, properties, properties.other_panel ? otherProperties : null);
+            onDraw.draw(overlayCtx, properties, properties.other_panel ? otherProperties : null);
             setSignal('loaded');
         }
 
@@ -374,10 +378,10 @@ export const PanelIat = ({
 
         if (signal === 'redraw') {
             // clear mask canvas
-            maskCtx.clearRect(0, 0, properties.base_dims.x, properties.base_dims.y);
+            overlayCtx.clearRect(0, 0, properties.base_dims.w, properties.base_dims.h);
             // apply requested drawing method
             // - overlay other panel control points (optional)
-            onRedraw.draw(maskCanvas, properties, properties.other_panel ? otherProperties : null);
+            onRedraw.draw(overlayCanvas, properties, properties.other_panel ? otherProperties : null);
             setSignal('loaded');
         }
 
@@ -386,7 +390,7 @@ export const PanelIat = ({
         // [2] Image mastering request
         if (signal === 'render' || signal === 'load' || signal === 'reload' || signal === 'reset') {
 
-            if (signal === 'load' || signal === 'reload' || signal === 'reset') setSignal('loading');
+            if (signal !== 'render') setSignal('loading');
 
             /**
              * Redraws image data to canvas
@@ -409,46 +413,44 @@ export const PanelIat = ({
 
             try {
 
-                // render requires reload of current image data
+                // load updated image data to image canvas
+                // - Image DOM element: drawImage
+                // - ImageData object: putImageData
                 if (signal === 'load' || signal === 'reload' || signal === 'reset') {
-                    // load updated image data to image canvas
-                    // - Image DOM element: drawImage
-                    // - ImageData object: putImageData
                     if (inputImage instanceof HTMLImageElement) imgCtx.drawImage(
-                        inputImage, 0, 0, properties.source_dims.x, properties.source_dims.y);
+                        inputImage, 0, 0, properties.original_dims.w, properties.original_dims.h);
                     else imgCtx.putImageData(inputImage, 0, 0);
                 }
 
                 // copy image data to scratch canvas and back to image canvas
                 const imgData = _updateCanvas(
                     imgCanvas,
-                    properties.image_dims.x,
-                    properties.image_dims.y,
+                    properties.image_dims.w,
+                    properties.image_dims.h,
                     0, 0
                 );
-
-                //console.log('Image data:', imgData, properties.image_dims)
 
                 // update image data
                 setInputImage(imgData);
 
-                // clear cropped and mask canvases
-                cropCtx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
-                maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
-
-                // update crop dimensions
-                cropCanvas.width = properties.crop_dims.x;
-                cropCanvas.height = properties.crop_dims.y;
+                // clear view and mask canvases
+                viewCtx.clearRect(0, 0, viewCanvas.width, viewCanvas.height);
+                overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
                 // draw image data to crop [data] layer canvas
                 // - use scaled render dimensions for image data
-                cropCtx.imageSmoothingQuality = 'high';
-                cropCtx.drawImage(
+                viewCtx.imageSmoothingQuality = 'high';
+                // void ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+                viewCtx.drawImage(
                     imgCanvas,
-                    properties.offset.x,
-                    properties.offset.y,
+                    properties.source_dims.x,
+                    properties.source_dims.y,
+                    properties.source_dims.w,
+                    properties.source_dims.h,
                     properties.render_dims.x,
-                    properties.render_dims.y
+                    properties.render_dims.y,
+                    properties.render_dims.w,
+                    properties.render_dims.h
                 );
 
                 // get absolute base canvas dimensions
@@ -462,8 +464,8 @@ export const PanelIat = ({
                     bounds: {
                         top: bounds.top,
                         left: bounds.left,
-                        x: bounds.width,
-                        y: bounds.height,
+                        w: bounds.width,
+                        h: bounds.height,
                     },
                     pts: [],
                     dataURL: imgCanvas.toDataURL(),
@@ -494,7 +496,7 @@ export const PanelIat = ({
         setInputImage,
         source,
         setSource,
-        cropCanvasRef,
+        viewCanvasRef,
         imageCanvasRef,
         properties,
         otherProperties,
@@ -529,9 +531,9 @@ export const PanelIat = ({
                         <div
                             className={'layer canvas-placeholder'}
                             style={{
-                                width: properties.base_dims.x,
-                                height: properties.base_dims.y,
-                                paddingTop: properties.base_dims.y / 2 - 10,
+                                width: properties.base_dims.w,
+                                height: properties.base_dims.h,
+                                paddingTop: properties.base_dims.h / 2 - 10,
                             }}
                         >
                             {
@@ -550,8 +552,8 @@ export const PanelIat = ({
                         id={`${id}_control_layer`}
                         tabIndex={0}
                         className={`layer canvas-layer-control-${options.mode}${ pointer.magnify ? ' magnify' : ''}`}
-                        width={properties.base_dims.x}
-                        height={properties.base_dims.y}
+                        width={properties.base_dims.w}
+                        height={properties.base_dims.h}
                         onMouseUp={_handleMouseUp}
                         onMouseDown={_handleMouseDown}
                         onMouseMove={_handleMouseMove}
@@ -564,38 +566,38 @@ export const PanelIat = ({
                         Control Layer: Canvas API Not Supported
                     </canvas>
                     <canvas
-                        ref={maskCanvasRef}
-                        id={`${id}_mask_layer`}
-                        className={`layer canvas-layer-mask`}
-                        width={properties.base_dims.x}
-                        height={properties.base_dims.y}
+                        ref={overlayCanvasRef}
+                        id={`${id}_overlay_layer`}
+                        className={`layer canvas-layer-overlay`}
+                        width={properties.base_dims.w}
+                        height={properties.base_dims.h}
                     >
                         Markup Layer: Canvas API Not Supported
                     </canvas>
                     <canvas
-                        ref={cropCanvasRef}
-                        id={`${id}_data_layer`}
-                        className={`layer canvas-layer-data${signal !== 'loaded' && !inputImage ? 'hidden' : ''}`}
-                        width={properties.base_dims.x}
-                        height={properties.base_dims.y}
+                        ref={viewCanvasRef}
+                        id={`${id}_view_layer`}
+                        className={`layer canvas-layer-view${signal !== 'loaded' && !inputImage ? 'hidden' : ''}`}
+                        width={properties.base_dims.w}
+                        height={properties.base_dims.h}
                     >
                         Image Layer: Canvas API Not Supported
                     </canvas>
                     <canvas
                         ref={imageCanvasRef}
                         id={`${id}_render_layer`}
-                        className={`layer canvas-layer-data hidden`}
-                        width={properties.source_dims.x}
-                        height={properties.source_dims.y}
+                        className={`layer canvas-layer-image hidden`}
+                        width={properties.original_dims.w}
+                        height={properties.original_dims.h}
                     >
                         Image Layer: Canvas API Not Supported
                     </canvas>
                     <canvas
                         ref={scratchCanvasRef}
                         id={`${id}_scratch_layer`}
-                        className={`layer canvas-layer-data hidden`}
-                        width={properties.source_dims.x}
-                        height={properties.source_dims.y}
+                        className={`layer canvas-layer-image hidden`}
+                        width={properties.original_dims.w}
+                        height={properties.original_dims.h}
                     >
                         Image Layer: Canvas API Not Supported
                     </canvas>
@@ -604,8 +606,8 @@ export const PanelIat = ({
                         id={`${id}_base_layer`}
                         style={{ backgroundImage: `url(${baseGrid})` }}
                         className={`canvas-layer-base`}
-                        width={properties.base_dims.x + 10}
-                        height={properties.base_dims.y + 10}
+                        width={properties.base_dims.w + 10}
+                        height={properties.base_dims.h + 10}
                     >
                         Base Layer: Canvas API Not Supported
                     </canvas>

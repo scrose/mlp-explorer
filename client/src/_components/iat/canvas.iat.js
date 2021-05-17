@@ -20,17 +20,19 @@ export const reset = async (properties, callback) => {
         status: 'reset',
         props: {
             image_dims: {
-                x: properties.source_dims.x,
-                y: properties.source_dims.y,
+                w: properties.original_dims.w,
+                h: properties.original_dims.h,
+            },
+            source_dims: {
+                x: 0, y: 0,
+                w: properties.original_dims.w,
+                h: properties.original_dims.h,
             },
             render_dims: {
-                x: properties.source_dims.x,
-                y: properties.source_dims.y,
+                x: 0, y: 0,
+                w: properties.original_dims.w,
+                h: properties.original_dims.h,
             },
-            crop_dims: properties.base_dims,
-            offset: { x: 0, y: 0 },
-            move: { x: 0, y: 0 },
-            origin: { x: 0, y: 0 },
         },
     });
 };
@@ -62,10 +64,10 @@ export const fit = async (properties, callback) => {
 
     // compute scaled dimensions
     const dims = scaleToFit(
-            properties.image_dims.x,
-            properties.image_dims.y,
-            properties.base_dims.x,
-            properties.base_dims.y,
+            properties.image_dims.w,
+            properties.image_dims.h,
+            properties.base_dims.w,
+            properties.base_dims.h,
         );
 
     // update panel properties
@@ -74,7 +76,11 @@ export const fit = async (properties, callback) => {
         props: {
             offset: { x: 0, y: 0 },
             crop_dims: dims,
-            render_dims: dims,
+            render_dims: {
+                x: 0, y: 0,
+                w: dims.w,
+                h: dims.h
+            },
         },
     });
 };
@@ -91,8 +97,18 @@ export const expand = async (properties, callback) => {
     return callback({
         status: 'render',
         props: {
-            render_dims: properties.image_dims,
-            crop_dims: properties.base_dims,
+            source_dims: {
+                x: 0,
+                y: 0,
+                w: properties.image_dims.w,
+                h: properties.image_dims.h
+            },
+            render_dims: {
+                x: 0,
+                y: 0,
+                w: properties.image_dims.w,
+                h: properties.image_dims.h
+            },
         }
     });
 };
