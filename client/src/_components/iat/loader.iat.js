@@ -37,11 +37,7 @@ export const loadImageData = async (properties, callback) => {
                         properties.original_dims = { w: width, h: height };
                         properties.image_dims = { w: width, h: height };
                         properties.source_dims = { x: 0, y: 0, w: width, h: height };
-                        properties.render_dims = {
-                            x: 0, y: 0,
-                            w: Math.min(width, properties.base_dims.w),
-                            h: Math.min(height, properties.base_dims.h)
-                        };
+                        properties.render_dims = { x: 0, y: 0, w: width, h: height };
                         callback({status: 'load', data: toImageData(data, width, height), props:  properties});
                     })
                     .catch((err) => {callback({status: 'empty', error: err})});
@@ -58,11 +54,7 @@ export const loadImageData = async (properties, callback) => {
                     properties.original_dims = { w: img.width, h: img.height };
                     properties.image_dims = { w: img.width, h: img.height };
                     properties.source_dims = { x: 0, y: 0, w: img.width, h: img.height };
-                    properties.render_dims = {
-                            x: 0, y: 0,
-                            w: Math.min(img.width, properties.base_dims.w),
-                            h: Math.min(img.height, properties.base_dims.h)
-                    };
+                    properties.render_dims = { x: 0, y: 0, w: img.width, h: img.height };
                     callback({status: 'load', data: img, props: properties});
                 }
                 img.src = src;
