@@ -91,7 +91,7 @@ const PanelControls = ({
                     icon={'resize'}
                     title={'Resize image and/or canvas.'}
                     onClick={() => {
-                        setSignal('load');
+                        setSignal('loading');
                         setDialogToggle({
                             type: 'resize',
                             id: properties.id,
@@ -105,7 +105,6 @@ const PanelControls = ({
                     icon={'undo'}
                     title={'Reset to original image.'}
                     onClick={() => {
-                        setSignal('loading');
                         reset(properties, callback).catch(callback);
                     }}
                 /></li>

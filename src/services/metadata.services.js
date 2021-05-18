@@ -18,10 +18,7 @@ import * as nserve from './nodes.services.js';
 import { groupBy, sanitize } from '../lib/data.utils.js';
 import { extractFileLabel } from '../lib/file.utils.js';
 import * as cserve from './construct.services.js';
-import {
-    getComparisonsByCapture,
-    getComparisonsByStation,
-    getComparisonsMetadata } from './comparisons.services.js';
+import { getComparisonsByCapture, getComparisonsByStation, getComparisonsMetadata } from './comparisons.services.js';
 
 /**
  * Get metadata by ID. Returns single metadata object.
@@ -628,7 +625,6 @@ export const getNodeLabel = async (node, files=[], client=pool) => {
     }
     return label;
 };
-
 
 /**
  * Get file label.

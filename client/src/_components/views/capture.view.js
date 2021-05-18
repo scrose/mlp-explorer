@@ -17,6 +17,7 @@ import Image from '../common/image';
 import { useRouter } from '../../_providers/router.provider.client';
 import MenuEditor from '../editor/menu.editor';
 import { useData } from '../../_providers/data.provider.client';
+import FilesView from './files.view';
 
 /**
  * View available versions of capture images.

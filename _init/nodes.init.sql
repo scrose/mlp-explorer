@@ -558,6 +558,11 @@ insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, p
 select id, 'historic_captures', capture_owner_id, capture_owner_type, created_at, updated_at, published, null
 from old_historic_captures order by id;
 
+-- update historic capture filesystem paths
+update nodes set fs_path=q.fs_path
+from (select id, fs_path from nodes) as q
+where nodes.type = 'historic_captures' and nodes.owner_id = q.id;
+
 -- populate the historic_captures table
 insert into historic_captures (nodes_id, owner_id)
 select id, owner_id from nodes where type='historic_captures' order by old_id;
@@ -649,6 +654,11 @@ where old_captures.capture_owner_id=q.old_id
 insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, published, legacy_path)
 select id, 'modern_captures', capture_owner_id, capture_owner_type, created_at, updated_at, published, null
 from old_captures order by id;
+
+-- update modern capture filesystem paths
+-- update nodes set fs_path=q.fs_path
+-- from (select id, fs_path from nodes) as q
+-- where nodes.type = 'modern_captures' and nodes.owner_id = q.id;
 
 -- populate the modern_captures table
 insert into modern_captures (nodes_id, owner_id)

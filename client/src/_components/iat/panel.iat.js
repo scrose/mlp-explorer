@@ -82,7 +82,7 @@ export const PanelIat = ({
     // - canvas consists of six canvases (from top):
     // -1- control canvas to handle user events
     // -2- overlay canvas to overlay graphics on image layer
-    // -3- render canvas to show selected view of image
+    // -3- view canvas to show selected rendering of image
     // -4- (hidden) image canvas to hold transformed image data
     // -5- (hidden) scratch canvas as temporary rendering canvas
     // -6- base canvas to set absolute size of panel view
@@ -390,8 +390,6 @@ export const PanelIat = ({
         // [2] Image mastering request
         if (signal === 'render' || signal === 'load' || signal === 'reload' || signal === 'reset') {
 
-            if (signal !== 'render') setSignal('loading');
-
             /**
              * Redraws image data to canvas
              * Note: Scale sets new data canvas dimensions
@@ -417,10 +415,12 @@ export const PanelIat = ({
                 // - Image DOM element: drawImage
                 // - ImageData object: putImageData
                 if (signal === 'load' || signal === 'reload' || signal === 'reset') {
+                    setSignal('loading');
                     if (inputImage instanceof HTMLImageElement) imgCtx.drawImage(
                         inputImage, 0, 0, properties.original_dims.w, properties.original_dims.h);
                     else imgCtx.putImageData(inputImage, 0, 0);
                 }
+                setSignal('loading');
 
                 // copy image data to scratch canvas and back to image canvas
                 const imgData = _updateCanvas(
@@ -507,6 +507,7 @@ export const PanelIat = ({
         setDialogToggle
     ]);
 
+
     /**
      * Render Panel
      */
@@ -527,7 +528,7 @@ export const PanelIat = ({
                         options={options}
                     />
                     {
-                        (!inputImage || signal === 'loading') &&
+                        (!inputImage || signal !== 'loaded') &&
                         <div
                             className={'layer canvas-placeholder'}
                             style={{
@@ -537,13 +538,13 @@ export const PanelIat = ({
                             }}
                         >
                             {
-                                signal === 'loading'
-                                    ? <Button label={'Loading'} spin={true} icon={'spinner'}/>
-                                    : <Button
+                                signal === 'empty'
+                                    ? <Button
                                         icon={'import'}
                                         label={'Click to load image'}
                                         onClick={_handleImageLoad}
                                     />
+                                    : <Button label={'Loading'} spin={true} icon={'spinner'}/>
                             }
                         </div>
                     }

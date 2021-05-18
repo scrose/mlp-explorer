@@ -11,7 +11,6 @@ import path from 'path';
 import fs from 'fs';
 import { copyFile, unlink } from 'fs/promises';
 import sharp from 'sharp';
-import { Readable, Transform } from 'stream';
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
 import { imageSizes } from '../../app.config.js';
@@ -19,8 +18,8 @@ import { genUUID, sanitize } from '../lib/data.utils.js';
 import { insertMetadata } from './import.services.js';
 import * as cserve from './construct.services.js';
 import * as metaserve from '../services/metadata.services.js';
+import * as nserve from '../services/nodes.services.js';
 import ModelServices from './model.services.js';
-import Stream from "stream";
 
 /**
  * Get file record by ID. NOTE: returns single object.
@@ -162,10 +161,11 @@ export const getOwnerByFileType = async function(fileType, client = pool) {
 
 /**
  * Insert file metadata.
- * - structure:
+ * - import data structure:
  *  {
  *      file:{file metadata},
- *      data: {image metadata}
+ *      data: {image metadata},
+ *      owner: {owner data}
  *  }
  *
  * @public
@@ -213,11 +213,14 @@ export const insert = async (importData, model, fileOwner=null) => {
             const capture = new CaptureModel(metadata);
             const captureData = await mserve.insert(capture);
 
-            // update file data with capture owner
+            // get capture node metadata
             const {nodes_id=''} = captureData || {};
+            const {fs_path=''} = await nserve.select(nodes_id) || {};
+
             return {
                 id: nodes_id,
-                type: model
+                type: model,
+                fs_path: fs_path
             };
         },
 
@@ -225,7 +228,8 @@ export const insert = async (importData, model, fileOwner=null) => {
         default: async () => {
             return {
                 id: owner.id,
-                type: owner.type
+                type: owner.type,
+                fs_path: owner.fs_path
             };
         }
     };
@@ -250,8 +254,8 @@ export const insert = async (importData, model, fileOwner=null) => {
             .all(Object.keys(files)
                 .map(async (key) => {
 
-                    // upload file and save to library
-                    await saveFile(key, importData, fileOwner);
+                    // upload file and save to image data store
+                    await saveFile(key, importData, fileOwner, imageState);
 
                     // get imported metadata
                     const { data={}, file={} } = files[key] || {};
@@ -381,7 +385,6 @@ export const remove = async(file, filepaths, client=pool) => {
  * @src public
  * @param res
  * @param src
- * @param dst
  */
 
 export const download = async (res, src) => {
@@ -396,10 +399,6 @@ export const download = async (res, src) => {
             res.on('error', (err) => {
                 console.log('Error in write stream...');
             });
-
-            setTimeout(() => {
-                readStream.emit('end');
-            }, 20);
 
         } catch (err) {
             reject(err);
@@ -468,8 +467,7 @@ export const getFileURL = (type = '', data = {}) => {
     const imgSrc = (token) => {
         // include resampled image URLs
         return Object.keys(imageSizes).reduce((o, key) => {
-            const rootURI = `${process.env.API_HOST}/resources/versions/`;
-            // const rootURI = 'http://meat.uvic.ca/uploads/versions/';
+            const rootURI = `${process.env.LOWRES_PATH}`;
             o[key] = new URL(`${key}_${token}.jpeg`, rootURI);
             return o;
         }, {});
@@ -553,6 +551,8 @@ export const getImageInfo = function(imgPath, file) {
  */
 
 export const copyImage = function(srcPath, output, format) {
+
+    console.log(srcPath, output, format)
     // handle conversion to requested formats
     const handleFormats = {
         tif: () => {
@@ -609,16 +609,17 @@ export const copyImage = function(srcPath, output, format) {
  * @param index
  * @param metadata
  * @param owner
+ * @param imageState
  */
 
-export const saveFile = function(index, metadata, owner) {
+export const saveFile = function(index, metadata, owner, imageState=null) {
+
+    // define file upload promises
+    let filePromises = [];
 
     // get file data object
     let fileData = metadata.files[index];
     fileData.data = {};
-
-    // file promises
-    let filePromises = [];
 
     // Define output paths for original (raw) and scaled images
     const outDir = process.env.UPLOAD_DIR;
@@ -628,16 +629,7 @@ export const saveFile = function(index, metadata, owner) {
 
     // initialize image versions
     const createVersions = () => {
-        // insert token into filename
-        const tokenizedFilename = [
-            fileData.file.filename.slice(0, fileData.file.filename.lastIndexOf('.')),
-            imgToken,
-            fileData.file.filename.slice(fileData.file.filename.lastIndexOf('.'))].join('');
         return {
-            raw: {
-                path: path.join(outDir, 'raw', tokenizedFilename),
-                size: { width: null },
-            },
             thumb: {
                 path: path.join(outDir, 'versions', `thumb_${imgToken}.jpeg`),
                 size: imageSizes.thumb,
@@ -651,47 +643,49 @@ export const saveFile = function(index, metadata, owner) {
 
     // update metadata
     fileData.data.secure_token = imgToken;
-    // metadata.data.fn_photo_reference = path.parse(file.filename).name;
+    fileData.data.fn_photo_reference = path.parse(fileData.file.filename).name;
 
     // create image versions
     metadata.versions = createVersions();
 
+    // insert token into filename
+    const tokenizedFilename = [
+        fileData.file.filename.slice(0, fileData.file.filename.lastIndexOf('.')),
+        imgToken,
+        fileData.file.filename.slice(fileData.file.filename.lastIndexOf('.'))].join('');
+
+    // update file metadata
+    fileData.file.owner_type = metadata.owner.type;
+    fileData.file.owner_id = metadata.owner.id;
+
     // process capture images
     const captureHandler = () => {
 
-        // update file metadata
-        fileData.file.owner_type = metadata.owner.type;
-        fileData.file.owner_id = metadata.owner.id;
-        fileData.file.fs_path = metadata.versions.raw.path;
-
         // get image state from model data (if exists)
         // then delete it from the model properties
-        if (metadata.data.hasOwnProperty('image_state')) {
-            fileData.data.image_state = metadata.data.image_state[index];
-            delete metadata.data.image_state;
-        }
+        fileData.data.image_state = imageState[index];
 
-        // create scaled versions of image
-        filePromises.push(
-            copyImage(fileData.tmp, metadata.versions.raw),
-            getImageInfo(fileData.tmp, fileData.data),
-            copyImage(fileData.tmp, metadata.versions.medium, 'jpeg'),
-            copyImage(fileData.tmp, metadata.versions.thumb, 'jpeg'),
-        );
+        // create new filesystem path
+        // - format: <UPLOAD_PATH>/<IMAGE_STATE>/<FILENAME>
+        fileData.file.fs_path = path.join(owner.fs_path, fileData.data.image_state, tokenizedFilename);
+
+        delete metadata.data.image_state;
+    }
+
+    // process supplemental images
+    const supplementalImagesHandler = () => {
+
+        // create new filesystem path
+        // - format: <UPLOAD_PATH>/Supplementary/<FILENAME>
+        fileData.file.fs_path = path.join(owner.fs_path, 'Supplementary', tokenizedFilename);
+
     };
 
     // file handlers router indexed by model type
     const fileHandlers = {
         historic_images: captureHandler,
         modern_images: captureHandler,
-        supplemental_images: () => {
-            filePromises.push(
-                copyImage(fileData.tmp, metadata.versions.raw),
-                getImageInfo(fileData.tmp, fileData.data),
-                copyImage(fileData.tmp, metadata.versions.medium, 'jpeg'),
-                copyImage(fileData.tmp, metadata.versions.thumb, 'jpeg'),
-            );
-        },
+        supplemental_images: () => supplementalImagesHandler,
         default: () => {
             return insertMetadata(metadata);
         },
@@ -702,69 +696,13 @@ export const saveFile = function(index, metadata, owner) {
         ? fileHandlers[fileData.file.file_type]()
         : fileHandlers.default();
 
+    // copy images to data storage
+    filePromises.push(
+        copyImage(fileData.tmp, fileData.file.fs_path),
+        getImageInfo(fileData.tmp, fileData.data),
+        copyImage(fileData.tmp, metadata.versions.medium, 'jpeg'),
+        copyImage(fileData.tmp, metadata.versions.thumb, 'jpeg'),
+    );
+
     return Promise.all(filePromises);
 };
-
-/**
- * Create readable stream for non-image data.
- *
- * @public
- * @param data
- * @return {Stream} readable stream
- */
-
-export const streamData = async (data) => {
-    let sent = false;
-    const readable = new Stream.Readable();
-    readable.on('error', console.error)
-
-    // required stream read
-    readable._read = () => {
-        if (!sent) {
-            const buffer = Buffer.from(data, 'utf-8');
-            readable.push(buffer);
-            sent = true;
-        } else {
-            readable.push(null);
-        }
-    }
-    return readable;
-}
-
-/**
- * Create readable stream for non-image data.
- *
- * @public
- * @return {Promise} result
- */
-
-export class ArrayStream extends Readable {
-
-    constructor(data) {
-        super();
-        this._data = data;
-        this.sent = false;
-    }
-
-    _read() {
-        if (!this.sent) {
-            const buf = Buffer.from(this._data, 'utf-8');
-            this.push(buf);
-            this.sent = true;
-        } else {
-            this.push(null);
-        }
-    }
-}
-
-/**
- * Validate file for upload.
- *
- * @param {String} file
- * @param {Object} options
- * @src public
- */
-
-export const validate = (file, options) => {
-
-}

@@ -38,8 +38,8 @@ const Accordion = ({
         setToggle(!toggle);
     }
 
-    return <div className={`accordion ${type}`}>
-        <div className={`h-menu`}>
+    return <div className={`accordion`}>
+        <div className={`h-menu ${type}`}>
             <ul>
                 {
                     (hasDependents || children) &&

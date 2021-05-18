@@ -381,7 +381,6 @@ export default function FilesController(modelType) {
             let { fs_path='' } = file;
 
             const mimeType = getMIME(file.filename);
-            console.log(fs_path, mimeType)
 
             // set response headers
             res.setHeader("Content-Type", mimeType);

@@ -8,7 +8,8 @@
 import React from 'react';
 import Button from './button';
 import Dialog from './dialog';
-import Message from './message';
+import Message, { UserMessage } from './message';
+import Badge from './badge';
 
 /**
  * Alert dialog component.
@@ -30,8 +31,8 @@ const Progress = ({
                       messages,
                       hasUploads=false,
                       error=false,
-                      callback=()=>{}}
-                      ) => {
+                      callback=()=>{}
+}) => {
 
     const [toggle, setToggle] = React.useState(false);
     const [done, setDone] = React.useState(false);
@@ -44,17 +45,19 @@ const Progress = ({
 
         // check if progress has completed
         setDone(true);
-        Object.keys(progress).forEach(item => {
-            if (!item.done) setDone(false);
+        Object.keys(progress).forEach(key => {
+            if (!progress[key].done) setDone(false);
         })
         return () => {
             _isMounted.current = false;
         };
     }, [progress, setToggle]);
 
+    console.log(done)
+
     return toggle &&
         <Dialog title={title} setToggle={setToggle}>
-            { description }
+            <Badge label={description} />
             {
                 Object.keys(progress).map(key => {
 
@@ -67,7 +70,7 @@ const Progress = ({
                     // render progress indicator for imports
                     return (
                         <div key={`${key}_msg_progress`}>
-                            <Message closeable={true} message={messages[key]}  />
+                            <UserMessage closeable={true} message={messages[key]}  />
                             {
                                 // show progress bar if import has file uploads and no errors
                                 hasUploads && !error &&

@@ -148,7 +148,6 @@ const Importer = ({
 
     const _handleCompletion = () => {
         const {data={}} = response || {};
-        console.log(data)
         const { id='' } = api.destructure(data);
         callback(error, model, id);
     }

@@ -49,6 +49,7 @@ const Tabs = ({
                                 const { label = '' } = item || {};
                                 return <li key={`tab_${id}`}>
                                     <Button
+                                        disabled={!item.data}
                                         className={selectedTabID === id ? 'active' : ''}
                                         icon={onToggle(id)}
                                         title={`View ${label}.`}

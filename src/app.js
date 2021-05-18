@@ -122,7 +122,7 @@ export default () => {
      * Serve static assets.
      */
 
-    app.use( '/resources', express.static(process.env.LIBRARY_DIR) );
+    app.use( '/uploads', express.static(process.env.LOWRES_PATH) );
 
     /**
      * Initialize router.

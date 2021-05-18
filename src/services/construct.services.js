@@ -7,10 +7,10 @@
 
 'use strict';
 
+import path from 'path';
 import { humanize, sanitize } from '../lib/data.utils.js';
 import * as schemaConstructor from './schema.services.js';
 import { select as nselect } from './nodes.services.js';
-import * as metaserve from './metadata.services.js';
 
 /**
  * Create derived model through composition. The model schema
@@ -33,7 +33,7 @@ export const create = async (modelType) => {
         this.name = modelType;
         this.key = `${modelType}_id`;
         this.idKey = schema.idKey;
-        this.label = humanize(modelType);
+        this.label = genLabel(modelType, schema.attributes);
         this.attributes = schema.attributes;
         this.hasOwner = !schema.rootNodeTypes.includes(modelType);
         this.depth = schema.nodeDepth.hasOwnProperty(modelType)
@@ -278,7 +278,14 @@ export const createNode = async function(item) {
     const { owner={} } = item || {};
     const { value=0 } = owner || {};
     let ownerAttrs = await nselect(value) || owner;
-    const { id=null, type=null } = ownerAttrs || {};
+    const { id=null, type=null, fs_path='' } = ownerAttrs || {};
+
+    // create new filesystem path using generated node label
+    // - only return alphanumeric characters (also: '_', '-')
+    const fsPath = path.join(
+        fs_path,
+        item.label.replace(' ', '_').replace(/[^a-z0-9_-]/gi,'')
+    );
 
     // return node instance: set owner attribute values from
     // retrieved node attributes
@@ -286,7 +293,8 @@ export const createNode = async function(item) {
         id: item.id,
         type: item.name,
         owner_id: id,
-        owner_type: type
+        owner_type: type,
+        fs_path: fsPath
     });
 };
 
@@ -317,6 +325,7 @@ export const createFile = async function(item, fileData) {
         filename_tmp=''
     } = fileData || {};
 
+
     // return file instance: set owner attribute values from
     // retrieved node attributes
     return new File({
@@ -331,3 +340,36 @@ export const createFile = async function(item, fileData) {
         filename_tmp: filename_tmp
     });
 };
+
+
+/**
+ * Generate instance label from attributes.
+ *
+ * @param model
+ * @param {Object} attributes
+ * @src public
+ */
+
+export function genLabel(model, attributes = null) {
+    if (!model || !attributes) return '';
+    const labelByModel = {
+        projects: ['name'],
+        surveyors: ['last_name', 'given_names', 'short_name', 'affiliation'],
+        surveys: ['name'],
+        survey_seasons: ['year'],
+        stations: ['name'],
+        historic_visits: 'Historic',
+        modern_visits: ['date'],
+        locations: ['location_identity'],
+        historic_captures: ['fn_photo_reference'],
+        modern_captures: ['fn_photo_reference'],
+        glass_plate_listings: ['container', 'plates'],
+        maps: ['nts_map'],
+    };
+
+    return labelByModel.hasOwnProperty(model)
+        ? Array.isArray(labelByModel[model])
+            ? labelByModel[model].map(key => {return attributes[key].value}).join(' ').trim()
+            : labelByModel[model]
+        : '';
+}

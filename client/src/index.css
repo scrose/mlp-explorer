@@ -198,6 +198,7 @@ Accordion Layout
 */
 
 .accordion {
+    width: 100%;
     margin-top: 20px;
     margin-bottom: 20px;
     padding: 3px;
@@ -210,6 +211,7 @@ Accordion Layout
     justify-content: left !important;
 }
 .accordion .h-menu ul li {
+    width: auto;
     overflow: visible;
     padding: 2px;
 }
@@ -407,7 +409,7 @@ nav.user button  {
     padding: 0 10px 40px 10px;
 }
 .view .accordion-data {
-    margin-left: 20px;
+
 }
 .view .data {
     display:inline-block;
@@ -571,12 +573,12 @@ nav.user button  {
     font-size: smaller;
 }
 
-
-
-
 /*
 Breadcrumb Navigation Menu
 */
+nav.breadcrumb {
+    overflow: hidden;
+}
 
 nav.breadcrumb div.breadcrumb-container ul {
     flex-wrap: nowrap;
@@ -792,17 +794,30 @@ nav.breadcrumb ul li a:hover {
 .tab  {
     border-top: none;
 }
+
+/* Tab menu panel: horizontal orientation */
 .tab.h-menu ul li {
     overflow: hidden;
-    padding: 2px;
 }
-/* Tab menu panel */
 .tab-menu.h-menu {
+    padding: 0;
     flex-wrap: nowrap;
+}
+.tab-menu.h-menu {
+    border-bottom: 2px solid #2B5A6B;
 }
 .tab-menu.h-menu ul li {
     width: auto;
+    margin-bottom: 0;
+    padding-bottom: 0;
 }
+.tab-menu.h-menu ul li button {
+    width: auto;
+    padding: 10px;
+    margin: 0;
+    border-radius: 0;
+}
+/* Tab menu panel: vertical orientation */
 .tab-menu.v-menu ul {
     position: fixed;
     width: 22% !important;
@@ -826,7 +841,7 @@ nav.breadcrumb ul li a:hover {
 }
 /* Create an active/current tablink class */
 .tab-menu button.active {
-    background-color: #2B5A6B;
+    background-color: #2B5A6B !important;
     color: #FFFFFF;
 }
 
@@ -1146,15 +1161,23 @@ nav.breadcrumb ul li a:hover {
 }
 .surveys {
     color: #008896 !important;
+    border-color: #008896 !important;
+    background-color: rgba(0,136,150,0.10);
 }
 .survey_seasons {
     color: #008896 !important;
+    border-color: #008896 !important;
+    background-color: rgba(0,136,150,0.10);
 }
 .historic_visits {
     color: #008896 !important;
+    border-color: #008896 !important;
+    background-color: rgba(0,136,150,0.10);
 }
 .modern_visits {
     color: #008896 !important;
+    border-color: #008896 !important;
+    background-color: rgba(0,136,150,0.10);
 }
 .stations {
     color: #008896 !important;

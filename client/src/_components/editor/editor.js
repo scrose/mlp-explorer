@@ -40,6 +40,7 @@ const Editor = () => {
                     owner={api.owner}
                     metadata={api.metadata}
                     fileType={api.type}
+                    compact={false}
                     dependents={getDependentTypes(api.model)}
                 />
                 <div className={`view ${getNavView()}`}>

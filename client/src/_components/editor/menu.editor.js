@@ -32,6 +32,7 @@ const MenuEditor = ({
                         view='show',
                         id = '',
                         label = '',
+                        compact=true,
                         fileType='',
                         owner=null,
                         metadata = null,
@@ -120,7 +121,6 @@ const MenuEditor = ({
                         route={createNodeRoute(model, 'new')}
                         onCancel={setDialogToggle}
                         callback={() => {
-                            console.log('Callback new!')
                             setDialogToggle(null);
                             callback ? callback() : redirect(router.route);
                         }}
@@ -139,6 +139,7 @@ const MenuEditor = ({
                             data={metadata}
                             onCancel={setDialogToggle}
                             callback={() => {
+                                console.log('Callback new!')
                                 setDialogToggle(null);
                                 callback ? callback() : redirect(router.route);
                             }}
@@ -283,7 +284,7 @@ const MenuEditor = ({
                         <li key={`${menuID}_menuitem_new`}>
                             <Button
                                 icon={'new'}
-                                label={'Add New'}
+                                label={!compact ? 'Add New' : ''}
                                 title={`New ${label}.`}
                                 onClick={(e) => {
                                     isEditor
@@ -298,7 +299,7 @@ const MenuEditor = ({
                         <li key={`${menuID}_menuitem_show`}>
                             <Button
                                 icon={'show'}
-                                label={'Info'}
+                                label={!compact ? 'Info' : ''}
                                 title={`View ${modelLabel} details.`}
                                 onClick={(e) => {
                                     isEditor
@@ -313,7 +314,7 @@ const MenuEditor = ({
                         <li key={`${menuID}_menuitem_edit`}>
                             <Button
                                 icon={'edit'}
-                                label={'Edit'}
+                                label={!compact ? 'Edit' : ''}
                                 title={`Edit ${label}.`}
                                 onClick={(e) => {
                                     isEditor
@@ -328,7 +329,7 @@ const MenuEditor = ({
                         <li key={`${menuID}_menuitem_remove`}>
                             <Button
                                 icon={'delete'}
-                                label={'Delete'}
+                                label={!compact ? 'Delete' : ''}
                                 title={`Delete this ${label}.`}
                                 onClick={() => {
                                     setDialogToggle('remove');
@@ -341,7 +342,7 @@ const MenuEditor = ({
                         <li key={`${menuID}_menuitem_master`}>
                             <Button
                                 icon={'align'}
-                                label={'Master'}
+                                label={!compact ? 'Master' : ''}
                                 title={`Master ${getModelLabel(fileType)} ${label}.`}
                                 onClick={() =>
                                     // launch IAT tool with 'master' option
@@ -356,7 +357,7 @@ const MenuEditor = ({
                         <li ref={dropdown} key={`${menuID}_menuitem_dropdown`}>
                             <Button
                                 icon={'add'}
-                                label={'Add New'}
+                                label={!compact ? 'Add New' : ''}
                                 onClick={(e) => {
                                     e.stopPropagation()
                                     setDropdownToggle(true);

@@ -10,6 +10,14 @@ import Button from './button';
 import { schema } from '../../schema';
 import Loading from './loading';
 import { UserMessage } from './message';
+import { scaleToFit } from '../iat/transform.iat';
+
+/**
+ * Image comparator maximum dimensions.
+ */
+
+const COMPARATOR_MAX_WIDTH = 800;
+const COMPARATOR_MAX_HEIGHT = 500;
 
 /**
  * Image comparator component.
@@ -127,19 +135,19 @@ const Comparator = ({ images = [], scale = 1.0 }) => {
             };
             img1.onload = function() {
 
-                const w1 = img1.naturalWidth * scale;
-                const h1 = img1.naturalHeight * scale;
+                // compute scaled canvas dimensions and scale image to fit
+                canvas1.width = COMPARATOR_MAX_WIDTH * scale;
+                canvas1.height = COMPARATOR_MAX_HEIGHT * scale;
+                const {w, h} = scaleToFit(img1.naturalWidth, img1.naturalHeight, canvas1.width, canvas1.height);
 
                 /* Initialize the width of overlay image to 50%: */
-                canvas1.width = w1;
-                canvas1.height = h1;
-                ctx1.drawImage(img1, 0, 0, w1, h1);
-                panel1.style.width = (w1 / 2) + 'px';
-                panel1.style.height = h1 + 'px';
+                ctx1.drawImage(img1, 0, 0, w, h);
+                panel1.style.width = (w / 2) + 'px';
+                panel1.style.height = h + 'px';
 
                 /* Position the slider in the middle: */
-                slider.style.top = (h1 / 2) - (slider.offsetHeight / 2) + 'px';
-                slider.style.left = (w1 / 2) - (slider.offsetWidth / 2) + 'px';
+                slider.style.top = (h / 2) - (slider.offsetHeight / 2) + 'px';
+                slider.style.left = (w / 2) - (slider.offsetWidth / 2) + 'px';
 
                 setLoaded1(true);
 
@@ -153,15 +161,14 @@ const Comparator = ({ images = [], scale = 1.0 }) => {
             };
             img2.onload = function() {
 
-                const w2 = img2.naturalWidth * scale;
-                const h2 = img2.naturalHeight * scale;
+                // compute scaled canvas dimensions and scale image to fit
+                canvas2.width = COMPARATOR_MAX_WIDTH * scale;
+                canvas2.height = COMPARATOR_MAX_HEIGHT * scale;
+                const {w, h} = scaleToFit(img2.naturalWidth, img2.naturalHeight, canvas2.width, canvas2.height);
 
-                /* Initialize the width of overlay image to 50%: */
-                canvas2.width = w2;
-                canvas2.height = h2;
-                ctx2.drawImage(img2, 0, 0, w2, h2);
-                panel2.style.width = w2 + 'px';
-                panel2.style.height = h2 + 'px';
+                ctx2.drawImage(img2, 0, 0, w, h);
+                panel2.style.width = w + 'px';
+                panel2.style.height = h + 'px';
 
                 setLoaded2(true);
             };
