@@ -53,8 +53,6 @@ const Progress = ({
         };
     }, [progress, setToggle]);
 
-    console.log(done)
-
     return toggle &&
         <Dialog title={title} setToggle={setToggle}>
             <Badge label={description} />

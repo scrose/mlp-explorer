@@ -14,6 +14,7 @@ import Table from '../common/table';
 import MenuEditor from '../editor/menu.editor';
 import Input from '../common/input';
 import { setSessionMsg } from '../../_services/session.services.client';
+import Button from '../common/button';
 
 /**
  * Render metadata options component.
@@ -27,6 +28,7 @@ import { setSessionMsg } from '../../_services/session.services.client';
 const OptionsView = ({
                          type='options',
                          setToggle=()=>{},
+                         onCancel=()=>{},
                          callback=()=>{}
 }) => {
 
@@ -168,10 +170,11 @@ const OptionsView = ({
     return <>
         <Dialog
             title={'Manage Metadata Options'}
-            setToggle={setToggle}
+            setToggle={onCancel}
             callback={()=>{redirect(router.route)}}
         >
             <Table className={'options'} rows={rows} cols={cols} />
+            <Button className={'cancel'} label={'Cancel'} onClick={onCancel} />
         </Dialog>
     </>
 }

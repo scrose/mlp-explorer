@@ -71,9 +71,14 @@ export default function MetadataController(metadataType) {
             ? parseInt(req.params[metadataModel.key])
             : null;
     };
+    this.getOwnerId = function(req) {
+        return req.params.hasOwnProperty('owner_id')
+            ? parseInt(req.params['owner_id'])
+            : null;
+    };
     this.getGroupType = function(req) {
         return req.params.hasOwnProperty('group_type')
-            ? parseInt(req.params.group_type)
+            ? req.params['group_type']
             : null;
     };
 
@@ -216,7 +221,7 @@ export default function MetadataController(metadataType) {
                     model: metadataModel,
                     data: data,
                     message: {
-                        msg: `${metadataModel.label} record created successfully!`,
+                        msg: `${metadataModel.label || humanize(metadataType)} record created successfully!`,
                         type: 'success'
                     }
                 }));
@@ -280,7 +285,7 @@ export default function MetadataController(metadataType) {
                     model: metadataModel,
                     data: data,
                     message: {
-                        msg: `${metadataModel.label} record updated successfully!`,
+                        msg: `${metadataModel.label || humanize(metadataType)} record updated successfully!`,
                         type: 'success'
                     }
                 }));
@@ -384,7 +389,7 @@ export default function MetadataController(metadataType) {
                     model: metadataModel,
                     data: data,
                     message: {
-                        msg: `${metadataModel.label}: ${humanize(group_type)} created successfully!`,
+                        msg: `${metadataModel.label || humanize(metadataType)}: ${humanize(group_type)} created successfully!`,
                         type: 'success'
                     }
                 }));
@@ -451,7 +456,7 @@ export default function MetadataController(metadataType) {
                     model: metadataModel,
                     data: data,
                     message: {
-                        msg: `${metadataModel.label}: ${humanize(group_type)} updated successfully!`,
+                        msg: `${metadataModel.label || humanize(metadataType)}: ${humanize(group_type)} updated successfully!`,
                         type: 'success'
                     }
                 }));
@@ -465,7 +470,7 @@ export default function MetadataController(metadataType) {
     };
 
     /**
-     * Delete grouped records.
+     * Delete grouped records by owner ID.
      *
      * @param req
      * @param res
@@ -477,14 +482,11 @@ export default function MetadataController(metadataType) {
         try {
 
             // get owner ID & group type from parameters
-            const ownerID = this.getId(req);
+            const ownerID = this.getOwnerId(req);
             const groupType = this.getGroupType(req);
 
-            // get owner metadata
-            const ownerData = await metaserve.select(sanitize(ownerID, 'integer'), metadataModel);
-
-            // check relation exists for file type and node type
-            if (!ownerData)
+            // check that owner exists
+            if (!await metaserve.selectByOwner(sanitize(ownerID, 'integer'), metadataType))
                 return next(new Error('invalidRequest'));
 
             // remove the grouped metadata
@@ -497,7 +499,7 @@ export default function MetadataController(metadataType) {
                     model: metadataModel,
                     data: data,
                     message: {
-                        msg: `${metadataModel.label} group deleted successfully!`,
+                        msg: `${metadataModel.label || humanize(groupType)} group deleted successfully!`,
                         type: 'success'
                     }
                 }));

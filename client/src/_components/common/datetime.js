@@ -9,7 +9,8 @@ import React from 'react';
 import Flatpickr from 'react-flatpickr';
 
 /**
- * Build datepicker widget using Pikaday module.
+ * Build datepicker widget using Flatpickr module.
+ * - Reference: https://github.com/haoxins/react-flatpickr
  *
  * @public
  * @param value
@@ -18,7 +19,7 @@ import Flatpickr from 'react-flatpickr';
  */
 
 export const DateTimeSelector = ({ value, name, filter = 'datetime' }) => {
-    const [date, setDate] = React.useState(value ? new Date(value) : new Date());
+    const [date, setDate] = React.useState(value ? new Date(value) : null);
     const dateSelectors = {
         datetime: <Flatpickr
             name={name}

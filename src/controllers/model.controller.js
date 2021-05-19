@@ -18,7 +18,7 @@ import * as nserve from '../services/nodes.services.js';
 import * as fserve from '../services/files.services.js';
 import * as importer from '../services/import.services.js';
 import * as metaserve from '../services/metadata.services.js';
-import { sanitize } from '../lib/data.utils.js';
+import { sanitize, humanize } from '../lib/data.utils.js';
 
 /**
  * Shared data.
@@ -190,7 +190,7 @@ export default function ModelController(nodeType) {
             // get owner metadata record
             const owner = await nserve.select(owner_id, client);
             // check owner exists
-            if (!owner) return next(new Error('invalidRequest'));
+            if (!owner && !model.isRoot) return next(new Error('invalidRequest'));
             // get owner type (null owner use current model name)
             const { type = model.name } = owner || {};
 
@@ -221,7 +221,7 @@ export default function ModelController(nodeType) {
                     model: model,
                     data: nodes_id ? newItem : resData,
                     message: {
-                        msg: `${label} created successfully!`,
+                        msg: `'${label}' ${humanize(model.name)} created successfully!`,
                         type: 'success'
                     },
                 }));
@@ -319,7 +319,7 @@ export default function ModelController(nodeType) {
                     data: updatedItem,
                     path: path,
                     message: {
-                        msg: `'${updatedItem.label}' updated successfully!`,
+                        msg: `'${updatedItem.label}' ${humanize(model.name)} updated successfully!`,
                         type: 'success'
                     },
                 }));
@@ -366,7 +366,7 @@ export default function ModelController(nodeType) {
                     model: model,
                     data: nodeData,
                     message: {
-                        msg: `'${nodeData.label}' deleted successful!`,
+                        msg: `'${nodeData.label}' ${humanize(model.name)} deleted successful!`,
                         type: 'success'
                     },
                     path: path

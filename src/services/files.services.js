@@ -9,13 +9,12 @@
 
 import path from 'path';
 import fs from 'fs';
-import { copyFile, unlink } from 'fs/promises';
+import { copyFile, unlink, mkdir } from 'fs/promises';
 import sharp from 'sharp';
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
 import { imageSizes } from '../../app.config.js';
 import { genUUID, sanitize } from '../lib/data.utils.js';
-import { insertMetadata } from './import.services.js';
 import * as cserve from './construct.services.js';
 import * as metaserve from '../services/metadata.services.js';
 import * as nserve from '../services/nodes.services.js';
@@ -463,11 +462,10 @@ export const getFileURL = (type = '', data = {}) => {
         return '/Users/boutrous/Workspace/NodeJS/resources/metadata/test_pdf.pdf';
     };
 
-    // generate image source URLs
+    // generate resampled image URLs
     const imgSrc = (token) => {
-        // include resampled image URLs
         return Object.keys(imageSizes).reduce((o, key) => {
-            const rootURI = `${process.env.LOWRES_PATH}`;
+            const rootURI = `${process.env.API_HOST}/uploads/`;
             o[key] = new URL(`${key}_${token}.jpeg`, rootURI);
             return o;
         }, {});
@@ -552,7 +550,6 @@ export const getImageInfo = function(imgPath, file) {
 
 export const copyImage = function(srcPath, output, format) {
 
-    console.log(srcPath, output, format)
     // handle conversion to requested formats
     const handleFormats = {
         tif: () => {
@@ -612,7 +609,7 @@ export const copyImage = function(srcPath, output, format) {
  * @param imageState
  */
 
-export const saveFile = function(index, metadata, owner, imageState=null) {
+export const saveFile = async (index, metadata, owner, imageState=null) => {
 
     // define file upload promises
     let filePromises = [];
@@ -628,8 +625,37 @@ export const saveFile = function(index, metadata, owner, imageState=null) {
     const imgToken = genUUID();
 
     // initialize image versions
-    const createVersions = () => {
+    const createVersions = async () => {
+
+        // create/use directory slug for given file type
+        const fileDir = {
+            historic_images: imageState[index],
+            modern_images: imageState[index],
+            supplemental_images: 'supplemental',
+            metadata_files: fileData.data.metadata_type
+        };
+
+        // insert token into filename
+        const tokenizedFilename = [
+            fileData.file.filename.slice(0, fileData.file.filename.lastIndexOf('.')),
+            imgToken,
+            fileData.file.filename.slice(fileData.file.filename.lastIndexOf('.'))].join('');
+
+        // create raw path directory (if does not exist)
+
+        const rawPath = path.join(process.env.LOWRES_PATH, owner.fs_path, fileDir[fileData.file.file_type]);
+        await mkdir(rawPath, {recursive: true});
+
         return {
+            // create new filesystem path
+            // - format: <UPLOAD_PATH>/<IMAGE_STATE>/<FILENAME>
+
+            raw: {
+                // path: path.join(rawPath, tokenizedFilename),
+                path: path.join(rawPath, tokenizedFilename),
+                size: null,
+            },
+            // resized versions
             thumb: {
                 path: path.join(outDir, 'versions', `thumb_${imgToken}.jpeg`),
                 size: imageSizes.thumb,
@@ -641,64 +667,25 @@ export const saveFile = function(index, metadata, owner, imageState=null) {
         };
     };
 
-    // update metadata
-    fileData.data.secure_token = imgToken;
-    fileData.data.fn_photo_reference = path.parse(fileData.file.filename).name;
-
     // create image versions
-    metadata.versions = createVersions();
-
-    // insert token into filename
-    const tokenizedFilename = [
-        fileData.file.filename.slice(0, fileData.file.filename.lastIndexOf('.')),
-        imgToken,
-        fileData.file.filename.slice(fileData.file.filename.lastIndexOf('.'))].join('');
+    metadata.versions = await createVersions();
 
     // update file metadata
+    fileData.data.secure_token = imgToken;
+    // fileData.data.fn_photo_reference = path.parse(fileData.file.filename).name;
     fileData.file.owner_type = metadata.owner.type;
     fileData.file.owner_id = metadata.owner.id;
+    fileData.file.fs_path = metadata.versions.raw.path;
 
-    // process capture images
-    const captureHandler = () => {
-
-        // get image state from model data (if exists)
-        // then delete it from the model properties
+    // include image state (if exists)
+    if (imageState) {
         fileData.data.image_state = imageState[index];
-
-        // create new filesystem path
-        // - format: <UPLOAD_PATH>/<IMAGE_STATE>/<FILENAME>
-        fileData.file.fs_path = path.join(owner.fs_path, fileData.data.image_state, tokenizedFilename);
-
-        delete metadata.data.image_state;
+        if (metadata.data.hasOwnProperty('image_state')) delete metadata.data.image_state;
     }
-
-    // process supplemental images
-    const supplementalImagesHandler = () => {
-
-        // create new filesystem path
-        // - format: <UPLOAD_PATH>/Supplementary/<FILENAME>
-        fileData.file.fs_path = path.join(owner.fs_path, 'Supplementary', tokenizedFilename);
-
-    };
-
-    // file handlers router indexed by model type
-    const fileHandlers = {
-        historic_images: captureHandler,
-        modern_images: captureHandler,
-        supplemental_images: () => supplementalImagesHandler,
-        default: () => {
-            return insertMetadata(metadata);
-        },
-    };
-
-    // route database callback after file upload
-    fileHandlers.hasOwnProperty(fileData.file.file_type)
-        ? fileHandlers[fileData.file.file_type]()
-        : fileHandlers.default();
 
     // copy images to data storage
     filePromises.push(
-        copyImage(fileData.tmp, fileData.file.fs_path),
+        copyImage(fileData.tmp, metadata.versions.raw),
         getImageInfo(fileData.tmp, fileData.data),
         copyImage(fileData.tmp, metadata.versions.medium, 'jpeg'),
         copyImage(fileData.tmp, metadata.versions.thumb, 'jpeg'),

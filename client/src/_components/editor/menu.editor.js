@@ -128,7 +128,7 @@ const MenuEditor = ({
                 </Dialog>,
         edit:   <Dialog
                     key={`${menuID}_dialog_edit`}
-                    title={`Edit ${getModelLabel(model)} ${label ? ': ' + label : ''}`}
+                    title={`Edit ${getModelLabel(model)}${label ? ': ' + label : ''}`}
                     setToggle={setDialogToggle}>
                         <Importer
                             view={'edit'}
@@ -137,7 +137,7 @@ const MenuEditor = ({
                             schema={genSchema('edit', model, group_type)}
                             route={createNodeRoute(model, 'edit', id)}
                             data={metadata}
-                            onCancel={setDialogToggle}
+                            onCancel={() => {setDialogToggle(null)}}
                             callback={() => {
                                 console.log('Callback new!')
                                 setDialogToggle(null);
@@ -147,10 +147,11 @@ const MenuEditor = ({
                     </Dialog>,
         remove:   <Remover
                         key={`${menuID}_dialog_remove`}
-                        id={id}
+                        id={owner && group_type ? owner.id : id}
                         label={label}
-                        onCancel={() => {setDialogToggle('')}}
+                        onCancel={() => {setDialogToggle(null)}}
                         model={model}
+                        groupType={group_type}
                         callback={() => {
                             setDialogToggle(null);
                             callback ? callback() : redirect(redirectURI);
@@ -158,6 +159,7 @@ const MenuEditor = ({
                    />,
         options:   <OptionsView
                         setToggle={setDialogToggle}
+                        onCancel={() => {setDialogToggle(null)}}
                         callback={() => {}}
                    />,
         import_hc: <Dialog
@@ -175,7 +177,7 @@ const MenuEditor = ({
                             batchType={'historic_images'}
                             schema={genSchema('import', 'historic_captures')}
                             route={createNodeRoute('historic_captures', 'import', id)}
-                            onCancel={setDialogToggle}
+                            onCancel={() => {setDialogToggle(null)}}
                             callback={() => {
                                 setDialogToggle(null);
                                 callback ? callback() : redirect(router.route);
@@ -197,7 +199,7 @@ const MenuEditor = ({
                 schema={genSchema('import', 'modern_captures')}
                 hasUploads={true}
                 route={createNodeRoute('modern_captures', 'import', id)}
-                onCancel={setDialogToggle}
+                onCancel={() => {setDialogToggle(null)}}
                 callback={() => {
                     setDialogToggle(null);
                     callback ? callback() : redirect(router.route);
@@ -244,7 +246,6 @@ const MenuEditor = ({
 
     // Initialize map using reference callback to access DOM
     const dropdown = useCallback(domNode => {
-
         // create hide dropdown function
         const hideDropdown = (e) => {
             if (!domNode.contains(e.target)) {
@@ -252,7 +253,6 @@ const MenuEditor = ({
                 document.removeEventListener('click', hideDropdown);
             }
         };
-
         // create event listener to close menu upon click
         if (domNode && dropdownToggle) {
             document.addEventListener('click', hideDropdown);
@@ -264,7 +264,7 @@ const MenuEditor = ({
 
 
     // handle click events -> routing
-    function onClick(e, model, view, id) {
+    function _handleClick(e, model, view, id) {
         e.preventDefault();
         router.update(createNodeRoute(model, view, id));
     }
@@ -288,7 +288,7 @@ const MenuEditor = ({
                                 title={`New ${label}.`}
                                 onClick={(e) => {
                                     isEditor
-                                        ? onClick(e, model, 'new', id)
+                                        ? _handleClick(e, model, 'new', id)
                                         : setDialogToggle('new')}
                                 }
                             />
@@ -303,7 +303,7 @@ const MenuEditor = ({
                                 title={`View ${modelLabel} details.`}
                                 onClick={(e) => {
                                     isEditor
-                                        ? onClick(e, model, 'show', id)
+                                        ? _handleClick(e, model, 'show', id)
                                         : setDialogToggle('show')}
                                 }
                             />
@@ -318,7 +318,7 @@ const MenuEditor = ({
                                 title={`Edit ${label}.`}
                                 onClick={(e) => {
                                     isEditor
-                                        ? onClick(e, model, 'edit', id)
+                                        ? _handleClick(e, model, 'edit', id)
                                         : setDialogToggle('edit')}
                                 }
                             />
@@ -431,7 +431,7 @@ const MenuEditor = ({
                                                         title={`Add new ${getModelLabel('surveyors')}`}
                                                         onClick={(e) => {
                                                             setDropdownToggle(false);
-                                                            onClick(e, 'surveyors', 'new');
+                                                            _handleClick(e, 'surveyors', 'new');
                                                         }}
                                                     />
                                                 </li>
@@ -442,7 +442,7 @@ const MenuEditor = ({
                                                         title={`Add new ${getModelLabel('projects')}`}
                                                         onClick={(e) => {
                                                             setDropdownToggle(false);
-                                                            onClick(e, 'projects', 'new');
+                                                            _handleClick(e, 'projects', 'new');
                                                         }}
                                                     />
                                                 </li>

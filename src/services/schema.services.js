@@ -100,6 +100,13 @@ export const create = async (constructorType) => {
             value: ['projects', 'surveyors'],
             writable: false
         },
+        fsRoot: {
+            value: {
+                projects: 'Organized_by_Projects',
+                surveyors: 'Organized_by_Surveyor'
+            },
+            writable: false
+        },
         nodeDepth: {
             value: {
                 'projects': 0,
@@ -224,5 +231,36 @@ export const getPermissions = async function(client=pool) {
     return permissions.rows;
 };
 
+/**
+ * Generate instance label from attributes.
+ *
+ * @param model
+ * @param {Object} attributes
+ * @src public
+ */
 
+export function genLabel(model, attributes = null) {
+    if (!model || !attributes) return '';
+    const labelByModel = {
+        projects: ['name'],
+        surveyors: ['last_name', 'given_names', 'short_name', 'affiliation'],
+        surveys: ['name'],
+        survey_seasons: ['year'],
+        stations: ['name'],
+        historic_visits: 'Historic',
+        modern_visits: ['date'],
+        locations: ['location_identity'],
+        historic_captures: ['fn_photo_reference'],
+        modern_captures: ['fn_photo_reference'],
+        glass_plate_listings: ['container', 'plates'],
+        maps: ['nts_map'],
+    };
 
+    return labelByModel.hasOwnProperty(model)
+        ? Array.isArray(labelByModel[model])
+            ? labelByModel[model].map(key => {
+            return attributes[key].value;
+        }).join(' ').trim() || humanize(model)
+            : labelByModel[model]
+        : '';
+}

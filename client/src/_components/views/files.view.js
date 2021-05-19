@@ -5,7 +5,6 @@
  * MIT Licensed
  */
 
-
 import React from 'react';
 import File from '../common/file';
 import Accordion from '../common/accordion';
@@ -14,7 +13,6 @@ import MenuEditor from '../editor/menu.editor';
 import { useUser } from '../../_providers/user.provider.client';
 import { sanitize } from '../../_utils/data.utils.client';
 import Table from '../common/table';
-
 
 /**
  * File Table component.

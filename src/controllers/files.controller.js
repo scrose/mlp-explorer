@@ -10,6 +10,7 @@
  * @private
  */
 
+import fs from "fs";
 import * as db from '../services/index.services.js';
 import ModelServices from '../services/model.services.js';
 import * as fserve from '../services/files.services.js';
@@ -21,9 +22,9 @@ import { sanitize } from '../lib/data.utils.js';
 import * as importer from '../services/import.services.js';
 import * as cserve from '../services/construct.services.js';
 import {errors} from '../error.js';
-import fs from "fs";
 import { getMIME } from '../lib/file.utils.js';
 import { isCompatiblePair, addComparison } from '../services/comparisons.services.js';
+import { humanize } from '../lib/data.utils.js';
 
 /**
  * Export controller constructor.
@@ -46,14 +47,11 @@ export default function FilesController(modelType) {
      */
 
     this.init = async () => {
-
         try {
-
             // generate model constructor
             Model = await db.model.create(modelType);
             model = new Model();
             mserve = new ModelServices(new Model());
-
         } catch (err) {
             console.error(err)
         }
@@ -173,7 +171,7 @@ export default function FilesController(modelType) {
                     model: model,
                     data: resData[0],
                     message: {
-                        msg: `${resData.length} ${model.label} created successfully!`,
+                        msg: `${resData.length} ${model.label || humanize(modelType)} created successfully!`,
                         type: 'success'
                     },
                 }));

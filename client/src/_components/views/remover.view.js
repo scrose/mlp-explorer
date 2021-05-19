@@ -8,10 +8,9 @@
 import React from "react";
 import { useRouter } from '../../_providers/router.provider.client';
 import { getModelLabel } from '../../_services/schema.services.client';
-import Message from '../common/message';
+import { UserMessage } from '../common/message';
 import Button from '../common/button';
 import Dialog from '../common/dialog';
-import { popSessionMsg } from '../../_services/session.services.client';
 
 /**
  * File/metadata deleter.
@@ -66,9 +65,6 @@ const Remover = ({
         setMessage(message);
     }
 
-    // get progress status message (if available)
-    const { msg = '', type = '' } = resMessage || {};
-
     return (
         <Dialog
             title={`Delete ${getModelLabel(model)} ${label ? ': ' + label : ''}?`}
@@ -94,11 +90,8 @@ const Remover = ({
                 response &&
                     <div>
                         <div className={'alert-box-buttons'}>
-                            <Message closeable={false} message={resMessage} />
-                            <Button icon={'success'} name={'done'} label={'OK'} onClick={() => {
-                                popSessionMsg();
-                                callback();
-                            }} />
+                            <UserMessage closeable={false} message={resMessage} />
+                            <Button icon={'success'} name={'done'} label={'OK'} onClick={callback} />
                         </div>
                     </div>
             }

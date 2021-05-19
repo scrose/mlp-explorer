@@ -24,6 +24,9 @@ export const Submit = ({
                            onSubmit = true,
                        }) => {
 
+
+    console.log('submit:', onCancel)
+
     const { msg = '', type = '' } = message || {};
     return (
         <fieldset className={'submit'}>
@@ -51,7 +54,10 @@ export const Submit = ({
                 type={'cancel'}
                 label={'Cancel'}
                 name={`cancel_${model}`}
-                onClick={onCancel}
+                onClick={(e) => {
+                    e.preventDefault();
+                    onCancel()
+                }}
             />}
         </fieldset>
 

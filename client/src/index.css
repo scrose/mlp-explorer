@@ -65,7 +65,7 @@ ul.list, ol.list {
     flex: none !important;
     display: block !important;
     list-style: square inside !important;
-    margin: 20px !important;
+    margin: 10px !important;
     padding: 10px !important;
 }
 ul.list li {
@@ -202,6 +202,8 @@ Accordion Layout
     margin-top: 20px;
     margin-bottom: 20px;
     padding: 3px;
+    border-radius: 10px;
+    border: 1px solid #2B5A6B;
 }
 .accordion .h-menu {
     border: none;
@@ -341,6 +343,7 @@ Page Banner: Logo/Wordmark
 nav.user .accordion {
     margin: 0;
     padding: 0;
+    border: none;
 }
 nav.user .accordion-data.open {
     margin: 0;
@@ -845,6 +848,15 @@ nav.breadcrumb ul li a:hover {
     color: #FFFFFF;
 }
 
+/* Create an active/current tablink class */
+.accordion .tab-menu button.active {
+    background-color: #DDDDDD !important;
+    color: #282c34;
+}
+.accordion .tab-menu.h-menu {
+    border-bottom: 2px solid #282c34;
+}
+
 /* Tab data panel */
 .tab-data {
     width: 70%;
@@ -1134,7 +1146,8 @@ nav.breadcrumb ul li a:hover {
     width: auto;
     margin: 5px;
 }
-.comparisons.h-menu ul {
+.comparisons.h-menu ul, .comparisons.h-menu ul li {
+    width: auto;
     align-items: center;
     color: #2B5A6B !important;
 }
@@ -1202,12 +1215,12 @@ nav.breadcrumb ul li a:hover {
     border-color: #E34234 !important;
 }
 .supplemental_images {
-    color: #889600 !important;
-    border-color: #889600 !important;
+    color: #2B5A6B !important;
+    border-color: #2B5A6B !important;
 }
 .metadata_files {
-    color: #960088 !important;
-    border-color: #960088 !important;
+    color: #2B5A6B !important;
+    border-color: #2B5A6B !important;
 }
 
 /* Participants */
@@ -1544,12 +1557,15 @@ fieldset .removeField {
     text-align: center;
 }
 .multiselect div {
+    width: 100%;
     text-align: center;
-    vertical-align: middle;
-    height: 160px;
-    width: 30%;
-    display: inline-block;
-    float: left;
+}
+.multiselect div ul {
+    justify-content: center !important;
+}
+.multiselect div ul li {
+    text-align: center;
+    width: 33% !important;
 }
 .multiselect-controls {
     line-height: 160px;
@@ -1661,7 +1677,7 @@ input[type=reset], button.cancel {
     margin: 5px;
     padding: 12px 20px;
     font-family: 'Inter', Arial, sans-serif;
-    background-color: #999999;
+    background-color: #999999 !important;
     color: white;
     border: none;
     border-radius: 4px;

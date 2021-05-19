@@ -33,12 +33,16 @@ export const create = async (modelType) => {
         this.name = modelType;
         this.key = `${modelType}_id`;
         this.idKey = schema.idKey;
-        this.label = genLabel(modelType, schema.attributes);
+        this.label = schemaConstructor.genLabel(modelType, schema.attributes);
         this.attributes = schema.attributes;
-        this.hasOwner = !schema.rootNodeTypes.includes(modelType);
+        this.isRoot = schema.rootNodeTypes.includes(modelType);
         this.depth = schema.nodeDepth.hasOwnProperty(modelType)
             ? schema.nodeDepth[modelType]
             : schema.nodeDepth.default;
+        // set filesystem root (if root node)
+        this.fsRoot = schema.fsRoot.hasOwnProperty(modelType)
+            ? schema.fsRoot[modelType]
+            :'Unknown';
 
         // initialize model with input data
         this.setData = setData;
@@ -278,7 +282,7 @@ export const createNode = async function(item) {
     const { owner={} } = item || {};
     const { value=0 } = owner || {};
     let ownerAttrs = await nselect(value) || owner;
-    const { id=null, type=null, fs_path='' } = ownerAttrs || {};
+    const { id=null, type=null, fs_path=item.fsRoot } = ownerAttrs || {};
 
     // create new filesystem path using generated node label
     // - only return alphanumeric characters (also: '_', '-')
@@ -342,34 +346,3 @@ export const createFile = async function(item, fileData) {
 };
 
 
-/**
- * Generate instance label from attributes.
- *
- * @param model
- * @param {Object} attributes
- * @src public
- */
-
-export function genLabel(model, attributes = null) {
-    if (!model || !attributes) return '';
-    const labelByModel = {
-        projects: ['name'],
-        surveyors: ['last_name', 'given_names', 'short_name', 'affiliation'],
-        surveys: ['name'],
-        survey_seasons: ['year'],
-        stations: ['name'],
-        historic_visits: 'Historic',
-        modern_visits: ['date'],
-        locations: ['location_identity'],
-        historic_captures: ['fn_photo_reference'],
-        modern_captures: ['fn_photo_reference'],
-        glass_plate_listings: ['container', 'plates'],
-        maps: ['nts_map'],
-    };
-
-    return labelByModel.hasOwnProperty(model)
-        ? Array.isArray(labelByModel[model])
-            ? labelByModel[model].map(key => {return attributes[key].value}).join(' ').trim()
-            : labelByModel[model]
-        : '';
-}

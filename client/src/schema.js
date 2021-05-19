@@ -69,6 +69,7 @@ export const schema = {
             filesSelected: 'Please select files to upload.',
             isLatitude: 'Latitude is invalid.',
             isLongitude: 'Longitude is invalid.',
+            isAzimuth: 'Azimuth is invalid.',
             isEmail: 'Not a valid email address.',
             isPassword: 'Passwords must have a minimum eight and maximum 20 characters, at least one uppercase letter, one lowercase letter, one number and one special character',
             isValidForm: 'Form not valid.',
@@ -386,7 +387,9 @@ export const schema = {
                     },
                     azim: {
                         label: 'Azimuth',
-                        render: 'float'
+                        render: 'float',
+                        suffix: '°',
+                        validate: ['isAzimuth']
                     }
                 },
                 {
@@ -733,7 +736,10 @@ export const schema = {
                         suffix: 'm'
                     },
                     azim: {
-                        label: 'Azimuth'
+                        label: 'Azimuth',
+                        render: 'float',
+                        suffix: '°',
+                        validate: ['isAzimuth']
                     }
                 },
                 {
@@ -917,7 +923,8 @@ export const schema = {
                     },
                     azim: {
                         label: 'Azimuth',
-                        render: 'float'
+                        render: 'float',
+                        suffix: '°'
                     }
                 }]
         },

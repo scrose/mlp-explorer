@@ -104,7 +104,7 @@ const _inputValidations =
          */
 
         isLatitude: (value) => {
-            return !!(value < 85 && value > -85);
+            return !!(value <= 90 && value >= -90);
         },
 
         /**
@@ -112,7 +112,15 @@ const _inputValidations =
          */
 
         isLongitude: (value) => {
-            return !!(value < 180 && value > -180);
+            return !!(value <= 180 && value >= -180);
+        },
+
+        /**
+         * Validate azimuth value.
+         */
+
+        isAzimuth: (value) => {
+            return !!(value < 360 && value >= 0);
         },
 
         /**

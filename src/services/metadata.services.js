@@ -235,6 +235,7 @@ export const removeGroup = async (
 ) => {
     let { sql, data } = queries.metadata.removeGroup(ownerID, modelType, groupType, groupCol);
     let response = await client.query(sql, data);
+    console.log(sql, data, response)
     return response.hasOwnProperty('rows') && response.rows.length > 0
         ? response.rows[0]
         : null;
@@ -311,10 +312,8 @@ export const getMetadataOptions = async function(client=pool) {
  */
 
 export const getCaptureImage = (files, client=pool) => {
-
     const { historic_images=null, modern_images=null } = files || {};
     const captureImages = historic_images || modern_images || [];
-
     return captureImages.find(file => file.metadata.image_state === 'master')
     || captureImages.find(file => file.metadata.image_state === 'interim')
     || captureImages.find(file => file.metadata.image_state === 'raw')

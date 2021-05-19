@@ -478,6 +478,11 @@ insert into nodes (old_id, type, owner_id, owner_type, created_at, updated_at, p
 select id, 'locations', visit_id, 'modern_visits', created_at, updated_at, published, null
 from old_locations order by id;
 
+-- update locations filesystem paths
+update nodes set fs_path=q.fs_path
+from (select id, fs_path from nodes) as q
+where nodes.type = 'locations' and nodes.owner_id = q.id;
+
 -- populate the locations table
 insert into locations (nodes_id, owner_id)
 select id, owner_id from nodes where type='locations' order by old_id;
@@ -656,9 +661,9 @@ select id, 'modern_captures', capture_owner_id, capture_owner_type, created_at, 
 from old_captures order by id;
 
 -- update modern capture filesystem paths
--- update nodes set fs_path=q.fs_path
--- from (select id, fs_path from nodes) as q
--- where nodes.type = 'modern_captures' and nodes.owner_id = q.id;
+update nodes set fs_path=q.fs_path
+from (select id, fs_path from nodes) as q
+where nodes.type = 'modern_captures' and nodes.owner_id = q.id;
 
 -- populate the modern_captures table
 insert into modern_captures (nodes_id, owner_id)
@@ -721,6 +726,11 @@ from (
 where stations.lat is null and stations.lng is null and locs.id = stations.nodes_id;
 
 
+-- Filesystem Paths: remove root URI
+update nodes
+set fs_path= REPLACE (fs_path, '/Volumes/mlp/MLPLibraryNew/', '');
+
+-- end of nodes initialization
 commit;
 
 

@@ -19,6 +19,7 @@ import MenuEditor from '../editor/menu.editor';
 import { useData } from '../../_providers/data.provider.client';
 import FilesView from './files.view';
 import Tabs from '../common/tabs';
+import ComparisonsView from './comparisons.view';
 
 /**
  * Default view component for model data.
@@ -36,8 +37,6 @@ const DefaultView = ({
 
     const api = useData();
     const { node, dependents, metadata, attached, files } = api.destructure(data) || {};
-    const hasAttached = Object.keys(attached).find(key => attached[key].length > 0);
-    const hasFiles = Object.keys(files).length > 0;
 
     // create tab index of metadata and files
     const _tabItems = [
@@ -47,10 +46,8 @@ const DefaultView = ({
         },
     ];
 
-    console.log(model, dependents, data);
-
     // include dependent nodes
-    const dependentsGrouped = groupBy(dependents || [], 'type');
+    const dependentsGrouped = groupBy(Array.isArray(dependents) ? dependents : [], 'type');
 
     const nodelist = Object.keys(dependentsGrouped)
         .filter(
@@ -79,7 +76,7 @@ const DefaultView = ({
                                 <MenuEditor
                                     model={type}
                                     id={id}
-                                    owner={node}
+                                    owner={item}
                                     label={label}
                                     metadata={metadata}
                                     dependents={getDependentTypes(type)}
@@ -93,13 +90,28 @@ const DefaultView = ({
         });
     if (nodelist) _tabItems.push(...nodelist);
 
-    // include attached metadata
-    if (hasAttached) _tabItems.push({
+    // include comparisons metadata
+    if (
+        attached.hasOwnProperty('comparisons')
+        && Object.keys(attached.comparisons).length > 0
+    ) _tabItems.push({
+        label: 'Comparisons',
+        data: <ComparisonsView data={attached.comparisons} />,
+    });
+
+    // include other attached metadata
+    const attachedMetadata = Object.keys(attached)
+        .filter(key => key !== 'comparisons' && attached[key].length > 0)
+        .reduce((o, key) => {
+            o[key] = attached[key];
+            return o;
+        }, {});
+    if (Object.keys(attachedMetadata).length > 0) _tabItems.push({
         label: 'Metadata',
-        data: <MetadataAttached owner={node} attached={attached} />,
+        data: <MetadataAttached owner={node} attached={attachedMetadata} />,
     });
     // include attached files
-    if (hasFiles) _tabItems.push({
+    if (Object.keys(files).length > 0) _tabItems.push({
         label: 'Files',
         data: <FilesView owner={node} files={files} />,
     });
@@ -107,18 +119,22 @@ const DefaultView = ({
     if (dependentsGrouped.hasOwnProperty('historic_captures')) _tabItems.push({
         label: 'Historic Captures',
         data: <FilesView
-            files={dependentsGrouped.historic_captures.map(item => {
-                return item.refImage;
-            })}
+            files={{
+                historic_captures: dependentsGrouped.historic_captures.map(item => {
+                    return item.refImage;
+                }),
+            }}
             owner={node}
         />,
     });
     if (dependentsGrouped.hasOwnProperty('modern_captures')) _tabItems.push({
         label: 'Modern Captures',
         data: <FilesView
-            files={dependentsGrouped.modern_captures.map(item => {
-                return item.refImage;
-            })}
+            files={{
+                modern_captures: dependentsGrouped.modern_captures.map(item => {
+                    return item.refImage;
+                }),
+            }}
             owner={node}
         />,
     });

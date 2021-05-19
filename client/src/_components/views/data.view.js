@@ -45,6 +45,7 @@ const DataView = () => {
                 schema={schema}
                 data={api.metadata}
                 route={createNodeRoute(api.model, api.view, api.id)}
+                onCancel={() =>{redirect('/')}}
                 callback={(err, model, id) => {
                     if (err || !id) return;
                     redirect(createNodeRoute(api.model, 'show', id));
@@ -56,6 +57,7 @@ const DataView = () => {
                 model={api.model}
                 schema={schema}
                 data={api.metadata}
+                onCancel={() =>{redirect('/')}}
                 route={createNodeRoute(api.model, 'import', api.id)}
                 callback={() => {
                     redirect(

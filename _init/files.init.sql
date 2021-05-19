@@ -711,6 +711,11 @@ FROM modern_images
 WHERE historic_images.image_state = 'master'
   AND modern_images.image_state = 'master';
 
+-- Filesystem Paths: remove root URI
+update files
+set fs_path= REPLACE (fs_path, '/Volumes/mlp/MLPLibraryNew/', '');
+
+-- end of files initialization
 commit;
 
 

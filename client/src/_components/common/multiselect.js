@@ -14,7 +14,8 @@ import Input from './input';
  * No operation.
  */
 
-const noop = () => {};
+const noop = () => {
+};
 
 /**
  * Build multiselect widget.
@@ -121,44 +122,46 @@ const MultiSelect = ({ id, name, label, selected, required, disabled, options, o
         );
     };
 
-    return <div className={'multiselect'}>
-        <div>
-            <select
-                ref={unselectedRef}
-                id={id}
-                name={'unselectedOptions'}
-                onChange={noop}
-                multiple={true}
-                placeholder={label}
-            >
-                {getUnselectedOpts()}
-            </select>
-        </div>
-        <div className={'multiselect-controls'}>
-            <Button
-                icon={'prev'}
-                onClick={deselectOption}
-            />
-            <Button
-                icon={'undo'}
-                onClick={reset} />
-            <Button
-                icon={'next'}
-                onClick={selectOption} />
-        </div>
-        <div>
-            <select
-                ref={selectedRef}
-                id={id}
-                name={'selectedOptions'}
-                onChange={noop}
-                required={required}
-                multiple={true}
-            >
-                {getSelectedOpts()}
-            </select>
-            {getHiddenOpts()}
-        </div>
+    return <div className={'multiselect h-menu'}>
+        <ul>
+            <li>
+                <select
+                    ref={unselectedRef}
+                    id={id}
+                    name={'unselectedOptions'}
+                    onChange={noop}
+                    multiple={true}
+                    placeholder={label}
+                >
+                    {getUnselectedOpts()}
+                </select>
+            </li>
+            <li className={'multiselect-controls'}>
+                <Button
+                    icon={'prev'}
+                    onClick={deselectOption}
+                />
+                <Button
+                    icon={'undo'}
+                    onClick={reset}/>
+                <Button
+                    icon={'next'}
+                    onClick={selectOption}/>
+            </li>
+            <li>
+                <select
+                    ref={selectedRef}
+                    id={id}
+                    name={'selectedOptions'}
+                    onChange={noop}
+                    required={required}
+                    multiple={true}
+                >
+                    {getSelectedOpts()}
+                </select>
+                {getHiddenOpts()}
+            </li>
+        </ul>
     </div>;
 };
 

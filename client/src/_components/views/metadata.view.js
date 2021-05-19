@@ -31,9 +31,6 @@ const keyID = genID();
 
 export const MetadataAttached = ({ owner, attached }) => {
     const attachedViews = {
-        comparisons: (data) => {
-            return <ComparisonsView key={`${keyID}_${genID()}_comparison`} data={data} />;
-        },
         participant_groups: (data) => {
             return Object.keys(data || {})
                 .sort()
@@ -78,30 +75,35 @@ export const MetadataAttached = ({ owner, attached }) => {
 
     // iterate over attached data types
     return Object.keys(attached || {}).map(attachedModel => {
-        return Array.isArray(attached[attachedModel]) && attached[attachedModel].length > 0
-            ? <Accordion
+        return Array.isArray(attached[attachedModel]) && attached[attachedModel].length > 0 &&
+            <Accordion
                 key={`${keyID}_${attachedModel}`}
                 type={attachedModel}
                 label={`${getModelLabel(attachedModel, 'label')}`}
                 menu={<MenuEditor
-                    model={attachedModel}
-                    id={owner && owner.hasOwnProperty('id') ? owner.id : ''}
-                    view={'attach'}
-                    owner={owner}
-                    dependents={[attachedModel]}
-                />}
+                        model={attachedModel}
+                        id={owner && owner.hasOwnProperty('id') ? owner.id : ''}
+                        view={'attach'}
+                        owner={owner}
+                        dependents={[attachedModel]}
+                    />}
             >
-                <div className={`${attachedModel} h-menu`}>
+                <div className={`${attachedModel}`}>
+                    <ul>
                     {
-                        attached[attachedModel].map((attachedMD) => {
-                            return attachedViews.hasOwnProperty(attachedModel)
-                                ? attachedViews[attachedModel](attachedMD)
-                                : attachedViews.default(attachedMD, attachedModel);
+                        attached[attachedModel].map((attachedMD, index) => {
+                            return <li key={`${keyID}_attached_md_${index}`}>
+                                {
+                                    attachedViews.hasOwnProperty(attachedModel)
+                                        ? attachedViews[attachedModel](attachedMD)
+                                        : attachedViews.default(attachedMD, attachedModel)
+                                }
+                                </li>;
                         })
                     }
+                    </ul>
                 </div>
             </Accordion>
-            : '';
     });
 };
 
@@ -208,7 +210,7 @@ const MetadataView = ({
                                     <ul>
                                         <li><Button label={fieldset.legend} /></li>
                                         {
-                                            menu && <li className={'editor-menu'}>
+                                            menu && <li className={'editor-menu push'}>
                                                 <MenuEditor
                                                     id={itemID}
                                                     model={model}
