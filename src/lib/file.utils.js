@@ -61,38 +61,44 @@ export function json2csv(json) {
  * @return {String} mimetype
  */
 
+export const mimeTypes = {
+    'pdf': 'application/pdf',
+    'rtf': 'application/rtf',
+    'bm': 'image/bmp',
+    'bmp': 'image/bmp',
+    'gif': 'image/gif',
+    'jpe': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'jpg': 'image/jpeg',
+    'png': 'image/png',
+    'tif': 'image/tiff',
+    'tiff': 'image/tiff',
+    'x-png': 'image/png',
+    'ARW': 'image/x-sony-arw',
+    'CR2': 'image/x-canon-cr2',
+    'CRW': 'image/x-canon-crw',
+    'DCR': 'image/x-kodak-dcr',
+    'DNG': 'image/x-adobe-dng',
+    'ERF': 'image/x-epson-erf',
+    'K25': 'image/x-kodak-k25',
+    'KDC': 'image/x-kodak-kdc',
+    'MRW': 'image/x-minolta-mrw',
+    'NEF': 'image/x-nikon-nef',
+    'ORF': 'image/x-olympus-orf',
+    'PEF': 'image/x-pentax-pef',
+    'RAF': 'image/x-fuji-raf',
+    'RAW': 'image/x-panasonic-raw',
+    'SR2': 'image/x-sony-sr2',
+    'SRF': 'image/x-sony-srf',
+    'X3F': 'image/x-sigma-x3f'
+};
+
 export function getMIME(filename) {
     const ext = filename.split('.').pop();
-    const mime_types = {
-        'pdf': 'application/pdf',
-        'bm': 'image/bmp',
-        'bmp': 'image/bmp',
-        'gif': 'image/gif',
-        'jpe': 'image/jpeg',
-        'jpeg': 'image/jpeg',
-        'jpg': 'image/jpeg',
-        'png': 'image/png',
-        'tif': 'image/tiff',
-        'tiff': 'image/tiff',
-        'x-png': 'image/png',
-        'ARW': 'image/x-sony-arw',
-        'CR2': 'image/x-canon-cr2',
-        'CRW': 'image/x-canon-crw',
-        'DCR': 'image/x-kodak-dcr',
-        'DNG': 'image/x-adobe-dng',
-        'ERF': 'image/x-epson-erf',
-        'K25': 'image/x-kodak-k25',
-        'KDC': 'image/x-kodak-kdc',
-        'MRW': 'image/x-minolta-mrw',
-        'NEF': 'image/x-nikon-nef',
-        'ORF': 'image/x-olympus-orf',
-        'PEF': 'image/x-pentax-pef',
-        'RAF': 'image/x-fuji-raf',
-        'RAW': 'image/x-panasonic-raw',
-        'SR2': 'image/x-sony-sr2',
-        'SRF': 'image/x-sony-srf',
-        'X3F': 'image/x-sigma-x3f'
-    };
-    return mime_types.hasOwnProperty(ext) ? mime_types[ext] : null;
+    return mimeTypes.hasOwnProperty(ext) ? mimeTypes[ext] : null;
+}
+
+export function allowedMIME(mimeType) {
+    return Object.keys(mimeTypes).find(ext => mimeTypes[ext] === mimeType);
 }
 

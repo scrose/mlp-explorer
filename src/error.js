@@ -11,6 +11,7 @@
  */
 
 import { prepare } from './lib/api.utils.js';
+import { mimeTypes } from './lib/file.utils.js';
 
 'use strict';
 
@@ -42,6 +43,12 @@ export const errors = {
     invalidData: {
         hint: 'Invalid input data (generic).',
         msg: 'Invalid or duplicated data. Please check the data fields for errors or record duplication.',
+        status: 422,
+        type: 'error'
+    },
+    invalidMIMEType: {
+        hint: 'Invalid MIME for this operation.',
+        msg: `Invalid MIME Type. Allowed types: ${Object.keys(mimeTypes).map(key => mimeTypes[key]).join(', ')}`,
         status: 422,
         type: 'error'
     },

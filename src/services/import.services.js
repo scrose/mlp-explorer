@@ -52,7 +52,7 @@ export const receive = (req, owner_id, owner_type) => {
         // initialize busboy
         busboy
             .on('field', onField.bind(null, metadata.data))
-            .on('file', onFile.bind(null, filePromises, metadata))
+            .on('file', onFile.bind(null, filePromises, metadata, onError))
             .on('error', onError)
             .on('end', onEnd)
             .on('finish', onEnd);
@@ -94,10 +94,8 @@ export const receive = (req, owner_id, owner_type) => {
             Promise.all(filePromises)
                 .then(() => {
                     cleanup();
-
                     // include requested owner ID if not null
                     if (owner_id) metadata.data.owner_id = owner_id;
-
                     resolve(metadata);
                 })
                 .catch(reject);
@@ -123,6 +121,7 @@ export const receive = (req, owner_id, owner_type) => {
  * @src public
  * @param filePromises
  * @param metadata
+ * @param onError
  * @param fieldname
  * @param file
  * @param filename
@@ -130,10 +129,11 @@ export const receive = (req, owner_id, owner_type) => {
  * @param mimetype
  */
 
-export const onFile = (filePromises, metadata, fieldname, file, filename, encoding, mimetype) => {
+export const onFile = (filePromises, metadata, onError, fieldname, file, filename, encoding, mimetype) => {
 
+    // reject file upload empty of files
     if (!filename) {
-        throw new Error('Invalid request');
+        return onError(new Error('invalidRequest'))
     }
 
     // create temporary file for upload

@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.IAT.Load
- * File: loader.iat.js
+ * MLP.Client.Components.IAT.Selector
+ * File: selector.iat.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -15,38 +15,83 @@ import { sanitize, sorter } from '../../_utils/data.utils.client';
 import Table from '../common/table';
 import { useData } from '../../_providers/data.provider.client';
 import { initPanel } from './iat';
+import { createNodeRoute } from '../../_utils/paths.utils.client';
+import { useRouter } from '../../_providers/router.provider.client';
+import Tabs from '../common/tabs';
 
 /**
- * Image selector widget.
+ * Image selector widget. Used to select an image to load into the panel:
+ * - from a local file
+ * - from the MLP library via the API
  *
  * @public
- * @param {String} panelID
- * @param {String} pandelLabel
- * @param selection
+ * @param {Object} properties
+ * @param otherProperties
+ * @param options
  * @param setToggle
  * @param callback
  */
 
 export const ImageSelector = ({
-                                  panelID,
-                                  panelLabel = '',
-                                  selection = {},
-                                  setToggle = () => {
-                                  },
+                                  properties={},
+                                  otherProperties={},
                                   options = {},
+                                  setToggle = () => {},
                                   callback = () => {
                                   },
                               }) => {
 
+    const router = useRouter();
+    const _isMounted = React.useRef(false);
     const [selectedImage, setSelectedImage] = React.useState(null);
     const [error, setError] = React.useState(null);
     const allowedFileTypes = Object.keys(options.formats || {}).map(key => {
         return options.formats[key].value;
     });
 
+    // set image selection state
+    const [selection, setSelection] = React.useState([]);
+
+    /**
+     * Load corresponding images for mastering (if requested)
+     */
+
+    React.useEffect(() => {
+
+        _isMounted.current = true;
+
+        // proceed if panel properties are available
+        if (properties) {
+
+            // Panel 1: Initialize available historic image selection for given modern capture image
+            if (properties.id === 'panel1' && otherProperties.file_type === 'modern_images')
+            router.get(createNodeRoute('modern_images', 'master', otherProperties.files_id))
+                .then(res => {
+                    if (_isMounted.current) {
+                        if (!res || res.error) {
+                            return callback(
+                                res.hasOwnProperty('error')
+                                    ? res.error
+                                    : { msg: 'Error occurred.', type: 'error' },
+                            );
+                        }
+
+                        // get historic capture data (if available)
+                        const { response = {} } = res || {};
+                        const { data = {} } = response || {};
+                        const { historic_captures = [] } = data || {};
+                        setSelection(historic_captures);
+                    }
+                });
+        }
+        return () => {
+            _isMounted.current = false;
+        };
+    }, [properties, otherProperties, router, setSelection, callback]);
+
     // submit selection for canvas loading
     const _handleSubmit = () => {
-        callback(initPanel(panelID, panelLabel, selectedImage));
+        callback(initPanel(properties.id, properties.label, selectedImage));
         setToggle(false);
     };
 
@@ -93,6 +138,13 @@ export const ImageSelector = ({
 
     return <>
         {
+            selectedImage &&
+            <UserMessage
+                closeable={false}
+                message={{ msg: `Image ${selectedFile} selected.`, type: 'info' }}
+            />
+        }
+        {
             selection && Object.keys(selection).length > 0
                 ? <Accordion label={'Select Historic Image'} type={'historic_images'} open={true}>
                     <CaptureSelector
@@ -112,24 +164,19 @@ export const ImageSelector = ({
                 </Accordion>
         }
         {
-            selectedImage &&
-            <UserMessage
-                closeable={false}
-                message={{ msg: `Image ${selectedFile} selected.`, type: 'info' }}
-            />
-        }
-        {
             <fieldset className={'submit h-menu'}>
                 <ul>
                     {
                         selectedImage &&
                         <li key={'submit_selector'}><Button
+                            icon={'download'}
                             label={'Load Image'}
                             onClick={_handleSubmit}
                         /></li>
                     }
                     <li key={'cancel_selector'}>
                         <Button
+                            icon={'cancel'}
                             label={'Cancel'}
                             onClick={() => {
                                 callback();
@@ -155,59 +202,42 @@ export const ImageSelector = ({
 
 export const CaptureSelector = ({ selection, setSelectedImage, onSubmit }) => {
 
-    const [tabIndex, setTabIndex] = React.useState(0);
     const [imageIndex, setImageIndex] = React.useState(0);
     const [captureIndex, setCaptureIndex] = React.useState(-1);
 
-    // destructure selected capture
-    const selectedCapture = selection[tabIndex];
-    const { node = {}, files = {} } = selectedCapture || {};
-    const { historic_images = [] } = files || {};
-
     // handle thumbnail click
-    const _handleClick = (id, data) => {
+    const _handleClick = (id, tabIndex, data) => {
         setImageIndex(id);
         setCaptureIndex(tabIndex);
         setSelectedImage(data);
     };
 
-    return <div className={`tab h-menu`}>
-        <ul>
-            <li>
-                <div className={`v-menu`}>
-                    <ul>
-                        {
-                            selection
-                                .sort(sorter)
-                                .map((capture, index) => {
-                                    const { node = {}, label = '' } = capture || {};
-                                    return <li key={`tab_${node.id}`}>
-                                        <Button
-                                            className={index === captureIndex ? 'active' : ''}
-                                            icon={tabIndex === index ? 'collapse' : 'expand'}
-                                            title={`View ${label}.`}
-                                            label={label}
-                                            onClick={() => {
-                                                setTabIndex(index);
-                                            }}
-                                        />
-                                    </li>;
-                                })
-                        }
-                    </ul>
-                </div>
-            </li>
-            <li key={`tab_data_${node.id}`} className={'gallery tab-data capture-selector'}>
-                <CaptureImagesSelector
-                    files={historic_images}
-                    imageIndex={imageIndex}
-                    onClick={_handleClick}
-                    onDblClick={onSubmit}
-                />
-            </li>
-        </ul>
-    </div>;
+    // collect capture selection
+    const _items = selection
+        .sort(sorter)
+        .map((capture, index) => {
+            const { files = {}, label = '' } = capture || {};
+            const { historic_images = [] } = files || {};
+            return {
+                label: label,
+                data: <CaptureImagesSelector
+                        files={historic_images}
+                        imageIndex={imageIndex}
+                        captureIndex={index}
+                        onClick={_handleClick}
+                        onDblClick={onSubmit}
+                    />
+            }
+        });
+
+    return <Tabs
+            orientation={'horizontal'}
+            items={_items}
+            className={'selector'}
+        />
+
 };
+
 
 /**
  * Image selector widget.
@@ -220,12 +250,10 @@ export const CaptureSelector = ({ selection, setSelectedImage, onSubmit }) => {
 export const CaptureImagesSelector = ({
                                           files,
                                           imageIndex,
-                                          onClick = () => {
-                                          },
-                                          onDblClick = () => {
-                                          },
+                                          captureIndex,
+                                          onClick = () => {},
+                                          onDblClick = () => {},
                                       }) => {
-
     const api = useData();
 
     // prepare capture images columns
@@ -246,7 +274,7 @@ export const CaptureImagesSelector = ({
         const imageState = image_states.find(opt => opt.value === metadata.image_state);
         const rows = {
             thumbnail: <label
-                className={imageIndex === id ? 'active' : ''}
+                className={imageIndex === id ? 'selected' : ''}
                 key={`label_selection`}
                 htmlFor={id}
             >
@@ -257,8 +285,9 @@ export const CaptureImagesSelector = ({
                     name={'historic_captures'}
                     id={id}
                     value={id}
+                    style={{display: 'none'}}
                     onClick={() => {
-                        onClick(id, fileData);
+                        onClick(id, captureIndex, fileData);
                     }}
                 >
                 </input>
@@ -268,7 +297,7 @@ export const CaptureImagesSelector = ({
                     title={`Select ${filename || ''}.`}
                     label={filename}
                     onClick={() => {
-                        onClick(id, fileData);
+                        onClick(id, captureIndex, fileData);
                     }}
                     onDoubleClick={onDblClick}
                 />
@@ -284,9 +313,7 @@ export const CaptureImagesSelector = ({
         return rows;
     });
 
-    return <>
-        <Table rows={rows} cols={cols} className={'files'} />
-    </>;
+    return <Table rows={rows} cols={cols} className={'files'} />;
 };
 
 

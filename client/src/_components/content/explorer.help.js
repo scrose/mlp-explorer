@@ -16,12 +16,16 @@ import Image from '../common/image';
 
 export const explorerHelp = <>
     <h4>Getting Started</h4>
-    <p>Welcome to the The Mountain Legacy Explorer user guide. </p>
+    <p>
+        Welcome to the The Mountain Legacy Explorer user guide. This guide is intended to
+        provide enough detailed information to get you up to speed and starting using the
+        application.
+    </p>
 
     <h5>Mountain Legacy Explorer (MLE)</h5>
-    <p>The Mountain Legacy Explorer allows users to explore image captures,
-        comparisons and associated metadata by geographical locations of survey sites.
-        There are different ways to explore the collection. The navigator map, for example,
+    <p>The Mountain Legacy Explorer is a tool for exploring the Mountain Legacy Project
+        collection of repeat images and metadata. MLE allows users to navigate image captures,
+        by geographical region and through the image metadata. The navigator map, for example,
         gives a geographical view of the survey data across Alberta and British Columbia,
         while users can also explore data by surveyor and survey.
     </p>
@@ -49,10 +53,6 @@ export const explorerHelp = <>
 export const conceptsExplorerHelp = <>
 
     <h4>Concepts</h4>
-    <p>
-        The following is not meant to be a full scale overview of the MLP, but rather just enough to get you up to
-        speed and starting using the application.
-    </p>
 
     <h5>What is Repeat Photography?</h5>
     <p>
@@ -183,23 +183,6 @@ export const conceptsExplorerHelp = <>
     <p>Field notes from each visit have been written in a field note book or field note form, then digitized using a
         scanner. While these field notes will be transcribed and stored in the database via the visit object, the
         scanned copies are kept for historical reference. Field note files should be stored within a visit.</p>
-
-    <h5>Metadata </h5>
-    <h5>Managed Metadata Files</h5>
-    <p>Various types of metadata files can be associated with stations and visits. This encompasses any files that don't
-        neatly fit into the field note, location photo, or capture image categories.</p>
-    <h5>Unmanaged Metadata Folders</h5>
-    <p>In addition to historic photos and their repeats, the MLP has also accummulated significant portions of survey
-        related data such as maps, diaries, and view indices. This data was sorted in a Metadata folder associated with
-        a survey or survey season. The content of this folder varied (both in strucute and content) from survey to
-        survey. In order to deal with this variety gracefully, we use unmanaged metadata folders. An unmanaged metadata
-        folder is a folder named "Metadata" that resides under a survey, survey season, or project folder in the MLP
-        Library. It is 'unmanaged' because the content of the folder is not managed by the application (it is not
-        tracked by the database). To access this folder for a specific survey, survey season, or project, use MEAT to
-        navigate to the object and click the 'Browse Metadata Folder' in the data pane sub menu. This will launch
-        Finder, where you'll be able to navigate the folder, as well as add, edit, and delete content. REMEMBER: with
-        the exception of these Metadata folders, never modify content in the MLP Library file structure.</p>
-
 
     <h5>Application Layout</h5>
 

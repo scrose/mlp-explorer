@@ -22,17 +22,32 @@ import * as fserve from './files.services.js';
  * Upsert comparison.
  *
  * @public
+ * @param historicImageID
  * @param historicCaptureID
+ * @param modernImageId
  * @param modernCaptureID
  * @param client
  * @return {Promise} result
  */
 
-export const addComparison = async (historicCaptureID, modernCaptureID, client = pool) => {
+export const addComparison = async (
+    historicImageID,
+    historicCaptureID,
+    modernImageId,
+    modernCaptureID,
+    client = pool
+) => {
 
-    if (!historicCaptureID || !modernCaptureID) return [];
+    if (!historicImageID ||
+        !historicCaptureID ||
+        !modernImageId ||
+        !modernCaptureID) return [];
 
-    let { sql, data } = insertComparison(historicCaptureID, modernCaptureID);
+    let { sql, data } = insertComparison(
+        historicImageID,
+        historicCaptureID,
+        modernImageId,
+        modernCaptureID);
     return await client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows')
@@ -55,6 +70,7 @@ export const getComparisonsMetadata = async (node, client = pool) => {
 
     const { type = '', id = '' } = node || {};
     const queriesByType = {
+        stations: getComparisonsByStationID(id),
         historic_visits: getComparisonsByHistoricVisitID(id),
         modern_visits: getComparisonsByModernVisitID(id),
         locations: getComparisonsByLocationID(id),
@@ -80,8 +96,10 @@ export const getComparisonsMetadata = async (node, client = pool) => {
                 .map(async (comparison) => {
                     return {
                         id: comparison.id,
-                        historic_capture: await nserve.get(comparison.historic_captures, client),
-                        modern_capture: await nserve.get(comparison.modern_captures, client),
+                        historic_image_id: comparison.historic_images,
+                        historic_image: await fserve.get(comparison.historic_images, client),
+                        modern_image_id: comparison.modern_images,
+                        modern_image: await fserve.get(comparison.modern_images, client),
                     };
                 }));
     }

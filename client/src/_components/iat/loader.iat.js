@@ -32,8 +32,8 @@ export const loadImageData = async (properties, callback) => {
                     .then(tiff => {
                         // convert data to Image Data object
                         const { width = 0, height = 0, data = [] } = tiff || {};
-
                         // update local panel properties
+                        properties.mime_type = mimeType;
                         properties.original_dims = { w: width, h: height };
                         properties.image_dims = { w: width, h: height };
                         properties.source_dims = { x: 0, y: 0, w: width, h: height };
@@ -51,6 +51,7 @@ export const loadImageData = async (properties, callback) => {
                     URL.revokeObjectURL(src); // free memory held by Object URL
 
                     // update local panel properties
+                    properties.mime_type = mimeType;
                     properties.original_dims = { w: img.width, h: img.height };
                     properties.image_dims = { w: img.width, h: img.height };
                     properties.source_dims = { x: 0, y: 0, w: img.width, h: img.height };
@@ -86,10 +87,10 @@ export const loadImageData = async (properties, callback) => {
             // download image data to canvas
             download(route, mimeType)
                 .then(res => {
-                    if (res.error) return callback({error: res.error});
+                    if (res.error) return callback({error: { msg: res.error, type: 'error' }});
                     loadFile(res.data, mimeType);
                 })
-                .catch(err => {callback({status: 'empty', error: err})});
+                .catch(err => {callback({ status: 'empty', error: { msg: err, type: 'error' } })});
         },
 
         /**
@@ -98,7 +99,7 @@ export const loadImageData = async (properties, callback) => {
          */
 
         file: () => {
-            const mimeType = getMIME(properties.filename);
+            const mimeType = properties.file.type;
             loadFile(properties.file, mimeType);
         },
 
@@ -126,7 +127,7 @@ export const loadImageData = async (properties, callback) => {
     return callback({
         status: 'cancel',
         error: {msg: 'Image load cancelled.', type:'info'}
-    })
+    });
 }
 
 /**
@@ -188,6 +189,7 @@ export const toImageData = (data, w, h) => {
 
 /**
  * Determines image format based on file signature.
+ * - NOTE: Not all of the following formats have been implemented.
  * Bitmap format .bmp 42 4d BM
  * FITS format .fits 53 49 4d 50 4c 45 SIMPL
  * GIF format .gif 47 49 46 38 GIF
@@ -224,10 +226,10 @@ export const getImageType = (buffer) => {
         'tiff-be': [73, 73, 42, 0],
     };
     const detected = Object.keys(formats).find((type) => {
-        return b0 === formats[type][0]
-            && b1 === formats[type][1]
-            && b2 === formats[type][2]
-            && b3 === formats[type][3];
+        return b0 === parseInt(formats[type][0])
+            && b1 === parseInt(formats[type][1])
+            && b2 === parseInt(formats[type][2])
+            && b3 === parseInt(formats[type][3]);
     });
     return detected || 'unknown';
 };

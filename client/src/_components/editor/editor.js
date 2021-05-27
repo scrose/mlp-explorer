@@ -43,7 +43,7 @@ const Editor = () => {
                     compact={false}
                     dependents={getDependentTypes(api.model)}
                 />
-                <div className={`view ${getNavView()}`}>
+                <div className={`view`}>
                     <Heading/>
                     <Message/>
                     {

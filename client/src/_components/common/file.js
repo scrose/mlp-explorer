@@ -67,16 +67,14 @@ const File = ({ data, callback=null, scale='thumb', owner={} }) => {
                 router.update(createNodeRoute('supplemental_images', 'show', id))
             }}
         />,
-        metadata_files: () => <Download
+        default: () => <Download
+            filename={filename}
             label={label}
             type={file_type}
             format={'pdf'}
             route={createNodeRoute(file_type, 'download', id)}
             size={file_size}
-        />,
-        default: () => <Image
-            scale={'thumb'}
-            label={'File Not Found'}
+            callback={callback}
         />
     }
 

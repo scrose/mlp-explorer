@@ -52,8 +52,7 @@ values ('modern_images', 'modern_captures'),
        ('supplemental_images', 'surveys'),
        ('supplemental_images', 'modern_visits'),
        ('metadata_files', 'modern_visits'),
-       ('metadata_files', 'stations'),
-       ('field_notes', 'modern_visits');
+       ('metadata_files', 'stations');
 
 
 -- -------------------------------------------------------------
@@ -581,7 +580,7 @@ from old_metadata_files c
 order by id;
 
 -- -------------------------------------------------------------
---    Field notes (owned by Modern Visits)
+--    Field Notes (owned by Modern Visits)
 -- -------------------------------------------------------------
 
 -- update owner ids
@@ -713,7 +712,7 @@ WHERE historic_images.image_state = 'master'
 
 -- Filesystem Paths: remove root URI
 update files
-set fs_path= REPLACE (fs_path, '/Volumes/mlp/MLPLibraryNew/', '');
+set fs_path= REPLACE (fs_path, '/Volumes/mlp', '');
 
 -- end of files initialization
 commit;

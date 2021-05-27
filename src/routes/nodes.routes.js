@@ -9,7 +9,7 @@
  * Module dependencies
  */
 
-import * as nodes from '../controllers/nodes.controller.js';
+import * as nodesController from '../controllers/nodes.controller.js';
 import path from "path";
 
 /**
@@ -27,8 +27,8 @@ export default routes;
 
 function NodesRoutes() {
 
-    // initialize model controller
-    this.controller = nodes;
+    // initialize node controller
+    this.controller = nodesController;
 
     // add controller routes
     this.routes = {

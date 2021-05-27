@@ -19,6 +19,8 @@ import * as cserve from './construct.services.js';
 import * as metaserve from '../services/metadata.services.js';
 import * as nserve from '../services/nodes.services.js';
 import ModelServices from './model.services.js';
+import { allowedMIME } from '../lib/file.utils.js';
+import { getStatus } from '../services/metadata.services.js';
 
 /**
  * Get file record by ID. NOTE: returns single object.
@@ -57,16 +59,19 @@ export const get = async (id, client = pool) => {
     // get associated file metadata
     const metadata = await selectByFile(file, client) || {};
     const { type='', secure_token=''} = metadata || {};
-    const { file_type = '', filename='' } = file || {};
+    const { file_type = '', filename='', owner_id='' } = file || {};
+    const owner = await nserve.select(owner_id, client) || {};
 
     // include alternate extracted filename (omit the security token)
     return {
         file: file,
-        label: await metaserve.getFileLabel(file),
+        owner: owner,
+        label: await metaserve.getFileLabel(file, client),
         filename: (filename || '').replace(`_${secure_token}`, ''),
         metadata: metadata,
         metadata_type: await metaserve.selectByName('metadata_file_types', type),
         url: getFileURL(file_type, metadata),
+        status: await getStatus(owner, metadata, client)
     };
 
 };
@@ -195,6 +200,7 @@ export const insert = async (importData, model, fileOwner=null) => {
     // init transaction result
     let res;
 
+
     // initialize immediate file owners for given file type
     const initFileOwners = {
 
@@ -270,9 +276,8 @@ export const insert = async (importData, model, fileOwner=null) => {
                         data.image_state = typeof imageState === 'string' ? imageState : imageState[key];
 
                     // initialize file model services
+                    // - create new file model instance from file-specific data
                     const FileModel = await cserve.create(file_type);
-
-                    // create new file model instance from file-specific data
                     const fileItem = new FileModel(data);
 
                     // include model-specific data if NOT handling capture file
@@ -280,8 +285,8 @@ export const insert = async (importData, model, fileOwner=null) => {
                         fileItem.setData(metadata);
                     }
 
-                    // create file node instance using file model instance
-                    // and extracted file data
+                    // create file node instance
+                    // - use file model instance with extracted file data
                     let fileNode = await cserve.createFile(fileItem, file);
                     const stmtFileNode = queries.files.insert(fileNode);
                     let fileRes = await client.query(stmtFileNode.sql, stmtFileNode.data);
@@ -352,22 +357,22 @@ export const update = async(item, client=pool) => {
 
 export const remove = async(file, filepaths, client=pool) => {
 
+    // remove file node record
     let { sql, data } = queries.files.remove(file);
     let response = await client.query(sql, data) || [];
-    const staticSlug = '/resources';
 
     // delete attached files
     // - assumes file paths are to regular files.
     // - requires removal of static slug from file path
     //   as set in Express static-serve
     await Promise.all(
-        Object.keys(filepaths).map( async(key) => {
-            let filepath = filepaths[key].pathname;
-            // remove resources slug from url path
-            if (filepath.indexOf(staticSlug) === 0)
-                filepath = filepath.slice(staticSlug.length, filepath.length);
-            console.warn('Delete File:', path.join(process.env.UPLOAD_DIR, filepath))
-            let err = await unlink(path.join(process.env.UPLOAD_DIR, filepath));
+        filepaths.map( async(fileURI) => {
+            const filePath = path.join(fileURI)
+            // // remove resources slug from url path
+            // if (filepath.indexOf(staticSlug) === 0)
+            //     filepath = filepath.slice(staticSlug.length, filepath.length);
+            console.warn('Deleting File:', filePath);
+            let err = await unlink(filePath);
             if (err) throw err;
         })
     );
@@ -456,16 +461,19 @@ export const getFileURL = (type = '', data = {}) => {
 
     const { secure_token = '' } = data || {};
 
-    // generate image source URLs
-    const fileURL = () => {
-        const rootURI = `${process.env.API_HOST}/resources/versions/`;
-        return '/Users/boutrous/Workspace/NodeJS/resources/metadata/test_pdf.pdf';
-    };
+    // ======================================================
+    // DEVELOPMENT TEST
+    // TODO: TO BE REMOVED IN PRODUCTION
+    // - check if using MEAT images or local ones
+    // ======================================================
+    const rootURI = data.channels
+        ? `${process.env.API_HOST}/uploads/`
+        : `${process.env.DEV_API_HOST}/versions/`;
+    // ======================================================
 
     // generate resampled image URLs
     const imgSrc = (token) => {
         return Object.keys(imageSizes).reduce((o, key) => {
-            const rootURI = `${process.env.API_HOST}/uploads/`;
             o[key] = new URL(`${key}_${token}.jpeg`, rootURI);
             return o;
         }, {});
@@ -548,7 +556,7 @@ export const getImageInfo = function(imgPath, file) {
  * @param format
  */
 
-export const copyImage = function(srcPath, output, format) {
+export const copyFileTo = function(srcPath, output, format) {
 
     // handle conversion to requested formats
     const handleFormats = {
@@ -624,32 +632,30 @@ export const saveFile = async (index, metadata, owner, imageState=null) => {
     // generate unique filename ID token
     const imgToken = genUUID();
 
-    // initialize image versions
-    const createVersions = async () => {
+    // get file type
+    const { file_type='', mimetype='', filename='' } = fileData.file || {};
 
-        // create/use directory slug for given file type
-        const fileDir = {
-            historic_images: imageState[index],
-            modern_images: imageState[index],
-            supplemental_images: 'supplemental',
-            metadata_files: fileData.data.metadata_type
-        };
+    console.log(fileData, owner)
+
+    // reject null file data
+    if (!file_type || !mimetype || !filename ) throw new Error();
+
+    // initialize image versions
+    const _handleImages = async (dir) => {
 
         // insert token into filename
         const tokenizedFilename = [
-            fileData.file.filename.slice(0, fileData.file.filename.lastIndexOf('.')),
+            filename.slice(0, filename.lastIndexOf('.')),
             imgToken,
-            fileData.file.filename.slice(fileData.file.filename.lastIndexOf('.'))].join('');
+            filename.slice(filename.lastIndexOf('.'))].join('');
 
         // create raw path directory (if does not exist)
-
-        const rawPath = path.join(process.env.LOWRES_PATH, owner.fs_path, fileDir[fileData.file.file_type]);
+        const rawPath = path.join(process.env.UPLOAD_DIR, owner.fs_path, dir);
         await mkdir(rawPath, {recursive: true});
 
-        return {
+        metadata.versions = {
             // create new filesystem path
             // - format: <UPLOAD_PATH>/<IMAGE_STATE>/<FILENAME>
-
             raw: {
                 // path: path.join(rawPath, tokenizedFilename),
                 path: path.join(rawPath, tokenizedFilename),
@@ -665,31 +671,68 @@ export const saveFile = async (index, metadata, owner, imageState=null) => {
                 size: imageSizes.medium,
             },
         };
+
+        // update file metadata
+        fileData.data.secure_token = imgToken;
+        fileData.file.owner_type = metadata.owner.type;
+        fileData.file.owner_id = metadata.owner.id;
+        fileData.file.fs_path = metadata.versions.raw.path;
+
+        // copy images to data storage
+        filePromises.push(
+            copyFileTo(fileData.tmp, metadata.versions.raw),
+            getImageInfo(fileData.tmp, fileData.data),
+            copyFileTo(fileData.tmp, metadata.versions.medium, 'jpeg'),
+            copyFileTo(fileData.tmp, metadata.versions.thumb, 'jpeg'),
+        );
     };
 
-    // create image versions
-    metadata.versions = await createVersions();
+    // handle file upload procedure based on file type
+    const _fileHandlers = {
+        historic_images: async () => {
+            // upload and save image data
+            await _handleImages(imageState ? imageState[index] : 'no_state');
+            // handle image state value
+            // - copy to file metadata and remove from metadata model
+            fileData.data.image_state = imageState[index];
+            delete metadata.data.image_state;
+        },
+        modern_images: async () => {
+            // upload and save image data
+            await _handleImages(imageState ? imageState[index] : 'no_state');
+            // handle image state value
+            // - copy to file metadata and remove from metadata model
+            fileData.data.image_state = imageState[index];
+            delete metadata.data.image_state;
+        },
+        supplemental_images: async () => {
+            // upload and save image data
+            await _handleImages('supplemental');
+        },
+        default: async () => {
 
-    // update file metadata
-    fileData.data.secure_token = imgToken;
-    // fileData.data.fn_photo_reference = path.parse(fileData.file.filename).name;
-    fileData.file.owner_type = metadata.owner.type;
-    fileData.file.owner_id = metadata.owner.id;
-    fileData.file.fs_path = metadata.versions.raw.path;
+            if (!allowedMIME(mimetype)) throw new Error('invalidMIMEType');
 
-    // include image state (if exists)
-    if (imageState) {
-        fileData.data.image_state = imageState[index];
-        if (metadata.data.hasOwnProperty('image_state')) delete metadata.data.image_state;
-    }
+            const saveType = metadata.data.hasOwnProperty('type') ? metadata.data.type : 'unknown';
+            // create raw path directory (if does not exist)
+            const uploadPath = path.join(process.env.UPLOAD_DIR, owner.fs_path, saveType);
+            await mkdir(uploadPath, {recursive: true});
+            const filePath = path.join(uploadPath, filename);
 
-    // copy images to data storage
-    filePromises.push(
-        copyImage(fileData.tmp, metadata.versions.raw),
-        getImageInfo(fileData.tmp, fileData.data),
-        copyImage(fileData.tmp, metadata.versions.medium, 'jpeg'),
-        copyImage(fileData.tmp, metadata.versions.thumb, 'jpeg'),
-    );
+            // update file metadata
+            fileData.file.owner_type = metadata.owner.type;
+            fileData.file.owner_id = metadata.owner.id;
+            fileData.file.fs_path = filePath;
+
+            // copy file to data storage
+            filePromises.push(
+                copyFileTo(fileData.tmp, {path: filePath}),
+            );
+        },
+    };
+    _fileHandlers.hasOwnProperty(file_type)
+        ? await _fileHandlers[file_type]()
+        : await _fileHandlers.default();
 
     return Promise.all(filePromises);
 };

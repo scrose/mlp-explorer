@@ -235,7 +235,6 @@ export const removeGroup = async (
 ) => {
     let { sql, data } = queries.metadata.removeGroup(ownerID, modelType, groupType, groupCol);
     let response = await client.query(sql, data);
-    console.log(sql, data, response)
     return response.hasOwnProperty('rows') && response.rows.length > 0
         ? response.rows[0]
         : null;
@@ -657,10 +656,13 @@ export const getFileLabel = async (file, client=pool) => {
             return fn_photo_reference
                 ? fn_photo_reference
                 : extractFileLabel(filename, 'Capture Image');
+        },
+        default: async () => {
+            return filename || 'File Unknown';
         }
     };
 
     return queriesByType.hasOwnProperty(file_type)
-        ? await queriesByType[file_type]() : 'File Unknown';
+        ? await queriesByType[file_type]() : queriesByType.default();
 
 };

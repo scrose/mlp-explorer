@@ -100,7 +100,7 @@ const Form = ({
             hasData = hasData || formData[key];
             // check data for validation error
             const err = validators[key].check(data[key] || null);
-            valid = err.length > 0 ? false : valid;
+            valid = err && Object.keys(err).length > 0 ? false : valid;
             // set error state (invokes validation error message)
             setErrors(errors => ({
                 ...errors, [key]: err,
@@ -142,6 +142,7 @@ const Form = ({
             );
             return;
         }
+        console.log(fieldData, isValid(fieldData))
 
         // reset validation message
         setMessage({});

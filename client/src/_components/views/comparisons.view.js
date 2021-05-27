@@ -11,28 +11,7 @@ import Button from '../common/button';
 import { FilesList } from './files.view';
 import Comparator from '../common/comparator';
 import { genID } from '../../_utils/data.utils.client';
-
-/**
- * Render metadata capture image comparison overlay component.
- *
- * @public
- */
-
-const ComparisonOverlay = ({
-                               captures = {},
-                               callback = () => {
-                               },
-                           }) => {
-
-    const [historic, modern] = captures || [];
-    const historicImage = typeof historic.files.historic_images != null
-        ? historic.files.historic_images.find(img => img.metadata.image_state === 'master') : {};
-    const modernImage = typeof historic.files.modern_images != null
-        ? modern.files.modern_images.find(img => img.metadata.image_state === 'master') : {};
-
-    return <Comparator images={[historicImage, modernImage]} />;
-
-};
+import { useRouter } from '../../_providers/router.provider.client';
 
 /**
  * Render metadata capture image comparisons component.
@@ -40,91 +19,71 @@ const ComparisonOverlay = ({
  * @public
  */
 
-const ComparisonsView = ({data = {}, callback = () => {} }) => {
+const ComparisonsView = ({
+                             data = {}, callback = () => {
+    },
+                         }) => {
 
     const keyID = genID();
+    const router = useRouter();
 
     // toggle to dhow/hide popup dialogs
     const [dialogToggle, setDialogToggle] = React.useState('');
     const [comparison, setComparison] = React.useState([]);
-
-    const comparisonDialogs = {
-        overlay: <Dialog title={'Overlay'} setToggle={setDialogToggle}>
-            <ComparisonOverlay captures={comparison} />
-        </Dialog>,
-        remaster: <Dialog title={'Remaster'} setToggle={setDialogToggle}>
-            Remaster
-        </Dialog>
-    };
-
-    // show dialog popup
-    const showDialog = () => {
-        return comparisonDialogs.hasOwnProperty(dialogToggle)
-            ? comparisonDialogs[dialogToggle]
-            : '';
-    };
+    const [historicImage=null, modernImage=null] = comparison || [];
 
     return <>
-        { showDialog() }
+        {
+            historicImage && modernImage && dialogToggle === 'overlay' &&
+            <Dialog title={'Overlay'} setToggle={setDialogToggle}>
+                <Comparator images={[historicImage, modernImage]} />
+            </Dialog>
+        }
         <div className={'comparisons h-menu'}>
             <ul>
-        {
-            data.map((comparison, index) => {
+                {
+                    // map the captures to file comparisons
+                    data.map((comparisonPair, index) => {
 
-                const { historic_capture = {}, modern_capture = {} } = comparison || {};
+                        // destructure image pair for each comparison
+                        const {
+                            historic_image = {},
+                            historic_image_id = '',
+                            modern_image,
+                            modern_image_id = '',
+                        } = comparisonPair || {};
 
-                // check if capture has no files
-                const hasMissingFiles = (
-                    modern_capture.hasOwnProperty('files')
-                    && Object.keys(modern_capture.files).length === 0
-                ) || (
-                    historic_capture.hasOwnProperty('files')
-                    && Object.keys(historic_capture.files).length === 0
-                );
-
-                return <li key={`${keyID}_comparison_${index}`}>
-                    <div className={`comparisons-item${hasMissingFiles ? ' missing' : ''}`}>
-                    <FilesList
-                        files={[historic_capture.refImage, modern_capture.refImage]}
-                    />
-                    <div className={'h-menu'}>
-                        <ul>
-                            <li>
-                                <Button
-                                    icon={'overlay'}
-                                    label={'View Overlay'}
-                                    onClick={() => {
-                                        setDialogToggle('overlay');
-                                        setComparison([historic_capture, modern_capture])
-                                    }}
-                                />
-                            </li>
-                            {
-                                hasMissingFiles &&
-                                <li>
-                                    <Button
-                                        className={'msg warning'}
-                                        icon={'warning'}
-                                        label={'Missing Image'}
-                                        onClick={() => {
-                                        }}
-                                    />
-                                </li>
-                            }
-                            {/*<li>*/}
-                            {/*    <Button*/}
-                            {/*        icon={'master'}*/}
-                            {/*        label={'Remaster'}*/}
-                            {/*        onClick={() => {*/}
-                            {/*            setDialogToggle('remaster');*/}
-                            {/*        }}*/}
-                            {/*    /></li>*/}
-                        </ul>
-                    </div>
-                </div>
-                </li>
-            })
-        }
+                        return <li key={`${keyID}_comparison_${index}`}>
+                            <div className={`comparisons-item`}>
+                                <FilesList files={[historic_image, modern_image]} />
+                                <div className={'h-menu'}>
+                                    <ul>
+                                        <li>
+                                            <Button
+                                                icon={'overlay'}
+                                                label={'View Overlay'}
+                                                onClick={() => {
+                                                    setDialogToggle('overlay');
+                                                    setComparison([historic_image, modern_image]);
+                                                }}
+                                            />
+                                        </li>
+                                        <li>
+                                            <Button
+                                                icon={'align'}
+                                                label={'Remaster'}
+                                                onClick={() => {
+                                                    // launch IAT tool for mastering by loading images into panels
+                                                    // - Historic: Panel 1 / Modern: Panel 2
+                                                    router.update(`/iat?input1=${historic_image_id}&type1=historic_images&input2=${modern_image_id}&type2=modern_images`);
+                                                }}
+                                            /></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>;
+                    })
+                }
             </ul>
         </div>
     </>;

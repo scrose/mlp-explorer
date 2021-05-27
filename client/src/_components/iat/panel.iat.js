@@ -17,12 +17,16 @@ import baseGrid from '../svg/grid.svg';
 import xTicks from '../svg/x-ticks.svg';
 import yTicks from '../svg/y-ticks.svg';
 import originMark from '../svg/origin.svg';
+import Cropper from './cropper.iat';
+import { eraseOverlay } from './graphics.iat';
+import useWindowSize from './window.iat';
 
 /**
  * No operation.
  */
 
-const noop = () => {};
+const noop = () => {
+};
 
 
 /**
@@ -40,10 +44,8 @@ const noop = () => {};
  * @param trigger
  * @param setMessage
  * @param setDialogToggle
- * @param onClick
  * @param onMouseUp
  * @param onMouseDown
- * @param onMouseOver
  * @param onMouseOut
  * @param onMouseMove
  * @param onKeyDown
@@ -63,10 +65,8 @@ export const PanelIat = ({
                              setProperties = noop,
                              inputImage = null,
                              setInputImage = noop,
-                             onClick = noop,
                              onMouseUp = noop,
                              onMouseDown = noop,
-                             onMouseOver = noop,
                              onMouseOut = noop,
                              onMouseMove = noop,
                              onKeyDown = noop,
@@ -98,13 +98,14 @@ export const PanelIat = ({
     const [source, setSource] = React.useState(null);
 
     // draw method state
-    const [onDraw, setOnDraw] = React.useState({draw: noop});
-
-    // redraw method state
-    const [onRedraw, setOnRedraw] = React.useState({draw: noop});
+    // - default state: erase the canvas
+    const [onDraw, setOnDraw] = React.useState(noop);
 
     // create canvas pointer.
     const pointer = usePointer(properties, options);
+
+    // get window listener
+    const [winW, winH] = useWindowSize();
 
     /**
      * Handle file processing and input control responses.
@@ -114,26 +115,24 @@ export const PanelIat = ({
      * -- reset: loads source image data into input data state
      * -- save: saves current image data as downloadable
      * -- master: uploads current Panel 2 image as mastered modern capture image
-     * -- draw: draws graphics to mask canvas (no clear)
-     * -- redraw: draws graphics to mask canvas (with clear)
+     * -- draw: draws graphics to mask canvas
      */
 
     const _callback = (response) => {
-       // console.log(response)
+        // console.log(response, pointer.selected)
         const {
             error = null,
             data = null,
             props = null,
-            redraw = noop,
             draw = noop,
             status = '',
-            message = null
+            message = null,
         } = response || {};
 
         // handle error in response
         if (error) {
             console.warn(error);
-            setSignal( status || 'error' );
+            setSignal('error');
             setMessage(error);
             return;
         }
@@ -159,17 +158,16 @@ export const PanelIat = ({
             save: () => {
                 // copy current image data to download module
                 downloader(id, imageCanvasRef.current, props)
-                    .then(setSignal('loaded'))
-                    .catch(err => {console.error(err); setSignal('error')});
+                    .then(() => {setSignal('loaded')})
+                    .catch(err => {
+                        console.error(err);
+                        setSignal('error');
+                    });
             },
             draw: () => {
                 setOnDraw({ draw: draw });
-                if (!props) setSignal(status);
             },
-            redraw: () => {
-                setOnRedraw({ draw: redraw });
-            }
-        }
+        };
         _methods.hasOwnProperty(status) ? _methods[status]() : noop();
 
         // update panel properties and set update signal
@@ -180,13 +178,12 @@ export const PanelIat = ({
                     return o;
                 }, data)),
             );
-            setSignal(status)
+            setSignal(status);
         }
     };
 
     /**
-     * Handle canvas event.
-     * - reset pointer to (0, 0)
+     * Handle canvas user event.
      */
 
     const _handleEvent = (e, _handler) => {
@@ -197,7 +194,7 @@ export const PanelIat = ({
 
     /**
      * Handle canvas mouse move event.
-     * - reset pointer selection to (0, 0)
+     * - deselect pointer selected point
      */
 
     const _handleMouseUp = (e) => {
@@ -216,16 +213,8 @@ export const PanelIat = ({
     };
 
     /**
-     * Handle canvas mouse over event.
-     */
-
-    const _handleMouseOver = e => {
-        pointer.set(e);
-        return _handleEvent(e, onMouseOver);
-    };
-
-    /**
      * Handle canvas mouse move event.
+     * - set pointer to position (x, y) of cursor
      */
 
     const _handleMouseMove = e => {
@@ -241,14 +230,6 @@ export const PanelIat = ({
     const _handleMouseOut = (e) => {
         pointer.reset();
         return _handleEvent(e, onMouseOut);
-    };
-
-    /**
-     * Handle canvas mouse move event.
-     */
-
-    const _handleOnClick = e => {
-        return _handleEvent(e, onClick);
     };
 
     /**
@@ -284,7 +265,25 @@ export const PanelIat = ({
     };
 
     React.useEffect(() => {
+
         _isMounted.current = true;
+
+        // reject if uninitialized DOM or loading
+        if (!_isMounted.current || !viewCanvasRef.current || !imageCanvasRef.current || signal === 'loading') return;
+
+        // get canvases
+        const baseCanvas = baseCanvasRef.current;
+        const controlCanvas = controlCanvasRef.current;
+        const viewCanvas = viewCanvasRef.current;
+        const imgCanvas = imageCanvasRef.current;
+        const overlayCanvas = overlayCanvasRef.current;
+        const scratchCanvas = scratchCanvasRef.current;
+
+        // get contexts
+        const imgCtx = imgCanvas.getContext('2d');
+        const viewCtx = viewCanvas.getContext('2d');
+        const overlayCtx = overlayCanvas.getContext('2d');
+        const scratchCtx = scratchCanvas.getContext('2d');
 
         // convenience method for updating panel properties
         const _updateProps = (props) => {
@@ -297,39 +296,54 @@ export const PanelIat = ({
         };
 
         // convenience method for updating canvas image data
-        const _updateCanvas = (canvas, width, height, offsetX, offsetY) => {
+        const _updateImage = () => {
 
-            // get scratch canvas ready and copy current data
-            const scratchCanvas = scratchCanvasRef.current;
-            const scratchCtx = scratchCanvas.getContext('2d');
+            // clear scratch canvas, resize and copy image data
             scratchCtx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
-            scratchCanvas.width = canvas.width;
-            scratchCanvas.height = canvas.height;
-            scratchCtx.drawImage(canvas, offsetX, offsetY, canvas.width, canvas.height);
+            scratchCanvas.width = imgCanvas.width;
+            scratchCanvas.height = imgCanvas.height;
+            scratchCtx.drawImage(imgCanvas, 0, 0);
 
-            // copy scratch canvas data back to data canvas
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            canvas.width = width;
-            canvas.height = height;
-            ctx.drawImage(scratchCanvas, offsetX, offsetY, width, height);
-            return ctx.getImageData(0, 0, width, height);
+            // clear image canvas, resize and copy scratch image data
+            imgCtx.clearRect(0, 0, imgCanvas.width, imgCanvas.height);
+            imgCanvas.width = properties.image_dims.w;
+            imgCanvas.height = properties.image_dims.h;
+            imgCtx.drawImage(
+                scratchCanvas,
+                properties.source_dims.x,
+                properties.source_dims.y,
+                properties.source_dims.w,
+                properties.source_dims.h,
+                0,
+                0,
+                properties.image_dims.w,
+                properties.image_dims.h
+            );
+
+            // update image data state
+            setInputImage(
+                imgCtx.getImageData(0, 0, properties.image_dims.w, properties.image_dims.h)
+            );
         };
 
-        // reject if uninitialized DOM
-        if (!_isMounted.current || !viewCanvasRef.current || !imageCanvasRef.current) return;
+        // convenience method for updating canvas rendered data
+        const _updateView = () => {
 
-        // get canvases
-        const baseCanvas = baseCanvasRef.current;
-        const controlCanvas = controlCanvasRef.current;
-        const viewCanvas = viewCanvasRef.current;
-        const imgCanvas = imageCanvasRef.current;
-        const overlayCanvas = overlayCanvasRef.current;
+            // clear view and overlay canvases
+            viewCtx.clearRect(0, 0, viewCanvas.width, viewCanvas.height);
+            overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
-        // get contexts
-        const imgCtx = imgCanvas.getContext('2d');
-        const viewCtx = viewCanvas.getContext('2d');
-        const overlayCtx = overlayCanvas.getContext('2d');
+            // draw image data to crop [data] layer canvas
+            // - use scaled render dimensions for image data
+            viewCtx.imageSmoothingQuality = 'high';
+            viewCtx.drawImage(
+                imgCanvas,
+                properties.render_dims.x,
+                properties.render_dims.y,
+                properties.render_dims.w,
+                properties.render_dims.h,
+            );
+        };
 
         /**
          * Initialize panel grid.
@@ -338,6 +352,31 @@ export const PanelIat = ({
         baseCanvas.style.backgroundImage = `url(${originMark}), url(${xTicks}), url(${yTicks}), url(${baseGrid})`;
         baseCanvas.style.backgroundRepeat = 'no-repeat, repeat-x, repeat-y, repeat';
         baseCanvas.style.backgroundPosition = 'bottom right, bottom left, top right, top left';
+
+        /**
+         * Check for DOM dimension changes (e.g. due to window resize)
+         */
+
+        // get absolute control canvas dimensions
+        const bounds = controlCanvas.getBoundingClientRect();
+
+        if (
+            bounds.top !== properties.bounds.top ||
+            bounds.left !== properties.bounds.left ||
+            bounds.width !== properties.bounds.w ||
+            bounds.height !== properties.bounds.h
+        ) {
+            // update properties
+            // - set canvas boundaries for pointer measurements
+            _updateProps({
+                bounds: {
+                    top: bounds.top,
+                    left: bounds.left,
+                    w: bounds.width,
+                    h: bounds.height,
+                }
+            });
+        }
 
         /**
          * Upload image data as master.
@@ -352,42 +391,62 @@ export const PanelIat = ({
                     label: label,
                     data: blob,
                     callback: (data) => {
-                        console.log(data)
+                        console.log(data);
                     },
                 });
             }, 'image/tiff', options.blobQuality);
-            setSignal('loaded')
+            setSignal('loaded');
         }
 
         /**
-         * Draws mask canvas (bitmap graphics)
+         * Clears panel markup
+         * - remove control points
+         * - remove crop box
+         * */
+
+        if (signal === 'view') {
+            setSignal('loading');
+            _updateView();
+            setSignal('loaded');
+        }
+
+        /**
+         * Clears panel markup
+         * - remove control points
+         * - remove crop box
+         * */
+
+        if (signal === 'clear') {
+            eraseOverlay(overlayCtx, properties);
+            pointer.resetSelectBox();
+            setProperties(data => ({ ...data, pts: [] }));
+            setSignal('loaded');
+        }
+
+        /**
+         * Draws to overlay canvas (bitmap graphics)
          * - uses callback draw method
          * */
 
         if (signal === 'draw') {
-            // apply requested drawing method
+            // apply requested drawing function
             onDraw.draw(overlayCtx, properties, properties.other_panel ? otherProperties : null);
             setSignal('loaded');
         }
 
         /**
-         * Redraws mask canvas (bitmap graphics)
-         * - clears the mask canvas before drawing
-         * - uses callback draw method
+         * Create data URL from image data.
          * */
 
-        if (signal === 'redraw') {
-            // clear mask canvas
-            overlayCtx.clearRect(0, 0, properties.base_dims.w, properties.base_dims.h);
-            // apply requested drawing method
-            // - overlay other panel control points (optional)
-            onRedraw.draw(overlayCanvas, properties, properties.other_panel ? otherProperties : null);
+        if (signal === 'data') {
+            _updateProps({dataURL: imgCanvas.toDataURL()})
             setSignal('loaded');
         }
 
-        // update image data and render based on current panel properties
-        // [1] Re-render request
-        // [2] Image mastering request
+        /**
+         * Update image data and render based on current panel properties
+        */
+
         if (signal === 'render' || signal === 'load' || signal === 'reload' || signal === 'reset') {
 
             /**
@@ -411,65 +470,27 @@ export const PanelIat = ({
 
             try {
 
-                // load updated image data to image canvas
+                // set signal status to 'loading'
+                setSignal('loading');
+
+                // load image data to image canvas
+                // - set image canvas to original dimensions
                 // - Image DOM element: drawImage
                 // - ImageData object: putImageData
                 if (signal === 'load' || signal === 'reload' || signal === 'reset') {
-                    setSignal('loading');
+                    imgCanvas.width = properties.original_dims.w;
+                    imgCanvas.height = properties.original_dims.h;
                     if (inputImage instanceof HTMLImageElement) imgCtx.drawImage(
                         inputImage, 0, 0, properties.original_dims.w, properties.original_dims.h);
                     else imgCtx.putImageData(inputImage, 0, 0);
                 }
-                setSignal('loading');
 
                 // copy image data to scratch canvas and back to image canvas
-                const imgData = _updateCanvas(
-                    imgCanvas,
-                    properties.image_dims.w,
-                    properties.image_dims.h,
-                    0, 0
-                );
+                // - needed to update image dimensions if resized
+                _updateImage();
 
-                // update image data
-                setInputImage(imgData);
-
-                // clear view and mask canvases
-                viewCtx.clearRect(0, 0, viewCanvas.width, viewCanvas.height);
-                overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-
-                // draw image data to crop [data] layer canvas
-                // - use scaled render dimensions for image data
-                viewCtx.imageSmoothingQuality = 'high';
-                // void ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
-                viewCtx.drawImage(
-                    imgCanvas,
-                    properties.source_dims.x,
-                    properties.source_dims.y,
-                    properties.source_dims.w,
-                    properties.source_dims.h,
-                    properties.render_dims.x,
-                    properties.render_dims.y,
-                    properties.render_dims.w,
-                    properties.render_dims.h
-                );
-
-                // get absolute base canvas dimensions
-                const bounds = controlCanvas.getBoundingClientRect();
-
-                // update properties
-                // - set canvas boundaries for pointer measurements
-                // - reset control points
-                // - create new data URL from image data
-                _updateProps({
-                    bounds: {
-                        top: bounds.top,
-                        left: bounds.left,
-                        w: bounds.width,
-                        h: bounds.height,
-                    },
-                    pts: [],
-                    dataURL: imgCanvas.toDataURL(),
-                });
+                // update rendered view of image
+               _updateView();
 
                 // load source if empty
                 if (!source) setSource(inputImage);
@@ -488,14 +509,15 @@ export const PanelIat = ({
         });
 
     }, [
-        id, label,
-        pointer,
+        id,
+        label,
         signal,
         setSignal,
         inputImage,
         setInputImage,
         source,
         setSource,
+        pointer,
         viewCanvasRef,
         imageCanvasRef,
         properties,
@@ -503,8 +525,8 @@ export const PanelIat = ({
         options,
         setProperties,
         onDraw,
-        onRedraw,
-        setDialogToggle
+        setDialogToggle,
+        winW, winH
     ]);
 
 
@@ -515,20 +537,24 @@ export const PanelIat = ({
         <>
             <div className={'canvas'}>
                 <PanelControls
-                    disabled={signal === 'empty'}
+                    disabled={signal === 'empty' || signal === 'loading'}
                     properties={properties}
                     setSignal={setSignal}
                     callback={_callback}
                     setDialogToggle={setDialogToggle}
                 />
                 <div className={'canvas-layers'}>
-                    <Magnifier
-                        pointer={pointer}
-                        properties={properties}
-                        options={options}
-                    />
                     {
-                        (!inputImage || signal !== 'loaded') &&
+                        pointer.magnify &&
+                        <Magnifier
+                            canvas={viewCanvasRef.current}
+                            pointer={pointer}
+                            properties={properties}
+                            options={options}
+                        />
+                    }
+                    {
+                        (!inputImage || signal === 'empty') &&
                         <div
                             className={'layer canvas-placeholder'}
                             style={{
@@ -538,13 +564,11 @@ export const PanelIat = ({
                             }}
                         >
                             {
-                                signal === 'empty'
-                                    ? <Button
-                                        icon={'import'}
-                                        label={'Click to load image'}
-                                        onClick={_handleImageLoad}
-                                    />
-                                    : <Button label={'Loading'} spin={true} icon={'spinner'}/>
+                                signal !== 'loading' && <Button
+                                    icon={'image'}
+                                    label={'Click to load image'}
+                                    onClick={_handleImageLoad}
+                                />
                             }
                         </div>
                     }
@@ -552,56 +576,43 @@ export const PanelIat = ({
                         ref={controlCanvasRef}
                         id={`${id}_control_layer`}
                         tabIndex={0}
-                        className={`layer canvas-layer-control-${options.mode}${ pointer.magnify ? ' magnify' : ''}`}
+                        className={`layer canvas-layer-control-${options.mode} ${pointer.magnify ? 'magnify' : ''}`}
                         width={properties.base_dims.w}
                         height={properties.base_dims.h}
                         onMouseUp={_handleMouseUp}
                         onMouseDown={_handleMouseDown}
                         onMouseMove={_handleMouseMove}
                         onMouseOut={_handleMouseOut}
-                        onMouseOver={_handleMouseOver}
-                        onClick={_handleOnClick}
                         onKeyDown={_handleOnKeyDown}
-                        onKeyUp={_handleOnKeyUp}
-                    >
-                        Control Layer: Canvas API Not Supported
-                    </canvas>
+                        onKeyUp={_handleOnKeyUp} />
                     <canvas
                         ref={overlayCanvasRef}
                         id={`${id}_overlay_layer`}
                         className={`layer canvas-layer-overlay`}
                         width={properties.base_dims.w}
                         height={properties.base_dims.h}
-                    >
-                        Markup Layer: Canvas API Not Supported
-                    </canvas>
+                    />
                     <canvas
                         ref={viewCanvasRef}
                         id={`${id}_view_layer`}
                         className={`layer canvas-layer-view${signal !== 'loaded' && !inputImage ? 'hidden' : ''}`}
                         width={properties.base_dims.w}
                         height={properties.base_dims.h}
-                    >
-                        Image Layer: Canvas API Not Supported
-                    </canvas>
+                    />
                     <canvas
                         ref={imageCanvasRef}
                         id={`${id}_render_layer`}
                         className={`layer canvas-layer-image hidden`}
                         width={properties.original_dims.w}
                         height={properties.original_dims.h}
-                    >
-                        Image Layer: Canvas API Not Supported
-                    </canvas>
+                    />
                     <canvas
                         ref={scratchCanvasRef}
                         id={`${id}_scratch_layer`}
                         className={`layer canvas-layer-image hidden`}
                         width={properties.original_dims.w}
                         height={properties.original_dims.h}
-                    >
-                        Image Layer: Canvas API Not Supported
-                    </canvas>
+                    />
                     <canvas
                         ref={baseCanvasRef}
                         id={`${id}_base_layer`}
@@ -610,9 +621,17 @@ export const PanelIat = ({
                         width={properties.base_dims.w + 10}
                         height={properties.base_dims.h + 10}
                     >
-                        Base Layer: Canvas API Not Supported
+                        Canvas API Not Supported
                     </canvas>
                 </div>
+                {
+                    inputImage && options.mode === 'crop' &&
+                    <Cropper
+                        properties={properties}
+                        pointer={pointer}
+                        callback={_callback}
+                    />
+                }
                 <ControlPoints
                     properties={properties}
                     otherProperties={otherProperties}

@@ -20,8 +20,7 @@ import File from '../common/file';
  */
 
 const ImageView = ({data, model}) => {
-
-    const { file={}, metadata={}, label='' } = data || {};
+    const { node={}, file={}, metadata={}, label='', owner={} } = data || {};
     return (
         <>
             <Accordion
@@ -30,11 +29,18 @@ const ImageView = ({data, model}) => {
                 hasDependents={true}
                 open={false}
             >
-                <MetadataView model={model} metadata={metadata} file={file} />
+                <MetadataView
+                    model={model}
+                    owner={owner}
+                    node={node}
+                    metadata={metadata}
+                    file={file}
+                />
             </Accordion>
             <File
                 data={data}
                 scale={'medium'}
+                owner={owner}
             />
         </>
     )

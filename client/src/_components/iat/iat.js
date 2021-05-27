@@ -14,14 +14,15 @@ import { moveAt, moveStart, moveEnd } from './transform.iat';
 import { UserMessage } from '../common/message';
 import { filterKeyDown, filterKeyUp } from './panel.controls.iat';
 import { loadImageData } from './loader.iat';
+import { addNode } from '../../_services/session.services.client';
 
 /**
  * Default settings.
  * - default canvas dimensions
  */
 
-const DEFAULT_DIMS_X = 450;
-const DEFAULT_DIMS_Y = 400;
+const DEFAULT_DIMS_W = 450;
+const DEFAULT_DIMS_H = 400;
 
 /**
  * Canvas API image editor component.
@@ -46,19 +47,23 @@ const Iat = () => {
     // global panel options
     const [options, setOptions] = React.useState({
         mode: 'default',
-        controlPtMaw: 4,
-        magnifyZoom: 4,
+        controlPtMax: 4,
+        magnifyZoom: 3,
         ptrRadius: 20,
         swap: false,
+        maxCanvasWidth: 600,
+        maxCanvasHeight: 600,
+        maxImageWidth: 20000,
+        maxImageHeight: 20000,
         formats: [
             { label: 'png', value: 'image/png'},
             { label: 'jpeg', value: 'image/jpeg'},
             { label: 'tiff', value: 'image/tiff'}
         ],
         blobQuality: 0.95,
-        defaultw: DEFAULT_DIMS_X,
-        defaultY: DEFAULT_DIMS_Y,
-        status: ['empty', 'load', 'render', 'redraw', 'reset', 'loading', 'loaded', 'save', 'error']
+        defaultW: DEFAULT_DIMS_W,
+        defaultH: DEFAULT_DIMS_H,
+        status: ['empty', 'load', 'render', 'draw', 'clear', 'data', 'reset', 'loading', 'loaded', 'save', 'error']
     });
 
     // loading status state
@@ -78,7 +83,7 @@ const Iat = () => {
         onMouseDown: moveStart,
         onMouseMove: moveAt,
         onMouseUp: moveEnd,
-        onMouseOver: ()=>{},
+        onMouseOut: moveEnd,
         onKeyDown: filterKeyDown,
         onKeyUp: filterKeyUp,
     });
@@ -86,17 +91,16 @@ const Iat = () => {
     // initialize error/info messages
     const [message, setMessage] = React.useState(null);
 
-    // set image selection state
-    const [selection, setSelection] = React.useState([]);
-
     // initialize menu dialog toggle
     const [dialogToggle, setDialogToggle] = React.useState(null);
 
-    // get query parameter for master option
-    // - must correspond to a modern image file ID
-    // const input1ImgID = getQuery('input1') || '';
-    const input2ImgID = getQuery('input2') || '';
-    const masterID = getQuery('master') || '';
+    // get query parameter for input file ID
+    // - must correspond to a file ID
+    // - must correspond to a file type
+    const input1FileID = getQuery('input1') || '';
+    const input1TypeID = getQuery('type1') || '';
+    const input2FileID = getQuery('input2') || '';
+    const input2TypeID = getQuery('type2') || '';
 
     /**
      * Load initial input image data (if requested)
@@ -134,10 +138,9 @@ const Iat = () => {
 
         // Initialize IAT from input parameters
         // - load input image (only if not currently loaded)
-        // - get available historic image selection for given modern capture image
-        if (masterID && !input2) {
+        if (input2FileID && !input2) {
             setSignal2('loading');
-            router.get(createNodeRoute('modern_images', 'master', masterID))
+            router.get(createNodeRoute(input2TypeID, 'show', input2FileID))
                 .then(res => {
                     if (_isMounted.current) {
                         if (!res || res.error) {
@@ -148,23 +151,24 @@ const Iat = () => {
                             );
                         }
                         const { response = {} } = res || {};
-                        const { data = {}, message = {} } = response || {};
+                        const { data = {}, message = {}, path={} } = response || {};
                         setMessage(message);
 
-                        // get capture data (if available)
-                        const { historic_captures = [], modern_capture = {} } = data || {};
-                        setSelection(historic_captures);
+                        // store node path to file in navigator
+                        Object.keys(path)
+                            .filter(key => path[key].hasOwnProperty('node'))
+                            .forEach(key => addNode(path[key].node.id));
 
                         // download image to panel data state
-                        loadImageData(
-                            initPanel(panel2ID, panel2Label, modern_capture), _callback).catch(_callback);
+                        loadImageData(initPanel(panel2ID, panel2Label, data), _callback)
+                            .catch(_callback);
                     }
                 });
         }
         return () => {
             _isMounted.current = false;
         };
-    }, [input2, input2ImgID, masterID, router, setSelection, setPanel2Data, setSignal2]);
+    }, [input2, input1FileID, input2FileID, router, setPanel2Data, setSignal2]);
 
     return <>
         <div className={'canvas-board'}>
@@ -189,10 +193,8 @@ const Iat = () => {
                 setDialogToggle={setDialogToggle}
                 onMouseUp={methods.onMouseUp}
                 onMouseDown={methods.onMouseDown}
-                onMouseOver={methods.onMouseOver}
                 onMouseOut={methods.onMouseOut}
                 onMouseMove={methods.onMouseMove}
-                onClick={methods.onClick}
                 onKeyDown={methods.onKeyDown}
                 onKeyUp={methods.onKeyUp}
                 hidden={panel1Data.hidden}
@@ -208,7 +210,6 @@ const Iat = () => {
                 setImage1={setImg1Data}
                 image2={img2Data}
                 setImage2={setImg2Data}
-                selection={selection}
                 setMethods={setMethods}
                 dialogToggle={dialogToggle}
                 setDialogToggle={setDialogToggle}
@@ -230,10 +231,8 @@ const Iat = () => {
                 otherProperties={panel1Data}
                 setMessage={setMessage}
                 setDialogToggle={setDialogToggle}
-                onClick={methods.onClick}
                 onMouseUp={methods.onMouseUp}
                 onMouseDown={methods.onMouseDown}
-                onMouseOver={methods.onMouseOver}
                 onMouseOut={methods.onMouseOut}
                 onMouseMove={methods.onMouseMove}
                 onKeyDown={methods.onKeyDown}
@@ -273,8 +272,8 @@ export const initPanel = (panelID, panelLabel='', inputData = null) => {
         hidden: false,
         bounds: {},
         original_dims: { w: 0, h: 0 },
-        base_dims: { w: DEFAULT_DIMS_X, h: DEFAULT_DIMS_Y },
         image_dims: { w: 0, h: 0 },
+        base_dims: { w: DEFAULT_DIMS_W, h: DEFAULT_DIMS_H },
         source_dims: { x: 0, y: 0, w: 0, h: 0 },
         render_dims: { x: 0, y: 0, w: 0, h: 0 },
         files_id: id,
@@ -287,6 +286,7 @@ export const initPanel = (panelID, panelLabel='', inputData = null) => {
         image_state: image_state,
         file: fileData,
         url: null,
+        lowResDataURL: null,
         dataURL: null,
         pts: [],
         other_panel: false

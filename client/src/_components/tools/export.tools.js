@@ -7,7 +7,7 @@
 
 import React from "react";
 import Download from '../common/download';
-import Message, { UserMessage } from '../common/message';
+import { UserMessage } from '../common/message';
 import Input from '../common/input';
 import Button from '../common/button';
 
@@ -56,6 +56,7 @@ const Exporter = ({setToggle}) => {
                 <ul>
                     <li>
                         <Download
+                            filename ={`mlp_export.${format.value}`}
                             type={'mlp_export'}
                             format={format.value}
                             label={`Export as ${ format.label }`}

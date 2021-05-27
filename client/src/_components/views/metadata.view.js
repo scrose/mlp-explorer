@@ -12,7 +12,6 @@ import Button from '../common/button';
 import Accordion from '../common/accordion';
 import MenuEditor from '../editor/menu.editor';
 import { useData } from '../../_providers/data.provider.client';
-import ComparisonsView from './comparisons.view';
 
 // generate random key
 const keyID = genID();
@@ -21,7 +20,6 @@ const keyID = genID();
  * Attached node data component.
  * - renders metadata attached to primary node
  * - default: metadata shown in table
- * - comparisons: side-by-side thumbnails
  *
  * @public
  * @param {Object} owner

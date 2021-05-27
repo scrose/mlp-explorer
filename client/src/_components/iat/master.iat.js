@@ -30,22 +30,22 @@ export const MasterImage = ({
                               }) => {
 
     // get file metadata
-    const { value='' } = file || {};
-    const { type='' } = value || {};
+    const { type='', size='' } = file || {};
 
     // prepare capture metadata
     const historicMetadata = {
         capture: 'Historic',
+        mime_type: panel1.mime_type,
         filename: panel1.filename,
-        width: panel1.image_dims.w,
-        height: panel1.image_dims.h
+        width: panel1.source_dims.w,
+        height: panel1.source_dims.h
     }
     const modernMetadata = {
         capture: 'Modern',
         mime_type: type,
         filename: panel2.filename,
-        width: panel2.image_dims.w,
-        height: panel2.image_dims.h
+        width: panel2.source_dims.w,
+        height: panel2.source_dims.h
     }
 
     return <>
@@ -71,7 +71,10 @@ export const MasterImage = ({
                             value: file,
                             filename: panel2.filename
                         }]}
-                        callback={(err, model, id) => {console.log(err, model, id); setToggle(null)}}
+                        callback={(err, model, id) => {
+                            console.log(err, model, id);
+                            setToggle(null)
+                        }}
                     />
                 </li>
             </ul>

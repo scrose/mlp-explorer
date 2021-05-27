@@ -11,15 +11,6 @@ import { UserMessage } from '../common/message';
 import Input from '../common/input';
 
 /**
- * Dimension limits
- */
-
-const MAX_CANVAS_WIDTH = 600;
-const MAX_CANVAS_HEIGHT = 500;
-const MAX_IMAGE_WIDTH = 20000;
-const MAX_IMAGE_HEIGHT = 20000;
-
-/**
  * Adjustments to layer dimensions.
  *
  * @public
@@ -30,6 +21,7 @@ export const Resizer = ({
                             id = '',
                             properties,
                             setToggle,
+                            options,
                             callback,
                         }) => {
 
@@ -41,25 +33,32 @@ export const Resizer = ({
             w: properties.image_dims.w,
             h: properties.image_dims.h
         });
-    const [renderDims, setRenderDims] = React.useState({
-            x: properties.render_dims.x,
-            y: properties.render_dims.y,
-            w: properties.render_dims.w,
-            h: properties.render_dims.h
-        });
 
     // error state
     const [error, setError] = React.useState(null);
 
     // Handle dimensional change submission
     const _handleUpdate = () => {
-        // update canvases
         callback({
             status: 'render',
             props: {
                 base_dims: canvasDims,
-                image_dims: imageDims,
-                render_dims: renderDims,
+                image_dims: {
+                    w: imageDims.w,
+                    h: imageDims.h,
+                },
+                source_dims: {
+                    w: properties.image_dims.w,
+                    h: properties.image_dims.h,
+                    x: 0,
+                    y: 0
+                },
+                render_dims: {
+                    w: imageDims.w,
+                    h: imageDims.h,
+                    x: 0,
+                    y: 0
+                }
             },
         });
         setToggle(false);
@@ -78,23 +77,15 @@ export const Resizer = ({
             data={imageDims}
             update={setImageDims}
             setError={setError}
-            max={{ w: MAX_IMAGE_WIDTH, h: MAX_IMAGE_HEIGHT }}
+            max={{ w: options.maxImageWidth, h: options.maxImageHeight }}
         />
-        {/*<ResizeOptions*/}
-        {/*    id={id}*/}
-        {/*    label={'Crop Size'}*/}
-        {/*    data={cropDims}*/}
-        {/*    update={setCropDims}*/}
-        {/*    setError={setError}*/}
-        {/*    max={{ w: Math.max(MAX_CANVAS_WIDTH), h: MAX_CANVAS_HEIGHT }}*/}
-        {/*/>*/}
         <ResizeOptions
             id={id}
             label={'Canvas Size'}
             data={canvasDims}
             update={setCanvasDims}
             setError={setError}
-            max={{ w: MAX_CANVAS_WIDTH, h: MAX_CANVAS_HEIGHT }}
+            max={{ w: options.maxCanvasWidth, h: options.maxCanvasHeight }}
         />
         <fieldset className={'submit h-menu'}>
             <ul>
@@ -127,11 +118,8 @@ export const ResizeOptions = ({
                                   id = '',
                                   label = '',
                                   data = {},
-                                  update = () => {
-                                  },
-                                  updateDependent= () => {},
-                                  setError = () => {
-                                  },
+                                  update = () => {},
+                                  setError = () => {},
                                   max = { w: 300, h: 300 },
                               }) => {
 
@@ -196,13 +184,6 @@ export const ResizeOptions = ({
 
         // update data
         _filterDims(_x, _y);
-
-        // update secondary dimensions (if exist)
-        // (e.g. adjust crop dimensions to be <= canvas dimensions)
-        updateDependent({
-            w: Math.max(data.w, max.w),
-            h: Math.max(data.h, max.h)
-        });
 
         // update final dimensions
         update({ w: _x, h: _y });

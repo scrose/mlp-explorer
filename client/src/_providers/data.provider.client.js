@@ -58,15 +58,18 @@ function DataProvider(props) {
             file = {},
             files={},
             dependents={},
-            attached={}} = dataObj || {};
+            owner={},
+            attached={},
+            status={}
+        } = dataObj || {};
         const type = node.type || file.file_type || '';
         const id = node.id || file.id || '';
 
         // get current owner
         const {owner_id='', owner_type=''} = node || {};
-        const owner = owner_type && owner_id
-            ? { id: owner_id, type: owner_type }
-            : null;
+        const ownerData = owner_type && owner_id
+                ? { id: owner_id, type: owner_type }
+                : owner;
 
         // check if label is empty, if so, use root node label
         const labelAlt = label ? label : getRootNode(path).label;
@@ -81,7 +84,8 @@ function DataProvider(props) {
             files: files,
             dependents: dependents,
             attached: attached,
-            owner: owner
+            owner: ownerData,
+            status: status
         }
     }
 
@@ -192,7 +196,8 @@ function DataProvider(props) {
         label,
         metadata,
         dependents,
-        owner
+        owner,
+        status
     } = destructure(apiData);
 
     // provide current path node IDs
@@ -217,6 +222,7 @@ function DataProvider(props) {
                 type,
                 id,
                 owner,
+                status,
                 metadata,
                 attributes,
                 dependents,

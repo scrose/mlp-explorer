@@ -197,17 +197,17 @@ export default function ModelController(nodeType) {
             // filter metadata through importer
             // - saves any attached files to library
             // - collates metadata
-            const metadata = await importer.receive(req, owner_id, type);
+            const received = await importer.receive(req, owner_id, type);
 
             // check if files are present
-            const hasFiles = Object.keys(metadata.files).length > 0;
+            const hasFiles = Object.keys(received.files).length > 0;
 
             // insert metadata with/without file uploads
             // - Option (A) import: use importer to save file stream data and insert file metadata
             // - Option (B) insert: upload metadata only
             const resData = hasFiles
-                ? await fserve.insert(metadata, model.name)
-                : await mserve.insert(new Model(metadata.data));
+                ? await fserve.insert(received, model.name)
+                : await mserve.insert(new Model(received.data));
 
             // get ID for new item
             const { nodes_id = null } = resData || {}

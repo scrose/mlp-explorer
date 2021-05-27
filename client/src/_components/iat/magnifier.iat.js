@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import crosshair from '../svg/crosshair.svg';
 
 /**
  * Defines download local file button. Expects callback to retrieve data
@@ -19,10 +20,11 @@ import React from 'react';
  * @return {JSX.Element}
  */
 
-export const Magnifier = ({ pointer, properties, options})  => {
+export const Magnifier = ({ canvas, pointer, properties, options }) => {
 
     // canvas magnifier reference
     const magnifierRef = React.useRef(null);
+    const crosshairRef = React.useRef(null);
 
     /**
      * Image region magnifier.
@@ -46,21 +48,30 @@ export const Magnifier = ({ pointer, properties, options})  => {
          * @private
          */
 
-        function _init () {
+        function _init() {
             if (!magnifierRef.current.style.backgroundImage) {
+                // load data url from canvas
+                const bgDataURL = canvas.toDataURL('image/jpeg', 1.0);
                 // set magnification parameters
                 const bgSizeX = properties.base_dims.w * options.magnifyZoom;
                 const bgSizeY = properties.base_dims.h * options.magnifyZoom;
+
+                // update crosshair style properties
+                crosshairRef.current.style.left = (pointer.x - w) + 'px';
+                crosshairRef.current.style.top = (pointer.y - h) + 'px';
+                crosshairRef.current.style.backgroundImage = `url('${crosshair}')`;
+
+                // update magnifier style properties
                 magnifierRef.current.style.left = (pointer.x - w) + 'px';
                 magnifierRef.current.style.top = (pointer.y - h) + 'px';
-                magnifierRef.current.style.backgroundImage = `url('${properties.dataURL}')`;
+                magnifierRef.current.style.backgroundImage = `url('${bgDataURL}')`;
                 magnifierRef.current.style.backgroundSize = `${bgSizeX}px ${bgSizeY}px`;
                 magnifierRef.current.style.visibility = 'visible';
             }
         }
 
         // apply magnifier over region
-        if (pointer.magnify && properties.dataURL) {
+        if (pointer.magnify && pointer.x !== 0 && pointer.y !== 0) {
             _init();
 
             const x = pointer.x;
@@ -69,24 +80,32 @@ export const Magnifier = ({ pointer, properties, options})  => {
             magnifierRef.current.style.left = (x - w) + 'px';
             magnifierRef.current.style.top = (y - h) + 'px';
 
+            crosshairRef.current.style.left = (x - w) + 'px';
+            crosshairRef.current.style.top = (y - h) + 'px';
+
             /* Display what the magnifier glass "sees": */
             magnifierRef.current.style.backgroundPosition =
                 '-' + ((x * zoom) - w) + 'px -' + ((y * zoom) - h) + 'px';
-        }
-        else {
+        } else {
             magnifierRef.current.style.backgroundImage = '';
             magnifierRef.current.style.backgroundSize = '';
             magnifierRef.current.style.visibility = 'hidden';
         }
 
-    }, [pointer, properties, options])
+    }, [canvas, pointer, properties, options]);
 
 
     // render canvas magnifier
-    return <div
+    return <>
+        <div
+            ref={crosshairRef}
+            className={`canvas-magnifier-crosshair`}
+        />
+        <div
             ref={magnifierRef}
             className={`canvas-magnifier`}
-           />
+        />
+    </>;
 };
 
 export default Magnifier;

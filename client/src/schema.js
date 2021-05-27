@@ -22,7 +22,7 @@ export const schema = {
     routes: {
         '/': {
             name: 'dashboard',
-            label: 'Dashboard'
+            label: 'Welcome to the Mountain Legacy Explorer'
         },
         '/logout': {
             name: 'logout',
@@ -201,7 +201,11 @@ export const schema = {
                 order: 1,
                 label: "Projects",
                 singular: "Project",
-                dependents: ['stations', 'historic_captures', 'modern_captures'],
+                dependents: [
+                    'stations',
+                    'historic_captures',
+                    'modern_captures'
+                ],
                 files: false
             },
             fieldsets: [
@@ -257,7 +261,15 @@ export const schema = {
                 order: 3,
                 label: "Surveys",
                 singular: "Survey",
-                dependents: ['survey_seasons', 'historic_captures', 'modern_captures']
+                dependents: [
+                    'survey_seasons',
+                    'historic_captures',
+                    'modern_captures',
+                    'supplemental_images'
+                ],
+                files: [
+                    'supplemental_images'
+                ]
             },
             fieldsets: [
                 {
@@ -291,7 +303,11 @@ export const schema = {
                     'historic_captures',
                     'modern_captures',
                     'glass_plate_listings',
-                    'maps'
+                    'maps',
+                    'supplemental_images'
+                ],
+                files: [
+                    'supplemental_images'
                 ]
             },
             fieldsets: [
@@ -344,7 +360,16 @@ export const schema = {
                 order: 5,
                 label: "Stations",
                 singular: "Station",
-                dependents: ['modern_visits', 'modern_captures']
+                dependents: [
+                    'modern_visits',
+                    'modern_captures',
+                    'supplemental_images',
+                    'metadata_files'
+                ],
+                files: [
+                    'supplemental_images',
+                    'metadata_files'
+                ]
             },
             fieldsets: [
                 {
@@ -450,7 +475,14 @@ export const schema = {
                 dependents: [
                     'locations',
                     'participant_groups',
-                    'modern_captures']
+                    'modern_captures',
+                    'supplemental_images',
+                    'metadata_files'
+                ],
+                files: [
+                    'metadata_files',
+                    'supplemental_images'
+                ]
             },
             fieldsets: [
                 {
@@ -779,7 +811,10 @@ export const schema = {
                 label: "Locations",
                 prefix: "Location",
                 singular: "Location",
-                dependents: ['modern_captures'],
+                dependents: [
+                    'modern_captures',
+                    'supplemental_images'
+                ],
                 files: ['supplemental_images']
             },
             fieldsets: [
@@ -854,7 +889,6 @@ export const schema = {
                     file_size: {
                         render: 'filesize',
                         label: 'File size',
-
                     },
                     x_dim: {
                         render: 'imgsize',
@@ -977,7 +1011,13 @@ export const schema = {
                     legend: 'Image Details',
                     restrict: ['show', 'edit'],
                     filename: {
+                        render: 'text',
                         label: 'Filename',
+                        restrict: ['show']
+                    },
+                    mimetype: {
+                        render: 'text',
+                        label: 'MIME Type',
                         restrict: ['show']
                     },
                     file_size: {
@@ -1120,7 +1160,8 @@ export const schema = {
                     image_type: {
                         label: 'Image Type',
                         render: 'select',
-                        reference: 'image_types'
+                        reference: 'image_types',
+                        validate: ['isRequired']
                     },
                     capture_datetime: {
                         label: 'Capture Datetime',
@@ -1186,27 +1227,60 @@ export const schema = {
             },
             fieldsets: [
                 {
-                    restrict: ['edit'],
-                    files_id: {
-                        render: 'hidden'
-                    }
-                },
-                {
                     legend: 'File Upload',
                     restrict: ['new'],
                     metadata_files: {
                         label: 'Metadata File (PDF)',
                         render: 'file',
                         validate: ['filesSelected']
-                    }
+                    },
+                    type: {
+                        label: 'Metadata Type',
+                        render: 'select',
+                        reference: 'metadata_file_types',
+                        validate: ['isRequired']
+                    },
+                },
+                {
+                    legend: 'Edit Metadata Type',
+                    restrict: ['edit'],
+                    files_id: {
+                        render: 'hidden'
+                    },
+                    type: {
+                        label: 'Metadata Type',
+                        render: 'select',
+                        reference: 'metadata_file_types',
+                        validate: ['isRequired']
+                    },
                 },
                 {
                     legend: 'File Details',
+                    restrict: ['show'],
+                    filename: {
+                        label: 'Filename',
+                        render: 'int'
+                    },
                     type: {
-                        label: 'Type',
-                        render: 'select',
+                        label: 'Metadata Type',
                         reference: 'metadata_file_types'
-                    }
+                    },
+                    mimetype: {
+                        label: 'MIME Type',
+                        render: 'text'
+                    },
+                    file_size: {
+                        render: 'filesize',
+                        label: 'File size',
+                    },
+                    created_at: {
+                        label: 'Created',
+                        render: 'datetime',
+                    },
+                    updated_at: {
+                        label: 'Last Updated',
+                        render: 'datetime',
+                    },
                 }]
         },
         image_states: {

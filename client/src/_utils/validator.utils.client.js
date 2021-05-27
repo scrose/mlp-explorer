@@ -87,7 +87,6 @@ const _inputValidations =
          */
 
         isMultiSelected: (value) => {
-            console.log('!!!!', value)
             return !!(Array.isArray(value) && value.length > 0);
         },
 

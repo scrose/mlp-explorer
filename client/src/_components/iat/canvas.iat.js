@@ -6,6 +6,7 @@
  */
 
 import { scaleToFit } from './transform.iat';
+import { eraseOverlay } from './graphics.iat';
 
 /**
  * Resets image data to source data.
@@ -19,21 +20,39 @@ export const reset = async (properties, callback) => {
     callback({
         status: 'reset',
         props: {
-            image_dims: {
-                w: properties.original_dims.w,
-                h: properties.original_dims.h,
-            },
             source_dims: {
                 x: 0, y: 0,
                 w: properties.original_dims.w,
                 h: properties.original_dims.h,
             },
+            image_dims: {
+                x: 0,
+                y: 0,
+                w: properties.original_dims.w,
+                h: properties.original_dims.h,
+            },
             render_dims: {
-                x: 0, y: 0,
+                x: 0,
+                y: 0,
                 w: properties.original_dims.w,
                 h: properties.original_dims.h,
             },
         },
+    });
+};
+
+/**
+ * Resets image data to source data but keeps current render dimensions.
+ *
+ * @public
+ * @param properties
+ * @param callback
+ */
+
+export const undo = async (properties, callback) => {
+    callback({
+        status: 'reset',
+        props: {},
     });
 };
 
@@ -47,7 +66,8 @@ export const reset = async (properties, callback) => {
 
 export const erase = async (properties, callback) => {
     callback({
-        status: 'redraw',
+        status: 'draw',
+        draw: eraseOverlay,
         props: { pts: [] }
     });
 };
@@ -72,12 +92,11 @@ export const fit = async (properties, callback) => {
 
     // update panel properties
     return callback({
-        status: 'render',
+        status: 'view',
         props: {
-            offset: { x: 0, y: 0 },
-            crop_dims: dims,
             render_dims: {
-                x: 0, y: 0,
+                x: 0,
+                y: 0,
                 w: dims.w,
                 h: dims.h
             },
@@ -95,14 +114,8 @@ export const fit = async (properties, callback) => {
 
 export const expand = async (properties, callback) => {
     return callback({
-        status: 'render',
+        status: 'view',
         props: {
-            source_dims: {
-                x: 0,
-                y: 0,
-                w: properties.image_dims.w,
-                h: properties.image_dims.h
-            },
             render_dims: {
                 x: 0,
                 y: 0,

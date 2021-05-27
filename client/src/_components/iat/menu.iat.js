@@ -10,8 +10,7 @@ import Button from '../common/button';
 import { getError } from '../../_services/schema.services.client';
 import Dialog from '../common/dialog';
 import {
-    alignImages, cropBound, cropEnd, cropStart,
-    moveAt,
+    alignImages, moveAt, moveEnd,
     moveStart,
 } from './transform.iat';
 import { ImageSelector } from './selector.iat';
@@ -22,6 +21,7 @@ import { deselectControlPoint, moveControlPoint, selectControlPoint } from './po
 import { filterKeyDown } from './panel.controls.iat';
 import { MasterImage } from './master.iat';
 import { useUser } from '../../_providers/user.provider.client';
+import { cropBound, cropEnd, cropStart } from './cropper.iat';
 
 /**
  * No operation.
@@ -104,7 +104,7 @@ export const MenuIat = ({
      * @return {JSX.Element}
      */
 
-    const _showDialog = (dialog) => {
+    const _handleDialog = (dialog) => {
         const {
             type = '',
             id = '',
@@ -113,6 +113,18 @@ export const MenuIat = ({
             callback = ()=>{},
         } = dialog || {};
         return _menuDialogs.hasOwnProperty(type) && _menuDialogs[type](id, label, callback, data);
+    };
+
+    /**
+     * Cancel menu request.
+     *
+     * @private
+     * @return {JSX.Element}
+     */
+
+    const _handleCancel = (id) => {
+        id === panel1.id ? setSignal1('loaded') : setSignal2('loaded');
+        setDialogToggle(null);
     };
 
     /**
@@ -128,11 +140,10 @@ export const MenuIat = ({
                 key={`${id}_dialog_select_image`}
                 title={`Select Image for ${label}`}
                 callback={callback}
-                setToggle={setDialogToggle}>
+                setToggle={_handleCancel.bind(id)}>
                 <ImageSelector
-                    panelID={id}
-                    panelLabel={label}
-                    selection={selection}
+                    properties={id === panel1.id ? panel1 : panel2}
+                    otherProperties={id === panel1.id ? panel2 : panel1}
                     options={options}
                     setToggle={setDialogToggle}
                     callback={callback}
@@ -143,7 +154,7 @@ export const MenuIat = ({
             return <Dialog
                         key={`${id}_dialog_master`}
                         title={`Confirm Mastered Image`}
-                        setToggle={setDialogToggle}
+                        setToggle={_handleCancel.bind(id)}
                     >
                         <MasterImage
                             panel1={panel1}
@@ -158,7 +169,7 @@ export const MenuIat = ({
             return <Dialog
                 key={`${menuID}_dialog_save_image`}
                 title={`Save ${label} Image Data as File`}
-                setToggle={setDialogToggle}>
+                setToggle={_handleCancel.bind(id)}>
                 <SaveAs options={options.formats}
                         setToggle={setDialogToggle}
                         callback={callback}
@@ -169,11 +180,12 @@ export const MenuIat = ({
             return <Dialog
                 key={`${menuID}_dialog_resize`}
                 title={`Resize ${label}`}
-                setToggle={setDialogToggle}>
+                setToggle={_handleCancel.bind(id)}>
                 <Resizer
                     id={id}
                     properties={id === panel1.id ? panel1 : panel2}
                     setToggle={setDialogToggle}
+                    options={options}
                     callback={callback}
                 />
             </Dialog>;
@@ -206,9 +218,13 @@ export const MenuIat = ({
                     ...data,
                     onMouseDown: moveStart,
                     onMouseMove: moveAt,
-                    onMouseUp: moveStart,
+                    onMouseUp: moveEnd,
+                    onMouseOut: moveEnd,
                     onKeyDown: filterKeyDown,
                 }));
+                // clear panel markup
+                setSignal1('clear');
+                setSignal2('clear');
             },
 
             // [mode] select control points on canvas
@@ -222,6 +238,9 @@ export const MenuIat = ({
                     onMouseOut: deselectControlPoint,
                     onKeyDown: filterKeyDown,
                 }));
+                // clear panel markup
+                setSignal1('clear');
+                setSignal2('clear');
             },
 
             // [mode] crop image
@@ -235,6 +254,9 @@ export const MenuIat = ({
                     onMouseOut: cropEnd,
                     onKeyDown: filterKeyDown,
                 }));
+                // clear panel markup
+                setSignal1('clear');
+                setSignal2('clear');
             },
 
             // [upload] upload mastered image to MLP library
@@ -244,7 +266,7 @@ export const MenuIat = ({
 
             // [transform] image alignment
             align: () => {
-                let result = alignImages(image1, image2, panel1.pts, panel2.pts, options);
+                let result = alignImages(image1, image2, panel1, panel2, options);
                 // handle errors
                 if (result.error) {
                     return _handleError(result.error);
@@ -261,6 +283,9 @@ export const MenuIat = ({
                     setMessage({ msg: getError('emptyCanvas', 'canvas') });
                     return null;
                 }
+                // load data URLs
+                setSignal1('data');
+                setSignal2('data');
                 // open image comparator
                 setDialogToggle({ type: 'compareImages' });
             },
@@ -294,20 +319,6 @@ export const MenuIat = ({
                     <li>
                         <Button
                             disabled={!image1 && !image2}
-                            title={'Select control coordinates.'}
-                            label={'Mark'}
-                            className={options.mode === 'select' ? 'active' : ''}
-                            icon={'crosshairs'}
-                            onClick={() => {
-                                // clear messages
-                                setMessage(null);
-                                _filterMethods('selectPoints');
-                            }}
-                        />
-                    </li>
-                    <li>
-                        <Button
-                            disabled={!image1 && !image2}
                             title={'Crop image.'}
                             label={'Crop'}
                             className={options.mode === 'crop' ? 'active' : ''}
@@ -316,6 +327,20 @@ export const MenuIat = ({
                                 // clear messages
                                 setMessage(null);
                                 _filterMethods('cropper');
+                            }}
+                        />
+                    </li>
+                    <li>
+                        <Button
+                            disabled={!image1 && !image2}
+                            title={'Select control coordinates.'}
+                            label={'Mark'}
+                            className={options.mode === 'select' ? 'active' : ''}
+                            icon={'crosshairs'}
+                            onClick={() => {
+                                // clear messages
+                                setMessage(null);
+                                _filterMethods('selectPoints');
                             }}
                         />
                     </li>
@@ -347,7 +372,7 @@ export const MenuIat = ({
                     <li>
                         <Button
                             disabled={!image1 || !image2}
-                            label={'Overlay'}
+                            label={'Compare'}
                             title={'Compare images using overlay.'}
                             onClick={() => {
                                 // clear messages
@@ -361,7 +386,7 @@ export const MenuIat = ({
             <OptionsMenu option={menuToggle} />
         </div>
         {
-            _showDialog(dialogToggle)
+            _handleDialog(dialogToggle)
         }
     </>;
 };

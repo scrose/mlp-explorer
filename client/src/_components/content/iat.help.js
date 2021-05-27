@@ -18,13 +18,13 @@ import Icon from '../common/icon';
 export const iatStartHelp = <>
     <h4>Getting Started</h4>
     <p>
-        The Image Analysis Toolkit (IAT) is an image editor and annotator based on the
-        standalone JavaScript application of the same name developed by Michael Whitney in 2016.
-        Very much in development, this second generation IAT does not yet include all of the
-        original IAT features, though the long-term aim is for full integration of the application in Explorer.
+        The Image Analysis Toolkit (IAT) is an image editor and visualizer that allows you to work directly with
+        the images from the Mountain Legacy collection, or with other images uploaded from your computer.
+        Based on a similar application developed by Michael Whitney, this second generation IAT is very much in development,
+        and not all of the original IAT features have been integrated.
     </p>
         <ul className={'list'}>
-            <li><b>Basic Features:</b> Image resizing, cropping and translation. Files can be saved.</li>
+            <li><b>Basic Features:</b> Image resizing, cropping and translation. Files can also be saved.</li>
             <li><b>Comparative visualization:</b> Images can be viewed side-by-side and overlaid.</li>
             <li><b>Image Alignment:</b> Images can be aligned using user-selected control points.</li>
             <li><b>Image Registration:</b> Authenticated users can register aligned (mastered) images
@@ -32,7 +32,7 @@ export const iatStartHelp = <>
             </li>
             <li><b>Proposed Features:</b> Advanced markup, mask overlays, image classification and segmentation.</li>
         </ul>
-    <h5>Setup</h5>
+    <h5>Panel Display</h5>
     <p>
         The IAT consists of two image panels, each of which can display a single image on its view canvas.
         To load an image into a panel:
@@ -41,7 +41,8 @@ export const iatStartHelp = <>
             <li>
                 <b>Local Filesystem:</b>
                 <ol className={'list'}>
-                    <li>Select the Load <Icon type={'load'} /> control to open the file selector.</li>
+                    <li>Click the Load <Icon type={'load'} /> button in the panel controls to open the file selector.</li>
+                    <li>Click  <Icon type={'load'} /> control to open the file selector.</li>
                 </ol>
             </li>
         </ul>
@@ -149,25 +150,51 @@ export const iatBackgroundHelp = <>
     */
 
     export const alignmentIATHelp = <>
+        <h4>Image Alignment</h4>
+        <p>
+            Image Alignment is the process of finding the spatial mapping, i.e.
+            mapping elements in one image into meaningful correspondence with elements in
+            a second image. IAT offers an alignment tool for image pairs that uses user-selected
+            control points to map coordinates in one image to another. These control points
+            are used to compute a transformation matrix that warps one of the images to spatially
+            correspond to the other.
+        </p>
 
-    <h4>Image Alignment</h4>
+        <h5>Loading the Image Pair</h5>
+        <p>
+            To align images, first load the control and reference images loaded either from the (1) the local filesystem; or (2) by
+            selecting an image from the API. The alignment transformation is applied to the reference image
+            loaded in the right panel; the image in the left panel is the control image, and does not change.
+            By convention, we want to transform the modern repeat image, so we load it into panel 2, and load the
+            historic image in panel 1.
+        </p>
+
+    <h5>Selecting Control Points</h5>
     <p>
-        Start using the following basic features for image visualizations and pixel manipulations.
+        To align images loaded in the canvas, you must select four control points in each image for a total of eight points.
+        Control points are coordinate pairs that map from one image to another and are used to warp the image to match the perspective.
     </p>
+        <ol>
+            <li><b>Select the <Icon type={'crosshairs'} /> Mark mode in the IAT menu.</b></li>
+            <li><b>Select four points for each images.</b> Your control point selections are shown as orange crosshairs
+                on the image numbered in the order they were created. Any stored points are displayed below the panel.
+                Note that pressing the shift-key magnifies the mouseover region.
+            </li>
+            <li>You can delete the last control point by clicking the <Icon type={'delete'} /> Delete button.</li>
+            <li>Click "Overlay" to view both sets of control points. Overlay also refreshes control points.</li>
+        </ol>
 
-    <h5>Image Translation</h5>
+    <h5>Align, Adjust, Repeat</h5>
     <p>
-        TBA
-    </p>
-
-    <h5>Resizing Images</h5>
-    <p>
-        TBA
-    </p>
-
-    <h5>Cropping Images</h5>
-    <p>
-        TBA
+        <ol>
+            <li>Once the control points have been selected, <b>Click "Align" in the IAT menu.</b> The
+            image in the right panel will be transformed.</li>
+            <li>You can make adjustments to the alignment by adjusting the locations of the control points and realigning.
+                Click <Icon type={'undo'} /> in the panel control to undo the transformation.
+            </li>
+            <li>You can delete the last control point by clicking the <Icon type={'delete'} /> Delete button.</li>
+            <li>Click "Overlay" to overlay both sets of control points. Overlay also refreshes the panel's control points.</li>
+        </ol>
     </p>
 
 </>;
@@ -180,76 +207,44 @@ export const iatBackgroundHelp = <>
 
     export const iatRegistrationHelp = <>
 
-    <h4>Concepts</h4>
+    <h4>Image Registration</h4>
     <p>
-        The following is not meant to be a full scale overview of the MLP, but rather just enough to get you up to
-        speed and starting using the application.
+        Image Registration is the process of aligning two images of the same scene.
+        The Editor offers registration of images as an option for administrators
+        to upload aligned images to the MLP data store -- specifically, to upload repeat images
+        that have been aligned with a specified historic survey photo of the same scene.
+        Image registration is offered as an optional processing step
+        available for aligned images, in which the modern image is uploaded as a 'mastered' version
+        and indexed to its historic counterpart. Note that the modern repeat image is customarily transformed
+        to align with the historic image.
+    </p>
+    <h5>Preconditions</h5>
+    <p>
+        An image pair can be registered as 'mastered' in the MLP system if it meets the following preconditions:
+        <ol>
+            <li><b>Sorted Capture Image</b> The image loaded in Panel 2 must be modern capture image and
+                it must be sorted (i.e. the image must be attached to a modern capture from a Modern Visit Location).</li>
+            <li><b>Aligned Image</b> It is assumed the image has been aligned with an historic image loaded.</li>
+        </ol>
     </p>
 
-    <h5>What is Repeat Photography?</h5>
+    <h5>Procedure</h5>
     <p>
-        It’s as simple as it sounds. You start with one photo, which was taken at a specific location in a
-        specific direction (azimuth), at a specific time. You repeat this photo when you find that same location,
-        point the camera in the same direction, and press the shutter release of your camera. The big difference
-        between the two photos is temporal. Pretty straight forward.
-
-        Repeat photographs leverage the systematic nature of the original work, allowing researchers to re-photograph
-        the same continuous coverage of the landscape captured by the historic images. Taken together, the historic
-        photo and the modern repeat form an image pair. Through careful interpretation and analysis, MLP image
-        pairs can be used to explore the dynamics and interplay of ecological, climate, and human-induced
-        changes in the landscape. Digital assets include multiple versions of historical digitized images
-        (e.g., unprocessed scan; cropped master), repeat images (RAW, TIFF and various field-useable images), location
-        images, EXIF camera data, survey and MLP field notes and maps.
+        There are multiple workflows to complete an image registration of an existing modern repeat image.
+        The first workflow
+        <ol>
+            <li>
+                <b>Select a Modern Image by either:</b>
+                <ol className={'list'}>
+                    <li>Navigate to the Modern Capture Image info page and select the 'Files' tab. From the files
+                    table, click the <Icon type={'master'} /> icon to open the image in the IAT.</li>
+                    <li>Click the Load <Icon type={'load'} /> button in the panel controls to open the file selector
+                        and select the image.</li>
+                </ol>
+            </li>
+        </ol>
     </p>
 
-    <h5>Historic and Modern Captures</h5>
-    <p>
-        The core artifact of the MLP collection is the Capture, which corresponds to the capture of a view
-        that is unique in location, azimuth, date, and time. For example, if I have a tripod setup, with the
-        camera pointed in a specific direction, take one photo at f/16, 1/50 sec, then take another photo
-        with a different exposure setting, while these two photos look mostly the same, they are different
-        captures because they were taken at different times.
-    </p>
-    <p>The collection has two forms of Captures:</p>
-    <ol>
-        <li><b>Historic Capture</b> A historic capture may be associated with information related to
-            where its glass plate negative is located.
-        </li>
-        <li><b>Modern (Repeat) Capture</b> The exposure settings of a capture are generally known.</li>
-    </ol>
-
-    <h5>Capture Images</h5>
-    <p>
-        A capture is typically not represented by a single image file, but can be represented by many versions
-        of the same image. These versions are called capture images, which have a special property called the
-        image state, which distinguishes the different versions.</p>
-    <p>
-        For example, if a photo is taken and someone writes down the date, time, and location of the photo,
-        a capture is created. If you delete the image file associated with that capture, the capture still
-        technically exists. This case is rare. What’s more common is that an image file, that is associated
-        with a capture, is modified several times in the MLP workflow. Specifically, a capture is initially
-        represented by a raw file (when the Hasselblad is used create the capture, this would be a 3FR file).
-        The raw file would be converted into a tiff file. The tiff file would then be registered (aligned/overlaid)
-        with the historic image, a process that generally involves cropping and slightly rotating the image.
-    </p>
-    <p>
-        To recap, a capture can have zero to many capture images. Each capture image has both an image file
-        and an image state, where the state distinguishes the versions of the image. All the capture images
-        for a specific capture are derived (indirectly or directly) from the same image file (usually a raw file).
-    </p>
-
-    <Image url={''}
-           label={'Figure 1. The relationship between a capture and its capture images shown pictorially. The capture represents the photo taken at a specific time, while the capture images are instances of that same photo, differentiated by image states,image modifications, and file types.'} />
-
-    <h5>Metadata Schema</h5>
-    <p>
-        The MLP Library consists of thousands of captures and historic captures, and tens of thousands of associated
-        images, thus, we need an easy way to organize these data elements. We take a hierarchical approach to data
-        organization. An example of this hierarchy can be seen in Figure 2. The levels of the main hierarchy are,
-        from top to bottom, surveyors, surveys, survey seasons, stations, visits, and locations. A small minority
-        of the captures taken by MLP do not neatly fit into the surveyor model. In these cases, we group stations
-        according to projects.
-    </p>
 
     <Image
         label={'Figure 2. The data object hierarchy. Example nodes are shown in the tree, while hierarchy levels are defined to the left.'}

@@ -728,7 +728,7 @@ where stations.lat is null and stations.lng is null and locs.id = stations.nodes
 
 -- Filesystem Paths: remove root URI
 update nodes
-set fs_path= REPLACE (fs_path, '/Volumes/mlp/MLPLibraryNew/', '');
+set fs_path= REPLACE (fs_path, '/Volumes/mlp', '');
 
 -- end of nodes initialization
 commit;

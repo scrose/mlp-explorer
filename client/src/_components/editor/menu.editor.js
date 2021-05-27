@@ -74,7 +74,8 @@ const MenuEditor = ({
         remove: !!(id && model && metadata && !removeExclude.includes(view)),
         attach: view === 'attach',
         attachItem: view === 'attachItem',
-        master: fileType === 'modern_images' && owner.hasOwnProperty('sorted') && owner.sorted,
+        master: (fileType === 'modern_images' && owner.hasOwnProperty('sorted') && owner.sorted)
+            || (fileType === 'modern_images' && isEditor && api.status.hasOwnProperty('sorted') && api.status.sorted),
         dependents: !dependentsExclude.includes(view),
         dropdown: !!(isEditor || dependents.length > 0),
         import_hc: !!(dependents || [])
@@ -119,7 +120,7 @@ const MenuEditor = ({
                         options={api.options}
                         schema={genSchema('new', model)}
                         route={createNodeRoute(model, 'new')}
-                        onCancel={setDialogToggle}
+                        onCancel={() => {setDialogToggle(null)}}
                         callback={() => {
                             setDialogToggle(null);
                             callback ? callback() : redirect(router.route);
@@ -226,6 +227,7 @@ const MenuEditor = ({
                 options={api.options}
                 schema={genSchema('new', dependent)}
                 route={createNodeRoute(dependent, 'new', id)}
+                onCancel={() => {setDialogToggle(null)}}
                 callback={() => {
                     setDialogToggle(null);
                     callback ? callback() : redirect(router.route);
@@ -345,8 +347,8 @@ const MenuEditor = ({
                                 label={!compact ? 'Master' : ''}
                                 title={`Master ${getModelLabel(fileType)} ${label}.`}
                                 onClick={() =>
-                                    // launch IAT tool with 'master' option
-                                    router.update(`/iat?master=${id}`)
+                                    // launch IAT tool for mastering by loading image into Panel 2
+                                    router.update(`/iat?input2=${id}&type2=${fileType}`)
                                 }
                             />
                         </li>
@@ -427,7 +429,7 @@ const MenuEditor = ({
                                                 <li>
                                                     <Button
                                                         icon={'surveyors'}
-                                                        label={`Add new ${getModelLabel('surveyors')}`}
+                                                        label={`Add New ${getModelLabel('surveyors')}`}
                                                         title={`Add new ${getModelLabel('surveyors')}`}
                                                         onClick={(e) => {
                                                             setDropdownToggle(false);
@@ -438,7 +440,7 @@ const MenuEditor = ({
                                                 <li>
                                                     <Button
                                                         icon={'projects'}
-                                                        label={`Add new ${getModelLabel('projects')}`}
+                                                        label={`Add New ${getModelLabel('projects')}`}
                                                         title={`Add new ${getModelLabel('projects')}`}
                                                         onClick={(e) => {
                                                             setDropdownToggle(false);

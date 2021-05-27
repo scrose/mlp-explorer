@@ -24,9 +24,6 @@ export const Submit = ({
                            onSubmit = true,
                        }) => {
 
-
-    console.log('submit:', onCancel)
-
     const { msg = '', type = '' } = message || {};
     return (
         <fieldset className={'submit'}>

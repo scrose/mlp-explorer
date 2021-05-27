@@ -6,8 +6,7 @@
  */
 
 import React from 'react';
-import MetadataView, { MetadataAttached } from './metadata.view';
-import Accordion from '../common/accordion';
+import MetadataView from './metadata.view';
 import Slider from '../common/slider';
 import Table from '../common/table';
 import { sanitize } from '../../_utils/data.utils.client';
@@ -17,7 +16,9 @@ import Image from '../common/image';
 import { useRouter } from '../../_providers/router.provider.client';
 import MenuEditor from '../editor/menu.editor';
 import { useData } from '../../_providers/data.provider.client';
-import FilesView from './files.view';
+import { getModelLabel } from '../../_services/schema.services.client';
+import Tabs from '../common/tabs';
+import ComparisonsView from './comparisons.view';
 
 /**
  * View available versions of capture images.
@@ -60,7 +61,8 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
         const { image_states=[] } = api.options || {};
 
         // select image state label for value (if available)
-        const imageState = image_states.find(opt => opt.value === metadata.image_state) || { label: metadata.image_state };
+        const imageState = image_states
+            .find(opt => opt.value === metadata.image_state) || { label: metadata.image_state };
 
         // create table row data
         const row = {
@@ -81,8 +83,10 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
             file_size: sanitize(file.file_size, 'filesize')
         };
 
-        // include file size in metadata
+        // include select file metadata
+        metadata.filename = file.filename;
         metadata.file_size = file.file_size;
+        metadata.mimetype = file.mimetype;
 
         // add editor menu for logged-in users
         if (user) {
@@ -98,10 +102,7 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
         return row;
     });
 
-    return  <>
-                <h4>Capture Images</h4>
-                <Table rows={rows} cols={cols} className={'files'} />
-            </>
+    return  <Table rows={rows} cols={cols} className={'files'} />
 }
 
 /**
@@ -127,35 +128,42 @@ const CaptureView = ({model, data, fileType}) => {
         attached={} } = api.destructure(data);
 
     // get capture status
-    const { status={sorted: false} } = data || {};
+    const { status={ sorted: false } } = data || {};
 
     // get capture images
     const captureImages = files.hasOwnProperty(fileType)
         ? files[fileType]
         : [];
 
-    // render node tree
+    // create tab index of metadata and files
+    const _tabItems = [
+        {
+            label: `Image Viewer`,
+            data: <Slider images={captureImages} />,
+        },
+        {
+            label: `${getModelLabel(model)} Details`,
+            data: <MetadataView model={model} metadata={metadata} node={node} />,
+        },
+        {
+            label: `Comparisons`,
+            data: Object.keys(attached.comparisons).length > 0
+                ? <ComparisonsView data={attached.comparisons} />
+                : 'No Paired Images'
+        },
+        {
+            label: `Images`,
+            data: <CaptureImagesTable
+                    type={fileType}
+                    owner={{ id: id, type: model, sorted: status.sorted}}
+                    files={captureImages}
+                />,
+        },
+    ];
+
+    // render capture tabs
     return (
-        <>
-            <Accordion
-                type={'show'}
-                label={`Capture Metadata`}
-                open={false}>
-                <MetadataView model={model} metadata={metadata} node={node} />
-            </Accordion>
-            {
-                captureImages.length > 0 &&
-                <>
-                    <Slider images={captureImages} />
-                    <MetadataAttached owner={node} attached={attached} />
-                    <CaptureImagesTable
-                        type={fileType}
-                        owner={{ id: id, type: model, sorted: status.sorted}}
-                        files={captureImages}
-                    />
-                </>
-            }
-        </>
+        <Tabs items={_tabItems} orientation={'horizontal'} />
     )
 }
 

@@ -77,10 +77,18 @@ import {
     faRulerCombined,
     faFileImage,
     faGripLinesVertical,
-    faCrop
+    faCrop,
+    faFileCsv,
+    faFilePdf,
+    faFileAlt,
+    faSync
 } from '@fortawesome/free-solid-svg-icons';
 
 library.add(
+    faSync,
+    faFileAlt,
+    faFileCsv,
+    faFilePdf,
     faCrop,
     faFileImage,
     faRulerCombined,
@@ -190,6 +198,7 @@ const getIconClass = (iconType) => {
         filter: 'filter',
         search: 'search',
         undo: 'undo',
+        sync: 'sync',
         erase: 'eraser',
         swap: 'exchange-alt',
         save: 'save',
@@ -245,7 +254,15 @@ const getIconClass = (iconType) => {
         maps: 'map',
         participant_groups: 'users',
         comparisons: 'images',
-        iat: 'images',
+        iat: 'toolbox',
+        jpg: 'file-image',
+        jpeg: 'file-image',
+        png: 'file-image',
+        tif: 'file-image',
+        tiff: 'file-image',
+        raw: 'file-image',
+        pdf: 'file-pdf',
+        rtf: 'file-alt',
         default: 'star'
     };
     return iconComponents.hasOwnProperty(iconType)
@@ -264,4 +281,6 @@ const Icon = ({type, size='lg', spin=false}) => {
     return  iconType && <FontAwesomeIcon icon={iconType} size={size} spin={spin} />
 }
 export default Icon;
+
+
 

@@ -1,14 +1,16 @@
 /*!
- * MLP.Client.Components.IAT.Canvas.Points
- * File: iat.canvas.points.js
+ * MLP.Client.Components.IAT.Pointer
+ * File: pointer.iat.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 import Button from '../common/button';
 import React from 'react';
-import { inRange } from './transform.iat';
+import { inRange, scalePoint } from './transform.iat';
 import { getError } from '../../_services/schema.services.client';
 import { drawControlPoints } from './graphics.iat';
+import { correlation } from '../../_utils/matrix.utils.client';
+import Badge from '../common/badge';
 
 /**
  * Create pointer hook.
@@ -21,23 +23,10 @@ import { drawControlPoints } from './graphics.iat';
 export function usePointer(properties, options) {
     const [current, setCurrent] = React.useState({ x: 0, y: 0 });
     const [selected, setSelected] = React.useState(null);
-    const [selectBox, setSelectBox] = React.useState({
-        x: 0,
-        y: 0,
-        w: 0,
-        h: 0
-    });
-    const [index, setIndex] = React.useState(null);
+    const [selectBox, setSelectBox] = React.useState({ x: 0, y: 0, w: 0, h: 0 });
+    const [index, setIndex] = React.useState(-1);
     const [magnify, setMagnify] = React.useState(false);
 
-    const get = () => {
-        return {
-            x: current.x,
-            y: current.y,
-            selected: selected,
-            control: index,
-        };
-    };
     const set = (e) => {
         const pos = getPos(e, properties);
         setCurrent(pos);
@@ -58,18 +47,20 @@ export function usePointer(properties, options) {
     const setSelect = (selected) => {
         setSelected(selected);
     };
+    const resetSelectBox = (selected) => {
+        setSelectBox({ x: 0, y: 0, w: 0, h: 0 });
+    };
     const deselect = () => {
         setSelected(null);
+        setIndex(-1);
     };
     const reset = () => {
         setCurrent({ x: 0, y: 0 });
-        setSelected(null);
     };
 
     return {
         x: current.x,
         y: current.y,
-        get,
         set,
         magnify,
         magnifyOn,
@@ -82,7 +73,8 @@ export function usePointer(properties, options) {
         index,
         setIndex,
         selectBox,
-        setSelectBox
+        setSelectBox,
+        resetSelectBox
     };
 }
 
@@ -96,8 +88,9 @@ export function usePointer(properties, options) {
  */
 
 const ControlPoints = ({ properties, otherProperties, callback }) => {
+    // compute pearson correlation coefficient to test collinearity
+    const corr = Math.abs(correlation(properties.pts)).toFixed(2);
     return <>
-
         {
             (properties.pts || []).length > 0 &&
             <div className={'canvas-view-control-points h-menu'}>
@@ -105,17 +98,25 @@ const ControlPoints = ({ properties, otherProperties, callback }) => {
                     {
                         // show selected control points
                         properties.pts.map((pt, index) => {
+                            const scaledPt = scalePoint(pt, properties)
                             return <li key={`${properties.id}_ctrlpt_${index}`}>
                                 <Button
                                     key={`${properties.id}_selected_pt_${index}`}
                                     icon={'crosshairs'}
                                     label={index + 1}
-                                    title={`Control point at (${pt.x}, ${pt.y})`}
+                                    title={`Control point at (${scaledPt.x}, ${scaledPt.y})`}
                                 />
                             </li>;
                         })
                     }
                     <li className={'push'}>
+                        <Badge
+                            className={corr < 0.5 ? 'success' : 'error'}
+                            icon={corr < 0.5 ? 'success' : 'error'}
+                            label={corr}
+                        />
+                    </li>
+                    <li>
                         <Button
                             disabled={otherProperties.pts.length === 0}
                             key={`${properties.id}_view_pt`}
@@ -124,9 +125,9 @@ const ControlPoints = ({ properties, otherProperties, callback }) => {
                             title={`Overlay other panel control points.`}
                             onClick={() => {
                                 return callback({
-                                    status: 'redraw',
+                                    status: 'draw',
                                     props: { other_panel: !properties.other_panel },
-                                    redraw: drawControlPoints,
+                                    draw: drawControlPoints,
                                 });
                             }}
                         />
@@ -139,9 +140,9 @@ const ControlPoints = ({ properties, otherProperties, callback }) => {
                             onClick={() => {
                                 // delete last control point
                                 callback({
-                                    status: 'redraw',
+                                    status: 'draw',
                                     props: { 'pts': properties.pts.splice(0, properties.pts.length - 1) },
-                                    redraw: drawControlPoints,
+                                    draw: drawControlPoints,
                                 });
                             }}
                         />
@@ -203,11 +204,8 @@ export const getPos = (e, properties) => {
 
 export const selectControlPoint = (e, properties, pointer, options, callback) => {
 
-    e.preventDefault();
-
     // get current pointer position
-    const x = pointer.x;
-    const y = pointer.y;
+    const { x=0, y=0 } = getPos(e, properties);
 
     // get existing control points
     const pts = properties.pts;
@@ -219,7 +217,6 @@ export const selectControlPoint = (e, properties, pointer, options, callback) =>
             // set pointer control point index
             selected = true;
             pointer.setIndex(index);
-            pointer.magnifyOn();
         }
     });
 
@@ -232,14 +229,16 @@ export const selectControlPoint = (e, properties, pointer, options, callback) =>
             error: {
                 msg: getError('maxControlPoints', 'canvas'),
                 type: 'error',
+                status: 'draw',
+                draw: drawControlPoints,
             },
         });
     }
     // otherwise, draw new control point and save as canvas property
     return callback({
-        status: 'redraw',
+        status: 'draw',
         props: { pts: properties.pts.concat({x: pointer.x, y: pointer.y}) },
-        redraw: drawControlPoints,
+        draw: drawControlPoints,
     });
 };
 
@@ -256,9 +255,7 @@ export const selectControlPoint = (e, properties, pointer, options, callback) =>
  */
 
 export const deselectControlPoint = (e, properties, pointer, options, callback) => {
-    pointer.magnifyOff();
-    pointer.setSelect(null);
-    pointer.setIndex(null);
+    pointer.setIndex(-1);
 };
 
 
@@ -277,7 +274,7 @@ export const deselectControlPoint = (e, properties, pointer, options, callback) 
 export const moveControlPoint = (e, properties, pointer, options, callback) => {
 
     // proceed if mouse is down (selected point)
-    if (!pointer.selected) return;
+    if (!pointer.selected || pointer.index < 0) return;
 
     // get the current selected control point position
     const ctrlPt = properties.pts[pointer.index];
@@ -287,7 +284,7 @@ export const moveControlPoint = (e, properties, pointer, options, callback) => {
     const _x = ctrlPt.x + pointer.x - pointer.selected.x;
     const _y = ctrlPt.y + pointer.y - pointer.selected.y;
 
-    // update the pointer selected point
+    // // update the pointer selected point
     pointer.setSelect({ x: _x, y: _y });
 
     // update panel control points
@@ -295,9 +292,9 @@ export const moveControlPoint = (e, properties, pointer, options, callback) => {
     updatedPoints[pointer.index] = { x: _x, y: _y };
 
     return callback({
-        status: 'redraw',
+        status: 'draw',
         props: { pts: updatedPoints },
-        redraw: drawControlPoints
+        draw: drawControlPoints
     });
 
 };

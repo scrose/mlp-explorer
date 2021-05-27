@@ -6,28 +6,8 @@
  */
 
 import React from 'react'
+import { viewerGettingStarted, viewerIAT, viewerWelcome } from '../content/dashboard.viewer.page';
 
-/**
- * Systems preferences management panel.
- *
- * @public
- * @return {Promise} result
- */
-
-/**
- * Node management panel.
- *
- * @public
- * @return {Promise} result
- */
-
-const NodePanel = () => {
-    return (
-        <nav className={'panel'}>
-
-        </nav>
-    );
-}
 
 
 /**
@@ -37,10 +17,34 @@ const NodePanel = () => {
  * @return {Promise} result
  */
 
+
+/**
+ * Viewer dashboard component
+ *
+ * @public
+ * @return {JSX.Element} result
+ */
+
 const DashboardEditor = () => {
     return (
-        <div className="dashboard">
-            <NodePanel />
+        <div className={'h-menu view-panel-group'}>
+            <ul>
+                <li>
+                    <div className={'view-panel blue'}>
+                        { viewerWelcome }
+                    </div>
+                </li>
+                <li>
+                    <div className={'view-panel purple'}>
+                        { viewerGettingStarted }
+                    </div>
+                </li>
+                <li>
+                    <div className={'view-panel pink'}>
+                        { viewerIAT }
+                    </div>
+                </li>
+            </ul>
         </div>
     );
 }

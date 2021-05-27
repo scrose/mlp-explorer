@@ -199,8 +199,12 @@ export const download = async (route, format, online=true) => {
 
     return await makeRequest({url: createURL(route), method:'GET', download: format})
         .then(res => {
-            console.log('Response:', res)
-            if (!res) return null;
+            if (!res || !res.success) {
+                return {
+                    error: res.statusText,
+                    data: null,
+                };
+            }
             const {error=null} = res || {};
             return {
                 error: error,

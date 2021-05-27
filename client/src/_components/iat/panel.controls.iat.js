@@ -7,10 +7,11 @@
 
 import React from 'react';
 import Button from '../common/button';
-import { crop, moveBy } from './transform.iat';
-import { erase, expand, fit, reset } from './canvas.iat';
+import { moveBy } from './transform.iat';
+import { erase, expand, fit, reset, undo } from './canvas.iat';
 import { loadImageData } from './loader.iat';
 import { useUser } from '../../_providers/user.provider.client';
+import { crop } from './cropper.iat';
 
 /**
  * No operation.
@@ -88,24 +89,23 @@ const PanelControls = ({
                 /></li>
                 <li><Button
                     disabled={disabled}
+                    icon={'sync'}
+                    title={'Reset to original image.'}
+                    onClick={() => {
+                        reset(properties, callback).catch(callback);
+                    }}
+                /></li>
+                <li><Button
+                    disabled={disabled}
                     icon={'resize'}
                     title={'Resize image and/or canvas.'}
                     onClick={() => {
-                        setSignal('loading');
                         setDialogToggle({
                             type: 'resize',
                             id: properties.id,
                             label: properties.label,
                             callback: callback,
                         });
-                    }}
-                /></li>
-                <li><Button
-                    disabled={disabled}
-                    icon={'undo'}
-                    title={'Reset to original image.'}
-                    onClick={() => {
-                        reset(properties, callback).catch(callback);
                     }}
                 /></li>
                 <li><Button
@@ -130,6 +130,14 @@ const PanelControls = ({
                     title={'Erase Mask Overlay.'}
                     onClick={() => {
                         erase(properties, callback).catch(callback);
+                    }}
+                /></li>
+                <li><Button
+                    disabled={disabled}
+                    icon={'undo'}
+                    title={'Undo transformation.'}
+                    onClick={() => {
+                        undo(properties, callback).catch(callback);
                     }}
                 /></li>
             </ul>
@@ -178,7 +186,7 @@ export const filterKeyDown = (e, properties, pointer, options, callback) => {
     const { keyCode = '' } = e || {};
 
     const _methods = {
-        // update
+        // crop image to select box dimensions
         13: () => {
             crop(pointer, properties, callback);
         },
@@ -199,7 +207,7 @@ export const filterKeyDown = (e, properties, pointer, options, callback) => {
             moveBy(e, properties, 0, -1, callback);
         },
         // enable magnifier
-        32: () => {
+        16: () => {
             pointer.magnifyOn();
         },
     };
@@ -221,7 +229,7 @@ export const filterKeyUp = (e, properties, pointer, options, callback) => {
     const { keyCode = '' } = e || [];
     const _methods = {
         // disable magnifier
-        32: () => {
+        16: () => {
             pointer.magnifyOff();
         },
     };

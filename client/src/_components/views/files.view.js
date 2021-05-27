@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Common.View.Files
+ * MLP.Client.Components.Views.Files
  * File: files.view.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
@@ -13,6 +13,7 @@ import MenuEditor from '../editor/menu.editor';
 import { useUser } from '../../_providers/user.provider.client';
 import { sanitize } from '../../_utils/data.utils.client';
 import Table from '../common/table';
+import Badge from '../common/badge';
 
 /**
  * File Table component.
@@ -30,8 +31,9 @@ export const FilesTable = ({owner, files=[]}) => {
 
     // prepare capture images columns
     const cols = [
+        { name: 'mime_type', label: 'Type' },
         { name: 'download', label: 'File' },
-        { name: 'metadata_type', label: 'Type'},
+        { name: 'metadata_type', label: 'Metadata Type'},
         { name: 'file_size', label: 'File Size'}
     ];
 
@@ -42,28 +44,43 @@ export const FilesTable = ({owner, files=[]}) => {
 
     // prepare capture image data rows
     const rows = files.map(fileData => {
-        const { metadata_type={}, file={}, metadata={}, label='' } = fileData || {};
-        const { file_type='', id=''} = file || {};
+        const { metadata_type={}, file={}, label='' } = fileData || {};
+        const {
+            file_type='',
+            id='',
+            mimetype='-',
+            filename='-',
+            file_size='-',
+            created_at='',
+            updated_at=''
+        } = file || {};
+        const ext = filename.split('.').pop() || '';
 
         const rows = {
+            mime_type: <Badge icon={ ext || 'file' } title={mimetype || ext} />,
             download: <File data={fileData} />,
             metadata_type: metadata_type.hasOwnProperty('label') ? metadata_type.label: '-',
             file_size: sanitize(file.file_size, 'filesize') || 'n/a'
         };
 
-        // include file size in metadata
-        metadata.file_size = file.file_size;
-
         // add editor menu for logged-in users
         if (user) {
-            rows.menu =  <MenuEditor
+            rows.menu = <MenuEditor
                 fileType={file_type}
                 model={file_type}
                 id={id}
                 owner={owner}
                 label={label}
-                metadata={metadata}
-            />;
+                metadata={{
+                    files_id: id,
+                    file_size: file_size,
+                    type: metadata_type.hasOwnProperty('name') ? metadata_type.name: '-',
+                    mimetype: mimetype,
+                    file_type: file_type,
+                    filename: filename,
+                    created_at: created_at,
+                    updated_at: updated_at
+                }} />
         }
         return rows;
     });
@@ -86,7 +103,9 @@ export const FilesList = ({files, owner}) => {
         <div className={'gallery h-menu'}>
             <ul>
                 {
-                    files.map((fileData, index) =>
+                    files
+                        .filter(fileData => Object.keys(fileData).length > 0)
+                        .map((fileData, index) =>
                         <li key={`gallery_file_${index}`}>
                             <File data={fileData} scale={'thumb'} owner={owner} />
                         </li>
@@ -115,7 +134,7 @@ export const FilesView = ({ files, owner }) => {
                 type={fileType}
                 label={getModelLabel(fileType, 'label')}
                 hasDependents={false}
-                open={false}
+                open={true}
                 menu={
                     <MenuEditor
                         model={owner.type}

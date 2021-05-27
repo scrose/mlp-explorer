@@ -52,6 +52,40 @@ export function lusolve(A, b, update) {
     for (let i=0,j=lu.d?1:-1; i<lu.A.length; i++ ) j*=lu.A[i][i]/100;
     return lubksb(lu, b, update)
 }
+/**
+ * Lower Upper Solver
+ *
+ * @return {any[]}
+ * @param pts
+ */
+
+export function correlation (pts) {
+    if (pts.length < 2) return 0;
+    let x = pts.map(pt => pt.x);
+    let y = pts.map(pt => pt.y);
+    const promedio = l => l.reduce((s, a) => s + a, 0) / l.length;
+    const calc = (v, prom) => Math.sqrt(v.reduce((s, a) => (s + a * a), 0) - n * prom * prom)
+    let n = x.length
+    let nn = 0
+    for (let i = 0; i < n; i++, nn++) {
+        if ((!x[i] && x[i] !== 0) || (!y[i] && y[i] !== 0)) {
+            nn--
+            continue
+        }
+        x[nn] = x[i]
+        y[nn] = y[i]
+    }
+    if (n !== nn) {
+        x = x.splice(0, nn)
+        y = y.splice(0, nn)
+        n = nn
+    }
+    const prom_x = promedio(x), prom_y = promedio(y)
+    return (x
+            .map((e, i) => ({ x: e, y: y[i] }))
+            .reduce((v, a) => v + a.x * a.y, 0) - n * prom_x * prom_y
+    ) / (calc(x, prom_x) * calc(y, prom_y))
+}
 
 /**
  * Lower Upper Decomposition
@@ -208,23 +242,70 @@ export function homography( X8, A, B, w, h )
     }
     console.log('homography: '+(w*h)+' pixels, '+c+' pixels processed');
 
+
 } // homography
 
 
 /**
- * Lower Upper Back Substitution
+ * compute vector from byte array.
  *
- * @return {any[]}
+ * @private
  * @param ix
  * @param iy
  * @param w
  */
 
-// compute vector index from matrix one
 function ivect(ix, iy, w) {
     // byte array, r,g,b,a
-    return((ix + w * iy) * 4);
+    return (ix + w * iy) * 4;
 }
+
+/**
+ * Matrix multiplication
+ * - Use only for small matrices
+ *
+ * @return {any[]}
+ * @param a
+ * @param b
+ */
+
+export function mmultiply(a,b) {
+    return a.map(function(x,i) {
+        return b.map(function(y,k) {
+            return dotproduct(x, y)
+        });
+    });
+}
+
+/**
+ * Dot product
+ *
+ * @return {any[]}
+ * @param a
+ * @param b
+ */
+
+export function dotproduct(a, b) {
+    return a.map(function(x,i) {
+        return a[i] * b[i];
+    }).reduce(function(m,n) { return m + n; });
+}
+
+/**
+ * Matrix transpose
+ *
+ * @return {any[]}
+ * @param a
+ */
+
+export function transpose(a) {
+    return a[0].map(function(x,i) {
+        return a.map(function(y,k) {
+            return y[i];
+        })
+    });
+}
+
 
 /**
  * Bilinear image interpolation

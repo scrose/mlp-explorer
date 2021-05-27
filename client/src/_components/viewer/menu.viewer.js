@@ -7,10 +7,7 @@
 
 import React from 'react';
 import Button from '../common/button';
-import { redirect } from '../../_utils/paths.utils.client';
-import Download from '../common/download';
 import Dialog from '../common/dialog';
-import MetadataView from '../views/metadata.view';
 import HelpView from '../views/help.view';
 import Exporter from '../tools/export.tools';
 

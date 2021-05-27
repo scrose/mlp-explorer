@@ -16,8 +16,8 @@
 
 export function insertComparison(
     historicImageID,
-    modernImageID,
     historicCaptureID,
+    modernImageID,
     modernCaptureID
 ) {
     let sql = `INSERT INTO comparison_indices (
@@ -120,14 +120,18 @@ export function getComparisonsByStationID(id) {
                                 ON hv_id = historic_captures.owner_id
             GROUP BY historic_captures.nodes_id
         )
-        SELECT hc.nodes_id,
-               comparison_indices.modern_captures
+        SELECT comparison_indices.modern_captures,
+               comparison_indices.historic_captures,
+               comparison_indices.modern_images,
+               comparison_indices.historic_images
         FROM comparison_indices
                  RIGHT JOIN hc
                             ON hc.nodes_id = comparison_indices.historic_captures
         GROUP BY hc.nodes_id,
+                 comparison_indices.modern_captures,
                  comparison_indices.historic_captures,
-                 comparison_indices.modern_captures;
+                 comparison_indices.modern_images,
+                 comparison_indices.historic_images;
     `;
     return {
         sql: sql,
@@ -147,12 +151,18 @@ export function getComparisonsByLocationID(id) {
             SELECT *
             FROM modern_captures
             WHERE modern_captures.owner_id = $1::integer)
-        SELECT comparison_indices.modern_captures, comparison_indices.historic_captures
+        SELECT comparison_indices.modern_captures, 
+               comparison_indices.historic_captures, 
+               comparison_indices.modern_images, 
+               comparison_indices.historic_images
         FROM comparison_indices
                  INNER JOIN mc
                             ON mc.nodes_id = comparison_indices.modern_captures
         GROUP BY mc.nodes_id,
                  comparison_indices.modern_captures,
+                 comparison_indices.historic_captures,
+                 comparison_indices.modern_images,
+                 comparison_indices.historic_images,
                  comparison_indices.id;
     `;
     return {
@@ -173,12 +183,18 @@ export function getComparisonsByHistoricVisitID(id) {
             SELECT *
             FROM historic_captures
             WHERE historic_captures.owner_id = $1::integer)
-        SELECT comparison_indices.modern_captures, comparison_indices.historic_captures
+        SELECT comparison_indices.modern_captures,
+               comparison_indices.historic_captures,
+               comparison_indices.modern_images,
+               comparison_indices.historic_images
         FROM comparison_indices
                  INNER JOIN hc
                             ON hc.nodes_id = comparison_indices.historic_captures
         GROUP BY hc.nodes_id,
                  comparison_indices.modern_captures,
+                 comparison_indices.historic_captures,
+                 comparison_indices.modern_images,
+                 comparison_indices.historic_images,
                  comparison_indices.id;
     `;
     return {
@@ -204,12 +220,18 @@ export function getComparisonsByModernVisitID(id) {
                 WHERE locations.owner_id = $1::integer) as locs
                                 ON locs.nodes_id = modern_captures.owner_id
         )
-        SELECT comparison_indices.modern_captures, comparison_indices.historic_captures
+        SELECT comparison_indices.modern_captures, 
+               comparison_indices.historic_captures, 
+               comparison_indices.modern_images, 
+               comparison_indices.historic_images
         FROM comparison_indices
                  INNER JOIN mc
                             ON mc.nodes_id = comparison_indices.modern_captures
         GROUP BY mc.nodes_id,
                  comparison_indices.modern_captures,
+                 comparison_indices.historic_captures,
+                 comparison_indices.modern_images,
+                 comparison_indices.historic_images,
                  comparison_indices.id;
     `;
     return {

@@ -9,7 +9,7 @@ import React from 'react';
 import Dialog from '../common/dialog';
 import Tabs from '../common/tabs';
 import { conceptsExplorerHelp, navigatorExplorerHelp, explorerHelp } from '../content/explorer.help';
-import { editorBasicHelp, editorStartHelp } from '../content/editor.help';
+import { editorBasicHelp, editorImagesHelp, editorMetadataHelp, editorStartHelp } from '../content/editor.help';
 import { alignmentIATHelp, iatBasicHelp, iatRegistrationHelp, iatStartHelp } from '../content/iat.help';
 
 /**
@@ -45,6 +45,14 @@ const HelpView = ({setToggle, section=0, page=0}) => {
         {
             label: 'Basic Features',
             data: editorBasicHelp
+        },
+        {
+            label: 'Handling Images',
+            data: editorImagesHelp
+        },
+        {
+            label: 'Metadata Files',
+            data: editorMetadataHelp
         },
     ];
 

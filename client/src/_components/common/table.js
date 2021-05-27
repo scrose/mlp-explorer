@@ -45,7 +45,6 @@ const TableHeader = ({ tableID, cols }) => {
  */
 
 const TableBody = ({tableID, rows, cols}) => {
-
     return <tbody>{
             rows.map((row, index) => {
                 return (
@@ -54,7 +53,11 @@ const TableBody = ({tableID, rows, cols}) => {
                             cols
                                 .filter(col => row.hasOwnProperty(col.name))
                                 .map(col =>
-                                    <td key={`td_${col.name}`}>{row[col.name]}</td>
+                                    <td
+                                        key={`td_${col.name}`}
+                                        className={col.name}>
+                                        {row[col.name]}
+                                    </td>
                                 )
                         }
                     </tr>

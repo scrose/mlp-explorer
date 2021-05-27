@@ -149,7 +149,7 @@ export default function FilesController(modelType) {
 
             // get owner metadata record
             const owner = await nserve.select(owner_id, client);
-            const {type=''} = owner || {};
+            const { type='' } = owner || {};
 
             // filter metadata through importer
             // - saves attached files to library
@@ -324,8 +324,17 @@ export default function FilesController(modelType) {
             const item = new Model(fileData.metadata);
             let file = await cserve.createFile(item, fileData);
 
+            // create filepaths array (original raw file)
+            let filePaths = [fileData.file.fs_path];
+
+            // include image resampled versions (if they exist)
+            if (fileData.url) {
+                filePaths.push(fileData.url.thumb.path);
+                filePaths.push(fileData.url.medium.path);
+            }
+
             // delete files
-            const resData = await fserve.remove(file, fileData.url);
+            const resData = await fserve.remove(file, filePaths);
             if (resData) {
                 return next(new Error('ENOENT'));
             }
@@ -520,7 +529,7 @@ export default function FilesController(modelType) {
                 return next(new Error('invalidRequest'));
             }
 
-            // get historic capture
+            // get historic capture and image ID
             const historicCaptureID = historicImage.owner_id;
 
             // check that image pair share a common station
@@ -541,7 +550,8 @@ export default function FilesController(modelType) {
             if (!resData) return next(new Error('invalidMaster'));
 
             // insert comparisons record
-            const resCompare = await addComparison(historicCaptureID, modernCaptureID);
+            const resCompare = await addComparison(
+                historic_files_id, historicCaptureID, modernImageID, modernCaptureID);
 
             // send response
             res.status(200).json(
@@ -553,7 +563,6 @@ export default function FilesController(modelType) {
                         msg: `'${filename}' mastered successfully!`,
                         type: 'success'
                     },
-                    path: path
                 }));
 
         } catch (err) {

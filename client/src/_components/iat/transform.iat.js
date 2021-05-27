@@ -7,9 +7,7 @@
  */
 
 import { getError } from '../../_services/schema.services.client';
-import * as matrix from '../../_utils/matrix.utils.client';
-import { homography } from '../../_utils/matrix.utils.client';
-import { drawBoundingBox } from './graphics.iat';
+import * as math from 'mathjs';
 
 /**
  * Computes scale-to-fit dimensions to fit an image [ix, iy]
@@ -30,8 +28,7 @@ export const scaleToFit = (ix, iy, cx, cy) => {
 };
 
 /**
- * Get mouse start position on canvas.
- * Reference: https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas
+ * Set mouse start position on canvas.
  *
  * @public
  * @param e
@@ -41,6 +38,20 @@ export const scaleToFit = (ix, iy, cx, cy) => {
  */
 
 export function moveStart(e, properties, pointer, options) {}
+
+/**
+ * Reset pointer selection.
+ *
+ * @public
+ * @param e
+ * @param properties
+ * @param options
+ * @param pointer
+ */
+
+export function moveEnd(e, properties, pointer, options) {
+    pointer.setSelect(null);
+}
 
 /**
  * Update canvas offset by cursor position
@@ -67,7 +78,7 @@ export function moveAt(e, properties, pointer, options, callback) {
 
     // update image offset coordinate
     callback({
-        status: 'render',
+        status: 'view',
         props: {
             render_dims: {
                 w: properties.render_dims.w,
@@ -75,21 +86,6 @@ export function moveAt(e, properties, pointer, options, callback) {
                 x: _x,
                 y: _y
         } } });
-}
-
-/**
- * Get mouse end position on canvas.
- * Reference: https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas
- *
- * @public
- * @param e
- * @param properties
- * @param options
- * @param pointer
- */
-
-export function moveEnd(e, properties, pointer, options) {
-
 }
 
 /**
@@ -131,97 +127,45 @@ export function inRange(x, y, u, v, radius) {
         && (v - (y + radius)) * (v - (y - radius)) < 0;
 }
 
-
 /**
- * Start image crop bounding box.
+ * Get the current image scaling factors.
  *
  * @public
- * @param e
  * @param properties
- * @param options
- * @param pointer
- * @param callback
  */
 
-export function cropStart(e, properties, pointer, options, callback) {
-    pointer.setSelectBox({
-        x: pointer.x,
-        y: pointer.y,
-        w: 0,
-        h: 0
-    });
-    callback({status: 'redraw', props: {}});
+export const getScale = (properties) => {
+
+    // compute image scaling coefficient
+    const eps = 0.0000000001;
+    return {
+        x: properties.render_dims.w > 0
+            ? ((properties.image_dims.w + eps) / (properties.render_dims.w + eps)).toFixed(2)
+            : 1.0,
+        y: properties.render_dims.h > 0
+            ? ((properties.image_dims.h + eps) / (properties.render_dims.h + eps)).toFixed(2)
+            : 1.0
+    }
 }
 
 /**
- * Crop image by pointer selected dimensions.
- * - sets image source data to the (x,y) offset and (w,h) dimensions
- *   of the selected crop box to draw to the render canvas.
- * @param pointer
- * @param properties
- * @param callback
- */
-
-export function crop(pointer, properties, callback) {
-
-    // check that mouse start position was selected
-    if (!pointer.selectBox) return;
-
-    // update image crop dimensions and rerender
-    callback({
-        status: 'render',
-        props: {
-            source_dims: pointer.selectBox,
-            render_dims: pointer.selectBox
-        }
-    });
-    // reset selection box
-    pointer.setSelectBox({x: 0, y: 0, w: 0, h: 0});
-}
-
-/**
- * Mouse up on crop bounding box.
+ * Scale coordinate by image resize dimensions.
  *
  * @public
- * @param e
+ * @param pt
  * @param properties
- * @param options
- * @param pointer
  */
 
-export function cropEnd(e, properties, pointer, options) {}
+export const scalePoint = (pt, properties) => {
 
-/**
- * Update canvas offset by cursor position
- * @param e
- * @param properties
- * @param pointer
- * @param options
- * @param callback
- */
+    // get image scaling coefficient
+    const scale = getScale(properties);
 
-export function cropBound(e, properties, pointer, options, callback) {
-
-    // check that mouse start position was selected
-    if (!pointer.selected) return;
-
-    e.preventDefault();
-
-    // compute distance traveled
-    const _deltaX = properties.render_dims.x + pointer.x - pointer.selected.x;
-    const _deltaY = properties.render_dims.y + pointer.y - pointer.selected.y;
-
-    // update the pointer select box
-    pointer.setSelectBox({
-        x: pointer.selectBox.x,
-        y: pointer.selectBox.y,
-        w: _deltaX,
-        h: _deltaY
-    });
-
-    // update image offset coordinate
-    callback({ status: 'draw', draw: drawBoundingBox.bind(
-            this, pointer.selected.x, pointer.selected.y, _deltaX, _deltaY) })
+    // compute actual pixel position in image
+    return {
+        x: Math.ceil(pt.x * scale.x),
+        y: Math.ceil(pt.y * scale.y)
+    };
 }
 
 /**
@@ -243,143 +187,71 @@ export function cropBound(e, properties, pointer, options, callback) {
  *
  * @public
  * @return {*[]}
- * @param pts1
- * @param pts2
+ * @param from
+ * @param to
  */
 
-export const getAlignmentTransform = (pts1, pts2) => {
+export const getAlignmentTransform = (from, to) => {
 
-    // convert control points to vector array
-    // - interleave [x,y] with [u,v]
-    const pts = [pts1[0], pts2[0], pts1[1], pts2[1], pts1[2], pts2[2], pts1[3], pts2[3]];
-    let p = pts.reduce((o, pt) => {
-        o.push([parseFloat(pt.x), parseFloat(pt.y)]);
-        return o;
-    }, []);
-
-    let i, j, k, l, m, n = p.length;
-    let x, y, u, v, d;
-    let s, q, e;
-    let dx, dy, dd;
-
-    // Compute percentage
-    let getPercent = function(x) {
-        return Math.floor((x + .001) * 100) / 100;
-    };
-    //var pf = function(x){return Math.floor(x*100)/100;};
-    //var pf = function(x){return x;};
-    let ii, jj; // determinant
-
-    // Note the inverse matrix should be just as easy to compute
-    // reversing the roles of [0,2,4,6] with [1,3,5,7]
-    //matrix.swapPts( pts );
-
-    let M88 = [
-        [p[0][0], p[0][1], 1, 0, 0, 0, -p[0][0] * p[1][0], -p[0][1] * p[1][0]],
-        [0, 0, 0, p[0][0], p[0][1], 1, -p[0][0] * p[1][1], -p[0][1] * p[1][1]],
-        [p[2][0], p[2][1], 1, 0, 0, 0, -p[2][0] * p[3][0], -p[2][1] * p[3][0]],
-        [0, 0, 0, p[2][0], p[2][1], 1, -p[2][0] * p[3][1], -p[2][1] * p[3][1]],
-        [p[4][0], p[4][1], 1, 0, 0, 0, -p[4][0] * p[5][0], -p[4][1] * p[5][0]],
-        [0, 0, 0, p[4][0], p[4][1], 1, -p[4][0] * p[5][1], -p[4][1] * p[5][1]],
-        [p[6][0], p[6][1], 1, 0, 0, 0, -p[6][0] * p[7][0], -p[6][1] * p[7][0]],
-        [0, 0, 0, p[6][0], p[6][1], 1, -p[6][0] * p[7][1], -p[6][1] * p[7][1]],
-    ];
-    let B8 = [p[1][0], p[1][1], p[3][0], p[3][1], p[5][0], p[5][1], p[7][0], p[7][1]];
-    let X8 = matrix.lusolve(M88, B8, true);
-
-    // Could put a sanity check here? Run the 4 pairs back through X8
-    // So ... could we not do this directly with the other points?
-
-    // Check quality of the above 8x8 matrix (or its parts??)
-    // Note M88 has been made diagonal by lusolve()
-    for (ii = 0, jj = 1; ii < 8; ii++) {
-        x = M88[ii][ii];
-        jj *= x / 100;
-        console.log('Matrix entry ' + x);
+    // Ax = b
+    let A = []
+    for (let i = 0; i < 4; i++) {
+        A.push( [from[i].x, from[i].y, 1, 0, 0, 0, -from[i].x * to[i].x, -from[i].y * to[i].x] );
+        A.push( [0, 0, 0, from[i].x, from[i].y, 1, -from[i].x * to[i].y, -from[i].y * to[i].y] );
     }
-    ///console.log('Align4: Matrix88 determinant '+((jj*100>>0)/100));
 
-    // Code copied from alignfunc3 and modified for 4 points 20180201
-    // Figure out best fit among all points by taking 4 at a time
-    console.log('');
-    console.log('Alignment 4 experiments: ' + n + ' points');
-    for (i = m = 0; i < n; i += 2) for (j = i + 2; j < n; j += 2)
-        for (k = j + 2; k < n; k += 2) for (l = k + 2; l < n; l += 2, m++) {
-            M88 = [
-                [p[i][0], p[i][1], 1, 0, 0, 0, -p[i][0] * p[i + 1][0], -p[i][1] * p[i + 1][0]],
-                [0, 0, 0, p[i][0], p[i][1], 1, -p[i][0] * p[i + 1][1], -p[i][1] * p[i + 1][1]],
-                [p[j][0], p[j][1], 1, 0, 0, 0, -p[j][0] * p[j + 1][0], -p[j][1] * p[j + 1][0]],
-                [0, 0, 0, p[j][0], p[j][1], 1, -p[j][0] * p[j + 1][1], -p[j][1] * p[j + 1][1]],
-                [p[k][0], p[k][1], 1, 0, 0, 0, -p[k][0] * p[k + 1][0], -p[k][1] * p[k + 1][0]],
-                [0, 0, 0, p[k][0], p[k][1], 1, -p[k][0] * p[k + 1][1], -p[k][1] * p[k + 1][1]],
-                [p[l][0], p[l][1], 1, 0, 0, 0, -p[l][0] * p[l + 1][0], -p[l][1] * p[l + 1][0]],
-                [0, 0, 0, p[l][0], p[l][1], 1, -p[l][0] * p[l + 1][1], -p[l][1] * p[l + 1][1]],
-            ];
-            B8 = [p[i + 1][0], p[i + 1][1], p[j + 1][0], p[j + 1][1], p[k + 1][0], p[k + 1][1], p[l + 1][0], p[l + 1][1]];
-            X8 = matrix.lusolve(M88, B8, true);
+    // destination control point vector
+    let b = []
+    for (let i = 0; i < 4; i++) {
+        b.push( to[i].x );
+        b.push( to[i].y );
+    }
 
-            // Check quality of this 8x8 matrix
-            // Note M88 has been made diagonal by lusolve()
-            for (ii = 0, jj = 1; ii < 8; ii++) jj *= M88[ii][ii] / 100;
-            console.log('Matrix ' + (m + 1) + ': (' + (i + 1) + ',' + (j + 1) + ',' + (k + 1) + ',' + (l + 1) + ') determinant ' + ((jj * 100 >> 0) / 100));
+    // solve linear system for H
+    let H = math.transpose(math.lusolve(A, b))[0];
+    const H2 = [[H[0], H[1], H[2]], [H[3], H[4], H[5]], [H[6], H[7], 1]];
 
-            // Run the other (n-4) points through the matrix
-            for (s = '', q = e = 0; q < n - 1; q += 2) if (q !== i && q !== j && q !== k && q !== l) {
-                x = p[q][0];
-                y = p[q][1];
-                d = X8[6] * x + X8[7] * y + 1;
-                u = X8[0] * x + X8[1] * y + X8[2];
-                v = X8[3] * x + X8[4] * y + X8[5];
-                u = u / d;
-                v = v / d;
-
-                dx = u - p[q + 1][0];
-                dy = v - p[q + 1][1];
-                dd = dx * dx + dy * dy;
-                s += ' ' + (q + 1) + '(' + getPercent(dx) + ',' + getPercent(dy) + ')';
-                e += dd;
-                ///console.log('Align4: u='+pf(u)+' v='+pf(v));
-            }
-            let RMSE = Math.sqrt(e / (n / 2 - 4));
-            //console.log('Points '+i+','+j+','+k+' e='+pf(e)+' RMSE='+pf(RMSE));
-            console.log('   d:' + s);
-            console.log('   e=' + getPercent(e) + ' RMSE=' + getPercent(RMSE));
-        }
-
-    console.log('Transformation Mat:', X8);
-    return X8;
-
-    //
-    // // Get the backing canvas
-    // let I1 = bmpf && ecv1.width ? ecv1 : img1;
-    // // let I2 = bmpf && ecv2.width ? ecv2 : img2; // Unused?!
-    //
-    // bcv1.width = I1.width;
-    // bcv1.height = I1.height;
-    // console.log('Alignment 4: bmpf='+bmpf+' w='+bcv1.width);
-    //
-    // let ctx1 = gctx(bcv1);
-    // let ctx2 = gctx(bcv2);
-    // ctx1.drawImage( I1, 0,0 ); // Why do this? Perhaps the image had been moved??
-    //
-    // // Use a SIMD and DIMD global here?? Help JS with memory? (sourceImageData)
-    // let src = ctx1.getImageData( 0,0, bcv1.width, bcv1.height ); // 2
-    // //var dst = ctx2.getImageData( 0,0, bcv1.width,bcv1.height ); // new/create??
-    // let dst = ctx1.createImageData( bcv1.width,bcv1.height ); // BAD!
-    //
-    // ///if (!DIMD) DIMD = new ImageData( bcv1.width, bcv1.height );
-    // ///var dst = DIMD; // Will the JS lose track and delay garbage collect??
-    //
-    // let A = new Uint32Array( src.data.buffer );
-    // let B = new Uint32Array( dst.data.buffer );
-    // homography( X8, A, B, bcv1.width, bcv1.height );
-    // ctx1.putImageData(dst,0,0); // 2
-
-    //drawimages(); // How much time saved by improving this call? Eg. just left canvas?
-
-    //swappointpairs( CtrlPts );
-
+    // Sanity check that H actually maps `from` to `to`
+    for (let i = 0; i < 4; i++) {
+        const lhs = math.multiply(H2, math.transpose([from[i].x, from[i].y, 1]));
+        const k = lhs[2]
+        const z = [to[i].x, to[i].y, 1];
+        const rhs = math.multiply(z, k);
+        console.assert(math.norm(math.subtract(lhs, rhs)) < 1e-9, "Not equal:", lhs, rhs)
+    }
+    return H;
 };
+
+
+/**
+ * Apply alignment transformation matrix (homographic projection) to image data.
+ * NOTE: input data is Uint32 typed array to store four one-byte values (red,
+ * green, blue, and alpha, or "RGBA" format). Each pixel is assigned a
+ * consecutive index within the array, with the top left pixel at index 0
+ * which proceed from left to right, then downward, throughout the array.
+ *
+ * @public
+ * @param {Array} H
+ * @param {Uint32Array} src
+ * @param {Uint32Array} dst
+ * @param {int} w
+ * @param {int} h
+ */
+
+export const warpImage = (H, src, dst, w, h) => {
+    let x, y, u, v, k;
+    for (x=0; x < w; x++ ) {
+        for (y=0; y < h; y++ ) {
+            // transformed coordinate
+            k = x * H[6] + y * H[7] + 1;
+            u = (x * H[0] + y * H[1] + H[2])/k;
+            u >>= 0;
+            v = (x * H[3] + y * H[4] + H[5])/k
+            v >>= 0;
+            dst[w * v + u] = src[w * y + x];
+        }
+    }
+}
 
 /**
  * Transform images data for alignment.
@@ -387,13 +259,22 @@ export const getAlignmentTransform = (pts1, pts2) => {
  * @public
  * @param imgData1
  * @param imgData2
- * @param pts1
- * @param pts2
+ * @param panel1
+ * @param panel2
  * @param options
  */
 
-export const alignImages = (imgData1, imgData2, pts1, pts2, options) => {
+export const alignImages = (imgData1, imgData2, panel1, panel2, options) => {
 
+    // compute actual pixel position in image
+    const pts1 = panel1.pts.map(pt => {
+        return scalePoint(pt, panel1);
+    });
+    const pts2 = panel2.pts.map(pt => {
+        return scalePoint(pt, panel2);
+    });
+
+    // check preconditions
     if (!imgData1 || !imgData2) {
         return { data: null, error: { msg: getError('emptyCanvas', 'canvas'), type: 'error' } };
     }
@@ -407,23 +288,23 @@ export const alignImages = (imgData1, imgData2, pts1, pts2, options) => {
     // compute alignment transformation matrix
     const transform = getAlignmentTransform(pts1, pts2);
 
-    // prepare data for alignment (use image 1 dimensions for destination)
+    // prepare image data for alignment transformation
     const w = imgData2.width;
     const h = imgData2.height;
+
+    // convert 8 Bit Clamped RGBA order to 32 Bit Array
     let src = new Uint32Array(imgData2.data.buffer);
-    let dst = new Uint32Array(imgData2.data.buffer);
+    let dst = new Uint32Array(src.length);
 
     // apply transformation to image 2 (dst) loaded in right-hand panel (Panel 2)
-    homography(transform, src, dst, w, h);
+    warpImage(transform, src, dst, w, h);
 
-    // convert image array from Uint32 to Uint8ClampedArray (for ImageData obj)
-    let imgUint8 = new Uint8ClampedArray(dst.buffer);
-    return { data: new ImageData(imgUint8, w, h), error: null };
+    // convert back to 8 Bit Clamped RGBA array
+    let dstData = new Uint8ClampedArray(dst.buffer)
+
+    // convert destination image data to ImageData object
+    return { data: new ImageData(dstData, w, h), error: null };
 };
-
-
-
-
 
 /**
  * Image Processing Utilities

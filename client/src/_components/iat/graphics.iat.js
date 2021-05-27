@@ -6,6 +6,18 @@
  */
 
 /**
+ * Draw all selected control points on to mask canvas.
+ *
+ * @public
+ * @param ctx
+ * @param properties
+ */
+
+export const eraseOverlay = (ctx, properties) => {
+    ctx.clearRect(0, 0, properties.base_dims.w, properties.base_dims.h);
+};
+
+/**
  * Draw control point to canvas.
  *
  * @public
@@ -45,24 +57,22 @@ export const drawControlPoint = (ctx, x, y, index, colour='#fb5607') => {
  * Draw all selected control points on to mask canvas.
  *
  * @public
- * @param canvas
+ * @param ctx
  * @param props1
  * @param props2
  */
 
-export const drawControlPoints = (canvas, props1, props2) => {
+export const drawControlPoints = (ctx, props1, props2) => {
 
-    // erase mask layer canvas
-    const ctx = canvas.getContext('2d');
-    const { width, height } = canvas.getBoundingClientRect();
-    ctx.clearRect(0, 0, width, height);
+    // clear canvas
+    ctx.clearRect(0, 0, props1.base_dims.w, props1.base_dims.h);
 
     // draw points separately
     props1.pts.forEach((pt, index) => {
         drawControlPoint(ctx, pt.x, pt.y, index);
     });
 
-    // draw other panel control points (optional)
+    // overlay other panel control points (optional)
     if (props2 && props2.pts.length > 0) {
         props2.pts.forEach((pt, index) => {
             drawControlPoint(ctx, pt.x, pt.y, index, 'blue');

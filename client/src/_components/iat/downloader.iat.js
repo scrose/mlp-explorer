@@ -1,6 +1,6 @@
 /*!
  * MLP.Client.Tools.IAT.Download
- * File: iat.download.js
+ * File: downloader.iat.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */

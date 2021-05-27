@@ -29,7 +29,7 @@ const Viewer = () => {
     return (
         <div className={'viewer'}>
             <MenuViewer />
-            <div className={`view ${getNavView()}`}>
+            <div className={`view`}>
                 <Heading />
                 <Message />
                 {

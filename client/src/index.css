@@ -11,6 +11,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
+    font-size: small;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: #282c34;
@@ -144,6 +145,7 @@ Horizontal Layout
     display: block;
     cursor: pointer;
     padding: 0;
+    text-align: left;
 }
 .h-menu ul li.push {
     margin-left: auto;
@@ -167,7 +169,6 @@ Vertical Layout
 
 .v-menu ul li {
     width: 100%;
-    font-size: small;
     display: block;
     cursor: pointer;
     margin: 0;
@@ -207,6 +208,7 @@ Accordion Layout
 }
 .accordion .h-menu {
     border: none;
+    border-radius: 8px;
     padding: 0;
 }
 .accordion .h-menu ul {
@@ -249,6 +251,9 @@ Accordion Layout
     padding: 8px;
     /*-webkit-transition: max-height 0.5s ease-in;*/
     /*transition: max-height 0.5s ease-in;*/
+}
+.accordion .h-menu {
+    font-size: small;
 }
 
 /*
@@ -369,32 +374,6 @@ nav.user button  {
     background-color: #282c34;
     color: white !important;
 }
-/*nav.user.h-menu ul li button:hover, nav.user .v-menu ul li button:hover {*/
-/*    opacity: 0.6;*/
-/*}*/
-/*nav.user .v-menu {*/
-/*    margin:auto;*/
-/*    width: auto;*/
-/*    max-width: 300px;*/
-/*}*/
-/*nav.user .v-menu .collapsible {*/
-/*    width: 100%;*/
-/*    background-color: inherit;*/
-/*}*/
-/*nav.user button {*/
-/*    background-color: #282c34 !important;*/
-/*    color: #FFFFFF !important;*/
-/*}*/
-/*header .navbar nav.user .v-menu.user {*/
-/*    margin: 0;*/
-/*    width: auto;*/
-/*    top: 60px !important;*/
-/*    background-color: #282c34;*/
-/*    color: white !important;*/
-/*    vertical-align: middle;*/
-/*    line-height: normal;*/
-/*    border-radius: 0 0 15px 15px;*/
-/*}*/
 
 /* Viewer/Editor Panels */
 
@@ -411,8 +390,29 @@ nav.user button  {
     overflow: auto;
     padding: 0 10px 40px 10px;
 }
-.view .accordion-data {
-
+.view .view-panel-group li {
+    width: 33%;
+}
+.view .view-panel {
+    padding: 15px;
+    margin:15px;
+    border-style: solid;
+    border-width: 5px;
+    border-radius: 15px;
+    height: 100%;
+}
+.view .view-panel p, .view .view-panel a {
+    color: #282c34;
+    font-size: small;
+    padding: 0;
+}
+.view .view-panel a:hover {
+    opacity: 0.7;
+}
+.view .view-panel h4 {
+    color: inherit;
+    font-size: larger;
+    padding: 0;
 }
 .view .data {
     display:inline-block;
@@ -434,8 +434,8 @@ nav.user button  {
 .badge {
     cursor: default;
     font-size: 1.0em;
-    background-color: transparent !important;
-    color: #008896;
+    background-color: inherit !important;
+    color: #282c34;
 }
 .badge:focus {
     border: none;
@@ -445,9 +445,6 @@ nav.user button  {
     border: none;
     opacity: 1;
 }
-
-
-
 
 /* Pagination  */
 
@@ -479,7 +476,7 @@ nav.user button  {
     height: 75vh;
     overflow: auto;
     width: auto;
-    background-color: #282c34;
+    background-color: #002A37;
     color: #FFFFFF;
     transition: width 2s;
     transition-timing-function: ease-in-out;
@@ -599,7 +596,7 @@ nav.breadcrumb ul {
     margin: 0;
     list-style: none;
     background-color: #002A37;
-    color: #FFFFFF;
+    color: #95B0B4;
 
 }
 /* Display list items side by side */
@@ -617,7 +614,7 @@ nav.breadcrumb ul li+li:before {
 
 /* Add a color to all links inside the list */
 nav.breadcrumb ul li a {
-    color: #FFFFFF;
+    color: #95B0B4;
     text-decoration: none;
     text-overflow: ellipsis;
 }
@@ -639,8 +636,9 @@ nav.breadcrumb ul li a:hover {
     width: 100%;
     height: 40px;
     position: relative;
-    background-color: #00C6BB;
+    background-color: #DFEEE9;
     z-index: 9999;
+    font-size: small;
 }
 .editor-tools.h-menu ul {
     justify-content: right;
@@ -650,7 +648,6 @@ nav.breadcrumb ul li a:hover {
     vertical-align: middle;
     height: 40px;
     line-height: 40px;
-    color: white !important;
     width: auto;
 }
 .editor-tools .v-menu.dropdown {
@@ -661,13 +658,13 @@ nav.breadcrumb ul li a:hover {
 .editor-tools .v-menu.dropdown li  {
     height: auto;
     padding: 5px;
-    background-color: #00C6BB;
+    background-color: #DFEEE9;
     width: 100% !important;
 }
 .editor-tools.h-menu ul li button, .editor-tools .v-menu ul li button  {
     text-align: left;
     background-color: transparent;
-    color: white !important;
+    color: #002A37 !important;
 }
 
 .editor-tools.h-menu ul li button:hover, .editor-tools .v-menu ul li button:hover {
@@ -689,7 +686,8 @@ nav.breadcrumb ul li a:hover {
 
 .navigator-tools {
     width: 100%;
-    background-color: #00C6BB;
+    background-color: #DFEEE9;
+    font-size: small;
 }
 .navigator.hidden .navigator-tools {
     width: 40px;
@@ -703,19 +701,20 @@ nav.breadcrumb ul li a:hover {
 }
 .navigator-tools .h-menu ul li,
 .navigator-tools .v-menu ul li   {
-    color: white !important;
+    color: #002A37 !important;
     width: auto;
     height: 40px;
     line-height: 40px;
 }
 .navigator-tools .h-menu ul li button.active,
 .navigator-tools .v-menu ul li button.active {
-    background-color: #01447e;
+    background-color: #002A37;
+    color: #FFFFFF !important;
 }
 .navigator-tools .h-menu ul li button,
 .navigator-tools .v-menu ul li button  {
     background-color: transparent;
-    color: white !important;
+    color: #002A37 !important;
 }
 .navigator-tools .h-menu ul li button:hover, .editor-tools .v-menu ul li button:hover {
     opacity: 0.6;
@@ -732,6 +731,7 @@ nav.breadcrumb ul li a:hover {
 
 .tree-node {
     margin-left: 9px;
+    font-size: small;
 }
 .tree-node .h-menu {
     padding: 0;
@@ -797,7 +797,6 @@ nav.breadcrumb ul li a:hover {
 .tab  {
     border-top: none;
 }
-
 /* Tab menu panel: horizontal orientation */
 .tab.h-menu ul li {
     overflow: hidden;
@@ -805,6 +804,7 @@ nav.breadcrumb ul li a:hover {
 .tab-menu.h-menu {
     padding: 0;
     flex-wrap: nowrap;
+    border-radius: 0;
 }
 .tab-menu.h-menu {
     border-bottom: 2px solid #2B5A6B;
@@ -813,6 +813,7 @@ nav.breadcrumb ul li a:hover {
     width: auto;
     margin-bottom: 0;
     padding-bottom: 0;
+    font-size: small;
 }
 .tab-menu.h-menu ul li button {
     width: auto;
@@ -854,13 +855,14 @@ nav.breadcrumb ul li a:hover {
     color: #282c34;
 }
 .accordion .tab-menu.h-menu {
-    border-bottom: 2px solid #282c34;
+    border-bottom: 2px solid #DDDDDD;
 }
 
 /* Tab data panel */
 .tab-data {
     width: 70%;
     padding:0;
+    cursor: default !important;
 }
 .tab-data.vertical {
     margin-left: 30%;
@@ -876,6 +878,7 @@ nav.breadcrumb ul li a:hover {
 
 /* Position the image container (needed to position the left and right arrows) */
 .slider {
+    width: 100%;
     position: relative;
 }
 
@@ -977,6 +980,10 @@ nav.breadcrumb ul li a:hover {
     justify-content: left;
 }
 
+.slider .thumbnails.h-menu ul li{
+    width: auto;
+}
+
 /* Image Comparator */
 
 * {box-sizing: border-box;}
@@ -1054,6 +1061,7 @@ nav.breadcrumb ul li a:hover {
     justify-items: right;
 }
 .node.h-menu ul li {
+    width: auto;
     height: auto;
     line-height: normal;
     margin-left: auto;
@@ -1150,6 +1158,7 @@ nav.breadcrumb ul li a:hover {
     width: auto;
     align-items: center;
     color: #2B5A6B !important;
+    font-size: small;
 }
 .comparisons-item div {
     width: auto !important;
@@ -1166,6 +1175,24 @@ nav.breadcrumb ul li a:hover {
 }
 .capture-selector label {
     border-radius: 10px;
+}
+
+/* Generic colour schema */
+
+.blue {
+    color: #57BECC !important;
+    border-color: #57BECC !important;
+    background-color: #FFFFFF;
+}
+.purple {
+    color: #8174A7 !important;
+    border-color: #8174A7 !important;
+    background-color: #FFFFFF;
+}
+.pink {
+    color: #B65179 !important;
+    border-color: #B65179 !important;
+    background-color: #FFFFFF;
 }
 
 /* Model colour schema */
@@ -1240,17 +1267,20 @@ nav.breadcrumb ul li a:hover {
 */
 
 .footer div {
-    font-size: small;
     padding: 8px;
     color: #FFFFFF;
     background-color: #2B5A6B;
+}
+.footer div p {
+    font-size: small;
+    padding: 0;
 }
 
 /*
   Images
 */
 
-img{
+img {
     margin: auto;
     max-width: 100%;
     max-height: 100%;
@@ -1301,6 +1331,7 @@ th.image-thumbnail {
     justify-content: left;
 }
 .gallery.h-menu ul li {
+    font-size: small;
     overflow: hidden;
     padding: 2px;
 }
@@ -1339,27 +1370,29 @@ table.item {
     text-align: left;
     border-collapse: collapse;
     color: #444;
-    background-color: #EEEEEE;
+    background-color: #FFFFFF;
     margin: 10px auto 10px auto;
 }
 table.item tr:nth-child(even) {
-    background: #dedbe6;
+    background: #EEEEEE;
 }
 table.item tbody td, table.item tbody th {
+    font-size: small;
     padding: 5px 20px !important;
     text-align: left !important;
-    font-size: small;
     vertical-align: text-top;
 }
 table.item thead {
-    background: #8174A7;
-    border-bottom: 5px solid #FFFFFF;
+    background: transparent !important;
+}
+table.item thead tr th {
+    background: #D7F1E9;
+    border-bottom: 1px solid #CCCCCC;
 }
 table.item thead th {
-    background: #8174A7;
-    font-size: small;
+    background: #FFFFFF;
     font-weight: bold;
-    color: #FFFFFF;
+    color: #282c34;
     text-align: center;
     border-left: 2px solid #FFFFFF;
 }
@@ -1370,9 +1403,11 @@ table.item thead th div button {
     border: none;
     background-color: transparent;
     font-weight: bold;
-    color: #FFFFFF;
+    color: #282c34;
+    height: 100%;
 }
 table.item tbody th {
+    padding: 3px;
     width: 25%;
     background: #FFFFFF;
     font-size: small;
@@ -1413,7 +1448,7 @@ table.items tr:nth-child(even) {
     background: #EEEEEE;
 }
 table.items thead {
-    background: #008896;
+    background: #95B0B4;
     border-bottom: 5px solid #FFFFFF;
 }
 table.items thead th {
@@ -1441,7 +1476,8 @@ table.items tfoot td {
 /* multiple files list */
 
 table.files {
-    border: 1px solid #FFFFFF;
+    margin-top: 20px;
+    border-bottom: 1px solid #888888 !important;
     width: 100%;
     border-collapse: collapse;
     color: #444;
@@ -1453,19 +1489,27 @@ table.files td, table.files th {
 }
 table.files tbody td {
     font-size: small;
+    text-align: left;
+}
+table.files img {
+    display: block;
+}
+table.files tbody td.mime_type {
     text-align: center;
+}
+table.files tbody td button{
+    background-color: transparent;
 }
 table.files tr:nth-child(even) {
     background: #EEEEEE;
 }
 table.files thead {
-    background: #008896;
-    border-bottom: 5px solid #FFFFFF;
+    background: #EEEEEE;
 }
 table.files thead th {
+    color: #888888;
     font-size: small;
     font-weight: bold;
-    color: #FFFFFF;
     text-align: center;
     border-left: 2px solid #FFFFFF;
 }
@@ -1520,7 +1564,7 @@ form {
 fieldset {
     margin: 20px;
     padding: 20px;
-    border-color: #4E4372;
+    border-color: #CCCCCC;
 }
 fieldset.hidden {
     padding:0;
@@ -1528,7 +1572,6 @@ fieldset.hidden {
     border: none;
 }
 fieldset div {
-    margin :10px;
     height:100%;
     line-height:2em;
 }
@@ -1549,6 +1592,20 @@ fieldset.compact label .label-text {
     height: auto;
     min-width: auto !important;
     min-height: auto;
+}
+
+fieldset.super_compact, fieldset.super_compact div, fieldset.super_compact input, fieldset.super_compact label,
+fieldset.super_compact label .label-text {
+    font-size: 0.95em;
+    margin: 2px;
+    padding: 2px;
+    height: auto;
+    min-width: 0 !important;
+    min-height: 0;
+    line-height: 100%;
+}
+fieldset.super_compact input {
+    width: 50px;
 }
 form .addField {
     text-align: center;
@@ -1767,12 +1824,12 @@ input[type=file] {
 /* HTML button */
 
 button {
+    font-size: inherit;
     margin: auto;
     font-family: 'Inter', Arial, sans-serif;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: small;
     padding: 6px;
     color: inherit;
 }
@@ -1796,6 +1853,7 @@ Messages
     min-height: 30px;
     height: auto;
     margin: 10px auto;
+    padding: 10px;
 }
 .msg-text {
     height: auto;
@@ -1803,6 +1861,7 @@ Messages
     text-align: left;
     padding: 10px;
     flex-grow: 4;
+    font-size: 1.2em;
 }
 .msg-icon {
     width: auto !important;
@@ -1813,6 +1872,20 @@ Messages
 }
 .msg .close button {
     background-color: transparent;
+}
+.msg.inline {
+    background-color: transparent;
+    min-height: 0;
+    margin: 0;
+    padding: 2px;
+}
+.msg.inline .msg-text {
+    margin: 0;
+    padding: 1px;
+}
+.msg.inline .msg-icon, .msg.inline .close {
+    margin: 0;
+    padding: 4px;
 }
 .info {
     color: #2ea591;
@@ -1873,6 +1946,7 @@ Messages
 }
 .dialog .content-box {
     font-weight: normal;
+    font-size: small;
     position: absolute;
     width: auto;
     height: 85%;
@@ -1889,7 +1963,8 @@ Messages
     padding: 3px !important;
     margin: 0 !important;
     text-align: right;
-    background: #666666;
+    background: #002A37;
+    color: #FFFFFF;
 }
 .dialog-header button {
     background-color: transparent !important;
@@ -1902,7 +1977,8 @@ Messages
     font-weight: normal;
     margin: 0 0 20px 0;
     padding: 10px;
-    background-color: #DDDDDD;
+    background-color: #E6F4F1;
+    color: #002A37;
     text-align: center;
 }
 .dialog .dialog-title p {
@@ -1981,11 +2057,17 @@ canvas {
     min-width: 450px;
     min-height: 400px;
 }
+
+/*
+Define Canvas Layers of Panel (IAT)
+*/
+
 .canvas-placeholder {
-    z-index: 50;
+    z-index: 99999;
     text-align: center;
     background-color: transparent;
     color: #282c34;
+    font-size: small;
 }
 .canvas-placeholder button {
     z-index: 50;
@@ -1993,16 +2075,13 @@ canvas {
     background-color: #282c34;
     color: #FFFFFF;
 }
-/*
-Define Canvas Layers of Panel (IAT)
-*/
 .canvas-layer-control-default {
     cursor: move;
-    z-index: 40;
+    z-index: 99998;
 }
 .canvas-layer-control-select, .canvas-layer-control-crop {
     cursor: crosshair;
-    z-index: 40;
+    z-index: 99998;
 }
 .canvas-layer-control-default.magnify, .canvas-layer-control-select.magnify {
     cursor: none;
@@ -2025,7 +2104,7 @@ Define Canvas Layers of Panel (IAT)
 .canvas-board {
     display: flex;
     justify-content: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     width: auto;
 }
 .canvas-board .msg, .canvas-message {
@@ -2048,6 +2127,7 @@ Define Canvas Layers of Panel (IAT)
 .canvas-option-controls {
     margin: 0;
     padding: 0;
+    font-size: small;
 }
 .canvas-option-controls button {
     min-width: 30px;
@@ -2055,7 +2135,7 @@ Define Canvas Layers of Panel (IAT)
     background-color: #282c34;
 }
 .canvas-option-controls button.active {
-    background-color: #2ea591;
+    background-color: #F49431;
     color: #FFFFFF;
 }
 #canvas-top-menu {
@@ -2069,7 +2149,7 @@ Define Canvas Layers of Panel (IAT)
     padding: 3px;
     text-align: left;
     line-height: 100%;
-    font-size: smaller;
+    font-size: small;
     vertical-align: middle;
     color: #FFFFFF;
     background-color: #282c34;
@@ -2087,6 +2167,12 @@ Define Canvas Layers of Panel (IAT)
 .spinner-icon.overlay {
     font-size: 4em;
 }
+.canvas-status {
+    background-color: #D36819;
+    padding: 10px;
+    border-radius: 10px;
+    position: absolute;
+}
 .canvas-view-info table {
     width: 100%;
 }
@@ -2103,6 +2189,7 @@ Define Canvas Layers of Panel (IAT)
     background-color: transparent;
     color: #FFFFFF;
     padding: 5px;
+    font-size: small;
 }
 .canvas-view-controls ul {
     justify-content: space-evenly;
@@ -2119,7 +2206,6 @@ Define Canvas Layers of Panel (IAT)
 }
 /* Canvas magnifier */
 .canvas-magnifier {
-    visibility: hidden;
     background-repeat: no-repeat;
     position: absolute;
     border: 3px solid #000;
@@ -2127,10 +2213,20 @@ Define Canvas Layers of Panel (IAT)
     /*Set the size of the magnifier glass:*/
     width: 100px;
     height: 100px;
+    z-index: 28;
+}
+.canvas-magnifier-crosshair {
+    background-repeat: no-repeat;
+    position: absolute;
+    width: 100px;
+    height: 100px;
     z-index: 29;
 }
-.canvas-magnifier.hidden {
-    display: none;
+
+/* Image Capture Selector */
+
+.selector .selected {
+    background-color: #F49431;
 }
 
 /* Load spinner  */

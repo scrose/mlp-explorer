@@ -8,7 +8,7 @@
 import React from 'react';
 import {
     getModelLabel,
-    getStaticLabel,
+    getStaticLabel, getStaticView,
     getViewLabel,
 } from '../../_services/schema.services.client';
 import { useRouter } from '../../_providers/router.provider.client';
@@ -25,14 +25,19 @@ const Heading = () => {
 
     const router = useRouter();
     const api = useData();
+    const omitHeadings = ['imageToolkit'];
 
     // get possible heading labels
+    const staticView = getStaticView(router.route);
     const staticLabel = getStaticLabel(router.route);
     const nodeLabel = api.label;
     const modelLabel = getModelLabel(api.model);
 
     // generate heading based on current model/view
     const genHeading = () => {
+
+        // omit header for select pages
+        if (omitHeadings.includes(staticView)) return null;
 
         // use static label (if exists)
         if (staticLabel) return staticLabel;

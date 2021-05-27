@@ -110,11 +110,13 @@ const DefaultView = ({
         label: 'Metadata',
         data: <MetadataAttached owner={node} attached={attachedMetadata} />,
     });
+
     // include attached files
     if (Object.keys(files).length > 0) _tabItems.push({
         label: 'Files',
         data: <FilesView owner={node} files={files} />,
     });
+
     // include unsorted captures
     if (dependentsGrouped.hasOwnProperty('historic_captures')) _tabItems.push({
         label: 'Historic Captures',

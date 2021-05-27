@@ -207,19 +207,20 @@ function MapNavigator({ data, filter }) {
                         riseOnHover: true,
                     })
                         .on('click', (e) => {
+                            // clicking on marker loads filter results in data pane
+                            loadView(
+                                cluster.stations.map(station => {
+                                    return station.nodes_id;
+                                }));
+                        })
+                        .on('dblclick', (e) => {
+                            console.log('dbl click!')
                             // get new map center / zoom level
                             debounce(() => {
                                 const coord = e.latlng;
                                 const zoomLevel = mapObj.current.getZoom() + 1;
                                 mapObj.current.flyTo(coord, zoomLevel);
                             }, 400)();
-                        })
-                        .on('dblclick', () => {
-                            // clicking on marker loads filter results in data pane
-                            loadView(
-                                cluster.stations.map(station => {
-                                    return station.nodes_id;
-                                }));
                         });
                     // add cluster marker to layer
                     o.push(marker);

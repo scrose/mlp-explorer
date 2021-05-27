@@ -11,6 +11,7 @@ import { getModelLabel } from '../../_services/schema.services.client';
 import Button from '../common/button';
 import { sanitize } from '../../_utils/data.utils.client';
 import React from 'react';
+import { getScale, scalePoint } from './transform.iat';
 
 /**
  * Canvas info status.
@@ -28,47 +29,29 @@ const PanelInfo = ({ properties, pointer, status, options }) => {
     const router = useRouter();
     const captureRoute = createNodeRoute('modern_captures', 'show', properties.owner_id);
 
-    // compute scales
-    const eps = 0.0000000001;
-    const scaleX = properties.render_dims.w > 0
-        ? ((properties.image_dims.w + eps)/(properties.render_dims.w + eps)).toFixed(2)
-        : 1.0;
-    const scaleY = properties.render_dims.h > 0
-        ? ((properties.image_dims.h + eps)/(properties.render_dims.h + eps)).toFixed(2)
-        : 1.0;
-
-    // compute offsets
-    const offsetX = Math.ceil(properties.render_dims.x);
-    const offsetY = Math.ceil(properties.render_dims.y);
-
     // compute actual cursor position in image
-    const actualX = Math.ceil((pointer.x - offsetX) * scaleX);
-    const actualY = Math.ceil((pointer.y - offsetY) * scaleY );
+    const scale = getScale(properties);
+    const actual = scalePoint(pointer, properties);
 
     return <div id={`canvas-view-${properties.id}-info`} className={'canvas-view-info'}>
         <div>
             {
-                options.mode === 'crop' &&
-                <table>
-                    <tbody>
-                    <tr>
-                        <th>Crop Size</th>
-                        <td>
-                            [{ pointer.selectBox.w }, { pointer.selectBox.h }]
-                        </td>
-                        <td>
-
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+                status !== 'loaded'
+                && status !== 'error'
+                && status !== 'empty'
+                && status !== 'draw'
+                &&
+                <div className={'canvas-status'}>
+                    <Button label={`Working (${status})`} spin={true} icon={'spinner'} />
+                </div>
             }
             <table>
                 <tbody>
                 <tr>
-                    <th>File</th>
-                    <td>{
-                            properties.filename ? properties.filename : status
+                    <th>File:</th>
+                    <td style={{ width: '80%' }}>
+                        {
+                            properties.filename ? properties.filename : 'Not Loaded'
                         }
                         {
                             properties.owner_id &&
@@ -96,19 +79,13 @@ const PanelInfo = ({ properties, pointer, status, options }) => {
                 <th>Cursor:</th>
                 <td>({pointer.x}, {pointer.y})</td>
                 <th>Actual:</th>
-                <td>({actualX}, {actualY})</td>
+                <td>({actual.x}, {actual.y})</td>
             </tr>
             <tr>
-                <th>Scale X:</th>
-                <td>1:{scaleX}</td>
-                <th>Scale Y:</th>
-                <td>1:{scaleY}</td>
-            </tr>
-            <tr>
-                <th>Offset</th>
-                <td>({offsetX}, {offsetY})</td>
-                <th></th>
-                <td></td>
+                <th>Scale:</th>
+                <td>1:{scale.x}</td>
+                <th>Offset:</th>
+                <td>({properties.render_dims.x}, {properties.render_dims.y})</td>
             </tr>
             <tr>
                 <th>Rendered</th>
@@ -119,7 +96,7 @@ const PanelInfo = ({ properties, pointer, status, options }) => {
             <tr>
                 <th>Canvas</th>
                 <td>[{properties.base_dims.w}, {properties.base_dims.h}]</td>
-                <th>Source</th>
+                <th>Original</th>
                 <td>[{properties.original_dims.w}, {properties.original_dims.h}]</td>
             </tr>
             </tbody>
