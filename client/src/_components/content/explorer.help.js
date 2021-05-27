@@ -23,11 +23,11 @@ export const explorerHelp = <>
     </p>
 
     <h5>Mountain Legacy Explorer (MLE)</h5>
-    <p>The Mountain Legacy Explorer is a tool for exploring the Mountain Legacy Project
+    <p>The Explorer (MLE) is a web-based tool for exploring the Mountain Legacy Project
         collection of repeat images and metadata. MLE allows users to navigate image captures,
         by geographical region and through the image metadata. The navigator map, for example,
         gives a geographical view of the survey data across Alberta and British Columbia,
-        while users can also explore data by surveyor and survey.
+        while users can also explore, search and filter data by surveyor and survey.
     </p>
 
     <h5>Digitization of Historical Photography</h5>

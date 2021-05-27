@@ -99,7 +99,7 @@ export const FilesTable = ({owner, files=[]}) => {
  */
 
 export const FilesList = ({files, owner}) => {
-    return files.length > 0 &&
+    return Array.isArray(files) && files.length > 0 &&
         <div className={'gallery h-menu'}>
             <ul>
                 {

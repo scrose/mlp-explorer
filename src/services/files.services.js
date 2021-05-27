@@ -626,16 +626,11 @@ export const saveFile = async (index, metadata, owner, imageState=null) => {
     let fileData = metadata.files[index];
     fileData.data = {};
 
-    // Define output paths for original (raw) and scaled images
-    const outDir = process.env.UPLOAD_DIR;
-
     // generate unique filename ID token
     const imgToken = genUUID();
 
     // get file type
     const { file_type='', mimetype='', filename='' } = fileData.file || {};
-
-    console.log(fileData, owner)
 
     // reject null file data
     if (!file_type || !mimetype || !filename ) throw new Error();
@@ -663,11 +658,11 @@ export const saveFile = async (index, metadata, owner, imageState=null) => {
             },
             // resized versions
             thumb: {
-                path: path.join(outDir, 'versions', `thumb_${imgToken}.jpeg`),
+                path: path.join(process.env.LOWRES_PATH, `thumb_${imgToken}.jpeg`),
                 size: imageSizes.thumb,
             },
             medium: {
-                path: path.join(outDir, 'versions', `medium_${imgToken}.jpeg`),
+                path: path.join(process.env.LOWRES_PATH, `medium_${imgToken}.jpeg`),
                 size: imageSizes.medium,
             },
         };

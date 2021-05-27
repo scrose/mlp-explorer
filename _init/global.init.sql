@@ -100,6 +100,8 @@ $$;
 --    Application Settings table
 -- -------------------------------------------------------------
 
+DROP TABLE IF EXISTS "settings";
+
 CREATE TABLE IF NOT EXISTS settings
 (
     id    serial PRIMARY KEY,

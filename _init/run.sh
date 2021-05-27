@@ -1,12 +1,14 @@
 #!/bin/sh
 
-# Run initialization
+# Run database initialization
 # sh /_init/run.sh
-# psql -U boutrous mlp2 < /Users/boutrous/Workspace/NodeJS/db/meat.sql
 
-DATABASE='mlp2'
-BACKUP_PATH='/Users/boutrous/Workspace/NodeJS/db/meat.sql'
-USER='boutrous'
+DATABASE='mountain_legacy'
+#DATABASE='mlp'
+#USER='boutrous'
+#BACKUP_PATH='/Users/boutrous/Workspace/NodeJS/db/meat.sql'
+BACKUP_PATH="/Users/boutrous/Workspace/NodeJS/db/meat_backup_28apr2021.sql"
+SAVE_PATH="/Users/boutrous/Workspace/NodeJS/db/mle_dump.sql.tar"
 
 # clear database
  (
@@ -16,8 +18,11 @@ USER='boutrous'
  | psql -U $USER $DATABASE
 
 # restore db to backup
-psql -U $USER $DATABASE < $BACKUP_PATH
-#pg_restore --host "localhost" --port "5432" --username "boutrous" --no-password --dbname "mlp3" --verbose "/Users/boutrous/Workspace/NodeJS/db/meat_backup_28apr2021.sql"
+#psql -U $USER $DATABASE < $BACKUP_PATH
+pg_restore --host "localhost" --port "5432" --username $USER --no-password --dbname $DATABASE --verbose $BACKUP_PATH
+
+# generate backup
+# pg_restore --host "localhost" --port "5432" --username $USER --no-password --dbname $DATABASE --verbose $BACKUP_PATH
 
 # update existing schema
 psql -U $USER $DATABASE < _init/global.init.sql
@@ -27,6 +32,9 @@ psql -U $USER $DATABASE < _init/metadata.init.sql;
 psql -U $USER $DATABASE < _init/participants.init.sql;
 psql -U $USER $DATABASE < _init/users.init.sql;
 psql -U $USER $DATABASE < _init/cleanup.init.sql;
+
+# save db as dump
+pg_dump -U $USER --format=tar $DATABASE > $SAVE_PATH;
 
 echo "MLP database migration completed.";
 
