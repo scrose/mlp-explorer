@@ -540,7 +540,7 @@ export const copyFileTo = function(srcPath, output, format) {
             const pipeline = sharp(srcPath);
             const writeStream = fs.createWriteStream(output.path, {flags: 'wx'});
             pipeline
-                .resize(output.size.width)
+                .resize(output.size)
                 .tif()
                 .pipe(writeStream);
             return new Promise((resolve, reject) =>
@@ -555,7 +555,7 @@ export const copyFileTo = function(srcPath, output, format) {
             const pipeline = sharp(srcPath);
             const writeStream = fs.createWriteStream(output.path, {flags: 'wx'});
             pipeline
-                .resize(output.size.width)
+                .resize(output.size)
                 .jpeg({
                     quality: 100,
                     force: true,
@@ -599,6 +599,8 @@ export const saveFile = async (index, metadata, owner, imageStateData=null) => {
     // get file data object
     let fileData = metadata.files[index];
     fileData.data = {};
+
+    console.log(fileData)
 
     // generate unique filename ID token
     const imgToken = genUUID();
