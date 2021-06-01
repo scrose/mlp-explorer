@@ -383,7 +383,7 @@ nav.user button  {
 }
 .view {
     width: 100%;
-    height: 75vh;
+    height: 77vh;
     overflow: auto;
     padding: 0 10px 40px 10px;
 }
@@ -470,7 +470,7 @@ nav.user button  {
 /* Navigator Panel: Tree */
 
 .navigator .tree {
-    height: 75vh;
+    height: 77vh;
     overflow: auto;
     width: auto;
     background-color: #002A37;
@@ -1122,7 +1122,7 @@ nav.breadcrumb ul li a:hover {
 
 /* Station Status */
 
-.missing {
+.missing, .unsorted {
     color: #E34234 !important;
 }
 .grouped {
@@ -1269,6 +1269,7 @@ nav.breadcrumb ul li a:hover {
     background-color: inherit;
 }
 .footer div p {
+    text-align: center;
     font-size: small;
     padding: 0;
 }

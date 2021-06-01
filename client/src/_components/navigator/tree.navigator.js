@@ -13,7 +13,7 @@ import { getModelLabel, getNodeOrder } from '../../_services/schema.services.cli
 import { addNode, checkNode, removeNode } from '../../_services/session.services.client';
 import { useData } from '../../_providers/data.provider.client';
 import Button from '../common/button';
-import { sorter } from '../../_utils/data.utils.client';
+import { capitalize, sorter } from '../../_utils/data.utils.client';
 import Loading from '../common/loading';
 
 /**
@@ -70,7 +70,7 @@ const TreeNodeMenu = ({
         if (status.repeated) return 'repeated';
         // if (status.located) return 'located';
         if (status.grouped) return 'grouped';
-        return 'missing';
+        return 'unsorted';
     }
 
     // toggle button classnames
@@ -101,7 +101,7 @@ const TreeNodeMenu = ({
                         icon={model}
                         size={'lg'}
                         className={`tree-node-icon ${isCurrent ? ' current' : ''} ${status ? getStatus() : ''}`}
-                        title={`View ${getModelLabel(model)}: ${label} ${status ? ' [' + getStatus() + ' captures]' : ''}`}
+                        title={`View ${getModelLabel(model)}: ${label} ${status ? ' [' + capitalize(getStatus()) + ' Capture]' : ''}`}
                         onClick={handleView}
                     />
                 </li>
