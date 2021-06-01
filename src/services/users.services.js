@@ -14,6 +14,7 @@
 
 import * as queries from '../queries/users.queries.js'
 import pool from './db.services.js';
+import { groupBy } from '../lib/data.utils.js';
 
 /**
  * Find all registered users.
@@ -48,18 +49,19 @@ export async function select(user_id) {
 
 
 /**
- * Get user roles.
+ * Get user role label.
  *
  * @public
  * @return {Promise} result
  */
 
-export async function getRoles() {
+export async function getRoleLabels() {
     let { sql, data } = queries.getRoles();
-    return pool.query(sql, data)
+    let roleLabels = await pool.query(sql, data)
         .then(res => {
             return res.rows.length === 0 ? null : res.rows;
         });
+    return groupBy((roleLabels || []), 'name');
 }
 
 /**

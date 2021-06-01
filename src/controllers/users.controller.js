@@ -13,6 +13,7 @@
 import * as auth from '../services/auth.services.js';
 import valid from '../lib/validate.utils.js';
 import { prepare } from '../lib/api.utils.js';
+import { getRoleLabels } from '../services/users.services.js';
 
 /**
  * Controller initialization.
@@ -20,7 +21,12 @@ import { prepare } from '../lib/api.utils.js';
  * @src public
  */
 
-export const init = async () => {};
+let roleLabels = {};
+
+export const init = async () => {
+    // get designated role labels
+    roleLabels = await getRoleLabels();
+};
 
 /**
  * User sign-in using email and password.
@@ -69,6 +75,15 @@ export const login = async (req, res, next) => {
             res.cookie("access_token", access_token, {httpOnly: true, sameSite: 'strict', signed: true});
             res.cookie("refresh_token", refresh_token, {httpOnly: true, sameSite: 'strict', signed: true});
 
+            // return user role label
+            const roleLabel = data.roles.length > 0
+                ? (
+                    roleLabels.hasOwnProperty(data.roles[0])
+                        ? roleLabels[data.roles[0]]
+                        : 'Administrator'
+                )
+                : 'Registered';
+
             // successful login
             res.status(200).json(
                 prepare({
@@ -77,7 +92,7 @@ export const login = async (req, res, next) => {
                     user: {
                         email: credentials.email,
                         role: data.roles,
-                        label: data.roles
+                        label: roleLabel
                     }})
             );
         })
@@ -167,6 +182,15 @@ export const refresh = async (req, res, next) => {
             res.cookie("access_token", access_token, {httpOnly: true, sameSite: 'strict', signed: true});
             res.cookie("refresh_token", refresh_token, {httpOnly: true, sameSite: 'strict', signed: true});
 
+            // return user role label
+            const roleLabel = data.roles.length > 0
+                ? (
+                    roleLabels.hasOwnProperty(data.roles[0])
+                        ? roleLabels[data.roles[0]]
+                        : 'Administrator'
+                )
+                : 'Registered';
+
             // successful token refresh
             res.status(200).json(
                 prepare({
@@ -174,7 +198,7 @@ export const refresh = async (req, res, next) => {
                     user: {
                         email: data.email,
                         role: data.roles,
-                        label: data.roles
+                        label: roleLabel
                     }
                 })
             );

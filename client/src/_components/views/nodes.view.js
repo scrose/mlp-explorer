@@ -76,7 +76,7 @@ const DefaultView = ({
                                 <MenuEditor
                                     model={type}
                                     id={id}
-                                    owner={item}
+                                    owner={node}
                                     label={label}
                                     metadata={metadata}
                                     dependents={getDependentTypes(type)}

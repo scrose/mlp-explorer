@@ -361,6 +361,7 @@ export const schema = {
                 label: "Stations",
                 singular: "Station",
                 dependents: [
+                    'historic_visits',
                     'modern_visits',
                     'modern_captures',
                     'supplemental_images',

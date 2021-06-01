@@ -8,7 +8,7 @@
 import React, { useCallback } from 'react';
 import { createNodeRoute, redirect } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
-import { genSchema, getModelLabel } from '../../_services/schema.services.client';
+import { genSchema, getModelLabel, getStaticLabel, getStaticView } from '../../_services/schema.services.client';
 import Button from '../common/button';
 import Importer from '../tools/import.tools';
 import Dialog from '../common/dialog';
@@ -19,6 +19,7 @@ import Remover from '../views/remover.view';
 import OptionsView from '../views/options.view';
 import HelpView from '../views/help.view';
 import Exporter from '../tools/export.tools';
+import Badge from '../common/badge';
 
 /**
  * Editor menu component.
@@ -29,7 +30,7 @@ import Exporter from '../tools/export.tools';
 const MenuEditor = ({
                         className='node',
                         model = '',
-                        view='show',
+                        view='',
                         id = '',
                         label = '',
                         compact=true,
@@ -61,7 +62,7 @@ const MenuEditor = ({
     // get redirect URI
     // - dependents return to the owner view
     // - owners return to themselves
-    const redirectURI = owner
+    const redirectURI = owner && Object.keys(owner || {}).length > 0
         ? createNodeRoute(owner.type, 'show', owner.id)
         : createNodeRoute(model, 'show', id);
 
@@ -88,7 +89,8 @@ const MenuEditor = ({
             && !dependentsExclude.includes(view),
         import_mc: !!(dependents || [])
             .find(dependent => dependent === 'modern_captures')
-            && !dependentsExclude.includes(view)
+            && !dependentsExclude.includes(view),
+        iat: getStaticView(router.route) === 'imageToolkit'
     }
 
     // generate unique ID value for form inputs
@@ -126,9 +128,11 @@ const MenuEditor = ({
                         schema={genSchema('new', model)}
                         route={createNodeRoute(model, 'new')}
                         onCancel={() => {setDialogToggle(null)}}
-                        callback={() => {
+                        callback={(error, model, id) => {
                             setDialogToggle(null);
-                            callback ? callback() : redirect(router.route);
+                            callback
+                                ? callback(error, model, id)
+                                : redirect(createNodeRoute(model, 'show', id));
                         }}
                     />
                 </Dialog>,
@@ -144,10 +148,11 @@ const MenuEditor = ({
                             route={createNodeRoute(model, 'edit', id)}
                             data={metadata}
                             onCancel={() => {setDialogToggle(null)}}
-                            callback={() => {
-                                console.log('Callback new!')
+                            callback={(error, model, id) => {
                                 setDialogToggle(null);
-                                callback ? callback() : redirect(router.route);
+                                callback
+                                    ? callback(error, model, id)
+                                    : redirect(router.route);
                             }}
                         />
                     </Dialog>,
@@ -160,7 +165,11 @@ const MenuEditor = ({
                         groupType={group_type}
                         callback={() => {
                             setDialogToggle(null);
-                            callback ? callback() : redirect(redirectURI);
+                            callback ? callback() : redirect(
+                                model === 'projects' || model === 'surveyors'
+                                    ? '/'
+                                    : redirectURI
+                            );
                         }}
                    />,
         options:   <OptionsView
@@ -184,9 +193,9 @@ const MenuEditor = ({
                             schema={genSchema('import', 'historic_captures')}
                             route={createNodeRoute('historic_captures', 'import', id)}
                             onCancel={() => {setDialogToggle(null)}}
-                            callback={() => {
+                            callback={(error, model, id) => {
                                 setDialogToggle(null);
-                                callback ? callback() : redirect(router.route);
+                                callback ? callback(error, model, id) : redirect(router.route);
                             }}
                         />
                     </Dialog>,
@@ -206,9 +215,9 @@ const MenuEditor = ({
                 hasUploads={true}
                 route={createNodeRoute('modern_captures', 'import', id)}
                 onCancel={() => {setDialogToggle(null)}}
-                callback={() => {
+                callback={(error, model, id) => {
                     setDialogToggle(null);
-                    callback ? callback() : redirect(router.route);
+                    callback ? callback(error, model, id) : redirect(router.route);
                 }}
             />
         </Dialog>,
@@ -464,6 +473,15 @@ const MenuEditor = ({
                                     </ul>
                                 </div>
                             }
+                        </li>
+                    }
+                    {
+                        isVisible.iat &&
+                        <li key={`${menuID}_menuitem_iat`}>
+                            <Badge
+                                icon={'iat'}
+                                label={getStaticLabel(router.route)}
+                            />
                         </li>
                     }
                     {

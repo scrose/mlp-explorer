@@ -598,7 +598,7 @@ export const getNodeLabel = async (node, files=[], client=pool) => {
             id, type, ['date'], 'Historic Visit'
         ),
         modern_visits: queries.metadata.selectLabel(
-            id, type, ['date']
+            id, type, ['date'], 'Modern Visit'
         ),
         locations: queries.metadata.selectLabel(
             id, type, ['location_identity'], 'Location'

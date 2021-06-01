@@ -46,7 +46,7 @@ pool.on('error', (err, client) => {
 
 pool.on('acquire', function (client) {});
 
-pool.on('connect', function () {
+pool.on('connect', function (err, client, release) {
     // console.log(
     //     '\n-------\nPool total:',
     //     pool.totalCount,

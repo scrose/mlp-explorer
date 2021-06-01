@@ -178,8 +178,9 @@ const Form = ({
                         formData.append(updatedKey, file);
                     }
                 }
+                // append metadata
                 else {
-                    formData.append(updatedKey, data[key]);
+                    formData.append(updatedKey, data[key] || '');
                 }
         });
 

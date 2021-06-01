@@ -4,7 +4,6 @@
 # sh /_init/run.sh
 
 DATABASE='mountain_legacy'
-#DATABASE='mlp'
 #USER='boutrous'
 #BACKUP_PATH='/Users/boutrous/Workspace/NodeJS/db/meat.sql'
 BACKUP_PATH="/Users/boutrous/Workspace/NodeJS/db/meat_backup_28apr2021.sql"
@@ -17,9 +16,8 @@ SAVE_PATH="/Users/boutrous/Workspace/NodeJS/db/mle_dump.sql.tar"
  ) \
  | psql -U $USER $DATABASE
 
-# restore db to backup
-#psql -U $USER $DATABASE < $BACKUP_PATH
-pg_restore --host "localhost" --port "5432" --username $USER --no-password --dbname $DATABASE --verbose $BACKUP_PATH
+# restore db to saved backup
+psql -U $USER $DATABASE < $SAVE_PATH
 
 # generate backup
 # pg_restore --host "localhost" --port "5432" --username $USER --no-password --dbname $DATABASE --verbose $BACKUP_PATH
