@@ -444,7 +444,7 @@ export const getFileURL = (type = '', data = {}) => {
     // - check if using MEAT images or local ones
     // ======================================================
     const rootURI = data.channels
-        ? `${process.env.API_HOST}/uploads/`
+        ? `${process.env.CLIENT_HOST}/uploads/`
         : `${process.env.DEV_API_HOST}/versions/`;
     // ======================================================
 
