@@ -9,7 +9,7 @@ import React from 'react';
 import { inRange, scalePoint } from './transform.iat';
 import { getError } from '../../_services/schema.services.client';
 import { drawControlPoints } from './graphics.iat';
-import { correlation } from '../../_utils/matrix.utils.client';
+import { correlation } from '../../_utils/iat.utils.client';
 import Badge from '../common/badge';
 
 /**

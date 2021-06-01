@@ -28,7 +28,7 @@ import os from 'os';
  * @return busboy uploader
  */
 
-export const receive = (req, owner_id, owner_type) => {
+export const receive = (req, owner_id=null, owner_type=null) => {
 
     // pass request headers to Busboy
     // - module for parsing incoming HTML form data
@@ -92,7 +92,7 @@ export const receive = (req, owner_id, owner_type) => {
                 return reject(err);
             }
             Promise.all(filePromises)
-                .then(() => {
+                .then((files) => {
                     cleanup();
                     // include requested owner ID if not null
                     if (owner_id) metadata.data.owner_id = owner_id;
@@ -162,6 +162,7 @@ export const onFile = (filePromises, metadata, onError, fieldname, file, filenam
 
     // create writable stream for temp file
     const writeStream = fs.createWriteStream(saveTo);
+    const fileIndex = filePromises.length;
 
     const filePromise = new Promise((resolve, reject) => writeStream
         .on('open', () => file
@@ -172,19 +173,19 @@ export const onFile = (filePromises, metadata, onError, fieldname, file, filenam
                 const stats = fs.statSync(saveTo)
                 fileData.file.file_size = stats.size;
 
-                // attach to metadata
+                // attach file data to global metadata
+                // - for multiple files on same type, use key index (e.g. 'file_type[2]')
+                // - for multiple files on different type, use file index
                 if (index)
                     metadata.files[index] = fileData;
                 else
-                    metadata.files[0] = fileData;
+                    metadata.files[fileIndex] = fileData;
 
                 resolve(metadata);
             })
         )
         .on('error', (err) => {
-            file
-                .resume()
-                .on('error', reject);
+            file.resume().on('error', reject);
             reject(err);
         })
     );

@@ -13,14 +13,20 @@ import { copyFile, unlink, mkdir } from 'fs/promises';
 import sharp from 'sharp';
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
-import { imageSizes } from '../../app.config.js';
 import { genUUID, sanitize } from '../lib/data.utils.js';
 import * as cserve from './construct.services.js';
 import * as metaserve from '../services/metadata.services.js';
 import * as nserve from '../services/nodes.services.js';
 import ModelServices from './model.services.js';
 import { allowedMIME } from '../lib/file.utils.js';
-import { getStatus } from '../services/metadata.services.js';
+
+/* Available image version sizes */
+
+const imageSizes = {
+    thumb: 150,
+    medium: 900,
+    full: 2100
+}
 
 /**
  * Get file record by ID. NOTE: returns single object.
@@ -71,7 +77,7 @@ export const get = async (id, client = pool) => {
         metadata: metadata,
         metadata_type: await metaserve.selectByName('metadata_file_types', type),
         url: getFileURL(file_type, metadata),
-        status: await getStatus(owner, metadata, client)
+        status: await metaserve.getStatus(owner, metadata, client)
     };
 
 };
@@ -186,6 +192,8 @@ export const insert = async (importData, model, fileOwner=null) => {
     const metadata = data;
 
     // filter image states from imported metadata
+    // - for multiple images, image state is indexed by file key
+    console.log(metadata.image_state)
     const imageState = metadata.image_state;
 
     // reject null parameters
@@ -272,8 +280,11 @@ export const insert = async (importData, model, fileOwner=null) => {
                     file.owner_type = fileOwner.type;
 
                     // include image state for capture images
-                    if (imageState)
-                        data.image_state = typeof imageState === 'string' ? imageState : imageState[key];
+                    if (imageState) {
+                        data.image_state = typeof imageState === 'string'
+                            ? imageState
+                            : imageState[key];
+                    }
 
                     // initialize file model services
                     // - create new file model instance from file-specific data
@@ -366,14 +377,18 @@ export const remove = async(file, filepaths, client=pool) => {
     // - requires removal of static slug from file path
     //   as set in Express static-serve
     await Promise.all(
-        filepaths.map( async(fileURI) => {
-            const filePath = path.join(fileURI)
-            // // remove resources slug from url path
-            // if (filepath.indexOf(staticSlug) === 0)
-            //     filepath = filepath.slice(staticSlug.length, filepath.length);
-            console.warn('Deleting File:', filePath);
-            let err = await unlink(filePath);
-            if (err) throw err;
+        filepaths.map( async (filePath) => {
+            fs.stat(filePath, async (err, stat) => {
+                if(err == null) {
+                    return await unlink(filePath);
+                } else if (err.code === 'ENOENT') {
+                    // file does not exist (ignore)
+                    console.warn(err);
+                    return null;
+                } else {
+                    throw err;
+                }
+            });
         })
     );
 
@@ -411,44 +426,6 @@ export const download = async (res, src) => {
 };
 
 /**
- * Get image file URL for raw image.
- *
- * @public
- * @param {String} type
- * @param {Object} data
- * @return {Promise} result
- */
-
-export const getFilePath = (type = '', data = {}) => {
-
-    // generate raw image source URL
-    const imgSrc = () => {
-        console.log(data)
-    };
-
-    // handle image source URLs differently than metadata files
-    // - images use scaled versions of raw files
-    // - metadata uses PDF downloads
-    const fileHandlers = {
-        historic_images: () => {
-            return imgSrc();
-        },
-        modern_images: () => {
-            return imgSrc();
-        },
-        supplemental_images: () => {
-            return imgSrc();
-        },
-        metadata_files: () => {
-            return fileURL();
-        },
-    };
-
-    // Handle file types
-    return fileHandlers.hasOwnProperty(type) ? fileHandlers[type]() : null;
-}
-
-/**
  * Create file source URLs for resampled images from file data.
  *
  * @public
@@ -474,7 +451,7 @@ export const getFileURL = (type = '', data = {}) => {
     // generate resampled image URLs
     const imgSrc = (token) => {
         return Object.keys(imageSizes).reduce((o, key) => {
-            o[key] = new URL(`${key}_${token}.jpeg`, rootURI);
+            o[key] = new URL(`${key !== 'full' ? key : ''}_${token}.jpeg`, rootURI);
             return o;
         }, {});
     };
@@ -492,9 +469,6 @@ export const getFileURL = (type = '', data = {}) => {
         supplemental_images: () => {
             return imgSrc(secure_token);
         },
-        // metadata_files: () => {
-        //     return fileURL();
-        // },
     };
 
     // Handle file types
@@ -614,10 +588,10 @@ export const copyFileTo = function(srcPath, output, format) {
  * @param index
  * @param metadata
  * @param owner
- * @param imageState
+ * @param imageStateData
  */
 
-export const saveFile = async (index, metadata, owner, imageState=null) => {
+export const saveFile = async (index, metadata, owner, imageStateData=null) => {
 
     // define file upload promises
     let filePromises = [];
@@ -631,6 +605,11 @@ export const saveFile = async (index, metadata, owner, imageState=null) => {
 
     // get file type
     const { file_type='', mimetype='', filename='' } = fileData.file || {};
+
+    // for multiple files, image state is indexed by the file index
+    const imageState = !imageStateData || typeof imageStateData === 'string'
+        ? imageStateData
+        : imageStateData[index];
 
     // reject null file data
     if (!file_type || !mimetype || !filename ) throw new Error();
@@ -665,6 +644,10 @@ export const saveFile = async (index, metadata, owner, imageState=null) => {
                 path: path.join(process.env.LOWRES_PATH, `medium_${imgToken}.jpeg`),
                 size: imageSizes.medium,
             },
+            full: {
+                path: path.join(process.env.LOWRES_PATH, `${imgToken}.jpeg`),
+                size: imageSizes.full,
+            },
         };
 
         // update file metadata
@@ -686,18 +669,18 @@ export const saveFile = async (index, metadata, owner, imageState=null) => {
     const _fileHandlers = {
         historic_images: async () => {
             // upload and save image data
-            await _handleImages(imageState ? imageState[index] : 'no_state');
+            await _handleImages(imageState || 'no_state');
             // handle image state value
             // - copy to file metadata and remove from metadata model
-            fileData.data.image_state = imageState[index];
+            fileData.data.image_state = imageState;
             delete metadata.data.image_state;
         },
         modern_images: async () => {
             // upload and save image data
-            await _handleImages(imageState ? imageState[index] : 'no_state');
+            await _handleImages(imageState || 'no_state');
             // handle image state value
             // - copy to file metadata and remove from metadata model
-            fileData.data.image_state = imageState[index];
+            fileData.data.image_state = imageState;
             delete metadata.data.image_state;
         },
         supplemental_images: async () => {

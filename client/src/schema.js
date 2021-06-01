@@ -993,7 +993,10 @@ export const schema = {
                 },
                 {
                     restrict: ['master'],
-                    historic_files_id: {
+                    historic_capture: {
+                        render: 'hidden'
+                    },
+                    modern_capture: {
                         render: 'hidden'
                     }
                 },

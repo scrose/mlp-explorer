@@ -18,6 +18,7 @@ import nodes from './nodes.routes.js'
 import models from './model.routes.js'
 import metadata from './metadata.routes.js'
 import files from './files.routes.js'
+import master from './master.routes.js'
 
 /**
  * Create base router to add routes.
@@ -131,6 +132,11 @@ async function initRouter() {
     // initialize file routes
     const filesRoutes = await files();
     filesRoutes
-        .map(routes => initRoutes(routes, baseRouter))
+        .map(routes => initRoutes(routes, baseRouter));
+
+    // initialize master routes
+    const masterRoutes = await master();
+    masterRoutes
+        .map(routes => initRoutes(routes, baseRouter));
 }
 initRouter().catch(err => {throw err});

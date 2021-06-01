@@ -45,7 +45,7 @@ const LoginUsers = () => {
     }, [user]);
 
     return user
-        ? <Loading />
+        ? <div>User {user.email} is signed in.</div>
         : <div>
             <UserMessage
                 message={message}

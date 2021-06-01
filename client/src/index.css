@@ -1608,7 +1608,15 @@ fieldset.super_compact input {
     width: 50px;
 }
 form .addField {
+    margin: auto;
     text-align: center;
+    width: 50%;
+}
+form .addField button {
+    text-align: center;
+    border-radius: 20px;
+    color: #FFFFFF;
+    background-color: #00C6BB !important;
 }
 fieldset .removeField {
     text-align: center;
@@ -1783,6 +1791,10 @@ input[type=file] {
     padding: 60px 0 60px 0;
     text-align: center !important;
     width: 100% !important;
+}
+.file-upload:hover, .file-upload.ondrag {
+    outline-color: #00C6BB;
+    background-color: #DFF2BF;
 }
 .file-upload:focus{
     outline: 2px dashed #92b0b3;

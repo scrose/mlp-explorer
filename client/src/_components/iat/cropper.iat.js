@@ -23,13 +23,9 @@ import { getScale, scalePoint } from './transform.iat';
 
 const Cropper = ({ properties, pointer, callback }) => {
 
-    // canvas dimensions
-    const _W = properties.base_dims.w;
-    const _H = properties.base_dims.h;
-
     // render dimensions
-    const _imgW = properties.source_dims.w;
-    const _imgH = properties.source_dims.h;
+    const _imgW = properties.image_dims.w;
+    const _imgH = properties.image_dims.h;
 
     // scale selection box by render dimensions
     const updatedDims = scaleSelectBox(pointer, properties);
@@ -42,10 +38,10 @@ const Cropper = ({ properties, pointer, callback }) => {
 
     // Handle dimensional changes
     const _handleChange = (e) => {
+
         const { target = {} } = e || {};
         const { name = '', value = '' } = target;
 
-        const updatedDims = scaleSelectBox(pointer, properties);
         let _w = updatedDims.w;
         let _h = updatedDims.h;
         let _x = updatedDims.x;
@@ -58,17 +54,23 @@ const Cropper = ({ properties, pointer, callback }) => {
                 _x = parseInt(value);
             },
             r: () => {
-                _w = ( _W -  parseInt(value) - _x);
+                _w = ( _imgW - parseInt(value) - _x);
             },
             t: () => {
                 _h -= ( parseInt(value) - _y );
                 _y = parseInt(value);
             },
             b: () => {
-                _h = ( _H - _y - parseInt(value));
+                _h = ( _imgH - _y - parseInt(value));
             }
         }
         crops[name]();
+
+        // set limits on crop
+        _w = Math.min(_w, _imgW);
+        _h = Math.min(_h, _imgH);
+        _x = Math.min(_x, _imgH);
+        _y = Math.min(_y, _imgH);
 
         // update pointer state and draw crop box to canvas
         pointer.setSelectBox({ x: _x, y: _y, w: _w, h: _h });

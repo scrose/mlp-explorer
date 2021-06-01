@@ -53,8 +53,12 @@ const Iat = () => {
         swap: false,
         maxCanvasWidth: 600,
         maxCanvasHeight: 600,
+        minCanvasWidth: 400,
+        minCanvasHeight: 400,
         maxImageWidth: 20000,
         maxImageHeight: 20000,
+        minImageWidth: 100,
+        minImageHeight: 100,
         formats: [
             { label: 'png', value: 'image/png'},
             { label: 'jpeg', value: 'image/jpeg'},
@@ -108,39 +112,51 @@ const Iat = () => {
 
     React.useEffect(() => {
 
-        const _callback = (response) => {
-            const {
-                error = null,
-                data = null,
-                props = null,
-            } = response || {};
-            if (error || response.hasOwnProperty('message')) {
-                console.warn(error);
-                setMessage(error);
-                return;
-            }
-            // update Panel 2 state (reserved for modern capture images)
-            if (data) {
-                setImg2Data(data)
-            }
-            if (props) {
-                setPanel2Data(data => (
-                    Object.keys(props).reduce((o, key) => {
-                        o[key] = props[key];
-                        return o;
-                    }, data)),
-                );
-                setSignal2('load');
-            }
-        };
-
         _isMounted.current = true;
 
-        // Initialize IAT from input parameters
-        // - load input image (only if not currently loaded)
-        if (input2FileID && !input2) {
-            setSignal2('loading');
-            router.get(createNodeRoute(input2TypeID, 'show', input2FileID))
+        // load panel with API-downloaded image data
+        const _loader = (
+            inputTypeID,
+            inputFileID,
+            panelID,
+            panelLabel,
+            setPanelData,
+            setImgData,
+            setSignal) => {
+
+            setSignal('loading');
+
+            // Response callback
+            const _callback = (response) => {
+                if (_isMounted.current) {
+                    const {
+                        error = null,
+                        data = null,
+                        props = null,
+                    } = response || {};
+                    if (error || response.hasOwnProperty('message')) {
+                        console.warn(error);
+                        setMessage(error);
+                        setSignal('error');
+                        return;
+                    }
+                    // update Panel 2 state (reserved for modern capture images)
+                    if (data) {
+                        setImgData(data)
+                    }
+                    if (props) {
+                        setPanelData(data => (
+                            Object.keys(props).reduce((o, key) => {
+                                o[key] = props[key];
+                                return o;
+                            }, data)),
+                        );
+                        setSignal('load');
+                    }
+                }
+            };
+
+            router.get(createNodeRoute(inputTypeID, 'show', inputFileID))
                 .then(res => {
                     if (_isMounted.current) {
                         if (!res || res.error) {
@@ -151,7 +167,7 @@ const Iat = () => {
                             );
                         }
                         const { response = {} } = res || {};
-                        const { data = {}, message = {}, path={} } = response || {};
+                        const { data = {}, message = {}, path = {} } = response || {};
                         setMessage(message);
 
                         // store node path to file in navigator
@@ -160,15 +176,52 @@ const Iat = () => {
                             .forEach(key => addNode(path[key].node.id));
 
                         // download image to panel data state
-                        loadImageData(initPanel(panel2ID, panel2Label, data), _callback)
+                        loadImageData(initPanel(panelID, panelLabel, data), _callback)
                             .catch(_callback);
                     }
                 });
         }
+
+        // Initialize IAT from input parameters
+        // - load input image (only if not currently loaded)
+        if (signal1 === 'empty' && _isMounted.current && input1FileID && !input1) {
+            _loader(input1TypeID,
+                input1FileID,
+                panel1ID,
+                panel1Label,
+                setPanel1Data,
+                setImg1Data,
+                setSignal1
+            );
+        }
+        if (signal2 === 'empty' && _isMounted.current && input2FileID && !input2) {
+            _loader(input2TypeID,
+                input2FileID,
+                panel2ID,
+                panel2Label,
+                setPanel2Data,
+                setImg2Data,
+                setSignal2
+            );
+        }
         return () => {
             _isMounted.current = false;
         };
-    }, [input2, input1FileID, input2FileID, router, setPanel2Data, setSignal2]);
+    }, [
+        router,
+        input1,
+        input1TypeID,
+        input1FileID,
+        setPanel1Data,
+        setSignal1,
+        signal1,
+        input2,
+        input2TypeID,
+        input2FileID,
+        setPanel2Data,
+        setSignal2,
+        signal2
+    ]);
 
     return <>
         <div className={'canvas-board'}>
@@ -262,9 +315,11 @@ export const initPanel = (panelID, panelLabel='', inputData = null) => {
         fileData = null,
         metadata = {},
         filename = '',
+        url=''
     } = inputData || {};
     const { id = '', file_type = '', file_size = 0, owner_id = '', owner_type = '' } = file || {};
     const { image_state = '', mime_type='' } = metadata || {};
+    const  {medium=''} = url || {};
 
     return {
         id: panelID,
@@ -285,9 +340,10 @@ export const initPanel = (panelID, panelLabel='', inputData = null) => {
         file_size: file_size,
         image_state: image_state,
         file: fileData,
-        url: null,
+        url: medium,
         lowResDataURL: null,
         dataURL: null,
+        blob: null,
         pts: [],
         other_panel: false
     };

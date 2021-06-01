@@ -11,7 +11,7 @@ import { getError } from '../../_services/schema.services.client';
 import Dialog from '../common/dialog';
 import {
     alignImages, moveAt, moveEnd,
-    moveStart,
+    moveStart, scaleToMatch,
 } from './transform.iat';
 import { ImageSelector } from './selector.iat';
 import Comparator from '../common/comparator';
@@ -45,8 +45,6 @@ const noop = () => {
  * @param setSignal1
  * @param setSignal2
  * @param setMethods
- * @param selection
- * @param message
  * @param dialogToggle
  * @param setDialogToggle
  * @param setMessage
@@ -67,8 +65,6 @@ export const MenuIat = ({
                             setSignal1 = noop,
                             setSignal2 = noop,
                             setMethods = noop,
-                            selection = {},
-                            message = null,
                             setMessage = noop,
                             dialogToggle = null,
                             setDialogToggle = noop,
@@ -78,10 +74,6 @@ export const MenuIat = ({
 
     // generate unique ID value for canvas inputs
     const menuID = Math.random().toString(16).substring(2);
-
-    // toggle to show/hide menu panels and popup dialogs
-    const [menuToggle, setMenuToggle] = React.useState('');
-
     const user = useUser();
 
     /**
@@ -150,7 +142,7 @@ export const MenuIat = ({
                 />
             </Dialog>;
         },
-        masterImage: (id, label, callback, data) => {
+        masterImage: (id, label, callback) => {
             return <Dialog
                         key={`${id}_dialog_master`}
                         title={`Confirm Mastered Image`}
@@ -159,7 +151,6 @@ export const MenuIat = ({
                         <MasterImage
                             panel1={panel1}
                             panel2={panel2}
-                            file={data}
                             setToggle={setDialogToggle}
                             callback={callback}
                         />
@@ -195,7 +186,10 @@ export const MenuIat = ({
                 key={`${menuID}_dialog_compare`}
                 title={`Image Comparison`}
                 setToggle={setDialogToggle}>
-                <Comparator images={[panel1.dataURL, panel2.dataURL]} />
+                <Comparator
+                    images={[panel1.dataURL, panel2.dataURL]}
+                    onStop={()=>{console.log('!!!'); setDialogToggle(null)}}
+                />
             </Dialog>;
         },
     };
@@ -259,9 +253,26 @@ export const MenuIat = ({
                 setSignal2('clear');
             },
 
-            // [upload] upload mastered image to MLP library
+            // [master] upload mastered images to MLP library
             master: () => {
-                setSignal2('master');
+                // confirm that dimensions are equal
+                console.log(panel1.image_dims, panel2.image_dims)
+                if (
+                    panel1.image_dims.w !== panel2.image_dims.w ||
+                    panel1.image_dims.h !== panel2.image_dims.h ) {
+                    return _handleError({
+                        msg: getError('mismatchedDims', 'canvas')
+                    });
+                }
+                // signal to generate data URLs and blobs for upload
+                setSignal1('data');
+                setSignal2('data');
+                setSignal1('blob');
+                setSignal2('blob');
+                setDialogToggle({
+                    type: 'masterImage',
+                    callback: _handleError
+                });
             },
 
             // [transform] image alignment
@@ -274,6 +285,19 @@ export const MenuIat = ({
                 // load transformed data into Panel 2
                 setImage2(result.data);
                 setSignal2('reload');
+            },
+
+            // [transform] scale images to same width
+            match: () => {
+                if (panel1.image_dims.w === panel2.image_dims.w) return;
+                if (panel1.image_dims.w > panel2.image_dims.w) {
+                    scaleToMatch(panel2, panel1, setPanel2, setPanel1);
+                }
+                else {
+                    scaleToMatch(panel1, panel2, setPanel1, setPanel2);
+                }
+                setSignal1('render');
+                setSignal2('render');
             },
 
             // compare images in comparator overlay
@@ -347,6 +371,18 @@ export const MenuIat = ({
                     <li>
                         <Button
                             disabled={!image1 || !image2}
+                            label={'Match'}
+                            title={'Resize image widths to match.'}
+                            onClick={() => {
+                                // clear messages
+                                setMessage(null);
+                                _filterMethods('match');
+                            }}
+                        />
+                    </li>
+                    <li>
+                        <Button
+                            disabled={!image1 || !image2}
                             icon={'align'}
                             label={'Align'}
                             title={'Align images using selected control points.'}
@@ -361,7 +397,7 @@ export const MenuIat = ({
                         <Button
                             disabled={!user || !image1 || !image2}
                             label={'Master'}
-                            title={'Upload mastered image.'}
+                            title={'Upload mastered images.'}
                             onClick={() => {
                                 // clear messages
                                 setMessage(null);
@@ -383,185 +419,11 @@ export const MenuIat = ({
                     </li>
                 </ul>
             </div>
-            <OptionsMenu option={menuToggle} />
         </div>
         {
             _handleDialog(dialogToggle)
         }
     </>;
-};
-
-/**
- * Inline menu component to edit node items.
- *
- * @public
- * @param {Function} setMenuToggle
- * @return {JSX.Element}
- */
-
-export const CanvasTopMenu = ({
-                                  setMenuToggle = noop,
-                              }) => {
-    return (
-        <div id={'canvas-top-menu'} className={'h-menu'}>
-            <Button label={'File'} onClick={() => {
-                setMenuToggle('msfile');
-            }} />
-            <Button label={'View'} onClick={() => {
-                setMenuToggle('msview');
-            }} />
-            <Button label={'Edit'} onClick={() => {
-                setMenuToggle('msedit');
-            }} />
-            <Button label={'Tools'} onClick={() => {
-                setMenuToggle('mstools');
-            }} />
-            <Button label={'Prefs'} onClick={() => {
-                setMenuToggle('msprefs');
-            }} />
-            <Button label={'All'} onClick={() => {
-                setMenuToggle('msall');
-            }} />
-            <Button label={'Cats'} onClick={() => {
-                setMenuToggle('mscats');
-            }} />
-            <Button label={'Help'} onClick={() => {
-                setMenuToggle('mshelp');
-            }} />
-
-            {/*<select id={'rs'} onChange={callback}>*/}
-            {/*    <option label={'Scale'} />*/}
-            {/*    <option label={'Fade'} />*/}
-            {/*    <option label={'Mask'} />*/}
-            {/*    <option label={'Alpha'} />*/}
-            {/*    <option label={'JPG'} />*/}
-            {/*    <option label={'Angle'} />*/}
-            {/*</select>*/}
-
-            {/*<input*/}
-            {/*    type={'range'}*/}
-            {/*    id={"rng1"}*/}
-            {/*    min={0}*/}
-            {/*    max={100}*/}
-            {/*    value={100}*/}
-            {/*    onChange={callback}*/}
-            {/*    onInput={callback} />*/}
-            {/*<input value={100} onChange={callback} />*/}
-
-        </div>
-    );
-};
-
-
-/**
- * Canvas menu options component.
- * - Options-level toolbar menu
- * - Choices here must coordinate with the canvas tool main menu
- */
-
-const OptionsMenu = ({ option, callback = noop }) => {
-
-    const _menus = {
-
-        // File options
-        msfile: <fieldset>
-            <Button label={'Load'} />
-            <Button label={'Save'} />
-            <select id={'ts'} onChange={callback} disabled={true}>
-                <option label={'TXT'} />
-                <option label={'HTM'} />
-                <option label={'PNG'} />
-                <option label={'UPNG'} />
-                <option label={'JPG'} />
-                <option label={'TIF-8G'} />
-                <option label={'TIF-8P'} />
-                <option label={'TIF-24'} />
-                <option label={'TIF-32'} />
-                <option label={'BMP-24'} />
-                <option label={'BMP-32'} />
-            </select>
-            <span>Projects:</span>
-            <select onChange={callback} disabled={true}>
-                <option value={'assi'} label={'Assiniboine'} />
-                <option value={'atha'} label={'Athabasca'} />
-                <option value={'atha3'} label={'Athabasca (test)'} />
-                <option value={'bari'} label={'Barrier JPG'} />
-                <option value={'barp'} label={'Barrier PNG'} />
-                <option value={'baro'} label={'Barrier old'} />
-                <option value={'barn'} label={'Barrier new'} />
-                <option value={'LostCreek'} label={'Lost Creek'} />
-                <option value={'LostCreekDetail'} label={'Lost Creek detail'} />
-                <option value={'braz'} label={'Brazeau'} />
-                <option value={'assi disabled'} />
-                <option value={'pano'} label={'pano'} />
-                <option value={'panf'} label={'pano (flickr)'} />
-            </select>
-        </fieldset>,
-
-        // Edit Options
-        msedit: <fieldset>
-            <div>
-                <Button label={'Drag'} />
-                <Button label={'Pick'} />
-                <Button label={'Poly'} />
-                <Button label={'Area'} />
-                <Button label={'Line'} />
-                <span>drag</span>
-            </div>
-            <div>
-                <Button label={'Delete'} />
-                <Button label={'Hide'} />
-                <Button label={'Back'} />
-                <Button label={'Clear'} />
-            </div>
-            <div>
-                <input type={'color'} value={'#0000ff'} onChange={callback} />
-                <input type={'text'} value={'unnamed'} size={'20'} />
-                <Button label={'Set'} />
-            </div>
-        </fieldset>,
-
-        // Tools Options
-        mstools: <fieldset>
-            <Button label={'Grid'} />
-            <select id={'fs'} onChange={callback}>
-                <option label={'Grey'} />
-                <option label={'Clean'} />
-                <option label={'Colours'} />
-                <option label={'Compare'} />
-                <option label={'Invert'} />
-                <option label={'Flip'} />
-                <option label={'Mirror'} />
-                <option label={'Rotate'} />
-                <option label={'Reduce'} />
-                <option label={'Opaque'} />
-                <option label={'FillArea'} />
-                <option label={'FillCat'} />
-                <option label={'GrabPoly'} />
-                <option label={'GrabCat'} />
-                <option label={'GrabAll'} />
-                <option label={'(revert)'} />
-            </select>
-            <Button label={'Go'} />
-            <select>
-                <option label={'Count1'} />
-                <option label={'Count2'} />
-                <option label={'Count3'} />
-            </select>
-            <Button label={'Go'} />
-            <div>
-                <Button label={'Viewer'} />
-                <Button label={'Sweep'} />
-                <Button label={'Clip'} />
-                <Button label={'Crop'} />
-            </div>
-            <div>
-                <Button label={'Delete'} />
-            </div>
-        </fieldset>,
-    };
-
-    return _menus.hasOwnProperty(option) && _menus[option];
 };
 
 

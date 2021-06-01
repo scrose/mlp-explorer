@@ -46,7 +46,6 @@ export const Input = ({
                           name,
                           label = '',
                           value = '',
-                          files = [],
                           min = 0,
                           max=99999,
                           prefix = '',
@@ -61,20 +60,15 @@ export const Input = ({
                           onMultiselect = noop,
                           onChange = noop,
                           onSelect = noop,
-                          onDrop = noop,
-                          onDragLeave = noop,
+                          onFile = noop,
                       }) => {
 
     // input conditional states
     const [autoClick, setAutoClick] = React.useState(true);
 
     // create event listener for file input
-    const fileRef = React.useCallback((domNode) => {
-        if (domNode)
-            domNode.addEventListener('click', function() {
-                if (domNode) {domNode.click() }
-            }, false);
-    }, []);
+    // - simulates a click of the file browser
+    const [highlight, setHighlight] = React.useState(false);
 
     // append unique ID value for input
     id = `${name}_${id}`;
@@ -242,7 +236,9 @@ export const Input = ({
             return <DateTimeSelector
                 name={name}
                 value={value || ''}
-                filter={'date'} />;
+                filter={'date'}
+                onChange={onChange}
+            />;
         },
 
         datetime: () => {
@@ -250,6 +246,7 @@ export const Input = ({
                 name={name}
                 value={value || ''}
                 filter={'datetime'}
+                onChange={onChange}
             />;
         },
 
@@ -258,6 +255,7 @@ export const Input = ({
                 name={name}
                 value={value || ''}
                 filter={'time'}
+                onChange={onChange}
             />;
         },
 
@@ -342,25 +340,38 @@ export const Input = ({
         },
 
         file: () => {
-            const handleDragEnter = (e) => {
-                e.stopPropagation();
+            // handle drag-over of files
+            const _handleDragOver = (e) => {
                 e.preventDefault();
-            };
-            const handleDragOver = (e) => {
                 e.stopPropagation();
-                e.preventDefault();
+                setHighlight(true);
             };
+            /**
+             * Drag-and-drop handlers for file inputs. Updates references state.
+             *
+             * @public
+             * @param {Object} e
+             */
+            const _handleDrop = (e) => {
+                e.preventDefault();
+                // handle files to update form data state
+                const {dataTransfer = {}} = e || {};
+                const {files={}} = dataTransfer || {};
+                onFile(files, name)
+                setHighlight(false);
+            };
+
+            // extract file names
+            const files =  Object.keys(value).map(fkey => {return value[fkey].name}) || [];
+
             return <>
                 <label
                     key={`label_${name}`}
-                    className={'file-upload'}
+                    className={`file-upload ${highlight ? 'ondrag' : ''}`}
                     htmlFor={id}
-                    onDrop={onDrop}
-                    onDragOver={handleDragOver}
-                    onDragEnter={handleDragEnter}
-                    onDragLeave={onDragLeave}>
+                    onDragOver={_handleDragOver}
+                    onDrop={_handleDrop}>
                     <input
-                        ref={fileRef}
                         type={'file'}
                         id={id}
                         name={name}

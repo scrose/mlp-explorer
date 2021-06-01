@@ -37,7 +37,7 @@ const Slider = ({ images = [] }) => {
     };
 
     return (
-        Object.keys(url).length > 0 &&
+        Object.keys(url).length > 0 ?
         <div className="slider">
             <Button icon={'prev'} className={'prev'} onClick={prevSlide} />
             <Button icon={'next'} className={'next'} onClick={nextSlide} />
@@ -99,6 +99,7 @@ const Slider = ({ images = [] }) => {
                 </Dialog>
             }
         </div>
+            : <div>No Images</div>
     );
 };
 

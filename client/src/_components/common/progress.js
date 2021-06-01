@@ -18,6 +18,7 @@ import Badge from './badge';
  * @param description
  * @param progress
  * @param messages
+ * @param setMessages
  * @param hasUploads
  * @param error
  * @param callback
@@ -29,6 +30,7 @@ const Progress = ({
                       description,
                       progress={},
                       messages,
+                      setMessages,
                       hasUploads=false,
                       error=false,
                       callback=()=>{}
@@ -68,7 +70,8 @@ const Progress = ({
                     // render progress indicator for imports
                     return (
                         <div key={`${key}_msg_progress`}>
-                            <UserMessage closeable={true} message={messages[key]}  />
+                            <UserMessage
+                                onClose={() => {setMessages({})}} closeable={true} message={messages[key]}  />
                             {
                                 // show progress bar if import has file uploads and no errors
                                 hasUploads && !error &&

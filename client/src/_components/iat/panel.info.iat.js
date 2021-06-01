@@ -49,17 +49,16 @@ const PanelInfo = ({ properties, pointer, status, options }) => {
                 <tbody>
                 <tr>
                     <th>File:</th>
-                    <td style={{ width: '80%' }}>
+                    <td style={{ width: '70%' }}>
                         {
                             properties.filename ? properties.filename : 'Not Loaded'
                         }
                         {
                             properties.owner_id &&
                             <Button
-                                icon={'captures'}
                                 title={'Go to capture metadata.'}
-                                label={getModelLabel(properties.file_type)}
-                                onClick={() => {router.update(captureRoute);}}
+                                label={`(${ getModelLabel(properties.file_type)})`}
+                                onClick={() => {router.update(captureRoute)}}
                             />
                         }
                     </td>

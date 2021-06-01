@@ -125,7 +125,7 @@ export function getComparisonsByStationID(id) {
                comparison_indices.modern_images,
                comparison_indices.historic_images
         FROM comparison_indices
-                 RIGHT JOIN hc
+                 INNER JOIN hc
                             ON hc.nodes_id = comparison_indices.historic_captures
         GROUP BY hc.nodes_id,
                  comparison_indices.modern_captures,

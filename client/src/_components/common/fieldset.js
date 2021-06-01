@@ -31,7 +31,6 @@ const Fieldset = ({
                       data,
                       setData,
                       files,
-                      setFiles,
                       opts,
                       remove,
                       validators,
@@ -51,26 +50,48 @@ const Fieldset = ({
      */
 
     const _handleChange = e => {
-        const {target={}} = e || {};
+        const { target={} } = e || {};
         const { name='', value='' } = target;
         const attachedFiles = target.files && Object.keys(target.files).length > 0
             ? target.files
             : {};
-
-        e.persist();
 
         // update state with input data
         setData(data => ({...data, [name]: value}));
 
         // update files (if exist)
         if (Object.keys(attachedFiles).length > 0) {
-            setFiles(data => ({ ...data, [name]: attachedFiles }));
+            setData(data => ({ ...data, [name]: attachedFiles }));
         }
 
         // update validation errors
         setErrors(errors => ({
             ...errors,
             [name]: validators[name].check(value || attachedFiles)
+        }));
+    }
+
+    /**
+     * Input on-file include handler. Updates references state.
+     *
+     * @public
+     * @param {Array} files
+     * @param name
+     */
+
+    const _handleFiles = (files, name) => {
+
+        if (!files) return;
+
+        // update files (if exist)
+        if (files.length > 0) {
+            setData(data => ({ ...data, [name]: files }));
+        }
+
+        // update validation errors
+        setErrors(errors => ({
+            ...errors,
+            [name]: validators[name].check(files)
         }));
     }
 
@@ -92,34 +113,6 @@ const Fieldset = ({
             ...errors,
             [name]: validators[name].check(options)
         }));
-    }
-
-    /**
-     * Drag-and-drop handlers for file inputs. Updates references state.
-     *
-     * @public
-     * @param {Object} e
-     */
-
-    const _handleDrop = (e) =>{
-        e.stopPropagation();
-        e.preventDefault();
-
-        const {target={}} = e || {};
-        const { name=''} = target;
-        const dt = e.dataTransfer;
-
-        setFiles(data => ({ ...data, [name]: dt.files }));
-    }
-    const _handleDragLeave = (e) =>{
-        e.stopPropagation();
-        e.preventDefault();
-
-        const {target={}} = e || {};
-        const { name=''} = target;
-        const dt = e.dataTransfer;
-
-        setFiles(data => ({ ...data, [name]: dt.files }));
     }
 
     // render fieldset component
@@ -152,9 +145,6 @@ const Fieldset = ({
                     // get form schema for requested model
                     const { label='', render='', name='', reference='', attributes={}, readonly=false } = fields[key];
                     const _value = data.hasOwnProperty(key) ? data[key] : '';
-                    const _files = files.hasOwnProperty(key)
-                        ? Object.keys(files[key]).map(fkey => {return files[key][fkey].name})
-                        : [];
                     const _error = errors.hasOwnProperty(key) ? errors[key] : '';
                     const _options = optionsData.hasOwnProperty(reference) ? optionsData[reference] : [];
                     const _disabled = disabledInputs.hasOwnProperty(name) ? disabledInputs[name]: false;
@@ -175,7 +165,6 @@ const Fieldset = ({
                             prefix={_prefix}
                             suffix={_suffix}
                             value={_value}
-                            files={_files}
                             required={_isRequired}
                             error={_error}
                             options={_options}
@@ -183,8 +172,7 @@ const Fieldset = ({
                             disabled={_disabled}
                             onMultiselect={_handleMultiselect}
                             onChange={_handleChange}
-                            onDrop={_handleDrop}
-                            onDragLeave={_handleDragLeave}
+                            onFile={_handleFiles}
                         />
                     )
                 })

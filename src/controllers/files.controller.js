@@ -17,14 +17,12 @@ import * as fserve from '../services/files.services.js';
 import * as nserve from '../services/nodes.services.js';
 import { prepare } from '../lib/api.utils.js';
 import pool from '../services/db.services.js';
-import * as metaserve from '../services/metadata.services.js';
 import { sanitize } from '../lib/data.utils.js';
 import * as importer from '../services/import.services.js';
 import * as cserve from '../services/construct.services.js';
-import {errors} from '../error.js';
 import { getMIME } from '../lib/file.utils.js';
-import { isCompatiblePair, addComparison } from '../services/comparisons.services.js';
 import { humanize } from '../lib/data.utils.js';
+import path from "path";
 
 /**
  * Export controller constructor.
@@ -324,26 +322,26 @@ export default function FilesController(modelType) {
             const item = new Model(fileData.metadata);
             let file = await cserve.createFile(item, fileData);
 
-            // create filepaths array (original raw file)
-            let filePaths = [fileData.file.fs_path];
+            // create filepath array (include original raw file)
+            let filePaths = [path.join(process.env.UPLOAD_DIR, fileData.file.fs_path)];
 
             // include image resampled versions (if they exist)
             if (fileData.url) {
-                filePaths.push(fileData.url.thumb.path);
-                filePaths.push(fileData.url.medium.path);
+                Object.keys(fileData.url).reduce((o, key) => {
+                    const filename = fileData.url[key].pathname.replace(/^.*[\\\/]/, '');
+                    o.push(path.join(process.env.LOWRES_PATH, filename));
+                    return o;
+                }, filePaths)
             }
 
             // delete files
             const resData = await fserve.remove(file, filePaths);
-            if (resData) {
-                return next(new Error('ENOENT'));
-            }
 
             res.status(200).json(
                 prepare({
                     view: 'remove',
                     model: model,
-                    data: fileData,
+                    data: resData,
                     message: {
                         msg: `'${fileData.label}' deleted successful!`,
                         type: 'success'
@@ -411,166 +409,5 @@ export default function FilesController(modelType) {
         }
     };
 
-    /**
-     * Get image data for registration -> mastering.
-     *
-     * @param req
-     * @param res
-     * @param next
-     * @src public
-     */
-
-    this.register = async (req, res, next) => {
-
-        // NOTE: client undefined if connection fails.
-        const client = await pool.connect();
-
-        try {
-
-            // get node ID from parameters
-            const id = this.getId(req);
-
-            // message
-            let msg = null;
-
-            // init historic captures available
-            let historicCaptures = null;
-
-            // get file data
-            const fileData = await fserve.get(id, client);
-            const { file = null } = fileData || {};
-
-            // get path of owner node in hierarchy
-            const path = await nserve.getPath(file);
-
-            // get station node
-            const stationKey = Object.keys(path)
-                .find(key => {
-                    const {node={}} = path[key] || {};
-                    const {type=''} = node || {};
-                    return type === 'stations';
-                });
-
-            // Station found: include historic capture data
-            if (stationKey) {
-                const station = path[stationKey].node;
-                historicCaptures = await metaserve.getHistoricCapturesByStation(station, client)
-            }
-            // Station not found: invalid master
-            // - respond with master data
-            else {
-                msg = errors.invalidMaster;
-            }
-
-            // send form data response
-            // - include possible historic images for alignment (mastering)
-            res.status(200).json(
-                prepare({
-                    view: 'master',
-                    model: model,
-                    message: msg,
-                    data: {
-                        modern_capture: fileData,
-                        historic_captures: historicCaptures
-                    },
-                    path: path
-                }));
-
-        } catch (err) {
-            console.error(err)
-            return next(err);
-        }
-        finally {
-            client.release(true);
-        }
-    }
-
-    /**
-     * Upload image data as mastered.
-     *
-     * @param req
-     * @param res
-     * @param next
-     * @src public
-     */
-
-    this.master = async (req, res, next) => {
-
-        // NOTE: client undefined if connection fails.
-        const client = await pool.connect();
-
-        try {
-
-            // get file data from parameters
-            const modernImageID = this.getId(req);
-            const modernImageData = await fserve.get(modernImageID, client);
-
-            // check that file entry exists
-            if (!modernImageData) {
-                return next(new Error('invalidRequest'));
-            }
-
-            // get metadata fields
-            const { file='' } = modernImageData || {};
-            const { owner_id='', owner_type='', filename='' } = file || {};
-            const modernCaptureID = owner_id;
-            const received = await importer.receive(req, modernCaptureID, owner_type);
-
-            // get associated capture for image
-            const modernCapture = await nserve.select(modernCaptureID, client);
-
-            // get historic image file metadata
-            const { data=null } = received || {};
-            const { historic_files_id=null } = data || {};
-            const historicImage = await fserve.select(historic_files_id, client);
-
-            // check if historic image ID and files are present in request data
-            if (!historicImage || !historic_files_id || Object.keys(received.files).length === 0) {
-                return next(new Error('invalidRequest'));
-            }
-
-            // get historic capture and image ID
-            const historicCaptureID = historicImage.owner_id;
-
-            // check that image pair share a common station
-            if (!await isCompatiblePair(historic_files_id, modernImageID)) {
-                return next(new Error('invalidMaster'));
-            }
-
-            // remove historic files ID from received data
-            // - this ensures the received metadata matches the model schema
-            //   for the modern capture image.
-            delete received.data.historic_files_id;
-
-            // set image state to mastered
-            received.data.image_state = 'master';
-
-            // save file(s) and insert file metadata
-            const resData = await fserve.insert(received, model.name, modernCapture);
-            if (!resData) return next(new Error('invalidMaster'));
-
-            // insert comparisons record
-            const resCompare = await addComparison(
-                historic_files_id, historicCaptureID, modernImageID, modernCaptureID);
-
-            // send response
-            res.status(200).json(
-                prepare({
-                    view: 'show',
-                    model: model,
-                    data: resCompare,
-                    message: {
-                        msg: `'${filename}' mastered successfully!`,
-                        type: 'success'
-                    },
-                }));
-
-        } catch (err) {
-            console.error(err)
-            return next(err);
-        } finally {
-            client.release();
-        }
-    }
 }
 

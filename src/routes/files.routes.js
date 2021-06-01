@@ -67,17 +67,6 @@ function FilesRoutes(modelType) {
             delete: null,
         }
     };
-
-    // include master endpoint for modern capture images
-    if (this.model === 'modern_images') {
-        this.routes.master = {
-            path: path.join('/', this.model, 'master', ':' + this.key),
-            get: this.controller.register,
-            put: null,
-            post: this.controller.master,
-            delete: null,
-        }
-    }
 }
 
 /**

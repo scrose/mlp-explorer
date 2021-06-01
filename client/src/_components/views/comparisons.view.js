@@ -32,11 +32,15 @@ const ComparisonsView = ({
     const [comparison, setComparison] = React.useState([]);
     const [historicImage=null, modernImage=null] = comparison || [];
 
+    console.log(data)
+
     return <>
         {
             historicImage && modernImage && dialogToggle === 'overlay' &&
             <Dialog title={'Overlay'} setToggle={setDialogToggle}>
-                <Comparator images={[historicImage, modernImage]} />
+                <Comparator images={[historicImage, modernImage]} onStop={()=> {
+                    setDialogToggle(null);
+                }} />
             </Dialog>
         }
         <div className={'comparisons h-menu'}>
@@ -70,8 +74,8 @@ const ComparisonsView = ({
                                         </li>
                                         <li>
                                             <Button
-                                                icon={'align'}
-                                                label={'Remaster'}
+                                                icon={'iat'}
+                                                label={'View in IAT'}
                                                 onClick={() => {
                                                     // launch IAT tool for mastering by loading images into panels
                                                     // - Historic: Panel 1 / Modern: Panel 2

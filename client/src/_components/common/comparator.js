@@ -6,11 +6,11 @@
  */
 
 import React from 'react';
-import Button from './button';
 import { schema } from '../../schema';
 import Loading from './loading';
 import { UserMessage } from './message';
 import { scaleToFit } from '../iat/transform.iat';
+import Button from './button';
 
 /**
  * Image comparator maximum dimensions.
@@ -28,7 +28,7 @@ const COMPARATOR_MAX_HEIGHT = 500;
  * @return {JSX.Element}
  */
 
-const Comparator = ({ images = [], scale = 1.0 }) => {
+const Comparator = ({ images = [], scale = 1.0, onStop=()=>{} }) => {
 
     // input image data
     const [image1, image2] = images || [];
@@ -40,6 +40,7 @@ const Comparator = ({ images = [], scale = 1.0 }) => {
     const [status, setStatus] = React.useState(0);
     const [loaded1, setLoaded1] = React.useState(false);
     const [loaded2, setLoaded2] = React.useState(false);
+    const [img1W, setImg1W] = React.useState(0);
 
     // slider state
     let sliding = false;
@@ -68,19 +69,14 @@ const Comparator = ({ images = [], scale = 1.0 }) => {
     }
 
     function _slideMove(e) {
-        const imgWidth = canvas1Ref.current.width;
         /* If the slider is no longer clicked, exit this function: */
         if (!sliding) return false;
         // get image boundary dimensions / positions
-        const rect = panel1Ref.current.getBoundingClientRect();
+        const rect = canvas1Ref.current.getBoundingClientRect();
         // scale mouse coordinates after they have been adjusted to be relative to element
-        let pos = Math.max(
-            Math.min(
-                Math.floor((e.clientX - rect.left)), imgWidth,
-            ), 0);
-        /* Prevent the slider from being positioned outside the image: */
-        if (pos < 0) pos = 0;
-        if (pos > imgWidth) pos = imgWidth;
+        // - Prevent the slider from being positioned outside the image.
+        let pos = Math.max(Math.min(Math.floor((e.clientX - rect.left)), img1W ), 0);
+
         /* Execute a function that will resize the overlay image according to the cursor: */
         _slide(pos);
     }
@@ -139,6 +135,9 @@ const Comparator = ({ images = [], scale = 1.0 }) => {
                 canvas1.width = COMPARATOR_MAX_WIDTH * scale;
                 canvas1.height = COMPARATOR_MAX_HEIGHT * scale;
                 const {w, h} = scaleToFit(img1.naturalWidth, img1.naturalHeight, canvas1.width, canvas1.height);
+
+                // store scaled image width
+                setImg1W(w);
 
                 /* Initialize the width of overlay image to 50%: */
                 ctx1.drawImage(img1, 0, 0, w, h);
@@ -219,7 +218,11 @@ const Comparator = ({ images = [], scale = 1.0 }) => {
                         sliding = true;
                     }}
                 >
-                    {status === 2 ? <Button icon={'slide'} /> : <Loading />}
+                    {
+                        status === 2
+                            ? <Button icon={'slide'} />
+                            : <div className={'centered'}><Loading /></div>
+                    }
                 </div>
                 <div ref={panel1Ref} className={'comparator-img overlay'}>
                     <canvas ref={canvas1Ref} />

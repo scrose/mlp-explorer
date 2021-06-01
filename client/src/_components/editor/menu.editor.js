@@ -74,8 +74,13 @@ const MenuEditor = ({
         remove: !!(id && model && metadata && !removeExclude.includes(view)),
         attach: view === 'attach',
         attachItem: view === 'attachItem',
-        master: (fileType === 'modern_images' && owner.hasOwnProperty('sorted') && owner.sorted)
-            || (fileType === 'modern_images' && isEditor && api.status.hasOwnProperty('sorted') && api.status.sorted),
+        master: (
+            (fileType === 'modern_images' || fileType === 'historic_images') &&
+            (
+                ( owner.hasOwnProperty('sorted') && owner.sorted ) ||
+                (isEditor && api.status.hasOwnProperty('sorted') && api.status.sorted)
+            )
+        ),
         dependents: !dependentsExclude.includes(view),
         dropdown: !!(isEditor || dependents.length > 0),
         import_hc: !!(dependents || [])
@@ -347,8 +352,14 @@ const MenuEditor = ({
                                 label={!compact ? 'Master' : ''}
                                 title={`Master ${getModelLabel(fileType)} ${label}.`}
                                 onClick={() =>
-                                    // launch IAT tool for mastering by loading image into Panel 2
-                                    router.update(`/iat?input2=${id}&type2=${fileType}`)
+                                    // launch IAT tool for capture image mastering:
+                                    // - load historic images into Panel 1
+                                    // - load modern images into Panel 2
+                                    router.update(
+                                        fileType === 'historic_images'
+                                            ? `/iat?input1=${id}&type1=${fileType}`
+                                            : `/iat?input2=${id}&type2=${fileType}`
+                                    )
                                 }
                             />
                         </li>

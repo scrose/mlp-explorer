@@ -102,7 +102,9 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
         return row;
     });
 
-    return  <Table rows={rows} cols={cols} className={'files'} />
+    return  rows.length > 0
+        ? <Table rows={rows} cols={cols} className={'files'} />
+        : <div>No Images</div>
 }
 
 /**

@@ -455,12 +455,18 @@ export const getAttachedByNode = async function(node, client=pool) {
 export const getModernCapturesByStation = async (node, client=pool) => {
 
     const {id=''} = node || {};
-    let { sql, data } = queries.metadata.getModernCapturesByStationID(id);
-    return client.query(sql, data)
+    const { sql, data } = queries.metadata.getModernCapturesByStationID(id);
+    const captures = await client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows')
-            && res.rows.length > 0 ? res.rows : null;
+            && res.rows.length > 0 ? res.rows : [];
         });
+
+    // append full data for each returned capture
+    return await Promise.all(
+        captures.map(async (capture) => {
+            return await nserve.select(capture.nodes_id, client);
+        }));
 };
 
 /**
@@ -484,7 +490,7 @@ export const getHistoricCapturesByStation = async (node, client=pool) => {
     // append full data for each returned capture
     return await Promise.all(
         captures.map(async (capture) => {
-            return await nserve.get(capture.nodes_id, client);
+            return await nserve.select(capture.nodes_id, client);
         }));
 };
 

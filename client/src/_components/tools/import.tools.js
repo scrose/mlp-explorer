@@ -16,12 +16,15 @@ import { upload } from '../../_services/api.services.client';
 /**
  * File/metadata importer.
  *
- * @param mode
  * @param model
+ * @param view
  * @param schema
+ * @param batchType
+ * @param opts
  * @param route
  * @param data
  * @param files
+ * @param onCancel
  * @param callback
  * @public
  */
@@ -100,6 +103,7 @@ const Importer = ({
 
         // append any additional files to form data
         files.forEach(file => {
+            console.log(file)
             const { name='', filename='', value=null } = file || {};
             formData.append(name, value, filename);
         });
@@ -177,6 +181,7 @@ const Importer = ({
                 description={description}
                 progress={progress}
                 messages={messages}
+                setMessages={setMessages}
                 hasUploads={hasUploads}
                 error={error}
                 callback={_handleCompletion}

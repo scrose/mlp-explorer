@@ -284,6 +284,7 @@ export const genSchema = (view, model, fieldsetKey='') => {
                         return o;
                     }, {});
                 return {
+                    id: index,
                     legend: legend,
                     render: render,
                     fields: filteredFields,

@@ -121,8 +121,7 @@ export function getModernCapturesByStationID(id) {
                 ) as mv
                 ON mv.nodes_id = locations.owner_id
             )
-            SELECT
-                   modern_captures.nodes_id as mc_id,
+            SELECT modern_captures.nodes_id, 
                    modern_captures.owner_id
                 FROM modern_captures
                     INNER JOIN locs

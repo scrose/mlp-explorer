@@ -15,6 +15,7 @@ import { createNodeRoute, redirect } from '../../_utils/paths.utils.client';
 import Importer from '../tools/import.tools';
 import FilterTools from '../tools/filter.tools';
 import Loading from '../common/loading';
+import AccessError from '../error/access.error';
 
 /**
  * Build requested data view from API data.
@@ -68,6 +69,7 @@ const DataView = () => {
         download: () => <div>File Download</div>,
         404: () => <NotfoundError />,
         notFound: () => <NotfoundError />,
+        403: () => <AccessError />,
         500: () => <ServerError />,
         serverError: () => <ServerError />
     }

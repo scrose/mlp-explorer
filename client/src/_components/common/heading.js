@@ -34,10 +34,10 @@ const Heading = () => {
     const modelLabel = getModelLabel(api.model);
 
     // generate heading based on current model/view
-    const genHeading = () => {
+    const genHeading = (pageTitle=false) => {
 
         // omit header for select pages
-        if (omitHeadings.includes(staticView)) return null;
+        if (omitHeadings.includes(staticView) && !pageTitle) return null;
 
         // use static label (if exists)
         if (staticLabel) return staticLabel;
@@ -52,31 +52,32 @@ const Heading = () => {
             import: `${getViewLabel('import')}: ${getModelLabel(api.model, 'label')}`,
             default: `${getViewLabel(api.view)}: ${modelLabel}`
         }
-        return headings.hasOwnProperty(api.view) &&
-            <>
-                {
-                    headings[api.view]
-                }
-            </>
+
+        // set page header
+        return headings.hasOwnProperty(api.view) ? headings[api.view] : '';
     }
 
     const headingText = genHeading();
 
-    return headingText && <div className={'heading h-menu'}>
-        <ul>
-            <li><h3>{headingText}</h3></li>
-            {
-                api.model &&
-                <li className={'push'}>
-                    <Badge
-                        className={api.model}
-                        icon={api.model}
-                        title={modelLabel}
-                        label={modelLabel}
-                    />
-                </li>
-            }
-        </ul>
+    return <div className={'heading h-menu'}>
+        {
+            // Page Header
+            headingText &&
+            <ul>
+                <li><h3>{genHeading()}</h3></li>
+                {
+                    api.model &&
+                    <li className={'push'}>
+                        <Badge
+                            className={api.model}
+                            icon={api.model}
+                            title={modelLabel}
+                            label={modelLabel}
+                        />
+                    </li>
+                }
+            </ul>
+        }
     </div>
 }
 

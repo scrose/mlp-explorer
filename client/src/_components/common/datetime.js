@@ -16,9 +16,10 @@ import Flatpickr from 'react-flatpickr';
  * @param value
  * @param name
  * @param filter
+ * @param onChange
  */
 
-export const DateTimeSelector = ({ value, name, filter = 'datetime' }) => {
+export const DateTimeSelector = ({ value, name, filter = 'datetime', onChange=()=>{} }) => {
     const [date, setDate] = React.useState(value ? new Date(value) : null);
     const dateSelectors = {
         datetime: <Flatpickr
@@ -29,8 +30,10 @@ export const DateTimeSelector = ({ value, name, filter = 'datetime' }) => {
             }}
             data-enable-time={true}
             value={date}
-            onChange={(newDate) => {
-                setDate(newDate);
+            onChange={(selectedDates, dateStr, instance) => {
+                const e = {target: {name: name, value: dateStr}};
+                setDate(selectedDates);
+                onChange(e);
             }} />,
         date: <Flatpickr
             name={name}
@@ -41,8 +44,10 @@ export const DateTimeSelector = ({ value, name, filter = 'datetime' }) => {
             }}
             data-enable-time={false}
             value={date}
-            onChange={(newDate) => {
-                setDate(newDate);
+            onChange={(selectedDates, dateStr, instance) => {
+                const e = {target: {name: name, value: dateStr}};
+                setDate(selectedDates);
+                onChange(e);
             }} />,
         time: <Flatpickr
             name={name}
@@ -54,8 +59,10 @@ export const DateTimeSelector = ({ value, name, filter = 'datetime' }) => {
             }}
             data-enable-time={true}
             value={date}
-            onChange={(newDate) => {
-                setDate(newDate);
+            onChange={(selectedDates, dateStr, instance) => {
+                const e = {target: {name: name, value: dateStr}};
+                setDate(selectedDates);
+                onChange(e);
             }} />,
     };
     return <>

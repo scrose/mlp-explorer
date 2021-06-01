@@ -55,7 +55,6 @@ const getFetchOptions = ({ data=null, files=null, download=null, method='POST'})
         // for file downloads, modify header to accept requested file format
         if (download) {
             opts.headers = { Accept: getMIME(download) };
-            console.log(opts)
         }
 
     return opts
@@ -146,8 +145,8 @@ export const upload = async (route, formData, callback=()=>{}, online=true) => {
 
         // error in sending network request
         xhr.onerror = function(e) {
-            const {statusText='API Error Occurred.'} = e.currentTarget || {};
-            return callback(null, {msg: statusText, type: 'error'});
+            const { statusText='' } = e.currentTarget || {};
+            return callback(null, {msg: statusText || 'An API Error Occurred.', type: 'error'});
         };
 
         // Upload progress callback
@@ -157,7 +156,7 @@ export const upload = async (route, formData, callback=()=>{}, online=true) => {
 
         // Upload error callback
         xhr.upload.onerror = function() {
-            return callback(null, {msg: 'Upload error has occurred.', type: 'error'});
+            return callback(null, {msg: 'An upload error has occurred.', type: 'error'});
         };
 
         // Upload timeout callback
@@ -177,6 +176,7 @@ export const upload = async (route, formData, callback=()=>{}, online=true) => {
 
         // send POST request to server
         xhr.send(formData);
+
 
     } catch (err) {
         return callback(null, {msg: 'Submission Failed. Please try again.', type: 'error'});

@@ -77,6 +77,7 @@ export const Resizer = ({
             data={imageDims}
             update={setImageDims}
             setError={setError}
+            min={{ w: options.minImageWidth, h: options.minImageHeight }}
             max={{ w: options.maxImageWidth, h: options.maxImageHeight }}
         />
         <ResizeOptions
@@ -85,6 +86,7 @@ export const Resizer = ({
             data={canvasDims}
             update={setCanvasDims}
             setError={setError}
+            min={{ w: options.minCanvasWidth, h: options.minCanvasHeight }}
             max={{ w: options.maxCanvasWidth, h: options.maxCanvasHeight }}
         />
         <fieldset className={'submit h-menu'}>
@@ -121,6 +123,7 @@ export const ResizeOptions = ({
                                   update = () => {},
                                   setError = () => {},
                                   max = { w: 300, h: 300 },
+                                  min = {w: 100, h: 100 }
                               }) => {
 
     // set resize parameter states
@@ -141,6 +144,12 @@ export const ResizeOptions = ({
         }
         if (y > max.h) {
             setError(`Height cannot exceed maximum of ${max.h} px.`);
+        }
+        if (x < min.w) {
+            setError(`Width cannot be less than ${min.w} px.`);
+        }
+        if (y < min.h) {
+            setError(`Height cannot be less than ${min.h} px.`);
         }
     };
 

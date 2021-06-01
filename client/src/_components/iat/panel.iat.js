@@ -20,6 +20,7 @@ import originMark from '../svg/origin.svg';
 import Cropper from './cropper.iat';
 import { eraseOverlay } from './graphics.iat';
 import useWindowSize from './window.iat';
+import { getScale } from './transform.iat';
 
 /**
  * No operation.
@@ -349,9 +350,15 @@ export const PanelIat = ({
          * Initialize panel grid.
          */
 
+        const scale = getScale(properties);
         baseCanvas.style.backgroundImage = `url(${originMark}), url(${xTicks}), url(${yTicks}), url(${baseGrid})`;
         baseCanvas.style.backgroundRepeat = 'no-repeat, repeat-x, repeat-y, repeat';
         baseCanvas.style.backgroundPosition = 'bottom right, bottom left, top right, top left';
+        baseCanvas.style.backgroundSize = `
+            auto,
+            ${Math.round(100 / scale.x)}px 10px, 
+            10px ${Math.round(100 / scale.y)}px, 
+            ${Math.floor(200 / scale.x)}px ${Math.floor(200 / scale.y)}px`;
 
         /**
          * Check for DOM dimension changes (e.g. due to window resize)
@@ -379,23 +386,17 @@ export const PanelIat = ({
         }
 
         /**
-         * Upload image data as master.
+         * Convert canvas image data to blob
          */
 
-        if (signal === 'master') {
-            // save canvas blob as TIFF file to upload to library
+        if (signal === 'blob') {
+            setSignal('loading');
             imageCanvasRef.current.toBlob((blob) => {
-                setDialogToggle({
-                    type: 'masterImage',
-                    id: id,
-                    label: label,
-                    data: blob,
-                    callback: (data) => {
-                        console.log(data);
-                    },
-                });
+                _updateProps({
+                    blob: blob
+                })
+                setSignal('loaded');
             }, 'image/tiff', options.blobQuality);
-            setSignal('loaded');
         }
 
         /**
@@ -439,6 +440,7 @@ export const PanelIat = ({
          * */
 
         if (signal === 'data') {
+            setSignal('loading');
             _updateProps({dataURL: imgCanvas.toDataURL()})
             setSignal('loaded');
         }
