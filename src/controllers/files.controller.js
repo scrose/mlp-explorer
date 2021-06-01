@@ -392,8 +392,18 @@ export default function FilesController(modelType) {
             res.setHeader("Content-Length", mimeType);
             res.setHeader("Content-Disposition", `attachment; filename=${file.filename}`);
 
+            fs.stat(fs_path, function(err, stat) {
+                if(err == null) {
+                    console.log('File exists');
+                } else if(err.code === 'ENOENT') {
+                    // file does not exist
+                    console.log(err)
 
-            console.log(fs_path)
+                } else {
+                    console.log('Some other error: ', err.code);
+                }
+            });
+
 
             // download file
             const readStream = fs.createReadStream(fs_path);
