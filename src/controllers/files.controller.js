@@ -375,8 +375,6 @@ export default function FilesController(modelType) {
             // get requested file ID
             const fileID = this.getId(req);
 
-            console.log(fileID)
-
             // get owner node; check that node exists in database
             // and corresponds to requested owner type.
             const file = await fserve.select(fileID, client);
@@ -393,6 +391,9 @@ export default function FilesController(modelType) {
             res.setHeader("Content-Type", mimeType);
             res.setHeader("Content-Length", mimeType);
             res.setHeader("Content-Disposition", `attachment; filename=${file.filename}`);
+
+
+            console.log(fs_path)
 
             // download file
             const readStream = fs.createReadStream(fs_path);
