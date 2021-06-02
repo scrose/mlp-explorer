@@ -33,6 +33,15 @@ function MapNavigator({ data, filter }) {
     const { query = [] } = api.data || {};
     const currentFilter = query.length > 0 ? query : api.nodes;
 
+    // assign selected nodes on map
+    React.useEffect(() => {
+        console.log(currentFilter, filter)
+        if (layerGrp.current) {
+            layerGrp.current.clearLayers();
+            layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
+        }
+    }, [currentFilter])
+
     // map initial settings
     const [selectedBaseLayer, setBaseLayer] = React.useState('Satellite');
     const [center, setCenter] = React.useState([51.311809, -119.249230]);
@@ -71,7 +80,7 @@ function MapNavigator({ data, filter }) {
         if (!currentIDs) return;
 
         // apply user-defined filter
-        const applyFilter = (station) => {
+        const _applyFilter = (station) => {
 
             // filter is empty
             if (Object.keys(filter).length === 0) return true;
@@ -89,41 +98,63 @@ function MapNavigator({ data, filter }) {
         };
 
         // create map marker icon
-        const getMarker = (n, isSelected = false) => {
+        const _getMarker = (n, isSelected = false) => {
 
             // select marker fill colour based on selection
             const fillColour = isSelected ? 'E34234' : '008896';
 
             // marker SVG templates
             const markers = {
-                cluster: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 149 178">
-                              <path 
-                                  fill="#${fillColour}" 
-                                  stroke="#FFFFFF" 
-                                  stroke-width="6" 
-                                  stroke-miterlimit="10" 
-                                  d="M126 23l-6-6A69 69 0 0 0 74 1a69 69 0 0 0-51 22A70 70 0 0 0 1 74c0 21 7 38 22 52l43 47c6 6 11 6 16 0l48-51c12-13 18-29 18-48 0-20-8-37-22-51z"/>
-                               <circle fill="#${fillColour}" cx="74" cy="75" r="61"/>
-                               <text 
-                                    x="50%" 
-                                    y="50%" 
-                                    fill="#FFFFFF"
-                                    font-weight="bold"
-                                    font-family="sans-serif"
-                                    font-size="3em"
-                                    text-anchor="middle">
-                                  ${n}
-                                </text>
-                            </svg>`,
-                single: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 149 178">
-                              <path 
-                                  fill="#${fillColour}" 
-                                  stroke="#FFFFFF" 
-                                  stroke-width="6" 
-                                  stroke-miterlimit="10" 
-                                  d="M126 23l-6-6A69 69 0 0 0 74 1a69 69 0 0 0-51 22A70 70 0 0 0 1 74c0 21 7 38 22 52l43 47c6 6 11 6 16 0l48-51c12-13 18-29 18-48 0-20-8-37-22-51z"/>
-                               <circle fill="#${fillColour}" cx="74" cy="75" r="40"/>
-                             </svg>`,
+                cluster: `<svg
+                           xmlns="http://www.w3.org/2000/svg"
+                           viewBox="0 0 17.638889 21.166664"
+                           height="80"
+                           width="80">
+                            <circle fill="#FFFFFF" cx="9" cy="9" r="7"/>
+                          <g
+                             transform="translate(-78.115082,-80.886905)"
+                             id="layer1">
+                            <path
+                                fill="#${fillColour}"
+                               d="m 86.934522,80.886905 c -4.8701,0 -8.81944,3.876146 -8.81944,8.656287 0,4.855101 3.8585,8.173855 8.81944,12.510378 4.96094,-4.336523 8.81945,-7.655277 8.81945,-12.510378 0,-4.780141 -3.94935,-8.656287 -8.81945,-8.656287 z m 0,15.875 c -3.89731,0 -7.05555,-3.159125 -7.05555,-7.055555 0,-3.896431 3.15824,-7.055556 7.05555,-7.055556 3.89731,0 7.05556,3.159125 7.05556,7.055556 0,3.89643 -3.15825,7.055555 -7.05556,7.055555 z"
+                                />
+                          </g>
+                            <text
+                                x="50%"
+                                y="50%"
+                                fill="#444444"
+                                font-weight="bold"
+                                font-family="sans-serif"
+                                font-size="6px"
+                                text-anchor="middle">
+                                ${n}
+                            </text>
+                        </svg>`,
+                single: `<svg
+                           xmlns="http://www.w3.org/2000/svg"
+                           viewBox="0 0 17.638889 21.166664"
+                           height="80"
+                           width="80">
+                            <circle fill="#FFFFFF" cx="9" cy="9" r="7"/>
+                          <g
+                             transform="translate(-78.115082,-80.886905)"
+                             id="layer1">
+                            <path
+                                fill="#${fillColour}"
+                               d="m 86.934522,80.886905 c -4.8701,0 -8.81944,3.876146 -8.81944,8.656287 0,4.855101 3.8585,8.173855 8.81944,12.510378 4.96094,-4.336523 8.81945,-7.655277 8.81945,-12.510378 0,-4.780141 -3.94935,-8.656287 -8.81945,-8.656287 z m 0,15.875 c -3.89731,0 -7.05555,-3.159125 -7.05555,-7.055555 0,-3.896431 3.15824,-7.055556 7.05555,-7.055556 3.89731,0 7.05556,3.159125 7.05556,7.055556 0,3.89643 -3.15825,7.055555 -7.05556,7.055555 z"
+                                />
+                          </g>
+                            <text
+                                x="50%"
+                                y="50%"
+                                fill="#444444"
+                                font-weight="bold"
+                                font-family="sans-serif"
+                                font-size="6px"
+                                text-anchor="middle">
+                                ${n}
+                            </text>
+                        </svg>`,
             };
 
             // select marker icon
@@ -167,7 +198,7 @@ function MapNavigator({ data, filter }) {
                 // filter stations not in map view
                 const coord = L.latLng(station.lat, station.lng);
                 // apply user-defined filter
-                return viewBounds.contains(coord) && applyFilter(station);
+                return viewBounds.contains(coord) && _applyFilter(station);
             })
             // bucket sort station locations into grid elements
             .reduce((o, station) => {
@@ -202,7 +233,7 @@ function MapNavigator({ data, filter }) {
                     const zIndexOffset = cluster.isSelected ? 999 : 0;
                     // create marker using station coordinates
                     const marker = L.marker(centroid, {
-                        icon: getMarker(n, cluster.isSelected),
+                        icon: _getMarker(n, cluster.isSelected),
                         zIndexOffset: zIndexOffset,
                         riseOnHover: true,
                     })
@@ -214,7 +245,6 @@ function MapNavigator({ data, filter }) {
                                 }));
                         })
                         .on('dblclick', (e) => {
-                            console.log('dbl click!')
                             // get new map center / zoom level
                             debounce(() => {
                                 const coord = e.latlng;
@@ -228,7 +258,7 @@ function MapNavigator({ data, filter }) {
                 }, o);
                 return o;
             }, []);
-    }, [data, mapObj, filter, loadView]);
+    }, [data, mapObj, filter, loadView, currentFilter, api]);
 
 
     // initialize map
@@ -249,13 +279,15 @@ function MapNavigator({ data, filter }) {
                     maxZoom: 23,
                     minZoom: 4,
                     attribution: '&copy; <a href="https://www.arcgisonline.com/copyright">ARCGIS</a> contributors',
-                })
+                }),
         };
 
         if (data && Object.keys(data).length > 0) {
 
             // remove old map instance
-            destroyMap();
+            // destroyMap();
+
+            if (mapObj.current) return;
 
             // initialize map with DOM container and initial coordinates
             mapObj.current = L.map(domNode, {
@@ -288,31 +320,26 @@ function MapNavigator({ data, filter }) {
             mapObj.current.on('zoomend', e => {
                 // reset saved map centre coordinate / zoom level
                 reset(e.target.getCenter(), e.target.getZoom());
-
-                // add markers layer to map
-                layerGrp.current.clearLayers();
-                layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
             });
 
             mapObj.current.on('moveend', e => {
                 reset(e.target.getCenter(), e.target.getZoom());
+            });
 
-                // add markers layer to map
-                layerGrp.current.clearLayers();
-                layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
+            mapObj.current.on('error', err => {
+                console.warn(err);
             });
         }
 
     }, [
-        data,
-        destroyMap,
         currentFilter,
+        data,
         center,
         zoom,
         reset,
         selectedBaseLayer,
         setBaseLayer,
-        getClusterMarkers,
+        getClusterMarkers
     ]);
 
     // Initialize map using reference callback to access DOM container
@@ -325,7 +352,7 @@ function MapNavigator({ data, filter }) {
             <div
                 id={mapID}
                 className={mapID}
-                ref={mapContainer} />
+                ref={mapContainer}/>
         </div>
     );
 }

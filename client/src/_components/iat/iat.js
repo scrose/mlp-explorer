@@ -135,7 +135,7 @@ const Iat = () => {
                         props = null,
                     } = response || {};
                     if (error || response.hasOwnProperty('message')) {
-                        console.warn(error);
+                        if (error && error.hasOwnProperty('msg')) console.warn(error.msg);
                         setMessage(error);
                         setSignal('error');
                         return;

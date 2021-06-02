@@ -119,7 +119,7 @@ export default () => {
     });
 
     /**
-     * Serve static assets.
+     * Serve static img.
      */
 
     app.use( '/uploads', express.static(process.env.LOWRES_PATH) );

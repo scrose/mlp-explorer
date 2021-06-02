@@ -43,7 +43,7 @@ const Editor = () => {
                     compact={false}
                     dependents={getDependentTypes(api.model)}
                 />
-                <div className={`view`}>
+                <div className={`view dashboard`}>
                     <Heading/>
                     <Message/>
                     {

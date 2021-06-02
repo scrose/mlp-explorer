@@ -7,6 +7,7 @@
 
 import React from 'react'
 import { viewerGettingStarted, viewerIAT, viewerWelcome } from '../content/dashboard.viewer.page';
+// import background from "../img/dashboard_bkgnd.png";
 
 
 /**
@@ -18,7 +19,9 @@ import { viewerGettingStarted, viewerIAT, viewerWelcome } from '../content/dashb
 
 const DashboardViewer = () => {
     return (
-        <div className={'h-menu view-panel-group'}>
+        <div
+            className={'h-menu dashboard view-panel-group'}
+        >
             <ul>
                 <li>
                     <div className={'view-panel blue'}>

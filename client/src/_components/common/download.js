@@ -39,7 +39,6 @@ const Download = ({ filename='download', type='', format='', label='', route=nul
         try {
             setLoading(true);
             const res = await download(route, format, router.online);
-            console.log('RESPONSE', res)
             if (!res || res.error) {
                 setLoading(false);
                 return _handleError({msg: 'Download Error', type:'error'});
@@ -48,7 +47,6 @@ const Download = ({ filename='download', type='', format='', label='', route=nul
             setLoading(false);
         }
         catch (err) {
-            console.error(err);
             setLoading(false);
             callback({msg: 'Download error', type:'error'});
         }

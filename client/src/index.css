@@ -327,14 +327,14 @@ Logo/Wordmark
 .logo-svg {
     border-radius: 10px;
     padding: 2px 5px;
-    margin-right: 10px;
+    margin-right: 5px;
     width: 30px;
     display: flex;
     align-items: center;
 }
 .logo .wordmark {
-    font-family: 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    font-family: 'AvenirNext-Bold', 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Helvetica, sans-serif;
     line-height: 100%;
     vertical-align: middle;
 }
@@ -2330,3 +2330,4 @@ Progress Bar
 .maintenance .logo .wordmark {
     color: #2ea591;
 }
+
