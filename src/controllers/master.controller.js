@@ -176,13 +176,8 @@ export default function MasterController(modelType) {
             const received = await importer.receive(req);
 
             // extract capture data
-            const { data=null } = received || {};
+            const { data=null, files={} } = received || {};
             const { historic_capture=null, modern_capture=null } = data || {};
-
-            // check that image pair share a common station
-            if (!await isCompatiblePair(historic_capture, modern_capture)) {
-                return next(new Error('invalidMaster'));
-            }
 
             // [1] handle historic image
             // get historic image file metadata
@@ -190,29 +185,34 @@ export default function MasterController(modelType) {
             const modernCapture = await nserve.select(modern_capture, client);
 
             // check if captures exist and files are present in request data
-            if (!historicCapture || !modernCapture || Object.keys(received.files).length === 0) {
+            if (!historicCapture || !modernCapture || Object.keys(received.files).length < 2 ) {
                 return next(new Error('invalidRequest'));
             }
 
-            console.log(historicCapture, modernCapture)
+            // check that image pair share a common station
+            if (!await isCompatiblePair(historicCapture, modernCapture, client)) {
+                return next(new Error('invalidMaster'));
+            }
 
-            // send response
-            res.status(200).json(
-                prepare({
-                    view: 'show',
-                    model: model,
-                    data: {},
-                    message: {
-                        msg: `mastered successfully!`,
-                        type: 'success'
-                    },
-                }));
-            return;
+            console.log(received, historicCapture, modernCapture)
 
+            // save files separately and insert file metadata
+            const historicData = {
+                files: {'0': files[0]},
+                data: {image_state: 'mastered'}
+            }
+            const resDataHistoric = await fserve.insert(
+                historicData, 'historic_images', historicCapture);
+            const modernData = {
+                files: {'0': files[0]},
+                data: {image_state: 'mastered'}
+            }
+            const resDataModern = await fserve.insert(
+                modernData, 'modern_images', modernCapture);
 
-            // save file(s) and insert file metadata
-            const resDataHistoric = await fserve.insert(received, 'historic_images', historicCapture);
-            const resDataModern = await fserve.insert(received, 'modern_images', modernCapture);
+            console.log(resDataHistoric, resDataModern)
+
+            // error in insert
             if (!resDataHistoric || !resDataModern) return next(new Error('invalidMaster'));
 
             // insert comparisons record

@@ -13,7 +13,7 @@
 import * as auth from '../services/auth.services.js';
 import valid from '../lib/validate.utils.js';
 import { prepare } from '../lib/api.utils.js';
-import { getRoleLabels } from '../services/users.services.js';
+import { getRoleData } from '../services/users.services.js';
 
 /**
  * Controller initialization.
@@ -25,7 +25,7 @@ let roleLabels = {};
 
 export const init = async () => {
     // get designated role labels
-    roleLabels = await getRoleLabels();
+    roleLabels = await getRoleData();
 };
 
 /**
@@ -75,14 +75,10 @@ export const login = async (req, res, next) => {
             res.cookie("access_token", access_token, {httpOnly: true, sameSite: 'strict', signed: true});
             res.cookie("refresh_token", refresh_token, {httpOnly: true, sameSite: 'strict', signed: true});
 
-            // return user role label
-            const roleLabel = data.roles.length > 0
-                ? (
-                    roleLabels.hasOwnProperty(data.roles[0])
-                        ? roleLabels[data.roles[0]]
-                        : 'Administrator'
-                )
-                : 'Registered';
+            // get user role label
+            const role = data.roles.length > 0
+                ? roleLabels.find(r => r.name === data.roles[0])
+                : 'Administrator';
 
             // successful login
             res.status(200).json(
@@ -92,7 +88,7 @@ export const login = async (req, res, next) => {
                     user: {
                         email: credentials.email,
                         role: data.roles,
-                        label: roleLabel
+                        label: role.label || 'Administrator'
                     }})
             );
         })
@@ -182,14 +178,10 @@ export const refresh = async (req, res, next) => {
             res.cookie("access_token", access_token, {httpOnly: true, sameSite: 'strict', signed: true});
             res.cookie("refresh_token", refresh_token, {httpOnly: true, sameSite: 'strict', signed: true});
 
-            // return user role label
-            const roleLabel = data.roles.length > 0
-                ? (
-                    roleLabels.hasOwnProperty(data.roles[0])
-                        ? roleLabels[data.roles[0]]
-                        : 'Administrator'
-                )
-                : 'Registered';
+            // get user role label
+            const role = data.roles.length > 0
+                ? roleLabels.find(r => r.name === data.roles[0])
+                : 'Administrator';
 
             // successful token refresh
             res.status(200).json(
@@ -198,7 +190,7 @@ export const refresh = async (req, res, next) => {
                     user: {
                         email: data.email,
                         role: data.roles,
-                        label: roleLabel
+                        label: role.label
                     }
                 })
             );

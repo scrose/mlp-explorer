@@ -1634,6 +1634,9 @@ fieldset .removeField {
     line-height: 160px;
     color: #FFFFFF !important;
 }
+.multiselect-controls button {
+    color: #FFFFFF !important;
+}
 .multiselect button {
     background-color: #008896 !important;
     height: auto !important;

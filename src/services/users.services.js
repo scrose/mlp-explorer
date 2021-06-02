@@ -55,13 +55,12 @@ export async function select(user_id) {
  * @return {Promise} result
  */
 
-export async function getRoleLabels() {
+export async function getRoleData() {
     let { sql, data } = queries.getRoles();
-    let roleLabels = await pool.query(sql, data)
+    return await pool.query(sql, data)
         .then(res => {
             return res.rows.length === 0 ? null : res.rows;
         });
-    return groupBy((roleLabels || []), 'name');
 }
 
 /**

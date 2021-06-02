@@ -14,7 +14,7 @@
 
 import jwt from 'jsonwebtoken';
 import fetch from 'node-fetch';
-import { getRoleLabels } from './users.services.js';
+import { getRoleData } from './users.services.js';
 
 /**
  * KeyCloak Settings (set in ENV)
@@ -269,22 +269,15 @@ export const authorize = async (access_token, allowedRoles) => {
     if ( !allowedRoles.some(role => roles.includes(role)) )
         throw new Error('restricted');
 
-    // return user role label
-    // get designated role labels
-    const roleLabels = await getRoleLabels();
-    const roleLabel = roles.length > 0
-        ? (
-            roleLabels.hasOwnProperty(roles[0])
-                ? roleLabels[roles[0]]
-                : 'Administrator'
-        )
-        : 'Registered';
+    // get user role label
+    const roleData = await getRoleData();
+    const role = roles.length > 0 ? roleData.find(r => r.name === roles[0])  : 'Administrator';
 
     // compose user data
     return {
         email: decoded.email,
         role: roles,
-        label: roleLabel
+        label: role.label || 'Administrator'
     }
 
 }

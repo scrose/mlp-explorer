@@ -117,6 +117,11 @@ const Form = ({
     const _handleSubmit = e => {
         e.preventDefault();
 
+        // const test = new FormData(e.target);
+        // for( let pair of test.entries() ) {
+        //     console.log(pair[0]+ ', '+ pair[1]);
+        // }
+
         // clear messages
         popSessionMsg();
 
@@ -135,7 +140,7 @@ const Form = ({
 
         // get schema form fields
         // - strip out any copied
-        const formFields = schema.fieldsets.reduce((o, fset) => {
+        const formFields = (schema.fieldsets || []).reduce((o, fset) => {
             o.push.apply(
                 o,
                 Object.keys(fset.fields).map(key => {
@@ -145,6 +150,8 @@ const Form = ({
             )
             return o;
         }, []);
+
+        console.log(data)
 
         // convert data through Form Data API
         // - [1] filter data by form schema
@@ -180,7 +187,16 @@ const Form = ({
                 }
                 // append metadata
                 else {
-                    formData.append(updatedKey, data[key] || '');
+                    // handle composite values (i.e. Arrays)
+                    if (Array.isArray(data[key])) {
+                        // append each subitem separately
+                        data[key].forEach((opt, index) => {
+                            formData.append(`${updatedKey}[${index}]`, opt.value || '');
+                        })
+                    }
+                    else {
+                        formData.append(updatedKey, data[key] || '');
+                    }
                 }
         });
 

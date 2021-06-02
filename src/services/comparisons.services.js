@@ -150,32 +150,26 @@ export const getComparisonsByStation = async (node, client = pool) => {
  * - find a common station
  *
  * @public
- * @param historicCaptureID
- * @param modernCaptureID
+ * @param historicCapture
+ * @param modernCapture
  * @param client
  * @return {Promise} result
  */
 
-export const isCompatiblePair = async (historicCaptureID, modernCaptureID, client = pool) => {
-
-    // get capture metadata records
-    const historicCapture = await fserve.get(historicCaptureID, client);
-    const modernCapture = await fserve.get(modernCaptureID, client);
+export const isCompatiblePair = async (historicCapture, modernCapture, client = pool) => {
 
     // check if valid file IDs
     if (!historicCapture || !modernCapture) return null;
 
-    console.log(historicCapture.owner, modernCapture.owner)
-
     // check if correct owner type
     if (
-        historicCapture.owner.owner_type !== 'historic_visits'
-        || modernCapture.owner.owner_type !== 'locations'
+        historicCapture.owner_type !== 'historic_visits'
+        || modernCapture.owner_type !== 'locations'
     ) return null;
 
     // get path of owner node in hierarchy
-    const historicPath = await nserve.getPath(historicCapture.file);
-    const modernPath = await nserve.getPath(modernCapture.file);
+    const historicPath = await nserve.getPath(historicCapture);
+    const modernPath = await nserve.getPath(modernCapture);
 
     // check that node path exists
     if (!modernPath || !historicPath) return false;

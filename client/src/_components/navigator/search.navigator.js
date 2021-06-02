@@ -8,7 +8,6 @@
 import React from 'react'
 import { useRouter } from '../../_providers/router.provider.client';
 import Button from '../common/button';
-import Form from '../common/form';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { genID, sanitize } from '../../_utils/data.utils.client';
 import { getModelLabel } from '../../_services/schema.services.client';
@@ -72,12 +71,15 @@ const SearchNavigator = ({filter=null, limit=10, offset=0}) => {
 
     // filter options by owner ID
     const onSubmit = () => {
+
         const params = {
             q: searchQuery,
             offset: searchOffset,
             limit: limit
         }
+
         if (!error) {
+            // send search query to API
             router.get('/search', params)
                 .then(res => {
                     if (res.error) return setError(res.error);
@@ -125,10 +127,6 @@ const SearchNavigator = ({filter=null, limit=10, offset=0}) => {
 
     return (
         <>
-        <Form
-            allowEmpty={true}
-            callback={onSubmit}
-        >
             <div className="search">
                 <input
                     className={'search-query'}
@@ -141,8 +139,8 @@ const SearchNavigator = ({filter=null, limit=10, offset=0}) => {
                 />
                 <Button
                     icon={'search'}
-                    type={'submit'}
                     className={'search-button'}
+                    onClick={onSubmit}
                 />
             </div>
             <div className={'search-results'}>
@@ -184,7 +182,6 @@ const SearchNavigator = ({filter=null, limit=10, offset=0}) => {
                     onNext={onNext}
                 />
             </div>
-        </Form>
         </>
     )
 }

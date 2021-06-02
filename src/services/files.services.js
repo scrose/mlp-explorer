@@ -193,13 +193,12 @@ export const insert = async (importData, model, fileOwner=null) => {
 
     // filter image states from imported metadata
     // - for multiple images, image state is indexed by file key
-    console.log(metadata.image_state)
     const imageState = metadata.image_state;
 
     // reject null parameters
     if (
         Object.keys(files).length === 0
-        || Object.keys(owner).length === 0
+        || Object.keys(owner || fileOwner || {}).length === 0
         || Object.keys(metadata).length === 0
     ) {
         return null;
@@ -207,7 +206,6 @@ export const insert = async (importData, model, fileOwner=null) => {
 
     // init transaction result
     let res;
-
 
     // initialize immediate file owners for given file type
     const initFileOwners = {
@@ -261,6 +259,9 @@ export const insert = async (importData, model, fileOwner=null) => {
             : captureTypes.includes(model)
                 ? await initFileOwners.captures()
                 : await initFileOwners.default();
+
+
+        console.log('!!!', fileOwner)
 
         // saves attached files and inserts metadata record for each
         res = await Promise

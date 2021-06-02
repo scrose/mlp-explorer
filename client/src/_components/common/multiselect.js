@@ -110,6 +110,7 @@ const MultiSelect = ({ id, name, label, selected, required, disabled, options, o
 
     // update data state for field
     const updateSelect = (options) => {
+        console.log('update:', options)
         // update data state
         onSelect(
             name,

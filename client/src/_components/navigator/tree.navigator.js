@@ -70,7 +70,13 @@ const TreeNodeMenu = ({
         if (status.repeated) return 'repeated';
         // if (status.located) return 'located';
         if (status.grouped) return 'grouped';
-        return 'unsorted';
+
+        if (model === 'historic_captures' || model === 'modern_captures') {
+            if (status.compared) return 'mastered';
+            if (status.sorted) return 'sorted';
+            if (!status.sorted) return 'unsorted';
+        }
+        return 'unprocessed';
     }
 
     // toggle button classnames
@@ -101,7 +107,9 @@ const TreeNodeMenu = ({
                         icon={model}
                         size={'lg'}
                         className={`tree-node-icon ${isCurrent ? ' current' : ''} ${status ? getStatus() : ''}`}
-                        title={`View ${getModelLabel(model)}: ${label} ${status ? ' [' + capitalize(getStatus()) + ' Capture]' : ''}`}
+                        title={
+                            `View ${getModelLabel(model)} ${id}: ${label} ${status ? ' [' + capitalize(getStatus()) + ' Capture]' : ''}`
+                        }
                         onClick={handleView}
                     />
                 </li>

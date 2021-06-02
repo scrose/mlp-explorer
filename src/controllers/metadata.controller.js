@@ -431,6 +431,8 @@ export default function MetadataController(metadataType) {
             // create metadata item from request data
             const mdData = await fserve.receive(req, owner.id, owner.type);
 
+            console.log(owner, mdData.data)
+
             // update all items in group
             const { group_type='' } = mdData.data || {};
             const groupData = group_type ? mdData.data[group_type] : [];

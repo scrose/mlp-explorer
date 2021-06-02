@@ -7,7 +7,6 @@
 
 import * as React from 'react'
 import { useRouter } from './router.provider.client';
-import { setSessionMsg } from '../_services/session.services.client';
 
 /**
  * Global authentication context.
@@ -77,6 +76,7 @@ function AuthProvider(props) {
         router.post('/refresh', null, true)
             .then(res => {
                 const { response={} } = res || {};
+                console.log(response)
                 const { user = null } = response || {};
                 if (_isMounted.current) {
                     setData(user);
