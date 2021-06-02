@@ -261,8 +261,6 @@ export const insert = async (importData, model, fileOwner=null) => {
                 : await initFileOwners.default();
 
 
-        console.log('!!!', fileOwner)
-
         // saves attached files and inserts metadata record for each
         res = await Promise
             .all(Object.keys(files)

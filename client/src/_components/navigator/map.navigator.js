@@ -33,15 +33,6 @@ function MapNavigator({ data, filter }) {
     const { query = [] } = api.data || {};
     const currentFilter = query.length > 0 ? query : api.nodes;
 
-    // assign selected nodes on map
-    React.useEffect(() => {
-        console.log(currentFilter, filter)
-        if (layerGrp.current) {
-            layerGrp.current.clearLayers();
-            layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
-        }
-    }, [currentFilter])
-
     // map initial settings
     const [selectedBaseLayer, setBaseLayer] = React.useState('Satellite');
     const [center, setCenter] = React.useState([51.311809, -119.249230]);
@@ -61,13 +52,6 @@ function MapNavigator({ data, filter }) {
         }
     }, []);
 
-    // set map view to new center coordinate and zoom level
-    const reset = React.useCallback((coord, zoomLevel) => {
-        if (coord && zoomLevel) {
-            setCenter(coord);
-            setZoom(zoomLevel);
-        }
-    }, [setZoom, setCenter]);
 
     // request stations in selected cluster
     const loadView = React.useCallback((ids = []) => {
@@ -260,6 +244,24 @@ function MapNavigator({ data, filter }) {
             }, []);
     }, [data, mapObj, filter, loadView, currentFilter, api]);
 
+    // set map view to new center coordinate and zoom level
+    const reset = React.useCallback((coord, zoomLevel) => {
+        console.log('reset!', filter)
+        if (coord && zoomLevel && layerGrp.current) {
+            setCenter(coord);
+            setZoom(zoomLevel);
+            layerGrp.current.clearLayers();
+            layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
+        }
+    }, [setZoom, setCenter, getClusterMarkers, currentFilter, filter]);
+
+    // assign selected nodes on map
+    React.useEffect(() => {
+        if (layerGrp.current) {
+            layerGrp.current.clearLayers();
+            layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter, filter)).addTo(mapObj.current);
+        }
+    }, [getClusterMarkers, currentFilter, filter])
 
     // initialize map
     const initMap = React.useCallback((domNode, mapCenter = center, mapZoom = zoom) => {
@@ -317,14 +319,14 @@ function MapNavigator({ data, filter }) {
             });
 
             // create callbacks for map zooming / panning
-            mapObj.current.on('zoomend', e => {
-                // reset saved map centre coordinate / zoom level
-                reset(e.target.getCenter(), e.target.getZoom());
-            });
-
-            mapObj.current.on('moveend', e => {
-                reset(e.target.getCenter(), e.target.getZoom());
-            });
+            // mapObj.current.on('zoomend', e => {
+            //     // reset saved map centre coordinate / zoom level
+            //     reset(e.target.getCenter(), e.target.getZoom());
+            // });
+            //
+            // mapObj.current.on('moveend', e => {
+            //     reset(e.target.getCenter(), e.target.getZoom());
+            // });
 
             mapObj.current.on('error', err => {
                 console.warn(err);
