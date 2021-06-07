@@ -6,7 +6,6 @@
  */
 
 import { scaleToFit } from './transform.iat';
-import { eraseOverlay } from './graphics.iat';
 
 /**
  * Resets image data to source data.
@@ -66,9 +65,8 @@ export const undo = async (properties, callback) => {
 
 export const erase = async (properties, callback) => {
     callback({
-        status: 'draw',
-        draw: eraseOverlay,
-        props: { pts: [] }
+        status: 'clear',
+        props: {},
     });
 };
 
@@ -121,6 +119,50 @@ export const expand = async (properties, callback) => {
                 y: 0,
                 w: properties.image_dims.w,
                 h: properties.image_dims.h
+            },
+        }
+    });
+};
+
+/**
+ * Expand to full-sized image.
+ *
+ * @public
+ * @param properties
+ * @param callback
+ */
+
+export const zoomIn = async (properties, callback) => {
+    return callback({
+        status: 'view',
+        props: {
+            render_dims: {
+                x: Math.round(properties.render_dims.x * 1.1),
+                y: Math.round(properties.render_dims.y * 1.1),
+                w: Math.round(properties.render_dims.w * 1.1),
+                h: Math.round(properties.render_dims.h * 1.1)
+            },
+        }
+    });
+};
+
+/**
+ * Expand to full-sized image.
+ *
+ * @public
+ * @param properties
+ * @param callback
+ */
+
+export const zoomOut = async (properties, callback) => {
+    return callback({
+        status: 'view',
+        props: {
+            render_dims: {
+                x: Math.round(properties.render_dims.x / 1.1),
+                y: Math.round(properties.render_dims.y / 1.1),
+                w: Math.round(properties.render_dims.w / 1.1),
+                h: Math.round(properties.render_dims.h / 1.1)
             },
         }
     });

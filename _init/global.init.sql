@@ -72,6 +72,7 @@ $$
         AS ENUM (
             'show',
             'edit',
+            'move',
             'create',
             'remove',
             'options',
@@ -86,6 +87,7 @@ $$
             'logout',
             'register',
             'download',
+            'raw',
             'upload',
             'import',
             'export',

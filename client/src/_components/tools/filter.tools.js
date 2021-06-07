@@ -43,7 +43,6 @@ const FilterTools = ({data}) => {
     const onPrev = () => {
         const updatedOffset = searchOffset - limit
         setSearchOffset(updatedOffset);
-        console.log(searchOffset, updatedOffset, limit)
         const params = {
             ids: query,
             offset: updatedOffset,
@@ -56,7 +55,6 @@ const FilterTools = ({data}) => {
     const onNext = () => {
         const updatedOffset = limit + searchOffset
         setSearchOffset(updatedOffset);
-        console.log(searchOffset, updatedOffset, limit)
         const params = {
             ids: query,
             offset: updatedOffset,

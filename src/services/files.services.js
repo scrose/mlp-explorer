@@ -198,7 +198,7 @@ export const insert = async (importData, model, fileOwner=null) => {
     // reject null parameters
     if (
         Object.keys(files).length === 0
-        || Object.keys(owner || fileOwner || {}).length === 0
+        || Object.keys(fileOwner || owner || {}).length === 0
         || Object.keys(metadata).length === 0
     ) {
         return null;
@@ -259,7 +259,6 @@ export const insert = async (importData, model, fileOwner=null) => {
             : captureTypes.includes(model)
                 ? await initFileOwners.captures()
                 : await initFileOwners.default();
-
 
         // saves attached files and inserts metadata record for each
         res = await Promise
@@ -450,7 +449,7 @@ export const getFileURL = (type = '', data = {}) => {
     // generate resampled image URLs
     const imgSrc = (token) => {
         return Object.keys(imageSizes).reduce((o, key) => {
-            o[key] = new URL(`${key !== 'full' ? key : ''}_${token}.jpeg`, rootURI);
+            o[key] = new URL(`${key !== 'full' ? key + '_' : ''}${token}.jpeg`, rootURI);
             return o;
         }, {});
     };
@@ -468,6 +467,54 @@ export const getFileURL = (type = '', data = {}) => {
         supplemental_images: () => {
             return imgSrc(secure_token);
         },
+    };
+
+    // Handle file types
+    return fileHandlers.hasOwnProperty(type) ? fileHandlers[type]() : null;
+};
+
+/**
+ * Build file source path for resampled images and metadata files
+ * from file data.
+ *
+ * @public
+ * @param {String} type
+ * @param file
+ * @param metadata
+ * @return {Promise} result
+ */
+
+export const getFilePath = (type , file, metadata = {}) => {
+
+    const { fs_path = '' } = file || {};
+    const { secure_token = '' } = metadata || {};
+
+    // ======================================================
+    // DEVELOPMENT TEST
+    // TODO: TO BE REMOVED IN PRODUCTION
+    // - check if using MEAT images or local ones
+    // ======================================================
+    const rootURI = metadata.channels
+        ? `${process.env.UPLOAD_DIR}/versions/`
+        : `${process.env.DEV_API_HOST}/versions/`;
+    // ======================================================
+
+    // handle image source URLs differently than metadata files
+    // - images use scaled versions of raw files
+    // - metadata uses PDF downloads
+    const fileHandlers = {
+        historic_images: () => {
+            return path.join(rootURI, `${secure_token}.jpeg`);
+        },
+        modern_images: () => {
+            return path.join(rootURI, `${secure_token}.jpeg`);
+        },
+        supplemental_images: () => {
+            return path.join(rootURI, `${secure_token}.jpeg`);
+        },
+        default: () => {
+            return path.join(fs_path);
+        }
     };
 
     // Handle file types
@@ -599,8 +646,6 @@ export const saveFile = async (index, metadata, owner, imageStateData=null) => {
     let fileData = metadata.files[index];
     fileData.data = {};
 
-    console.log(fileData)
-
     // generate unique filename ID token
     const imgToken = genUUID();
 
@@ -653,8 +698,8 @@ export const saveFile = async (index, metadata, owner, imageStateData=null) => {
 
         // update file metadata
         fileData.data.secure_token = imgToken;
-        fileData.file.owner_type = metadata.owner.type;
-        fileData.file.owner_id = metadata.owner.id;
+        fileData.file.owner_type = owner.type;
+        fileData.file.owner_id = owner.id;
         fileData.file.fs_path = metadata.versions.raw.path;
 
         // copy images to data storage
@@ -663,6 +708,7 @@ export const saveFile = async (index, metadata, owner, imageStateData=null) => {
             getImageInfo(fileData.tmp, fileData.data),
             copyFileTo(fileData.tmp, metadata.versions.medium, 'jpeg'),
             copyFileTo(fileData.tmp, metadata.versions.thumb, 'jpeg'),
+            copyFileTo(fileData.tmp, metadata.versions.full, 'jpeg'),
         );
     };
 
@@ -699,8 +745,8 @@ export const saveFile = async (index, metadata, owner, imageStateData=null) => {
             const filePath = path.join(uploadPath, filename);
 
             // update file metadata
-            fileData.file.owner_type = metadata.owner.type;
-            fileData.file.owner_id = metadata.owner.id;
+            fileData.file.owner_type = owner.type;
+            fileData.file.owner_id = owner.id;
             fileData.file.fs_path = filePath;
 
             // copy file to data storage

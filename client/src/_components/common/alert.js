@@ -15,15 +15,20 @@ import Dialog from './dialog';
  * @public
  */
 
-const Alert = ({title, setToggle, callback, children}) => {
+const Alert = ({
+                   title,
+                   setToggle,
+                   callback=()=>{},
+                   children
+}) => {
     return (
         <Dialog setToggle={setToggle} title={title}>
             <div className={'alert-box'}>
                 {children}
                 <div className={'alert-box-buttons'}>
-                    <Button icon={'success'} name={'ok'} label={'OK'} onClick={callback} />
-                    <Button icon={'cancel'} name={'cancel'} label={'Cancel'} onClick={()=> {
-                        setToggle(false);
+                    <Button icon={'success'} name={'ok'} label={'OK'} onClick={() => {
+                        setToggle(null);
+                        callback();
                     }} />
                 </div>
             </div>

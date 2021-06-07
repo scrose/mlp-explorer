@@ -65,6 +65,13 @@ function FilesRoutes(modelType) {
             put: null,
             post: null,
             delete: null,
+        },
+        raw: {
+            path: path.join('/', this.model, 'raw', ':' + this.key),
+            get: this.controller.raw,
+            put: null,
+            post: null,
+            delete: null,
         }
     };
 }

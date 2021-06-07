@@ -39,12 +39,16 @@ const TreeNodeMenu = ({
                           label='...',
                           toggle,
                           setToggle,
+                          setDialog = () => {
+                          },
                           isCurrent='',
                           hasDependents=false,
                           status=null
 }) => {
 
     const router = useRouter();
+
+    const [highlight, setHighlight] = React.useState(false);
 
     // handle toggle events
     const handleToggle = () => {
@@ -87,8 +91,50 @@ const TreeNodeMenu = ({
         isCurrent ? 'current' : ''
     ];
 
+    /**
+     * Drag-and-drop handlers for node moves.
+     *
+     * @public
+     * @param {Object} e
+     */
+
+    const _handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setHighlight(true);
+    };
+    const _handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setHighlight(false);
+    };
+    const _handleDrop = (e) => {
+        e.preventDefault();
+        // handle files to update form data state
+        const nodeData = e.dataTransfer.getData('application/json') || null;
+        setHighlight(false);
+
+        // open dialog to process node move
+        if (nodeData) {
+            setDialog({
+                type: 'move',
+                model: nodeData.type,
+                id: nodeData.id,
+                ownerID: id,
+                label: nodeData.label,
+                ownerLabel: label,
+                ownerType: model
+            });
+        }
+    };
+
     return (
-        <div className={'tree-node h-menu'}>
+        <div
+            className={'tree-node h-menu'}
+            onDrop={_handleDrop}
+            onDragOver={_handleDragOver}
+            onDragLeave={_handleDragLeave}
+        >
             <ul>
                 {
                     hasDependents ?
@@ -106,7 +152,7 @@ const TreeNodeMenu = ({
                     <Button
                         icon={model}
                         size={'lg'}
-                        className={`tree-node-icon ${isCurrent ? ' current' : ''} ${status ? getStatus() : ''}`}
+                        className={`tree-node-icon ${isCurrent || highlight ? ' current' : ''} ${status ? getStatus() : ''}`}
                         title={
                             `View ${getModelLabel(model)} ${id}: ${label} ${status ? ' [' + capitalize(getStatus()) + ' Capture]' : ''}`
                         }
@@ -140,7 +186,13 @@ const TreeNodeMenu = ({
  * @return {JSX.Element}
  */
 
-const TreeNode = ({id, type, label, hasDependents, status}) => {
+const TreeNode = ({
+                      id,
+                      type,
+                      label,
+                      hasDependents,
+                      status,
+                      setDialog}) => {
 
     // create dynamic data states
     const [toggle, setToggle] = React.useState(checkNode(id));
@@ -200,6 +252,7 @@ const TreeNode = ({id, type, label, hasDependents, status}) => {
         treeNode,
         loadedData,
         setLoadedData,
+        error,
         setStatusData
     ]);
 
@@ -215,6 +268,7 @@ const TreeNode = ({id, type, label, hasDependents, status}) => {
                         isCurrent={isCurrent}
                         hasDependents={hasDependents}
                         status={statusData}
+                        setDialog={setDialog}
                     />
                 }
                 {
@@ -222,7 +276,7 @@ const TreeNode = ({id, type, label, hasDependents, status}) => {
                         ? error
                             ? <Button className={'msg error'} label={'An error occurred'} icon={'error'} />
                             : Array.isArray(loadedData) && loadedData.length > 0
-                                ? <TreeNodeList items={loadedData} />
+                                ? <TreeNodeList items={loadedData} setDialog={setDialog} />
                                 : <Loading /> : <></>
                 }
             </div>
@@ -239,7 +293,7 @@ const TreeNode = ({id, type, label, hasDependents, status}) => {
  * @return {JSX.Element}
  */
 
-const TreeNodeList = ({items, filter}) => {
+const TreeNodeList = ({items, filter, setDialog}) => {
     return (
         <ul>
             {
@@ -271,6 +325,7 @@ const TreeNodeList = ({items, filter}) => {
                                 label={item.label}
                                 hasDependents={item.hasDependents}
                                 status={item.status}
+                                setDialog={setDialog}
                             />
                         </li>
                     )
@@ -284,10 +339,15 @@ const TreeNodeList = ({items, filter}) => {
  * Map navigator component.
  *
  * @public
+ * @param view
+ * @param data
+ * @param filter
+ * @param setDialog
+ *
  * @return
  */
 
-const TreeNavigator = ({data, filter}) => {
+const TreeNavigator = ({view, data, filter, setDialog}) => {
 
     // render node tree
     return (
@@ -303,6 +363,7 @@ const TreeNavigator = ({data, filter}) => {
                                     <TreeNodeList
                                         items={data[key]}
                                         filter={filter}
+                                        setDialog={setDialog}
                                     />
                                 </li>
                             )

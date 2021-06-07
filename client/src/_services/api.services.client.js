@@ -7,7 +7,7 @@
  * Reference: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
  */
 
-import { createURL } from '../_utils/paths.utils.client';
+import { createAPIURL } from '../_utils/paths.utils.client';
 
 /**
  * Fetch options for JSON API request.
@@ -113,14 +113,14 @@ export const upload = async (route, formData, callback=()=>{}, online=true) => {
     if (!route || !online ) return null;
 
     // DEBUG: Display the key/value pairs of form data
-    for(var pair of formData.entries()) {
-        console.log(pair[0]+ ', '+ pair[1]);
-    }
+    // for(var pair of formData.entries()) {
+    //     console.log(pair[0]+ ', '+ pair[1]);
+    // }
 
     try {
 
         let xhr = new XMLHttpRequest();
-        xhr.open('POST', createURL(route), true);
+        xhr.open('POST', createAPIURL(route), true);
         xhr.withCredentials = true;
         xhr.responseType = 'json';
 
@@ -197,7 +197,7 @@ export const download = async (route, format, online=true) => {
     // reject null paths or when API is offline
     if (!route || !online ) return null;
 
-    return await makeRequest({url: createURL(route), method:'GET', download: format})
+    return await makeRequest({url: createAPIURL(route), method:'GET', download: format})
         .then(res => {
             if (!res || !res.success) {
                 return {
@@ -226,6 +226,8 @@ export const download = async (route, format, online=true) => {
 export function getMIME(filename) {
     const ext = filename.split('.').pop() || '';
     const mime_types = {
+        "any": "*/*",
+        "img": 'image/*',
         "csv": 'text/csv',
         "json": 'text/json',
         "xml": 'text/xml',

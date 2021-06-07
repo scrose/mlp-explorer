@@ -17,6 +17,10 @@ import ServerError from '../error/server.error';
 import SearchNavigator from './search.navigator';
 import Loading from '../common/loading';
 import Button from '../common/button';
+import Alert from '../common/alert';
+import { UserMessage } from '../common/message';
+import { createNodeRoute } from '../../_utils/paths.utils.client';
+import Mover from '../views/mover.view';
 
 /**
  * Main navigator component.
@@ -32,12 +36,12 @@ const Navigator = () => {
     // initialize navigation view settings
     const [navView, setNavView] = React.useState(getNavView() || 'tree');
     const [navToggle, setNavToggle] = React.useState(getPref('navToggle') || false);
-    const [filterToggle, setFilterToggle] = React.useState(false);
 
     // node data state
     const [nodeData, setNodeData] = React.useState({});
     const [optionsData, setOptionsData] = React.useState({});
     const [filterData, setFilterData] = React.useState({});
+    const [dialog, setDialog] = React.useState(null);
 
     // data loading error
     const [error, setError] = React.useState(false);
@@ -54,10 +58,24 @@ const Navigator = () => {
 
     const navViews = {
         hidden: <></>,
-        tree: <TreeNavigator view={navView} data={nodeData} filter={filterData} />,
-        map: <MapNavigator view={navView} data={nodeData} filter={filterData} />,
-        search: <SearchNavigator view={navView} data={nodeData} filter={filterData} />,
-        iat: <></>
+        tree: <TreeNavigator
+            view={navView}
+            data={nodeData}
+            filter={filterData}
+            setDialog={setDialog}
+        />,
+        map: <MapNavigator
+            view={navView}
+            data={nodeData}
+            filter={filterData}
+            setDialog={setDialog}
+        />,
+        search: <SearchNavigator
+            view={navView}
+            data={nodeData}
+            filter={filterData}
+            setDialog={setDialog}
+        />
     }
 
     // API call to retrieve node tree top level
@@ -103,22 +121,30 @@ const Navigator = () => {
                     toggle={navToggle}
                     setToggle={setNavToggle}
                     setData={setNodeData}
-                    setFilter={setFilterToggle}
+                    setDialog={setDialog}
                     filtered={Object.keys(filterData).length > 0}
                 />
                 {
-                    filterToggle
-                        ?   <Dialog
+                    dialog && dialog.type === 'filter' && <Dialog
                                 title={`Filter Map Stations`}
-                                setToggle={setFilterToggle}>
+                                setToggle={setDialog}>
                                     <FilterNavigator
                                         data={filterData}
                                         setData={setFilterData}
                                         optionsData={optionsData}
-                                        setToggle={setFilterToggle}
+                                        setToggle={setDialog}
                                     />
                             </Dialog>
-                        : ''
+                }
+                {
+                    dialog && dialog.type === 'move' && <Mover
+                        id={dialog.id}
+                        model={dialog.model}
+                        label={dialog.label}
+                        ownerID={dialog.ownerID}
+                        ownerLabel={dialog.ownerLabel}
+                        onCancel={() => {setDialog(null)}}
+                    />
                 }
                 {
                     error

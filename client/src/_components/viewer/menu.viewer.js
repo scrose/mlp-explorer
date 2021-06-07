@@ -10,6 +10,9 @@ import Button from '../common/button';
 import Dialog from '../common/dialog';
 import HelpView from '../views/help.view';
 import Exporter from '../tools/export.tools';
+import Download from '../common/download';
+import { createNodeRoute, redirect } from '../../_utils/paths.utils.client';
+import { useRouter } from '../../_providers/router.provider.client';
 
 /**
  * Viewer menu component.
@@ -17,7 +20,14 @@ import Exporter from '../tools/export.tools';
  * @public
  */
 
-const MenuViewer = () => {
+const MenuViewer = ({
+                        id = '',
+                        fileType = '',
+                        filename = '',
+                        compact = true,
+                    }) => {
+
+    const router = useRouter();
 
     // toggle to dhow/hide popup dialogs
     const [dialogToggle, setDialogToggle] = React.useState('');
@@ -25,9 +35,19 @@ const MenuViewer = () => {
     // generate unique ID value for form inputs
     const menuID = Math.random().toString(16).substring(2);
 
+    // visibility of menu items
+    const isVisible = {
+        download: fileType === 'modern_images'
+            || fileType === 'historic_images'
+            || fileType === 'supplemental_images',
+        iat: fileType === 'modern_images'
+            || fileType === 'historic_images'
+            || fileType === 'supplemental_images',
+    };
+
     const _viewerDialogs = {
         help: <HelpView id={'index'} setToggle={setDialogToggle} />,
-        exporter:   <Dialog
+        exporter: <Dialog
             key={`${menuID}_dialog_export`}
             title={`Export Metadata to File`}
             setToggle={setDialogToggle}>
@@ -44,12 +64,58 @@ const MenuViewer = () => {
         <>
             <div className={'editor-tools h-menu'}>
                 <ul>
-                    <li className={'push'} key={`${menuID}_menuitem_export`}>
+                    {
+                        isVisible.download &&
+                        <li key={`${menuID}_menuitem_download`}>
+                            <Download
+                                filename={filename || 'download'}
+                                label={!compact ? 'Download' : ''}
+                                type={fileType}
+                                format={'img'}
+                                route={createNodeRoute(fileType, 'download', id)}
+                                callback={console.log}
+                            />
+                        </li>
+                    }
+                    {
+                        isVisible.iat &&
+                        <li key={`${menuID}_menuitem_open_in_iat`}>
+                            <Button
+                                icon={'iat'}
+                                label={!compact ? 'Open in IAT' : ''}
+                                title={`Open Image in IAT.`}
+                                onClick={() =>
+                                    // launch IAT tool for capture image mastering:
+                                    // - load historic images into Panel 1
+                                    // - load modern images into Panel 2
+                                    router.update(
+                                        fileType === 'modern_images'
+                                            ? `/iat?input2=${id}&type2=${fileType}`
+                                            : `/iat?input1=${id}&type1=${fileType}`
+                                    )
+                                }
+                            />
+                        </li>
+                    }
+                    <li className={'push'} key={`${menuID}_menuitem_iat`}>
+                        <Button
+                            icon={'iat'}
+                            label={compact ? '' : 'Toolkit'}
+                            title={`Image Analysis Toolkit`}
+                            onClick={() => {
+                                // redirect to IAT in viewer/editor
+                                redirect('/iat')
+                            }}
+                        />
+                    </li>
+                    <li key={`${menuID}_menuitem_export`}>
                         <Button
                             icon={'export'}
                             label={'Export'}
                             title={`View data export options.`}
-                            onClick={() => {setDialogToggle('exporter')}}
+                            onClick={() => {
+                                setDialogToggle('exporter');
+                            }}
                         />
                     </li>
                     <li key={`${menuID}_menuitem_help`}>
@@ -57,7 +123,9 @@ const MenuViewer = () => {
                             icon={'help'}
                             label={'Help'}
                             title={`View the help pages.`}
-                            onClick={() => {setDialogToggle('help')}}
+                            onClick={() => {
+                                setDialogToggle('help');
+                            }}
                         />
                     </li>
                 </ul>

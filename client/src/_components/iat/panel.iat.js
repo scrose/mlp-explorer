@@ -327,6 +327,13 @@ export const PanelIat = ({
             );
         };
 
+        // convenience method for clearing the canvas overlay
+        const _clearView = () => {
+            eraseOverlay(overlayCtx, properties);
+            pointer.resetSelectBox();
+            setProperties(data => ({ ...data, pts: [] }));
+        }
+
         // convenience method for updating canvas rendered data
         const _updateView = () => {
 
@@ -400,15 +407,16 @@ export const PanelIat = ({
         }
 
         /**
-         * Clears panel markup
-         * - remove control points
-         * - remove crop box
+         * Update image render view
+         * - removes control points
+         * - removes crop box
          * */
 
         if (signal === 'view') {
             setSignal('loading');
             _updateView();
             setSignal('loaded');
+            _clearView();
         }
 
         /**
@@ -418,9 +426,7 @@ export const PanelIat = ({
          * */
 
         if (signal === 'clear') {
-            eraseOverlay(overlayCtx, properties);
-            pointer.resetSelectBox();
-            setProperties(data => ({ ...data, pts: [] }));
+            _clearView();
             setSignal('loaded');
         }
 
@@ -485,6 +491,7 @@ export const PanelIat = ({
                     if (inputImage instanceof HTMLImageElement) imgCtx.drawImage(
                         inputImage, 0, 0, properties.original_dims.w, properties.original_dims.h);
                     else imgCtx.putImageData(inputImage, 0, 0);
+                    _clearView();
                 }
 
                 // copy image data to scratch canvas and back to image canvas
@@ -640,6 +647,7 @@ export const PanelIat = ({
                     callback={_callback}
                 />
                 <PanelInfo
+                    setDialog={setDialogToggle}
                     properties={properties}
                     pointer={pointer}
                     status={signal}

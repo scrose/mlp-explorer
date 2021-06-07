@@ -10,11 +10,11 @@ import { PanelIat } from './panel.iat';
 import { MenuIat } from './menu.iat';
 import { createNodeRoute, getQuery } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
-import { moveAt, moveStart, moveEnd } from './transform.iat';
 import { UserMessage } from '../common/message';
 import { filterKeyDown, filterKeyUp } from './panel.controls.iat';
 import { loadImageData } from './loader.iat';
 import { addNode } from '../../_services/session.services.client';
+import { moveAt, moveEnd, moveStart } from './panner.iat';
 
 /**
  * Default settings.

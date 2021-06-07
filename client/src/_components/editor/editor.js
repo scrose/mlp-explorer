@@ -27,6 +27,8 @@ const Editor = () => {
     // get router context provider
     const router = useRouter();
     const api = useData();
+    const { file={} } = api.data || {};
+    const { filename=''} = file || {};
 
     return (
         <>
@@ -40,6 +42,7 @@ const Editor = () => {
                     owner={api.owner}
                     metadata={api.metadata}
                     fileType={api.type}
+                    filename={filename}
                     compact={false}
                     dependents={getDependentTypes(api.model)}
                 />

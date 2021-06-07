@@ -7,360 +7,550 @@
 
 import React from 'react';
 import Image from '../common/image';
+import Icon from '../common/icon';
+import Button from '../common/button';
+import captureModel from '../img/capture_image_composition.jpg';
+import dataModel from '../img/mlp_data_model.jpg';
 
 /**
- * Explorer "Getting Started" help page.
- *
- * @public
+ * Index of general help content
  */
 
-export const explorerHelp = <>
-    <h4>Getting Started</h4>
-    <p>
-        Welcome to the The Mountain Legacy Explorer user guide. This guide is intended to
-        provide enough detailed information to get you up to speed and starting using the
-        application.
-    </p>
-
-    <h5>Mountain Legacy Explorer (MLE)</h5>
-    <p>The Explorer (MLE) is a web-based tool for exploring the Mountain Legacy Project
-        collection of repeat images and metadata. MLE allows users to navigate image captures,
-        by geographical region and through the image metadata. The navigator map, for example,
-        gives a geographical view of the survey data across Alberta and British Columbia,
-        while users can also explore, search and filter data by surveyor and survey.
-    </p>
-
-    <h5>Digitization of Historical Photography</h5>
-    <p>
-        The historic image digitization process works directly with the plate negatives.
-        The majority of it takes place in a fully colour/greyscale managed facility at
-        Library and Archives Canada’s Preservation Centre in Gatineau, Quebec. The process
-        is detailed: accessing and handling the plates; scanning on high resolution flatbed
-        scanners; production of high resolution TIFF (Tagged Image File Format) files at
-        resolutions of approximately 12,000 by 9,000 pixels; delivery of media with agreed
-        upon names and file structure. Agreed upon conventions for naming and
-        other metadata tags are crucial to managing and matching the digital artifacts
-        with the corresponding physical one.</p>
-
-</>
-
-/**
- * Explorer "Concepts" help page.
- *
- * @public
- */
-
-export const conceptsExplorerHelp = <>
-
-    <h4>Concepts</h4>
-
-    <h5>What is Repeat Photography?</h5>
-    <p>
-        It’s as simple as it sounds. You start with one photo, which was taken at a specific location in a
-        specific direction (azimuth), at a specific time. You repeat this photo when you find that same location,
-        point the camera in the same direction, and press the shutter release of your camera. The big difference
-        between the two photos is temporal. Pretty straight forward.
-
-        Repeat photographs leverage the systematic nature of the original work, allowing researchers to re-photograph
-        the same continuous coverage of the landscape captured by the historic images. Taken together, the historic
-        photo and the modern repeat form an image pair. Through careful interpretation and analysis, MLP image
-        pairs can be used to explore the dynamics and interplay of ecological, climate, and human-induced
-        changes in the landscape. Digital assets include multiple versions of historical digitized images
-        (e.g., unprocessed scan; cropped master), repeat images (RAW, TIFF and various field-useable images), location
-        images, EXIF camera data, survey and MLP field notes and maps.
-    </p>
-
-    <h5>Historic and Modern Captures</h5>
-    <p>
-        The core artifact of the MLP collection is the Capture, which corresponds to the capture of a view
-        that is unique in location, azimuth, date, and time. For example, if I have a tripod setup, with the
-        camera pointed in a specific direction, take one photo at f/16, 1/50 sec, then take another photo
-        with a different exposure setting, while these two photos look mostly the same, they are different
-        captures because they were taken at different times.
-    </p>
-    <p>The collection has two forms of Captures:</p>
-    <ol>
-        <li><b>Historic Capture</b> A historic capture may be associated with information related to
-            where its glass plate negative is located.
-        </li>
-        <li><b>Modern (Repeat) Capture</b> The exposure settings of a capture are generally known.</li>
-    </ol>
-
-    <h5>Capture Images</h5>
-    <p>
-        A capture is typically not represented by a single image file, but can be represented by many versions
-        of the same image. These versions are called capture images, which have a special property called the
-        image state, which distinguishes the different versions.</p>
-    <p>
-        For example, if a photo is taken and someone writes down the date, time, and location of the photo,
-        a capture is created. If you delete the image file associated with that capture, the capture still
-        technically exists. This case is rare. What’s more common is that an image file, that is associated
-        with a capture, is modified several times in the MLP workflow. Specifically, a capture is initially
-        represented by a raw file (when the Hasselblad is used create the capture, this would be a 3FR file).
-        The raw file would be converted into a tiff file. The tiff file would then be registered (aligned/overlaid)
-        with the historic image, a process that generally involves cropping and slightly rotating the image.
-    </p>
-    <p>
-        To recap, a capture can have zero to many capture images. Each capture image has both an image file
-        and an image state, where the state distinguishes the versions of the image. All the capture images
-        for a specific capture are derived (indirectly or directly) from the same image file (usually a raw file).
-    </p>
-
-    <Image url={''}
-           label={'Figure 1. The relationship between a capture and its capture images shown pictorially. The capture represents the photo taken at a specific time, while the capture images are instances of that same photo, differentiated by image states,image modifications, and file types.'} />
-
-    <h5>Metadata Schema</h5>
-    <p>
-        The MLP Library consists of thousands of captures and historic captures, and tens of thousands of associated
-        images, thus, we need an easy way to organize these data elements. We take a hierarchical approach to data
-        organization. An example of this hierarchy can be seen in Figure 2. The levels of the main hierarchy are,
-        from top to bottom, surveyors, surveys, survey seasons, stations, visits, and locations. A small minority
-        of the captures taken by MLP do not neatly fit into the surveyor model. In these cases, we group stations
-        according to projects.
-    </p>
-
-    <Image
-        label={'Figure 2. The data object hierarchy. Example nodes are shown in the tree, while hierarchy levels are defined to the left.'}
-        url={''} />
-
-    <h5>Project</h5>
-    <p>
-        A project is a container for stations that do not fit into the surveyor model listed below. An example of a
-        project would be the Alberta Fire Lookout Towers. Each lookout tower contains a set of historic photographs from
-        that tower. At the request of SRD, we repeated these photographs. However, these historic photographs weren’t
-        taken under the context of a survey. Thus, a project is better suited for these types of stations.
-    </p>
-    <h5>Surveyor</h5>
-    <p>The principal surveyor of a historic survey.</p>
-
-    <h5>Survey</h5>
-    <p>A specific survey completed under a surveyor. A survey covers a large geographical region, and may span several
-        years. Surveys by different surveyors may overlap in the regions they covered.</p>
-
-    <h5>Survey Season</h5>
-    <p>A survey season is a container for all the stations completed in a certain year for a specific survey.</p>
-
-    <h5>Station</h5>
-    <p>The concept of a station has its roots in the historic surveys. A surveyor would identify a high point in the
-        landscape where photographs were required to be taken. Upon arrival to that location, several photographs would
-        be taken, usually in as many directions as possible. In many circumstances, the camera would have to be moved
-        around in order gain the best vantage point for a particular cardinal direction. Thus, there were many sub
-        locations within the general location of the station. Therefore, a station can be loosely defined as a broad
-        geographic location where the distance between sub locations is within a reasonable walking distance. This is
-        intentionally loosely defined, since the distinction between station and location (see below) seemed to have
-        differed between different surveyors (MLP always groups the images into stations defined by the surveyor, if
-        known)</p>
-
-    <h5>Historic Visit</h5>
-    <p>A historic visit refers to the first visit to a station by a particular surveyor. It can be thought of as a
-        container for historic captures. A station can have only one historic visit.</p>
-
-    <h5>Visit</h5>
-    <p>A visit refers to a visit to the station with the specific purpose of repeating the historic captures from the
-        historic visit. A visit is uniquely identified by the date at which it occurred. Multiple visits may occur for
-        each station. The visit object is a container for all information related to that specific visit, such as field
-        note data, captures, location images, and locations.</p>
-
-    <h5>Location</h5>
-    <p>Where a station is a somewhat broad geographical location, a location (as an object in MEAT) is a sub location of
-        the station. It is a specific place where a capture was taken. </p>
-
-    <h5>Other Files Stored in MEAT</h5>
-    <p>The first class citizens of MEAT are the captures/historic captures and their associated capture images (the
-        image files associated with the captures), but that’s not the only files that are stored. </p>
-
-    <h5>Location Images</h5>
-    <p>As part of a visit, location images are used to create a visual record of where the captures were taken. A
-        location image object is associated with an image file. It differs from a capture image in that it does not
-        contain an image state.</p>
-
-    <h5>Scenic Images</h5>
-    <p>A scenic image is an image that was taken during a repeat field season, but not necessarily associated with
-        repeat photography or the visit records. Currently, the inclusion of scenic images at the user interface level
-        is not supported (though it is at the database layer).</p>
-
-    <h5>Field Note Files</h5>
-    <p>Field notes from each visit have been written in a field note book or field note form, then digitized using a
-        scanner. While these field notes will be transcribed and stored in the database via the visit object, the
-        scanned copies are kept for historical reference. Field note files should be stored within a visit.</p>
-
-    <h5>Application Layout</h5>
-
-    <p>The main layout of the application is divided up into a navigation pane on the left hand side and a data pane on
-        the right hand side.</p>
-
-    <Image
-        url={''}
-        label={'Figure 3. An overview of the typical application layout that you\'ll see when using the MEAT application'}
-    />
-
-
-    <h5>Navigation Pane</h5>
-
-    <p>The Navigation Pane contains a navigation tree. Each folder level corresponds to a hierarchy level shown in
-        Figure 3. Captures and historic captures are also shown in the navigation tree. The name used to reference a
-        capture or historic capture in the navigation tree uses the field note photo reference field of the capture /
-        historic capture. When the field note photo reference field is empty, the name of one of its captures images is
-        used. </p>
-
-    <p>When you click on an element in the navigation tree, the data pane will be loaded with information related to
-        that specific object. </p>
-
-    <h5>Data Pane</h5>
-
-    <p>The Data Pane contains object data, which differs depending on the object being viewed. Common elements of the
-        data pane is the menu bar and the bread crumb trail.</p>
-
-    <h5>Features</h5>
-
-    <h5>Adding an Object</h5>
-
-    <p>Adding an object is done by first visiting the hierarchical parent of the object to be created, clicking the “Add
-        [Child Obj ect]” link in the menu bar, filling out the form presented in the data pane, and pressing the
-        "Submit" button. As an example, to create a survey season under the Wheeler Canadian Irrigation survey, you
-        would first navigate to the Canadian Irrigation survey in the navigation tree, click the “Add Survey Season”
-        link in the menu bar, fill out the year, and press “Submit”. If you did not fill out a required field or filled
-        a field incorrectly, then you will be returned to the form to fix the error. </p>
-
-    <p>Projects and surveyors do not have parent objects, and therefore created in a different workflow. [Currently not
-        implement] At the top of the navigation pane are two link “Add Project” and “Add Surveyor”. Click either of
-        these and proceed with the instructions previously described. </p>
-
-    <h5>Optional Workflow</h5>
-    <p>The visit and historic visit forms a created so that you can add multiple objects all in one form. Specifically,
-        when you create a visit, you can create multiple locations for that visit, and for each location, you can create
-        multiple captures. Correspondingly, when you create a historic visit you may also create multiple historic
-        captures. These separate levels of object creation are represented by nested boxed areas within the visit
-        form. </p>
-
-    <p>To add another location to the visit form, navigate to the bottom of the form and click the “Add Location” link.
-        To remove a location from the form, navigate to the top right hand corner of the nested box that holds the
-        location fields and click the “Remove Location” link. </p>
-
-    <p>Captures and historic captures, in their respective forms, can be added and removed in a similar manner.</p>
-
-    <h5>Adding File Related Objects (Capture Images, Metadata Files, Location Images and Field Note Files)</h5>
-
-    <p><strong>Capture Images</strong> can be added in the capture or historic capture forms by clicking the “Choose
-        File” button, selecting a single file, choosing an image state, and optionally making the image available
-        remotely. </p>
-    <p><strong>Field Note Files</strong> can be added in the visit form by clicking the “Choose Files” button near the
-        “Field Note Files” label and selecting one or more files.</p>
-    <p><strong>Metadata Files</strong> can be added in the project, survey, survey season, station, and visits forms by
-        clicking the “Choose Files” button near the “Metadata Files” label and selecting one or more files.</p>
-    <p><strong>Location Images</strong> can be added in the location form by clicking the "Choose Files” button near the
-        “Location Photos” label, selecting one or more file and optionally checking the “Make Remote” checkbox.</p>
-
-    <h5>Editing Objects</h5>
-
-    <p>An object can be edited by first navigating to the object so that it is shown in the data pane, clicking the
-        “Edit” link in the menu, editing the desired fields in the form presented, and pressing the “Submit” button at
-        the bottom of the form.</p>
-
-    <h5>Deleting Objects</h5>
-
-    <p>An object can be deleted by first navigating to the object so that it is shown in the data pane, clicking the
-        “Delete” link, and accepting the prompt asking whether you would like to delete the object. Note that when you
-        delete an object, you will delete any objects and files underneath it in the hierarchy, so be careful!!!</p>
-
-    <h5>Administration Features</h5>
-
-    <p>The administration features have been created to allow the user to manage the data in a reasonably flexible
-        manner. By flexibility, I mean allowing data to be stored in less than ideal locations. To understand this,
-        let’s start with what’s an ideal location for a specific data object.</p>
-
-    <p>Ideally, the data objects discussed previously would be structured as follows. Given that a station has been
-        repeated, it would contain an historic visit and one more more visits. The historic visit would contain one or
-        more historic captures and each of those historic captures would contain 4 capture images: one for each of the
-        raw, interim, master, and possibly gridded image states. The visits would each contain field notes information,
-        one or more locations, and each location would contain location images and captures, and each capture would
-        contain 3 capture images: one for each of the raw, interim, and master states.</p>
-
-    <p>Of course, the ideal is not real. The MEAT application is inheriting a very large file system data tree that was,
-        at best, semi structured. Furthermore, the type of record keeping (field notes) has varied over the years, so
-        consistency is also a problem. Finally, we are still transcribing field notes, which contain data that simply
-        could not be extracted from the the file system structure (i.e. you can’t sort captures in to locations without
-        having the field notes transcribed). Therefore, the ideal circumstances aren’t always available. </p>
-
-    <p>The administration features give the user the ability to sort data that may not have been imported at the ideal
-        level of granularity (i.e. at the station level rather than the location level).</p>
-
-    <h5>Unsorted Data</h5>
-
-    <p>Captures stored at the project, survey, survey season, and station levels are shown in an “Unsorted Captures”
-        folder underneath their respective parent object in the navigation tree. An unsorted capture may also appear
-        directly underneath its visit. Historic captures at the project, survey, and survey season levels are shown in
-        an “Unsorted Historic Captures” folder underneath their respective parent object in the navigation tree.</p>
-
-    <h5>Moving Captures and Historic Captures</h5>
-
-    <p>Moving captures and historic captures is simple. In the navigation tree, locate the capture or historic capture
-        you would like to move and drag it to a destination object in the navigation tree. Captures may not be stored in
-        historic visits, while historic captures may not be stored in visits or locations. While captures and historic
-        captures are viewable in the data pane, they cannot be moved <em>from</em> the data pane (as opposed to location
-        images and field notes). Multiple captures / historic captures may be moved at once if the select key is pressed
-        while selecting the nodes in the navigation tree.</p>
-
-    <h5>Moving Capture Images, Location Images and Metadata Files</h5>
-
-    <p>Capture images, location photos and metadata files are viewed through parent object pages. When listed in these
-        pages, an icon with 4 directional arrows appears to the left of each listed file, indicating that these objects
-        are moveable. The user can move a file by dragging the drag icon to a new parent in the navigation tree. Capture
-        images are restricted to captures and historic captures. Location photos are restricted to locations, visits,
-        and stations. Metadata files can be moved to any level of the of the navigation tree with the exception of
-        locations, captures, and historic captures. </p>
-
-    <h5>Merging Captures and Historic Captures</h5>
-
-    <p>This feature is especially useful in dealing with capture images that weren’t grouped together in the same
-        capture or historic capture upon import. In the case of the captures, you may see more than one capture based
-        off the same photo; e.g. one containing a capture image in the raw image state while another containing capture
-        images in the master and interim states. These two captures should be one. To merge the two captures, select one
-        capture so that it is shown in the data pane. Next, drag the other capture that you would like to merge from the
-        navigation tree to the data pane. You will be prompted to confirm the merge action. Once confirmed, the two
-        captures should be merged. </p>
-
-    <p>It should be noted that two captures cannot be merged if they contain conflicting data fields. This is usually
-        the case when they contain different photos, or both have the field note photo reference fields populated. In
-        these cases, you do not want to merge the captures, as they are most likely different.</p>
-
-    <p>If you find that you can’t merge two captures that should be merged, simply move the capture images from one
-        capture to another and update another other related fields. After this process, you should be able to delete one
-        of the captures, as it should no longer contain capture images. </p>
-
-
-</>;
-
-/**
- * Explorer "Navigator" help page.
- *
- * @public
- */
-
-export const navigatorExplorerHelp = <>
-    <h4>Navigator Usage</h4>
-    <p>
-        Use the navigator to explore the vast MLP photographic library and
-        database. Icons control expansion (opening) / closing of containers.
-        Selecting or searching clickable items in the navigator displays
-        metadata in the Viewer pane on the right.
-    </p>
-    <p>The navigators offers four ways to explore the collection:</p>
-    <ol>
-        <li>
-            <b>Map:</b> Geographic map marking Station locations linked to data.
-            Multiple Stations are clustered in markers that indicate the size of the cluster.
-            Click on the marker to view Station capture images and metadata.
-        </li>
-        <li>
-            <b>Tree:</b> Hierarchical menu that organizes the data by historical survey.
-            Click on the menu items to view capture images and metadata.
-        </li>
-        <li>
-            <b>Search:</b> Search the collection metadata.
-        </li>
-        <li>
-            <b>Filter:</b> Filter the Map Station markers by Surveyor, Survey and Survey Season.
-        </li>
-    </ol>
-</>;
+export default (setSection, setPage) => {
+
+    /**
+     * Navigate to help section.
+     */
+
+    const _gotoPage = (section, page) => {
+        setSection(section);
+        setPage(page);
+    };
+
+    /**
+     * Explorer "Getting Started" help page.
+     *
+     * @public
+     */
+
+    const explorerHelp = <>
+        <h4>Getting Started</h4>
+        <p>
+            Welcome to the The Mountain Legacy Explorer user guide. This guide is intended to
+            provide background information along with step-by-step instructions on how to
+            navigate the MLP collection. The guide covers usage of features available in both the Explorer
+            and Image analysis Toolkit, as well as detailed info on using the Editor management tool.
+        </p>
+
+        <h5>What is Repeat Photography?</h5>
+        <p>
+            It’s as simple as it sounds. You start with one photo, which was taken at a specific location in a
+            specific direction (azimuth), at a specific time. You repeat this photo when you find that same location,
+            point the camera in the same direction, and press the shutter release of your camera. The big difference
+            between the two photos is temporal. Repeat photographs leverage the systematic nature of the original work,
+            allowing researchers to re-photograph the same continuous coverage of the landscape captured by the historic images.
+            Taken together, the historic photo and the modern repeat form an image pair. Through careful
+            interpretation and analysis, MLP image pairs can be used to explore the dynamics and interplay of
+            ecological, climate, and human-induced changes in the landscape. Digital assets include multiple
+            versions of historical digitized images (e.g., unprocessed scan; cropped master), repeat images
+            (RAW, TIFF and various field-useable images), location images, EXIF camera data, survey and MLP
+            field notes and maps.
+        </p>
+
+        <h5>Mountain Legacy Explorer (MLE)</h5>
+        <p>The Explorer is a web-based tool for exploring Mountain Legacy Project's
+            vast collection of historic survey photos, modern repeat images and metadata.
+            Visitors can navigate, search and filter collection items by surveyor metadata or
+            by geographical location of survey stations.</p>
+
+
+
+        <table className={'help'}>
+            <tbody>
+            <tr>
+                <th>Viewer</th>
+                <td>
+                    <p>Use the viewer to explore the MLP collection images and metadata in detail.
+                        Go to <Button icon={'help'} label={'Viewer'} onClick={() => {
+                            _gotoPage(0, 1);
+                        }} /> for more information.
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th>Navigator</th>
+                <td>
+                    <p>Use the navigator to explore the MLP collection from a bird's eye view.
+                        Go to <Button icon={'help'} label={'Navigation'} onClick={() => {
+                        _gotoPage(0, 2);
+                    }} /> for more information.
+                    </p>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+
+    </>;
+
+    /**
+     * Explorer "Viewer" help page.
+     */
+
+    const viewerExplorerHelp = <>
+        <h4>Viewer</h4>
+
+        <p>The viewer is the main right-side panel where files and metadata is loaded from the navigator and menus.
+            Any node in the MLP <Button icon={'help'} label={'Data Model'} onClick={() => {_gotoPage(0, 3)}} /> can
+            have its metadata and attached files loaded in the viewer. For example,
+            survey data for surveyor <a href={"http://localhost:3000/surveyors/show/5"}>Morrison Parsons Bridgland</a> is
+            listed under the "Surveys" tab. Each item in the list can be expanded to show metadata for that item, as well as
+            any attached dependent items -- in this case, survey seasons. You can also click on the item label to go to
+            open the page for that item.</p>
+
+        <p>Search and filter results are also loaded in the viewer.</p>
+
+        <h5>Viewer Tabs</h5>
+        <table className={'help'}>
+            <tbody>
+            <tr>
+                <th>Item Details</th>
+                <td>
+                    <p>The main metadata for this item.</p>
+                </td>
+            </tr>
+            <tr>
+                <th>Comparisons</th>
+                <td>
+                    <p>List of registered historic and modern image pairs.</p>
+                </td>
+            </tr>
+            <tr>
+                <th>Metadata</th>
+                <td>
+                    <p>Attached metadata: e.g. participants, glass plate slides, historic map metadata.</p>
+                </td>
+            </tr>
+            <tr>
+                <th>Files</th>
+                <td>
+                    <p>Attached metadata files: e.g. supplementary images, field note scans.</p>
+                </td>
+            </tr>
+            <tr>
+                <th>Captures</th>
+                <td>
+                    <p>List of attached historic or modern repeat captures. Historic captures are sorted if attached to
+                        historic visits; modern captures are sorted if attached to locations.</p>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </>
+
+    /**
+     * Explorer "Model" help page.
+     *
+     * @public
+     */
+
+    const modelExplorerHelp = <>
+
+        <h4>MLP Data Model</h4>
+
+        <h5>Model Hierarchy</h5>
+
+        <p>
+            The MLP Library consists of thousands of captures and historic captures, and tens of thousands of associated
+            images. To organize this data set, an hierarchical schema has been developed to organize images by
+            surveyors, surveys, survey seasons, stations, visits, and locations.
+            An example of this hierarchy can be seen in <b>Figure 1</b> below. A comparatively small number of
+            of captures taken by MLP do not neatly fit into the surveyor model, and are instead grouped
+            according to projects.
+        </p>
+
+        <p>Each element in the hierarchy is defined as a <b>node</b>, and represents a data object of core metadata
+            that has both attributes and hierarchical relationships with other nodes. Nodes in the collection data model
+            can serve as containers for other nodes, or as terminal nodes. For example, a Station node is a
+            container for Visit nodes.</p>
+
+        <Image
+            url={dataModel}
+            label={`Figure 1. The data object hierarchy. Example nodes are shown in the tree, while hierarchy 
+            levels are defined to the left.`}
+        />
+
+        <h5>Model Elements (Nodes)</h5>
+
+        <table className={'help'}>
+            <tbody>
+            <tr>
+                <th><Icon type={'projects'} /></th>
+                <th>Projects</th>
+                <td>
+                    <p>A project is a container for stations that do not fit into the surveyor model listed below. The
+                        Alberta Fire Lookout Towers, is an example, where Each lookout tower contains a set of historic
+                        photographs
+                        from that tower -- not associated with a survey -- which have been repeated.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'surveyors'} /></th>
+                <th>Surveyors</th>
+                <td>
+                    <p>The principal surveyor of a historic survey.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'surveys'} /></th>
+                <th>Surveys</th>
+                <td>
+                    <p>A specific survey completed under a surveyor. A survey covers a large geographical region, and
+                        may span
+                        several years. Surveys by different surveyors may overlap in the regions they covered.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'survey_seasons'} /></th>
+                <th>Survey Seasons</th>
+                <td>
+                    <p>A survey season is a container for all the stations completed in a certain year for a specific
+                        survey.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'stations'} /></th>
+                <th>Stations</th>
+                <td>
+                    <p>The concept of a station has its roots in the historic surveys. A surveyor would identify a high
+                        point in the
+                        landscape where photographs were required to be taken. Upon arrival to that location, several
+                        photographs
+                        would be taken, usually in as many directions as possible. In many circumstances, the camera
+                        would have to be
+                        moved around in order gain the best vantage point for a particular cardinal direction. Thus,
+                        there were many sub
+                        locations within the general location of the station. Therefore, a station can be loosely
+                        defined as a broad
+                        geographic location where the distance between sub locations is within a reasonable walking
+                        distance. This
+                        is intentionally loosely defined, since the distinction between station and location has
+                        occasionally
+                        differed between different surveyors (MLP always groups the images into stations defined by the
+                        surveyor, if
+                        known).</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'historic_visits'} /></th>
+                <th>Historic Visits</th>
+                <td>
+                    <p>A historic visit refers to the first visit to a station by a particular surveyor. It can be
+                        thought of as a container for historic captures. A station can have only one historic visit.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'modern_visits'} /></th>
+                <th>Modern Visits</th>
+                <td>
+                    <p>A visit refers to a visit to the station with the specific purpose of repeating the historic
+                        captures from
+                        the historic visit. A visit is uniquely identified by the date at which it occurred. Multiple
+                        visits may occur
+                        for each station. The visit object is a container for all information related to that specific
+                        visit, such as
+                        field note data, captures, location images, and locations.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'locations'} /></th>
+                <th>Locations</th>
+                <td>
+                    <p>Where a station is a somewhat broad geographical location, a location (as an object in MEAT) is a
+                        sub
+                        location of the station. It is a specific place where a capture was taken. </p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'historic_captures'} /></th>
+                <th>Historic Captures</th>
+                <td>Contain multiple historic survey images and are typically added under Historic Visits.</td>
+            </tr>
+            <tr>
+                <th><Icon type={'modern_captures'} /></th>
+                <th>Modern Captures</th>
+                <td>Contain multiple modern repeat images and are typically added under Modern Visits > Locations.</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h5>Attached Metadata</h5>
+
+        <p>Other metadata can be attached to specific model elements.</p>
+
+        <table className={'help'}>
+            <tbody>
+            <tr>
+                <th><Icon type={'participant_groups'} /></th>
+                <th>Participants</th>
+                <td>
+                    <p>Participants in visiting groups can be attached to modern visits. There are three types of
+                        participant groups:</p>
+                    <ol className={'list'}>
+                        <li>Hiking Parties</li>
+                        <li>Field Note Authors</li>
+                        <li>Photographers</li>
+                    </ol>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'glass_plate_listings'} /></th>
+                <th>Glass Plate Listings</th>
+                <td>
+                    <p>Identification for the original glass plate negatives can be attached to survey seasons.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'maps'} /></th>
+                <th>Maps</th>
+                <td>
+                    <p>Historic map metadata can be attached to survey seasons.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'historic_captures'} /></th>
+                <th>Cameras</th>
+                <td>
+                    <p>Camera details can be attached to historic and modern captures.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'historic_captures'} /></th>
+                <th>Lenses</th>
+                <td>
+                    <p>Lens details can be attached to historic and modern captures.</p>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h5>Attached Files</h5>
+
+        <p>In addition to capture images, there are other kinds of files available in the collection.</p>
+
+        <table className={'help'}>
+            <tbody>
+            <tr>
+                <th><Icon type={'images'} /></th>
+                <th>Supplementary Images</th>
+                <td>
+                    <p>As part of a visit, location images are used to create a visual record of where the captures were taken. A
+                        location image object is associated with an image file. It differs from a capture image in that it does not
+                        contain an image state.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'images'} /></th>
+                <th>Scenic Images</th>
+                <td>
+                    <p>A scenic image is an image that was taken during a repeat field season, but not necessarily associated with
+                        repeat photography or the visit records. Currently, the inclusion of scenic images at the user interface
+                        level is not supported (though it is at the database layer).</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'file'} /></th>
+                <th>Field Note Files</th>
+                <td>
+                    <p>Field notes are often recorded at each visit in a field note book or field note form, then digitized using a
+                        scanner. While these field notes will be transcribed and stored in the database via the visit object, the
+                        scanned copies are kept for historical reference. Field note files are associated with modern visits.</p>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </>;
+
+    /**
+     * Capture image help content.
+     */
+
+    const captureExplorerHelp = <>
+        <h4>Historic and Modern Captures</h4>
+
+        <h5>What is a capture?</h5>
+        <p>
+            The core artifact of the MLP collection is the capture, which corresponds to a landscape view
+            that is unique in location, azimuth, date, and time. For example, given a tripod setup, with the
+            camera pointed in a specific direction, suppose photos are taken at f/16, 1/50 sec, and then another
+            with a different exposure setting. Though we might consider these photos as sharing the same view, they form
+            different captures because they were taken at different times.
+        </p>
+        <p>The collection has two types of captures:</p>
+        <ol>
+            <li><b>Historic Capture</b> A historic capture may be associated with information related to
+                where its glass plate negative is located.
+            </li>
+            <li><b>Modern (Repeat) Capture</b> The exposure settings of a capture are generally known.</li>
+        </ol>
+
+        <h5>Capture Images</h5>
+        <p>
+            A capture is typically not represented by a single image file, but can include many versions
+            of the same image, as shown in <b>Figure 2</b> below. These versions, called <b>capture images</b>,
+            are each designated an image state to distinguish different versions (see <b>Image States</b> table below)</p>
+        <p>
+            For example, a photo taken for a given date, time, and location is a capture. If you delete the
+            image file associated with that capture, the capture still exists. This case is rare. What’s more
+            common is that an image file associated with a capture is modified several times in the MLP workflow.
+            Specifically, a capture is initially represented by a raw file (when the Hasselblad is used create
+            the capture, this would be a 3FR file). The raw file would be converted into a tiff file.
+            The tiff file would then be registered (aligned/overlaid) with the historic image.
+        </p>
+        <p>
+            To recap, a capture can have zero to many capture images. Each capture image has both an image file
+            and an image state, where the state distinguishes the versions of the image. All the capture images
+            for a specific capture are derived (indirectly or directly) from the same image file (usually a raw file).
+        </p>
+
+        <Image url={captureModel}
+               label={`
+               Figure 2. The relationship between a capture and its capture images shown pictorially. 
+               The capture represents the photo taken at a specific time, while the capture images are 
+               instances of that same photo, differentiated by image states,image modifications, and file types.`} />
+
+        <h5>Image States</h5>
+        <table className={'help'}>
+            <tbody>
+            <tr>
+                <th>Raw</th>
+                <td><p>Original uploaded image. Typically, the associated image format is uncompressed RAW captured by
+                    a digital camera for modern images or a digital scanner for historic images.</p></td>
+            </tr>
+            <tr>
+                <th>Master</th>
+                <td><p>Mastered or registered image. Image is aligned and indexed with a historic or modern counterpart.</p></td>
+            </tr>
+            <tr>
+                <th>Interim</th>
+                <td><p>Intermediate state for image alignment.</p></td>
+            </tr>
+            <tr>
+                <th>Gridded</th>
+                <td><p>Grid lines are visible on the image.</p></td>
+            </tr>
+            <tr>
+                <th>Miscellaneous</th>
+                <td><p>Image has unconventional adjustments or transformations.</p></td>
+            </tr>
+            </tbody>
+        </table>
+    </>;
+
+    /**
+     * Explorer "Navigator" help page.
+     *
+     * @public
+     */
+
+    const navigatorExplorerHelp = <>
+        <h4>Using the Navigator</h4>
+        <p>
+            Use the navigator (located on the left-side panel) to search, filter and open up the vast MLP photographic library and
+            database. Click on the <Icon type={'expand'} /> icon to open or close the submenus.
+            Selecting or searching clickable items in the navigator loads
+            metadata in the <b>Viewer</b> pane on the right.
+        </p>
+
+        <h5>Navigator Features</h5>
+        <p>The navigators offers four ways to explore the collection:</p>
+        <table className={'help'}>
+            <tbody>
+            <tr>
+                <th><Icon type={'map'} /></th>
+                <th>Map</th>
+                <td>
+                    <p>The map navigator marks the geographical locations of survey stations on
+                        a geographical map. Multiple Stations are clustered in markers that
+                        show the cluster size.</p>
+                    <p>Click on the marker to view the list of stations in the
+                        cluster. Double click on the marker to also zoom and center the map on the cluster.</p>
+                    <p>Pan by dragging the map; zoom by double clicking the map area, or use the zoom controls at top
+                        left. You can also
+                        view different layers by clicking the layers icon at top right.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'tree'} /></th>
+                <th>Tree</th>
+                <td>
+                    <p>The list (or "hierarchical") navigator organizes the data by historical surveyor and
+                        associated survey data.</p>
+                    <p>Click on the menu labels to load data for an item in the viewer panel.</p>
+                    <p>Note that each historic and modern capture is labelled using its field note photo reference
+                        identifier.
+                        When this identifier is empty, the filename of one of its captures images is used. </p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'search'} /></th>
+                <th>Search</th>
+                <td>
+                    <p>Query the data with full-text searches of the collection metadata. This loads results in
+                        the navigator panel.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'filter'} /></th>
+                <th>Filter</th>
+                <td>
+                    <p>Filter the map station markers by surveyor, survey and survey season.</p>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    <div><Icon type={'hopenleft'} /></div>
+                    <div><Icon type={'hcloseleft'} /></div>
+                </th>
+                <th>Minimize / Maximize</th>
+                <td>
+                    <p>Minimizes or maximizes the navigator panel.</p>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h5>Cookie Crumb Trail</h5>
+
+        <p>The cookie crumb trail is a navigational aid that helps track the location of the page loaded relative to
+        the navigator model.</p>
+
+        <h5>View Menu</h5>
+
+        <p>The view menu is just below the cookie crumb trail, and provides some additional
+            options such as metadata <b>Export</b> and <b>Help</b> pages.</p>
+    </>;
+
+    return [
+        {
+            label: 'Getting Started',
+            data: explorerHelp,
+        },
+        {
+            label: 'Viewer',
+            data: viewerExplorerHelp,
+        },
+        {
+            label: 'Navigator',
+            data: navigatorExplorerHelp,
+        },
+        {
+            label: 'MLP Model',
+            data: modelExplorerHelp,
+        },
+        {
+            label: 'Historic/Modern Captures',
+            data: captureExplorerHelp,
+        },
+    ];
+}

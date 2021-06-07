@@ -8,7 +8,7 @@
 import React, { useCallback } from 'react';
 import { createNodeRoute, redirect } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
-import { genSchema, getModelLabel, getStaticLabel, getStaticView } from '../../_services/schema.services.client';
+import { genSchema, getModelLabel, getStaticView } from '../../_services/schema.services.client';
 import Button from '../common/button';
 import Importer from '../tools/import.tools';
 import Dialog from '../common/dialog';
@@ -19,6 +19,7 @@ import Remover from '../views/remover.view';
 import OptionsView from '../views/options.view';
 import HelpView from '../views/help.view';
 import Exporter from '../tools/export.tools';
+import Download from '../common/download';
 import Badge from '../common/badge';
 
 /**
@@ -35,6 +36,7 @@ const MenuEditor = ({
                         label = '',
                         compact=true,
                         fileType='',
+                        filename='',
                         owner=null,
                         metadata = null,
                         dependents = [],
@@ -72,6 +74,8 @@ const MenuEditor = ({
         new: isOptions,
         show: !!(id && model && metadata && !showExclude.includes(view)),
         edit: !!(id && model && metadata && !editExclude.includes(view)),
+        move: (model === 'modern_captures' || model === 'historic_captures')
+            && !!(id && model && metadata && !editExclude.includes(view)),
         remove: !!(id && model && metadata && !removeExclude.includes(view)),
         attach: view === 'attach',
         attachItem: view === 'attachItem',
@@ -82,6 +86,9 @@ const MenuEditor = ({
                 (isEditor && api.status.hasOwnProperty('sorted') && api.status.sorted)
             )
         ),
+        download: fileType === 'modern_images'
+                || fileType === 'historic_images'
+                || fileType === 'supplemental_images',
         dependents: !dependentsExclude.includes(view),
         dropdown: !!(isEditor || dependents.length > 0),
         import_hc: !!(dependents || [])
@@ -326,6 +333,19 @@ const MenuEditor = ({
                         </li>
                     }
                     {
+                        isVisible.download &&
+                        <li key={`${menuID}_menuitem_download`}>
+                            <Download
+                                filename={filename || 'download'}
+                                label={!compact ? 'Download' : ''}
+                                type={fileType}
+                                format={'img'}
+                                route={createNodeRoute(fileType, 'raw', id)}
+                                callback={console.log}
+                            />
+                        </li>
+                    }
+                    {
                         isVisible.edit &&
                         <li key={`${menuID}_menuitem_edit`}>
                             <Button
@@ -337,6 +357,27 @@ const MenuEditor = ({
                                         ? _handleClick(e, model, 'edit', id)
                                         : setDialogToggle('edit')}
                                 }
+                            />
+                        </li>
+                    }
+                    {
+                        isVisible.move && <li
+                            draggable={false}
+                            key={`${menuID}_menuitem_move`}
+                            onDragStart={(e) => {
+                                // attache node metadata to data transfer object
+                                e.dataTransfer.setData(
+                                    'application/json',
+                                    JSON.stringify({id: id, type: model, label: label})
+                                );
+                            }}
+                        >
+                            <Button
+                                disabled={true}
+                                className={'move'}
+                                label={!compact ? 'Move' : ''}
+                                icon={'move'}
+                                title={`Move ${label}.`}
                             />
                         </li>
                     }
@@ -473,15 +514,6 @@ const MenuEditor = ({
                                     </ul>
                                 </div>
                             }
-                        </li>
-                    }
-                    {
-                        isVisible.iat &&
-                        <li key={`${menuID}_menuitem_iat`}>
-                            <Badge
-                                icon={'iat'}
-                                label={getStaticLabel(router.route)}
-                            />
                         </li>
                     }
                     {

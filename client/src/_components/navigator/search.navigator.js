@@ -136,6 +136,11 @@ const SearchNavigator = ({filter=null, limit=10, offset=0}) => {
                     aria-label={'Search the site content.'}
                     placeholder={'Search..'}
                     onChange={updateQuery}
+                    onKeyPress={(e) => {
+                        if (e.key === 'Enter' || e.keyCode === 13) {
+                            onSubmit();
+                        }
+                    }}
                 />
                 <Button
                     icon={'search'}

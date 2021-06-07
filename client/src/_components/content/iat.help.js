@@ -6,8 +6,8 @@
  */
 
 import React from 'react';
-import Image from '../common/image';
 import Icon from '../common/icon';
+import Button from '../common/button';
 
 /**
  * IAT "Getting Started" help page.
@@ -15,15 +15,27 @@ import Icon from '../common/icon';
  * @public
  */
 
-export const iatStartHelp = <>
-    <h4>Getting Started</h4>
-    <p>
-        The Image Analysis Toolkit (IAT) is an image editor and visualizer that allows you to work directly with
-        the images from the Mountain Legacy collection, or with other images uploaded from your computer.
-        Based on a similar application developed by Michael Whitney, this second generation IAT is very much in development,
-        and not all of the original IAT features have been integrated.
-    </p>
-        <ul className={'list'}>
+export default (setSection, setPage) => {
+
+    /**
+     * Navigate to help section.
+     */
+
+    const _gotoPage = (section, page) => {
+        setSection(section);
+        setPage(page);
+    };
+
+    const iatStartHelp = <>
+        <h4>Getting Started</h4>
+        <p>
+            The Image Analysis Toolkit (IAT) is a basic image editor and visualizer that allows you to work directly
+            with the images from the Mountain Legacy collection, or with other images loaded from your computer.
+            Based on a similar application developed by Michael Whitney, this second generation IAT is very much in
+            development, and not all of the original IAT features have been integrated.
+        </p>
+
+        <ol className={'list'}>
             <li><b>Basic Features:</b> Image resizing, cropping and translation. Files can also be saved.</li>
             <li><b>Comparative visualization:</b> Images can be viewed side-by-side and overlaid.</li>
             <li><b>Image Alignment:</b> Images can be aligned using user-selected control points.</li>
@@ -31,73 +43,520 @@ export const iatStartHelp = <>
                 in the MLP collection.
             </li>
             <li><b>Proposed Features:</b> Advanced markup, mask overlays, image classification and segmentation.</li>
-        </ul>
-    <h5>Panel Display</h5>
-    <p>
-        The IAT consists of two image panels, each of which can display a single image on its view canvas.
-        To load an image into a panel:
-    </p>
-        <ul>
-            <li>
-                <b>Local Filesystem:</b>
-                <ol className={'list'}>
-                    <li>Click the Load <Icon type={'load'} /> button in the panel controls to open the file selector.</li>
-                    <li>Click  <Icon type={'load'} /> control to open the file selector.</li>
+        </ol>
+
+        <h5>Image Panels</h5>
+        <p>The IAT has two image panels (Panel 1 on the left, Panel 2 on the right) each with independent controls.
+            Images are loaded on to a <b>canvas</b> or artboard where different views and transformations to the image
+            data are rendered. The canvas has two main virtual layers: (1) Rendered Layer, which displays the visible portion
+            of the image within the bounds of the canvas; (2) Overlay Layer, where markup is drawn on top of the image
+            (e.g. control points, crop boxes). The original image data is stored in state in case a reset is required.
+        </p>
+        <p>Each panel has a control subpanel or menu at the top to provide options for viewing or saving the image data
+            (see <b>Panel Controls</b> for details). Below each panel is a table showing status data for the panel
+            (see <b>Panel Info</b> for details).</p>
+
+        <h5>Loading Images</h5>
+        <p>
+            The IAT has two image panels, each of which can display a single image on its view canvas.
+            There are multiple ways to load an image into a panel:
+        </p>
+
+        <table className={'help'}>
+            <tbody>
+            <tr>
+                <th><Icon type={'load'} /></th>
+                <th>Local Filesystem</th>
+                <td>
+                    <ol className={'list'}>
+                        <li>Click the <Icon type={'load'} /> open file button in the panel controls, or
+                            from the panel itself to open the file selector.
+                        </li>
+                        <li>Select "Import File" or drag and drop a file into the import box and click
+                            "Load Image".
+                        </li>
+                    </ol>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'iat'} /></th>
+                <th>From Explorer</th>
+                <td>
+                    <ol className={'list'}>
+                        <li>Navigate to a capture or supplementary image.</li>
+                        <li>Click the <b>Open in IAT</b> menu item in the viewer menu. This
+                            will open the image in the left panel for historic and supplementary images; right panel
+                            for modern images.
+                        </li>
+                    </ol>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'align'} /></th>
+                <th>Registration</th>
+                <td>
+                    <ol className={'list'}>
+                        <li>For authenticated users, navigate to the capture image to be mastered.
+                            This can be either the historic or modern repeat image.
+                        </li>
+                        <li>Click the <b>Master</b> menu item in the editor menu. Or, when viewed from
+                            the capture info page under the <b>Images</b> tab, click the <Icon type={'master'} /> icon.
+                            This will open the image in the left panel for historic images; right panel
+                            for modern images.
+                        </li>
+                    </ol>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h5>IAT Menu</h5>
+        <p>The main IAT menu offers operations that apply to both images.</p>
+
+        <table className={'help'}>
+            <tbody>
+            <tr>
+                <th><Icon type={'select'} /></th>
+                <th>Select</th>
+                <td>
+                    <p>This is the default mode for IAT. In this mode you can move the image on the canvas by clicking
+                        and dragging it. Click on the image (and release), then hold the shift key when the cursor is
+                        over
+                        the image
+                        to magnify the region.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'crop'} /></th>
+                <th>Crop</th>
+                <td>
+                    <p>Crop mode allows you to crop an image by dragging a cropbox across the image and hitting return.
+                        The size of the crop box is shown in the crop adjustment options below the panel, where you can
+                        change the dimensions of the crop. Clicking the crop icon below the panel also crops the
+                        image.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'crosshairs'} /></th>
+                <th>Mark</th>
+                <td>
+                    <p>Mark mode allows you to set control points on the image that can be used for image alignment.
+                        Clicking on the image draws a control point marker on the image. You can move the markers by
+                        clicking
+                        and dragging them to a new location. Press the shift key to magnify the cursor region.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'compress'} /></th>
+                <th>Match</th>
+                <td>
+                    <p>The match operation resizes the larger image to the same width as the smaller image. Both panels
+                        must be loaded to use this operation.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'overlay'} /></th>
+                <th>Compare</th>
+                <td>
+                    <p>Compare loads the images into an overlay viewer to compare.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'align'} /></th>
+                <th>Align</th>
+                <td>
+                    <p>The align operation uses user-selected control points to apply a perspective transformation
+                        on the image in the right panel to align with the image in the left panel. Four control points
+                        must be selected for each image and the images must have the same dimensions to align the
+                        images.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'master'} /></th>
+                <th>Master</th>
+                <td>
+                    <p>Image mastering can be used by authenticated users to upload registered images to the MLP library
+                        as
+                        mastered. A confirmation prompt is opened to compare the aligned images before submitting.</p>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h5>Panel Controls</h5>
+        <p>Panel controls are operations that apply to the image data in the current panel.</p>
+
+        <table className={'help'}>
+            <tbody>
+            <tr>
+                <th><Icon type={'load'} /></th>
+                <th>Load</th>
+                <td>
+                    <p>Opens the image loader dialog to either open an image file from the local filesystem, or (for
+                        mastering) load from the MLP library.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'upload'} /></th>
+                <th>Upload</th>
+                <td>
+                    <p>(Authenticated Users) Uploads the current loaded image to the MLP library as a new image for the given
+                        owner. Note that the image must be an historic or modern capture image.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'save'} /></th>
+                <th>Save</th>
+                <td>
+                    <p>Saves the current loaded image as a file to the local filesystem. Available formats: JPEG, PNG,
+                        TIFF.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'undo'} /></th>
+                <th>Reset</th>
+                <td>
+                    <p>Resets the loaded image to the original source image data. This will undo any image
+                        transformations.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'resize'} /></th>
+                <th>Resize</th>
+                <td>
+                    <p>Opens dialog to resize the rendered image or the canvas dimensions.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'compress'} /></th>
+                <th>Fit</th>
+                <td>
+                    <p>Resizes the current loaded image to fit in the canvas.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'enlarge'} /></th>
+                <th>Expand</th>
+                <td>
+                    <p>Resizes the current loaded image to the original image dimensions.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'zoomIn'} /></th>
+                <th>Zoom In</th>
+                <td>
+                    <p>Enlarge the image view.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'zoomOut'} /></th>
+                <th>Zoom Out</th>
+                <td>
+                    <p>Shrink the image view.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'erase'} /></th>
+                <th>Erase</th>
+                <td>
+                    <p>Erases any markup or overlay. For example, erasing wll delete control points and crop boxes.</p>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h5>Panel Info</h5>
+        <p>The panel info display provides basic status information such as cursor position and current image
+            dimensions.</p>
+
+        <table className={'help'}>
+            <tbody>
+            <tr>
+                <th>File</th>
+                <td>
+                    <p>The currently loaded file. For images in the MLP library, you can view information about the
+                        capture owner by clicking on the <Icon type={'show'} /> button.</p>
+                </td>
+            </tr>
+            <tr>
+                <th>Type</th>
+                <td>
+                    <p>The file type (MIME) of the loaded image.</p>
+                </td>
+            </tr>
+            <tr>
+                <th>Size</th>
+                <td>
+                    <p>The file size of the loaded image.</p>
+                </td>
+            </tr>
+            <tr>
+                <th>Cursor</th>
+                <td>
+                    <p>The mouse position (x,y) on the view canvas.</p>
+                </td>
+            </tr>
+            <tr>
+                <th>Actual</th>
+                <td>
+                    <p>The actual mouse pixel position (X,Y) on the image.</p>
+                </td>
+            </tr>
+            <tr>
+                <th>Scale</th>
+                <td>
+                    <p>The current scale of the rendered image in the canvas. A 1:1 scale indicates the image
+                        is shown at full size.</p>
+                </td>
+            </tr>
+            <tr>
+                <th>Offset</th>
+                <td>
+                    <p>Position offset (x,y) of the image from the top left corner of the view canvas.</p>
+                </td>
+            </tr>
+            <tr>
+                <th>Rendered</th>
+                <td>
+                    <p>Dimensions [width, height] of the scaled image in the view canvas.</p>
+                </td>
+            </tr>
+            <tr>
+                <th>Image</th>
+                <td>
+                    <p>Dimensions [width, height] of the full-sized image.</p>
+                </td>
+            </tr>
+            <tr>
+                <th>Canvas</th>
+                <td>
+                    <p>Dimensions [width, height] of the view canvas.</p>
+                </td>
+            </tr>
+            <tr>
+                <th>Original</th>
+                <td>
+                    <p>Dimensions [width, height] of the original source image.</p>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </>;
+
+    /**
+     * IAT "Basic Features" help page.
+     *
+     * @public
+     */
+
+    const iatBasicHelp = <>
+
+        <h4>Basic Features</h4>
+
+        <h5>Zoom</h5>
+        <p>TBA</p>
+
+        <h5>Translation</h5>
+        <p>Loaded images can be moved on the canvas when in <b>Select</b> mode. Simply click and drag the image to
+            change location. This translation <b>offset</b> is shown in the panel properties below the canvas.</p>
+
+        <h5>Image/Canvas Resizing</h5>
+        <p>To resize an image:</p>
+        <ol className={'list'}>
+            <li>Select the <Icon type={'resize'} /> <b>resize</b> control from the panel controls.
+                This opens a dialog popup where you can resize the source image or the canvas dimensions.
+            </li>
+            <li>Update the width and/or height values of the image and/or canvas and click <b>Update</b>.
+                The image can also be scaled by a constant.
+            </li>
+        </ol>
+
+        <h5>Image Cropping</h5>
+        <p>To crop an image:</p>
+        <ol className={'list'}>
+            <li>Select the <b>Crop</b> mode from the main IAT menu. This displays the crop tool below panels with
+                loaded images.
+            </li>
+            <li>Click and drag on the image to draw the crop box. The (X, Y) offset and (W, H) dimensions of the
+                selected area are shown in the crop tool. Note that these values are scaled by the rendered image scale.
+            </li>
+            <li>You can adjust the offset and dimensions of the crop box using the crop tool, or by redrawing the crop
+                box.
+                The crop box can be cleared using the <b>erase</b> control button, or by resetting, resizing or changing
+                the
+                view scale of the image.
+            </li>
+            <li>To apply the crop, Enter 'Return' or click the <Icon type={'crop'} /> <b>Crop</b> button in the crop
+                tool.
+            </li>
+            <li>The image will be cropped, offset to the origin (0, 0) and scaled to full size.</li>
+        </ol>
+
+    </>;
+
+    /**
+     * IAT "Image Alignment" help page.
+     *
+     * @public
+     */
+
+    const alignmentIATHelp = <>
+        <h4>Image Alignment</h4>
+        <p>
+            Image Alignment is the process of finding a spatial mapping between two images based on a meaningful
+            correspondence between elements within each image.
+        </p>
+        <p>
+            In IAT, the alignment transformation is applied to the <b>target</b> image, which is loaded
+            in the right panel; whereas the <b>source</b> image is loaded into the left panel, and is not altered
+            during alignment. When aligning images for registration (mastering), it is important to load each image from the
+            historic and repeat pair into the correct panel. By convention, we transform the modern repeat image of the
+            pair, so we load it into Panel 2, while the historic image is loaded into Panel 1.
+        </p>
+        <p>
+            IAT's alignment tool for image pairs utilizes user-selected control points to map coordinates
+            in one image to another. These control points are used to compute a transformation matrix that
+            warps the target image to spatially correspond to the other. To align images loaded in the canvas, you must select four control points
+            in each image for a total of eight
+            points. Control points are coordinate pairs that map from one image to another and are used to warp the
+            image to match
+            the perspective.
+        </p>
+
+        <h5>Selecting Control Points</h5>
+        <ol className={'list'}>
+            <li>Load the source and target images into the panels by following the methods described in the
+                <Button icon={'help'} label={'IAT: Getting Started'} onClick={() => {_gotoPage(2, 0)}} /> section:
+                <ol>
+                    <li>Opening the file from the local filesystem</li>
+                    <li>Loading the file selected from the Explorer.</li>
+                    <li>(Administrators) Loading the file from the Explorer API for registration.</li>
                 </ol>
             </li>
-        </ul>
+            <li>Select the <Icon type={'crosshairs'} /> <b>Mark</b> mode in the IAT menu.</li>
+            <li>Click on the image to select four points applied to each images. Your control point selections are shown
+                on the image using orange markers numbered in the order they were created. Any stored points are
+                displayed
+                below the panel. Note that pressing the shift-key magnifies the mouseover region.
+            </li>
+            <li>You can delete the last control point by clicking the <Icon type={'delete'} /> Delete button.</li>
+            <li>Click "Overlay" to view both sets of control points. Overlay also refreshes control points.</li>
+        </ol>
+
+        <h5>Align, Adjust, Repeat</h5>
+        <ol className={'list'}>
+            <li>Once the control points have been selected, <b>Click "Align" in the IAT menu.</b> The
+                image in the right panel will be transformed.
+            </li>
+            <li>You can make adjustments to the alignment by moving the positions of the control points and
+                realigning. Click <Icon type={'undo'} /> in the panel control reset the image to the source data.
+            </li>
+            <li>You can delete the last control point by clicking the <Icon type={'delete'} /> Delete button in the
+                control points display below the canvas.</li>
+            <li>Click "Overlay" to overlay both sets of control points. Overlay also refreshes the panel's control
+                points.
+            </li>
+        </ol>
+
+    </>;
+
+    /**
+     * IAT "Image Registration" help page.
+     *
+     * @public
+     */
+
+    const iatRegistrationHelp = <>
+
+        <h4>Image Registration</h4>
+        <p>
+            Image Registration is the process of aligning two images of the same scene.
+            The Explorer editor allows administrators to to upload aligned images to the MLP data store.
+            The registration process creates new historic and modern capture image files with metadata records
+            that are indexed as comparisons and assigned the 'master' image state.
+        </p>
+        <h5>Preconditions</h5>
+        <p>
+            An image pair can be registered as 'mastered' in the MLP system if it meets the following preconditions:
+            <ol className={'list'}>
+                <li><b>Capture images are both sorted</b> The loaded historic (Panel 1) and modern (Panel 2) capture images,
+                    must be attached to a historic visit and location (modern visit) respectively, which are associated
+                    with a common station node.
+                </li>
+                <li><b>Capture images are aligned</b> It is assumed the modern capture image has been aligned in Panel 2
+                    with an historic image loaded. Follow the instructions in <Button icon={'help'} label={'Image Alignment'} onClick={() => {_gotoPage(2, 2)}} /> to
+                align the images.</li>
+            </ol>
+        </p>
+
+        <h5>Instructions</h5>
+        <p>
+            There are multiple workflows to complete an image registration of an existing historic or modern repeat image. In each
+            case, the
+            <ol>
+                <li>
+                    <b>Select a Modern Image by either:</b>
+                    <ol className={'list'}>
+                        <li>Navigate to the Modern Capture Image info page and select the 'Files' tab. From the files
+                            table, click the <Icon type={'master'} /> icon to open the image in the IAT.
+                        </li>
+                        <li>Click the Load <Icon type={'load'} /> button in the panel controls to open the file selector
+                            and select the image.
+                        </li>
+                    </ol>
+                </li>
+            </ol>
+        </p>
 
 
-
-    <p>
-    </p>
-</>;
+    </>;
 
 
-/**
- * IAT "Basic Features" help page.
- *
- * @public
- */
+    /**
+     * IAT "Basic Features" help page.
+     *
+     * @public
+     */
 
-export const iatBackgroundHelp = <>
-    <h5>About the IAT</h5>
-    <p>
-        <em>Excerpt: <a
-        href={'https://bioone.org/journals/mountain-research-and-development/volume-36/issue-4/MRD-JOURNAL-D-16-00038.1/Exploring-Landscape-Change-in-Mountain-Environments-With-the-Mountain-Legacy/10.1659/MRD-JOURNAL-D-16-00038.1.full'}>
-        Exploring Landscape Change in Mountain Environments With the Mountain Legacy Online Image Analysis Toolkit
-        (November, 2016)
-        </a>
-        </em>
-    </p>
+    const iatBackgroundHelp = <>
+        <h5>About the IAT</h5>
+        <p>
+            <em>Excerpt: <a
+                target={"_blank"} rel={'noreferrer'}
+                href={'https://bioone.org/journals/mountain-research-and-development/volume-36/issue-4/MRD-JOURNAL-D-16-00038.1/Exploring-Landscape-Change-in-Mountain-Environments-With-the-Mountain-Legacy/10.1659/MRD-JOURNAL-D-16-00038.1.full'}>
+                Exploring Landscape Change in Mountain Environments With the Mountain Legacy Online Image Analysis
+                Toolkit
+                (November, 2016)
+            </a>
+            </em>
+        </p>
         <p>In designing the IAT, MLP researchers worked with 4 central aims:</p>
-            <ul className={'list'}>
-                <li>
-                    Focus on oblique photographs—as Delaney (2008: 76) says, “From the earliest days of the photograph
-                    to the present, its value has been recognized by the scientific community to help them document
-                    and understand the natural world.” Much of the functionality in the IAT is based on observing
-                    practitioners from a broad range of disciplines, organizations, and communities working with
-                    photographs to better understand multifaceted mountain phenomena;
-                </li>
-                <li>
-                    Widely available access—allow anyone with an Internet connection and a modern web browser
-                    to see, manipulate, compare, and analyze their own mountain photographs from anywhere
-                    in the world and/or use images in the Mountain Legacy collection. Allow anyone to download
-                    the toolkit and use it without an Internet connection, thus making it usable in remote field
-                    locations.
-                </li>
-                <li>
-                    Comparative visualization—aligning and showing the images side by side as well as overlaid on
-                    one another. Allow for targeted, aligned window, polygon, and area views from one image onto the
-                    other
-                    in a manner similar to the Klett et al (2004) time-reveal window.
-                </li>
-                <li>
-                    Classification and interpretation—allow practitioners to apply their own expertise when exploring
-                    the images. Practitioners should be able to classify and quantify, change, annotate, mark up, and
-                    visualize images as required for their various lines of inquiry.
-                </li>
-            </ul>
+        <ol className={'list'}>
+            <li>
+                Focus on oblique photographs—as Delaney (2008: 76) says, “From the earliest days of the photograph
+                to the present, its value has been recognized by the scientific community to help them document
+                and understand the natural world.” Much of the functionality in the IAT is based on observing
+                practitioners from a broad range of disciplines, organizations, and communities working with
+                photographs to better understand multifaceted mountain phenomena;
+            </li>
+            <li>
+                Widely available access—allow anyone with an Internet connection and a modern web browser
+                to see, manipulate, compare, and analyze their own mountain photographs from anywhere
+                in the world and/or use images in the Mountain Legacy collection. Allow anyone to download
+                the toolkit and use it without an Internet connection, thus making it usable in remote field
+                locations.
+            </li>
+            <li>
+                Comparative visualization—aligning and showing the images side by side as well as overlaid on
+                one another. Allow for targeted, aligned window, polygon, and area views from one image onto the
+                other in a manner similar to the Klett et al (2004) time-reveal window.
+            </li>
+            <li>
+                Classification and interpretation—allow practitioners to apply their own expertise when exploring
+                the images. Practitioners should be able to classify and quantify, change, annotate, mark up, and
+                visualize images as required for their various lines of inquiry.
+            </li>
+        </ol>
 
         <p>
             Although some IAT components can be used on individual images, the toolkit is designed to display 2 or
@@ -106,371 +565,30 @@ export const iatBackgroundHelp = <>
             georeference oblique images (see for example Stockdale et al 2015), the focus of this IAT version is
             the photographs themselves—all quantitative descriptions and visualizations are relative to the images,
             not to a digital elevation model or map. IAT was developed with the MLP in mind, but its use is not
-            restricted to the Canadian mountain west. It is lightweight (approximately 45 KB), uses ubiquitous
-            technology, has minimal dependency on other software, and is a single file that can readily be downloaded
-            and used with any imagery and by practitioners not affiliated with the MLP.
-
+            restricted to the Canadian mountain west.
         </p>
-    </>
-
-    /**
-    * IAT "Basic Features" help page.
-    *
-    * @public
-    */
-
-    export const iatBasicHelp = <>
-
-    <h4>Basic Features</h4>
-    <p>
-        Start using the following basic features for image visualizations and pixel manipulations.
-    </p>
-
-    <h5>Image Translation</h5>
-    <p>
-        Loaded images can be moved when in the <Icon type={'select'} label={'Select'} /> mode.
-    </p>
-
-    <h5>Resizing Images</h5>
-    <p>
-        TBA
-    </p>
-
-    <h5>Cropping Images</h5>
-    <p>
-        TBA
-    </p>
-
-</>;
-
-    /**
-    * IAT "Image Alignment" help page.
-    *
-    * @public
-    */
-
-    export const alignmentIATHelp = <>
-        <h4>Image Alignment</h4>
-        <p>
-            Image Alignment is the process of finding the spatial mapping, i.e.
-            mapping elements in one image into meaningful correspondence with elements in
-            a second image. IAT offers an alignment tool for image pairs that uses user-selected
-            control points to map coordinates in one image to another. These control points
-            are used to compute a transformation matrix that warps one of the images to spatially
-            correspond to the other.
-        </p>
-
-        <h5>Loading the Image Pair</h5>
-        <p>
-            To align images, first load the control and reference images loaded either from the (1) the local filesystem; or (2) by
-            selecting an image from the API. The alignment transformation is applied to the reference image
-            loaded in the right panel; the image in the left panel is the control image, and does not change.
-            By convention, we want to transform the modern repeat image, so we load it into panel 2, and load the
-            historic image in panel 1.
-        </p>
-
-    <h5>Selecting Control Points</h5>
-    <p>
-        To align images loaded in the canvas, you must select four control points in each image for a total of eight points.
-        Control points are coordinate pairs that map from one image to another and are used to warp the image to match the perspective.
-    </p>
-        <ol>
-            <li><b>Select the <Icon type={'crosshairs'} /> Mark mode in the IAT menu.</b></li>
-            <li><b>Select four points for each images.</b> Your control point selections are shown as orange crosshairs
-                on the image numbered in the order they were created. Any stored points are displayed below the panel.
-                Note that pressing the shift-key magnifies the mouseover region.
-            </li>
-            <li>You can delete the last control point by clicking the <Icon type={'delete'} /> Delete button.</li>
-            <li>Click "Overlay" to view both sets of control points. Overlay also refreshes control points.</li>
-        </ol>
-
-    <h5>Align, Adjust, Repeat</h5>
-    <p>
-        <ol>
-            <li>Once the control points have been selected, <b>Click "Align" in the IAT menu.</b> The
-            image in the right panel will be transformed.</li>
-            <li>You can make adjustments to the alignment by adjusting the locations of the control points and realigning.
-                Click <Icon type={'undo'} /> in the panel control to undo the transformation.
-            </li>
-            <li>You can delete the last control point by clicking the <Icon type={'delete'} /> Delete button.</li>
-            <li>Click "Overlay" to overlay both sets of control points. Overlay also refreshes the panel's control points.</li>
-        </ol>
-    </p>
-
-</>;
-
-    /**
-    * IAT "Image Registration" help page.
-    *
-    * @public
-    */
-
-    export const iatRegistrationHelp = <>
-
-    <h4>Image Registration</h4>
-    <p>
-        Image Registration is the process of aligning two images of the same scene.
-        The Editor offers registration of images as an option for administrators
-        to upload aligned images to the MLP data store -- specifically, to upload repeat images
-        that have been aligned with a specified historic survey photo of the same scene.
-        Image registration is offered as an optional processing step
-        available for aligned images, in which the modern image is uploaded as a 'mastered' version
-        and indexed to its historic counterpart. Note that the modern repeat image is customarily transformed
-        to align with the historic image.
-    </p>
-    <h5>Preconditions</h5>
-    <p>
-        An image pair can be registered as 'mastered' in the MLP system if it meets the following preconditions:
-        <ol>
-            <li><b>Sorted Capture Image</b> The image loaded in Panel 2 must be modern capture image and
-                it must be sorted (i.e. the image must be attached to a modern capture from a Modern Visit Location).</li>
-            <li><b>Aligned Image</b> It is assumed the image has been aligned with an historic image loaded.</li>
-        </ol>
-    </p>
-
-    <h5>Procedure</h5>
-    <p>
-        There are multiple workflows to complete an image registration of an existing modern repeat image.
-        The first workflow
-        <ol>
-            <li>
-                <b>Select a Modern Image by either:</b>
-                <ol className={'list'}>
-                    <li>Navigate to the Modern Capture Image info page and select the 'Files' tab. From the files
-                    table, click the <Icon type={'master'} /> icon to open the image in the IAT.</li>
-                    <li>Click the Load <Icon type={'load'} /> button in the panel controls to open the file selector
-                        and select the image.</li>
-                </ol>
-            </li>
-        </ol>
-    </p>
-
-
-    <Image
-        label={'Figure 2. The data object hierarchy. Example nodes are shown in the tree, while hierarchy levels are defined to the left.'}
-        url={''} />
-
-    <h5>Project</h5>
-    <p>
-        A project is a container for stations that do not fit into the surveyor model listed below. An example of a
-        project would be the Alberta Fire Lookout Towers. Each lookout tower contains a set of historic photographs from
-        that tower. At the request of SRD, we repeated these photographs. However, these historic photographs weren’t
-        taken under the context of a survey. Thus, a project is better suited for these types of stations.
-    </p>
-    <h5>Surveyor</h5>
-    <p>The principal surveyor of a historic survey.</p>
-
-    <h5>Survey</h5>
-    <p>A specific survey completed under a surveyor. A survey covers a large geographical region, and may span several
-        years. Surveys by different surveyors may overlap in the regions they covered.</p>
-
-    <h5>Survey Season</h5>
-    <p>A survey season is a container for all the stations completed in a certain year for a specific survey.</p>
-
-    <h5>Station</h5>
-    <p>The concept of a station has its roots in the historic surveys. A surveyor would identify a high point in the
-        landscape where photographs were required to be taken. Upon arrival to that location, several photographs would
-        be taken, usually in as many directions as possible. In many circumstances, the camera would have to be moved
-        around in order gain the best vantage point for a particular cardinal direction. Thus, there were many sub
-        locations within the general location of the station. Therefore, a station can be loosely defined as a broad
-        geographic location where the distance between sub locations is within a reasonable walking distance. This is
-        intentionally loosely defined, since the distinction between station and location (see below) seemed to have
-        differed between different surveyors (MLP always groups the images into stations defined by the surveyor, if
-        known)</p>
-
-    <h5>Historic Visit</h5>
-    <p>A historic visit refers to the first visit to a station by a particular surveyor. It can be thought of as a
-        container for historic captures. A station can have only one historic visit.</p>
-
-    <h5>Visit</h5>
-    <p>A visit refers to a visit to the station with the specific purpose of repeating the historic captures from the
-        historic visit. A visit is uniquely identified by the date at which it occurred. Multiple visits may occur for
-        each station. The visit object is a container for all information related to that specific visit, such as field
-        note data, captures, location images, and locations.</p>
-
-    <h5>Location</h5>
-    <p>Where a station is a somewhat broad geographical location, a location (as an object in MEAT) is a sub location of
-        the station. It is a specific place where a capture was taken. </p>
-
-    <h5>Other Files Stored in MEAT</h5>
-    <p>The first class citizens of MEAT are the captures/historic captures and their associated capture images (the
-        image files associated with the captures), but that’s not the only files that are stored. </p>
-
-    <h5>Location Images</h5>
-    <p>As part of a visit, location images are used to create a visual record of where the captures were taken. A
-        location image object is associated with an image file. It differs from a capture image in that it does not
-        contain an image state.</p>
-
-    <h5>Scenic Images</h5>
-    <p>A scenic image is an image that was taken during a repeat field season, but not necessarily associated with
-        repeat photography or the visit records. Currently, the inclusion of scenic images at the user interface level
-        is not supported (though it is at the database layer).</p>
-
-    <h5>Field Note Files</h5>
-    <p>Field notes from each visit have been written in a field note book or field note form, then digitized using a
-        scanner. While these field notes will be transcribed and stored in the database via the visit object, the
-        scanned copies are kept for historical reference. Field note files should be stored within a visit.</p>
-
-    <h5>Metadata </h5>
-    <h5>Managed Metadata Files</h5>
-    <p>Various types of metadata files can be associated with stations and visits. This encompasses any files that don't
-        neatly fit into the field note, location photo, or capture image categories.</p>
-    <h5>Unmanaged Metadata Folders</h5>
-    <p>In addition to historic photos and their repeats, the MLP has also accummulated significant portions of survey
-        related data such as maps, diaries, and view indices. This data was sorted in a Metadata folder associated with
-        a survey or survey season. The content of this folder varied (both in strucute and content) from survey to
-        survey. In order to deal with this variety gracefully, we use unmanaged metadata folders. An unmanaged metadata
-        folder is a folder named "Metadata" that resides under a survey, survey season, or project folder in the MLP
-        Library. It is 'unmanaged' because the content of the folder is not managed by the application (it is not
-        tracked by the database). To access this folder for a specific survey, survey season, or project, use MEAT to
-        navigate to the object and click the 'Browse Metadata Folder' in the data pane sub menu. This will launch
-        Finder, where you'll be able to navigate the folder, as well as add, edit, and delete content. REMEMBER: with
-        the exception of these Metadata folders, never modify content in the MLP Library file structure.</p>
-
-
-    <h5>Application Layout</h5>
-
-    <p>The main layout of the application is divided up into a navigation pane on the left hand side and a data pane on
-        the right hand side.</p>
-
-    <Image
-        url={''}
-        label={'Figure 3. An overview of the typical application layout that you\'ll see when using the MEAT application'}
-    />
-
-
-    <h5>Navigation Pane</h5>
-
-    <p>The Navigation Pane contains a navigation tree. Each folder level corresponds to a hierarchy level shown in
-        Figure 3. Captures and historic captures are also shown in the navigation tree. The name used to reference a
-        capture or historic capture in the navigation tree uses the field note photo reference field of the capture /
-        historic capture. When the field note photo reference field is empty, the name of one of its captures images is
-        used. </p>
-
-    <p>When you click on an element in the navigation tree, the data pane will be loaded with information related to
-        that specific object. </p>
-
-    <h5>Data Pane</h5>
-
-    <p>The Data Pane contains object data, which differs depending on the object being viewed. Common elements of the
-        data pane is the menu bar and the bread crumb trail.</p>
-
-    <h5>Features</h5>
-
-    <h5>Adding an Object</h5>
-
-    <p>Adding an object is done by first visiting the hierarchical parent of the object to be created, clicking the “Add
-        [Child Obj ect]” link in the menu bar, filling out the form presented in the data pane, and pressing the
-        "Submit" button. As an example, to create a survey season under the Wheeler Canadian Irrigation survey, you
-        would first navigate to the Canadian Irrigation survey in the navigation tree, click the “Add Survey Season”
-        link in the menu bar, fill out the year, and press “Submit”. If you did not fill out a required field or filled
-        a field incorrectly, then you will be returned to the form to fix the error. </p>
-
-    <p>Projects and surveyors do not have parent objects, and therefore created in a different workflow. [Currently not
-        implement] At the top of the navigation pane are two link “Add Project” and “Add Surveyor”. Click either of
-        these and proceed with the instructions previously described. </p>
-
-    <h5>Optional Workflow</h5>
-    <p>The visit and historic visit forms a created so that you can add multiple objects all in one form. Specifically,
-        when you create a visit, you can create multiple locations for that visit, and for each location, you can create
-        multiple captures. Correspondingly, when you create a historic visit you may also create multiple historic
-        captures. These separate levels of object creation are represented by nested boxed areas within the visit
-        form. </p>
-
-    <p>To add another location to the visit form, navigate to the bottom of the form and click the “Add Location” link.
-        To remove a location from the form, navigate to the top right hand corner of the nested box that holds the
-        location fields and click the “Remove Location” link. </p>
-
-    <p>Captures and historic captures, in their respective forms, can be added and removed in a similar manner.</p>
-
-    <h5>Adding File Related Objects (Capture Images, Metadata Files, Location Images and Field Note Files)</h5>
-
-    <p><strong>Capture Images</strong> can be added in the capture or historic capture forms by clicking the “Choose
-        File” button, selecting a single file, choosing an image state, and optionally making the image available
-        remotely. </p>
-    <p><strong>Field Note Files</strong> can be added in the visit form by clicking the “Choose Files” button near the
-        “Field Note Files” label and selecting one or more files.</p>
-    <p><strong>Metadata Files</strong> can be added in the project, survey, survey season, station, and visits forms by
-        clicking the “Choose Files” button near the “Metadata Files” label and selecting one or more files.</p>
-    <p><strong>Location Images</strong> can be added in the location form by clicking the "Choose Files” button near the
-        “Location Photos” label, selecting one or more file and optionally checking the “Make Remote” checkbox.</p>
-
-    <h5>Editing Objects</h5>
-
-    <p>An object can be edited by first navigating to the object so that it is shown in the data pane, clicking the
-        “Edit” link in the menu, editing the desired fields in the form presented, and pressing the “Submit” button at
-        the bottom of the form.</p>
-
-    <h5>Deleting Objects</h5>
-
-    <p>An object can be deleted by first navigating to the object so that it is shown in the data pane, clicking the
-        “Delete” link, and accepting the prompt asking whether you would like to delete the object. Note that when you
-        delete an object, you will delete any objects and files underneath it in the hierarchy, so be careful!!!</p>
-
-    <h5>Administration Features</h5>
-
-    <p>The administration features have been created to allow the user to manage the data in a reasonably flexible
-        manner. By flexibility, I mean allowing data to be stored in less than ideal locations. To understand this,
-        let’s start with what’s an ideal location for a specific data object.</p>
-
-    <p>Ideally, the data objects discussed previously would be structured as follows. Given that a station has been
-        repeated, it would contain an historic visit and one more more visits. The historic visit would contain one or
-        more historic captures and each of those historic captures would contain 4 capture images: one for each of the
-        raw, interim, master, and possibly gridded image states. The visits would each contain field notes information,
-        one or more locations, and each location would contain location images and captures, and each capture would
-        contain 3 capture images: one for each of the raw, interim, and master states.</p>
-
-    <p>Of course, the ideal is not real. The MEAT application is inheriting a very large file system data tree that was,
-        at best, semi structured. Furthermore, the type of record keeping (field notes) has varied over the years, so
-        consistency is also a problem. Finally, we are still transcribing field notes, which contain data that simply
-        could not be extracted from the the file system structure (i.e. you can’t sort captures in to locations without
-        having the field notes transcribed). Therefore, the ideal circumstances aren’t always available. </p>
-
-    <p>The administration features give the user the ability to sort data that may not have been imported at the ideal
-        level of granularity (i.e. at the station level rather than the location level).</p>
-
-    <h5>Unsorted Data</h5>
-
-    <p>Captures stored at the project, survey, survey season, and station levels are shown in an “Unsorted Captures”
-        folder underneath their respective parent object in the navigation tree. An unsorted capture may also appear
-        directly underneath its visit. Historic captures at the project, survey, and survey season levels are shown in
-        an “Unsorted Historic Captures” folder underneath their respective parent object in the navigation tree.</p>
-
-    <h5>Moving Captures and Historic Captures</h5>
-
-    <p>Moving captures and historic captures is simple. In the navigation tree, locate the capture or historic capture
-        you would like to move and drag it to a destination object in the navigation tree. Captures may not be stored in
-        historic visits, while historic captures may not be stored in visits or locations. While captures and historic
-        captures are viewable in the data pane, they cannot be moved <em>from</em> the data pane (as opposed to location
-        images and field notes). Multiple captures / historic captures may be moved at once if the select key is pressed
-        while selecting the nodes in the navigation tree.</p>
-
-    <h5>Moving Capture Images, Location Images and Metadata Files</h5>
-
-    <p>Capture images, location photos and metadata files are viewed through parent object pages. When listed in these
-        pages, an icon with 4 directional arrows appears to the left of each listed file, indicating that these objects
-        are moveable. The user can move a file by dragging the drag icon to a new parent in the navigation tree. Capture
-        images are restricted to captures and historic captures. Location photos are restricted to locations, visits,
-        and stations. Metadata files can be moved to any level of the of the navigation tree with the exception of
-        locations, captures, and historic captures. </p>
-
-    <h5>Merging Captures and Historic Captures</h5>
-
-    <p>This feature is especially useful in dealing with capture images that weren’t grouped together in the same
-        capture or historic capture upon import. In the case of the captures, you may see more than one capture based
-        off the same photo; e.g. one containing a capture image in the raw image state while another containing capture
-        images in the master and interim states. These two captures should be one. To merge the two captures, select one
-        capture so that it is shown in the data pane. Next, drag the other capture that you would like to merge from the
-        navigation tree to the data pane. You will be prompted to confirm the merge action. Once confirmed, the two
-        captures should be merged. </p>
-
-    <p>It should be noted that two captures cannot be merged if they contain conflicting data fields. This is usually
-        the case when they contain different photos, or both have the field note photo reference fields populated. In
-        these cases, you do not want to merge the captures, as they are most likely different.</p>
-
-    <p>If you find that you can’t merge two captures that should be merged, simply move the capture images from one
-        capture to another and update another other related fields. After this process, you should be able to delete one
-        of the captures, as it should no longer contain capture images. </p>
-
-
-</>;;
+    </>;
+
+    return [
+        {
+            label: 'Getting Started',
+            data: iatStartHelp,
+        },
+        {
+            label: 'Basic Features',
+            data: iatBasicHelp,
+        },
+        {
+            label: 'Image Alignment',
+            data: alignmentIATHelp,
+        },
+        {
+            label: 'Image Registration',
+            data: iatRegistrationHelp,
+        },
+        {
+            label: 'About the IAT',
+            data: iatBackgroundHelp,
+        },
+    ];
+}

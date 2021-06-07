@@ -14,6 +14,9 @@ import Heading from '../common/heading';
 import MenuViewer from './menu.viewer';
 import { getNavView } from '../../_services/session.services.client';
 import HelpView from '../views/help.view';
+import { getDependentTypes } from '../../_services/schema.services.client';
+import MenuEditor from '../editor/menu.editor';
+import { useData } from '../../_providers/data.provider.client';
 
 /**
  * Render viewer panel component (unauthenticated).
@@ -23,12 +26,20 @@ import HelpView from '../views/help.view';
 
 const Viewer = () => {
 
-    // get router context provider
+    // get router context providers
     const router = useRouter();
+    const api = useData();
+    const { file={} } = api.data || {};
+    const { id='', filename='', file_type={} } = file || {};
 
     return (
         <div className={'viewer'}>
-            <MenuViewer />
+            <MenuViewer
+                id={id}
+                filename={filename}
+                fileType={file_type}
+                compact={false}
+            />
             <div className={`view`}>
                 <Heading />
                 <Message />

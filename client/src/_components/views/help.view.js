@@ -7,10 +7,75 @@
 
 import React from 'react';
 import Dialog from '../common/dialog';
-import Tabs from '../common/tabs';
-import { conceptsExplorerHelp, navigatorExplorerHelp, explorerHelp } from '../content/explorer.help';
-import { editorBasicHelp, editorImagesHelp, editorMetadataHelp, editorStartHelp } from '../content/editor.help';
-import { alignmentIATHelp, iatBasicHelp, iatRegistrationHelp, iatStartHelp } from '../content/iat.help';
+import explorerHelpContent from '../content/explorer.help';
+import iatHelpContent from '../content/iat.help';
+import editorHelpContent from '../content/editor.help';
+import Button from '../common/button';
+
+/**
+ * Tab layout for help pages.
+ * - Creates tab to toggle data panels (<Tab>).
+ * - Input Data Format:
+ *   {[ID]: { label: <LABEL>, data: <CONTENT>}, ... }
+ *
+ * @public
+ * @return {JSX.Element}
+ */
+
+const HelpTabs = ({
+                      items = [],
+                      selectedTab = 0,
+                      setSelectedTab = ()=>{},
+                      className = '',
+                      orientation = 'vertical',
+                  }) => {
+
+    // highlight selected tab (via classname)
+    const onToggle = (id) => {
+        return orientation === 'vertical'
+            ? id === selectedTab ? 'hclose' : 'hopen'
+            : id === selectedTab ? 'hopen' : 'hclose';
+    };
+
+    // select view orientation
+    const tabOrientation = orientation === 'vertical' ? 'h-menu' : 'v-menu';
+    const menuOrientation = orientation === 'vertical' ? 'v-menu' : 'h-menu';
+
+    return (
+        <div className={`tab ${tabOrientation} ${className}`}>
+            <ul>
+                <li className={`tab-menu ${menuOrientation}`}>
+                    <ul>
+                        {
+                            items.map((item, id) => {
+                                const { label = '' } = item || {};
+                                return <li key={`tab_${id}`}>
+                                    <Button
+                                        disabled={!item.data}
+                                        className={selectedTab === id ? 'active' : ''}
+                                        icon={onToggle(id)}
+                                        title={`View ${label}.`}
+                                        label={label}
+                                        onClick={() => {
+                                            setSelectedTab(id);
+                                        }}
+                                    />
+                                </li>;
+                            })
+                        }
+                    </ul>
+                </li>
+                <li className={`tab-data ${orientation}`}>
+                    {
+                        items.hasOwnProperty(selectedTab)
+                            ? items[selectedTab].data || ''
+                            : ''
+                    }
+                </li>
+            </ul>
+        </div>
+    );
+};
 
 /**
  * Help info dialog component.
@@ -18,103 +83,60 @@ import { alignmentIATHelp, iatBasicHelp, iatRegistrationHelp, iatStartHelp } fro
  * @public
  */
 
-const HelpView = ({setToggle, section=0, page=0}) => {
+const HelpView = ({ setToggle, section = 0, page = 0 }) => {
 
-    // index of general help content
-    const _pagesExplorer = [
-        {
-            label: 'Getting Started',
-            data: explorerHelp
-        },
-        {
-            label: 'Concepts',
-            data: conceptsExplorerHelp
-        },
-        {
-            label: 'Navigator',
-            data: navigatorExplorerHelp
-        },
-    ];
+    const [sectionSelected, setSectionSelected] = React.useState(section);
+    const [explorerPageSelected, setExplorerPageSelected] = React.useState(page);
+    const [editorPageSelected, setEditorPageSelected] = React.useState(page);
+    const [iatPageSelected, setIATPageSelected] = React.useState(page);
 
-    // index of editor help content
-    const _pagesEditor = [
-        {
-            label: 'Getting Started',
-            data: editorStartHelp
-        },
-        {
-            label: 'Basic Features',
-            data: editorBasicHelp
-        },
-        {
-            label: 'Handling Images',
-            data: editorImagesHelp
-        },
-        {
-            label: 'Metadata Files',
-            data: editorMetadataHelp
-        },
-    ];
-
-    // index of IAT help content
-    const _pagesIAT = [
-        {
-            label: 'Getting Started',
-            data: iatStartHelp
-        },
-        {
-            label: 'Basic Features',
-            data: iatBasicHelp
-        },
-        {
-            label: 'Image Alignment',
-            data: alignmentIATHelp
-        },
-        {
-            label: 'Image Registration',
-            data: iatRegistrationHelp
-        },
-    ];
+    const exploreHelp = explorerHelpContent(setSectionSelected, setExplorerPageSelected);
+    const editorHelp = editorHelpContent(setSectionSelected, setEditorPageSelected);
+    const iatHelp = iatHelpContent(setSectionSelected, setIATPageSelected);
 
     // index of help sections
     const _sections = [
         {
             label: 'MLE Explorer',
-            data: <Tabs
+            data: <HelpTabs
                 orientation={'vertical'}
-                items={_pagesExplorer}
-                defaultTab={page}
+                items={exploreHelp}
+                selectedTab={explorerPageSelected}
+                setSelectedTab={setExplorerPageSelected}
                 className={'help'}
-            />
+            />,
         },
         {
             label: 'MLE Editor',
-            data: <Tabs
+            data: <HelpTabs
                 orientation={'vertical'}
-                items={_pagesEditor}
-                defaultTab={page}
+                items={editorHelp}
+                selectedTab={editorPageSelected}
+                setSelectedTab={setEditorPageSelected}
                 className={'help'}
-            />
+            />,
         },
         {
             label: 'Image Analysis Toolkit (IAT)',
-            data: <Tabs
+            data: <HelpTabs
                 orientation={'vertical'}
-                items={_pagesIAT}
-                defaultTab={page}
+                items={iatHelp}
+                selectedTab={iatPageSelected}
+                setSelectedTab={setIATPageSelected}
                 className={'help'}
-            />
-        }
+            />,
+        },
     ];
 
     return <Dialog setToggle={setToggle} title={'Mountain Legacy Explorer User Guide'}>
-            <Tabs
-                orientation={'horizontal'}
-                items={_sections}
-                defaultTab={section}
-                className={'help'}
-            />
-        </Dialog>
-}
+        <HelpTabs
+            orientation={'horizontal'}
+            items={_sections}
+            selectedTab={sectionSelected}
+            setSelectedTab={setSectionSelected}
+            className={'help'}
+        />
+    </Dialog>;
+};
 
 export default HelpView;

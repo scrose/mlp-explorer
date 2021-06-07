@@ -7,11 +7,11 @@
 
 import React from 'react';
 import Button from '../common/button';
-import { moveBy } from './transform.iat';
-import { erase, expand, fit, reset, undo } from './canvas.iat';
+import { erase, expand, fit, reset, undo, zoomIn, zoomOut } from './canvas.iat';
 import { loadImageData } from './loader.iat';
 import { useUser } from '../../_providers/user.provider.client';
 import { crop } from './cropper.iat';
+import { moveBy } from './panner.iat';
 
 /**
  * No operation.
@@ -65,6 +65,7 @@ const PanelControls = ({
                     disabled={disabled || !user || !properties.files_id}
                     title={'Upload to MLP Library.'}
                     onClick={() => {
+                        setSignal('blob');
                         setDialogToggle({
                             type: 'uploadImage',
                             id: properties.id,
@@ -89,7 +90,7 @@ const PanelControls = ({
                 /></li>
                 <li><Button
                     disabled={disabled}
-                    icon={'sync'}
+                    icon={'undo'}
                     title={'Reset to original image.'}
                     onClick={() => {
                         reset(properties, callback).catch(callback);
@@ -126,48 +127,37 @@ const PanelControls = ({
                 /></li>
                 <li><Button
                     disabled={disabled}
+                    icon={'zoomIn'}
+                    title={'Zoom in.'}
+                    onClick={() => {
+                        zoomIn(properties, callback).catch(callback);
+                    }}
+                /></li>
+                <li><Button
+                    disabled={disabled}
+                    icon={'zoomOut'}
+                    title={'Zoom out.'}
+                    onClick={() => {
+                        zoomOut(properties, callback).catch(callback);
+                    }}
+                /></li>
+                <li><Button
+                    disabled={disabled}
                     icon={'erase'}
                     title={'Erase Mask Overlay.'}
                     onClick={() => {
                         erase(properties, callback).catch(callback);
                     }}
                 /></li>
-                <li><Button
-                    disabled={disabled}
-                    icon={'undo'}
-                    title={'Undo transformation.'}
-                    onClick={() => {
-                        undo(properties, callback).catch(callback);
-                    }}
-                /></li>
+                {/*<li><Button*/}
+                {/*    disabled={disabled}*/}
+                {/*    icon={'undo'}*/}
+                {/*    title={'Undo transformation.'}*/}
+                {/*    onClick={() => {*/}
+                {/*        undo(properties, callback).catch(callback);*/}
+                {/*    }}*/}
+                {/*/></li>*/}
             </ul>
-            {/*    <Button label={'w'} />*/}
-            {/*    <Button label={'H'} />*/}
-            {/*    <Button label={'h'} />*/}
-            {/*    <Button label={'L'} />*/}
-            {/*    <Button label={'R'} />*/}
-            {/*    <Button label={'U'} />*/}
-            {/*    <Button label={'D'} />*/}
-            {/*    <Button label={'C'} />*/}
-            {/*    <Button label={'A'} />*/}
-            {/*    <Button label={'F'} />*/}
-            {/*</div>*/}
-            {/*<div>*/}
-            {/*    <option label={'Above'} />*/}
-            {/*    <select onChange={callback}>*/}
-            {/*        <option label={'Above'} />*/}
-            {/*        <option label={'Beside'} />*/}
-            {/*        <option label={'Auto'} />*/}
-            {/*        <option label={'Max'} />*/}
-            {/*    </select>*/}
-            {/*    <select onChange={callback}>*/}
-            {/*        <option label={'Show Normal'} />*/}
-            {/*        <option label={'Show All'} />*/}
-            {/*        <option label={'Images Only'} />*/}
-            {/*        <option label={'Objects Only'} />*/}
-            {/*        <option label={'All Objects'} />*/}
-            {/*        <option label={'Inverted'} />*/}
-            {/*    </select>*/}
         </div>
     </>;
 };

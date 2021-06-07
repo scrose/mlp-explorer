@@ -66,9 +66,22 @@ export function createRoute(path='/', params) {
  * @param params
  */
 
-export function createURL(route, params={}) {
+export function createAPIURL(route, params={}) {
     const query = serialize((params || {}));
     const base = process.env.REACT_APP_API_HOST;
+    return `${base}${route}${params && Object.keys(params).length > 0 ? '?' + query : ''}`
+}
+
+/**
+ * Build full API path for requests.
+ *
+ * @param route
+ * @param params
+ */
+
+export function createClientURL(route, params={}) {
+    const query = serialize((params || {}));
+    const base = process.env.REACT_APP_CLIENT_HOST;
     return `${base}${route}${params && Object.keys(params).length > 0 ? '?' + query : ''}`
 }
 
@@ -140,6 +153,18 @@ export function redirect(uri=null) {
 
 export function reroute(uri=null) {
     window.history.pushState(null, null, uri);
+}
+
+/**
+ * Extract file extension from file path.
+ *
+ * @param {String} filename
+ * @public
+ */
+
+export function getExtension(filename=null) {
+    return filename.substring(filename.lastIndexOf('.')+1, filename.length) || filename;
+
 }
 
 

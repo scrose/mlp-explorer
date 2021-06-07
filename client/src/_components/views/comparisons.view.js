@@ -32,8 +32,6 @@ const ComparisonsView = ({
     const [comparison, setComparison] = React.useState([]);
     const [historicImage=null, modernImage=null] = comparison || [];
 
-    console.log(data)
-
     return <>
         {
             historicImage && modernImage && dialogToggle === 'overlay' &&

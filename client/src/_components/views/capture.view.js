@@ -92,6 +92,7 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
         if (user) {
             row.menu =  <MenuEditor
                             fileType={type}
+                            filename={filename}
                             model={type}
                             id={id}
                             owner={owner}

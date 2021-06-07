@@ -71,7 +71,7 @@ const File = ({ data, callback=null, scale='thumb', owner={} }) => {
             filename={filename}
             label={label}
             type={file_type}
-            format={'pdf'}
+            format={'any'}
             route={createNodeRoute(file_type, 'download', id)}
             size={file_size}
             callback={callback}

@@ -27,55 +27,45 @@ const Cropper = ({ properties, pointer, callback }) => {
     const _imgW = properties.image_dims.w;
     const _imgH = properties.image_dims.h;
 
-    // scale selection box by render dimensions
-    const updatedDims = scaleSelectBox(pointer, properties);
-
-    // compute crop dimensions
-    const _top = updatedDims.y;
-    const _bottom = _imgH - updatedDims.h - updatedDims.y;
-    const _left = updatedDims.x;
-    const _right = _imgW - updatedDims.w - updatedDims.x;
+    // get current select box dimensions
+    let _w = pointer.selectBox.w;
+    let _h = pointer.selectBox.h;
+    let _x = pointer.selectBox.x;
+    let _y = pointer.selectBox.y;
+    let updatedSelectBox = { x: _x, y: _y, w: _w, h: _h };
 
     // Handle dimensional changes
     const _handleChange = (e) => {
+        e.preventDefault();
 
         const { target = {} } = e || {};
         const { name = '', value = '' } = target;
-
-        let _w = updatedDims.w;
-        let _h = updatedDims.h;
-        let _x = updatedDims.x;
-        let _y = updatedDims.y;
+        const delta = parseInt(value);
 
         // update crop dimensions
         const crops = {
-            l: () => {
-                _w -= (parseInt(value) - _x);
-                _x = parseInt(value);
+            x: () => {
+                updatedSelectBox.x = Math.min(delta, _imgW);
             },
-            r: () => {
-                _w = ( _imgW - parseInt(value) - _x);
+            y: () => {
+                updatedSelectBox.y = Math.min(delta, _imgH);
             },
-            t: () => {
-                _h -= ( parseInt(value) - _y );
-                _y = parseInt(value);
+            w: () => {
+                updatedSelectBox.w = Math.min(delta, _imgW);
             },
-            b: () => {
-                _h = ( _imgH - _y - parseInt(value));
+            h: () => {
+                updatedSelectBox.h = Math.min(delta, _imgH);
             }
         }
         crops[name]();
 
-        // set limits on crop
-        _w = Math.min(_w, _imgW);
-        _h = Math.min(_h, _imgH);
-        _x = Math.min(_x, _imgH);
-        _y = Math.min(_y, _imgH);
+        // Scale select box dimensions for canvas rendering
+        const scaled = scaleSelectBox(updatedSelectBox, properties);
 
         // update pointer state and draw crop box to canvas
-        pointer.setSelectBox({ x: _x, y: _y, w: _w, h: _h });
+        pointer.setSelectBox(updatedSelectBox);
         callback({
-            draw: drawBoundingBox.bind(this, _x, _y, _w, _h),
+            draw: drawBoundingBox.bind(this, scaled.x, scaled.y, scaled.w, scaled.h),
             status: 'draw',
             props: {}
         });
@@ -92,7 +82,7 @@ const Cropper = ({ properties, pointer, callback }) => {
                         <Button
                             disabled={isEmptyCropBox}
                             icon={'crop'}
-                            label={`Crop [${Math.abs(updatedDims.w)}, ${Math.abs(updatedDims.h)}]`}
+                            label={`Crop`}
                             onClick={() => {
                                 crop(pointer, properties, callback)
                             }}
@@ -101,52 +91,52 @@ const Cropper = ({ properties, pointer, callback }) => {
                     <li>
                         <Input
                             disabled={isEmptyCropBox}
-                            id={'crop_top'}
-                            name={'t'}
-                            label={'T'}
+                            id={'crop_x'}
+                            name={'x'}
+                            label={'X'}
                             type={'int'}
-                            value={_top}
+                            value={updatedSelectBox.x}
                             min={0}
-                            max={properties.base_dims.h}
+                            max={properties.image_dims.w}
                             onChange={_handleChange}
                         />
                     </li>
                     <li>
                         <Input
-                            id={'crop_bottom'}
+                            id={'crop_y'}
                             disabled={isEmptyCropBox}
-                            name={'b'}
-                            label={'B'}
+                            name={'y'}
+                            label={'Y'}
                             type={'int'}
                             min={0}
-                            max={properties.base_dims.h}
-                            value={_bottom}
+                            max={properties.image_dims.h}
+                            value={updatedSelectBox.y}
                             onChange={_handleChange}
                         />
                     </li>
                     <li>
                         <Input
-                            id={'crop_left'}
+                            id={'crop_w'}
                             disabled={isEmptyCropBox}
-                            name={'l'}
-                            label={'L'}
+                            name={'w'}
+                            label={'W'}
                             type={'int'}
                             min={0}
-                            max={properties.base_dims.w}
-                            value={_left}
+                            max={properties.image_dims.w}
+                            value={updatedSelectBox.w}
                             onChange={_handleChange}
                         />
                     </li>
                     <li>
                         <Input
-                            id={'crop_right'}
+                            id={'crop_h'}
                             disabled={isEmptyCropBox}
-                            name={'r'}
-                            label={'R'}
+                            name={'h'}
+                            label={'H'}
                             type={'int'}
                             min={0}
-                            max={properties.base_dims.w}
-                            value={_right}
+                            max={properties.image_dims.h}
+                            value={updatedSelectBox.h}
                             onChange={_handleChange}
                         />
                     </li>
@@ -170,9 +160,10 @@ export default Cropper;
  */
 
 export function cropStart(e, properties, pointer, options, callback) {
+    const scaledPt = scalePoint(pointer, properties);
     pointer.setSelectBox({
-        x: pointer.x,
-        y: pointer.y,
+        x: scaledPt.x,
+        y: scaledPt.y,
         w: 0,
         h: 0,
     });
@@ -200,25 +191,23 @@ export function crop(pointer, properties, callback) {
     // is the crop box empty? If so, return.
     if (pointer.selectBox.w === 0 && pointer.selectBox.h === 0) return;
 
-    // scale selection box by render dimensions
-    const updatedDims = scaleSelectBox(pointer, properties);
-
     // update image crop dimensions and rerender
     callback({
         status: 'render',
         props: {
-            source_dims: updatedDims,
+            source_dims: pointer.selectBox,
             image_dims: {
-                w: updatedDims.w,
-                h: updatedDims.h,
+                w: pointer.selectBox.w,
+                h: pointer.selectBox.h,
             },
             render_dims: {
-                w: updatedDims.w,
-                h: updatedDims.h,
+                w: pointer.selectBox.w,
+                h: pointer.selectBox.h,
                 x: 0, y: 0
             }
         },
     });
+
     // reset selection box
     pointer.setSelectBox({ x: 0, y: 0, w: 0, h: 0 });
 }
@@ -233,8 +222,7 @@ export function crop(pointer, properties, callback) {
  * @param pointer
  */
 
-export function cropEnd(e, properties, pointer, options) {
-}
+export function cropEnd(e, properties, pointer, options) {}
 
 /**
  * Update canvas offset by cursor position
@@ -252,50 +240,56 @@ export function cropBound(e, properties, pointer, options, callback) {
 
     e.preventDefault();
 
-    // compute distance traveled
-    const _deltaX = properties.render_dims.x + pointer.x - pointer.selected.x;
-    const _deltaY = properties.render_dims.y + pointer.y - pointer.selected.y;
+    // compute select box dimensions
+    const scale = getScale(properties);
+    const _w = properties.render_dims.x + pointer.x - pointer.selected.x;
+    const _h = properties.render_dims.y + pointer.y - pointer.selected.y;
 
     // update the pointer select box
     pointer.setSelectBox({
         x: pointer.selectBox.x,
         y: pointer.selectBox.y,
-        w: _deltaX,
-        h: _deltaY,
+        w: Math.round(scale.x * _w),
+        h: Math.round(scale.y * _h),
     });
 
     // update image offset coordinate
     callback({
         status: 'draw', props: {},
         draw: drawBoundingBox.bind(
-            this, pointer.selected.x, pointer.selected.y, _deltaX, _deltaY),
+            this, pointer.selected.x, pointer.selected.y, _w, _h),
     });
 }
 
 /**
  * Scale selection by current render dimensions.
+ * @param selectBox
  * @param properties
- * @param pointer
  */
 
-const scaleSelectBox = (pointer, properties) => {
+const scaleSelectBox = (selectBox, properties) => {
+
     // get current render scale
-    const scale = getScale(properties);
+    let scale = getScale(properties);
 
     // compute scaled dimensions / coordinates
-    const updated = scalePoint({x: pointer.selectBox.x, y: pointer.selectBox.y}, properties);
-    updated.w = Math.ceil(pointer.selectBox.w * scale.x);
-    updated.h = Math.ceil(pointer.selectBox.h * scale.y);
+    const scaledSelectBox =
+        {
+            x: Math.round(selectBox.x * 1/scale.x),
+            y: Math.round(selectBox.y * 1/scale.y),
+            w: Math.round(selectBox.w * 1/scale.x),
+            h: Math.round(selectBox.h * 1/scale.y)
+        };
 
     // adjust for negative select box dimensions
-    if (updated.w < 0 ) {
-        updated.w = Math.abs(updated.w);
-        updated.x = updated.x - updated.w;
+    if (scaledSelectBox.w < 0 ) {
+        scaledSelectBox.w = Math.abs(scaledSelectBox.w);
+        scaledSelectBox.x = scaledSelectBox.x - scaledSelectBox.w;
     }
-    if (updated.h < 0 ) {
-        updated.h = Math.abs(updated.h);
-        updated.y = updated.y - updated.h;
+    if (scaledSelectBox.h < 0 ) {
+        scaledSelectBox.h = Math.abs(scaledSelectBox.h);
+        scaledSelectBox.y = scaledSelectBox.y - scaledSelectBox.h;
     }
 
-    return updated;
+    return scaledSelectBox;
 }

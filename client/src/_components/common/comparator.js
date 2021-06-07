@@ -134,7 +134,7 @@ const Comparator = ({ images = [], scale = 1.0, onStop=()=>{} }) => {
                 // compute scaled canvas dimensions and scale image to fit
                 canvas1.width = COMPARATOR_MAX_WIDTH * scale;
                 canvas1.height = COMPARATOR_MAX_HEIGHT * scale;
-                const {w, h} = scaleToFit(img1.naturalWidth, img1.naturalHeight, canvas1.width, canvas1.height);
+                const {w, h} = scaleToFit(img1.naturalWidth, img1.naturalHeight, canvas1.width, img1.naturalHeight);
 
                 // store scaled image width
                 setImg1W(w);
@@ -163,7 +163,7 @@ const Comparator = ({ images = [], scale = 1.0, onStop=()=>{} }) => {
                 // compute scaled canvas dimensions and scale image to fit
                 canvas2.width = COMPARATOR_MAX_WIDTH * scale;
                 canvas2.height = COMPARATOR_MAX_HEIGHT * scale;
-                const {w, h} = scaleToFit(img2.naturalWidth, img2.naturalHeight, canvas2.width, canvas2.height);
+                const {w, h} = scaleToFit(img2.naturalWidth, img2.naturalHeight, canvas2.width, img2.naturalHeight);
 
                 ctx2.drawImage(img2, 0, 0, w, h);
                 panel2.style.width = w + 'px';
@@ -221,7 +221,7 @@ const Comparator = ({ images = [], scale = 1.0, onStop=()=>{} }) => {
                     {
                         status === 2
                             ? <Button icon={'slide'} />
-                            : <div className={'centered'}><Loading /></div>
+                            :   <Loading />
                     }
                 </div>
                 <div ref={panel1Ref} className={'comparator-img overlay'}>

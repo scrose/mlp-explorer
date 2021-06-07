@@ -7,8 +7,7 @@
 
 import React from 'react';
 import { getRoot } from '../../_utils/paths.utils.client';
-import HelpView from '../views/help.view';
-import Button from '../common/button';
+import { ReactComponent as MLPLogo } from '../svg/mlpLogo.svg';
 
 /**
  * Component for main navigation menu.

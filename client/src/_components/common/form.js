@@ -151,8 +151,6 @@ const Form = ({
             return o;
         }, []);
 
-        console.log(data)
-
         // convert data through Form Data API
         // - [1] filter data by form schema
         // - [2] reindex copied fields

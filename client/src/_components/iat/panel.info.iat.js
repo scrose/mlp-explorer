@@ -5,8 +5,6 @@
  * MIT Licensed
  */
 
-import { useRouter } from '../../_providers/router.provider.client';
-import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { getModelLabel } from '../../_services/schema.services.client';
 import Button from '../common/button';
 import { sanitize } from '../../_utils/data.utils.client';
@@ -19,22 +17,19 @@ import { getScale, scalePoint } from './transform.iat';
  * @param properties
  * @param pointer
  * @param status
+ * @param setDialog
  * @param options
  * @public
  */
 
-const PanelInfo = ({ properties, pointer, status, options }) => {
-
-    // if capture image: provide link to metadata
-    const router = useRouter();
-    const captureRoute = createNodeRoute('modern_captures', 'show', properties.owner_id);
+const PanelInfo = ({ properties, pointer, status, setDialog, options }) => {
 
     // compute actual cursor position in image
     const scale = getScale(properties);
     const actual = scalePoint(pointer, properties);
 
     return <div id={`canvas-view-${properties.id}-info`} className={'canvas-view-info'}>
-        <div>
+        <>
             {
                 status !== 'loaded'
                 && status !== 'error'
@@ -49,23 +44,32 @@ const PanelInfo = ({ properties, pointer, status, options }) => {
                 <tbody>
                 <tr>
                     <th>File:</th>
-                    <td style={{ width: '70%' }}>
-                        {
-                            properties.filename ? properties.filename : 'Not Loaded'
-                        }
+                    <td style={{width: '75%'}} className={'h-menu'}>
+                        <ul>
+                            <li>
+                            {
+                                properties.filename ? properties.filename : 'Not Loaded'
+                            }
+                            </li>
                         {
                             properties.owner_id &&
-                            <Button
+                            <li className={'push'}><Button
+                                icon={'show'}
                                 title={'Go to capture metadata.'}
-                                label={`(${ getModelLabel(properties.file_type)})`}
-                                onClick={() => {router.update(captureRoute)}}
-                            />
+                                label={`${ getModelLabel(properties.file_type)}`}
+                                onClick={() => {setDialog({
+                                    id: properties.id,
+                                    label: properties.label,
+                                    type: 'capture',
+                                })}}
+                            /></li>
                         }
+                        </ul>
                     </td>
                 </tr>
                 </tbody>
             </table>
-        </div>
+        </>
         <table>
             <tbody>
             <tr>

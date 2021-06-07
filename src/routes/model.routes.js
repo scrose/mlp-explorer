@@ -54,6 +54,13 @@ function ModelRoutes(modelType) {
             post: this.controller.update,
             delete: null,
         },
+        move: {
+            path: path.join('/', this.model, 'move', ':' + this.key),
+            get: null,
+            put: null,
+            post: this.controller.move,
+            delete: null,
+        },
         remove: {
             path: path.join('/', this.model, 'remove', ':' + this.key),
             get: null,

@@ -64,3 +64,34 @@ export function getColumns(targetTable) {
         data: [targetTable],
     };
 }
+
+/**
+ * Query: Check node relation for given node and owner type.
+ *
+ * @return {Object} query binding
+ * @param nodeID
+ * @param ownerID
+ */
+
+export function isRelatable(nodeID, ownerID) {
+    return {
+        sql: `WITH 
+                n AS (
+                    SELECT nodes.type
+                    FROM nodes
+                    WHERE id = $1::integer
+                   ),
+                o AS (
+                   SELECT nodes.type
+                   FROM nodes
+                   WHERE id = $2::integer
+                )
+                SELECT exists(
+                           SELECT dependent_type
+                           FROM node_relations
+                           WHERE owner_type IN (SELECT type FROM o)
+                             AND dependent_type IN (SELECT type FROM n)
+                    );`,
+        data: [nodeID, ownerID],
+    };
+}

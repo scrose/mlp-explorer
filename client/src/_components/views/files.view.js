@@ -64,24 +64,22 @@ export const FilesTable = ({owner, files=[]}) => {
         };
 
         // add editor menu for logged-in users
-        if (user) {
-            rows.menu = <MenuEditor
-                fileType={file_type}
-                model={file_type}
-                id={id}
-                owner={owner}
-                label={label}
-                metadata={{
-                    files_id: id,
-                    file_size: file_size,
-                    type: metadata_type.hasOwnProperty('name') ? metadata_type.name: '-',
-                    mimetype: mimetype,
-                    file_type: file_type,
-                    filename: filename,
-                    created_at: created_at,
-                    updated_at: updated_at
-                }} />
-        }
+        rows.menu = <MenuEditor
+            fileType={file_type}
+            model={file_type}
+            id={id}
+            owner={owner}
+            label={label}
+            metadata={{
+                files_id: id,
+                file_size: file_size,
+                type: metadata_type.hasOwnProperty('name') ? metadata_type.name: '-',
+                mimetype: mimetype,
+                file_type: file_type,
+                filename: filename,
+                created_at: created_at,
+                updated_at: updated_at
+            }} />
         return rows;
     });
 

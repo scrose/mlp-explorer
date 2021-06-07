@@ -19,6 +19,7 @@ import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import Tabs from '../common/tabs';
 import Loading from '../common/loading';
+import { useUser } from '../../_providers/user.provider.client';
 
 /**
  * Image selector widget. Used to select an image to load into the panel:
@@ -43,6 +44,8 @@ export const ImageSelector = ({
                               }) => {
 
     const router = useRouter();
+    const user = useUser();
+
     const _isMounted = React.useRef(false);
     const [selectedImage, setSelectedImage] = React.useState(null);
     const [message, setMessage] = React.useState(null);
@@ -67,6 +70,10 @@ export const ImageSelector = ({
 
     React.useEffect(() => {
         _isMounted.current = true;
+
+        // requires user authentication
+        if (!user) return () => {};
+
         const _loader = () => {
                 router.get(createNodeRoute(otherProperties.file_type, 'master', otherProperties.files_id))
                     .then(res => {
@@ -105,7 +112,17 @@ export const ImageSelector = ({
         return () => {
             _isMounted.current = false;
         };
-    }, [isCapture, properties, otherProperties, router, setSelection, callback, setMessage, selectedFile]);
+    }, [
+        user,
+        isCapture,
+        properties,
+        otherProperties,
+        router,
+        setSelection,
+        callback,
+        setMessage,
+        selectedFile
+    ]);
 
     // submit selection for canvas loading
     const _handleSubmit = () => {
@@ -154,7 +171,7 @@ export const ImageSelector = ({
             message && <UserMessage closeable={true} message={message} />
         }
         {
-            isCapture && <>
+            isCapture && user && <>
                 { Array.isArray(selection)
                     ? (
                         selection.length > 0

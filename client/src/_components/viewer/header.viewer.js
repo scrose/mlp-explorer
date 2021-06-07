@@ -11,6 +11,7 @@ import Logo from '../common/logo';
 import { redirect } from '../../_utils/paths.utils.client';
 import BreadcrumbMenu from '../menus/breadcrumb.menu';
 import Button from '../common/button';
+import { ReactComponent as MLPLogo } from '../svg/mlpLogo.svg';
 
 /**
  * User navigation menu (unauthenticated).
@@ -45,6 +46,13 @@ const HeaderViewer = () => {
                         <li><Logo /></li>
                         <li><MainMenu /></li>
                         <li className={'push'}><UserMenu /></li>
+                        <li>
+                            <div className={'logo-mlp-svg'}>
+                                <a href={"http://mountainlegacy.ca"} rel="noreferrer" target={'_blank'}>
+                                    <MLPLogo />
+                                </a>
+                            </div>
+                        </li>
                     </ul>
                 </div>
                 <div className={'context-menu'}>

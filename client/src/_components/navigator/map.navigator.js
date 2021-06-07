@@ -43,14 +43,14 @@ function MapNavigator({ data, filter }) {
     const layerGrp = React.useRef(null);
 
     // destroy map instance
-    const destroyMap = React.useCallback(() => {
-        // check if map initialized
-        if (mapObj.current) {
-            // mapObj.current._leaflet_id = null;
-            mapObj.current.off();
-            mapObj.current.remove();
-        }
-    }, []);
+    // const destroyMap = React.useCallback(() => {
+    //     // check if map initialized
+    //     if (mapObj.current) {
+    //         // mapObj.current._leaflet_id = null;
+    //         mapObj.current.off();
+    //         mapObj.current.remove();
+    //     }
+    // }, []);
 
 
     // request stations in selected cluster
@@ -146,15 +146,15 @@ function MapNavigator({ data, filter }) {
 
             return L.icon({
                 iconUrl: 'data:image/svg+xml;base64,' + btoa(iconSVG),
-                iconSize: [38, 95],
-                iconAnchor: [22, 94],
-                popupAnchor: [-3, -76],
+                iconSize: [50, 50],
+                iconAnchor: [25, 50],
+                tooltipAnchor: [10, 0]
             });
         };
 
         // grid settings: number of grid cells is scaled by zoom level
-        const latN = 2 * mapObj.current.getZoom();
-        const lngN = 2 * mapObj.current.getZoom();
+        const latN = Math.ceil(2 * mapObj.current.getZoom());
+        const lngN = Math.ceil(2 * mapObj.current.getZoom());
 
         // get map parameters
         // NOTE: The following bucket sort of geographic coordinates
@@ -169,8 +169,8 @@ function MapNavigator({ data, filter }) {
         // get latitude/longitude range
         const latRange = latMax - latMin;
         const lngRange = lngMax - lngMin;
-        const dLat = latRange / latN;
-        const dLng = lngRange / lngN;
+        const dLat = Math.round(latRange / latN);
+        const dLng = Math.round(lngRange / lngN);
 
         // initialize cluster grid
         let grid = [...Array(latN).keys()].map(() => Array(lngN));
@@ -223,18 +223,26 @@ function MapNavigator({ data, filter }) {
                     })
                         .on('click', (e) => {
                             // clicking on marker loads filter results in data pane
-                            loadView(
-                                cluster.stations.map(station => {
-                                    return station.nodes_id;
-                                }));
+                            debounce(() => {
+                                loadView(
+                                    cluster.stations.map(station => {
+                                        return station.nodes_id;
+                                    }));
+                            }, 400)();
                         })
                         .on('dblclick', (e) => {
-                            // get new map center / zoom level
-                            debounce(() => {
-                                const coord = e.latlng;
-                                const zoomLevel = mapObj.current.getZoom() + 1;
-                                mapObj.current.flyTo(coord, zoomLevel);
-                            }, 400)();
+                            const coord = e.latlng;
+                            const zoomLevel = mapObj.current.getZoom() + 1;
+                            mapObj.current.flyTo(coord, zoomLevel);
+                        })
+                        .on('mouseover', function (e) {
+                            this.bindTooltip(`
+                            Lat: ${centroid[0].toFixed(3)}, 
+                            Lng: ${centroid[1].toFixed(3)}
+                            `).openTooltip();
+                        })
+                        .on('mouseout', function (e) {
+                            this.closeTooltip();
                         });
                     // add cluster marker to layer
                     o.push(marker);
@@ -242,28 +250,41 @@ function MapNavigator({ data, filter }) {
                 }, o);
                 return o;
             }, []);
-    }, [data, mapObj, filter, loadView, currentFilter, api]);
+    }, [data, mapObj, filter, loadView]);
 
-    // set map view to new center coordinate and zoom level
+    /**
+     * Reset map view to new center coordinate and zoom level.
+     * - Redraws markers based on new center and zoom values
+     *
+     * @param coord
+     * @param zoomLevel
+     * @type {function(*=, *=): void}
+     */
+
     const reset = React.useCallback((coord, zoomLevel) => {
-        console.log('reset!', filter)
         if (coord && zoomLevel && layerGrp.current) {
             setCenter(coord);
             setZoom(zoomLevel);
-            layerGrp.current.clearLayers();
-            layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
         }
-    }, [setZoom, setCenter, getClusterMarkers, currentFilter, filter]);
+    }, [setZoom, setCenter]);
 
     // assign selected nodes on map
     React.useEffect(() => {
         if (layerGrp.current) {
             layerGrp.current.clearLayers();
-            layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter, filter)).addTo(mapObj.current);
+            layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
         }
-    }, [getClusterMarkers, currentFilter, filter])
+    }, [getClusterMarkers, currentFilter, filter, zoom, center])
 
-    // initialize map
+    /**
+     * Initialize leaflet map.
+     *
+     * @param domNode
+     * @param mapCenter
+     * @param mapZoom
+     * @type {function(*=, *=, *=): (undefined)}
+     */
+
     const initMap = React.useCallback((domNode, mapCenter = center, mapZoom = zoom) => {
 
         // create base tile layers
@@ -286,9 +307,6 @@ function MapNavigator({ data, filter }) {
 
         if (data && Object.keys(data).length > 0) {
 
-            // remove old map instance
-            // destroyMap();
-
             if (mapObj.current) return;
 
             // initialize map with DOM container and initial coordinates
@@ -310,6 +328,7 @@ function MapNavigator({ data, filter }) {
                 'Stations': layerGrp.current,
             };
 
+            // add layers to leaflet controls
             L.control.layers(baseLayers, overlays).addTo(mapObj.current);
             L.control.scale().addTo(mapObj.current);
 
@@ -319,15 +338,13 @@ function MapNavigator({ data, filter }) {
             });
 
             // create callbacks for map zooming / panning
-            // mapObj.current.on('zoomend', e => {
-            //     // reset saved map centre coordinate / zoom level
-            //     reset(e.target.getCenter(), e.target.getZoom());
-            // });
-            //
-            // mapObj.current.on('moveend', e => {
-            //     reset(e.target.getCenter(), e.target.getZoom());
-            // });
-
+            mapObj.current.on('zoomend', e => {
+                // reset saved map centre coordinate / zoom level
+                reset(e.target.getCenter(), e.target.getZoom());
+            });
+            mapObj.current.on('moveend', e => {
+                reset(e.target.getCenter(), e.target.getZoom());
+            });
             mapObj.current.on('error', err => {
                 console.warn(err);
             });
@@ -344,7 +361,13 @@ function MapNavigator({ data, filter }) {
         getClusterMarkers
     ]);
 
-    // Initialize map using reference callback to access DOM container
+    /**
+     * Initialize map using reference callback to access DOM container.
+     *
+     * @param domNode
+     * @type {function(*=, *=, *=): (undefined)}
+     */
+
     const mapContainer = React.useCallback(domNode => {
         if (domNode) initMap(domNode);
     }, [initMap]);

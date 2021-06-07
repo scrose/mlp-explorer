@@ -7,11 +7,10 @@
 
 import React from 'react';
 import Button from '../common/button';
-import { getError } from '../../_services/schema.services.client';
+import { genSchema, getError } from '../../_services/schema.services.client';
 import Dialog from '../common/dialog';
 import {
-    alignImages, moveAt, moveEnd,
-    moveStart, scaleToMatch,
+    scaleToMatch,
 } from './transform.iat';
 import { ImageSelector } from './selector.iat';
 import Comparator from '../common/comparator';
@@ -22,6 +21,11 @@ import { filterKeyDown } from './panel.controls.iat';
 import { MasterImage } from './master.iat';
 import { useUser } from '../../_providers/user.provider.client';
 import { cropBound, cropEnd, cropStart } from './cropper.iat';
+import MetadataView from '../views/metadata.view';
+import { alignImages } from './aligner.iat';
+import { moveAt, moveEnd, moveStart } from './panner.iat';
+import { createNodeRoute } from '../../_utils/paths.utils.client';
+import Importer from '../tools/import.tools';
 
 /**
  * No operation.
@@ -142,6 +146,33 @@ export const MenuIat = ({
                 />
             </Dialog>;
         },
+        uploadImage: (id, label, callback) => {
+            const panel = id === panel1.id ? panel1 : panel2;
+            return <Dialog
+                key={`${id}_dialog_upload`}
+                title={`Upload Image to MLP Library`}
+                setToggle={_handleCancel.bind(id)}
+            >
+                <Importer
+                    model={panel.file_type}
+                    view={'upload'}
+                    schema={genSchema('upload', panel.file_type)}
+                    route={createNodeRoute(panel.file_type, 'new', panel.owner_id)}
+                    onCancel={() => {setDialogToggle(null)}}
+                    files={[
+                        {
+                            name: panel.file_type,
+                            value: panel.blob,
+                            filename: panel.filename
+                        }
+                    ]}
+                    callback={(err, model, id) => {
+                        console.log(err, model, id);
+                        setDialogToggle(null);
+                    }}
+                />
+            </Dialog>;
+        },
         masterImage: (id, label, callback) => {
             return <Dialog
                         key={`${id}_dialog_master`}
@@ -188,10 +219,35 @@ export const MenuIat = ({
                 setToggle={setDialogToggle}>
                 <Comparator
                     images={[panel1.dataURL, panel2.dataURL]}
-                    onStop={()=>{console.log('!!!'); setDialogToggle(null)}}
+                    onStop={()=>{setDialogToggle(null)}}
                 />
             </Dialog>;
         },
+        capture: (id, label) => {
+            const panel = id === panel1.id ? panel1 : panel2;
+            const owner = {
+                owner_id: panel.owner_id,
+                owner_type: panel.owner_type
+            }
+            const metadata = {
+                filename: panel.filename,
+                mimetype: panel.mime_type,
+                file_size: panel.file_size,
+                x_dim: panel.original_dims.w,
+                y_dim: panel.original_dims.h,
+                image_state: panel.image_state
+            }
+            return <Dialog
+                key={`panel_info_dialog_capture`}
+                title={`Image Info: ${panel.filename}`}
+                setToggle={setDialogToggle}>
+                <MetadataView
+                    metadata={metadata}
+                    model={panel.file_type}
+                    owner={owner}
+                />
+            </Dialog>
+        }
     };
 
     /**
@@ -256,7 +312,6 @@ export const MenuIat = ({
             // [master] upload mastered images to MLP library
             master: () => {
                 // confirm that dimensions are equal
-                console.log(panel1.image_dims, panel2.image_dims)
                 if (
                     panel1.image_dims.w !== panel2.image_dims.w ||
                     panel1.image_dims.h !== panel2.image_dims.h ) {
@@ -371,12 +426,26 @@ export const MenuIat = ({
                     <li>
                         <Button
                             disabled={!image1 || !image2}
+                            icon={'compress'}
                             label={'Match'}
                             title={'Resize image widths to match.'}
                             onClick={() => {
                                 // clear messages
                                 setMessage(null);
                                 _filterMethods('match');
+                            }}
+                        />
+                    </li>
+                    <li>
+                        <Button
+                            disabled={!image1 || !image2}
+                            icon={'overlay'}
+                            label={'Compare'}
+                            title={'Compare images using overlay.'}
+                            onClick={() => {
+                                // clear messages
+                                setMessage(null);
+                                _filterMethods('compare');
                             }}
                         />
                     </li>
@@ -402,18 +471,6 @@ export const MenuIat = ({
                                 // clear messages
                                 setMessage(null);
                                 _filterMethods('master');
-                            }}
-                        />
-                    </li>
-                    <li>
-                        <Button
-                            disabled={!image1 || !image2}
-                            label={'Compare'}
-                            title={'Compare images using overlay.'}
-                            onClick={() => {
-                                // clear messages
-                                setMessage(null);
-                                _filterMethods('compare');
                             }}
                         />
                     </li>

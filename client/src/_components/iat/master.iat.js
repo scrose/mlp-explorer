@@ -28,8 +28,6 @@ export const MasterImage = ({
                                   callback = () => {},
                               }) => {
 
-    console.log(panel1, panel2)
-
     // prepare capture metadata
     const historicMetadata = {
         capture: 'Historic',

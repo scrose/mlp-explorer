@@ -64,15 +64,14 @@ DOM Elements (Global)
 
 ul.list, ol.list {
     flex: none !important;
-    display: block !important;
-    list-style: square inside !important;
-    margin: 10px !important;
-    padding: 10px !important;
+    list-style-position: outside;
+    display: block;
+    margin: 0;
+    overflow: visible;
 }
-ul.list li {
-    list-style: square inside !important;
-    margin: 10px;
-    padding: 10px;
+ul.list li, ol.list li {
+    display: list-item !important;
+    overflow: visible !important;
 }
 h3 {
     padding: 10px;
@@ -329,8 +328,12 @@ Logo/Wordmark
     padding: 2px 5px;
     margin-right: 5px;
     width: 30px;
-    display: flex;
-    align-items: center;
+}
+.logo-mlp-svg {
+    border-radius: 10px;
+    padding: 2px 5px;
+    margin-left: 15px;
+    width: auto;
 }
 .logo .wordmark {
     font-family: 'AvenirNext-Bold', 'Segoe UI', 'Roboto', 'Oxygen',
@@ -505,7 +508,7 @@ nav.user button  {
 /* Navigator Panel: Map (Leaflet) */
 
 .navigator .map {
-    height: 75vh;
+    height: 77vh;
     overflow: visible;
 }
 .map-container {
@@ -677,6 +680,10 @@ nav.breadcrumb ul li a:hover {
 .editor-tools .v-menu .collapsible {
     width: 100%;
     background-color: inherit;
+}
+
+.editor-tools .move, .h-menu .move {
+    cursor: move;
 }
 
 /* Navigator Tool Menu */
@@ -1043,6 +1050,14 @@ nav.breadcrumb ul li a:hover {
     width: 20px;
     height: 40px;
 }
+.comparator-slider .spinner{
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
 
 /* MetadataView Edit Menu */
 
@@ -1264,14 +1279,16 @@ nav.breadcrumb ul li a:hover {
 */
 
 .footer div {
-    padding: 5px;
-    color: #FFFFFF;
+    padding: 4px;
+    color: #DDDDDD;
     background-color: inherit;
 }
 .footer div p {
     text-align: center;
     font-size: small;
-    padding: 0;
+    padding: 10px;
+    margin-left: 20px;
+    margin-top: 0;
 }
 
 /*
@@ -1487,7 +1504,7 @@ table.files td, table.files th {
 }
 table.files tbody td {
     font-size: small;
-    text-align: left;
+    text-align: center;
 }
 table.files img {
     display: block;
@@ -1523,6 +1540,12 @@ table.files tfoot {
 }
 table.files tfoot td {
     font-size: small;
+}
+
+/* Metadata Files */
+
+table.files .download {
+    text-align: left;
 }
 
 /* Collapsible Containers */
@@ -2168,6 +2191,9 @@ Define Canvas Layers of Panel (IAT)
     background-color: #282c34;
     border: 1px solid #282c34;
 }
+.canvas-view-info .h-menu ul {
+    align-items: center;
+}
 .canvas-view-info .spinner-icon {
     opacity:1;
     font-size: 1em;
@@ -2180,6 +2206,7 @@ Define Canvas Layers of Panel (IAT)
 .spinner-icon.overlay {
     font-size: 4em;
 }
+
 .canvas-status {
     background-color: #D36819;
     padding: 10px;
@@ -2304,16 +2331,68 @@ Progress Bar
 .help h4 {
     font-size: 2.0em;
     padding: 10px !important;
-    margin: 0 !important;
+    margin: 10px 0;
 }
 .help h5 {
     font-size: 1.5em;
     padding: 10px !important;
-    margin: 0 !important;
+    margin: 10px 0;
+}
+.help h6 {
+    font-size: 1.2em;
+    color: #666666;
+    padding: 10px !important;
+    margin: 10px 0;
 }
 .help p {
     padding: 10px !important;
     margin: 0 !important;
+}
+
+/* multiple items list */
+
+table.help {
+    border-top: 1px solid #888888;
+    border-bottom: 1px solid #888888;
+    width: 100%;
+    text-align: left;
+    border-collapse: collapse;
+    color: #444;
+}
+table.help td, table.help th {
+    padding: 8px;
+    margin:2px;
+}
+table.help tbody td {
+    font-size: small;
+}
+table.help tr:nth-child(even) {
+    background: #EEEEEE;
+}
+table.help thead {
+    background: #95B0B4;
+    border-bottom: 5px solid #FFFFFF;
+}
+table.help thead th {
+    font-size: small;
+    font-weight: bold;
+    color: #FFFFFF;
+    text-align: center;
+    border-left: 2px solid #FFFFFF;
+}
+table.help thead th:first-child {
+    border-left: none;
+}
+
+table.help tfoot {
+    font-size: small;
+    font-weight: bold;
+    color: #282c34;
+    background: #FFFFFF;
+    border-top: 3px solid #282c34;
+}
+table.help tfoot td {
+    font-size: small;
 }
 
 /* Maintenance Mode */

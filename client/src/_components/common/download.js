@@ -11,6 +11,8 @@ import { useRouter } from '../../_providers/router.provider.client';
 import { download } from '../../_services/api.services.client'
 import Button from './button';
 import { UserMessage } from './message';
+import Icon from './icon';
+import { getExtension } from '../../_utils/paths.utils.client';
 
 /**
  * Defines download button.
@@ -31,6 +33,7 @@ const Download = ({ filename='download', type='', format='', label='', route=nul
 
     const _handleError = (err) => {
         setMessage(err);
+        callback({msg: 'Download error', type:'error'});
     }
 
     // Handler for file download request.
@@ -41,35 +44,36 @@ const Download = ({ filename='download', type='', format='', label='', route=nul
             const res = await download(route, format, router.online);
             if (!res || res.error) {
                 setLoading(false);
-                return _handleError({msg: 'Download Error', type:'error'});
+                return _handleError({msg: 'File download failed.', type:'error'});
             }
             saveAs(res.data, filename);
             setLoading(false);
         }
         catch (err) {
             setLoading(false);
-            callback({msg: 'Download error', type:'error'});
+            _handleError({msg: 'File download failed.', type:'error'})
         }
     }
 
     // render download button
-    return <div className={'h-menu'}>
-        <ul>
-            <li>
-                <Button
-                    name={id}
-                    icon={loading ? 'spinner' : 'download'}
-                    spin={loading}
-                    label={label}
-                    title={`Download ${label}`}
-                    onClick={_handleDownload}>
-                </Button>
-            </li>
-            <li>
-                <UserMessage className={'inline'} message={message} closeable={true} />
-            </li>
-        </ul>
-    </div>
+    return <Button
+                name={id}
+                icon={
+                    loading
+                        ? 'spinner'
+                        : message && message.hasOwnProperty('msg')
+                            ? 'error'
+                            : 'download'
+                }
+                spin={loading}
+                label={label}
+                title={
+                    message && message.hasOwnProperty('msg')
+                        ? message.msg
+                        : `Download ${filename}.`
+                }
+                onClick={_handleDownload}>
+            </Button>
 }
 
 export default Download;

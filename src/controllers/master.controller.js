@@ -194,30 +194,35 @@ export default function MasterController(modelType) {
                 return next(new Error('invalidMaster'));
             }
 
-            console.log(received, historicCapture, modernCapture)
-
             // save files separately and insert file metadata
             const historicData = {
                 files: {'0': files[0]},
-                data: {image_state: 'mastered'}
+                data: {image_state: 'master'}
             }
             const resDataHistoric = await fserve.insert(
                 historicData, 'historic_images', historicCapture);
+
             const modernData = {
-                files: {'0': files[0]},
-                data: {image_state: 'mastered'}
+                files: {'0': files[1]},
+                data: {image_state: 'master'}
             }
             const resDataModern = await fserve.insert(
                 modernData, 'modern_images', modernCapture);
 
-            console.log(resDataHistoric, resDataModern)
-
             // error in insert
-            if (!resDataHistoric || !resDataModern) return next(new Error('invalidMaster'));
+            if (!Array.isArray(resDataHistoric) || !Array.isArray(resDataModern)) {
+                return next(new Error('invalidMaster'));
+            }
+
+            // extract files ID and filenames
+            const historicFileID = resDataHistoric[0].file.id;
+            const historicFilename = files[0].file.filename;
+            const modernFileID = resDataModern[0].file.id;
+            const modernFilename = files[1].file.filename;
 
             // insert comparisons record
             const resCompare = await addComparison(
-                resDataHistoric.files_id, historic_capture, resDataModern.files_id, modern_capture);
+                historicFileID, historic_capture, modernFileID, modern_capture);
 
             // send response
             res.status(200).json(
@@ -226,7 +231,7 @@ export default function MasterController(modelType) {
                     model: model,
                     data: resCompare,
                     message: {
-                        msg: `'${filename}' mastered successfully!`,
+                        msg: `'${historicFilename}' and '${modernFilename} mastered successfully!`,
                         type: 'success'
                     },
                 }));

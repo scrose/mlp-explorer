@@ -137,6 +137,22 @@ export const getNodeTypes = async function(client=pool) {
 };
 
 /**
+ * Check that node is relatable to given owner.
+ *
+ * @public
+ * @param nodeID
+ * @param ownerID
+ * @param client
+ * @return {Promise} result
+ */
+
+export const isRelatable = async function(nodeID, ownerID, client=pool) {
+    let { sql, data } = queries.schema.isRelatable(nodeID, ownerID);
+    const res = await client.query(sql, data);
+    return res.rows.length > 0 && res.rows[0].exists;
+};
+
+/**
  * Get all metadata types.
  *
  * @public

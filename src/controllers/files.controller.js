@@ -10,7 +10,6 @@
  * @private
  */
 
-import fs from "fs";
 import * as db from '../services/index.services.js';
 import ModelServices from '../services/model.services.js';
 import * as fserve from '../services/files.services.js';
@@ -20,9 +19,9 @@ import pool from '../services/db.services.js';
 import { sanitize } from '../lib/data.utils.js';
 import * as importer from '../services/import.services.js';
 import * as cserve from '../services/construct.services.js';
-import { getMIME } from '../lib/file.utils.js';
 import { humanize } from '../lib/data.utils.js';
 import path from "path";
+import { getFilePath } from '../services/files.services.js';
 
 /**
  * Export controller constructor.
@@ -358,7 +357,7 @@ export default function FilesController(modelType) {
 
 
     /**
-     * Download files.
+     * Download files (for unauthenticated downloads).
      *
      * @param req
      * @param res
@@ -377,30 +376,15 @@ export default function FilesController(modelType) {
 
             // get owner node; check that node exists in database
             // and corresponds to requested owner type.
-            const file = await fserve.select(fileID, client);
+            const fileData = await fserve.get(fileID, client);
+            const { file={}, metadata={} } = fileData || {};
+            const { file_type={} } = file || {};
 
-            if (!file)
-                return next(new Error('invalidRequest'));
+            if (!file) return next(new Error('invalidRequest'));
 
-            // get the source path
-            let { fs_path='' } = file;
-
-            const mimeType = getMIME(file.filename);
-
-            // set response headers
-            res.setHeader("Content-Type", mimeType);
-            res.setHeader("Content-Length", mimeType);
-            res.setHeader("Content-Disposition", `attachment; filename=${file.filename}`);
-
-            // download file
-            const readStream = fs.createReadStream(fs_path);
-            readStream.pipe(res);
-            readStream.on('error', (err) => {
-                return next(err);
-            });
-            res.on('error', (err) => {
-                return next(err)
-            });
+            // get the file path for download
+            const filePath = getFilePath(file_type, file, metadata);
+            res.download(filePath);
 
         } catch (err) {
             return next(err);
@@ -408,6 +392,43 @@ export default function FilesController(modelType) {
             client.release(true);
         }
     };
+
+
+    /**
+     * Download files (for authenticated downloads).
+     *
+     * @param req
+     * @param res
+     * @param next
+     * @src public
+     */
+
+    this.raw = async (req, res, next) => {
+
+        const client = await pool.connect();
+
+        try {
+
+            // get requested file ID
+            const fileID = this.getId(req);
+
+            // get owner node; check that node exists in database
+            // and corresponds to requested owner type.
+            const fileData = await fserve.get(fileID, client);
+            const { file={} } = fileData || {};
+
+            if (!file) return next(new Error('invalidRequest'));
+
+            const { fs_path={} } = file || {};
+            res.download(fs_path);
+
+        } catch (err) {
+            return next(err);
+        } finally {
+            client.release(true);
+        }
+    };
+
 
 }
 

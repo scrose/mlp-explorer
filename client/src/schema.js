@@ -704,6 +704,12 @@ export const schema = {
                     }
                 },
                 {
+                    restrict: ['move'],
+                    owner_id: {
+                        render: 'hidden'
+                    }
+                },
+                {
                     legend: 'Image Upload',
                     restrict: ['import'],
                     modern_images: {
@@ -737,6 +743,7 @@ export const schema = {
                 },
                 {
                     legend: 'Capture Details',
+                    restrict: ['show', 'new', 'edit', 'import'],
                     fn_photo_reference: {
                         label: 'Field Notes Photo Reference'
                     },
@@ -753,6 +760,7 @@ export const schema = {
                 },
                 {
                     legend: 'Coordinates',
+                    restrict: ['show', 'new', 'edit', 'import'],
                     lat: {
                         label: 'Latitude',
                         render: 'coord',
@@ -777,6 +785,7 @@ export const schema = {
                 },
                 {
                     legend: 'Camera Details',
+                    restrict: ['show', 'new', 'edit', 'import'],
                     cameras_id: {
                         render: 'select',
                         reference: 'cameras',
@@ -876,7 +885,7 @@ export const schema = {
                 },
                 {
                     legend: 'Capture Details',
-                    restrict: ['edit', 'show'],
+                    restrict: ['edit', 'show', 'upload'],
                     image_state: {
                         label: 'Image State',
                         render: 'select',
@@ -1003,7 +1012,7 @@ export const schema = {
                 },
                 {
                     legend: 'Capture Details',
-                    restrict: ['edit', 'show'],
+                    restrict: ['edit', 'show', 'upload'],
                     image_state: {
                         label: 'Image State',
                         render: 'select',

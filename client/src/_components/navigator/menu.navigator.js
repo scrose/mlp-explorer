@@ -8,7 +8,6 @@
 import React  from 'react';
 import Button from '../common/button';
 import { setNavView, setPref } from '../../_services/session.services.client';
-import { redirect } from '../../_utils/paths.utils.client';
 
 /**
  * Navigator menu component.
@@ -18,7 +17,7 @@ import { redirect } from '../../_utils/paths.utils.client';
  * @param setData
  * @param toggle
  * @param setToggle
- * @param setFilter
+ * @param setDialog
  * @param filtered
  * @public
  */
@@ -29,7 +28,7 @@ const MenuNavigator = ({
                            setData,
                            toggle,
                            setToggle,
-                           setFilter,
+                           setDialog,
                            filtered
 }) => {
 
@@ -80,17 +79,15 @@ const MenuNavigator = ({
                         />
                     </li>
                     {
-                        view === 'map'
-                            ? <li>
+                        view === 'map' && <li>
                                 <Button
                                     icon={'filter'}
                                     label={toggle ? 'Filter' : ''}
                                     className={filtered ? 'active' : ''}
                                     title={`Filter map stations.`}
-                                    onClick={() => setFilter(true)}
+                                    onClick={() => setDialog({ type: 'filter' })}
                                 />
                               </li>
-                            : ''
                     }
                     <li>
                         <Button
@@ -101,24 +98,6 @@ const MenuNavigator = ({
                             onClick={() => setView('search')}
                         />
                     </li>
-                        <li>
-                            <Button
-                                icon={'iat'}
-                                label={toggle ? 'Toolkit' : ''}
-                                className={view === 'iat' ? 'active' : ''}
-                                title={`Image Analysis Toolkit`}
-                                onClick={() => {
-                                    // collapse navigator
-                                    setToggle(false);
-                                    setPref('navToggle', false);
-                                    // set navigator view
-                                    set('iat');
-                                    setNavView('iat');
-                                    // redirect to IAT in viewer/editor
-                                    redirect('/iat')
-                                }}
-                            />
-                        </li>
                 </ul>
             </div>
         </div>

@@ -7,7 +7,7 @@
 
 import * as React from 'react'
 import { makeRequest } from '../_services/api.services.client';
-import { createNodeRoute, filterPath, reroute, getRoot, createURL } from '../_utils/paths.utils.client';
+import { createNodeRoute, filterPath, reroute, getRoot, createAPIURL } from '../_utils/paths.utils.client';
 import { getStaticView } from '../_services/schema.services.client';
 import { clearNodes, popSessionMsg } from '../_services/session.services.client';
 
@@ -115,7 +115,7 @@ function RouterProvider(props) {
         // reject null paths or when API is offline
         if (!route || !online ) return null;
 
-        let res = await makeRequest({url: createURL(route, params), method:'GET'})
+        let res = await makeRequest({url: createAPIURL(route, params), method:'GET'})
             .catch(err => {
                 // handle API connection errors
                 console.error('An API error occurred:', err)
@@ -144,7 +144,7 @@ function RouterProvider(props) {
         const parsedData = formData ? Object.fromEntries(formData) : {};
 
         let res = await makeRequest({
-            url: createURL(route),
+            url: createAPIURL(route),
             method:'POST',
             data: parsedData
         })

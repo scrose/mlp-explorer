@@ -19,6 +19,7 @@ import * as fserve from '../services/files.services.js';
 import * as importer from '../services/import.services.js';
 import * as metaserve from '../services/metadata.services.js';
 import { sanitize, humanize } from '../lib/data.utils.js';
+import { isRelatable } from '../services/schema.services.js';
 
 /**
  * Shared data.
@@ -303,6 +304,97 @@ export default function ModelController(nodeType) {
             const importedData = await importer.receive(req, owner_id, owner_type);
             const item = new Model(metadata);
             item.setData(importedData.data);
+
+            // update database record
+            await mserve.update(item);
+
+            // get updated item
+            let updatedItem = await nserve.get(id);
+
+            // create node path
+            const path = await nserve.getPath(node);
+
+            // send response
+            res.status(200).json(
+                prepare({
+                    view: 'show',
+                    model: model,
+                    data: updatedItem,
+                    path: path,
+                    message: {
+                        msg: `'${updatedItem.label}' ${humanize(model.name)} updated successfully!`,
+                        type: 'success'
+                    },
+                }));
+
+        } catch (err) {
+            console.error(err)
+            return next(err);
+        } finally {
+            client.release();
+        }
+    };
+
+    /**
+     * Move item to new owner.
+     *
+     * @param req
+     * @param res
+     * @param next
+     * @src public
+     */
+
+    this.move = async (req, res, next) => {
+
+        const client = await pool.connect();
+
+        try {
+
+            // get node data from parameters
+            const id = this.getId(req);
+            const itemData = await nserve.get(id);
+
+            // check that file entry exists
+            if (!itemData) {
+                return next(new Error('invalidRequest'));
+            }
+
+            // process imported metadata
+            const {owner_id=''} = req.body || {};
+            const ownerData = await nserve.select(owner_id);
+
+            // reject if owner does not exist
+            if (!ownerData) {
+                return next(new Error('invalidRequest'));
+            }
+
+            // is the move allowed? (i.e. check if the owner and node relatable)
+            const isMoveable = await isRelatable(id, owner_id, client);
+            if (!isMoveable) {
+                return next(new Error('invalidMove'));
+            }
+
+            console.log(nodeType, itemData.metadata)
+            const item = new Model(itemData.metadata);
+
+
+
+            // get old file path
+            console.log(itemData.fs_path, ownerData.fs_path)
+
+            // send response
+            return res.status(200).json(
+                prepare({
+                    view: 'show',
+                    model: model,
+                    data: await isRelatable(id, owner_id),
+                    message: {
+                        msg: `${humanize(model.name)} moved successfully!`,
+                        type: 'success'
+                    },
+                }));
+
+
 
             // update database record
             await mserve.update(item);

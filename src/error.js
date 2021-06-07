@@ -126,7 +126,7 @@ export const errors = {
     },
     '23503': {
         hint: 'Deletion of node before deleting dependent files.',
-        msg: 'Update or delete failed. Please ensure all dependent records and files are deleted before deleting this item.',
+        msg: 'Update or delete failed. For node deletions, please ensure all dependent files are deleted before deletion.',
         status: 422,
         type: 'error'
     },
@@ -146,6 +146,12 @@ export const errors = {
         hint: 'Route is not implemented in the router.',
         msg: 'Requested route not found.',
         status: 404,
+        type: 'error'
+    },
+    invalidMove: {
+        hint: 'Captures can only be moved to restricted nodes.',
+        msg: 'Item cannot be moved to this owner.',
+        status: 422,
         type: 'error'
     },
     invalidMaster: {
