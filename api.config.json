@@ -1,7 +1,7 @@
 {
   "name": "mle-api",
   "script": "npm",
-  "args": "start",
+  "args": "startdev",
   "watch": ".",
   "ignore_watch": ["node_modules"],
   "instances"  : 4,
