@@ -54,14 +54,14 @@ const HeaderEditor = () => {
                     <ul>
                         <li><Logo /></li>
                         <li><MainMenu /></li>
-                        <li className={'push'}><UserMenu /></li>
-                        <li>
+                        <li className={'push'}>
                             <div className={'logo-mlp-svg'}>
                                 <a href={"http://mountainlegacy.ca"} rel="noreferrer" target={'_blank'}>
                                     <MLPLogo />
                                 </a>
                             </div>
                         </li>
+                        <li><UserMenu /></li>
                     </ul>
                 </div>
                 <div className={'context-menu'}>
