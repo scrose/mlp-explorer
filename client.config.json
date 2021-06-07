@@ -1,7 +1,7 @@
 {
   "name": "mle-client",
   "script": "npm",
-  "args": "start",
+  "args": "startdev",
   "cwd": "./client",
   "env": {
     "NODE_ENV": "development"
