@@ -495,7 +495,7 @@ export const getFilePath = (type , file, metadata = {}) => {
     // - check if using MEAT images or local ones
     // ======================================================
     const rootURI = metadata.channels
-        ? `${process.env.UPLOAD_DIR}/versions/`
+        ? process.env.LOWRES_PATH
         : `${process.env.DEV_API_HOST}/versions/`;
     // ======================================================
 
