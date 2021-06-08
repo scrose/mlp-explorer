@@ -88,6 +88,7 @@ export const loadImageData = async (properties, callback) => {
             download(route, mimeType)
                 .then(res => {
                     if (res.error) return callback({error: { msg: res.error, type: 'error' }});
+                    console.log(getImageType(res.data))
                     loadFile(res.data, mimeType);
                 })
                 .catch(err => {callback({ status: 'empty', error: { msg: err, type: 'error' } })});
