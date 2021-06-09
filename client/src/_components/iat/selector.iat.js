@@ -147,10 +147,10 @@ export const ImageSelector = ({
         const { files_id = {} } = selectedImage || {};
 
         // get local file data
-        const file = target.files[0];
+        const file = target.files[0] || {};
 
         // Handle TIFF images
-        if (allowedFileTypes.includes(file.type)) {
+        if (file.hasOwnProperty('type') || allowedFileTypes.includes(file.type)) {
             // set canvas properties
             setSelectedImage({
                 files_id: files_id,
@@ -162,13 +162,13 @@ export const ImageSelector = ({
                 fileData: target.files[0],
             });
         } else {
-            setMessage(`Image format ${file.type} is not supported.`);
+            setMessage({msg: `Image format is not supported.`, type:'error'});
         }
     };
 
     return <>
         {
-            message && <UserMessage closeable={true} message={message} />
+            message && <UserMessage onClose={()=>{setMessage(null)}} closeable={true} message={message} />
         }
         {
             isCapture && user && <>
@@ -193,6 +193,7 @@ export const ImageSelector = ({
             <Input
                 type={'file'}
                 name={'image_file'}
+                value={{importFiles: { name: selectedFile }}}
                 files={[selectedFile]}
                 onChange={_handleChange}
             />

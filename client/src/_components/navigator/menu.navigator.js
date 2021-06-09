@@ -8,6 +8,8 @@
 import React  from 'react';
 import Button from '../common/button';
 import { setNavView, setPref } from '../../_services/session.services.client';
+import { getStaticView } from '../../_services/schema.services.client';
+import { useRouter } from '../../_providers/router.provider.client';
 
 /**
  * Navigator menu component.
@@ -31,6 +33,8 @@ const MenuNavigator = ({
                            setDialog,
                            filtered
 }) => {
+
+    const router = useRouter();
 
     // Sets the current navigation view (tree/map)
     // - set in state and persistent session variable

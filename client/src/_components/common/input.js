@@ -340,18 +340,27 @@ export const Input = ({
         },
 
         file: () => {
-            // handle drag-over of files
+
+            /**
+             * Drag-over file selector.
+             *
+             * @public
+             * @param {Object} e
+             */
+
             const _handleDragOver = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setHighlight(true);
             };
+
             /**
-             * Drag-and-drop handlers for file inputs. Updates references state.
+             * Drag-and-drop file inputs. Updates references state.
              *
              * @public
              * @param {Object} e
              */
+
             const _handleDrop = (e) => {
                 e.preventDefault();
                 // handle files to update form data state
@@ -362,7 +371,9 @@ export const Input = ({
             };
 
             // extract file names
-            const files =  Object.keys(value).map(fkey => {return value[fkey].name}) || [];
+            const files =  Object.keys(value).map(fkey => {
+                return value[fkey].name
+            }) || [];
 
             return <>
                 <label

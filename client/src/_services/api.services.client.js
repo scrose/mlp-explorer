@@ -149,6 +149,11 @@ export const upload = async (route, formData, callback=()=>{}, online=true) => {
             return callback(null, {msg: statusText || 'An API Error Occurred.', type: 'error'});
         };
 
+        // abort network request
+        xhr.onabort = function() {
+            return callback(null, {msg: 'Upload has been stopped.', type: 'warn'});
+        };
+
         // Upload progress callback
         xhr.upload.onprogress = function(e) {
             return callback(e);
@@ -174,9 +179,9 @@ export const upload = async (route, formData, callback=()=>{}, online=true) => {
             return callback(null, {msg: 'Upload completed!', type: 'success'});
         };
 
-        // send POST request to server
+        // send POST request to server and return request
         xhr.send(formData);
-
+        return xhr;
 
     } catch (err) {
         return callback(null, {msg: 'Submission Failed. Please try again.', type: 'error'});
@@ -219,12 +224,11 @@ export const download = async (route, format, online=true) => {
  * Lookup allowed mimetype from file extension.
  *
  * @src public
- * @param filename
+ * @param {String} format
  * @return {String} mimetype
  */
 
-export function getMIME(filename) {
-    const ext = filename.split('.').pop() || '';
+export function getMIME(format) {
     const mime_types = {
         "any": "*/*",
         "img": 'image/*',
@@ -241,7 +245,9 @@ export function getMIME(filename) {
         'png': 'image/png',
         'tif': 'image/tiff',
         'tiff': 'image/tiff',
-        'ARW': 'image/x-sony-arw',
+        'tiff-le': 'image/tiff',
+        'tiff-be': 'image/tiff',
+        '3RF': 'image/*',
         'CR2': 'image/x-canon-cr2',
         'CRW': 'image/x-canon-crw',
         'DCR': 'image/x-kodak-dcr',
@@ -259,5 +265,5 @@ export function getMIME(filename) {
         'SRF': 'image/x-sony-srf',
         'X3F': 'image/x-sigma-x3f',
     };
-    return mime_types.hasOwnProperty(ext) ? mime_types[ext] : null;
+    return mime_types.hasOwnProperty(format) ? mime_types[format] : null;
 }

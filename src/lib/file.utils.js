@@ -102,3 +102,51 @@ export function allowedMIME(mimeType) {
     return Object.keys(mimeTypes).find(ext => mimeTypes[ext] === mimeType);
 }
 
+
+/**
+ * Determines image format based on file signature.
+ * - NOTE: Not all of the following formats have been implemented.
+ * Bitmap format .bmp 42 4d BM
+ * FITS format .fits 53 49 4d 50 4c 45 SIMPL
+ * GIF format .gif 47 49 46 38 GIF
+ * Graphics Kernel System .gks 47 4b 53 4d GKS
+ * IRIS rgb format .rgb 01 da
+ * ITC (CMU WM) format .itc f1 00 40 bb
+ * JPEG File Interchange Format .jpg ff d8 ff e0
+ * NIFF (Navy TIFF) .nif 49 49 4e 31 IIN
+ * PM format .pm 56 49 45 57 VIE
+ * PNG format .png 89 50 4e 47 .PN
+ * Postscript format .[e]ps 25 21 %
+ * Sun Rasterfile .ras 59 a6 6a 95 Y.j
+ * Targa format .tga xx xx xx ..
+ * TIFF format (Motorola - big endian) .tif 4d 4d 00 2a MM.
+ * TIFF format (Intel - little endian) .tif 49 49 2a 00 II*
+ * X11 Bitmap format .xbm xx x
+ * XCF Gimp file structure .xcf 67 69 6d 70 20 78 63 66 20 76 gimp xc
+ * Xfig format .fig 23 46 49 47 #FI
+ * XPM format .xpm 2f 2a 20 58 50 4d 20 2a 2f
+ * @return {string} image format
+ */
+
+export const getImageType = (buffer) => {
+    const int8Array = new Uint8Array(buffer);
+    const [b0, b1, b2, b3] = int8Array.slice(0, 4);
+
+    console.log('File Signature:', b0, b1, b2, b3);
+    const formats = {
+        'png': [],
+        'gif': [],
+        'bmp': [],
+        'jpg': [255, 216, 255, 219],
+        'tiff-le': [77, 77, 0, 42],
+        'tiff-be': [73, 73, 42, 0],
+    };
+    const detected = Object.keys(formats).find((type) => {
+        return b0 === parseInt(formats[type][0])
+            && b1 === parseInt(formats[type][1])
+            && b2 === parseInt(formats[type][2])
+            && b3 === parseInt(formats[type][3]);
+    });
+    return detected || 'unknown';
+};
+

@@ -16,16 +16,7 @@ import dataModel from '../img/mlp_data_model.jpg';
  * Index of general help content
  */
 
-export default (setSection, setPage) => {
-
-    /**
-     * Navigate to help section.
-     */
-
-    const _gotoPage = (section, page) => {
-        setSection(section);
-        setPage(page);
-    };
+export default (gotoPage) => {
 
     /**
      * Explorer "Getting Started" help page.
@@ -72,7 +63,7 @@ export default (setSection, setPage) => {
                 <td>
                     <p>Use the viewer to explore the MLP collection images and metadata in detail.
                         Go to <Button icon={'help'} label={'Viewer'} onClick={() => {
-                            _gotoPage(0, 1);
+                            gotoPage(0, 1);
                         }} /> for more information.
                     </p>
                 </td>
@@ -82,7 +73,7 @@ export default (setSection, setPage) => {
                 <td>
                     <p>Use the navigator to explore the MLP collection from a bird's eye view.
                         Go to <Button icon={'help'} label={'Navigation'} onClick={() => {
-                        _gotoPage(0, 2);
+                        gotoPage(0, 2);
                     }} /> for more information.
                     </p>
                 </td>
@@ -101,7 +92,7 @@ export default (setSection, setPage) => {
         <h4>Viewer</h4>
 
         <p>The viewer is the main right-side panel where files and metadata is loaded from the navigator and menus.
-            Any node in the MLP <Button icon={'help'} label={'Data Model'} onClick={() => {_gotoPage(0, 3)}} /> can
+            Any node in the MLP <Button icon={'help'} label={'Data Model'} onClick={() => {gotoPage(0, 3)}} /> can
             have its metadata and attached files loaded in the viewer. For example,
             survey data for surveyor <a href={"http://localhost:3000/surveyors/show/5"}>Morrison Parsons Bridgland</a> is
             listed under the "Surveys" tab. Each item in the list can be expanded to show metadata for that item, as well as

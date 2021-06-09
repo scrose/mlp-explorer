@@ -20,7 +20,6 @@ import OptionsView from '../views/options.view';
 import HelpView from '../views/help.view';
 import Exporter from '../tools/export.tools';
 import Download from '../common/download';
-import Badge from '../common/badge';
 
 /**
  * Editor menu component.
@@ -49,7 +48,7 @@ const MenuEditor = ({
     const modelLabel = getModelLabel(model);
 
     // get optional group type used as fieldset selector (if exists)
-    const {group_type = ''} = metadata || {};
+    const {group_type = '', image_state=''} = metadata || {};
 
     // visibility settings for menu & menu items
     const showExclude = ['dashboard', 'list', 'register', 'new', 'attach', 'attachItem'];
@@ -79,13 +78,9 @@ const MenuEditor = ({
         remove: !!(id && model && metadata && !removeExclude.includes(view)),
         attach: view === 'attach',
         attachItem: view === 'attachItem',
-        master: (
-            (fileType === 'modern_images' || fileType === 'historic_images') &&
-            (
-                ( owner.hasOwnProperty('sorted') && owner.sorted ) ||
-                (isEditor && api.status.hasOwnProperty('sorted') && api.status.sorted)
-            )
-        ),
+        iat: image_state !== 'raw' && (fileType === 'modern_images'
+            || fileType === 'historic_images'
+            || fileType === 'supplemental_images'),
         download: fileType === 'modern_images'
                 || fileType === 'historic_images'
                 || fileType === 'supplemental_images',
@@ -97,7 +92,6 @@ const MenuEditor = ({
         import_mc: !!(dependents || [])
             .find(dependent => dependent === 'modern_captures')
             && !dependentsExclude.includes(view),
-        iat: getStaticView(router.route) === 'imageToolkit'
     }
 
     // generate unique ID value for form inputs
@@ -395,26 +389,6 @@ const MenuEditor = ({
                         </li>
                     }
                     {
-                        isVisible.master &&
-                        <li key={`${menuID}_menuitem_master`}>
-                            <Button
-                                icon={'align'}
-                                label={!compact ? 'Master' : ''}
-                                title={`Master ${getModelLabel(fileType)} ${label}.`}
-                                onClick={() =>
-                                    // launch IAT tool for capture image mastering:
-                                    // - load historic images into Panel 1
-                                    // - load modern images into Panel 2
-                                    router.update(
-                                        fileType === 'historic_images'
-                                            ? `/iat?input1=${id}&type1=${fileType}`
-                                            : `/iat?input2=${id}&type2=${fileType}`
-                                    )
-                                }
-                            />
-                        </li>
-                    }
-                    {
                         // add dropdown menu for adding dependent nodes
                         isVisible.dropdown &&
                         <li ref={dropdown} key={`${menuID}_menuitem_dropdown`}>
@@ -514,6 +488,26 @@ const MenuEditor = ({
                                     </ul>
                                 </div>
                             }
+                        </li>
+                    }
+                    {
+                        isVisible.iat &&
+                        <li key={`${menuID}_menuitem_iat`}>
+                            <Button
+                                icon={'iat'}
+                                label={!compact ? 'Open in IAT' : ''}
+                                title={`Load ${getModelLabel(fileType)} ${label} in IAT.`}
+                                onClick={() =>
+                                    // launch IAT tool for capture image mastering:
+                                    // - load historic images into Panel 1
+                                    // - load modern images into Panel 2
+                                    router.update(
+                                        fileType === 'historic_images'
+                                            ? `/iat?input1=${id}&type1=${fileType}`
+                                            : `/iat?input2=${id}&type2=${fileType}`
+                                    )
+                                }
+                            />
                         </li>
                     }
                     {

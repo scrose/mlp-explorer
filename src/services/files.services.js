@@ -9,7 +9,7 @@
 
 import path from 'path';
 import fs from 'fs';
-import { copyFile, unlink, mkdir } from 'fs/promises';
+import { copyFile, unlink, mkdir, readFile, writeFile } from 'fs/promises';
 import sharp from 'sharp';
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
@@ -19,14 +19,17 @@ import * as metaserve from '../services/metadata.services.js';
 import * as nserve from '../services/nodes.services.js';
 import ModelServices from './model.services.js';
 import { allowedMIME } from '../lib/file.utils.js';
+import ExifReader from 'exifreader';
+import dcraw from 'dcraw';
+import os from 'os';
 
 /* Available image version sizes */
 
 const imageSizes = {
     thumb: 150,
     medium: 900,
-    full: 2100
-}
+    full: 2100,
+};
 
 /**
  * Get file record by ID. NOTE: returns single object.
@@ -37,7 +40,7 @@ const imageSizes = {
  * @return {Promise} result
  */
 
-export const select = async function(id, client=pool) {
+export const select = async function(id, client = pool) {
     let { sql, data } = queries.files.select(id);
     let file = await client.query(sql, data);
     return file.rows[0];
@@ -64,8 +67,8 @@ export const get = async (id, client = pool) => {
 
     // get associated file metadata
     const metadata = await selectByFile(file, client) || {};
-    const { type='', secure_token=''} = metadata || {};
-    const { file_type = '', filename='', owner_id='' } = file || {};
+    const { type = '', secure_token = '' } = metadata || {};
+    const { file_type = '', filename = '', owner_id = '' } = file || {};
     const owner = await nserve.select(owner_id, client) || {};
 
     // include alternate extracted filename (omit the security token)
@@ -77,7 +80,7 @@ export const get = async (id, client = pool) => {
         metadata: metadata,
         metadata_type: await metaserve.selectByName('metadata_file_types', type),
         url: getFileURL(file_type, metadata),
-        status: await metaserve.getStatus(owner, metadata, client)
+        status: await metaserve.getStatus(owner, metadata, client),
     };
 
 };
@@ -101,9 +104,9 @@ export const selectByOwner = async (id, client = pool) => {
     let files = await Promise.all(
         rows.map(
             async (file) => {
-                const { file_type = '', filename='' } = file || {};
+                const { file_type = '', filename = '' } = file || {};
                 const fileMetadata = await selectByFile(file, client);
-                const { type='', secure_token=''} = fileMetadata || {};
+                const { type = '', secure_token = '' } = fileMetadata || {};
                 return {
                     file: file,
                     label: await metaserve.getFileLabel(file),
@@ -185,10 +188,10 @@ export const getOwnerByFileType = async function(fileType, client = pool) {
  * @return {Promise} result
  */
 
-export const insert = async (importData, model, fileOwner=null) => {
+export const insert = async (importData, model, fileOwner = null) => {
 
     const captureTypes = ['historic_captures', 'modern_captures'];
-    const {files={}, data={}, owner={}} = importData || {};
+    const { files = {}, data = {}, owner = {} } = importData || {};
     const metadata = data;
 
     // filter image states from imported metadata
@@ -225,13 +228,13 @@ export const insert = async (importData, model, fileOwner=null) => {
             const captureData = await mserve.insert(capture);
 
             // get capture node metadata
-            const {nodes_id=''} = captureData || {};
-            const {fs_path=''} = await nserve.select(nodes_id) || {};
+            const { nodes_id = '' } = captureData || {};
+            const { fs_path = '' } = await nserve.select(nodes_id) || {};
 
             return {
                 id: nodes_id,
                 type: model,
-                fs_path: fs_path
+                fs_path: fs_path,
             };
         },
 
@@ -240,9 +243,9 @@ export const insert = async (importData, model, fileOwner=null) => {
             return {
                 id: owner.id,
                 type: owner.type,
-                fs_path: owner.fs_path
+                fs_path: owner.fs_path,
             };
-        }
+        },
     };
 
     // NOTE: client undefined if connection fails.
@@ -260,17 +263,28 @@ export const insert = async (importData, model, fileOwner=null) => {
                 ? await initFileOwners.captures()
                 : await initFileOwners.default();
 
+        // get file options
+        const options = await metaserve.getMetadataOptions();
+
         // saves attached files and inserts metadata record for each
         res = await Promise
             .all(Object.keys(files)
                 .map(async (key) => {
 
                     // upload file and save to image data store
-                    await saveFile(key, importData, fileOwner, imageState);
+                    await saveFile(
+                        key,
+                        importData,
+                        fileOwner,
+                        imageState,
+                        options,
+                        (err) => {
+                            throw new Error(err);
+                        });
 
                     // get imported metadata
-                    const { data={}, file={} } = files[key] || {};
-                    const {file_type=''} = file || {};
+                    const { data = {}, file = {} } = files[key] || {};
+                    const { file_type = '' } = file || {};
 
                     // update file owner data
                     data.owner_id = fileOwner.id;
@@ -301,7 +315,7 @@ export const insert = async (importData, model, fileOwner=null) => {
                     let fileRes = await client.query(stmtFileNode.sql, stmtFileNode.data);
 
                     // update file metadata files_id with created file ID, defined image state
-                    const {id=''} = fileRes.hasOwnProperty('rows') && fileRes.rows.length > 0
+                    const { id = '' } = fileRes.hasOwnProperty('rows') && fileRes.rows.length > 0
                         ? fileRes.rows[0] || {}
                         : {};
                     fileItem.id = id;
@@ -315,7 +329,7 @@ export const insert = async (importData, model, fileOwner=null) => {
                     return modelRes.hasOwnProperty('rows') && modelRes.rows.length > 0
                         ? {
                             file: fileRes.rows[0],
-                            metadata: modelRes.rows[0]
+                            metadata: modelRes.rows[0],
                         }
                         : null;
 
@@ -324,7 +338,7 @@ export const insert = async (importData, model, fileOwner=null) => {
         await client.query('COMMIT');
 
         // return confirmation data
-        return res
+        return res;
 
     } catch (err) {
         await client.query('ROLLBACK');
@@ -344,7 +358,7 @@ export const insert = async (importData, model, fileOwner=null) => {
  * @return {Promise} result
  */
 
-export const update = async(item, client=pool) => {
+export const update = async (item, client = pool) => {
 
     let { sql, data } = queries.files.update(item);
     let response = await client.query(sql, data);
@@ -364,7 +378,7 @@ export const update = async(item, client=pool) => {
  * @public
  */
 
-export const remove = async(file, filepaths, client=pool) => {
+export const remove = async (file, filepaths, client = pool) => {
 
     // remove file node record
     let { sql, data } = queries.files.remove(file);
@@ -375,9 +389,9 @@ export const remove = async(file, filepaths, client=pool) => {
     // - requires removal of static slug from file path
     //   as set in Express static-serve
     await Promise.all(
-        filepaths.map( async (filePath) => {
+        filepaths.map(async (filePath) => {
             fs.stat(filePath, async (err, stat) => {
-                if(err == null) {
+                if (err == null) {
                     return await unlink(filePath);
                 } else if (err.code === 'ENOENT') {
                     // file does not exist (ignore)
@@ -387,14 +401,14 @@ export const remove = async(file, filepaths, client=pool) => {
                     throw err;
                 }
             });
-        })
+        }),
     );
 
     // response data
     return response.hasOwnProperty('rows') && response.rows.length > 0
         ? response.rows[0]
         : null;
-}
+};
 
 /**
  * Download file stream.
@@ -484,7 +498,7 @@ export const getFileURL = (type = '', data = {}) => {
  * @return {Promise} result
  */
 
-export const getFilePath = (type , file, metadata = {}) => {
+export const getFilePath = (type, file, metadata = {}) => {
 
     const { fs_path = '' } = file || {};
     const { secure_token = '' } = metadata || {};
@@ -514,7 +528,7 @@ export const getFilePath = (type , file, metadata = {}) => {
         },
         default: () => {
             return path.join(fs_path);
-        }
+        },
     };
 
     // Handle file types
@@ -540,30 +554,89 @@ export const selectByFile = async (file, client = pool) => {
 };
 
 /**
- * Extract image metadata.
+ * Extract image file metadata.
  *
  * @return {Object} output file data
  * @src public
- * @param imgPath
- * @param file
- * TODO: Improve exif extraction
+ * @param src
+ * @param fileData
+ * @param options
+ * @param isRAW
+ * @param onError
  */
 
-export const getImageInfo = function(imgPath, file) {
-    const image = sharp(imgPath);
-    return image
-        .metadata()
-        .then(function(info) {
-            if (info.hasOwnProperty('xmp'))
-                file.format = info.format;
-            file.x_dim = info.width;
-            file.y_dim = info.height;
-            file.bit_depth = info.depth;
-            file.channels = info.channels;
-            file.density = info.density;
-            file.space = info.space;
-        })
-        .catch(console.error);
+export const getImageInfo = async (
+    src,
+    fileData,
+    options,
+    isRAW,
+    onError = console.error,
+) => {
+
+    const buffer = await readFile(src);
+
+    // load image into sharp
+    // Reference: https://sharp.pixelplumbing.com/
+    const image = sharp(buffer, {
+        limitInputPixels: false,
+    });
+
+    // extract image metadata
+    const info = await image.metadata();
+    fileData.file.file_size = info.size;
+    fileData.file.mimetype = isRAW ? 'raw' : info.format;
+    fileData.data.format = isRAW ? 'raw' : info.format;
+    fileData.data.x_dim = info.width;
+    fileData.data.y_dim = info.height;
+    fileData.data.bit_depth = info.depth;
+    fileData.data.channels = info.channels;
+    fileData.data.density = info.density;
+    fileData.data.space = info.space;
+
+    // get EXIF metadata tags
+    const exifTags = await ExifReader.load(src);
+    const {
+        Model = { value: [''] },
+        DateTime = {},
+        ExposureTime = { value: ['', 1] },
+        FNumber = { value: ['', 1] },
+        ISOSpeedRatings = { value: '' },
+        FocalLength = { value: ['', 1] },
+        GPSLatitude = { value: [''] },
+        GPSLongitude = { value: [''] },
+        GPSAltitude = { value: [''] },
+    } = exifTags || {};
+
+    // copy additional EXIF metadata
+    if (
+        DateTime.hasOwnProperty('value')
+        && (fileData.file.file_type === 'modern_images' || fileData.file.file_type === 'historic_images')
+    ) {
+        const [date, time] = DateTime.value[0].split(' ');
+        const [yr, mth, day] = date.split(':');
+        const [hr, min, sec] = time.split(':');
+        fileData.data.capture_datetime = new Date(
+            parseInt(yr),
+            parseInt(mth),
+            parseInt(day),
+            parseInt(hr),
+            parseInt(min),
+            parseInt(sec));
+    }
+
+    fileData.data.shutter_speed = sanitize(ExposureTime.value[0]/ExposureTime.value[1], 'float');
+    fileData.data.f_stop = sanitize(FNumber.value[0]/FNumber.value[1], 'float');
+    fileData.data.iso = sanitize(ISOSpeedRatings.value, 'integer');
+    fileData.data.focal_length = sanitize(FocalLength.value[0]/FocalLength.value[1], 'integer');
+    fileData.data.lat = sanitize(GPSLatitude.description, 'float');
+    fileData.data.lng = sanitize(GPSLongitude.description, 'float');
+    fileData.data.elev = sanitize(GPSAltitude.value[0], 'float')
+
+    // include camera model (if available)
+    const camera = options.cameras
+        .find(camera => camera.label === Model.value[0]);
+    if (camera) fileData.data.cameras_id = camera.value;
+
 };
 /**
  * Upload image to server. Applies file conversion if requested, otherwise
@@ -571,35 +644,22 @@ export const getImageInfo = function(imgPath, file) {
  *
  * @return {Object} output file data
  * @src public
- * @param srcPath
+ * @param src
  * @param output
- * @param format
+ * @param metadata
+ * @param callback
  */
 
-export const copyFileTo = function(srcPath, output, format) {
+export const copyFileTo = function(src, output, metadata, callback) {
 
     // handle conversion to requested formats
     const handleFormats = {
-        tif: () => {
-            // get sharp pipeline + write stream for uploading image
-            // - fails if the dest path exists
-            const pipeline = sharp(srcPath);
-            const writeStream = fs.createWriteStream(output.path, {flags: 'wx'});
-            pipeline
-                .resize(output.size)
-                .tif()
-                .pipe(writeStream);
-            return new Promise((resolve, reject) =>
-                writeStream
-                    .on('finish', resolve)
-                    .on('error', reject),
-            );
-        },
         jpeg: () => {
+
             // get sharp pipeline + write stream for uploading image
             // - fails if the dest path exists
-            const pipeline = sharp(srcPath);
-            const writeStream = fs.createWriteStream(output.path, {flags: 'wx'});
+            const pipeline = sharp(src, { limitInputPixels: false });
+            const writeStream = fs.createWriteStream(output.path, { flags: 'wx' });
             pipeline
                 .resize(output.size)
                 .jpeg({
@@ -610,19 +670,19 @@ export const copyFileTo = function(srcPath, output, format) {
             return new Promise((resolve, reject) =>
                 writeStream
                     .on('finish', resolve)
-                    .on('error', reject),
+                    .on('error', callback),
             );
         },
         default: () => {
             // default handler streams temporary file to new destination
             // - The copy operation will fail if dest already exists.
-            return copyFile(srcPath, output.path, fs.constants.COPYFILE_EXCL);
+            return copyFile(src, output.path, fs.constants.COPYFILE_EXCL);
         },
     };
 
     // handle requested format (default is raw image)
-    return handleFormats.hasOwnProperty(format)
-        ? handleFormats[format]()
+    return handleFormats.hasOwnProperty(output.format)
+        ? handleFormats[output.format]()
         : handleFormats.default();
 
 };
@@ -635,9 +695,18 @@ export const copyFileTo = function(srcPath, output, format) {
  * @param metadata
  * @param owner
  * @param imageStateData
+ * @param options
+ * @param callback
  */
 
-export const saveFile = async (index, metadata, owner, imageStateData=null) => {
+export const saveFile = async (
+    index,
+    metadata,
+    owner,
+    imageStateData = null,
+    options,
+    callback = console.warn,
+) => {
 
     // define file upload promises
     let filePromises = [];
@@ -650,7 +719,7 @@ export const saveFile = async (index, metadata, owner, imageStateData=null) => {
     const imgToken = genUUID();
 
     // get file type
-    const { file_type='', mimetype='', filename='' } = fileData.file || {};
+    const { file_type = '', mimetype = '', filename = '' } = fileData.file || {};
 
     // for multiple files, image state is indexed by the file index
     const imageState = !imageStateData || typeof imageStateData === 'string'
@@ -658,7 +727,7 @@ export const saveFile = async (index, metadata, owner, imageStateData=null) => {
         : imageStateData[index];
 
     // reject null file data
-    if (!file_type || !mimetype || !filename ) throw new Error();
+    if (!file_type || !mimetype || !filename) throw new Error();
 
     // initialize image versions
     const _handleImages = async (dir) => {
@@ -671,26 +740,29 @@ export const saveFile = async (index, metadata, owner, imageStateData=null) => {
 
         // create raw path directory (if does not exist)
         const rawPath = path.join(process.env.UPLOAD_DIR, owner.fs_path, dir);
-        await mkdir(rawPath, {recursive: true});
+        await mkdir(rawPath, { recursive: true });
 
         metadata.versions = {
             // create new filesystem path
             // - format: <UPLOAD_PATH>/<IMAGE_STATE>/<FILENAME>
             raw: {
-                // path: path.join(rawPath, tokenizedFilename),
+                format: 'raw',
                 path: path.join(rawPath, tokenizedFilename),
                 size: null,
             },
             // resized versions
             thumb: {
+                format: 'jpeg',
                 path: path.join(process.env.LOWRES_PATH, `thumb_${imgToken}.jpeg`),
                 size: imageSizes.thumb,
             },
             medium: {
+                format: 'jpeg',
                 path: path.join(process.env.LOWRES_PATH, `medium_${imgToken}.jpeg`),
                 size: imageSizes.medium,
             },
             full: {
+                format: 'jpeg',
                 path: path.join(process.env.LOWRES_PATH, `${imgToken}.jpeg`),
                 size: imageSizes.full,
             },
@@ -702,13 +774,37 @@ export const saveFile = async (index, metadata, owner, imageStateData=null) => {
         fileData.file.owner_id = owner.id;
         fileData.file.fs_path = metadata.versions.raw.path;
 
+        // read temporary image into buffer memory
+        let buffer = await readFile(fileData.tmp);
+        let copySaveTo = fileData.tmp;
+        let isRAW = false;
+
+        // convert RAW image to tiff
+        // Reference: https://github.com/zfedoran/dcraw.js/
+        if (imageState === 'raw') {
+            buffer = dcraw(buffer, {
+                useEmbeddedColorMatrix: true,
+                exportAsTiff: true,
+                useExportMode: true,
+            });
+            // create temporary file for upload (if format is supported)
+            if (buffer) {
+                const tmpName = Math.random().toString(16).substring(2) + '-' + filename;
+                copySaveTo = path.join(os.tmpdir(), path.basename(tmpName));
+                await writeFile(copySaveTo, buffer);
+                isRAW = true;
+            }
+        }
+
+        // get image metadata
+        await getImageInfo(copySaveTo, fileData, options, isRAW, callback);
+
         // copy images to data storage
         filePromises.push(
-            copyFileTo(fileData.tmp, metadata.versions.raw),
-            getImageInfo(fileData.tmp, fileData.data),
-            copyFileTo(fileData.tmp, metadata.versions.medium, 'jpeg'),
-            copyFileTo(fileData.tmp, metadata.versions.thumb, 'jpeg'),
-            copyFileTo(fileData.tmp, metadata.versions.full, 'jpeg'),
+            copyFileTo(fileData.tmp, metadata.versions.raw, fileData, callback),
+            copyFileTo(copySaveTo, metadata.versions.medium, fileData, callback),
+            copyFileTo(copySaveTo, metadata.versions.thumb, fileData, callback),
+            copyFileTo(copySaveTo, metadata.versions.full, fileData, callback),
         );
     };
 
@@ -741,7 +837,7 @@ export const saveFile = async (index, metadata, owner, imageStateData=null) => {
             const saveType = metadata.data.hasOwnProperty('type') ? metadata.data.type : 'unknown';
             // create raw path directory (if does not exist)
             const uploadPath = path.join(process.env.UPLOAD_DIR, owner.fs_path, saveType);
-            await mkdir(uploadPath, {recursive: true});
+            await mkdir(uploadPath, { recursive: true });
             const filePath = path.join(uploadPath, filename);
 
             // update file metadata
@@ -751,7 +847,7 @@ export const saveFile = async (index, metadata, owner, imageStateData=null) => {
 
             // copy file to data storage
             filePromises.push(
-                copyFileTo(fileData.tmp, {path: filePath}),
+                copyFileTo(fileData.tmp, { format: null, path: filePath }),
             );
         },
     };

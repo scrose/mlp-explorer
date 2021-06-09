@@ -90,9 +90,28 @@ const HelpView = ({ setToggle, section = 0, page = 0 }) => {
     const [editorPageSelected, setEditorPageSelected] = React.useState(page);
     const [iatPageSelected, setIATPageSelected] = React.useState(page);
 
-    const exploreHelp = explorerHelpContent(setSectionSelected, setExplorerPageSelected);
-    const editorHelp = editorHelpContent(setSectionSelected, setEditorPageSelected);
-    const iatHelp = iatHelpContent(setSectionSelected, setIATPageSelected);
+    /**
+     * Navigate to help section.
+     */
+
+    const gotoPage = (section, page) => {
+        setSectionSelected(section);
+
+        const pageSelector = [
+            setExplorerPageSelected,
+            setEditorPageSelected,
+            setIATPageSelected
+        ]
+
+        // set selected page
+        if (section < pageSelector.length) {
+            pageSelector[section](page);
+        }
+    };
+
+    const exploreHelp = explorerHelpContent(gotoPage);
+    const editorHelp = editorHelpContent(gotoPage);
+    const iatHelp = iatHelpContent(gotoPage);
 
     // index of help sections
     const _sections = [

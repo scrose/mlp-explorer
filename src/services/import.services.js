@@ -16,6 +16,7 @@ import Busboy from 'busboy';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import dcraw from 'dcraw';
 
 /**
  * Async busboy file and data importer.
@@ -169,10 +170,6 @@ export const onFile = (filePromises, metadata, onError, fieldname, file, filenam
             .pipe(writeStream)
             .on('error', reject)
             .on('finish', () => {
-                // get file size
-                const stats = fs.statSync(saveTo)
-                fileData.file.file_size = stats.size;
-
                 // attach file data to global metadata
                 // - for multiple files on same type, use key index (e.g. 'file_type[2]')
                 // - for multiple files on different type, use file index
@@ -219,43 +216,6 @@ export function onField(fields, name, val, fieldnameTruncated, valTruncated) {
     }
     else {
         fields[name] = val;
-    }
-}
-
-
-/**
- * Insert file metadata record into database
- * - called when files have completed upload to server
- * - bulkData: common metadata for all uploaded files
- *
- * @return {Object} output file data
- * @src public
- * @param metadata
- * @param bulkData
- */
-
-export const insertMetadata = (metadata, bulkData) => {
-    try {
-        // get bulk metadata
-        const { id = '', image_state = '' } = bulkData || {};
-
-        // for each file, insert new metadata record in db
-        metadata.map(md => {
-
-            // create model instance of owner
-            const item = new Model(md.data);
-            item.setValue('image_state', image_state);
-
-            // set owner and file metadata
-            item.owner = id;
-            item.file = md.file;
-
-            // insert file metadata record
-            services.insert(item);
-        });
-
-    } catch (err) {
-        return null;
     }
 }
 

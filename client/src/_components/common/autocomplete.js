@@ -13,10 +13,10 @@ import React from 'react';
  * @public
  */
 
-export const Autocomplete = ({}) => {
+export const Autocomplete = ({options}) => {
     // variables
     const people = ['john doe', 'maria', 'paul', 'george', 'jimmy'];
-    let results = [];
+    //let results = [];
 
     // functions
     function autocomplete(val) {
@@ -30,6 +30,8 @@ export const Autocomplete = ({}) => {
 
         return people_return;
     }
+
+    return <>{options}</>
 
     // events
     // input.onkeyup = function(e) {

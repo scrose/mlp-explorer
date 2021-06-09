@@ -10,9 +10,6 @@ import { saveAs } from 'file-saver';
 import { useRouter } from '../../_providers/router.provider.client';
 import { download } from '../../_services/api.services.client'
 import Button from './button';
-import { UserMessage } from './message';
-import Icon from './icon';
-import { getExtension } from '../../_utils/paths.utils.client';
 
 /**
  * Defines download button.

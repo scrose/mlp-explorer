@@ -17,6 +17,7 @@ import Badge from './badge';
  * @param title
  * @param description
  * @param progress
+ * @param xhr
  * @param messages
  * @param setMessages
  * @param hasUploads
@@ -29,6 +30,7 @@ const Progress = ({
                       title,
                       description,
                       progress={},
+                      xhr,
                       messages,
                       setMessages,
                       hasUploads=false,
@@ -71,14 +73,24 @@ const Progress = ({
                     return (
                         <div key={`${key}_msg_progress`}>
                             <UserMessage
-                                onClose={() => {setMessages({})}} closeable={true} message={messages[key]}  />
+                                onClose={() => {setMessages({})}}
+                                closeable={true}
+                                message={messages[key]}
+                            />
                             {
                                 // show progress bar if import has file uploads and no errors
                                 hasUploads && !error &&
                                 (
                                     <>
                                         <div className={'progress-bar'} style={progressBar}>
-                                            {`${data.percent}%`}
+                                            <span>{`${data.percent}%`}</span>
+                                            <Button icon={'cancel'} name={'cancel'} onClick={
+                                                () => {
+                                                    if (xhr.hasOwnProperty(key)) xhr[key].abort();
+                                                    setMessages(data => (
+                                                        { ...data, [key]: { msg: 'Upload Stopped!', type: 'warning' }})
+                                                    );
+                                                }} />
                                         </div>
                                         <div>
                                             <span>{`${(data.loaded)}MB of ${(data.total)}MB`}</span>

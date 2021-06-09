@@ -15,16 +15,8 @@ import Button from '../common/button';
  * @public
  */
 
-export default (setSection, setPage) => {
+const iatHelp = (gotoPage) => {
 
-    /**
-     * Navigate to help section.
-     */
-
-    const _gotoPage = (section, page) => {
-        setSection(section);
-        setPage(page);
-    };
 
     const iatStartHelp = <>
         <h4>Getting Started</h4>
@@ -36,7 +28,7 @@ export default (setSection, setPage) => {
         </p>
 
         <ol className={'list'}>
-            <li><b>Basic Features:</b> Image resizing, cropping and translation. Files can also be saved.</li>
+            <li><b>Basic Features:</b> Image panning, zooming, cropping and resizing. Files can also be saved.</li>
             <li><b>Comparative visualization:</b> Images can be viewed side-by-side and overlaid.</li>
             <li><b>Image Alignment:</b> Images can be aligned using user-selected control points.</li>
             <li><b>Image Registration:</b> Authenticated users can register aligned (mastered) images
@@ -58,7 +50,8 @@ export default (setSection, setPage) => {
 
         <h5>Loading Images</h5>
         <p>
-            The IAT has two image panels, each of which can display a single image on its view canvas.
+            The IAT has two image panels, each of which can display a single image on its view canvas. To view the
+            supported formats, go to <Button icon={'help'} label={'Supported Image Formats'} onClick={() => {gotoPage(1, 2)}} />.
             There are multiple ways to load an image into a panel:
         </p>
 
@@ -354,9 +347,10 @@ export default (setSection, setPage) => {
         <h4>Basic Features</h4>
 
         <h5>Zoom</h5>
-        <p>TBA</p>
+        <p>Zoom in or out of images by clicking the <Icon type={'zoomIn'} /> or  <Icon type={'zoomOut'} /> panel
+            control buttons.</p>
 
-        <h5>Translation</h5>
+        <h5>Panning</h5>
         <p>Loaded images can be moved on the canvas when in <b>Select</b> mode. Simply click and drag the image to
             change location. This translation <b>offset</b> is shown in the panel properties below the canvas.</p>
 
@@ -426,7 +420,7 @@ export default (setSection, setPage) => {
         <h5>Selecting Control Points</h5>
         <ol className={'list'}>
             <li>Load the source and target images into the panels by following the methods described in the
-                <Button icon={'help'} label={'IAT: Getting Started'} onClick={() => {_gotoPage(2, 0)}} /> section:
+                <Button icon={'help'} label={'IAT: Getting Started'} onClick={() => {gotoPage(2, 0)}} /> section:
                 <ol>
                     <li>Opening the file from the local filesystem</li>
                     <li>Loading the file selected from the Explorer.</li>
@@ -476,39 +470,35 @@ export default (setSection, setPage) => {
             that are indexed as comparisons and assigned the 'master' image state.
         </p>
         <h5>Preconditions</h5>
-        <p>
-            An image pair can be registered as 'mastered' in the MLP system if it meets the following preconditions:
-            <ol className={'list'}>
-                <li><b>Capture images are both sorted</b> The loaded historic (Panel 1) and modern (Panel 2) capture images,
-                    must be attached to a historic visit and location (modern visit) respectively, which are associated
-                    with a common station node.
-                </li>
-                <li><b>Capture images are aligned</b> It is assumed the modern capture image has been aligned in Panel 2
-                    with an historic image loaded. Follow the instructions in <Button icon={'help'} label={'Image Alignment'} onClick={() => {_gotoPage(2, 2)}} /> to
-                align the images.</li>
-            </ol>
-        </p>
+        <p>An image pair can be registered as 'mastered' in the MLP system if it meets the following preconditions:</p>
+        <ol className={'list'}>
+            <li><b>Capture images are both sorted</b> The loaded historic (Panel 1) and modern (Panel 2) capture images,
+                must be attached to a historic visit and location (modern visit) respectively, which are associated
+                with a common station node.
+            </li>
+            <li><b>Capture images are aligned</b> It is assumed the modern capture image has been aligned in Panel 2
+                with an historic image loaded. Follow the instructions
+                in <Button icon={'help'} label={'Image Alignment'} onClick={() => {gotoPage(2, 2)}} /> to
+            align the images.</li>
+        </ol>
 
         <h5>Instructions</h5>
         <p>
             There are multiple workflows to complete an image registration of an existing historic or modern repeat image. In each
-            case, the
-            <ol>
-                <li>
-                    <b>Select a Modern Image by either:</b>
-                    <ol className={'list'}>
-                        <li>Navigate to the Modern Capture Image info page and select the 'Files' tab. From the files
-                            table, click the <Icon type={'master'} /> icon to open the image in the IAT.
-                        </li>
-                        <li>Click the Load <Icon type={'load'} /> button in the panel controls to open the file selector
-                            and select the image.
-                        </li>
-                    </ol>
-                </li>
-            </ol>
-        </p>
-
-
+            case, the</p>
+        <ol>
+            <li>
+                <b>Select a Modern Image by either:</b>
+                <ol className={'list'}>
+                    <li>Navigate to the Modern Capture Image info page and select the 'Files' tab. From the files
+                        table, click the <Icon type={'master'} /> icon to open the image in the IAT.
+                    </li>
+                    <li>Click the Load <Icon type={'load'} /> button in the panel controls to open the file selector
+                        and select the image.
+                    </li>
+                </ol>
+            </li>
+        </ol>
     </>;
 
 
@@ -519,7 +509,7 @@ export default (setSection, setPage) => {
      */
 
     const iatBackgroundHelp = <>
-        <h5>About the IAT</h5>
+        <h4>About the IAT</h4>
         <p>
             <em>Excerpt: <a
                 target={"_blank"} rel={'noreferrer'}
@@ -592,3 +582,5 @@ export default (setSection, setPage) => {
         },
     ];
 }
+
+export default iatHelp;

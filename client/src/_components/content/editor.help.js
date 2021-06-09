@@ -19,16 +19,7 @@ import Icon from '../common/icon';
  * Index of general help content
  */
 
-export default (setSection, setPage) => {
-
-    /**
-     * Navigate to help section.
-     */
-
-    const _gotoPage = (section, page) => {
-        setSection(section);
-        setPage(page);
-    };
+const explorerHelp = (gotoPage) => {
 
     const editorStartHelp = <>
         <h4>Getting Started</h4>
@@ -72,7 +63,7 @@ export default (setSection, setPage) => {
                 <th>Raw Files*</th>
                 <th>Export</th>
                 <th>Create</th>
-                <th>Edit/Move</th>
+                <th>Edit</th>
                 <th>Delete</th>
                 <th>Upload</th>
                 <th>Master</th>
@@ -205,7 +196,7 @@ export default (setSection, setPage) => {
             </tr>
             <tr>
                 <th><Icon type={'move'} /></th>
-                <th>Move Capture</th>
+                <th>Move Capture (Currently Disabled)</th>
                 <td>
                     <p>To move a capture to a new owner, drag the <b>Move</b> menu button in the editor
                         menu to the new owner in the list navigator.</p>
@@ -246,6 +237,67 @@ export default (setSection, setPage) => {
     const editorImagesHelp = <>
         <h4>Handling Images</h4>
 
+        <p>The Explorer editor allows authenticated users to upload and delete images in the MLP Library. There are
+        three primary image types: (1) <b>historic capture</b> images;
+            (2) <b>modern capture</b> images; and (3) <b>supplemental</b> images.</p>
+
+        <p>Low resolution copies of uploaded raw image files (for both capture and supplemental images) are
+            automatically generated for viewing on application pages. A large-format image (2100px width) is also generated as the
+            print-ready version that can be downloaded by non-authenticated users. Authenticated users can download
+            the original raw image files.</p>
+
+        <h5>Supported Image Formats</h5>
+        <p>The following image formats are supported in the Explorer and Image Analysis Toolkit.</p>
+        <table className={'files'}>
+            <thead>
+            <tr>
+                <th>Image Format</th>
+                <th>Editor</th>
+                <th>IAT</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>JPEG</td>
+                <td><Icon type={'success'} /></td>
+                <td><Icon type={'success'} /></td>
+            </tr>
+            <tr>
+                <td>PNG</td>
+                <td><Icon type={'success'} /></td>
+                <td><Icon type={'success'} /></td>
+            </tr>
+            <tr>
+                <td>TIF</td>
+                <td><Icon type={'success'} /></td>
+                <td><Icon type={'success'} /></td>
+            </tr>
+            <tr>
+                <td>RAW</td>
+                <td><Icon type={'success'} /></td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>3RF<sup>1</sup></td>
+                <td><Icon type={'success'} /></td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>NEF<sup>2</sup></td>
+                <td><Icon type={'success'} /></td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>RAF<sup>3</sup></td>
+                <td>-</td>
+                <td>-</td>
+            </tr>
+            </tbody>
+        </table>
+        <p><sup>1</sup> <small>3RF is a camera raw image format proprietary to Hasselblad digital cameras.</small></p>
+        <p><sup>2</sup> <small>NEF (Nikon Electronic Format) is a camera raw image format proprietary to Nikon digital cameras.</small></p>
+        <p><sup>3</sup> <small>RAF is a camera raw image format proprietary to Fuji digital cameras.</small></p>
+
         <h5>Capture Images</h5>
         <p>A capture corresponds to the capture of a view that is unique in location, azimuth, date, and time.
             Captures contain multiple image versions, and come in two forms: historic and modern (repeat).</p>
@@ -254,11 +306,11 @@ export default (setSection, setPage) => {
             captures). However, "unsorted" captures can also be stored at the project, survey, survey season,
             and station levels. In the list navigator, unsorted captures appear as red icons. For more information
             about historic and modern capture images, visit the
-            <Button icon={'help'} label={'Concepts'} onClick={() => {
+            <Button icon={'help'} label={'MLP Model'} onClick={() => {gotoPage(0, 3)
             }} /> help page.
         </p>
 
-        <h5>Options</h5>
+        <h6>Edit Options</h6>
         <table className={'help'}>
             <tbody>
             <tr>
@@ -274,6 +326,7 @@ export default (setSection, setPage) => {
                         </li>
                         <li>To attach additional files, click the <b>Add Image Upload</b> button. To delete any
                             additional attached images, click the <b>Delete Image Upload</b> button inside the fieldset.
+                            Note the accepted image file formats in the <b>Image Formats</b> table above.
                         </li>
                         <li>Select an image state (required).</li>
                         <li>Enter any other metadata and submit.</li>
@@ -298,16 +351,40 @@ export default (setSection, setPage) => {
                 </td>
             </tr>
             <tr>
-                <th><Icon type={'new'} /></th>
-                <th>Add Supplemental Images</th>
+                <th><Icon type={'edit'} /></th>
+                <th>Edit Metadata</th>
                 <td>
                     <p>
-                        Supplemental images are simply images that do not represent a particular capture -- i.e.
-                        historic or
-                        repeat photograph. These additional images can be attached to Locations, Stations, Survey
-                        Seasons,
-                        Surveys and Modern Visits.
+                        To edit capture image metadata, click the <b>Edit</b> menu button,
+                        complete the form and submit.
                     </p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'delete'} /></th>
+                <th>Delete Items</th>
+                <td>
+                    <p>To delete a capture image, click the <b>Delete</b> menu button, or
+                        the <Icon type={'delete'}/> icon in the files table, and confirm the deletion.</p>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h5>Supplemental Images</h5>
+
+        <p>
+            Supplemental images are images that do not represent a particular capture. These additional images
+            can be attached to locations, stations, survey seasons, surveys and modern visits.
+        </p>
+
+        <h6>Edit Options</h6>
+        <table className={'help'}>
+            <tbody>
+            <tr>
+                <th><Icon type={'new'} /></th>
+                <th>Add New</th>
+                <td>
                     <ol className={'list'}>
                         <li>
                             Navigate to the owner item. Click the <b>Add New</b> dropdown
@@ -315,8 +392,7 @@ export default (setSection, setPage) => {
                         </li>
                         <li>
                             Complete the update form and submit. An Image Type (e.g. 'Location', 'Scenic' or 'Other) is
-                            required.
-                            If no errors occur, accept the prompt confirming the update.
+                            required. If no errors occur, accept the prompt confirming the update.
                         </li>
                         <li>
                             You will be redirected to either the parent info page or the new item info page.
@@ -329,51 +405,17 @@ export default (setSection, setPage) => {
                 <th>Edit Metadata</th>
                 <td>
                     <p>
-                        To edit capture image metadata, click the <b>Edit</b> menu button,
+                        To edit supplemental image metadata, click the <b>Edit</b> menu button,
                         complete the form and submit.
                     </p>
-                </td>
-            </tr>
-            <tr>
-                <th><Icon type={'move'} /></th>
-                <th>Move Images</th>
-                <td>
-                    <p>To move an image, drag the <b>Move</b> menu button in the editor
-                        menu to the new owner in the list navigator.</p>
-                    <p>Refer to the table below for allowed owner-dependent relationships.</p>
-                    <table className={'help'}>
-                        <thead>
-                        <tr>
-                            <th>File Type</th>
-                            <th>Allowed Owners</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                            <td>Historic Images</td>
-                            <td>Historic Captures</td>
-                        </tr>
-                        <tr>
-                            <td>Modern Images</td>
-                            <td>Modern Captures</td>
-                        </tr>
-                        <tr>
-                            <td>Supplemental Images</td>
-                            <td>Surveys, Survey Seasons, Stations, Modern Visits, Locations</td>
-                        </tr>
-                        <tr>
-                            <td>Metadata Files</td>
-                            <td>Stations, Modern Visits</td>
-                        </tr>
-                        </tbody>
-                    </table>
                 </td>
             </tr>
             <tr>
                 <th><Icon type={'delete'} /></th>
                 <th>Delete Items</th>
                 <td>
-                    <p>To delete an item, click the <b>Delete</b> menu button and confirm the deletion.</p>
+                    <p>To delete a supplemental image, navigate to the supplemental image info page,
+                        click the <b>Delete</b> button in the editor tools menu, and confirm the deletion.</p>
                 </td>
             </tr>
             </tbody>
@@ -445,14 +487,6 @@ export default (setSection, setPage) => {
                 <td>
                     <p>You can change the metadata type of files by clicking on the <b>Edit</b> next to the file in the
                         table.</p>
-                </td>
-            </tr>
-            <tr>
-                <th><Icon type={'move'} /></th>
-                <th>Move Metadata Files</th>
-                <td>
-                    <p>Files can be moved to new owners. Metadata files can be attached to stations and field notes
-                        can be attached to modern visits.</p>
                 </td>
             </tr>
             <tr>
@@ -573,3 +607,5 @@ export default (setSection, setPage) => {
         },
     ];
 }
+
+export default explorerHelp;

@@ -79,8 +79,8 @@ export const loadImageData = async (properties, callback) => {
 
         api: () => {
 
-            // get file format and generate node route
-            const mimeType = getMIME(properties.filename);
+            // create file download route
+            const mimeType = getMIME('img');
             const route = createNodeRoute(
                 properties.file_type, 'download', properties.files_id);
 
@@ -88,8 +88,15 @@ export const loadImageData = async (properties, callback) => {
             download(route, mimeType)
                 .then(res => {
                     if (res.error) return callback({error: { msg: res.error, type: 'error' }});
-                    console.log(getImageType(res.data))
-                    loadFile(res.data, mimeType);
+                    // determine image format
+                    const reader = new FileReader();
+                    reader.addEventListener('loadend', () => {
+                        // reader.result contains the contents of blob as a typed array
+                        const imgType = getImageType(reader.result);
+                        loadFile(res.data, getMIME(imgType));
+                    });
+                    // load blob into reader to determine image format
+                    reader.readAsArrayBuffer(res.data);
                 })
                 .catch(err => {callback({ status: 'empty', error: { msg: err, type: 'error' } })});
         },
@@ -217,7 +224,7 @@ export const getImageType = (buffer) => {
     const int8Array = new Uint8Array(buffer);
     const [b0, b1, b2, b3] = int8Array.slice(0, 4);
 
-    // console.log(b0, b1, b2, b3);
+    console.log(b0, b1, b2, b3);
     const formats = {
         'png': [],
         'gif': [],

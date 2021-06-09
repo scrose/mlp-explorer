@@ -42,6 +42,7 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
     // prepare capture images columns
     const cols = [
         { name: 'thumbnail', label: 'Image', class: 'image-thumbnail'},
+        { name: 'mime_type', label: 'Format'},
         { name: 'image_state', label: 'State'},
         { name: 'width', label: 'Width'},
         { name: 'height', label: 'Height'},
@@ -75,6 +76,7 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
                     router.update(createNodeRoute(file_type, 'show', id))
                 }}
             />,
+            mime_type: metadata.mimetype,
             image_state: imageState && imageState.hasOwnProperty('label')
                 ? imageState.label
                 : 'n/a',

@@ -8,6 +8,8 @@
 import React from 'react';
 import { getRoot } from '../../_utils/paths.utils.client';
 import { ReactComponent as MLPLogo } from '../svg/mlpLogo.svg';
+import Button from '../common/button';
+import Icon from '../common/icon';
 
 /**
  * Component for main navigation menu.
@@ -25,7 +27,7 @@ const MainMenu = () => {
                 <ul>
                     <li><a href={rootURL}>Dashboard</a></li>
                     <li><a href={'http://mountainlegacy.ca'}>About MLP</a></li>
-                    <li><a href={'/iat'}>IA Toolkit</a></li>
+                    <li><a href={'/iat'}>Image Toolkit</a></li>
                 </ul>
             </div>
         </nav>

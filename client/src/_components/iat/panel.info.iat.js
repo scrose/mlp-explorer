@@ -10,6 +10,7 @@ import Button from '../common/button';
 import { sanitize } from '../../_utils/data.utils.client';
 import React from 'react';
 import { getScale, scalePoint } from './transform.iat';
+import { createNodeRoute, redirect } from '../../_utils/paths.utils.client';
 
 /**
  * Canvas info status.
@@ -55,13 +56,19 @@ const PanelInfo = ({ properties, pointer, status, setDialog, options }) => {
                             properties.owner_id &&
                             <li className={'push'}><Button
                                 icon={'show'}
-                                title={'Go to capture metadata.'}
+                                title={'View image metadata.'}
                                 label={`${ getModelLabel(properties.file_type)}`}
                                 onClick={() => {setDialog({
                                     id: properties.id,
                                     label: properties.label,
                                     type: 'capture',
                                 })}}
+                            /><Button
+                                icon={properties.owner_type}
+                                title={'Go to capture.'}
+                                onClick={() => {
+                                    redirect(createNodeRoute(properties.owner_type, 'show', properties.owner_id))
+                                }}
                             /></li>
                         }
                         </ul>

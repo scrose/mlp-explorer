@@ -48,6 +48,7 @@ const Importer = ({
     const [response, setResponse] = React.useState({});
     const [messages, setMessages] = React.useState({});
     const [error, setError] = React.useState(false);
+    const [xhr, setXHR] = React.useState(null);
 
     // check if schema includes file uploads
     const hasUploads = schema.hasOwnProperty('hasFiles') ? schema.hasFiles : false;
@@ -114,7 +115,13 @@ const Importer = ({
             _updateProgress.bind(this, 0, null),
             router.online
         )
+            .then(xhr => {
+                // get the XML request
+                setXHR(data => ({ ...data, [0]: xhr}));
+            })
             .catch(console.error);
+
+
     }
 
     /**
@@ -140,7 +147,11 @@ const Importer = ({
                 _updateProgress.bind(this, index, file.name),
                 router.online
             )
-                .catch(err => {console.error(err)});
+                .then(xhr => {
+                    // get the XML request
+                    setXHR(data => ({ ...data, [index]: xhr }));
+                })
+                .catch(console.error);
         });
     }
 
@@ -184,6 +195,7 @@ const Importer = ({
                 setMessages={setMessages}
                 hasUploads={hasUploads}
                 error={error}
+                xhr={xhr}
                 callback={_handleCompletion}
             />
         </div>
