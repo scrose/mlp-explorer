@@ -21,8 +21,8 @@ const LogoutUsers = () => {
     React.useEffect(() => {
         if (user) {
             auth.logout();
-            setSessionMsg({msg: 'User is signed out.', type:'info'});
-            redirect('/?redirect=true');
+            //setSessionMsg({msg: 'User is signed out.', type:'info'});
+            // redirect('/?redirect=true');
         }
         return () => {};
     }, [auth, user]);
