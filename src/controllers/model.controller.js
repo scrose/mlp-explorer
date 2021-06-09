@@ -106,6 +106,7 @@ export default function ModelController(nodeType) {
                     itemData.dependents.map(async (dependent) => {
                         const { node = {} } = dependent || {};
                         dependent.dependents = await nserve.selectByOwner(node.id, client);
+                        dependent.attached = await metaserve.getAttachedByNode(node);
                         return dependent;
                     }));
             }

@@ -532,7 +532,9 @@ export const getFilePath = (type, file, metadata = {}) => {
     };
 
     // Handle file types
-    return fileHandlers.hasOwnProperty(type) ? fileHandlers[type]() : null;
+    return fileHandlers.hasOwnProperty(type)
+        ? fileHandlers[type]()
+        : fileHandlers.default();
 };
 
 /**
@@ -781,19 +783,17 @@ export const saveFile = async (
 
         // convert RAW image to tiff
         // Reference: https://github.com/zfedoran/dcraw.js/
-        if (imageState === 'raw') {
-            buffer = dcraw(buffer, {
-                useEmbeddedColorMatrix: true,
-                exportAsTiff: true,
-                useExportMode: true,
-            });
-            // create temporary file for upload (if format is supported)
-            if (buffer) {
-                const tmpName = Math.random().toString(16).substring(2) + '-' + filename;
-                copySaveTo = path.join(os.tmpdir(), path.basename(tmpName));
-                await writeFile(copySaveTo, buffer);
-                isRAW = true;
-            }
+        buffer = dcraw(buffer, {
+            useEmbeddedColorMatrix: true,
+            exportAsTiff: true,
+            useExportMode: true,
+        });
+        // create temporary file for upload (if format is supported)
+        if (buffer) {
+            const tmpName = Math.random().toString(16).substring(2) + '-' + filename;
+            copySaveTo = path.join(os.tmpdir(), path.basename(tmpName));
+            await writeFile(copySaveTo, buffer);
+            isRAW = true;
         }
 
         // get image metadata

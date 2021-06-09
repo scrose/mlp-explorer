@@ -22,13 +22,14 @@ import { createNodeRoute } from '../../_utils/paths.utils.client';
  * @return {JSX.Element}
  */
 
-const File = ({ data, callback=null, scale='thumb', owner={} }) => {
+const File = ({ data, callback=()=>{}, scale='thumb', owner={} }) => {
 
     const router = useRouter();
 
     // destructure file data
     const {label='', file={}, url={}} = data || {};
-    const {id='', owner_id='', file_type='', filename='', file_size='' } = file || {};
+    const {id='', owner_id='', file_type='', filename='' } = file || {};
+    console.log(file)
 
     // file components indexed by render type
     // - historic images link to their corresponding historic captures
@@ -73,7 +74,6 @@ const File = ({ data, callback=null, scale='thumb', owner={} }) => {
             type={file_type}
             format={'any'}
             route={createNodeRoute(file_type, 'download', id)}
-            size={file_size}
             callback={callback}
         />
     }

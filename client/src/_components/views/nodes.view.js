@@ -48,7 +48,6 @@ const DefaultView = ({
 
     // include dependent nodes
     const dependentsGrouped = groupBy(Array.isArray(dependents) ? dependents : [], 'type');
-
     const nodelist = Object.keys(dependentsGrouped)
         .filter(
             key => key !== 'historic_captures' && key !== 'modern_captures')
@@ -100,12 +99,14 @@ const DefaultView = ({
     });
 
     // include other attached metadata
+    console.log(attached)
     const attachedMetadata = Object.keys(attached)
         .filter(key => key !== 'comparisons' && attached[key].length > 0)
         .reduce((o, key) => {
             o[key] = attached[key];
             return o;
         }, {});
+
     if (Object.keys(attachedMetadata).length > 0) _tabItems.push({
         label: 'Metadata',
         data: <MetadataAttached owner={node} attached={attachedMetadata} />,
