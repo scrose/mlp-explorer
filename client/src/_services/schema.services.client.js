@@ -253,6 +253,7 @@ export const genSchema = ({ view='', model='', fieldsetKey= '', user= null }) =>
                         fieldKey !== 'legend'
                         && fieldKey !== 'render'
                         && fieldKey !== 'restrict'
+                        && fieldKey !== 'users'
                         && (
                             !fieldset[fieldKey].hasOwnProperty('restrict')
                             || fieldset[fieldKey].restrict.includes(view)
