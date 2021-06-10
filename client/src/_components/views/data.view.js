@@ -16,6 +16,7 @@ import Importer from '../tools/import.tools';
 import FilterTools from '../tools/filter.tools';
 import Loading from '../common/loading';
 import AccessError from '../error/access.error';
+import { useUser } from '../../_providers/user.provider.client';
 
 /**
  * Build requested data view from API data.
@@ -26,10 +27,11 @@ import AccessError from '../error/access.error';
 const DataView = () => {
 
     const api = useData();
+    const user = useUser();
 
     // select render type and schema
     const render = getRenderType(api.view, api.model);
-    const schema = genSchema(api.view, api.model);
+    const schema = genSchema({ view: api.view, model:api.model, user: user});
 
     // view components indexed by render type
     const renders = {

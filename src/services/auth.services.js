@@ -277,7 +277,7 @@ export const authorize = async (access_token, allowedRoles) => {
     return {
         email: decoded.email,
         role: roles,
-        label: role.label || 'Administrator'
+        label: role.label || 'Registered'
     }
 
 }

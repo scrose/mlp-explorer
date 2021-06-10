@@ -467,8 +467,7 @@ export default (gotoPage) => {
                     <p>Click on the marker to view the list of stations in the
                         cluster. Double click on the marker to also zoom and center the map on the cluster.</p>
                     <p>Pan by dragging the map; zoom by double clicking the map area, or use the zoom controls at top
-                        left. You can also
-                        view different layers by clicking the layers icon at top right.</p>
+                        left. You can also view different layers by clicking the layers icon at top right.</p>
                 </td>
             </tr>
             <tr>
@@ -479,8 +478,7 @@ export default (gotoPage) => {
                         associated survey data.</p>
                     <p>Click on the menu labels to load data for an item in the viewer panel.</p>
                     <p>Note that each historic and modern capture is labelled using its field note photo reference
-                        identifier.
-                        When this identifier is empty, the filename of one of its captures images is used. </p>
+                        identifier. When this identifier is empty, the filename of one of its captures images is used. </p>
                 </td>
             </tr>
             <tr>
@@ -520,7 +518,116 @@ export default (gotoPage) => {
 
         <p>The view menu is just below the cookie crumb trail, and provides some additional
             options such as metadata <b>Export</b> and <b>Help</b> pages.</p>
+
+        <h5>Item Status</h5>
+        <p>Icons used in the navigator tree are colour-coded to indicate the status of the metadata or images
+        associated with that node.</p>
+
+        <h6>Station Status</h6>
+        <table className={'help'}>
+            <thead>
+            <tr>
+                <th>Icon</th>
+                <th>Status</th>
+                <th>Description</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <th className={'grouped'}><Icon type={'stations'} /></th>
+                <th>
+                    <p>Grouped Station</p>
+                </th>
+                <td>
+                    <p>Station contains historic captures that have been grouped together as a single
+                        historic station, but the location of this station as not been estimated.</p>
+                </td>
+            </tr>
+            <tr>
+                <th className={'located'}><Icon type={'stations'} /></th>
+                <th>
+                    <p>Located Station</p>
+                </th>
+                <td>
+                    <p>Station contains grouped historic captures and the location of the station has been estimated.
+                        Historic captures have not been repeated.</p>
+                </td>
+            </tr>
+            <tr>
+                <th className={'repeated'}><Icon type={'stations'} /></th>
+                <th>
+                    <p>Repeated Station</p>
+                </th>
+                <td>
+                    <p>Station contains repeat captures, but at least one of these captures need to be mastered
+                        with its historic capture counterpart.</p>
+                </td>
+            </tr>
+            <tr>
+                <th className={'partial'}><Icon type={'stations'} /></th>
+                <th>
+                    <p>Partially Mastered Station</p>
+                </th>
+                <td>
+                    <p>Station contains repeat captures and at least one of them has been mastered, while
+                        others still require mastering.</p>
+                </td>
+            </tr>
+            <tr>
+                <th className={'mastered'}><Icon type={'stations'} /></th>
+                <th>
+                    <p>Mastered Station</p>
+                </th>
+                <td>
+                    <p>Station has been repeated and all of its captures have been mastered.</p>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h6>Capture Status</h6>
+        <table className={'help'}>
+            <thead>
+            <tr>
+                <th>Icon</th>
+                <th>Status</th>
+                <th>Description</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <th className={'historic_captures'}><Icon type={'historic_captures'} /></th>
+                <th>
+                    <p>Sorted Capture</p>
+                </th>
+                <td>
+                    <p>Capture is attached to either an: (1) historic visit for historic captures, or (2)
+                    location for modern captures.</p>
+                </td>
+            </tr>
+            <tr>
+                <th className={'unsorted'}><Icon type={'historic_captures'} /></th>
+                <th>
+                    <p>Unsorted Capture</p>
+                </th>
+                <td>
+                    <p>Capture is <b>not</b> attached to either an: (1) historic visit for historic captures, or (2)
+                        location for modern captures.</p>
+                </td>
+            </tr>
+            <tr>
+                <th className={'missing'}><Icon type={'historic_captures'} /></th>
+                <th>
+                    <p>Missing Images</p>
+                </th>
+                <td>
+                    <p>Capture has zero attached capture images.</p>
+                </td>
+            </tr>
+            </tbody>
+        </table>
     </>;
+
 
     return [
         {

@@ -201,8 +201,6 @@ export default function ModelController(nodeType) {
             // - collates metadata
             const received = await importer.receive(req, owner_id, type);
 
-            console.log(received)
-
             // check if files are present
             const hasFiles = Object.keys(received.files).length > 0;
 
@@ -375,13 +373,7 @@ export default function ModelController(nodeType) {
                 return next(new Error('invalidMove'));
             }
 
-            console.log(nodeType, itemData.metadata)
             const item = new Model(itemData.metadata);
-
-
-
-            // get old file path
-            console.log(itemData.fs_path, ownerData.fs_path)
 
             // send response
             return res.status(200).json(

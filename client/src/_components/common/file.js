@@ -29,7 +29,6 @@ const File = ({ data, callback=()=>{}, scale='thumb', owner={} }) => {
     // destructure file data
     const {label='', file={}, url={}} = data || {};
     const {id='', owner_id='', file_type='', filename='' } = file || {};
-    console.log(file)
 
     // file components indexed by render type
     // - historic images link to their corresponding historic captures
@@ -42,31 +41,21 @@ const File = ({ data, callback=()=>{}, scale='thumb', owner={} }) => {
             scale={scale}
             label={`${label} ${owner.hasOwnProperty('type') && owner.type !== 'historic_visits' ? '(unsorted)' : ''}`}
             title={filename}
-            onClick={()=>{
-                callback
-                    ? callback()
-                    : router.update(createNodeRoute('historic_captures', 'show', owner_id))
-            }}
+            onClick={()=>{router.update(createNodeRoute('historic_captures', 'show', owner_id))}}
         />,
         modern_images: () => <Image
             url={url}
             scale={scale}
             label={`${label} ${owner.hasOwnProperty('type') && owner.type !== 'locations' ? '(unsorted)' : ''}`}
             title={filename}
-            onClick={()=>{
-                callback
-                    ? callback()
-                    : router.update(createNodeRoute('modern_captures', 'show', owner_id))
-            }}
+            onClick={()=>{router.update(createNodeRoute('modern_captures', 'show', owner_id))}}
         />,
         supplemental_images: () => <Image
             url={url}
             scale={scale}
             label={label}
             title={filename}
-            onClick={()=>{
-                router.update(createNodeRoute('supplemental_images', 'show', id))
-            }}
+            onClick={()=>{router.update(createNodeRoute('supplemental_images', 'show', id))}}
         />,
         default: () => <Download
             filename={filename}
@@ -81,7 +70,15 @@ const File = ({ data, callback=()=>{}, scale='thumb', owner={} }) => {
     // render file view
     return (
         <div className={file_type}>
-            { renders.hasOwnProperty(file_type) ? renders[file_type]() : renders.default() }
+            {
+                file_type
+                    ? renders.hasOwnProperty(file_type)
+                        ? renders[file_type]()
+                        : renders.default()
+                    : <Image
+                        scale={'thumb'}
+                        label={'No File'}
+                    />}
         </div>
     )
 }

@@ -73,6 +73,25 @@ export function select(fileID) {
 }
 
 /**
+ * Generate query: Find any file by owner id.
+ *
+ * @return {Function} query function
+ * @public
+ */
+
+export function hasFile(id) {
+    const sql = `SELECT exists(
+            SELECT 1 
+            FROM files 
+            WHERE owner_id = $1::integer 
+    )`;
+    return {
+        sql: sql,
+        data: [id],
+    };
+}
+
+/**
  * Generate query: Retrieve file entries attached to given owner
  *
  * @return {Function} query function / null if no node

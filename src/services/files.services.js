@@ -134,6 +134,24 @@ export const selectByOwner = async (id, client = pool) => {
     }, {});
 };
 
+/**
+ * Check if node has attached files.
+ *
+ * @public
+ * @param {integer} id
+ * @param client
+ * @return {boolean} result
+ */
+
+export const hasFiles = async (id, client=pool) => {
+    let { sql, data } = queries.files.hasFile(id);
+    return client.query(sql, data)
+        .then(res => {
+            return res.hasOwnProperty('rows') && res.rows.length > 0
+                ? res.rows[0].exists
+                : false;
+        });
+};
 
 /**
  * Get if file type by node owner.
@@ -558,7 +576,6 @@ export const selectByFile = async (file, client = pool) => {
 /**
  * Extract image file metadata.
  *
- * @return {Object} output file data
  * @src public
  * @param src
  * @param fileData
@@ -579,12 +596,11 @@ export const getImageInfo = async (
 
     // load image into sharp
     // Reference: https://sharp.pixelplumbing.com/
-    const image = sharp(buffer, {
+    const info = await sharp(buffer, {
         limitInputPixels: false,
-    });
+    }).metadata();
 
     // extract image metadata
-    const info = await image.metadata();
     fileData.file.file_size = info.size;
     fileData.file.mimetype = isRAW ? 'raw' : info.format;
     fileData.data.format = isRAW ? 'raw' : info.format;
@@ -595,49 +611,54 @@ export const getImageInfo = async (
     fileData.data.density = info.density;
     fileData.data.space = info.space;
 
-    // get EXIF metadata tags
-    const exifTags = await ExifReader.load(src);
-    const {
-        Model = { value: [''] },
-        DateTime = {},
-        ExposureTime = { value: ['', 1] },
-        FNumber = { value: ['', 1] },
-        ISOSpeedRatings = { value: '' },
-        FocalLength = { value: ['', 1] },
-        GPSLatitude = { value: [''] },
-        GPSLongitude = { value: [''] },
-        GPSAltitude = { value: [''] },
-    } = exifTags || {};
+    // get EXIF metadata tags (optional)
+    try {
 
-    // copy additional EXIF metadata
-    if (
-        DateTime.hasOwnProperty('value')
-        && (fileData.file.file_type === 'modern_images' || fileData.file.file_type === 'historic_images')
-    ) {
-        const [date, time] = DateTime.value[0].split(' ');
-        const [yr, mth, day] = date.split(':');
-        const [hr, min, sec] = time.split(':');
-        fileData.data.capture_datetime = new Date(
-            parseInt(yr),
-            parseInt(mth),
-            parseInt(day),
-            parseInt(hr),
-            parseInt(min),
-            parseInt(sec));
+        const exifTags = await ExifReader.load(src);
+        const {
+            Model = { value: [''] },
+            DateTime = {},
+            ExposureTime = { value: ['', 1] },
+            FNumber = { value: ['', 1] },
+            ISOSpeedRatings = { value: '' },
+            FocalLength = { value: ['', 1] },
+            GPSLatitude = { value: [''] },
+            GPSLongitude = { value: [''] },
+            GPSAltitude = { value: [''] },
+        } = exifTags || {};
+
+        // copy additional EXIF metadata
+        if (
+            DateTime.hasOwnProperty('value')
+            && (fileData.file.file_type === 'modern_images' || fileData.file.file_type === 'historic_images')
+        ) {
+            const [date, time] = DateTime.value[0].split(' ');
+            const [yr, mth, day] = date.split(':');
+            const [hr, min, sec] = time.split(':');
+            fileData.data.capture_datetime = new Date(
+                parseInt(yr),
+                parseInt(mth),
+                parseInt(day),
+                parseInt(hr),
+                parseInt(min),
+                parseInt(sec));
+        }
+
+        fileData.data.shutter_speed = sanitize(ExposureTime.value[0] / ExposureTime.value[1], 'float');
+        fileData.data.f_stop = sanitize(FNumber.value[0] / FNumber.value[1], 'float');
+        fileData.data.iso = sanitize(ISOSpeedRatings.value, 'integer');
+        fileData.data.focal_length = sanitize(FocalLength.value[0] / FocalLength.value[1], 'integer');
+        fileData.data.lat = sanitize(GPSLatitude.description, 'float');
+        fileData.data.lng = sanitize(GPSLongitude.description, 'float');
+        fileData.data.elev = sanitize(GPSAltitude.value[0], 'float')
+
+        // include camera model (if available)
+        const camera = options.cameras
+            .find(camera => camera.label === Model.value[0]);
+        if (camera) fileData.data.cameras_id = camera.value;
+    } catch(err) {
+        console.warn(err)
     }
-
-    fileData.data.shutter_speed = sanitize(ExposureTime.value[0]/ExposureTime.value[1], 'float');
-    fileData.data.f_stop = sanitize(FNumber.value[0]/FNumber.value[1], 'float');
-    fileData.data.iso = sanitize(ISOSpeedRatings.value, 'integer');
-    fileData.data.focal_length = sanitize(FocalLength.value[0]/FocalLength.value[1], 'integer');
-    fileData.data.lat = sanitize(GPSLatitude.description, 'float');
-    fileData.data.lng = sanitize(GPSLongitude.description, 'float');
-    fileData.data.elev = sanitize(GPSAltitude.value[0], 'float')
-
-    // include camera model (if available)
-    const camera = options.cameras
-        .find(camera => camera.label === Model.value[0]);
-    if (camera) fileData.data.cameras_id = camera.value;
 
 };
 /**
@@ -657,23 +678,10 @@ export const copyFileTo = function(src, output, metadata, callback) {
     // handle conversion to requested formats
     const handleFormats = {
         jpeg: () => {
-
-            // get sharp pipeline + write stream for uploading image
-            // - fails if the dest path exists
-            const pipeline = sharp(src, { limitInputPixels: false });
-            const writeStream = fs.createWriteStream(output.path, { flags: 'wx' });
-            pipeline
-                .resize(output.size)
-                .jpeg({
-                    quality: 100,
-                    force: true,
-                })
-                .pipe(writeStream);
-            return new Promise((resolve, reject) =>
-                writeStream
-                    .on('finish', resolve)
-                    .on('error', callback),
-            );
+            return sharp(src, { limitInputPixels: false })
+                .resize({ width: output.size })
+                .jpeg({ quality: 80 })
+                .toFile(output.path)
         },
         default: () => {
             // default handler streams temporary file to new destination
@@ -744,7 +752,7 @@ export const saveFile = async (
         const rawPath = path.join(process.env.UPLOAD_DIR, owner.fs_path, dir);
         await mkdir(rawPath, { recursive: true });
 
-        metadata.versions = {
+        const versions = {
             // create new filesystem path
             // - format: <UPLOAD_PATH>/<IMAGE_STATE>/<FILENAME>
             raw: {
@@ -774,12 +782,12 @@ export const saveFile = async (
         fileData.data.secure_token = imgToken;
         fileData.file.owner_type = owner.type;
         fileData.file.owner_id = owner.id;
-        fileData.file.fs_path = metadata.versions.raw.path;
+        fileData.file.fs_path = versions.raw.path;
 
         // read temporary image into buffer memory
         let buffer = await readFile(fileData.tmp);
-        let copySaveTo = fileData.tmp;
         let isRAW = false;
+        let copySrc = fileData.tmp;
 
         // convert RAW image to tiff
         // Reference: https://github.com/zfedoran/dcraw.js/
@@ -791,21 +799,21 @@ export const saveFile = async (
         // create temporary file for upload (if format is supported)
         if (buffer) {
             const tmpName = Math.random().toString(16).substring(2) + '-' + filename;
-            copySaveTo = path.join(os.tmpdir(), path.basename(tmpName));
-            await writeFile(copySaveTo, buffer);
+            copySrc = path.join(os.tmpdir(), path.basename(tmpName));
+            await writeFile(copySrc, buffer);
             isRAW = true;
         }
 
-        // get image metadata
-        await getImageInfo(copySaveTo, fileData, options, isRAW, callback);
+            // get image metadata
+            await getImageInfo(copySrc, fileData, options, isRAW, callback);
 
-        // copy images to data storage
-        filePromises.push(
-            copyFileTo(fileData.tmp, metadata.versions.raw, fileData, callback),
-            copyFileTo(copySaveTo, metadata.versions.medium, fileData, callback),
-            copyFileTo(copySaveTo, metadata.versions.thumb, fileData, callback),
-            copyFileTo(copySaveTo, metadata.versions.full, fileData, callback),
-        );
+            // copy images to data storage
+            filePromises.push(
+                copyFileTo(fileData.tmp, versions.raw, fileData, callback),
+                copyFileTo(copySrc, versions.medium, fileData, callback),
+                copyFileTo(copySrc, versions.thumb, fileData, callback),
+                copyFileTo(copySrc, versions.full, fileData, callback),
+            );
     };
 
     // handle file upload procedure based on file type

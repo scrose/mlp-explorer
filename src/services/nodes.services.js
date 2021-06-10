@@ -85,7 +85,7 @@ export const get = async (id, client=pool) => {
         metadata: metadata,
         label: await mserve.getNodeLabel(node, files, client),
         files: files,
-        refImage: getCaptureImage(files),
+        refImage: getCaptureImage(files, node),
         dependents: await selectByOwner(id, client) || [],
         hasDependents: await hasDependents(id, client) || false,
         status: await getStatus(node, metadata, client),
@@ -217,7 +217,7 @@ export const selectByOwner = async (id, client=pool) => {
                 type: node.type,
                 metadata: metadata,
                 files: files,
-                refImage: getCaptureImage(files),
+                refImage: getCaptureImage(files, node),
                 hasDependents: await hasDependents(node.id, client),
                 status: await getStatus(node, metadata, client)
             }

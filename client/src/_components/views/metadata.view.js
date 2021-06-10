@@ -12,6 +12,7 @@ import Button from '../common/button';
 import Accordion from '../common/accordion';
 import MenuEditor from '../editor/menu.editor';
 import { useData } from '../../_providers/data.provider.client';
+import { useUser } from '../../_providers/user.provider.client';
 
 // generate random key
 const keyID = genID();
@@ -132,10 +133,11 @@ const MetadataView = ({
                       }) => {
 
     const api = useData();
+    const user = useUser();
 
     // gather the metadata
     const { id = null, nodes_id = null, group_type = '' } = metadata || {};
-    const { fieldsets = [] } = genSchema('show', model, group_type);
+    const { fieldsets = [] } = genSchema({ view: 'show', model: model, fieldsetKey: group_type, user: user});
     const itemID = id || nodes_id || '';
 
     // prepare data for item table: sanitize data by render type

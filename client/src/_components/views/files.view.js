@@ -102,7 +102,6 @@ export const FilesList = ({files, owner}) => {
             <ul>
                 {
                     files
-                        .filter(fileData => Object.keys(fileData || {}).length > 0)
                         .map((fileData, index) =>
                         <li key={`gallery_file_${index}`}>
                             <File data={fileData} scale={'thumb'} owner={owner} />

@@ -38,12 +38,6 @@ export const addComparison = async (
     client = pool
 ) => {
 
-    console.log(historicImageID,
-        historicCaptureID,
-        modernImageId,
-        modernCaptureID)
-
-
     if (!historicImageID ||
         !historicCaptureID ||
         !modernImageId ||

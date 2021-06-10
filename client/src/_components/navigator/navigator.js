@@ -35,7 +35,7 @@ const Navigator = () => {
 
     // initialize navigation view settings
     const [navView, setNavView] = React.useState(getNavView() || 'tree');
-    const [navToggle, setNavToggle] = React.useState(getPref('navToggle') || false);
+    const [navToggle, setNavToggle] = React.useState(getPref('navToggle') || true);
 
     // node data state
     const [nodeData, setNodeData] = React.useState({});

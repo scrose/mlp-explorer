@@ -70,7 +70,7 @@ function FilterNavigator({data, setData, optionsData, setToggle}) {
                 }
             }
             init={filterData}
-            schema={genSchema('mapFilter', 'stations')}
+            schema={genSchema({ view:'mapFilter', model:'stations'})}
             onReset={()=>{
                 setFilterData({})
             }}

@@ -99,7 +99,6 @@ const DefaultView = ({
     });
 
     // include other attached metadata
-    console.log(attached)
     const attachedMetadata = Object.keys(attached)
         .filter(key => key !== 'comparisons' && attached[key].length > 0)
         .reduce((o, key) => {

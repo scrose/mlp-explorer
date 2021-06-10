@@ -8,7 +8,7 @@
 import React, { useCallback } from 'react';
 import { createNodeRoute, redirect } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
-import { genSchema, getModelLabel, getStaticView } from '../../_services/schema.services.client';
+import { genSchema, getModelLabel } from '../../_services/schema.services.client';
 import Button from '../common/button';
 import Importer from '../tools/import.tools';
 import Dialog from '../common/dialog';
@@ -47,6 +47,10 @@ const MenuEditor = ({
     const user = useUser();
     const modelLabel = getModelLabel(model);
 
+    // get user role
+    const {role = ['']} = user || {};
+    const isAdmin = role[0] === 'administrator' || role[0] === 'super_administrator';
+
     // get optional group type used as fieldset selector (if exists)
     const {group_type = '', image_state=''} = metadata || {};
 
@@ -56,8 +60,13 @@ const MenuEditor = ({
     const removeExclude = ['dashboard', 'list', 'register', 'new', 'attach'];
     const dependentsExclude = ['new'];
 
+    // exclude some options for non-administrators
+    const dependentsExcludeUser = !isAdmin
+        ? ['historic_images', 'modern_images', 'supplemental_images']
+        : [];
+
     // is this a root menu (ie. top editor-tools)?
-    const isEditor = className==='editor-tools';
+    const isEditorMenu = className==='editor-tools';
     const isOptions = view === 'options';
 
     // get redirect URI
@@ -70,12 +79,12 @@ const MenuEditor = ({
     // visibility of menu items
     const isVisible = {
         menu: !!(id || model || metadata || view),
-        new: isOptions,
+        new:  isOptions,
         show: !!(id && model && metadata && !showExclude.includes(view)),
         edit: !!(id && model && metadata && !editExclude.includes(view)),
         move: (model === 'modern_captures' || model === 'historic_captures')
             && !!(id && model && metadata && !editExclude.includes(view)),
-        remove: !!(id && model && metadata && !removeExclude.includes(view)),
+        remove: (isAdmin) && !!(id && model && metadata && !removeExclude.includes(view)),
         attach: view === 'attach',
         attachItem: view === 'attachItem',
         iat: image_state !== 'raw' && (fileType === 'modern_images'
@@ -85,11 +94,11 @@ const MenuEditor = ({
                 || fileType === 'historic_images'
                 || fileType === 'supplemental_images',
         dependents: !dependentsExclude.includes(view),
-        dropdown: !!(isEditor || dependents.length > 0),
-        import_hc: !!(dependents || [])
+        dropdown: !!(isEditorMenu || dependents.length > 0),
+        import_hc: isAdmin && !!(dependents || [])
             .find(dependent => dependent === 'historic_captures')
             && !dependentsExclude.includes(view),
-        import_mc: !!(dependents || [])
+        import_mc: isAdmin && !!(dependents || [])
             .find(dependent => dependent === 'modern_captures')
             && !dependentsExclude.includes(view),
     }
@@ -126,7 +135,7 @@ const MenuEditor = ({
                         view={'new'}
                         model={model}
                         options={api.options}
-                        schema={genSchema('new', model)}
+                        schema={genSchema({ view:'new', model:model, user: user })}
                         route={createNodeRoute(model, 'new')}
                         onCancel={() => {setDialogToggle(null)}}
                         callback={(error, model, id) => {
@@ -145,7 +154,7 @@ const MenuEditor = ({
                             view={'edit'}
                             model={model}
                             options={api.options}
-                            schema={genSchema('edit', model, group_type)}
+                            schema={genSchema({ view:'edit', model:model, fieldsetKey: group_type, user:user })}
                             route={createNodeRoute(model, 'edit', id)}
                             data={metadata}
                             onCancel={() => {setDialogToggle(null)}}
@@ -181,8 +190,7 @@ const MenuEditor = ({
         import_hc: <Dialog
                         key={`${menuID}_dialog_import_hc`}
                         title={`Bulk ${getModelLabel('historic_captures', 'label')} Import.`}
-                        setToggle={() => {
-                        }}>
+                        setToggle={setDialogToggle}>
                         {
                             bulkImportDescription
                         }
@@ -191,7 +199,7 @@ const MenuEditor = ({
                             model={'historic_captures'}
                             options={api.options}
                             batchType={'historic_images'}
-                            schema={genSchema('import', 'historic_captures')}
+                            schema={genSchema({ view:'import', model:'historic_captures', user: user })}
                             route={createNodeRoute('historic_captures', 'import', id)}
                             onCancel={() => {setDialogToggle(null)}}
                             callback={(error, model, id) => {
@@ -212,7 +220,7 @@ const MenuEditor = ({
                 model={'modern_captures'}
                 options={api.options}
                 batchType={'modern_images'}
-                schema={genSchema('import', 'modern_captures')}
+                schema={genSchema({ view:'import', model:'modern_captures', user: user })}
                 hasUploads={true}
                 route={createNodeRoute('modern_captures', 'import', id)}
                 onCancel={() => {setDialogToggle(null)}}
@@ -240,7 +248,7 @@ const MenuEditor = ({
                 view={'add'}
                 model={dependent}
                 options={api.options}
-                schema={genSchema('new', dependent)}
+                schema={genSchema({ view:'new', model:dependent, user: user })}
                 route={createNodeRoute(dependent, 'new', id)}
                 onCancel={() => {setDialogToggle(null)}}
                 callback={() => {
@@ -304,7 +312,7 @@ const MenuEditor = ({
                                 label={!compact ? 'Add New' : ''}
                                 title={`New ${label}.`}
                                 onClick={(e) => {
-                                    isEditor
+                                    isEditorMenu
                                         ? _handleClick(e, model, 'new', id)
                                         : setDialogToggle('new')}
                                 }
@@ -319,7 +327,7 @@ const MenuEditor = ({
                                 label={!compact ? 'Info' : ''}
                                 title={`View ${modelLabel} details.`}
                                 onClick={(e) => {
-                                    isEditor
+                                    isEditorMenu
                                         ? _handleClick(e, model, 'show', id)
                                         : setDialogToggle('show')}
                                 }
@@ -347,7 +355,7 @@ const MenuEditor = ({
                                 label={!compact ? 'Edit' : ''}
                                 title={`Edit ${label}.`}
                                 onClick={(e) => {
-                                    isEditor
+                                    isEditorMenu
                                         ? _handleClick(e, model, 'edit', id)
                                         : setDialogToggle('edit')}
                                 }
@@ -413,6 +421,7 @@ const MenuEditor = ({
                                                 {
                                                     // include submenu items to add dependent items
                                                     (dependents || []).map(dependent => {
+                                                        if (dependentsExcludeUser.includes(dependent)) return null;
                                                         return (
                                                             <li key={`add_${dependent}`}>
                                                                 <Button
@@ -459,7 +468,7 @@ const MenuEditor = ({
                                         }
                                         {
                                             // show project / surveyor create buttons on editor tools menu
-                                            isEditor &&
+                                            isEditorMenu &&
                                             <>
                                                 <li>
                                                     <Button
@@ -511,7 +520,7 @@ const MenuEditor = ({
                         </li>
                     }
                     {
-                        isEditor &&
+                        isEditorMenu &&
                         <>
                             <li className={'push'} key={`${menuID}_menuitem_export`}>
                                 <Button

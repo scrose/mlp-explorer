@@ -18,6 +18,7 @@ import * as nserve from './nodes.services.js';
 import { groupBy, sanitize } from '../lib/data.utils.js';
 import { extractFileLabel } from '../lib/file.utils.js';
 import * as cserve from './construct.services.js';
+import { hasFiles } from './files.services.js';
 import { getComparisonsByCapture, getComparisonsByStation, getComparisonsMetadata } from './comparisons.services.js';
 
 /**
@@ -306,19 +307,22 @@ export const getMetadataOptions = async function(client=pool) {
  * - filters capture files by image state
  *
  * @param files
+ * @param owner
  * @param client
  * @return {*}
  */
 
-export const getCaptureImage = (files, client=pool) => {
+export const getCaptureImage = (files, owner, client=pool) => {
     const { historic_images=null, modern_images=null } = files || {};
     const captureImages = historic_images || modern_images || [];
+    const { id='', type='' } = owner || {};
+    const fileType = type === 'historic_captures' ? 'historic_images' : 'modern_images'
     return captureImages.find(file => file.metadata.image_state === 'master')
     || captureImages.find(file => file.metadata.image_state === 'interim')
     || captureImages.find(file => file.metadata.image_state === 'raw')
     || captureImages.find(file => file.metadata.image_state === 'gridded')
     || captureImages.find(file => file.metadata.image_state === 'misc')
-    || {};
+    || {label: 'No Images', file: {file_type: fileType, owner_id: id }};
 }
 
 /**
@@ -542,18 +546,22 @@ export const getStatus = async (node, metadata = {}, client = pool) => {
         },
         historic_captures: async () => {
             const comparisons = await getComparisonsByCapture(node, client) || [];
+            const files = await hasFiles(node.id, client) || false;
             return {
                 comparisons: comparisons,
                 compared: comparisons.length > 0,
-                sorted: node.owner_type === 'historic_visits'
+                sorted: node.owner_type === 'historic_visits',
+                missing: !files
             };
         },
         modern_captures: async () => {
             const comparisons = await getComparisonsByCapture(node, client) || [];
+            const files = await hasFiles(node.id, client) || false;
             return {
                 comparisons: comparisons,
                 compared: comparisons.length > 0,
-                sorted: node.owner_type === 'locations'
+                sorted: node.owner_type === 'locations',
+                missing: !files
             };
         },
     };

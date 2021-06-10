@@ -132,7 +132,7 @@ export const getImageType = (buffer) => {
     const int8Array = new Uint8Array(buffer);
     const [b0, b1, b2, b3] = int8Array.slice(0, 4);
 
-    console.log('File Signature:', b0, b1, b2, b3);
+    // console.log('File Signature:', b0, b1, b2, b3);
     const formats = {
         'png': [],
         'gif': [],

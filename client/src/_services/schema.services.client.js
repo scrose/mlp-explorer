@@ -76,16 +76,6 @@ export const getError = (key, type) => {
 }
 
 /**
- * Get top application page heading.
- *
- * @public
- */
-
-export const getAppTitle = () => {
-    return `${schema.app.name}`;
-}
-
-/**
  * Returns render code for view/model. Model and view labels
  * must be unique.
  *
@@ -201,10 +191,16 @@ const _getViewAttributes = (view, model) => {
  * @param {String} view
  * @param {String} model
  * @param {String} fieldsetKey
+ * @param {Object} user
  * @return {Object} schema
  */
 
-export const genSchema = (view, model, fieldsetKey='') => {
+export const genSchema = ({ view='', model='', fieldsetKey= '', user= null }) => {
+
+
+
+    // get user role
+    const {role = ['']} = user || {};
 
     // model schema configuration
     const modelSchema = schema.models.hasOwnProperty(model)
@@ -220,7 +216,9 @@ export const genSchema = (view, model, fieldsetKey='') => {
     /** create renderable elements based on schema Filters out omitted
      * fields (array) for view.
      *  - set in schema 'restrict' settings (list of views restricted for showing the field).
-     *  - when 'restrict' is absent, all views show the field.
+     *  - when 'restrict' is absent, field is not restricted by view type.
+     *  - set in schema 'user' settings (list of user roles restricted for showing the field).
+     *  - when 'users' is absent, field is not restricted by user role.
      *  - an empty 'restrict' array omits the field from all views.
      *  - (Optional) load initial values from input data
      */
@@ -230,6 +228,15 @@ export const genSchema = (view, model, fieldsetKey='') => {
             .filter(fieldset =>
                 (
                     !fieldset.hasOwnProperty('restrict') || fieldset.restrict.includes(view)
+                )
+                &&
+                (
+                    !fieldsetKey || fieldset.hasOwnProperty(fieldsetKey)
+                )
+            )
+            .filter(fieldset =>
+                (
+                    !fieldset.hasOwnProperty('users') || fieldset.users.includes(role[0])
                 )
                 &&
                 (

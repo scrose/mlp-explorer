@@ -104,7 +104,6 @@ const Importer = ({
 
         // append any additional files to form data
         files.forEach(file => {
-            console.log(file)
             const { name='', filename='', value=null } = file || {};
             formData.append(name, value, filename);
         });

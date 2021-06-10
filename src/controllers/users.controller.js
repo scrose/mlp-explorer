@@ -78,7 +78,7 @@ export const login = async (req, res, next) => {
             // get user role label
             const role = data.roles.length > 0
                 ? roleLabels.find(r => r.name === data.roles[0])
-                : 'Administrator';
+                : 'Registered';
 
             // successful login
             res.status(200).json(
@@ -88,7 +88,7 @@ export const login = async (req, res, next) => {
                     user: {
                         email: credentials.email,
                         role: data.roles,
-                        label: role.label || 'Administrator'
+                        label: role.label || 'Registered'
                     }})
             );
         })

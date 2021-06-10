@@ -77,6 +77,7 @@ const TreeNodeMenu = ({
 
         if (model === 'historic_captures' || model === 'modern_captures') {
             if (status.compared) return 'mastered';
+            if (status.missing) return 'missing';
             if (status.sorted) return 'sorted';
             if (!status.sorted) return 'unsorted';
         }

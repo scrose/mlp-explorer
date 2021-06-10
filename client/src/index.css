@@ -356,6 +356,7 @@ nav.user .accordion-data.open {
     top: 50px;
     right: 0;
     position:fixed;
+
 }
 nav.user div {
     background-color: #2B5A6B;
@@ -1147,7 +1148,7 @@ nav.breadcrumb ul li a:hover {
     color: #01447e !important;
 }
 .repeated {
-    color: #9E5E9B !important;
+    color: #b65179 !important;
 }
 .partial {
     color: orange !important;
@@ -1249,7 +1250,11 @@ nav.breadcrumb ul li a:hover {
     color: #008896 !important;
     border-color: #008896 !important;
 }
-.unsorted_captures {
+.unsorted {
+    color: #D36819 !important;
+    border-color: #D36819 !important;
+}
+.missing {
     color: #E34234 !important;
     border-color: #E34234 !important;
 }

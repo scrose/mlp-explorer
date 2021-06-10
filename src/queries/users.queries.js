@@ -17,7 +17,6 @@ export function getRoles() {
     return {
         sql: `SELECT *
               FROM user_roles
-              WHERE name != 'super_administrator'
               ORDER BY id`,
         data: [],
     };

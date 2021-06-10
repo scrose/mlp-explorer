@@ -156,7 +156,7 @@ export const MenuIat = ({
                 <Importer
                     model={panel.file_type}
                     view={'upload'}
-                    schema={genSchema('upload', panel.file_type)}
+                    schema={genSchema({ view:'upload', model:panel.file_type, user: user })}
                     route={createNodeRoute(panel.file_type, 'new', panel.owner_id)}
                     onCancel={() => {setDialogToggle(null)}}
                     files={[

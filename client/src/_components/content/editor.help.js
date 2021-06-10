@@ -85,19 +85,6 @@ const explorerHelp = (gotoPage) => {
                 <td>-</td>
             </tr>
             <tr>
-                <th>Contributor</th>
-                <td><Icon type={'success'} /></td>
-                <td><Icon type={'success'} /></td>
-                <td><Icon type={'success'} /></td>
-                <td><Icon type={'success'} /></td>
-                <td><Icon type={'success'} /></td>
-                <td><Icon type={'success'} /></td>
-                <td><Icon type={'success'} /></td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-            </tr>
-            <tr>
                 <th>Editor</th>
                 <td><Icon type={'success'} /></td>
                 <td><Icon type={'success'} /></td>
@@ -105,8 +92,8 @@ const explorerHelp = (gotoPage) => {
                 <td><Icon type={'success'} /></td>
                 <td><Icon type={'success'} /></td>
                 <td><Icon type={'success'} /></td>
-                <td><Icon type={'success'} /></td>
-                <td><Icon type={'success'} /></td>
+                <td>-</td>
+                <td>-</td>
                 <td>-</td>
                 <td>-</td>
             </tr>

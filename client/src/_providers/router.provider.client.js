@@ -137,12 +137,8 @@ function RouterProvider(props) {
 
     const post = async (route, formData= null) => {
 
-        console.log(route)
-
         // reject null paths or when API is offline
         if (!route || !online ) return null;
-
-        console.log(createAPIURL(route))
 
         // parse form data
         const parsedData = formData ? Object.fromEntries(formData) : {};

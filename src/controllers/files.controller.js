@@ -54,7 +54,6 @@ export default function FilesController(modelType) {
         }
     };
 
-
     /**
      * Get file id value from request parameters. Note: use model
      * route key (i.e. model.key = '<model_name>_id') to reference route ID.

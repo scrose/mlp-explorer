@@ -177,6 +177,7 @@ export const schema = {
         sorted: ['historic_visits', 'locations'],
         unsorted: ['projects', 'surveys', 'survey_seasons', 'modern_visits']
     },
+    excluded: ['historic_images', 'modern_images', 'supplemental_images', 'historic_captures', 'modern_captures'],
     models: {
         users: {
             fieldsets: [
@@ -580,6 +581,7 @@ export const schema = {
                 {
                     legend: 'Image Upload',
                     restrict: ['import'],
+                    users: ['administrator', 'super_administrator'],
                     historic_images: {
                         label: 'Image Files',
                         render: 'file',
@@ -597,6 +599,7 @@ export const schema = {
                     legend: 'Image Upload',
                     render: 'multiple',
                     restrict: ['new'],
+                    users: ['administrator', 'super_administrator'],
                     historic_images: {
                         label: 'Image File',
                         render: 'file',
@@ -712,6 +715,7 @@ export const schema = {
                 {
                     legend: 'Image Upload',
                     restrict: ['import'],
+                    users: ['administrator', 'super_administrator'],
                     modern_images: {
                         label: 'Image Files',
                         render: 'file',
@@ -729,6 +733,7 @@ export const schema = {
                     legend: 'Image Upload',
                     render: 'multiple',
                     restrict: ['new'],
+                    users: ['administrator', 'super_administrator'],
                     modern_images: {
                         label: 'Image File',
                         render: 'file',
@@ -871,6 +876,7 @@ export const schema = {
                 {
                     legend: 'Image Upload',
                     restrict: ['new'],
+                    users: ['administrator', 'super_administrator'],
                     historic_images: {
                         label: 'Image File',
                         render: 'file',
@@ -989,6 +995,7 @@ export const schema = {
                 {
                     legend: 'Image Upload',
                     restrict: ['new'],
+                    users: ['administrator', 'super_administrator'],
                     modern_images: {
                         label: 'Image File',
                         render: 'file',
@@ -1003,6 +1010,7 @@ export const schema = {
                 },
                 {
                     restrict: ['master'],
+                    users: ['administrator', 'super_administrator'],
                     historic_capture: {
                         render: 'hidden'
                     },
@@ -1122,6 +1130,7 @@ export const schema = {
             fieldsets: [
                 {
                     legend: 'Image Metadata',
+                    users: ['administrator', 'super_administrator'],
                     capture: {
                         label: 'Capture',
                         render: 'text'
@@ -1162,6 +1171,7 @@ export const schema = {
                 {
                     legend: 'Image Upload',
                     restrict: ['new'],
+                    users: ['administrator', 'super_administrator'],
                     supplemental_images: {
                         label: 'Image File',
                         render: 'file',
@@ -1242,6 +1252,7 @@ export const schema = {
                 {
                     legend: 'File Upload',
                     restrict: ['new'],
+                    users: ['administrator', 'super_administrator'],
                     metadata_files: {
                         label: 'Metadata File (PDF)',
                         render: 'file',
@@ -1423,6 +1434,7 @@ export const schema = {
             fieldsets: [
                 {
                     legend: 'Image Type Settings',
+                    users: ['administrator', 'super_administrator'],
                     name: {
                         label: 'Name',
                         validate: ['isRequired']
@@ -1440,6 +1452,7 @@ export const schema = {
             fieldsets: [
                 {
                     legend: 'Metadata File Type Settings',
+                    users: ['administrator', 'super_administrator'],
                     name: {
                         label: 'Name',
                         validate: ['isRequired']
@@ -1457,6 +1470,7 @@ export const schema = {
             fieldsets: [
                 {
                     legend: 'Group Type Settings',
+                    users: ['administrator', 'super_administrator'],
                     name: {
                         label: 'Name',
                         validate: ['isRequired']

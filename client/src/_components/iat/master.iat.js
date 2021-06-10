@@ -11,6 +11,7 @@ import { genSchema } from '../../_services/schema.services.client';
 import Comparator from '../common/comparator';
 import MetadataView from '../views/metadata.view';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
+import { useUser } from '../../_providers/user.provider.client';
 
 /**
  * Image selector widget.
@@ -27,6 +28,8 @@ export const MasterImage = ({
                                   setToggle = () => {},
                                   callback = () => {},
                               }) => {
+
+    const user = useUser();
 
     // prepare capture metadata
     const historicMetadata = {
@@ -56,7 +59,7 @@ export const MasterImage = ({
                     <Importer
                         model={'modern_images'}
                         view={'master'}
-                        schema={genSchema('master', 'modern_images')}
+                        schema={genSchema({ view:'master', model:'modern_images', user: user })}
                         route={createNodeRoute(panel1.file_type, 'master', panel1.files_id)}
                         onCancel={() => {setToggle(null)}}
                         data={{
