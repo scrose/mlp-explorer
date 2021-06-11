@@ -1,9 +1,11 @@
 {
-  "name": "mle-client",
+  "name": "mle-api",
   "script": "npm",
   "args": "start",
-  "cwd": "./client",
-  "autorestart" : false,
+  "watch": ".",
+  "ignore_watch": ["node_modules"],
+  "instances"  : 4,
+  "exec_mode"  : "cluster",
   "env": {
     "NODE_ENV": "development"
   },
@@ -12,6 +14,7 @@
   },
   "max_memory_restart": "150M",
   "log_date_format": "YYYY-MM-DD HH:mm Z",
-  "error_file": "./logs/mle_client_error.log",
-  "out_file": "./logs/mle_client_output.log"
+  "error_file": "./logs/mle_api_error.log",
+  "out_file": "./logs/mle_api_output.log",
+  "time": true
 }

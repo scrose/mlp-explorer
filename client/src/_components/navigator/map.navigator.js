@@ -153,14 +153,24 @@ function MapNavigator({ data, filter }) {
         };
 
         // grid settings: number of grid cells is scaled by zoom level
-        const latN = Math.ceil(2 * mapObj.current.getZoom());
-        const lngN = Math.ceil(2 * mapObj.current.getZoom());
+        // - increase granularity after zoom > 10
+        const latN = zoom
+            ? zoom > 10
+                ? 0
+                : Math.ceil(2 * zoom)
+            : 1;
+        const lngN = zoom
+            ? zoom > 10
+                ? 0
+                : Math.ceil(2 * zoom)
+            : 1;
 
         // get map parameters
         // NOTE: The following bucket sort of geographic coordinates
         // only works for one side of the international date line.
         const maxBounds = [[66, -104], [44, -154]];
         const viewBounds = mapObj.current.getBounds();
+        const paddedViewBounds = viewBounds.pad(1.0);
 
         // Latitude: North > South (northern hemisphere)
         // Longitude: East > West (northern hemisphere)
@@ -169,25 +179,37 @@ function MapNavigator({ data, filter }) {
         // get latitude/longitude range
         const latRange = latMax - latMin;
         const lngRange = lngMax - lngMin;
-        const dLat = Math.round(latRange / latN);
-        const dLng = Math.round(lngRange / lngN);
 
-        // initialize cluster grid
-        let grid = [...Array(latN).keys()].map(() => Array(lngN));
+        let dLat, dLng, grid;
+        if (latN > 0 && lngN > 0) {
+            dLat = Math.max(Math.round(latRange / latN), 0);
+            dLng = Math.max(Math.round(lngRange / lngN), 0);
 
-        // Sort station coordinates into grid areas
-        return data
-            // filter stations outside map view
+            // initialize cluster grid
+            grid = [...Array(latN).keys()].map(() => Array(lngN));
+        }
+
+        // filter stations outside (padded) map view
+        const FilteredData = data
             .filter(station => {
                 // filter stations not in map view
                 const coord = L.latLng(station.lat, station.lng);
                 // apply user-defined filter
-                return viewBounds.contains(coord) && _applyFilter(station);
-            })
+                return paddedViewBounds.contains(coord) && _applyFilter(station);
+            });
+
+        // Sort station coordinates into grid areas
+        // - check if grid exists and apply
+        // - otherwise use single station markers
+        const clusters = grid ?
             // bucket sort station locations into grid elements
-            .reduce((o, station) => {
+            FilteredData.reduce((o, station) => {
+
                 const i = Math.floor((station.lat - latMin) / dLat);
                 const j = Math.floor((station.lng - lngMin) / dLng);
+
+                // reject null grid elements
+                if (o[i] == null) return o;
 
                 // create longitudinal array if none exists
                 if (o[i][j] == null) {
@@ -203,54 +225,67 @@ function MapNavigator({ data, filter }) {
                 o[i][j].centroid.lng += station.lng;
                 return o;
             }, grid)
-            // generate cluster marker for each grid element
-            .reduce((o, row) => {
-                row.map(cluster => {
-                    // get number of stations in cluster
-                    const n = cluster.stations.length;
-                    // place cluster in centroid of grid element
-                    const centroid = [
-                        cluster.centroid.lat / n,
-                        cluster.centroid.lng / n,
-                    ];
-                    // set z-index of marker (selected has higher index)
-                    const zIndexOffset = cluster.isSelected ? 999 : 0;
-                    // create marker using station coordinates
-                    const marker = L.marker(centroid, {
-                        icon: _getMarker(n, cluster.isSelected),
-                        zIndexOffset: zIndexOffset,
-                        riseOnHover: true,
-                    })
-                        .on('click', (e) => {
-                            // clicking on marker loads filter results in data pane
-                            debounce(() => {
-                                loadView(
-                                    cluster.stations.map(station => {
-                                        return station.nodes_id;
-                                    }));
-                            }, 400)();
-                        })
-                        .on('dblclick', (e) => {
-                            const coord = e.latlng;
-                            const zoomLevel = mapObj.current.getZoom() + 1;
-                            mapObj.current.flyTo(coord, zoomLevel);
-                        })
-                        .on('mouseover', function (e) {
-                            this.bindTooltip(`
-                            Lat: ${centroid[0].toFixed(3)}, 
-                            Lng: ${centroid[1].toFixed(3)}
-                            `).openTooltip();
-                        })
-                        .on('mouseout', function (e) {
-                            this.closeTooltip();
-                        });
-                    // add cluster marker to layer
-                    o.push(marker);
-                    return null;
-                }, o);
+            : // bucket sort station locations into grid elements
+            FilteredData.reduce((o, station) => {
+                o.push([{
+                    isSelected: station.isSelected || currentIDs.includes(station.nodes_id),
+                    stations: [station],
+                    centroid: {
+                        lat: station.lat,
+                        lng: station.lng
+                    }
+                }]);
                 return o;
             }, []);
-    }, [data, mapObj, filter, loadView]);
+
+        // generate cluster marker for each grid element
+        return clusters.reduce((o, row) => {
+            row.map(cluster => {
+                // get number of stations in cluster
+                const n = cluster.stations.length;
+                // place cluster in centroid of grid element
+                const centroid = [
+                    cluster.centroid.lat / n,
+                    cluster.centroid.lng / n,
+                ];
+                // set z-index of marker (selected has higher index)
+                const zIndexOffset = cluster.isSelected ? 999 : 0;
+                // create marker using station coordinates
+                const marker = L.marker(centroid, {
+                    icon: _getMarker(n, cluster.isSelected),
+                    zIndexOffset: zIndexOffset,
+                    riseOnHover: true,
+                })
+                    .on('click', (e) => {
+                        // clicking on marker loads filter results in data pane
+                        debounce(() => {
+                            loadView(
+                                cluster.stations.map(station => {
+                                    return station.nodes_id;
+                                }));
+                        }, 400)();
+                    })
+                    .on('dblclick', (e) => {
+                        const coord = e.latlng;
+                        const zoomLevel = mapObj.current.getZoom() + 1;
+                        mapObj.current.flyTo(coord, zoomLevel);
+                    })
+                    .on('mouseover', function (e) {
+                        this.bindTooltip(`
+                        Lat: ${centroid[0].toFixed(3)}, 
+                        Lng: ${centroid[1].toFixed(3)}
+                        `).openTooltip();
+                    })
+                    .on('mouseout', function (e) {
+                        this.closeTooltip();
+                    });
+                // add cluster marker to layer
+                o.push(marker);
+                return null;
+            }, o);
+            return o;
+        }, []);
+    }, [data, mapObj, filter, loadView, zoom]);
 
     /**
      * Reset map view to new center coordinate and zoom level.
@@ -292,14 +327,14 @@ function MapNavigator({ data, filter }) {
             'Map': L.tileLayer(
                 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                 {
-                    maxZoom: 23,
+                    maxZoom: 17,
                     minZoom: 4,
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
                 }),
             'Satellite': L.tileLayer(
                 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
                 {
-                    maxZoom: 23,
+                    maxZoom: 17,
                     minZoom: 4,
                     attribution: '&copy; <a href="https://www.arcgisonline.com/copyright">ARCGIS</a> contributors',
                 }),
