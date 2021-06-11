@@ -1,5 +1,5 @@
 {
-  "name": "mle-api",
+  "name": "mle-client",
   "script": "npm",
   "args": "start",
   "watch": ".",
