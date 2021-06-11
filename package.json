@@ -15,7 +15,7 @@
   "scripts": {
     "startpm2": "pm2 start -f --watch --ignore-watch=\\\"node_modules\\\" --name mle ./src/bin/www.js --log ./logs/pm2.log -- -r dotenv/config app.config.js",
     "startdebug": "nodemon --trace-warnings --inspect --trace_gc ./src/bin/www.js -r dotenv/config app.config.js",
-    "startdev": "nodemon --trace-warnings ./src/bin/www.js -r dotenv/config app.config.js",
+    "startdev": "nodemon --trace-warnings ./src/bin/www.js",
     "start": "node ./src/bin/www.js -r dotenv/config app.config.js",
     "serverstart": "DEBUG=mlp-explorer:* npm run devstart",
     "test": "nyc mocha --exit",
