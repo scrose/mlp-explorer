@@ -2,7 +2,7 @@
   "name": "mle-api",
   "script": "npm",
   "args": "start",
-  "watch": ".",
+  "watch": false,
   "ignore_watch": ["node_modules"],
   "instances"  : 4,
   "exec_mode"  : "cluster",
