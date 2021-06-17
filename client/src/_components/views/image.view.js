@@ -24,7 +24,7 @@ const ImageView = ({data, model}) => {
     return (
         <>
             <Accordion
-                type={'info'}
+                type={'show'}
                 label={`${label} Metadata`}
                 hasDependents={true}
                 open={false}

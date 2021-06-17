@@ -33,7 +33,7 @@ export const create = async (modelType) => {
         this.name = modelType;
         this.key = `${modelType}_id`;
         this.idKey = schema.idKey;
-        this.label = schemaConstructor.genLabel(modelType, schema.attributes);
+        this.label = schemaConstructor.genLabel(modelType, attributeValues);
         this.attributes = schema.attributes;
         this.isRoot = schema.rootNodeTypes.includes(modelType);
         this.depth = schema.nodeDepth.hasOwnProperty(modelType)
@@ -248,12 +248,12 @@ function setData(data=null) {
         const inputData = data.hasOwnProperty('rows') ? data.rows[0] : data;
 
         // assert attributes exist in model schema
-        Object.keys(inputData)
-            .filter(key => !(this.attributes && this.attributes.hasOwnProperty(key)))
-            .map(key => {
-                console.warn(`Attribute key \'${key}\' was not in model schema for \'${this.name}\'.`);
-                throw Error('schemaMismatch')
-            });
+        // Object.keys(inputData)
+        //     .filter(key => !(this.attributes && this.attributes.hasOwnProperty(key)))
+        //     .map(key => {
+        //         console.warn(`Attribute key \'${key}\' was not in model schema for \'${this.name}\'.`);
+        //         throw Error('schemaMismatch')
+        //     });
 
         // set attribute values from data
         Object.keys(inputData)

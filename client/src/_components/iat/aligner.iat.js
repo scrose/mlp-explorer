@@ -81,14 +81,14 @@ export const getAlignmentTransform = (from, to) => {
 export const warpImage = (H, src, dst, w, h) => {
 
     // compute array index
-    function idx(ix, iy, w) {
-        return (Math.ceil(Math.max(ix + w * iy, 0)));
-    }
+    // function idx(ix, iy, w) {
+    //     return (Math.ceil(Math.max(ix + w * iy, 0)));
+    // }
 
     const dstW = w;
     const dstH = h;
-    const srcW = w;
-    const srcH = h;
+    // const srcW = w;
+    // const srcH = h;
     let x, y, u, v, k;
     for (y = 0; y < dstH; ++y) {
         for (x = 0; x < dstW; ++x) {

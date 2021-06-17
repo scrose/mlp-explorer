@@ -7,7 +7,6 @@
 
 import React from "react";
 import { useRouter } from '../../_providers/router.provider.client';
-import { getModelLabel } from '../../_services/schema.services.client';
 import { UserMessage } from '../common/message';
 import Button from '../common/button';
 import Dialog from '../common/dialog';
@@ -36,7 +35,6 @@ const Mover = ({
                      callback=()=>{}
 }) => {
 
-    const modelLabel = getModelLabel(model);
     const router = useRouter();
     const [response, setResponse] = React.useState(null);
     const [resMessage, setMessage] = React.useState({});

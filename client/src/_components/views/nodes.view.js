@@ -118,17 +118,19 @@ const DefaultView = ({
     });
 
     // include unsorted captures
-    if (dependentsGrouped.hasOwnProperty('historic_captures')) _tabItems.push({
-        label: 'Historic Captures',
-        data: <FilesView
-            files={{
-                historic_captures: dependentsGrouped.historic_captures.map(item => {
-                    return item.refImage;
-                }),
-            }}
-            owner={node}
-        />,
-    });
+    if (dependentsGrouped.hasOwnProperty('historic_captures')) {
+        _tabItems.unshift({
+            label: 'Historic Captures',
+            data: <FilesView
+                files={{
+                    historic_captures: dependentsGrouped.historic_captures.map(item => {
+                        return item.refImage;
+                    }),
+                }}
+                owner={node}
+            />,
+        });
+    }
     if (dependentsGrouped.hasOwnProperty('modern_captures')) _tabItems.push({
         label: 'Modern Captures',
         data: <FilesView
@@ -141,12 +143,11 @@ const DefaultView = ({
         />,
     });
 
-    return (
-        <>
-            <Tabs items={_tabItems} orientation={'horizontal'} />
-            {/*<NodesList owner={node} items={dependents} />*/}
-        </>
-    );
+    return <Tabs
+        items={_tabItems}
+        orientation={'horizontal'}
+    />
+
 };
 
 /**

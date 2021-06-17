@@ -1,20 +1,37 @@
 {
-  "name": "mle-api",
-  "script": "npm",
-  "args": "start",
-  "watch": false,
-  "ignore_watch": ["node_modules"],
-  "instances"  : 4,
-  "exec_mode"  : "cluster",
-  "env": {
-    "NODE_ENV": "development"
-  },
-  "env_production" : {
-    "NODE_ENV": "production"
-  },
-  "max_memory_restart": "150M",
-  "log_date_format": "YYYY-MM-DD HH:mm Z",
-  "error_file": "./logs/mle_api_error.log",
-  "out_file": "./logs/mle_api_output.log",
-  "time": true
+  "apps": [
+    {
+      "name": "mle-api",
+      "script": "npm",
+      "args": "start",
+      "watch": false,
+      "ignore_watch": [
+        "node_modules"
+      ],
+      "instances": 4,
+      "exec_mode": "cluster",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "env_production": {
+        "NODE_ENV": "production"
+      },
+      "max_memory_restart": "150M",
+      "log_date_format": "YYYY-MM-DD HH:mm Z",
+      "error_file": "./logs/mle_api_error.log",
+      "out_file": "./logs/mle_api_output.log",
+      "time": true
+    },
+    {
+      "name": "mle-transcoder",
+      "script": "./transcoder/app.js",
+      "watch": false,
+      "ignore_watch": [
+        "node_modules"
+      ],
+      "error_file": "./logs/mle_transcoder_1_error.log",
+      "out_file": "./logs/mle_transcoder_1_output.log",
+      "instances": 3
+    }
+  ]
 }

@@ -5,7 +5,7 @@
 
 DATABASE='mountain_legacy'
 USER='boutrous'
-#ORIGINAL_PATH='/Users/boutrous/Workspace/NodeJS/db/meat.sql'
+ORIGINAL_PATH='/Users/boutrous/Workspace/NodeJS/db/meat.sql'
 BACKUP_PATH="/Users/boutrous/Workspace/NodeJS/db/meat_backup_28apr2021.sql"
 SAVE_PATH="/Users/boutrous/Workspace/NodeJS/db/mle_dump.sql.tar"
 
@@ -18,10 +18,10 @@ SAVE_PATH="/Users/boutrous/Workspace/NodeJS/db/mle_dump.sql.tar"
 
 # restore db to saved backup
 # psql -U $USER $DATABASE < $SAVE_PATH
-# psql -U $USER $DATABASE < $ORIGINAL_PATH
+psql -U $USER $DATABASE < $ORIGINAL_PATH
 
-# generate backup
-pg_restore --host "localhost" --port "5432" --username $USER --no-password --dbname $DATABASE --verbose $BACKUP_PATH
+# restore from backup
+# pg_restore --host "localhost" --port "5432" --username $USER --no-password --dbname $DATABASE --verbose $BACKUP_PATH
 
 # update existing schema
 psql -U $USER $DATABASE < _init/global.init.sql

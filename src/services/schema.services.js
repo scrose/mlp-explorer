@@ -275,7 +275,7 @@ export function genLabel(model, attributes = null) {
     return labelByModel.hasOwnProperty(model)
         ? Array.isArray(labelByModel[model])
             ? labelByModel[model].map(key => {
-            return attributes[key].value;
+            return attributes[key];
         }).join(' ').trim() || humanize(model)
             : labelByModel[model]
         : '';

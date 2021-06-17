@@ -533,6 +533,7 @@ export const schema = {
                     weather_temp: {
                         label: 'Temperature',
                         render: 'float',
+                        min: -273,
                         suffix: '°C'
                     },
                     weather_ws: {
@@ -1038,7 +1039,7 @@ export const schema = {
                     },
                     mimetype: {
                         render: 'text',
-                        label: 'MIME Type',
+                        label: 'Format',
                         restrict: ['show']
                     },
                     file_size: {
@@ -1180,19 +1181,45 @@ export const schema = {
                 },
                 {
                     legend: 'Image Details',
-                    image_type: {
-                        label: 'Image Type',
-                        render: 'select',
-                        reference: 'image_types',
-                        validate: ['isRequired']
+                    restrict: ['show', 'edit'],
+                    filename: {
+                        render: 'text',
+                        label: 'Filename',
+                        restrict: ['show']
+                    },
+                    mimetype: {
+                        render: 'text',
+                        label: 'Format',
+                        restrict: ['show']
+                    },
+                    file_size: {
+                        render: 'filesize',
+                        label: 'File size',
+                        restrict: ['show']
+                    },
+                    x_dim: {
+                        render: 'imgsize',
+                        label: 'Image Width',
+                        restrict: ['show']
+                    },
+                    y_dim: {
+                        render: 'imgsize',
+                        label: 'Image Height',
+                        restrict: ['show']
+                    },
+                    bit_depth: {
+                        label: 'Bit Depth',
+                        restrict: ['show']
                     },
                     capture_datetime: {
                         label: 'Capture Datetime',
-                        render: 'datetime'
+                        render: 'datetime',
+                        restrict: ['show']
                     },
                     comments: {
                         label: 'Comments',
-                        render: 'textarea'
+                        render: 'textarea',
+                        restrict: ['show', 'edit']
                     }
                 },
                 {
@@ -1290,7 +1317,7 @@ export const schema = {
                         reference: 'metadata_file_types'
                     },
                     mimetype: {
-                        label: 'MIME Type',
+                        label: 'Format',
                         render: 'text'
                     },
                     file_size: {

@@ -13,7 +13,6 @@ import { redirect } from '../../_utils/paths.utils.client';
 import BreadcrumbMenu from '../menus/breadcrumb.menu';
 import Accordion from '../common/accordion';
 import Button from '../common/button';
-import { ReactComponent as MLPLogo } from '../svg/mlpLogo.svg';
 
 /**
  * User navigation menu (authenticated).
@@ -54,14 +53,7 @@ const HeaderEditor = () => {
                     <ul>
                         <li><Logo /></li>
                         <li><MainMenu /></li>
-                        <li className={'push'}>
-                            <div className={'logo-mlp-svg'}>
-                                <a href={"http://mountainlegacy.ca"} rel="noreferrer" target={'_blank'}>
-                                    <MLPLogo />
-                                </a>
-                            </div>
-                        </li>
-                        <li><UserMenu /></li>
+                        <li className={'push'}><UserMenu /></li>
                     </ul>
                 </div>
                 <div className={'context-menu'}>

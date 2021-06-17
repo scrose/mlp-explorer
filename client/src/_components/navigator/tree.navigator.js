@@ -39,8 +39,7 @@ const TreeNodeMenu = ({
                           label='...',
                           toggle,
                           setToggle,
-                          setDialog = () => {
-                          },
+                          setDialog = () => {},
                           isCurrent='',
                           hasDependents=false,
                           status=null
@@ -51,7 +50,7 @@ const TreeNodeMenu = ({
     const [highlight, setHighlight] = React.useState(false);
 
     // handle toggle events
-    const handleToggle = () => {
+    const _handleToggle = () => {
         // toggle node to selected session nodes
         checkNode(id) ? removeNode(id) : addNode(id);
         // open collapsible
@@ -59,7 +58,7 @@ const TreeNodeMenu = ({
     }
 
     // handle view events
-    const handleView = () => {
+    const _handleView = () => {
         // add node to session path
         addNode(id);
         // reroute to requested data view
@@ -137,18 +136,18 @@ const TreeNodeMenu = ({
             onDragLeave={_handleDragLeave}
         >
             <ul>
-                {
-                    hasDependents ?
-                    <li>
-                        <Button
-                            icon={toggle || isCurrent ? 'collapse' : 'expand'}
-                            className={classnames.join(' ')}
-                            title={`Expand ${label}.`}
-                            onClick={handleToggle}
-                        />
-                    </li>
-                        : ''
-                }
+                <li>
+                    <Button
+                        icon={
+                            hasDependents
+                            ? (toggle ? 'collapse' : 'expand')
+                            : 'empty'
+                        }
+                        className={classnames.join(' ')}
+                        title={`Expand ${label}.`}
+                        onClick={hasDependents ? _handleToggle : ()=>{}}
+                    />
+                </li>
                 <li>
                     <Button
                         icon={model}
@@ -157,7 +156,7 @@ const TreeNodeMenu = ({
                         title={
                             `View ${getModelLabel(model)} ${id}: ${label} ${status ? ' [' + capitalize(getStatus()) + ' Capture]' : ''}`
                         }
-                        onClick={handleView}
+                        onClick={_handleView}
                     />
                 </li>
                 <li>
@@ -166,7 +165,7 @@ const TreeNodeMenu = ({
                         size={'sm'}
                         className={`tree-node-label`}
                         title={`View ${getModelLabel(model)}: ${label}`}
-                        onClick={handleView}
+                        onClick={_handleView}
                     />
                 </li>
             </ul>
@@ -215,11 +214,11 @@ const TreeNode = ({
 
         // include current node path as toggled
         setCurrent(api.nodes.includes(id));
-        if (api.nodes.includes(id)) {
-            setToggle(api.nodes.includes(id));
-            // scroll current node into view
-            treeNode.current.scrollIntoView();
-        }
+        // if (api.nodes.includes(id)) {
+        //     // setToggle(api.nodes.includes(id));
+        //     // scroll current node into view
+        //     //treeNode.current.scrollIntoView();
+        // }
 
         if (!error && hasDependents && toggle && Array.isArray(loadedData) && loadedData.length === 0) {
             const route = createNodeRoute('nodes', 'show', id);

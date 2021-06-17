@@ -14,7 +14,6 @@ import Heading from '../common/heading';
 import MenuEditor from './menu.editor';
 import { useData } from '../../_providers/data.provider.client';
 import { getDependentTypes } from '../../_services/schema.services.client';
-import { getNavView } from '../../_services/session.services.client';
 
 /**
  * Render editor panel component (authenticated).

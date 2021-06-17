@@ -8,8 +8,7 @@
 import React  from 'react';
 import Button from '../common/button';
 import { setNavView, setPref } from '../../_services/session.services.client';
-import { getStaticView } from '../../_services/schema.services.client';
-import { useRouter } from '../../_providers/router.provider.client';
+import HelpView from '../views/help.view';
 
 /**
  * Navigator menu component.
@@ -33,8 +32,6 @@ const MenuNavigator = ({
                            setDialog,
                            filtered
 }) => {
-
-    const router = useRouter();
 
     // Sets the current navigation view (tree/map)
     // - set in state and persistent session variable
@@ -78,7 +75,7 @@ const MenuNavigator = ({
                             icon={'map'}
                             label={toggle ? 'Map' : ''}
                             className={view === 'map' ? 'active' : ''}
-                            title={`View navigation tree.`}
+                            title={`View navigation map.`}
                             onClick={() => setView('map')}
                         />
                     </li>
@@ -100,6 +97,14 @@ const MenuNavigator = ({
                             className={view === 'search' ? 'active' : ''}
                             title={`Full-text search of metadata.`}
                             onClick={() => setView('search')}
+                        />
+                    </li>
+                    <li>
+                        <Button
+                            icon={'help'}
+                            label={toggle ? 'Help' : ''}
+                            title={`View navigator help pages.`}
+                            onClick={() => setDialog({ type: 'help' })}
                         />
                     </li>
                 </ul>

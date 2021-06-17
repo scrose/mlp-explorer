@@ -126,7 +126,7 @@ export default function FilesController(modelType) {
 
 
     /**
-     * Upload files.
+     * Upload files and metadata.
      *
      * @param req
      * @param res
@@ -383,6 +383,7 @@ export default function FilesController(modelType) {
 
             // get the file path for download
             const filePath = getFilePath(file_type, file, metadata);
+
             res.download(filePath);
 
         } catch (err) {
@@ -419,7 +420,7 @@ export default function FilesController(modelType) {
             if (!file) return next(new Error('invalidRequest'));
 
             const { fs_path={} } = file || {};
-            res.download(fs_path);
+            res.download(path.join(process.env.UPLOAD_DIR, fs_path));
 
         } catch (err) {
             return next(err);

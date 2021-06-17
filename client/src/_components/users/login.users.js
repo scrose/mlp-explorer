@@ -12,7 +12,6 @@ import { useAuth } from '../../_providers/auth.provider.client';
 import { redirect } from '../../_utils/paths.utils.client';
 import { setSessionMsg } from '../../_services/session.services.client';
 import { genSchema } from '../../_services/schema.services.client';
-import Loading from '../common/loading';
 import { UserMessage } from '../common/message';
 
 /**

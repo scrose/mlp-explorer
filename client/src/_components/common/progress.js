@@ -8,7 +8,7 @@
 import React from 'react';
 import Button from './button';
 import Dialog from './dialog';
-import Message, { UserMessage } from './message';
+import { UserMessage } from './message';
 import Badge from './badge';
 
 /**
@@ -29,14 +29,15 @@ import Badge from './badge';
 const Progress = ({
                       title,
                       description,
-                      progress={},
+                      progress = {},
                       xhr,
                       messages,
                       setMessages,
-                      hasUploads=false,
-                      error=false,
-                      callback=()=>{}
-}) => {
+                      hasUploads = false,
+                      error = false,
+                      callback = () => {
+                      },
+                  }) => {
 
     const [toggle, setToggle] = React.useState(false);
     const [done, setDone] = React.useState(false);
@@ -51,7 +52,7 @@ const Progress = ({
         setDone(true);
         Object.keys(progress).forEach(key => {
             if (!progress[key].done) setDone(false);
-        })
+        });
         return () => {
             _isMounted.current = false;
         };
@@ -73,7 +74,9 @@ const Progress = ({
                     return (
                         <div key={`${key}_msg_progress`}>
                             <UserMessage
-                                onClose={() => {setMessages({})}}
+                                onClose={() => {
+                                    setMessages({});
+                                }}
                                 closeable={true}
                                 message={messages[key]}
                             />
@@ -84,19 +87,33 @@ const Progress = ({
                                     <>
                                         <div className={'progress-bar'} style={progressBar}>
                                             <span>{`${data.percent}%`}</span>
-                                            <Button icon={'cancel'} name={'cancel'} onClick={
-                                                () => {
-                                                    if (xhr.hasOwnProperty(key)) xhr[key].abort();
-                                                    setMessages(data => (
-                                                        { ...data, [key]: { msg: 'Upload Stopped!', type: 'warning' }})
-                                                    );
-                                                }} />
                                         </div>
-                                        <div>
-                                            <span>{`${(data.loaded)}MB of ${(data.total)}MB`}</span>
-                                            {
-                                                data.name && <span>{` (File: ${data.name})`}</span>
-                                            }
+                                        <div className={'h-menu'}>
+                                            <ul>
+                                                <li>
+                                                    <Button
+                                                        icon={'cancel'}
+                                                        name={'cancel'}
+                                                        label={'Cancel'}
+                                                        onClick={
+                                                        () => {
+                                                            if (xhr.hasOwnProperty(key)) xhr[key].abort();
+                                                            setMessages(data => (
+                                                                {
+                                                                    ...data,
+                                                                    [key]: { msg: 'Upload Stopped!', type: 'warning' },
+                                                                }),
+                                                            );
+                                                        }} />
+                                                </li>
+                                                <li><Badge
+                                                    title={'Upload progress.'}
+                                                    icon={'upload'}
+                                                    label={`${(data.loaded)}MB of ${(data.total)}MB 
+                                                    [File(s): ${data.name ? data.name : 'Multiple'}]`}
+                                                    />
+                                                </li>
+                                            </ul>
                                         </div>
                                     </>
                                 )
@@ -107,14 +124,14 @@ const Progress = ({
             }
             {
                 done && <div className={'alert-box-buttons'}>
-                            <Button icon={'success'} name={'ok'} label={'Done!'} onClick={
-                                () => {
-                                    callback();
-                                    setToggle(false);
-                                }} />
-                        </div>
+                    <Button icon={'success'} name={'ok'} label={'Done!'} onClick={
+                        () => {
+                            callback();
+                            setToggle(false);
+                        }} />
+                </div>
             }
-        </Dialog>
-}
+        </Dialog>;
+};
 
 export default Progress;

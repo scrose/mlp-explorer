@@ -16,7 +16,7 @@ import dataModel from '../img/mlp_data_model.jpg';
  * Index of general help content
  */
 
-export default (gotoPage) => {
+const explorerHelp = (gotoPage) => {
 
     /**
      * Explorer "Getting Started" help page.
@@ -652,3 +652,5 @@ export default (gotoPage) => {
         },
     ];
 }
+
+export default explorerHelp;

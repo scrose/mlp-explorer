@@ -152,6 +152,8 @@ const Fieldset = ({
                         ? validators[name].validations.includes('isRequired') : false;
                     const _prefix = attributes.hasOwnProperty('prefix') ? attributes.prefix : '';
                     const _suffix = attributes.hasOwnProperty('suffix') ? attributes.suffix : '';
+                    const _min = attributes.hasOwnProperty('min') ? attributes.min : '';
+                    const _max = attributes.hasOwnProperty('max') ? attributes.max : '';
                     const _multiple = attributes.hasOwnProperty('multiple') ? attributes.multiple : '';
 
                     return (
@@ -164,6 +166,8 @@ const Fieldset = ({
                             readonly={readonly}
                             prefix={_prefix}
                             suffix={_suffix}
+                            min={_min}
+                            max={_max}
                             value={_value}
                             required={_isRequired}
                             error={_error}

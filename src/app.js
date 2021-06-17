@@ -19,6 +19,8 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import { globalHandler, notFoundHandler } from './error.js';
 import router from './routes/index.routes.js';
+import st from 'st';
+
 
 /**
  * Create Express application.
@@ -119,16 +121,20 @@ export default () => {
     });
 
     /**
-     * Serve static img.
-     */
-
-    app.use( '/uploads', express.static(process.env.LOWRES_PATH) );
-
-    /**
      * Initialize router.
      */
 
     app.use('/', router);
+
+    /**
+     * Serve static files.
+     */
+
+    const mount = st({ path: process.env.LOWRES_PATH, url: '/' });
+
+    app.use( '/uploads', ((req, res, next) => {
+        mount(req, res, next)
+    }) );
 
     /**
      * Set default global error handlers.

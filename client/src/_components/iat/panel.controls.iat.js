@@ -7,7 +7,7 @@
 
 import React from 'react';
 import Button from '../common/button';
-import { erase, expand, fit, reset, undo, zoomIn, zoomOut } from './canvas.iat';
+import { erase, expand, fit, reset, zoomIn, zoomOut } from './canvas.iat';
 import { loadImageData } from './loader.iat';
 import { useUser } from '../../_providers/user.provider.client';
 import { crop } from './cropper.iat';

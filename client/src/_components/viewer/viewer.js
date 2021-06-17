@@ -12,10 +12,6 @@ import StaticView from '../views/static.view';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
 import MenuViewer from './menu.viewer';
-import { getNavView } from '../../_services/session.services.client';
-import HelpView from '../views/help.view';
-import { getDependentTypes } from '../../_services/schema.services.client';
-import MenuEditor from '../editor/menu.editor';
 import { useData } from '../../_providers/data.provider.client';
 
 /**

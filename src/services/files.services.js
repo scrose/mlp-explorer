@@ -9,27 +9,28 @@
 
 import path from 'path';
 import fs from 'fs';
-import { copyFile, unlink, mkdir, readFile, writeFile } from 'fs/promises';
-import sharp from 'sharp';
+import { mkdir, unlink, copyFile } from 'fs/promises';
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
-import { genUUID, sanitize } from '../lib/data.utils.js';
+import { sanitize } from '../lib/data.utils.js';
 import * as cserve from './construct.services.js';
 import * as metaserve from '../services/metadata.services.js';
 import * as nserve from '../services/nodes.services.js';
 import ModelServices from './model.services.js';
 import { allowedMIME } from '../lib/file.utils.js';
-import ExifReader from 'exifreader';
-import dcraw from 'dcraw';
-import os from 'os';
+import { getImageURL, saveImage } from './images.services.js';
 
-/* Available image version sizes */
+/**
+ * Maximum file size (non-images) = 1GB
+ */
 
-const imageSizes = {
-    thumb: 150,
-    medium: 900,
-    full: 2100,
-};
+const MAX_FILE_SIZE = 1e9;
+
+/**
+ * Capture types.
+ */
+
+const captureTypes = ['historic_captures', 'modern_captures'];
 
 /**
  * Get file record by ID. NOTE: returns single object.
@@ -79,7 +80,7 @@ export const get = async (id, client = pool) => {
         filename: (filename || '').replace(`_${secure_token}`, ''),
         metadata: metadata,
         metadata_type: await metaserve.selectByName('metadata_file_types', type),
-        url: getFileURL(file_type, metadata),
+        url: getImageURL(file_type, metadata),
         status: await metaserve.getStatus(owner, metadata, client),
     };
 
@@ -113,7 +114,7 @@ export const selectByOwner = async (id, client = pool) => {
                     filename: (filename || '').replace(`_${secure_token}`, ''),
                     metadata: fileMetadata,
                     metadata_type: await metaserve.selectByName('metadata_file_types', type),
-                    url: getFileURL(file_type, fileMetadata),
+                    url: getImageURL(file_type, fileMetadata),
                 };
             }),
     );
@@ -143,7 +144,7 @@ export const selectByOwner = async (id, client = pool) => {
  * @return {boolean} result
  */
 
-export const hasFiles = async (id, client=pool) => {
+export const hasFiles = async (id, client = pool) => {
     let { sql, data } = queries.files.hasFile(id);
     return client.query(sql, data)
         .then(res => {
@@ -189,6 +190,23 @@ export const getOwnerByFileType = async function(fileType, client = pool) {
     }, []);
 };
 
+/**
+ * Get model data by file reference. Returns single node object.
+ *
+ * @public
+ * @param {Object} file
+ * @param client
+ * @return {Promise} result
+ */
+
+export const selectByFile = async (file, client = pool) => {
+    let { sql, data } = queries.defaults.selectByFile(file);
+    return client.query(sql, data)
+        .then(res => {
+            return res.hasOwnProperty('rows')
+            && res.rows.length > 0 ? res.rows[0] : {};
+        });
+};
 
 /**
  * Insert file metadata.
@@ -208,7 +226,6 @@ export const getOwnerByFileType = async function(fileType, client = pool) {
 
 export const insert = async (importData, model, fileOwner = null) => {
 
-    const captureTypes = ['historic_captures', 'modern_captures'];
     const { files = {}, data = {}, owner = {} } = importData || {};
     const metadata = data;
 
@@ -288,8 +305,6 @@ export const insert = async (importData, model, fileOwner = null) => {
         res = await Promise
             .all(Object.keys(files)
                 .map(async (key) => {
-
-                    // upload file and save to image data store
                     await saveFile(
                         key,
                         importData,
@@ -299,58 +314,6 @@ export const insert = async (importData, model, fileOwner = null) => {
                         (err) => {
                             throw new Error(err);
                         });
-
-                    // get imported metadata
-                    const { data = {}, file = {} } = files[key] || {};
-                    const { file_type = '' } = file || {};
-
-                    // update file owner data
-                    data.owner_id = fileOwner.id;
-                    file.owner_id = fileOwner.id;
-                    file.owner_type = fileOwner.type;
-
-                    // include image state for capture images
-                    if (imageState) {
-                        data.image_state = typeof imageState === 'string'
-                            ? imageState
-                            : imageState[key];
-                    }
-
-                    // initialize file model services
-                    // - create new file model instance from file-specific data
-                    const FileModel = await cserve.create(file_type);
-                    const fileItem = new FileModel(data);
-
-                    // include model-specific data if NOT handling capture file
-                    if (!captureTypes.includes(model)) {
-                        fileItem.setData(metadata);
-                    }
-
-                    // create file node instance
-                    // - use file model instance with extracted file data
-                    let fileNode = await cserve.createFile(fileItem, file);
-                    const stmtFileNode = queries.files.insert(fileNode);
-                    let fileRes = await client.query(stmtFileNode.sql, stmtFileNode.data);
-
-                    // update file metadata files_id with created file ID, defined image state
-                    const { id = '' } = fileRes.hasOwnProperty('rows') && fileRes.rows.length > 0
-                        ? fileRes.rows[0] || {}
-                        : {};
-                    fileItem.id = id;
-
-                    // insert file metadata as new record
-                    // NOTE: need to define different query than current services object model
-                    const stmtFileData = queries.defaults.insert(fileItem)(fileItem);
-                    let modelRes = await client.query(stmtFileData.sql, stmtFileData.data);
-
-                    // return confirmation data
-                    return modelRes.hasOwnProperty('rows') && modelRes.rows.length > 0
-                        ? {
-                            file: fileRes.rows[0],
-                            metadata: modelRes.rows[0],
-                        }
-                        : null;
-
                 }));
 
         await client.query('COMMIT');
@@ -443,66 +406,16 @@ export const download = async (res, src) => {
             readStream.pipe(res);
 
             readStream.on('error', (err) => {
-                console.log('Error in read stream...');
+                console.warn('Error in read stream...', err);
             });
             res.on('error', (err) => {
-                console.log('Error in write stream...');
+                console.warn('Error in write stream...', err);
             });
 
         } catch (err) {
             reject(err);
         }
     });
-};
-
-/**
- * Create file source URLs for resampled images from file data.
- *
- * @public
- * @param {String} type
- * @param {Object} data
- * @return {Promise} result
- */
-
-export const getFileURL = (type = '', data = {}) => {
-
-    const { secure_token = '' } = data || {};
-
-    // ======================================================
-    // DEVELOPMENT TEST
-    // TODO: TO BE REMOVED IN PRODUCTION
-    // - check if using MEAT images or local ones
-    // ======================================================
-    const rootURI = data.channels
-        ? `${process.env.CLIENT_HOST}/uploads/`
-        : `${process.env.DEV_API_HOST}/versions/`;
-    // ======================================================
-
-    // generate resampled image URLs
-    const imgSrc = (token) => {
-        return Object.keys(imageSizes).reduce((o, key) => {
-            o[key] = new URL(`${key !== 'full' ? key + '_' : ''}${token}.jpeg`, rootURI);
-            return o;
-        }, {});
-    };
-
-    // handle image source URLs differently than metadata files
-    // - images use scaled versions of raw files
-    // - metadata uses PDF downloads
-    const fileHandlers = {
-        historic_images: () => {
-            return imgSrc(secure_token);
-        },
-        modern_images: () => {
-            return imgSrc(secure_token);
-        },
-        supplemental_images: () => {
-            return imgSrc(secure_token);
-        },
-    };
-
-    // Handle file types
-    return fileHandlers.hasOwnProperty(type) ? fileHandlers[type]() : null;
 };
 
 /**
@@ -545,7 +458,7 @@ export const getFilePath = (type, file, metadata = {}) => {
             return path.join(rootURI, `${secure_token}.jpeg`);
         },
         default: () => {
-            return path.join(fs_path);
+            return path.join(path.join(process.env.UPLOAD_DIR, fs_path));
         },
     };
 
@@ -556,153 +469,11 @@ export const getFilePath = (type, file, metadata = {}) => {
 };
 
 /**
- * Get model data by file reference. Returns single node object.
- *
- * @public
- * @param {Object} file
- * @param client
- * @return {Promise} result
- */
-
-export const selectByFile = async (file, client = pool) => {
-    let { sql, data } = queries.defaults.selectByFile(file);
-    return client.query(sql, data)
-        .then(res => {
-            return res.hasOwnProperty('rows')
-            && res.rows.length > 0 ? res.rows[0] : {};
-        });
-};
-
-/**
- * Extract image file metadata.
- *
- * @src public
- * @param src
- * @param fileData
- * @param options
- * @param isRAW
- * @param onError
- */
-
-export const getImageInfo = async (
-    src,
-    fileData,
-    options,
-    isRAW,
-    onError = console.error,
-) => {
-
-    const buffer = await readFile(src);
-
-    // load image into sharp
-    // Reference: https://sharp.pixelplumbing.com/
-    const info = await sharp(buffer, {
-        limitInputPixels: false,
-    }).metadata();
-
-    // extract image metadata
-    fileData.file.file_size = info.size;
-    fileData.file.mimetype = isRAW ? 'raw' : info.format;
-    fileData.data.format = isRAW ? 'raw' : info.format;
-    fileData.data.x_dim = info.width;
-    fileData.data.y_dim = info.height;
-    fileData.data.bit_depth = info.depth;
-    fileData.data.channels = info.channels;
-    fileData.data.density = info.density;
-    fileData.data.space = info.space;
-
-    // get EXIF metadata tags (optional)
-    try {
-
-        const exifTags = await ExifReader.load(src);
-        const {
-            Model = { value: [''] },
-            DateTime = {},
-            ExposureTime = { value: ['', 1] },
-            FNumber = { value: ['', 1] },
-            ISOSpeedRatings = { value: '' },
-            FocalLength = { value: ['', 1] },
-            GPSLatitude = { value: [''] },
-            GPSLongitude = { value: [''] },
-            GPSAltitude = { value: [''] },
-        } = exifTags || {};
-
-        // copy additional EXIF metadata
-        if (
-            DateTime.hasOwnProperty('value')
-            && (fileData.file.file_type === 'modern_images' || fileData.file.file_type === 'historic_images')
-        ) {
-            const [date, time] = DateTime.value[0].split(' ');
-            const [yr, mth, day] = date.split(':');
-            const [hr, min, sec] = time.split(':');
-            fileData.data.capture_datetime = new Date(
-                parseInt(yr),
-                parseInt(mth),
-                parseInt(day),
-                parseInt(hr),
-                parseInt(min),
-                parseInt(sec));
-        }
-
-        fileData.data.shutter_speed = sanitize(ExposureTime.value[0] / ExposureTime.value[1], 'float');
-        fileData.data.f_stop = sanitize(FNumber.value[0] / FNumber.value[1], 'float');
-        fileData.data.iso = sanitize(ISOSpeedRatings.value, 'integer');
-        fileData.data.focal_length = sanitize(FocalLength.value[0] / FocalLength.value[1], 'integer');
-        fileData.data.lat = sanitize(GPSLatitude.description, 'float');
-        fileData.data.lng = sanitize(GPSLongitude.description, 'float');
-        fileData.data.elev = sanitize(GPSAltitude.value[0], 'float')
-
-        // include camera model (if available)
-        const camera = options.cameras
-            .find(camera => camera.label === Model.value[0]);
-        if (camera) fileData.data.cameras_id = camera.value;
-    } catch(err) {
-        console.warn(err)
-    }
-
-};
-/**
- * Upload image to server. Applies file conversion if requested, otherwise
- * skips conversion on raw files. Images are resized (if requested).
- *
- * @return {Object} output file data
- * @src public
- * @param src
- * @param output
- * @param metadata
- * @param callback
- */
-
-export const copyFileTo = function(src, output, metadata, callback) {
-
-    // handle conversion to requested formats
-    const handleFormats = {
-        jpeg: () => {
-            return sharp(src, { limitInputPixels: false })
-                .resize({ width: output.size })
-                .jpeg({ quality: 80 })
-                .toFile(output.path)
-        },
-        default: () => {
-            // default handler streams temporary file to new destination
-            // - The copy operation will fail if dest already exists.
-            return copyFile(src, output.path, fs.constants.COPYFILE_EXCL);
-        },
-    };
-
-    // handle requested format (default is raw image)
-    return handleFormats.hasOwnProperty(output.format)
-        ? handleFormats[output.format]()
-        : handleFormats.default();
-
-};
-
-/**
  * Callback process for file uploads.
  *
  * @src public
  * @param index
- * @param metadata
+ * @param importData
  * @param owner
  * @param imageStateData
  * @param options
@@ -711,7 +482,7 @@ export const copyFileTo = function(src, output, metadata, callback) {
 
 export const saveFile = async (
     index,
-    metadata,
+    importData,
     owner,
     imageStateData = null,
     options,
@@ -722,16 +493,15 @@ export const saveFile = async (
     let filePromises = [];
 
     // get file data object
-    let fileData = metadata.files[index];
-    fileData.data = {};
-
-    // generate unique filename ID token
-    const imgToken = genUUID();
+    let fileData = importData.files[index];
+    // copy metadata to file data object
+    fileData.data = importData.data;
 
     // get file type
     const { file_type = '', mimetype = '', filename = '' } = fileData.file || {};
 
-    // for multiple files, image state is indexed by the file index
+    // get image state (for image uploads)
+    // - for multiple image files, image state is indexed by the file index
     const imageState = !imageStateData || typeof imageStateData === 'string'
         ? imageStateData
         : imageStateData[index];
@@ -739,124 +509,43 @@ export const saveFile = async (
     // reject null file data
     if (!file_type || !mimetype || !filename) throw new Error();
 
-    // initialize image versions
-    const _handleImages = async (dir) => {
-
-        // insert token into filename
-        const tokenizedFilename = [
-            filename.slice(0, filename.lastIndexOf('.')),
-            imgToken,
-            filename.slice(filename.lastIndexOf('.'))].join('');
-
-        // create raw path directory (if does not exist)
-        const rawPath = path.join(process.env.UPLOAD_DIR, owner.fs_path, dir);
-        await mkdir(rawPath, { recursive: true });
-
-        const versions = {
-            // create new filesystem path
-            // - format: <UPLOAD_PATH>/<IMAGE_STATE>/<FILENAME>
-            raw: {
-                format: 'raw',
-                path: path.join(rawPath, tokenizedFilename),
-                size: null,
-            },
-            // resized versions
-            thumb: {
-                format: 'jpeg',
-                path: path.join(process.env.LOWRES_PATH, `thumb_${imgToken}.jpeg`),
-                size: imageSizes.thumb,
-            },
-            medium: {
-                format: 'jpeg',
-                path: path.join(process.env.LOWRES_PATH, `medium_${imgToken}.jpeg`),
-                size: imageSizes.medium,
-            },
-            full: {
-                format: 'jpeg',
-                path: path.join(process.env.LOWRES_PATH, `${imgToken}.jpeg`),
-                size: imageSizes.full,
-            },
-        };
-
-        // update file metadata
-        fileData.data.secure_token = imgToken;
-        fileData.file.owner_type = owner.type;
-        fileData.file.owner_id = owner.id;
-        fileData.file.fs_path = versions.raw.path;
-
-        // read temporary image into buffer memory
-        let buffer = await readFile(fileData.tmp);
-        let isRAW = false;
-        let copySrc = fileData.tmp;
-
-        // convert RAW image to tiff
-        // Reference: https://github.com/zfedoran/dcraw.js/
-        buffer = dcraw(buffer, {
-            useEmbeddedColorMatrix: true,
-            exportAsTiff: true,
-            useExportMode: true,
-        });
-        // create temporary file for upload (if format is supported)
-        if (buffer) {
-            const tmpName = Math.random().toString(16).substring(2) + '-' + filename;
-            copySrc = path.join(os.tmpdir(), path.basename(tmpName));
-            await writeFile(copySrc, buffer);
-            isRAW = true;
-        }
-
-            // get image metadata
-            await getImageInfo(copySrc, fileData, options, isRAW, callback);
-
-            // copy images to data storage
-            filePromises.push(
-                copyFileTo(fileData.tmp, versions.raw, fileData, callback),
-                copyFileTo(copySrc, versions.medium, fileData, callback),
-                copyFileTo(copySrc, versions.thumb, fileData, callback),
-                copyFileTo(copySrc, versions.full, fileData, callback),
-            );
-    };
-
     // handle file upload procedure based on file type
     const _fileHandlers = {
         historic_images: async () => {
-            // upload and save image data
-            await _handleImages(imageState || 'no_state');
-            // handle image state value
-            // - copy to file metadata and remove from metadata model
-            fileData.data.image_state = imageState;
-            delete metadata.data.image_state;
+            await saveImage(filename, fileData, owner, imageState || 'no_state', options);
         },
         modern_images: async () => {
-            // upload and save image data
-            await _handleImages(imageState || 'no_state');
-            // handle image state value
-            // - copy to file metadata and remove from metadata model
-            fileData.data.image_state = imageState;
-            delete metadata.data.image_state;
+            await saveImage(filename, fileData, owner, imageState || 'no_state', options);
         },
         supplemental_images: async () => {
-            // upload and save image data
-            await _handleImages('supplemental');
+            await saveImage(filename, fileData, owner, 'supplemental_images', options);
         },
         default: async () => {
-
+            // check for supported MIME type
             if (!allowedMIME(mimetype)) throw new Error('invalidMIMEType');
+            const saveType = importData.data.hasOwnProperty('type') ? importData.data.type : 'unknown';
 
-            const saveType = metadata.data.hasOwnProperty('type') ? metadata.data.type : 'unknown';
             // create raw path directory (if does not exist)
             const uploadPath = path.join(process.env.UPLOAD_DIR, owner.fs_path, saveType);
             await mkdir(uploadPath, { recursive: true });
             const filePath = path.join(uploadPath, filename);
 
+            // get file size
+            const fileSize = (await fs.promises.stat(fileData.tmp)).size;
+            if (fileSize > MAX_FILE_SIZE) throw new Error('overMaxSize');
+
             // update file metadata
+            // - NOTE: ensure saved filesystem path does not include upload directory
             fileData.file.owner_type = owner.type;
             fileData.file.owner_id = owner.id;
-            fileData.file.fs_path = filePath;
+            fileData.file.fs_path = path.join(owner.fs_path, saveType, filename);
+            fileData.file.file_size = fileSize;
 
             // copy file to data storage
-            filePromises.push(
-                copyFileTo(fileData.tmp, { format: null, path: filePath }),
-            );
+            await copyFile(fileData.tmp, filePath, fs.constants.COPYFILE_EXCL);
+
+            // insert file record in database
+            await insertFile(fileData, owner, imageState);
         },
     };
     _fileHandlers.hasOwnProperty(file_type)
@@ -865,3 +554,73 @@ export const saveFile = async (
 
     return Promise.all(filePromises);
 };
+
+/**
+ * Save file metadata to database.
+ *
+ * @src public
+ * @param importData
+ * @param owner
+ * @param imageState
+ * @param callback
+ * @param client
+ */
+
+export const insertFile = async (
+    importData,
+    owner,
+    imageState,
+    callback=console.error,
+    client=pool) => {
+
+    // get imported metadata
+    const { data = {}, file = {} } = importData || {};
+    const { file_type = '' } = file || {};
+
+    // update file owner data
+    data.owner_id = owner.id;
+    file.owner_id = owner.id;
+    file.owner_type = owner.type;
+
+    // include image state for capture images
+    if (imageState && captureTypes.includes(owner.type)) {
+        data.image_state = typeof imageState === 'string'
+            ? imageState
+            : imageState[key];
+    }
+
+    // initialize file model services
+    // - create new file model instance from file-specific data
+    const FileModel = await cserve.create(file_type);
+    const fileItem = new FileModel(data);
+
+    // include model-specific data if NOT handling capture file
+    if (!captureTypes.includes(owner.type)) {
+        fileItem.setData(data);
+    }
+
+    // create file node instance
+    // - use file model instance with extracted file data
+    let fileNode = await cserve.createFile(fileItem, file);
+    const stmtFileNode = queries.files.insert(fileNode);
+    let fileRes = await client.query(stmtFileNode.sql, stmtFileNode.data);
+
+    // update file metadata files_id with created file ID, defined image state
+    const { id = '' } = fileRes.hasOwnProperty('rows') && fileRes.rows.length > 0
+        ? fileRes.rows[0] || {}
+        : {};
+    fileItem.id = id;
+
+    // insert file metadata as new record
+    // NOTE: need to define different query than current services object model
+    const stmtFileData = queries.defaults.insert(fileItem)(fileItem);
+    let modelRes = await client.query(stmtFileData.sql, stmtFileData.data);
+
+    // return confirmation data
+    return modelRes.hasOwnProperty('rows') && modelRes.rows.length > 0
+        ? {
+            file: fileRes.rows[0],
+            metadata: modelRes.rows[0],
+        }
+        : null;
+}

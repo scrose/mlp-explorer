@@ -271,7 +271,6 @@ const Form = ({
     const _handleDelete = (index) => {
         try {
             // remove fieldset from schema and reindex fields
-            let copyIndex = 0;
             setFieldsetSchema(data => (
                 data.filter((fset, idx) => idx !== index )));
 

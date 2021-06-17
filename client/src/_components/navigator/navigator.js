@@ -17,10 +17,8 @@ import ServerError from '../error/server.error';
 import SearchNavigator from './search.navigator';
 import Loading from '../common/loading';
 import Button from '../common/button';
-import Alert from '../common/alert';
-import { UserMessage } from '../common/message';
-import { createNodeRoute } from '../../_utils/paths.utils.client';
 import Mover from '../views/mover.view';
+import HelpView from '../views/help.view';
 
 /**
  * Main navigator component.
@@ -145,6 +143,10 @@ const Navigator = () => {
                         ownerLabel={dialog.ownerLabel}
                         onCancel={() => {setDialog(null)}}
                     />
+                }
+                {
+                    dialog && dialog.type === 'help' &&
+                    <HelpView page={2} section={0} setToggle={setDialog} />
                 }
                 {
                     error

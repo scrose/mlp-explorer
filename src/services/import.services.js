@@ -16,7 +16,6 @@ import Busboy from 'busboy';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import dcraw from 'dcraw';
 
 /**
  * Async busboy file and data importer.
@@ -164,7 +163,6 @@ export const onFile = (filePromises, metadata, onError, fieldname, file, filenam
     // create writable stream for temp file
     const writeStream = fs.createWriteStream(saveTo);
     const fileIndex = filePromises.length;
-
     const filePromise = new Promise((resolve, reject) => writeStream
         .on('open', () => file
             .pipe(writeStream)

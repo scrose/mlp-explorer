@@ -160,6 +160,12 @@ export const errors = {
         status: 422,
         type: 'error'
     },
+    overMaxSize: {
+        hint: 'File size (non-images).',
+        msg: 'Maximum upload size exceeded for non-image (> 1GB).',
+        status: 500,
+        type: 'error'
+    },
 };
 
 

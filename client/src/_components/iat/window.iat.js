@@ -5,7 +5,7 @@
  * MIT Licensed
  */
 
-import React, { useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 
 /**
  * Hook listens to the window resize event.

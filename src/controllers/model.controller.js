@@ -386,30 +386,28 @@ export default function ModelController(nodeType) {
                         type: 'success'
                     },
                 }));
-
-
-
-            // update database record
-            await mserve.update(item);
-
-            // get updated item
-            let updatedItem = await nserve.get(id);
-
-            // create node path
-            const path = await nserve.getPath(node);
-
-            // send response
-            res.status(200).json(
-                prepare({
-                    view: 'show',
-                    model: model,
-                    data: updatedItem,
-                    path: path,
-                    message: {
-                        msg: `'${updatedItem.label}' ${humanize(model.name)} updated successfully!`,
-                        type: 'success'
-                    },
-                }));
+            //
+            // // update database record
+            // await mserve.update(item);
+            //
+            // // get updated item
+            // let updatedItem = await nserve.get(id);
+            //
+            // // create node path
+            // const path = await nserve.getPath(node);
+            //
+            // // send response
+            // res.status(200).json(
+            //     prepare({
+            //         view: 'show',
+            //         model: model,
+            //         data: updatedItem,
+            //         path: path,
+            //         message: {
+            //             msg: `'${updatedItem.label}' ${humanize(model.name)} updated successfully!`,
+            //             type: 'success'
+            //         },
+            //     }));
 
         } catch (err) {
             console.error(err)
