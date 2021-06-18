@@ -130,11 +130,9 @@ export default () => {
      * Serve static files.
      */
 
-    const mount = st({ path: process.env.LOWRES_PATH, url: '/' });
+    const mount = st({ path: process.env.LOWRES_PATH, url: '/uploads' });
 
-    app.use( '/uploads', ((req, res, next) => {
-        mount(req, res, next)
-    }) );
+    app.use( mount );
 
     /**
      * Set default global error handlers.
