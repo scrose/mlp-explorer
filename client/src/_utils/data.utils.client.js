@@ -176,7 +176,7 @@ export const sanitize = (
         },
         datetime: ({ value }) => {
             const date = new Date(value);
-            return value ? date.toLocaleString('default', {timeZone: 'PST', timeZoneName: 'short'}) : '-';
+            return value ? date.toLocaleString('default', {timeZone: 'PDT', timeZoneName: 'short'}) : '-';
         },
         timestamp: ({ value }) => {
             const date = new Date(value);
