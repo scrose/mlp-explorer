@@ -596,13 +596,22 @@ const explorerHelp = (gotoPage) => {
             </thead>
             <tbody>
             <tr>
+                <th className={'mastered'}><Icon type={'historic_captures'} /></th>
+                <th>
+                    <p>Mastered Capture</p>
+                </th>
+                <td>
+                    <p>Capture is sorted and has at least one image paired with an historic/modern capture image.</p>
+                </td>
+            </tr>
+            <tr>
                 <th className={'historic_captures'}><Icon type={'historic_captures'} /></th>
                 <th>
                     <p>Sorted Capture</p>
                 </th>
                 <td>
                     <p>Capture is attached to either an: (1) historic visit for historic captures, or (2)
-                    location for modern captures.</p>
+                    location for modern captures, but is not mastered.</p>
                 </td>
             </tr>
             <tr>

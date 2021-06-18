@@ -176,7 +176,7 @@ export const sanitize = (
         },
         datetime: ({ value }) => {
             const date = new Date(value);
-            return value ? date.toLocaleString('default', {timeZone: 'UTC', timeZoneName: 'short'}) : '-';
+            return value ? date.toLocaleString('default', {timeZone: 'PST', timeZoneName: 'short'}) : '-';
         },
         timestamp: ({ value }) => {
             const date = new Date(value);
@@ -188,14 +188,14 @@ export const sanitize = (
         integer: ({ value }) => {
             return value
                 ? <span className={'float'}>
-                    {prefix}{ parseInt(value) }{suffix}
+                    {prefix} { parseInt(value) } {suffix}
                   </span>
                 : '-';
         },
         float: ({ value }) => {
             return value
                 ? <span className={'float'}>
-                    {prefix}{ parseFloat(value).toFixed(2) }{suffix}
+                    {prefix} { parseFloat(value).toFixed(2) } {suffix}
                   </span>
                 : '-';
         },

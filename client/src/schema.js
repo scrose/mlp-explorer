@@ -553,7 +553,7 @@ export const schema = {
                     },
                     weather_rh: {
                         label: 'Relative Humidity',
-                        render: 'int',
+                        render: 'float',
                         suffix: '%'
                     },
                     weather_wb: {
@@ -934,6 +934,11 @@ export const schema = {
                 {
                     legend: 'Camera Details',
                     restrict: ['show'],
+                    cameras_id: {
+                        render: 'select',
+                        reference: 'cameras',
+                        label: 'Camera'
+                    },
                     lens_id: {
                         render: 'select',
                         reference: 'lens',

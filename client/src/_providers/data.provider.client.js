@@ -9,7 +9,6 @@ import * as React from 'react'
 import { useRouter } from './router.provider.client';
 import { getRootNode } from '../_utils/data.utils.client';
 import { setSessionMsg } from '../_services/session.services.client';
-import { useUser } from './user.provider.client';
 
 /**
  * Global data provider.
@@ -30,7 +29,6 @@ const DataContext = React.createContext({})
 function DataProvider(props) {
 
     const router = useRouter();
-    const user= useUser();
 
     // API data states
     const [apiData, setAPIData] = React.useState({});
@@ -125,7 +123,7 @@ function DataProvider(props) {
         _isMounted.current = true;
 
         // call API for metadata options (if user is logged in)
-        if (user && Object.keys(options).length === 0) {
+        if (Object.keys(options).length === 0) {
             if (_isMounted.current) {
                 loadOptions();
             }
@@ -133,7 +131,7 @@ function DataProvider(props) {
         return () => {
             _isMounted.current = false;
         }
-    }, [user, options, loadOptions])
+    }, [options, loadOptions])
 
     // non-static views: fetch API data and set view data in state
     React.useEffect(() => {

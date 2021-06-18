@@ -72,6 +72,8 @@ VALUES  ('show', 'visitor', now(), now()),
         ('remove', 'administrator', now(), now()),
         ('remove', 'super_administrator', now(), now()),
 
+        ('options', 'visitor', now(), now()),
+        ('options', 'registered', now(), now()),
         ('options', 'editor', now(), now()),
         ('options', 'administrator', now(), now()),
         ('options', 'super_administrator', now(), now()),
