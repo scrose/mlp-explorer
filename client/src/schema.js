@@ -903,6 +903,14 @@ export const schema = {
                 {
                     legend: 'Image Details',
                     restrict: ['show'],
+                    filename: {
+                        render: 'text',
+                        label: 'Filename',
+                        restrict: ['show']
+                    },
+                    format: {
+                        label: 'Image Format'
+                    },
                     file_size: {
                         render: 'filesize',
                         label: 'File size',
@@ -914,9 +922,6 @@ export const schema = {
                     y_dim: {
                         render: 'imgsize',
                         label: 'Image Height'
-                    },
-                    format: {
-                        label: 'Image Format'
                     },
                     channels: {
                         label: 'Channels'
@@ -1186,11 +1191,34 @@ export const schema = {
                 },
                 {
                     legend: 'Image Details',
-                    restrict: ['show', 'edit'],
+                    restrict: ['new', 'edit'],
+                    image_type: {
+                        label: 'Image Type',
+                        render: 'select',
+                        reference: 'image_types',
+                        validate: ['isRequired']
+                    },
+                    capture_datetime: {
+                        label: 'Capture Datetime',
+                        render: 'datetime'
+                    },
+                    comments: {
+                        label: 'Comments',
+                        render: 'textarea'
+                    }
+                },
+                {
+                    legend: 'Image Details',
+                    restrict: ['show'],
                     filename: {
                         render: 'text',
                         label: 'Filename',
                         restrict: ['show']
+                    },
+                    image_type: {
+                        label: 'Image Type',
+                        render: 'select',
+                        reference: 'image_types'
                     },
                     mimetype: {
                         render: 'text',
