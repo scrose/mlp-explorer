@@ -359,13 +359,9 @@ export const update = async (item, client = pool) => {
  * @public
  */
 
-export const remove = async (file, filepaths, client = pool) => {
+export const remove = async (file=null, filepaths, client = pool) => {
 
-    // remove file node record
-    let { sql, data } = queries.files.remove(file);
-    let response = await client.query(sql, data) || [];
-
-    // delete attached files
+    // [1] delete attached files
     // - assumes file paths are to regular files.
     // - requires removal of static slug from file path
     //   as set in Express static-serve
@@ -385,10 +381,16 @@ export const remove = async (file, filepaths, client = pool) => {
         }),
     );
 
-    // response data
-    return response.hasOwnProperty('rows') && response.rows.length > 0
-        ? response.rows[0]
-        : null;
+    // [2] remove file node record (if provided)
+    if (file) {
+        let {sql, data} = queries.files.remove(file);
+        let response = await client.query(sql, data) || [];
+
+        // response data
+        return response.hasOwnProperty('rows') && response.rows.length > 0
+            ? response.rows[0]
+            : null;
+    }
 };
 
 /**
@@ -548,9 +550,14 @@ export const saveFile = async (
             await insertFile(fileData, owner, imageState);
         },
     };
+
+    // process file by type
     _fileHandlers.hasOwnProperty(file_type)
         ? await _fileHandlers[file_type]()
         : await _fileHandlers.default();
+
+    // delete temporary file
+    await remove(null, [fileData.tmp]);
 
     return Promise.all(filePromises);
 };

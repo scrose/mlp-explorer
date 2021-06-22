@@ -137,8 +137,9 @@ export const onFile = (filePromises, metadata, onError, fieldname, file, filenam
     }
 
     // create temporary file for upload
+    // - NOTE: temporary directory path set in ENV
     const tmpName = file.tmpName = Math.random().toString(16).substring(2) + '-' + filename;
-    const saveTo = path.join(os.tmpdir(), path.basename(tmpName));
+    const saveTo = path.join(process.env.TMP_DIR, path.basename(tmpName));
 
     // initialize file metadata
     let fileData = {};

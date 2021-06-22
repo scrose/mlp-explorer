@@ -48,7 +48,7 @@ let queue = new Queue('transcode', {
 
 queue.process(async (job) => {
 
-    const {src=''} = job.data || {};
+    const { src='' } = job.data || {};
 
     console.log(`Processing job: ${job.id} / File: ${src}`);
 

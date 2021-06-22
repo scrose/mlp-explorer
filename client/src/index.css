@@ -736,7 +736,6 @@ nav.breadcrumb ul li a:hover {
     margin:0;
 }
 .tree-node .h-menu ul {
-    border-left: 1px dotted #999999;
     flex-wrap: nowrap;
     padding: 0;
     margin:0;

@@ -214,6 +214,7 @@ export const saveImage = async (filename, metadata, owner, imageState, options) 
  *
  * @src public
  * @param buffer
+ * @param src
  * @param fileData
  * @param options
  * @param isRAW
