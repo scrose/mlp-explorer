@@ -86,27 +86,27 @@ export const transcode = async (data, callback) => {
 
     try {
 
-        // read temporary image into buffer memory
-        let buffer = await readFile(src);
-
-        // convert RAW image to tiff
-        // Reference: https://github.com/zfedoran/dcraw.js/
-        let bufferRaw = dcraw(buffer, {
-            useEmbeddedColorMatrix: true,
-            exportAsTiff: true,
-            useExportMode: true,
-        });
-
-        // create temporary file for upload (if format is supported)
-        if (bufferRaw) {
-            const tmpName = Math.random().toString(16).substring(2) + '-' + filename;
-            copySrc = path.join(process.env.TMP_DIR, path.basename(tmpName));
-            await writeFile(copySrc, bufferRaw);
-            isRAW = true;
-        }
-        // delete buffer
-        buffer = null;
-        bufferRaw = null;
+        // // read temporary image into buffer memory
+        // let buffer = await readFile(src);
+        //
+        // // convert RAW image to tiff
+        // // Reference: https://github.com/zfedoran/dcraw.js/
+        // let bufferRaw = dcraw(buffer, {
+        //     useEmbeddedColorMatrix: true,
+        //     exportAsTiff: true,
+        //     useExportMode: true,
+        // });
+        //
+        // // create temporary file for upload (if format is supported)
+        // if (bufferRaw) {
+        //     const tmpName = Math.random().toString(16).substring(2) + '-' + filename;
+        //     copySrc = path.join(process.env.TMP_DIR, path.basename(tmpName));
+        //     await writeFile(copySrc, bufferRaw);
+        //     isRAW = true;
+        // }
+        // // delete buffer
+        // buffer = null;
+        // bufferRaw = null;
 
         // get image metadata
         await getImageInfo(copySrc, metadata, options, isRAW);
