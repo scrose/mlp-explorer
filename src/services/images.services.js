@@ -14,11 +14,10 @@ import sharp from 'sharp';
 import path from 'path';
 import { genUUID } from '../lib/data.utils.js';
 import dcraw from 'dcraw';
-import os from 'os';
 import { sanitize } from '../lib/data.utils.js';
 import Queue from 'bull';
 import redis from 'redis';
-import { insertFile } from './files.services.js';
+import { insertFile, remove } from './files.services.js';
 
 
 /* Available image version sizes */
