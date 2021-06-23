@@ -54,7 +54,13 @@ queue.process(async (job) => {
 
     transcode(job.data, console.log)
         .then(res => {
-            console.log('Results:', res)
+            // force garbage collection
+            try {
+                if (global.gc) {global.gc();}
+            } catch (e) {
+                console.log("`node --expose-gc index.js`");
+                process.exit();
+            }
         })
         .catch(console.error);
 });

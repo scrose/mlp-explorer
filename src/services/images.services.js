@@ -87,7 +87,7 @@ export const transcode = async (data, callback) => {
     try {
 
         // read temporary image into buffer memory
-        const buffer = await readFile(src);
+        let buffer = await readFile(src);
 
         // convert RAW image to tiff
         // Reference: https://github.com/zfedoran/dcraw.js/
@@ -105,6 +105,7 @@ export const transcode = async (data, callback) => {
             isRAW = true;
         }
         // delete buffer
+        buffer = null;
         bufferRaw = null;
 
         // get image metadata
@@ -248,44 +249,44 @@ export const getImageInfo = async (
     fileData.data.density = info.density;
     fileData.data.space = info.space;
 
-    // // extract exif metadata using ExifTool
-    // const exiftool = new ExifTool({ taskTimeoutMillis: 5000 });
-    // const exifTags = await exiftool.read(src);
-    //
-    // const {
-    //     Model = '',
-    //     ProfileDateTime = '',
-    //     ExposureTime = '',
-    //     Fnumber = '',
-    //     ISO = '',
-    //     FocalLength = '',
-    //     GPSLatitude = '',
-    //     GPSLongitude = '',
-    //     GPSAltitude = '',
-    // } = exifTags || {};
-    //
-    // // copy additional EXIF metadata
-    // if (
-    //     ProfileDateTime
-    //     && (fileData.file.file_type === 'modern_images' || fileData.file.file_type === 'historic_images')
-    // ) {
-    //     fileData.data.capture_datetime = ProfileDateTime.toDate();
-    // }
-    //
-    // fileData.data.shutter_speed = sanitize(ExposureTime, 'float');
-    // fileData.data.f_stop = sanitize(Fnumber, 'float');
-    // fileData.data.iso = sanitize(ISO, 'integer');
-    // fileData.data.focal_length = sanitize(FocalLength, 'integer');
-    // fileData.data.lat = sanitize(GPSLatitude, 'float');
-    // fileData.data.lng = sanitize(GPSLongitude, 'float');
-    // fileData.data.elev = sanitize(GPSAltitude, 'float');
-    //
-    // // include camera model (if available)
-    // const camera = options.cameras
-    //     .find(camera => camera.label === Model);
-    // if (camera) fileData.data.cameras_id = camera.value;
-    //
-    // await exiftool.end();
+    // extract exif metadata using ExifTool
+    const exiftool = new ExifTool({ taskTimeoutMillis: 5000 });
+    const exifTags = await exiftool.read(src);
+
+    const {
+        Model = '',
+        ProfileDateTime = '',
+        ExposureTime = '',
+        Fnumber = '',
+        ISO = '',
+        FocalLength = '',
+        GPSLatitude = '',
+        GPSLongitude = '',
+        GPSAltitude = '',
+    } = exifTags || {};
+
+    // copy additional EXIF metadata
+    if (
+        ProfileDateTime
+        && (fileData.file.file_type === 'modern_images' || fileData.file.file_type === 'historic_images')
+    ) {
+        fileData.data.capture_datetime = ProfileDateTime.toDate();
+    }
+
+    fileData.data.shutter_speed = sanitize(ExposureTime, 'float');
+    fileData.data.f_stop = sanitize(Fnumber, 'float');
+    fileData.data.iso = sanitize(ISO, 'integer');
+    fileData.data.focal_length = sanitize(FocalLength, 'integer');
+    fileData.data.lat = sanitize(GPSLatitude, 'float');
+    fileData.data.lng = sanitize(GPSLongitude, 'float');
+    fileData.data.elev = sanitize(GPSAltitude, 'float');
+
+    // include camera model (if available)
+    const camera = options.cameras
+        .find(camera => camera.label === Model);
+    if (camera) fileData.data.cameras_id = camera.value;
+
+    await exiftool.end();
 
 };
 

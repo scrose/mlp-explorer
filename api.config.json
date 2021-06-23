@@ -25,6 +25,7 @@
     {
       "name": "mle-transcoder",
       "script": "./transcoder/app.js",
+      "args": "--expose-gc",
       "watch": false,
       "ignore_watch": [
         "node_modules"
