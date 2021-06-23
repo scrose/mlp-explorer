@@ -92,7 +92,7 @@ export const transcode = async (data, callback) => {
 
         // convert RAW image to tiff
         // Reference: https://github.com/zfedoran/dcraw.js/
-        const bufferRaw = dcraw(buffer, {
+        let bufferRaw = dcraw(buffer, {
             useEmbeddedColorMatrix: true,
             exportAsTiff: true,
             useExportMode: true,
@@ -105,9 +105,11 @@ export const transcode = async (data, callback) => {
             await writeFile(copySrc, bufferRaw);
             isRAW = true;
         }
+        // delete buffer
+        bufferRaw = null;
 
         // get image metadata
-        await getImageInfo(buffer, copySrc, metadata, options, isRAW);
+        await getImageInfo(copySrc, metadata, options, isRAW);
 
         // copy image versions to data storage
         await copyImageTo(src, versions.raw, metadata);
@@ -213,7 +215,6 @@ export const saveImage = async (filename, metadata, owner, imageState, options) 
  * Extract image file metadata.
  *
  * @src public
- * @param buffer
  * @param src
  * @param fileData
  * @param options
@@ -222,17 +223,18 @@ export const saveImage = async (filename, metadata, owner, imageState, options) 
  */
 
 export const getImageInfo = async (
-    buffer,
     src,
     fileData,
     options,
     isRAW,
     onError = console.error,
 ) => {
+    // turn off cache
+    sharp.cache(false);
 
     // extract file metadata using Sharp
     // Reference: https://sharp.pixelplumbing.com/
-    const info = await sharp(buffer).metadata();
+    const info = await sharp(src).metadata();
 
     fileData.file.file_size = info.size;
     fileData.file.mimetype = isRAW ? 'raw' : info.format;
