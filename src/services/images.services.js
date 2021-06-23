@@ -101,7 +101,7 @@ export const transcode = async (data, callback) => {
         // create temporary file for upload (if format is supported)
         if (bufferRaw) {
             const tmpName = Math.random().toString(16).substring(2) + '-' + filename;
-            copySrc = path.join(os.tmpdir(), path.basename(tmpName));
+            copySrc = path.join(process.env.TMP_DIR, path.basename(tmpName));
             await writeFile(copySrc, bufferRaw);
             isRAW = true;
         }
@@ -119,6 +119,9 @@ export const transcode = async (data, callback) => {
 
         // add file record to database
         await insertFile(metadata, owner, imageState);
+
+        // delete temporary files
+        await remove(null, [src, copySrc]);
 
         return Promise.resolve({
             raw: isRAW,

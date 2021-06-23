@@ -556,9 +556,6 @@ export const saveFile = async (
         ? await _fileHandlers[file_type]()
         : await _fileHandlers.default();
 
-    // delete temporary file
-    //await remove(null, [fileData.tmp]);
-
     return Promise.all(filePromises);
 };
 
