@@ -30,8 +30,8 @@
       "ignore_watch": [
         "node_modules"
       ],
-      "error_file": "./logs/mle_transcoder_1_error.log",
-      "out_file": "./logs/mle_transcoder_1_output.log",
+      "error_file": "./logs/mle_transcoder_error.log",
+      "out_file": "./logs/mle_transcoder_output.log",
       "instances": 3
     }
   ]

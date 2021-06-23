@@ -121,7 +121,9 @@ export const transcode = async (data, callback) => {
         await insertFile(metadata, owner, imageState);
 
         // delete temporary files
-        await remove(null, [src, copySrc]);
+        src === copySrc
+            ? await remove(null, [src])
+            : await remove(null, [src, copySrc])
 
         return Promise.resolve({
             raw: isRAW,
