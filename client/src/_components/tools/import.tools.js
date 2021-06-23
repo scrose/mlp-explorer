@@ -170,8 +170,8 @@ const Importer = ({
     const description = error
         ? 'An error occurred.'
         : response && Object.keys(response).length > 0
-            ? 'Finished!'
-            : 'In progress ...';
+            ? 'Upload Finished!'
+            : 'Uploading in progress ...';
 
     return (
         <div className={'importer'}>
