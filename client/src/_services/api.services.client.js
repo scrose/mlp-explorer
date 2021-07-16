@@ -113,9 +113,9 @@ export const upload = async (route, formData, callback=()=>{}, online=true) => {
     if (!route || !online ) return null;
 
     // DEBUG: Display the key/value pairs of form data
-    // for(var pair of formData.entries()) {
-    //     console.log(pair[0]+ ', '+ pair[1]);
-    // }
+    for(var pair of formData.entries()) {
+        console.log(pair[0]+ ', '+ pair[1]);
+    }
 
     try {
 

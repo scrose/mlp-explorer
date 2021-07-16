@@ -4,7 +4,7 @@
  * Module dependencies
  */
 
-import createApp from '../app.js';
+import createApp from './src/app.js';
 import http from 'http';
 
 /**

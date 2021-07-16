@@ -18,7 +18,7 @@ import * as nserve from './nodes.services.js';
 import { groupBy, sanitize } from '../lib/data.utils.js';
 import { extractFileLabel } from '../lib/file.utils.js';
 import * as cserve from './construct.services.js';
-import { hasFiles } from './files.services.js';
+import * as fserve from './files.services.js';
 import { getComparisonsByCapture, getComparisonsByStation, getComparisonsMetadata } from './comparisons.services.js';
 
 /**
@@ -264,7 +264,8 @@ export const getAll = async function(model, client=pool) {
  */
 
 const findMetadataOptions = async (model, valueCol, labelCols, delimiter, client=pool) => {
-    let { sql, data } = queries.metadata.selectMetadataOptionsByModel(model, valueCol, labelCols, delimiter);
+    let { sql, data } = queries.metadata.selectMetadataOptionsByModel(
+        model, valueCol, labelCols, delimiter);
     let metadata = await client.query(sql, data);
     return metadata.rows;
 }
@@ -308,11 +309,10 @@ export const getMetadataOptions = async function(client=pool) {
  *
  * @param files
  * @param owner
- * @param client
  * @return {*}
  */
 
-export const getCaptureImage = (files, owner, client=pool) => {
+export const getCaptureImage = (files, owner) => {
     const { historic_images=null, modern_images=null } = files || {};
     const captureImages = historic_images || modern_images || [];
     const { id='', type='' } = owner || {};
@@ -433,7 +433,7 @@ export const getAttachedByNode = async function(node, client=pool) {
         const attachedItems = await selectByOwner(id, model, client) || [];
         return Promise.all(attachedItems.map( async (item) => {
             return {
-                label: await getNodeLabel({id: item.id, type: model}),
+                label: await getNodeLabel({id: item.id, type: model}, client),
                 data: item
             }
         }));
@@ -460,17 +460,11 @@ export const getModernCapturesByStation = async (node, client=pool) => {
 
     const {id=''} = node || {};
     const { sql, data } = queries.metadata.getModernCapturesByStationID(id);
-    const captures = await client.query(sql, data)
+    return await client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows')
             && res.rows.length > 0 ? res.rows : [];
         });
-
-    // append full data for each returned capture
-    return await Promise.all(
-        captures.map(async (capture) => {
-            return await nserve.select(capture.nodes_id, client);
-        }));
 };
 
 /**
@@ -485,18 +479,27 @@ export const getModernCapturesByStation = async (node, client=pool) => {
 export const getHistoricCapturesByStation = async (node, client=pool) => {
     const {id=''} = node || {};
     const { sql, data } = queries.metadata.getHistoricCapturesByStationID(id);
-    const captures = await client.query(sql, data)
+    return await client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows')
             && res.rows.length > 0 ? res.rows : [];
         });
-
-    // append full data for each returned capture
-    return await Promise.all(
-        captures.map(async (capture) => {
-            return await nserve.select(capture.nodes_id, client);
-        }));
 };
+
+/**
+ * Get number of mastered capture images associated with a capture
+ *
+ * @public
+ * @return {Promise} result
+ */
+
+const hasMastered = async (captureID, captureImageType, client=pool) => {
+    const { sql, data } = queries.metadata.hasMastered(captureID, captureImageType);
+    let response = await client.query(sql, data);
+    return response.hasOwnProperty('rows') && response.rows.length > 0
+        ? response.rows[0]
+        : null;
+}
 
 /**
  * Get status information for node.
@@ -528,25 +531,35 @@ export const getStatus = async (node, metadata = {}, client = pool) => {
     // initialize image versions
     const statusInfo = {
         stations: async () => {
-            const historicCaptures = await getComparisonsByStation(node, client) || [];
+            const comparisons = await getComparisonsByStation(node, client) || [];
+            const historicCaptures = await getHistoricCapturesByStation(node, client) || [];
             const modernCaptures = await getModernCapturesByStation(node, client) || [];
-            const comparisons = historicCaptures.filter(hc => hc.modern_captures);
-            const { lat = null, long = null } = metadata || {};
+            // tally how many capture images are mastered
+            let totalRepeats = 0;
+            let mastered = 0;
+            await Promise.all(
+                comparisons.map(async (pair) => {
+                    const masterStatus = await hasMastered(
+                        pair.historic_captures, 'historic_images', client);
+                    mastered += masterStatus.mastered;
+                    totalRepeats += masterStatus.total;
+                })
+            );
+            const { lat = null, lng = null } = metadata || {};
             return {
                 comparisons: comparisons,
                 historic_captures: historicCaptures.length,
                 modern_captures: modernCaptures.length,
-                compared: null,
-                grouped: historicCaptures.length > 0,
-                located: historicCaptures.length > 0 && !!(lat && long),
-                repeated: modernCaptures.length > 0,
-                partial: modernCaptures.length > 0 && historicCaptures.length > modernCaptures.length,
-                mastered: historicCaptures.length > 0 && historicCaptures.length <= comparisons.length,
+                grouped: historicCaptures.length > 0 && !(lat && lng),
+                located: historicCaptures.length > 0 && !!(lat && lng),
+                repeated: comparisons.length > 0,
+                partial: mastered > 0 && mastered < totalRepeats,
+                mastered: mastered > 0 && mastered === totalRepeats,
             };
         },
         historic_captures: async () => {
             const comparisons = await getComparisonsByCapture(node, client) || [];
-            const files = await hasFiles(node.id, client) || false;
+            const files = await fserve.hasFiles(node.id, client) || false;
             return {
                 comparisons: comparisons,
                 compared: comparisons.length > 0,
@@ -556,7 +569,7 @@ export const getStatus = async (node, metadata = {}, client = pool) => {
         },
         modern_captures: async () => {
             const comparisons = await getComparisonsByCapture(node, client) || [];
-            const files = await hasFiles(node.id, client) || false;
+            const files = await fserve.hasFiles(node.id, client) || false;
             return {
                 comparisons: comparisons,
                 compared: comparisons.length > 0,
@@ -572,6 +585,9 @@ export const getStatus = async (node, metadata = {}, client = pool) => {
 
 /**
  * Get node label.
+ * - Generates labels for nodes based on specific required metadata
+ * - For captures, the fn_photo_reference value may be blank, in which case the
+ *   use of a capture image filename is used.
  *
  * @public
  * @param {Object} node
@@ -592,7 +608,7 @@ export const getNodeLabel = async (node, files=[], client=pool) => {
             id, type, ['name']
         ),
         surveyors: queries.metadata.selectLabel(
-            id, type, ['last_name', 'given_names', 'short_name', 'affiliation'], '', ', '
+            id, type, ['last_name', 'given_names'], '', ', '
         ),
         surveys: queries.metadata.selectLabel(
             id, type, ['name']
@@ -606,16 +622,16 @@ export const getNodeLabel = async (node, files=[], client=pool) => {
             id, type, ['date'], 'Historic Visit'
         ),
         modern_visits: queries.metadata.selectLabel(
-            id, type, ['date'], 'Modern Visit'
+            id, type, ['date'], 'MV'
         ),
         locations: queries.metadata.selectLabel(
-            id, type, ['location_identity'], 'Location'
+            id, type, ['location_identity'], 'Loc'
         ),
         historic_captures: queries.metadata.selectLabel(
-            id, type, ['fn_photo_reference'], 'Historic Capture'
+            id, type, ['fn_photo_reference'], 'HC'
         ),
         modern_captures: queries.metadata.selectLabel(
-            id, type, ['fn_photo_reference'], 'Modern Capture'
+            id, type, ['fn_photo_reference'], 'MC'
         ),
         glass_plate_listings: queries.metadata.selectLabel(
             id, type, ['container', 'plates'], '', ', ', 'id'
@@ -632,8 +648,34 @@ export const getNodeLabel = async (node, files=[], client=pool) => {
         label = await client.query(sql, data)
             .then(res => {
                 return res.hasOwnProperty('rows')
-                && res.rows.length > 0 ? res.rows[0].label : '';
+                && res.rows.length > 0 ? res.rows[0].label.trim() : '';
             });
+
+        // Handle problematic Surveyor Labels
+        if (type === 'surveyors' && label === '') {
+            // get model label value
+            let { sql, data } = queries.metadata.selectLabel(
+                id, type, ['affiliation'], '', ', '
+            );
+            label = await client.query(sql, data)
+                .then(res => {
+                    return res.hasOwnProperty('rows')
+                    && res.rows.length > 0 ? res.rows[0].label.trim() : '';
+                });
+        }
+
+        // For captures, check if Photo Reference label is missing. If so, use
+        // an image file name to label the node.
+        if (type === 'historic_captures' && label === 'HC') {
+            const captureImages = await fserve.selectByOwner(id, client);
+            const { historic_images = [] } = captureImages || {};
+            label = historic_images.length > 0 ? historic_images[0].label : label;
+        }
+        if (type === 'modern_captures' && label === 'MC') {
+            const captureImages = await fserve.selectByOwner(id, client);
+            const {modern_images = []} = captureImages || {};
+            label = modern_images.length > 0 ? modern_images[0].label : label;
+        }
     }
     return label;
 };

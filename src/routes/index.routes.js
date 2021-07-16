@@ -18,7 +18,7 @@ import nodes from './nodes.routes.js'
 import models from './model.routes.js'
 import metadata from './metadata.routes.js'
 import files from './files.routes.js'
-import master from './master.routes.js'
+import master from './comparison.routes.js'
 
 /**
  * Create base router to add routes.
@@ -63,8 +63,7 @@ async function initRoutes(routes, baseRouter) {
 
                     // authorize user access based on role permissions
                     // - user data set to null for anonymous users (visitors)
-                    const { access_token=null } = req.signedCookies || [];
-                    req.user = await auth.authorize(access_token, allowedRoles)
+                    req.user = await auth.authorize(req, res, allowedRoles)
                         .catch(err => {
                             throw err;
                         });

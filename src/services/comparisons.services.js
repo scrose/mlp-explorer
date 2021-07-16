@@ -6,52 +6,115 @@
  */
 
 import pool from './db.services.js';
-import {
-    getComparisons,
-    getComparisonsByHistoricVisitID,
-    getComparisonsByLocationID,
-    getComparisonsByModernVisitID,
-    getComparisonsByStationID,
-    getComparisonsData, insertComparison,
-} from '../queries/comparisons.queries.js';
+import * as cmpqueries from '../queries/comparisons.queries.js';
 import * as nserve from './nodes.services.js';
-import * as fserve from './files.services.js';
 
+/**
+ * Update comparison.
+ *
+ * @public
+ * @param {Object} node
+ * @param {Array} comparedCaptureIDs
+ * @param client
+ * @return {Promise} result
+ */
+
+export const updateComparisons = async (node, comparedCaptureIDs, client = pool) => {
+
+    if (!node || !comparedCaptureIDs) return null;
+
+    // delete existing comparisons for capture
+    const delRes = await deleteComparisons(node);
+    console.log(delRes);
+
+    // load comparison capture(s) node data and update comparisons table
+    return await Promise.all(
+        comparedCaptureIDs.map( async(captureID) => {
+            const comparedCapture = await nserve.select(captureID, client);
+            console.log(comparedCapture)
+            // check that image pair(s) are sorted and therefore comparable
+            if (await isComparable(
+                node.type === 'historic_captures' ? node : comparedCapture,
+                node.type === 'historic_captures' ? comparedCapture : node
+            )) {
+                console.log('Comparable!')
+                await upsertComparison(
+                    node.type === 'historic_captures' ? node.id : captureID,
+                    node.type === 'historic_captures' ? captureID : node.id);
+            }
+            return comparedCapture;
+        })
+    );
+}
 
 /**
  * Upsert comparison.
  *
  * @public
- * @param historicImageID
  * @param historicCaptureID
- * @param modernImageId
  * @param modernCaptureID
  * @param client
  * @return {Promise} result
  */
 
-export const addComparison = async (
-    historicImageID,
+export const upsertComparison = async (
     historicCaptureID,
-    modernImageId,
     modernCaptureID,
     client = pool
 ) => {
 
-    if (!historicImageID ||
-        !historicCaptureID ||
-        !modernImageId ||
-        !modernCaptureID) return [];
+    if (!historicCaptureID || !modernCaptureID) return [];
 
-    let { sql, data } = insertComparison(
-        historicImageID,
-        historicCaptureID,
-        modernImageId,
-        modernCaptureID);
+    let { sql, data } = cmpqueries.upsertComparison(historicCaptureID, modernCaptureID);
     return await client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows')
             && res.rows.length > 0 ? res.rows : [];
+        });
+};
+
+/**
+ * Delete comparison.
+ *
+ * @public
+ * @param capture1ID
+ * @param capture2ID
+ * @param client
+ * @return {Promise} result
+ */
+
+export const deleteComparison = async (
+    capture1ID,
+    capture2ID=null,
+    client = pool
+) => {
+
+    if (!capture1ID || !capture2ID) return [];
+
+    let { sql, data } = cmpqueries.deleteComparison(capture1ID, capture2ID);
+    return await client.query(sql, data)
+        .then(res => {
+            return res.hasOwnProperty('rows') && res.rows.length > 0 ? res.rows : [];
+        });
+};
+
+/**
+ * Delete comparison.
+ *
+ * @public
+ * @param node
+ * @param client
+ * @return {Promise} result
+ */
+
+export const deleteComparisons = async (node, client = pool) => {
+
+    if (!node) return [];
+
+    let { sql, data } = cmpqueries.deleteCaptureComparisons(node);
+    return await client.query(sql, data)
+        .then(res => {
+            return res.hasOwnProperty('rows') && res.rows.length > 0 ? res.rows : [];
         });
 };
 
@@ -70,12 +133,12 @@ export const getComparisonsMetadata = async (node, client = pool) => {
 
     const { type = '', id = '' } = node || {};
     const queriesByType = {
-        stations: getComparisonsByStationID(id),
-        historic_visits: getComparisonsByHistoricVisitID(id),
-        modern_visits: getComparisonsByModernVisitID(id),
-        locations: getComparisonsByLocationID(id),
-        historic_captures: getComparisonsData(node),
-        modern_captures: getComparisonsData(node),
+        stations: cmpqueries.getComparisonsByStationID(id),
+        historic_visits: cmpqueries.getComparisonsByHistoricVisitID(id),
+        modern_visits: cmpqueries.getComparisonsByModernVisitID(id),
+        locations: cmpqueries.getComparisonsByLocationID(id),
+        historic_captures: cmpqueries.getComparisonsData(node),
+        modern_captures: cmpqueries.getComparisonsData(node),
     };
 
     if (queriesByType.hasOwnProperty(type)) {
@@ -94,12 +157,14 @@ export const getComparisonsMetadata = async (node, client = pool) => {
             (comparisons || [])
                 // .filter(comparison => comparison)
                 .map(async (comparison) => {
+                    const historic_data = await nserve.get(
+                        comparison.historic_captures, client);
+                    const modern_data = await nserve.get(
+                        comparison.modern_captures, client);
                     return {
                         id: comparison.id,
-                        historic_image_id: comparison.historic_images,
-                        historic_image: await fserve.get(comparison.historic_images, client),
-                        modern_image_id: comparison.modern_images,
-                        modern_image: await fserve.get(comparison.modern_images, client),
+                        historic_captures: historic_data,
+                        modern_captures: modern_data
                     };
                 }));
     }
@@ -117,7 +182,7 @@ export const getComparisonsMetadata = async (node, client = pool) => {
 
 export const getComparisonsByCapture = async (node, client = pool) => {
 
-    let { sql, data } = getComparisons(node);
+    let { sql, data } = cmpqueries.getComparisons(node);
     return client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows')
@@ -137,7 +202,7 @@ export const getComparisonsByCapture = async (node, client = pool) => {
 export const getComparisonsByStation = async (node, client = pool) => {
 
     const { id = '' } = node || {};
-    let { sql, data } = getComparisonsByStationID(id);
+    let { sql, data } = cmpqueries.getComparisonsByStationID(id);
     return client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows')
@@ -152,11 +217,10 @@ export const getComparisonsByStation = async (node, client = pool) => {
  * @public
  * @param historicCapture
  * @param modernCapture
- * @param client
  * @return {Promise} result
  */
 
-export const isCompatiblePair = async (historicCapture, modernCapture, client = pool) => {
+export const isComparable = async (historicCapture, modernCapture) => {
 
     // check if valid file IDs
     if (!historicCapture || !modernCapture) return null;

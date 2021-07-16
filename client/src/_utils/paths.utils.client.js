@@ -96,11 +96,11 @@ export function serialize(obj) {
         .map(p => {
             // handle array or string query
             let qStr = Array.isArray(obj[p])
-                ? obj[p].join('_')
-                : String(obj[p]).replace(/\s+/g, "_");
+                ? obj[p].join('-')
+                : String(obj[p]).replace(/\s+/g, "-");
 
             // encode uri components for query string
-            qStr = encodeURIComponent(qStr).replace(/_/g, '+')
+            qStr = encodeURIComponent(qStr).replace(/-/g, '+')
             return encodeURIComponent(p) + "=" + qStr;
         })
         .join("&");

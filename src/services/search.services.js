@@ -27,17 +27,116 @@ const stopWords = [
     'said', 'same', 'see', 'should', 'since', 'some', 'still', 'such', 'take', 'than',
     'that', 'the', 'their', 'them', 'then', 'there', 'these', 'they', 'this', 'those',
     'through', 'to', 'too', 'under', 'up', 'very', 'was', 'way', 'we', 'well', 'were',
-    'what', 'where', 'which', 'while', 'who', 'with', 'would', 'you', 'your', 'a', 'i']
+    'what', 'where', 'which', 'while', 'who', 'with', 'would', 'you', 'your', 'a', 'i'];
+
+// list of searchable tables and associated fields
+
+const searchable = {
+    projects: {
+        heading: ['name'],
+        required: ['name'],
+        coalesce: [
+            'description'
+        ]
+    },
+    surveyors: {
+        heading: ['given_names', 'last_name', 'short_name', 'affiliation'],
+        required: [],
+        coalesce: ['given_names', 'last_name', 'short_name', 'affiliation']
+    },
+    surveys: {
+        heading: ['name'],
+        required: ['name'],
+        coalesce: [
+            'historical_map_sheet'
+        ]
+    },
+    survey_seasons: {
+        heading: ['year'],
+        required: ['year'],
+        coalesce: [
+            'geographic_coverage',
+            'jurisdiction',
+            'affiliation',
+            'archive',
+            'collection',
+            'location',
+            'sources',
+            'notes'
+        ]
+    },
+    stations: {
+        heading: ['name'],
+        required: ['name'],
+        coalesce: ['nts_sheet']
+    },
+    modern_visits: {
+        heading: ['date'],
+        required: ['date'],
+        coalesce: [
+            'pilot',
+            'rw_call_sign',
+            'visit_narrative',
+            'weather_narrative',
+            'fn_physical_location',
+            'fn_transcription_comment'
+        ]
+    },
+    historic_captures: {
+        heading: ['fn_photo_reference'],
+        required: [],
+        coalesce: [
+            'fn_photo_reference',
+            'digitization_location',
+            'lac_ecopy',
+            'lac_wo',
+            'lac_collection',
+            'lac_box',
+            'lac_catalogue',
+            'condition',
+            'comments'
+        ]
+    },
+    modern_captures: {
+        heading: ['fn_photo_reference'],
+        required: [],
+        coalesce: [
+            'fn_photo_reference',
+            'comments'
+        ]
+    },
+    maps: {
+        type: 'metadata',
+        heading: ['nts_map'],
+        required: [],
+        coalesce: ['nts_map', 'historic_map', 'links']
+    },
+    glass_plate_listings: {
+        type: 'metadata',
+        heading: ['container', 'plates'],
+        required: [],
+        coalesce: ['container', 'plates', 'notes']
+    },
+    participants: {
+        type: 'participants',
+        heading: ['date'],
+        required: [],
+        coalesce: ['given_names', 'last_name']
+    }
+};
 
 /**
  * Full-text search of metadata.
  *
  * @public
- * @params {Object} inputNode
+ * @param {Array} q
+ * @param {Array} filter
+ * @param offset
+ * @param limit
  * @return {Promise} result
  */
 
-export const fulltext = async (q, offset, limit) => {
+export const fulltext = async (q, offset, limit, filter) => {
 
     if (!q) return null;
 
@@ -53,12 +152,25 @@ export const fulltext = async (q, offset, limit) => {
         // start transaction
         await client.query('BEGIN');
 
-        // get all nodes for station model
-        let { sql, data } = queries.search.fulltext(q, offset, limit);
-        let results = await client.query(sql, data)
-            .then(res => {
-                return res.rows
-            });
+        // list of searchable tables to include
+        const results = {};
+
+        // collate results for all searchable tables
+        await Promise.all(
+            Object.keys(searchable)
+                .filter(tbl => filter.length === 0 || filter.includes(tbl))
+                .map(async (tbl) => {
+
+                let { sql, data } = searchable[tbl].type === 'metadata'
+                    ? queries.search.fulltextMetadataSearch(tbl, searchable[tbl], q, offset, limit)
+                    : searchable[tbl].type === 'participants'
+                            ? queries.search.fulltextParticipantSearch(searchable[tbl], q, offset, limit)
+                            : queries.search.fulltextNodeSearch(tbl, searchable[tbl], q, offset, limit);
+                results[tbl] = await client.query(sql, data)
+                    .then(res => {
+                        return res.rows
+                    });
+            }));
 
         // end transaction
         await client.query('COMMIT');

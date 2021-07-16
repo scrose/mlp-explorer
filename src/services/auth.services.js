@@ -18,6 +18,7 @@ import { getRoleData } from './users.services.js';
 
 /**
  * KeyCloak Settings (set in ENV)
+ * Check endpoints at http://localhost:8080/auth/realms/MLP-Explorer/.well-known/openid-configuration
  * @private
  */
 
@@ -126,136 +127,55 @@ export const authenticate = async ({email:email, password:password}) => {
     return data;
 }
 
-
-/**
- * Refresh access token from KeyCloak.
- *
- * @public
- * @return {String} JSON web token
- * @param access_token
- * @param refresh_token
- */
-
-export const logout = async (access_token, refresh_token) => {
-
-    // stop refresh if no token found
-    if (!access_token) return null;
-
-    const payload = {
-        client_secret: settings.clientSecret,
-        client_id: settings.clientId,
-        refresh_token: refresh_token
-    };
-
-    // request options for logout (KeyCloak API)
-    const opts = getOpts(payload, 'POST');
-
-    // send logout request to KeyCloak endpoint
-    return await fetch(kcLogoutURL, opts);
-}
-
-/**
- * Validate access token in session cookie with KeyCloak server.
- *
- * @public
- * @return {String} JSON web token
- * @param token
- */
-
-export const validate = async (token) => {
-
-    // stop verification if no token found
-    if (!token) return null;
-
-    // request options for logout (KeyCloak API)
-    const opts = getOpts(null, 'GET');
-    opts.headers.authorization = token;
-
-    // send a request to the 'userinfo' endpoint on Keycloak
-    // to validate access token
-    return await fetch(kcInfoURL, opts).then(res => {
-        if (res.status !== 200) return null;
-        return res;
-    });
-
-}
-
-/**
- * Validate access token in session cookie with Keycloak server.
- *
- * @public
- * @return {String} JSON web token
- * @param token
- */
-
-export const refresh = async (token) => {
-
-    // stop refresh if no token found
-    if (!token) return null;
-
-    const payload = {
-        grant_type: 'refresh_token',
-        client_secret: settings.clientSecret,
-        client_id: settings.clientId,
-        refresh_token: token
-    };
-
-    // request options for refresh (KeyCloak API)
-    const opts = getOpts(payload, 'POST');
-
-    // refresh token via KeyCloak endpoint
-    let data = await fetch(kcTokenURL, opts)
-        .then(res => {
-
-            // token is invalid or session is not active
-            if (!res || res.status !== 200) {
-                throw new Error('noToken');
-            }
-
-            return res
-
-        })
-        .then(res => res.json())
-        .catch(err => {
-            console.warn('KeyCloak error:', err);
-            return null;
-        });
-
-    // extract user data if response valid
-    if (data) {
-
-        // decode KeyCloak JWT token
-        const { access_token = '' } = data || {};
-        const decoded = jwt.decode(access_token);
-
-        // append user email, roles to fetched data
-        data.email = decoded.email;
-        data.roles = decoded.resource_access[settings.clientId].roles;
-    }
-
-    return data;
-
-}
-
 /**
  * Authorize user access based on permissions set for user role.
+ * - validates current access token
+ * - if invalid, refreshes token
  *
- * @param access_token
+ * @param req
+ * @param res
  * @param {Array} allowedRoles
  * @src public
  */
 
-export const authorize = async (access_token, allowedRoles) => {
+export const authorize = async (req, res, allowedRoles) => {
 
     // authorize all for 'visitor' restrictions
     if ( allowedRoles.includes('visitor') ) return null;
 
-    // check if token exists
-    if (!access_token)
+    // get current tokens
+    const { access_token=null, refresh_token=null } = req.signedCookies || {};
+
+    // test that tokens exist
+    if (!access_token || !refresh_token)
         throw new Error('noToken');
 
+    // assign access token
+    let token = access_token;
+
+    // validate access token
+    const isValid = await validate(access_token);
+
+    // if invalid, try to refresh the token
+    if (!isValid) {
+
+        const data = await refresh(req);
+
+        // check if refresh token has expired or is invalid
+        if (!data) throw new Error('noAuth');
+
+        // get token value
+        const { access_token=null, refresh_token=null } = data || {};
+        token = access_token;
+
+        // send access token to the client inside a cookie
+        // TODO: include secure: true on production site
+        res.cookie("access_token", access_token, {httpOnly: true, sameSite: 'strict', signed: true});
+        res.cookie("refresh_token", refresh_token, {httpOnly: true, sameSite: 'strict', signed: true});
+    }
+
     // verify token
-    const decoded = jwt.decode(access_token);
+    const decoded = jwt.decode(token);
 
     // reject invalid user data
     if (!decoded)
@@ -279,5 +199,117 @@ export const authorize = async (access_token, allowedRoles) => {
         role: roles,
         label: role.label || 'Registered'
     }
+
+}
+
+/**
+ * Logout user from KeyCloak.
+ *
+ * @public
+ * @return {String} JSON web token
+ * @param access_token
+ * @param refresh_token
+ */
+
+export const logout = async (access_token, refresh_token) => {
+
+    // stop logout if no token found
+    if (!access_token) return null;
+
+    const payload = {
+        client_secret: settings.clientSecret,
+        client_id: settings.clientId,
+        refresh_token: refresh_token
+    };
+
+    // request options for logout (KeyCloak API)
+    const opts = getOpts(payload, 'POST');
+
+    // send logout request to KeyCloak endpoint
+    return await fetch(kcLogoutURL, opts);
+}
+
+/**
+ * Validate access token in session cookie with KeyCloak server.
+ *
+ * @public
+ * @return {String} JSON web token
+ * @param access_token
+ */
+
+export const validate = async (access_token) => {
+
+    // stop verification if no token found
+    if (!access_token) return null;
+
+    // check whether access token is invalid
+    const opts = getOpts(null, 'GET');
+    opts.headers = {
+        authorization: 'Bearer ' + access_token,
+        grant_type: settings.grantType,
+        client_secret: settings.clientSecret,
+        client_id: settings.clientId
+    };
+
+    // send a request to the 'userinfo' endpoint on Keycloak
+    // to validate access token
+    return await fetch(kcInfoURL, opts).then(res => {
+        if (!res || res.status !== 200) return null;
+        return res;
+    });
+}
+
+/**
+ * Validate access token in session cookie with Keycloak server.
+ *
+ * @public
+ * @return {String} JSON web token
+ * @param req
+ */
+
+export const refresh = async (req) => {
+
+    // get tokens from cookie
+    const { refresh_token=null } = req.signedCookies || [];
+
+    // stop refresh if no tokens found
+    if (!refresh_token) return null;
+
+    const payload = {
+        grant_type: 'refresh_token',
+        client_secret: settings.clientSecret,
+        client_id: settings.clientId,
+        refresh_token: refresh_token
+    };
+
+    // request options for refresh (KeyCloak API)
+    const opts = getOpts(payload, 'POST');
+
+    // refresh token via KeyCloak endpoint
+    let data = await fetch(kcTokenURL, opts)
+        .then(res => {
+            // token is invalid or session is not active
+            if (!res || res.status !== 200) return null;
+            console.log(res)
+            return res
+        })
+        .then(res => res.json())
+        .catch(err => {
+            console.warn('KeyCloak error:', err);
+            return null;
+        });
+
+    // extract user data if response valid
+    if (data) {
+
+        // decode KeyCloak JWT token
+        const { access_token = '' } = data || {};
+        const decoded = jwt.decode(access_token);
+
+        // append user email, roles to fetched data
+        data.email = decoded.email;
+        data.roles = decoded.resource_access[settings.clientId].roles;
+    }
+    return data;
 
 }

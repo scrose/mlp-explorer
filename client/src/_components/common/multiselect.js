@@ -27,10 +27,9 @@ const noop = () => {
  * @param required
  * @param disabled
  * @param options
- * @param onChange
  */
 
-const MultiSelect = ({ id, name, label, selected, required, disabled, options, onSelect }) => {
+const MultiSelect = ({ id, name, label, selected, required, options, onSelect }) => {
 
     // create selection list references
     const unselectedRef = React.useRef(null);

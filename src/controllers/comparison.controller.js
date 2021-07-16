@@ -16,20 +16,9 @@ import { prepare } from '../lib/api.utils.js';
 import pool from '../services/db.services.js';
 import * as metaserve from '../services/metadata.services.js';
 import * as importer from '../services/import.services.js';
-import { isCompatiblePair, addComparison } from '../services/comparisons.services.js';
-import * as db from '../services/index.services.js';
-import ModelServices from '../services/model.services.js';
+import { isComparable, upsertComparison, getComparisonsByCapture } from '../services/comparisons.services.js';
 
-/**
- * Export controller constructor.
- *
- * @param {String} model
- * @src public
- */
-
-let Model, model, mserve;
-
-export default function MasterController(modelType) {
+export default function ComparisonController() {
 
     /**
      * Initialize the controller.
@@ -40,38 +29,126 @@ export default function MasterController(modelType) {
      * @src public
      */
 
-    this.init = async () => {
-        try {
-            // generate model constructor
-            Model = await db.model.create(modelType);
-            model = new Model();
-            mserve = new ModelServices(new Model());
-        } catch (err) {
-            console.error(err)
-        }
-    };
-
+    this.init = async () => {};
 
     /**
-     * Get file id value from request parameters. Note: use model
-     * route key (i.e. model.key = '<model_name>_id') to reference route ID.
+     * Get comparison capture data for given capture ID.
      *
-     * @param {Object} params
-     * @return {String} Id
+     * @param req
+     * @param res
+     * @param next
      * @src public
      */
 
-    this.getId = function(req) {
+    this.select = async (req, res, next) => {
+
+        // NOTE: client undefined if connection fails.
+        const client = await pool.connect();
+
         try {
-            // Throw error if route key is invalid
-            return req.params[model.key];
+
+            // get parent node ID and type from parameters
+            const parentID = req.params.id;
+
+            // message
+            let msg = null;
+
+            // init captures available / selected for given capture
+            let availableCaptures = null;
+            let selectedCaptures = null;
+
+            // get parent node data
+            const parentData = await nserve.get(parentID, client);
+            const { node = {} } = parentData || {};
+
+            // does the parent node exist?
+            if (!node.hasOwnProperty('type'))
+                return next(new Error('invalidRequest'));
+            // is it a valid sorted parent?
+            if ( node.type !== 'historic_visits' && node.type !== 'locations' )
+                return next(new Error('invalidComparison'));
+
+            // get path of owner node in hierarchy
+            const path = await nserve.getPath(node);
+
+            // get station node from capture
+            const stationKey = Object.keys(path)
+                .find(key => {
+                    const {node={}} = path[key] || {};
+                    const {type=''} = node || {};
+                    return type === 'stations';
+                });
+
+            // Station found: include available capture data
+            const  {type='' } = node || {};
+            if (stationKey) {
+                const station = path[stationKey].node;
+                // get captures available for comparison
+                availableCaptures = type === 'modern_captures'
+                    ? await metaserve.getHistoricCapturesByStation(station, client)
+                    : await metaserve.getModernCapturesByStation(station, client);
+
+                // get captures available for comparison
+                availableCaptures = await Promise.all(
+                    (availableCaptures || [])
+                        .map(async (capture) => {
+                            return await nserve.get(capture.nodes_id, client);
+                        })
+                );
+
+                // get captures already selected for comparison
+                selectedCaptures = await Promise.all(
+                    (availableCaptures || [])
+                        .map(async (capture) => {
+                            const { node={}} = capture || {};
+                            return await getComparisonsByCapture(node, client) || [];
+                        })
+                );
+                // reduce selected captures to array of node IDs
+                selectedCaptures = selectedCaptures.reduce((o, captures) => {
+                    // const captureIDs = captures.map(capture => {
+                    //     return type === 'modern_captures' ? capture.historic_captures : capture.modern_captures;
+                    // });
+                    o.push(...captures);
+                    return o;
+                }, []);
+
+                // filter null entries
+                selectedCaptures = selectedCaptures.filter(capture => {
+                    return capture != null && capture !== 'null'
+                });
+
+                // send form data response
+                // - include possible historic images for alignment (mastering)
+                res.status(200).json(
+                    prepare({
+                        view: 'compare',
+                        message: msg,
+                        data: {
+                            available: availableCaptures,
+                            selected: selectedCaptures
+                        },
+                        path: path
+                    }));
+
+            }
+            // Station not found: invalid mastering
+            // - respond with master data
+            else {
+                return next(new Error('invalidComparison'));
+            }
+
         } catch (err) {
-            throw new Error('invalidRouteKey');
+            console.error(err)
+            return next(err);
         }
-    };
+        finally {
+            client.release(true);
+        }
+    }
 
     /**
-     * Get image data for registration -> mastering.
+     * Get capture images for given capture image.
      *
      * @param req
      * @param res
@@ -86,13 +163,14 @@ export default function MasterController(modelType) {
 
         try {
 
-            // get node ID from parameters
-            const id = this.getId(req);
+            // get node ID and type from parameters
+            const id = req.params.id;
+            const type = req.params.type;
 
             // message
             let msg = null;
 
-            // init capture images available
+            // init captures available
             let captures = null;
 
             // get file data
@@ -126,7 +204,7 @@ export default function MasterController(modelType) {
                     (captures || [])
                         // .filter(comparison => comparison)
                         .map(async (capture) => {
-                            return await nserve.get(capture.id);
+                            return await nserve.get(capture.id, client);
                         })
                 );
 
@@ -134,15 +212,15 @@ export default function MasterController(modelType) {
                 // - include possible historic images for alignment (mastering)
                 res.status(200).json(
                     prepare({
-                        view: 'master',
-                        model: model,
+                        view: 'register',
+                        model: type,
                         message: msg,
                         data: captureData,
                         path: path
                     }));
 
             }
-            // Station not found: invalid mastering
+                // Station not found: invalid mastering
             // - respond with master data
             else {
                 return next(new Error('invalidMaster'));
@@ -190,7 +268,7 @@ export default function MasterController(modelType) {
             }
 
             // check that image pair share a common station
-            if (!await isCompatiblePair(historicCapture, modernCapture, client)) {
+            if (!await isComparable(historicCapture, modernCapture, client)) {
                 return next(new Error('invalidMaster'));
             }
 
@@ -215,20 +293,16 @@ export default function MasterController(modelType) {
             }
 
             // extract files ID and filenames
-            const historicFileID = resDataHistoric[0].file.id;
             const historicFilename = files[0].file.filename;
-            const modernFileID = resDataModern[0].file.id;
             const modernFilename = files[1].file.filename;
 
             // insert comparisons record
-            const resCompare = await addComparison(
-                historicFileID, historic_capture, modernFileID, modern_capture);
+            const resCompare = await upsertComparison(historic_capture, modern_capture);
 
             // send response
             res.status(200).json(
                 prepare({
                     view: 'show',
-                    model: model,
                     data: resCompare,
                     message: {
                         msg: `'${historicFilename}' and '${modernFilename} mastered successfully!`,

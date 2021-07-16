@@ -20,9 +20,9 @@ import { useRouter } from '../../_providers/router.provider.client';
  */
 
 const ComparisonsView = ({
-                             data = {}, callback = () => {
-    },
-                         }) => {
+                             data = {},
+                             callback = () => {}
+}) => {
 
     const keyID = genID();
     const router = useRouter();
@@ -49,37 +49,41 @@ const ComparisonsView = ({
 
                         // destructure image pair for each comparison
                         const {
-                            historic_image = {},
-                            historic_image_id = '',
-                            modern_image,
-                            modern_image_id = '',
-                        } = comparisonPair || {};
+                            historic_captures = {},
+                            modern_captures = {} } = comparisonPair || {};
 
                         return <li key={`${keyID}_comparison_${index}`}>
                             <div className={`comparisons-item`}>
-                                <FilesList files={[historic_image, modern_image]} />
+                                <FilesList files={[
+                                    historic_captures.refImage,
+                                    modern_captures.refImage
+                                ]} />
                                 <div className={'h-menu'}>
                                     <ul>
                                         <li>
                                             <Button
                                                 icon={'overlay'}
-                                                label={'View Overlay'}
+                                                label={'Overlays'}
                                                 onClick={() => {
                                                     setDialogToggle('overlay');
-                                                    setComparison([historic_image, modern_image]);
+                                                    setComparison([
+                                                        historic_captures.refImage,
+                                                        modern_captures.refImage
+                                                    ]);
                                                 }}
                                             />
                                         </li>
-                                        <li>
-                                            <Button
-                                                icon={'iat'}
-                                                label={'View in IAT'}
-                                                onClick={() => {
-                                                    // launch IAT tool for mastering by loading images into panels
-                                                    // - Historic: Panel 1 / Modern: Panel 2
-                                                    router.update(`/iat?input1=${historic_image_id}&type1=historic_images&input2=${modern_image_id}&type2=modern_images`);
-                                                }}
-                                            /></li>
+                                        {/*<li>*/}
+                                        {/*    <Button*/}
+                                        {/*        icon={'iat'}*/}
+                                        {/*        label={'View in IAT'}*/}
+                                        {/*        onClick={() => {*/}
+                                        {/*            // launch IAT tool for mastering by loading images into panels*/}
+                                        {/*            // - Historic: Panel 1 / Modern: Panel 2*/}
+                                        {/*            router.update(*/}
+                                        {/*                `/iat?input1=${historic_image_id}&type1=historic_images&input2=${modern_image_id}&type2=modern_images`);*/}
+                                        {/*        }}*/}
+                                        {/*    /></li>*/}
                                     </ul>
                                 </div>
                             </div>

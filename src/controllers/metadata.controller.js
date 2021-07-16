@@ -154,7 +154,7 @@ export default function MetadataController(metadataType) {
             let id = this.getId(req);
 
             // get item metadata and filter through instance
-            let data = await metaserve.select(sanitize(id, 'integer'), metadataModel);
+            let data = await metaserve.select(sanitize(id, 'integer'), metadataModel, client);
             const item = new Metadata(data);
 
             // item record and/or node not found in database
@@ -254,7 +254,7 @@ export default function MetadataController(metadataType) {
             // get item ID from parameters
             const id = this.getId(req);
             // get item metadata
-            const selectData = await metaserve.select(sanitize(id, 'integer'), metadataModel);
+            const selectData = await metaserve.select(sanitize(id, 'integer'), metadataModel, client);
 
             // check relation exists for file type and node type
             if (!selectData)

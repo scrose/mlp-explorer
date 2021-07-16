@@ -10,7 +10,7 @@
  */
 
 import path from 'path';
-import MasterController from '../controllers/master.controller.js';
+import ComparisonController from '../controllers/comparison.controller.js';
 
 
 /**
@@ -19,20 +19,23 @@ import MasterController from '../controllers/master.controller.js';
  * @public
  */
 
-function MasterRoutes(modelType) {
-
-    // create model identifier key
-    this.model = modelType;
-    this.key = `${modelType}_id`;
+function ComparisonRoutes() {
 
     // initialize model controller
-    this.controller = new MasterController(modelType);
+    this.controller = new ComparisonController();
 
     // add controller routes
     // include master endpoint for modern capture images
     this.routes = {
+        compare: {
+            path: path.join('/compare/:id'),
+            get: this.controller.select,
+            put: null,
+            post: null,
+            delete: null,
+        },
         master: {
-            path: path.join('/', this.model, 'master', ':' + this.key),
+            path: path.join('/master'),
             get: this.controller.register,
             put: null,
             post: this.controller.master,
@@ -49,7 +52,6 @@ function MasterRoutes(modelType) {
 
 export default async function generate() {
     let routes = [];
-    routes.push(new MasterRoutes('historic_images'));
-    routes.push(new MasterRoutes('modern_images'));
+    routes.push(new ComparisonRoutes());
     return routes;
 }

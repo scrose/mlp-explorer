@@ -30,17 +30,21 @@ const Fieldset = ({
                       setErrors,
                       data,
                       setData,
-                      files,
-                      opts,
                       remove,
                       validators,
+                      opts={},
                       isDisabled=false,
                       disabledInputs={}
 }) => {
 
-    // get local options (if available), otherwise use global options
+    // get fieldset options (if available)
+    // - create deep copy of global API options object
+    // - insert local options into options copy to pass to inputs
     const api = useData();
-    const optionsData = opts || api.options;
+    const optionsData = JSON.parse(JSON.stringify(api.options));
+    Object.keys((opts || {})).map(key => {
+        return optionsData[key] = opts[key];
+    });
 
     /**
      * Input on-change handler. Updates references state.

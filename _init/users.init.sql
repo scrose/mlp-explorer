@@ -119,6 +119,10 @@ VALUES  ('show', 'visitor', now(), now()),
         ('raw', 'administrator', now(), now()),
         ('raw', 'super_administrator', now(), now()),
 
+        ('compare', 'editor', now(), now()),
+        ('compare', 'administrator', now(), now()),
+        ('compare', 'super_administrator', now(), now()),
+
         ('master', 'administrator', now(), now()),
         ('master', 'super_administrator', now(), now()),
 

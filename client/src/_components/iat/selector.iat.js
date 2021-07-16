@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.IAT.Selector
- * File: selector.iat.js
+ * MLP.Client.Components.IAT.ImageSelector
+ * File: imgselector.iat.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */

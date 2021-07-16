@@ -299,6 +299,7 @@ const getIconClass = (iconType) => {
         locations: 'compass',
         glass_plate_listings: 'archive',
         maps: 'map',
+        participants: 'users',
         participant_groups: 'users',
         comparisons: 'images',
         iat: 'toolbox',

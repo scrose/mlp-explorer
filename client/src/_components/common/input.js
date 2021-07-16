@@ -13,6 +13,7 @@ import Message, { UserMessage } from './message';
 import MultiSelect from './multiselect';
 import DateTimeSelector from './datetime';
 import Autocomplete from './autocomplete';
+import {CompareSelector} from "../tools/selector.tools";
 
 /**
  * No operation.
@@ -151,10 +152,18 @@ export const Input = ({
                     disabled={disabled}
                     type={'checkbox'}
                     id={id}
+                    value={value}
                     name={name}
                     checked={isChecked}
                     required={required}
-                    onChange={onChange}
+                    onChange={() => {
+                        onChange({
+                            target: {
+                                name: name,
+                                value: !value
+                            }
+                        })}
+                    }
                     aria-label={ariaLabel}
                 />;
         },
@@ -334,7 +343,19 @@ export const Input = ({
                 required={required}
                 disabled={disabled}
                 options={options}
-                onChange={onChange}
+                onSelect={onMultiselect}
+            />;
+        },
+
+        compareSelector: () => {
+            return <CompareSelector
+                reference={options}
+                name={name}
+                label={label}
+                value={value || []}
+                required={required}
+                disabled={disabled}
+                options={options}
                 onSelect={onMultiselect}
             />;
         },

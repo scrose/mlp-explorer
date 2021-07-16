@@ -189,7 +189,7 @@ const Form = ({
                     if (Array.isArray(data[key])) {
                         // append each subitem separately
                         data[key].forEach((opt, index) => {
-                            formData.append(`${updatedKey}[${index}]`, opt.value || '');
+                            formData.append(`${updatedKey}[${index}]`, opt.value || opt || '');
                         })
                     }
                     else {

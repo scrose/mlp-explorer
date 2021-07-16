@@ -19,6 +19,7 @@ import * as nserve from '../services/nodes.services.js';
 import ModelServices from './model.services.js';
 import { allowedMIME } from '../lib/file.utils.js';
 import { getImageURL, saveImage } from './images.services.js';
+import {updateComparisons} from "./comparisons.services.js";
 
 /**
  * Maximum file size (non-images) = 1GB
@@ -79,7 +80,7 @@ export const get = async (id, client = pool) => {
         label: await metaserve.getFileLabel(file, client),
         filename: (filename || '').replace(`_${secure_token}`, ''),
         metadata: metadata,
-        metadata_type: await metaserve.selectByName('metadata_file_types', type),
+        metadata_type: await metaserve.selectByName('metadata_file_types', type, client),
         url: getImageURL(file_type, metadata),
         status: await metaserve.getStatus(owner, metadata, client),
     };
@@ -113,7 +114,7 @@ export const selectByOwner = async (id, client = pool) => {
                     label: await metaserve.getFileLabel(file),
                     filename: (filename || '').replace(`_${secure_token}`, ''),
                     metadata: fileMetadata,
-                    metadata_type: await metaserve.selectByName('metadata_file_types', type),
+                    metadata_type: await metaserve.selectByName('metadata_file_types', type, client),
                     url: getImageURL(file_type, fileMetadata),
                 };
             }),
@@ -155,42 +156,6 @@ export const hasFiles = async (id, client = pool) => {
 };
 
 /**
- * Get if file type by node owner.
- *
- * @public
- * @param {String} nodeType
- * @param client
- * @return {Promise} result
- */
-
-export const getFileTypesByOwner = async function(nodeType, client = pool) {
-    const { sql, data } = queries.files.getRelationsByNodeType(nodeType);
-    const fileTypes = await client.query(sql, data);
-    return fileTypes.rows.reduce((o, row) => {
-        o.push(row.dependent_type);
-        return o;
-    }, []);
-};
-
-/**
- * Get if owner node type by file type.
- *
- * @public
- * @param {String} fileType
- * @param client
- * @return {Promise} result
- */
-
-export const getOwnerByFileType = async function(fileType, client = pool) {
-    const { sql, data } = queries.files.getOwnerTypeByFileType(fileType);
-    const ownerTypes = await client.query(sql, data);
-    return ownerTypes.rows.reduce((o, row) => {
-        o.push(row.owner_type);
-        return o;
-    }, []);
-};
-
-/**
  * Get model data by file reference. Returns single node object.
  *
  * @public
@@ -209,12 +174,12 @@ export const selectByFile = async (file, client = pool) => {
 };
 
 /**
- * Insert file metadata.
+ * Insert file(s) and file metadata.
  * - import data structure:
  *  {
- *      file:{file metadata},
- *      data: {image metadata},
- *      owner: {owner data}
+ *      files: { file(s) and file metadata },
+ *      data: { additional metadata, e.g. image metadata },
+ *      owner: { file(s) owner metadata }
  *  }
  *
  * @public
@@ -262,9 +227,17 @@ export const insert = async (importData, model, fileOwner = null) => {
             const capture = new CaptureModel(metadata);
             const captureData = await mserve.insert(capture);
 
-            // get capture node metadata
+            // get new capture node metadata
             const { nodes_id = '' } = captureData || {};
-            const { fs_path = '' } = await nserve.select(nodes_id) || {};
+            const newCapture = await nserve.select(nodes_id) || {};
+            const { fs_path = '', type='' } = newCapture || {};
+
+            // check for any capture comparison updates
+            const { historic_captures = {}, modern_captures = {} } = data || {};
+            const comparisonCaptures = type === 'historic_captures'
+                ? Object.values(modern_captures)
+                : Object.values(historic_captures);
+            await updateComparisons(newCapture, comparisonCaptures, client);
 
             return {
                 id: nodes_id,

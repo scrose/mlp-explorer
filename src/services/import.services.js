@@ -15,7 +15,6 @@
 import Busboy from 'busboy';
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
 
 /**
  * Async busboy file and data importer.

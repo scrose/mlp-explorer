@@ -512,6 +512,14 @@ nav.user button  {
 .map-container input {
     width: auto;
 }
+.map-cluster-control {
+    padding: 0;
+    margin-left: 2px;
+    border-radius: 2px;
+}
+.map-cluster-control .activated {
+    background-color: #FF8D3F;
+}
 
 /* Navigator Panel: Search  */
 
@@ -742,6 +750,10 @@ nav.breadcrumb ul li a:hover {
 }
 .tree-node .h-menu ul:hover {
     opacity: 0.6;
+}
+.tree button {
+    background-color: transparent !important;
+    color: #95B0B4;
 }
 .tree-node .h-menu ul li button {
     flex-wrap: wrap;
@@ -1138,19 +1150,19 @@ nav.breadcrumb ul li a:hover {
     color: #E34234 !important;
 }
 .grouped {
-    color: purple !important;
+    color: skyblue !important;
 }
 .located {
-    color: #01447e !important;
+    color: indianred !important;
 }
 .repeated {
-    color: #b65179 !important;
+    color: purple !important;
 }
 .partial {
-    color: orange !important;
+    color: greenyellow !important;
 }
 .mastered {
-    color: #45a049 !important;
+    color: green !important;
 }
 
 /* Capture Comparisons */
@@ -1264,16 +1276,16 @@ nav.breadcrumb ul li a:hover {
 }
 
 /* Participants */
-.participants h5 {
-    margin: 20px;
-}
-.participants ul {
-    margin: 20px;
-    display: block;
-}
-.participants ul li {
-    display: block;
-}
+/*.participants h5 {*/
+/*    margin: 20px;*/
+/*}*/
+/*.participants ul {*/
+/*    margin: 20px;*/
+/*    display: block;*/
+/*}*/
+/*.participants ul li {*/
+/*    display: block;*/
+/*}*/
 
 /*
   Page Footer
@@ -1402,7 +1414,7 @@ table.item thead {
     background: transparent !important;
 }
 table.item thead tr th {
-    background: #D7F1E9;
+    background: #DFEEE9;
     border-bottom: 1px solid #CCCCCC;
 }
 table.item thead th {
@@ -1696,9 +1708,9 @@ label .prefix, label .suffix {
     font-weight: normal;
     padding: 10px;
 }
-label.checkbox {
-    float:right;
-}
+/*label.checkbox {*/
+/*    float:right;*/
+/*}*/
 .units {
     color: #888;
     font-size: smaller;
@@ -2267,7 +2279,7 @@ Define Canvas Layers of Panel (IAT)
 /* Image Capture Selector */
 
 .selector .selected {
-    background-color: #F49431;
+    background-color: #C5FCEF;
 }
 
 /* Load spinner  */

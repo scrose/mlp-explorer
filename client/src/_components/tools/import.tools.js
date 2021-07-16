@@ -34,7 +34,7 @@ const Importer = ({
                       view,
                       schema,
                       batchType = '',
-                      opts,
+                      options,
                       route,
                       data,
                       files=[],
@@ -178,7 +178,7 @@ const Importer = ({
             <Form
                 model={model}
                 schema={schema}
-                opts={opts}
+                opts={options}
                 init={data}
                 route={route}
                 onCancel={onCancel}

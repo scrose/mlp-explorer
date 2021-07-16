@@ -133,6 +133,32 @@ export function getModernCapturesByStationID(id) {
 }
 
 /**
+ * Query: Check if capture has ANY mastered capture images
+ *
+ * @return {Object} query binding
+ */
+
+export function hasMastered(captureID, captureImageType) {
+    let sql = `
+            WITH 
+            captureImages AS (
+                SELECT image_state
+                FROM ${captureImageType}
+                WHERE owner_id = $1::integer
+            )
+            SELECT COUNT (*) AS total,
+            (SELECT COUNT(*) 
+                    FROM captureImages 
+                    WHERE image_state = 'master' ) as mastered
+            FROM captureImages
+            ;`;
+    return {
+        sql: sql,
+        data: [captureID],
+    };
+}
+
+/**
  * Query: Get historic captures for given station.
  *
  * @return {Object} query binding

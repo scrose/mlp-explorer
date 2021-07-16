@@ -154,9 +154,15 @@ export const errors = {
         status: 422,
         type: 'error'
     },
+    invalidComparison: {
+        hint: 'The requested capture is not sorted and therefore cannot be compared.',
+        msg: 'This capture is not sorted. Only sorted captures can be compared (see documentation).',
+        status: 422,
+        type: 'warning'
+    },
     invalidMaster: {
         hint: 'Only captures that are associated with stations can be mastered.',
-        msg: 'Capture image(s) not available for mastering. To initiate a master, move the capture under a station.',
+        msg: 'Capture image(s) not available for mastering. Only sorted captures assigned image state \'master\' can be mastered.',
         status: 422,
         type: 'error'
     },

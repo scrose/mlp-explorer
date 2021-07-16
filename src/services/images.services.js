@@ -7,6 +7,7 @@
 
 'use strict';
 
+import * as stream from 'stream';
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import fs from 'fs';
 import {ExifTool} from 'exiftool-vendored';
@@ -18,6 +19,7 @@ import { sanitize } from '../lib/data.utils.js';
 import Queue from 'bull';
 import redis from 'redis';
 import { insertFile, remove } from './files.services.js';
+import * as util from "util";
 
 
 /* Available image version sizes */
@@ -87,35 +89,35 @@ export const transcode = async (data, callback) => {
     try {
 
         // read temporary image into buffer memory
-        let buffer = await readFile(src);
-
-        // convert RAW image to tiff
-        // Reference: https://github.com/zfedoran/dcraw.js/
-        let bufferRaw = dcraw(buffer, {
-            useEmbeddedColorMatrix: true,
-            exportAsTiff: true,
-            useExportMode: true,
-        });
-
-        // create temporary file for upload (if format is supported)
-        if (bufferRaw) {
-            const tmpName = Math.random().toString(16).substring(2) + '-' + filename;
-            copySrc = path.join(process.env.TMP_DIR, path.basename(tmpName));
-            await writeFile(copySrc, bufferRaw);
-            isRAW = true;
-        }
+        // let buffer = await readFile(src);
+        //
+        // // convert RAW image to tiff
+        // // Reference: https://github.com/zfedoran/dcraw.js/
+        // let bufferRaw = dcraw(buffer, {
+        //     useEmbeddedColorMatrix: true,
+        //     exportAsTiff: true,
+        //     useExportMode: true,
+        // });
+        //
+        // // create temporary file for upload (if format is supported)
+        // if (bufferRaw) {
+        //     const tmpName = Math.random().toString(16).substring(2) + '-' + filename;
+        //     copySrc = path.join(process.env.TMP_DIR, path.basename(tmpName));
+        //     await writeFile(copySrc, bufferRaw);
+        //     isRAW = true;
+        // }
         // delete buffer
-        buffer = null;
-        bufferRaw = null;
+        // buffer = null;
+        // bufferRaw = null;
 
         // get image metadata
-        await getImageInfo(copySrc, metadata, options, isRAW);
+        //await getImageInfo(copySrc, metadata, options, isRAW);
 
         // copy image versions to data storage
-        await copyImageTo(src, versions.raw, metadata);
-        await copyImageTo(copySrc, versions.medium, metadata);
-        await copyImageTo(copySrc, versions.thumb, metadata);
-        await copyImageTo(copySrc, versions.full, metadata);
+        await copyImageTo(src, versions.raw);
+        await copyImageTo(copySrc, versions.medium);
+        await copyImageTo(copySrc, versions.thumb);
+        await copyImageTo(copySrc, versions.full);
 
         // add file record to database
         await insertFile(metadata, owner, imageState);
@@ -125,11 +127,11 @@ export const transcode = async (data, callback) => {
             ? await remove(null, [src])
             : await remove(null, [src, copySrc])
 
-        return Promise.resolve({
+        return {
             raw: isRAW,
             src: copySrc,
             metadata: metadata,
-        });
+        };
     } catch (err) {
         callback(err);
     }
@@ -351,31 +353,31 @@ export const getImageURL = (type = '', data = {}) => {
  * @src public
  * @param src
  * @param output
- * @param metadata
  * @param callback
  */
 
-export const copyImageTo = function(src, output, metadata, callback) {
+export const copyImageTo = async (src, output, callback) => {
 
     // Disable Sharp cache
-    sharp.cache(false);
+    // sharp.cache(false);
+    // sharp.concurrency(1);
 
-    // create file stream
-    const readStream = fs.createReadStream(src);
-    const writeStream = fs.createWriteStream(output.path);
-
-    // readStream.on('end', function() {
-    //     res.end();
-    // });
-
-    // Create Sharp pipeline for resizing the image, converting to JPEG
+    // Create pipeline for saving and resizing the image, converting to JPEG
     // and use pipe to read from bucket read stream
-    const transformer = sharp()
-        .resize({ width: output.size })
-        .jpeg({ quality: 80 });
 
-    readStream.pipe(transformer).pipe(writeStream);
+    const pipeline = util.promisify(stream.pipeline);
 
-    return new Promise((resolve, reject) =>
-        writeStream.on('finish', resolve).on('error', reject));
+    async function run() {
+        await pipeline(
+            fs.createReadStream(src),
+            output.format !== 'raw'
+                ? sharp().resize({ width: output.size }).jpeg({ quality: 80 })
+                : new stream.PassThrough(),
+            fs.createWriteStream(output.path)
+        );
+    }
+
+    await run().catch(console.error);
+    console.log('Pipeline finished.')
+
 };

@@ -13,7 +13,6 @@ import Button from '../common/button';
 import Importer from '../tools/import.tools';
 import Dialog from '../common/dialog';
 import MetadataView from '../views/metadata.view';
-import { useData } from '../../_providers/data.provider.client';
 import { useUser } from '../../_providers/user.provider.client';
 import Remover from '../views/remover.view';
 import OptionsView from '../views/options.view';
@@ -43,7 +42,6 @@ const MenuEditor = ({
                     }) => {
 
     const router = useRouter();
-    const api = useData();
     const user = useUser();
     const modelLabel = getModelLabel(model);
 
@@ -112,7 +110,7 @@ const MenuEditor = ({
     // dropdown toggle for tools menu items
     const [dropdownToggle, setDropdownToggle] = React.useState(false);
 
-    // Bulk import note
+    // Bulk import description
     const bulkImportDescription = <p>
         Use this form to import multiple capture images. Each image
         will generate a unique historic or modern capture entry.
@@ -128,18 +126,26 @@ const MenuEditor = ({
                     <MetadataView model={model} metadata={metadata} />
                 </Dialog>,
         new:   <Dialog
-                    key={`${menuID}_dialog_edit`}
+                    key={`${menuID}_dialog_new`}
                     title={`Create New ${getModelLabel(model)}`}
                     setToggle={setDialogToggle}>
                     <Importer
                         view={'new'}
                         model={model}
-                        options={api.options}
+                        options={{
+                            node: {
+                                id: null,
+                                type: model,
+                                owner: owner
+                            }
+                        }}
                         schema={genSchema({ view:'new', model:model, user: user })}
                         route={createNodeRoute(model, 'new')}
                         onCancel={() => {setDialogToggle(null)}}
                         callback={(error, model, id) => {
+                            console.log(error, model, id)
                             setDialogToggle(null);
+                            return;
                             callback
                                 ? callback(error, model, id)
                                 : redirect(createNodeRoute(model, 'show', id));
@@ -153,7 +159,13 @@ const MenuEditor = ({
                         <Importer
                             view={'edit'}
                             model={model}
-                            options={api.options}
+                            options={{
+                                node: {
+                                    id: id,
+                                    type: model,
+                                    owner: owner
+                                }
+                            }}
                             schema={genSchema({ view:'edit', model:model, fieldsetKey: group_type, user:user })}
                             route={createNodeRoute(model, 'edit', id)}
                             data={metadata}
@@ -197,7 +209,6 @@ const MenuEditor = ({
                         <Importer
                             view={'import'}
                             model={'historic_captures'}
-                            options={api.options}
                             batchType={'historic_images'}
                             schema={genSchema({ view:'import', model:'historic_captures', user: user })}
                             route={createNodeRoute('historic_captures', 'import', id)}
@@ -218,7 +229,6 @@ const MenuEditor = ({
             <Importer
                 view={'import'}
                 model={'modern_captures'}
-                options={api.options}
                 batchType={'modern_images'}
                 schema={genSchema({ view:'import', model:'modern_captures', user: user })}
                 hasUploads={true}
@@ -247,11 +257,21 @@ const MenuEditor = ({
             <Importer
                 view={'add'}
                 model={dependent}
-                options={api.options}
-                schema={genSchema({ view:'new', model:dependent, user: user })}
+                options={{
+                    node: {
+                        id: null,
+                        type: dependent,
+                        owner: {
+                            id: id,
+                            type: model
+                        }
+                    }
+                }}
+                schema={genSchema({ view:'new', model: dependent, user: user })}
                 route={createNodeRoute(dependent, 'new', id)}
                 onCancel={() => {setDialogToggle(null)}}
-                callback={() => {
+                callback={(data) => {
+                    console.log(data)
                     setDialogToggle(null);
                     callback ? callback() : redirect(router.route);
                 }}

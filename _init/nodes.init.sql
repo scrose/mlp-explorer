@@ -163,10 +163,10 @@ select id from nodes where type='surveyors' order by old_id;
 
 -- populate the old_surveyors table
 update  surveyors
-set last_name = q.last_name,
-    given_names = q.given_names,
-    short_name = q.short_name,
-    affiliation = q.affiliation
+set last_name = TRIM(BOTH FROM q.last_name),
+    given_names = TRIM(BOTH FROM q.given_names),
+    short_name = TRIM(BOTH FROM q.short_name),
+    affiliation = TRIM(BOTH FROM q.affiliation)
 from (select * from old_surveyors order by id) as q
 where (select old_id from nodes where id=surveyors.nodes_id) = q.id;
 
@@ -188,14 +188,19 @@ DROP TABLE IF EXISTS "surveys";
 CREATE TABLE "public"."surveys" (
         "nodes_id" integer primary key,
         "owner_id" integer not null,
-        "name" character varying(255),
+        "name" character varying(255) not null,
         "historical_map_sheet" character varying(255),
-        UNIQUE (owner_id, name),
         CONSTRAINT fk_nodes_id FOREIGN KEY (nodes_id)
             REFERENCES nodes (id) ON DELETE CASCADE,
         CONSTRAINT fk_nodes_owner_id FOREIGN KEY (owner_id)
             REFERENCES nodes (id) ON DELETE CASCADE
 ) WITH (oids = false);
+
+-- select * from old_surveys where name IS NULL;
+--
+-- -- update NULL names
+-- update old_surveys set name='Unknown'
+-- where name IS NULL;
 
 -- update owner ids
 update old_surveys set surveyor_id=q.id
@@ -208,8 +213,8 @@ select id, 'surveys', surveyor_id, 'surveyors', created_at, updated_at, publishe
 from old_surveys order by id;
 
 -- populate the surveys table
-insert into surveys (nodes_id, owner_id)
-select id, owner_id from nodes where type='surveys' order by old_id;
+insert into surveys (nodes_id, owner_id, name)
+select id, owner_id, 'Unknown' from nodes where type='surveys' order by old_id;
 
 update surveys
 set name = q.name,
@@ -701,6 +706,82 @@ ALTER TABLE modern_captures
 --    ALTER TABLE stations ADD CONSTRAINT check_longitude
 --    CHECK (stations.long ~* '^[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$')
 
+
+
+
+-- -------------------------------------------------------------
+-- Create Comparison Indices Table
+-- -------------------------------------------------------------
+
+DROP TABLE IF EXISTS "comparison_indices";
+
+CREATE TABLE "public"."comparison_indices"
+(
+    "id"                serial primary key,
+    "historic_captures" integer                     not null,
+    "modern_captures"   integer                     not null,
+    "created_at"          timestamp without time zone NOT NULL,
+    "updated_at"          timestamp without time zone NOT NULL,
+    UNIQUE (historic_captures, modern_captures),
+    CONSTRAINT fk_historic_captures FOREIGN KEY (historic_captures)
+        REFERENCES historic_captures (nodes_id),
+    CONSTRAINT fk_modern_captures FOREIGN KEY (modern_captures)
+        REFERENCES modern_captures (nodes_id)
+) WITH (oids = false);
+
+-- Delete duplicate rows
+
+DELETE FROM
+    old_comparison_indices a
+    USING old_comparison_indices b
+WHERE a.capture_id = b.capture_id
+  AND a.historic_capture_id = b.historic_capture_id;
+
+-- Update old comparison indices
+
+update old_comparison_indices
+set historic_capture_id=q.id
+from (select * from nodes) as q
+where q.old_id = old_comparison_indices.historic_capture_id
+  and q.type = 'historic_captures';
+
+update old_comparison_indices
+set capture_id=q.id
+from (select * from nodes) as q
+where q.old_id = old_comparison_indices.capture_id
+  and q.type = 'modern_captures';
+
+ALTER TABLE old_comparison_indices
+    RENAME COLUMN capture_id TO modern_captures;
+
+ALTER TABLE old_comparison_indices
+    RENAME COLUMN historic_capture_id TO historic_captures;
+
+-- Add foreign key references
+
+ALTER TABLE old_comparison_indices
+    ADD CONSTRAINT historic_capture_id_fkey
+        FOREIGN KEY (historic_captures) REFERENCES historic_captures (nodes_id);
+
+ALTER TABLE old_comparison_indices
+    ADD CONSTRAINT modern_captures_fkey
+        FOREIGN KEY (modern_captures) REFERENCES modern_captures (nodes_id);
+
+-- migrate comparisons to new comparison table
+-- Note: shift from capture comparisons -> capture image comparisons
+
+INSERT INTO comparison_indices (
+    historic_captures,
+    modern_captures,
+    created_at,
+    updated_at)
+SELECT historic_captures,
+       modern_captures,
+       created_at,
+       updated_at
+FROM old_comparison_indices;
+
+
 -- -------------------------------------------------------------
 --    Update Stations coordinates (if empty)
 -- -------------------------------------------------------------
@@ -724,7 +805,6 @@ from (
                   join modern_visits mv on locations.owner_id = mv.nodes_id
          where locations.lat is not null and locations.lng is not null) as locs
 where stations.lat is null and stations.lng is null and locs.id = stations.nodes_id;
-
 
 -- Filesystem Paths: remove root URI
 update nodes

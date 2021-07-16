@@ -145,36 +145,24 @@ export const logout = async (req, res, next) => {
 
 export const refresh = async (req, res, next) => {
 
-    // get access token from cookie
-    const { access_token=null, refresh_token=null } = req.signedCookies || [];
-
-    if (!access_token)
-        return res.status(200).json(
-            prepare({
-                message: {msg: 'No token.', type: 'success'}})
-        );
-
-    // authenticate credentials against Keycloak
-    await auth.refresh(refresh_token)
+    // refresh token (Keycloak API)
+    await auth.refresh(req, res)
         .then(data => {
 
-            // force logout if no token found or session is invalid
+            // reset tokens if a token is not found or is invalid
             if (!data) {
-                // successful session logout
                 res.cookie("access_token", '', {httpOnly: true, sameSite: 'strict', signed: true, maxAge: 0});
                 res.cookie("refresh_token", '', {httpOnly: true, sameSite: 'strict', signed: true, maxAge: 0});
                 return res.status(200).json(
                     prepare({
-                        message: {msg: 'Successfully logged out!', type: 'success'}
+                        message: {msg: 'Token reset.', type: 'success'}
                     })
                 );
             }
 
-            // get token value
-            const { access_token=null, refresh_token=null } = data || {};
-
-            // send access token to the client inside a cookie
+            // store new access token inside an http-only cookie
             // TODO: include secure: true on production site
+            const { access_token=null, refresh_token=null } = data || {};
             res.cookie("access_token", access_token, {httpOnly: true, sameSite: 'strict', signed: true});
             res.cookie("refresh_token", refresh_token, {httpOnly: true, sameSite: 'strict', signed: true});
 
@@ -196,5 +184,4 @@ export const refresh = async (req, res, next) => {
             );
         })
         .catch(err => {return next(err)});
-
 };

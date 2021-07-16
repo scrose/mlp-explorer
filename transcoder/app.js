@@ -7,6 +7,7 @@
 import express from 'express';
 import Queue from 'bull';
 import { transcode } from '../src/services/images.services.js';
+import heapdump from 'heapdump';
 
 /**
  * Create Transcoder application.
@@ -31,7 +32,8 @@ app.get('/', (req, res) => {
 })
 
 app.listen(port, () => {
-    console.log(`Transcoder listening on http://localhost:${port}`)
+    console.log(`Transcoder listening on http://localhost:${port}`);
+    console.log('\n- (Node) Exposed Garbage Collection:', !!global.gc);
 });
 
 /**
@@ -55,14 +57,19 @@ queue.process(async (job) => {
     transcode(job.data, console.log)
         .then(res => {
             console.log(`[Completed] Job: ${job.id} / File: ${src}`);
+
+            // heapdump.writeSnapshot(function(err, filename) {
+            //     console.log('dump written to', filename);
+            // });
+
         })
-        .catch(console.error).finally(() => {
+        .catch(console.error)
+        .finally(() => {
+            console.log('Garbage Collection ...')
         // force garbage collection
-        try {
-            if (global.gc) {global.gc();}
-        } catch (e) {
-            console.log("`node --expose-gc index.js`");
-            process.exit();
+        if (typeof global.gc != "undefined") {
+            const gcRes = global.gc();
+            console.log('\t- [Node] Force GC:', gcRes);
         }
     });
 });

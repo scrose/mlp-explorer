@@ -2,8 +2,7 @@
   "apps": [
     {
       "name": "mle-api",
-      "script": "npm",
-      "args": "start",
+      "script": "server.js",
       "watch": false,
       "ignore_watch": [
         "node_modules"
@@ -16,7 +15,7 @@
       "env_production": {
         "NODE_ENV": "production"
       },
-      "max_memory_restart": "150M",
+      "max_memory_restart": "200M",
       "log_date_format": "YYYY-MM-DD HH:mm Z",
       "error_file": "./logs/mle_api_error.log",
       "out_file": "./logs/mle_api_output.log",
@@ -25,14 +24,17 @@
     {
       "name": "mle-transcoder",
       "script": "./transcoder/app.js",
-      "args": "--expose-gc",
+      "node_args": ["--inspect", "--expose-gc"],
       "watch": false,
       "ignore_watch": [
         "node_modules"
       ],
+      "env": {
+        "DYLD_INSERT_LIBRARIES": "/usr/local/Cellar/jemalloc/5.2.1_1/lib/libjemalloc.dylib"
+      },
       "error_file": "./logs/mle_transcoder_error.log",
       "out_file": "./logs/mle_transcoder_output.log",
-      "instances": 3
+      "exec_mode": "fork"
     }
   ]
 }

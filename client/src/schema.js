@@ -614,6 +614,16 @@ export const schema = {
                     }
                 },
                 {
+                    legend: 'Comparison',
+                    restrict: ['new', 'edit'],
+                    users: ['editor', 'administrator', 'super_administrator'],
+                    modern_captures: {
+                        label: 'Repeated Modern Captures for Comparison',
+                        render: 'compareSelector',
+                        reference: 'node',
+                    }
+                },
+                {
                     legend: 'Digitization Details',
                     restrict: ['show', 'new', 'edit'],
                     fn_photo_reference: {
@@ -748,6 +758,16 @@ export const schema = {
                     }
                 },
                 {
+                    legend: 'Comparison',
+                    restrict: ['new', 'edit'],
+                    users: ['editor', 'administrator', 'super_administrator'],
+                    historic_captures: {
+                        label: 'Historic Captures for Comparison',
+                        render: 'compareSelector',
+                        reference: 'node',
+                    }
+                },
+                {
                     legend: 'Capture Details',
                     restrict: ['show', 'new', 'edit', 'import'],
                     fn_photo_reference: {
@@ -761,7 +781,8 @@ export const schema = {
                         label: 'Comments'
                     },
                     alternate: {
-                        label: 'Alternate'
+                        label: 'Alternate',
+                        render: 'checkbox'
                     }
                 },
                 {
@@ -1602,7 +1623,7 @@ export const schema = {
         participants: {
             attributes: {
                 order: 12,
-                label: 'Participant',
+                label: 'Participants',
                 singular: 'Participant',
             },
             fieldsets: [

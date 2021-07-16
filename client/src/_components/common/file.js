@@ -39,14 +39,14 @@ const File = ({ data, callback=()=>{}, scale='thumb', owner={} }) => {
         historic_images: () => <Image
             url={url}
             scale={scale}
-            label={`${label} ${owner.hasOwnProperty('type') && owner.type !== 'historic_visits' ? '(unsorted)' : ''}`}
+            label={label}
             title={filename}
             onClick={()=>{router.update(createNodeRoute('historic_captures', 'show', owner_id))}}
         />,
         modern_images: () => <Image
             url={url}
             scale={scale}
-            label={`${label} ${owner.hasOwnProperty('type') && owner.type !== 'locations' ? '(unsorted)' : ''}`}
+            label={label}
             title={filename}
             onClick={()=>{router.update(createNodeRoute('modern_captures', 'show', owner_id))}}
         />,

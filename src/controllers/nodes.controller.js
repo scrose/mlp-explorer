@@ -75,8 +75,8 @@ export const tree = async (req, res, next) => {
                 view: 'tree',
                 data: {
                     nodes: {
-                        projects: await nserve.getTree('projects'),
-                        surveyors: await nserve.getTree('surveyors')
+                        surveyors: await nserve.getTree('surveyors'),
+                        projects: await nserve.getTree('projects')
                     },
                     options: {}
                 }
@@ -244,10 +244,10 @@ export const search = async (req, res, next) => {
     try {
 
         // get query parameters
-        const { q='', offset=0, limit=10 } = req.query || {};
+        const { q='', offset=0, limit=10, filter=[] } = req.query || {};
 
         // get query results
-        const resultData = await srchserve.fulltext(q, offset, limit);
+        const resultData = await srchserve.fulltext(q, offset, limit, filter);
 
         res.status(200).json(
             prepare({

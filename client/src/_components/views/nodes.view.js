@@ -39,12 +39,22 @@ const DefaultView = ({
     const { node, dependents, metadata, attached, files } = api.destructure(data) || {};
 
     // create tab index of metadata and files
-    const _tabItems = [
-        {
+    const _tabItems = [];
+
+    // include comparisons metadata
+    if (
+        attached.hasOwnProperty('comparisons')
+        && Object.keys(attached.comparisons).length > 0
+    ) _tabItems.push({
+        label: 'Comparisons',
+        data: <ComparisonsView data={attached.comparisons} />,
+    });
+
+    // add metadata for current node
+    _tabItems.push({
             label: `${getModelLabel(model)} Details`,
             data: <MetadataView key={`${model}_${node.id}`} model={model} metadata={metadata} />,
-        },
-    ];
+        });
 
     // include dependent nodes
     const dependentsGrouped = groupBy(Array.isArray(dependents) ? dependents : [], 'type');
@@ -88,15 +98,6 @@ const DefaultView = ({
             };
         });
     if (nodelist) _tabItems.push(...nodelist);
-
-    // include comparisons metadata
-    if (
-        attached.hasOwnProperty('comparisons')
-        && Object.keys(attached.comparisons).length > 0
-    ) _tabItems.push({
-        label: 'Comparisons',
-        data: <ComparisonsView data={attached.comparisons} />,
-    });
 
     // include other attached metadata
     const attachedMetadata = Object.keys(attached)

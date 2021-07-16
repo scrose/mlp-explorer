@@ -20,6 +20,7 @@ import * as importer from '../services/import.services.js';
 import * as metaserve from '../services/metadata.services.js';
 import { sanitize, humanize } from '../lib/data.utils.js';
 import { isRelatable } from '../services/schema.services.js';
+import {updateComparisons} from "../services/comparisons.services.js";
 
 /**
  * Shared data.
@@ -91,7 +92,7 @@ export default function ModelController(nodeType) {
             let id = parseInt(this.getId(req));
 
             // get item node + metadata
-            let itemData = await nserve.get(sanitize(id, 'integer'));
+            let itemData = await nserve.get(sanitize(id, 'integer'), client);
 
             // item record and/or node not found in database
             if (!itemData)
@@ -106,13 +107,13 @@ export default function ModelController(nodeType) {
                     itemData.dependents.map(async (dependent) => {
                         const { node = {} } = dependent || {};
                         dependent.dependents = await nserve.selectByOwner(node.id, client);
-                        dependent.attached = await metaserve.getAttachedByNode(node);
+                        dependent.attached = await metaserve.getAttachedByNode(node, client);
                         return dependent;
                     }));
             }
 
             // include attached metadata
-            itemData.attached = await metaserve.getAttachedByNode(itemData.node);
+            itemData.attached = await metaserve.getAttachedByNode(itemData.node, client);
 
             // send response
             res.status(200).json(
@@ -154,7 +155,6 @@ export default function ModelController(nodeType) {
             // get path of node in hierarchy
             const owner = await nserve.select(sanitize(owner_id, 'integer'));
             const path = await nserve.getPath(owner) || {};
-
 
             // send form data response
             res.status(200).json(
@@ -199,22 +199,22 @@ export default function ModelController(nodeType) {
             // filter metadata through importer
             // - saves any attached files to library
             // - collates metadata
-            const received = await importer.receive(req, owner_id, type);
+            const importData = await importer.receive(req, owner_id, type);
 
             // check if files are present
-            const hasFiles = Object.keys(received.files).length > 0;
+            const hasFiles = Object.keys(importData.files).length > 0;
 
             // insert metadata with/without file uploads
             // - Option (A) import: use importer to save file stream data and insert file metadata
             // - Option (B) insert: upload metadata only
             const resData = hasFiles
-                ? await fserve.insert(received, model.name)
-                : await mserve.insert(new Model(received.data));
+                ? await fserve.insert(importData, model.name)
+                : await mserve.insert(new Model(importData.data));
 
             // get ID for new item
             const { nodes_id = null } = resData || {}
             const newItem = nodes_id ? await nserve.get(nodes_id) : {};
-            const label = `${nodes_id ? newItem.label : model.label}`
+            const label = `${nodes_id ? newItem.label : model.label}`;
 
             // send response
             res.status(200).json(
@@ -301,11 +301,20 @@ export default function ModelController(nodeType) {
             const {node={}, metadata={}} = itemData || {};
             const {owner_id='', owner_type=''} = node || {};
             const importedData = await importer.receive(req, owner_id, owner_type);
+
+            // create model instance and inject data
             const item = new Model(metadata);
             item.setData(importedData.data);
 
             // update database record
             await mserve.update(item);
+
+            // capture metadata? check for any dependent updates
+            const { data={} } = importedData || {};
+            const { historic_captures={}, modern_captures={} } = data || {};
+            const comparisonCaptures = node.type === 'historic_captures'
+                ? Object.values(modern_captures) : Object.values(historic_captures);
+            await updateComparisons(node, comparisonCaptures, client);
 
             // get updated item
             let updatedItem = await nserve.get(id);

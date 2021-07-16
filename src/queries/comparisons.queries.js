@@ -8,36 +8,67 @@
 'use strict';
 
 /**
- * Query: Get comparisons for given capture node. Model options
- * include 'historic_captures' and 'modern_captures'.
+ * Query: Insert comparison for given capture pair IDs.
  *
  * @return {Object} query binding
  */
 
-export function insertComparison(
-    historicImageID,
+export function upsertComparison(
     historicCaptureID,
-    modernImageID,
     modernCaptureID
 ) {
     let sql = `INSERT INTO comparison_indices (
-                                historic_images, 
-                                modern_images, 
                                 historic_captures,
                                 modern_captures,
                                 created_at, 
                                 updated_at
                                 )
-            VALUES ($1::integer, $2::integer, $3::integer, $4::integer, NOW(), NOW())
-            ON CONFLICT (historic_images, modern_images)
-            DO UPDATE SET
-                          historic_images = $1::integer,
-                          modern_images = $2::integer,
-                          updated_at = NOW()
+            VALUES ($1::integer, $2::integer, NOW(), NOW())
+            ON CONFLICT (historic_captures, modern_captures) 
+            DO 
+                UPDATE SET updated_at = NOW()
             RETURNING *;`;
     return {
         sql: sql,
-        data: [historicImageID, modernImageID, historicCaptureID, modernCaptureID],
+        data: [historicCaptureID, modernCaptureID],
+    };
+}
+
+/**
+ * Query: Delete comparison for given capture pair IDs.
+ *
+ * @return {Object} query binding
+ */
+
+export function deleteComparison(
+    historicCaptureID,
+    modernCaptureID
+) {
+    let sql = `DELETE FROM comparison_indices 
+                WHERE historic_captures = $1::integer 
+                    AND modern_captures = $2::integer
+                RETURNING *;`;
+    return {
+        sql: sql,
+        data: [historicCaptureID, modernCaptureID],
+    };
+}
+
+/**
+ * Query: Delete all comparisons for given capture.
+ *
+ * @param node
+ * @return {Object} query binding
+ */
+
+export function deleteCaptureComparisons(node) {
+    const {id='', type=''} = node || {};
+    let sql = `DELETE FROM comparison_indices 
+                WHERE ${type} = $1::integer
+                RETURNING *;`;
+    return {
+        sql: sql,
+        data: [id],
     };
 }
 
@@ -53,25 +84,6 @@ export function getComparisons(node) {
     let sql = `SELECT * 
             FROM comparison_indices 
             WHERE ${type} = $1::integer`;
-    return {
-        sql: sql,
-        data: [id],
-    };
-}
-
-/**
- * Query: Get comparisons for given capture image file. File options
- * include 'historic_images' and 'modern_images'.
- * - Returns unique image pair
- *
- * @return {Object} query binding
- */
-
-export function getComparison(file) {
-    const { file_type = '', id = '' } = file || {};
-    let sql = `SELECT * 
-            FROM comparison_indices 
-            WHERE ${file_type} = $1::integer`;
     return {
         sql: sql,
         data: [id],
@@ -104,6 +116,7 @@ export function getComparisonsData(node) {
 /**
  * Query: Get capture comparisons for station.
  *
+ * @param {String} id
  * @return {Object} query binding
  */
 
@@ -121,17 +134,13 @@ export function getComparisonsByStationID(id) {
             GROUP BY historic_captures.nodes_id
         )
         SELECT comparison_indices.modern_captures,
-               comparison_indices.historic_captures,
-               comparison_indices.modern_images,
-               comparison_indices.historic_images
+               comparison_indices.historic_captures
         FROM comparison_indices
                  INNER JOIN hc
                             ON hc.nodes_id = comparison_indices.historic_captures
         GROUP BY hc.nodes_id,
                  comparison_indices.modern_captures,
-                 comparison_indices.historic_captures,
-                 comparison_indices.modern_images,
-                 comparison_indices.historic_images;
+                 comparison_indices.historic_captures;
     `;
     return {
         sql: sql,
@@ -142,6 +151,7 @@ export function getComparisonsByStationID(id) {
 /**
  * Query: Get capture comparisons metadata for station.
  *
+ * @param {String} id
  * @return {Object} query binding
  */
 
@@ -152,17 +162,13 @@ export function getComparisonsByLocationID(id) {
             FROM modern_captures
             WHERE modern_captures.owner_id = $1::integer)
         SELECT comparison_indices.modern_captures, 
-               comparison_indices.historic_captures, 
-               comparison_indices.modern_images, 
-               comparison_indices.historic_images
+               comparison_indices.historic_captures
         FROM comparison_indices
                  INNER JOIN mc
                             ON mc.nodes_id = comparison_indices.modern_captures
         GROUP BY mc.nodes_id,
                  comparison_indices.modern_captures,
                  comparison_indices.historic_captures,
-                 comparison_indices.modern_images,
-                 comparison_indices.historic_images,
                  comparison_indices.id;
     `;
     return {
@@ -174,6 +180,7 @@ export function getComparisonsByLocationID(id) {
 /**
  * Query: Get capture comparisons metadata for historic visit.
  *
+ * @param {String} id
  * @return {Object} query binding
  */
 
@@ -184,17 +191,13 @@ export function getComparisonsByHistoricVisitID(id) {
             FROM historic_captures
             WHERE historic_captures.owner_id = $1::integer)
         SELECT comparison_indices.modern_captures,
-               comparison_indices.historic_captures,
-               comparison_indices.modern_images,
-               comparison_indices.historic_images
+               comparison_indices.historic_captures
         FROM comparison_indices
                  INNER JOIN hc
                             ON hc.nodes_id = comparison_indices.historic_captures
         GROUP BY hc.nodes_id,
                  comparison_indices.modern_captures,
                  comparison_indices.historic_captures,
-                 comparison_indices.modern_images,
-                 comparison_indices.historic_images,
                  comparison_indices.id;
     `;
     return {
@@ -206,6 +209,7 @@ export function getComparisonsByHistoricVisitID(id) {
 /**
  * Query: Get capture comparisons metadata for modern visit.
  *
+ * @param {string} id
  * @return {Object} query binding
  */
 
@@ -221,17 +225,13 @@ export function getComparisonsByModernVisitID(id) {
                                 ON locs.nodes_id = modern_captures.owner_id
         )
         SELECT comparison_indices.modern_captures, 
-               comparison_indices.historic_captures, 
-               comparison_indices.modern_images, 
-               comparison_indices.historic_images
+               comparison_indices.historic_captures
         FROM comparison_indices
                  INNER JOIN mc
                             ON mc.nodes_id = comparison_indices.modern_captures
         GROUP BY mc.nodes_id,
                  comparison_indices.modern_captures,
                  comparison_indices.historic_captures,
-                 comparison_indices.modern_images,
-                 comparison_indices.historic_images,
                  comparison_indices.id;
     `;
     return {

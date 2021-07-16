@@ -91,6 +91,7 @@ $$
             'upload',
             'import',
             'export',
+            'compare',
             'master'
             );
     EXCEPTION

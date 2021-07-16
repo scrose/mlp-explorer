@@ -106,7 +106,7 @@ export default function ModelServices(model) {
      * Update data in existing record.
      *
      * @public
-     * @param {Array} data
+     * @param {Object} item
      * @return {Promise} result
      */
 

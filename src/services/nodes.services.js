@@ -66,30 +66,34 @@ export const selectByNode = async (node, client=pool) => {
 
 export const get = async (id, client=pool) => {
 
-    if (!id) return null;
 
-    // get requested node
-    const node = await select(id, client);
+        // start transaction
+        await client.query('BEGIN');
 
-    // check that node exists
-    if (!node) return null;
+        if (!id) return null;
 
-    // get node model metadata
-    const metadata = await selectByNode(node, client);
-    const files = await fserve.selectByOwner(id, client) || [];
+        // get requested node
+        const node = await select(id, client);
 
-    // append model data, files and dependents (child nodes)
-    return {
-        type: node.type,
-        node: node,
-        metadata: metadata,
-        label: await mserve.getNodeLabel(node, files, client),
-        files: files,
-        refImage: getCaptureImage(files, node),
-        dependents: await selectByOwner(id, client) || [],
-        hasDependents: await hasDependents(id, client) || false,
-        status: await getStatus(node, metadata, client),
-    }
+        // check that node exists
+        if (!node) return null;
+
+        // get node model metadata
+        const metadata = await selectByNode(node, client);
+        const files = await fserve.selectByOwner(id, client) || [];
+
+        // append model data, files and dependents (child nodes)
+        return {
+            type: node.type,
+            node: node,
+            metadata: metadata,
+            label: await mserve.getNodeLabel(node, files, client),
+            files: files,
+            refImage: getCaptureImage(files, node),
+            dependents: await selectByOwner(id, client) || [],
+            hasDependents: await hasDependents(id, client) || false,
+            status: await getStatus(node, metadata, client),
+        }
 };
 
 /**
@@ -123,7 +127,7 @@ export const getTree = async function(model) {
                 const metadata = await selectByNode(node, client);
                 return {
                     node: node,
-                    label: await mserve.getNodeLabel(node),
+                    label: await mserve.getNodeLabel(node, client),
                     type: node.type,
                     metadata: metadata,
                     hasDependents: await hasDependents(node.id, client) || false,
@@ -213,7 +217,7 @@ export const selectByOwner = async (id, client=pool) => {
             const files = await fserve.selectByOwner(node.id, client);
             return {
                 node: node,
-                label: await mserve.getNodeLabel(node),
+                label: await mserve.getNodeLabel(node, client),
                 type: node.type,
                 metadata: metadata,
                 files: files,
@@ -260,7 +264,7 @@ export const filterNodesByID = async (nodeIDs, offset, limit) => {
         // append model data and dependents (child nodes)
         let items = await Promise.all(
             nodes.map(async (node) => {
-                return await get(node.id);
+                return await get(node.id, client);
             })
         );
 

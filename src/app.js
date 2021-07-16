@@ -131,7 +131,6 @@ export default () => {
      */
 
     const mount = st({ path: process.env.LOWRES_PATH, url: '/uploads' });
-
     app.use( mount );
 
     /**

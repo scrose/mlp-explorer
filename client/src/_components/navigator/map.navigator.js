@@ -37,10 +37,36 @@ function MapNavigator({ data, filter }) {
     const [selectedBaseLayer, setBaseLayer] = React.useState('Satellite');
     const [center, setCenter] = React.useState([51.311809, -119.249230]);
     const [zoom, setZoom] = React.useState(4);
+    const [clustered, setClustered] = React.useState(true);
 
     // leaflet map object
     const mapObj = React.useRef(null);
     const layerGrp = React.useRef(null);
+
+    // SVG marker
+    const marker = `<svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 17.638889 21.166664"
+        height="22"
+        width="22">
+        <circle fill="transparent" cx="9" cy="9" r="7"/>
+        <g
+            transform="translate(-78.115082,-80.886905)"
+            id="layer1">
+            <path
+                fill="#000000"
+                d="m 86.934522,80.886905 c -4.8701,0 -8.81944,3.876146 -8.81944,8.656287 0,4.855101 3.8585,8.173855 8.81944,12.510378 4.96094,-4.336523 8.81945,-7.655277 8.81945,-12.510378 0,-4.780141 -3.94935,-8.656287 -8.81945,-8.656287 z m 0,15.875 c -3.89731,0 -7.05555,-3.159125 -7.05555,-7.055555 0,-3.896431 3.15824,-7.055556 7.05555,-7.055556 3.89731,0 7.05556,3.159125 7.05556,7.055556 0,3.89643 -3.15825,7.055555 -7.05556,7.055555 z"
+            />
+        </g>
+        <text
+            x="50%"
+            y="55%"
+            fill="#000000"
+            font-weight="bold"
+            font-family="sans-serif"
+            font-size="10px"
+            text-anchor="middle">N</text>
+    </svg>`
 
     // destroy map instance
     // const destroyMap = React.useCallback(() => {
@@ -99,7 +125,7 @@ function MapNavigator({ data, filter }) {
                              transform="translate(-78.115082,-80.886905)"
                              id="layer1">
                             <path
-                                fill="#${fillColour}"
+                               fill="#${fillColour}"
                                d="m 86.934522,80.886905 c -4.8701,0 -8.81944,3.876146 -8.81944,8.656287 0,4.855101 3.8585,8.173855 8.81944,12.510378 4.96094,-4.336523 8.81945,-7.655277 8.81945,-12.510378 0,-4.780141 -3.94935,-8.656287 -8.81945,-8.656287 z m 0,15.875 c -3.89731,0 -7.05555,-3.159125 -7.05555,-7.055555 0,-3.896431 3.15824,-7.055556 7.05555,-7.055556 3.89731,0 7.05556,3.159125 7.05556,7.055556 0,3.89643 -3.15825,7.055555 -7.05556,7.055555 z"
                                 />
                           </g>
@@ -117,9 +143,9 @@ function MapNavigator({ data, filter }) {
                 single: `<svg
                            xmlns="http://www.w3.org/2000/svg"
                            viewBox="0 0 17.638889 21.166664"
-                           height="80"
-                           width="80">
-                            <circle fill="#FFFFFF" cx="9" cy="9" r="7"/>
+                           height="50"
+                           width="50">
+                            <circle fill="#00C6BB" cx="9" cy="9" r="7"/>
                           <g
                              transform="translate(-78.115082,-80.886905)"
                              id="layer1">
@@ -128,16 +154,6 @@ function MapNavigator({ data, filter }) {
                                d="m 86.934522,80.886905 c -4.8701,0 -8.81944,3.876146 -8.81944,8.656287 0,4.855101 3.8585,8.173855 8.81944,12.510378 4.96094,-4.336523 8.81945,-7.655277 8.81945,-12.510378 0,-4.780141 -3.94935,-8.656287 -8.81945,-8.656287 z m 0,15.875 c -3.89731,0 -7.05555,-3.159125 -7.05555,-7.055555 0,-3.896431 3.15824,-7.055556 7.05555,-7.055556 3.89731,0 7.05556,3.159125 7.05556,7.055556 0,3.89643 -3.15825,7.055555 -7.05556,7.055555 z"
                                 />
                           </g>
-                            <text
-                                x="50%"
-                                y="50%"
-                                fill="#444444"
-                                font-weight="bold"
-                                font-family="sans-serif"
-                                font-size="6px"
-                                text-anchor="middle">
-                                ${n}
-                            </text>
                         </svg>`,
             };
 
@@ -153,17 +169,9 @@ function MapNavigator({ data, filter }) {
         };
 
         // grid settings: number of grid cells is scaled by zoom level
-        // - increase granularity after zoom > 10
-        const latN = zoom
-            ? zoom > 10
-                ? 0
-                : Math.ceil(2 * zoom)
-            : 1;
-        const lngN = zoom
-            ? zoom > 10
-                ? 0
-                : Math.ceil(2 * zoom)
-            : 1;
+        // - increase granularity exponentially
+        const latN = Math.ceil(0.2 * zoom * zoom * zoom);
+        const lngN = Math.ceil(0.2 * zoom * zoom * zoom);
 
         // get map parameters
         // NOTE: The following bucket sort of geographic coordinates
@@ -182,8 +190,8 @@ function MapNavigator({ data, filter }) {
 
         let dLat, dLng, grid;
         if (latN > 0 && lngN > 0) {
-            dLat = Math.max(Math.round(latRange / latN), 0);
-            dLng = Math.max(Math.round(lngRange / lngN), 0);
+            dLat = latRange / latN;
+            dLng = lngRange / lngN;
 
             // initialize cluster grid
             grid = [...Array(latN).keys()].map(() => Array(lngN));
@@ -201,15 +209,15 @@ function MapNavigator({ data, filter }) {
         // Sort station coordinates into grid areas
         // - check if grid exists and apply
         // - otherwise use single station markers
-        const clusters = grid ?
+        const clusters = clustered ?
             // bucket sort station locations into grid elements
             FilteredData.reduce((o, station) => {
 
-                const i = Math.floor((station.lat - latMin) / dLat);
-                const j = Math.floor((station.lng - lngMin) / dLng);
+                const i = Math.round((station.lat - latMin) / dLat);
+                const j = Math.round((station.lng - lngMin) / dLng);
 
                 // reject null grid elements
-                if (o[i] == null) return o;
+                if (!o || isNaN(i) || o[i] == null) return o;
 
                 // create longitudinal array if none exists
                 if (o[i][j] == null) {
@@ -225,7 +233,7 @@ function MapNavigator({ data, filter }) {
                 o[i][j].centroid.lng += station.lng;
                 return o;
             }, grid)
-            : // bucket sort station locations into grid elements
+            : // (no clustering) show individual station markers
             FilteredData.reduce((o, station) => {
                 o.push([{
                     isSelected: station.isSelected || currentIDs.includes(station.nodes_id),
@@ -285,7 +293,7 @@ function MapNavigator({ data, filter }) {
             }, o);
             return o;
         }, []);
-    }, [data, mapObj, filter, loadView, zoom]);
+    }, [data, mapObj, filter, loadView, zoom, clustered]);
 
     /**
      * Reset map view to new center coordinate and zoom level.
@@ -363,8 +371,40 @@ function MapNavigator({ data, filter }) {
                 'Stations': layerGrp.current,
             };
 
+            // Add marker cluster control
+            L.Control.Cluster = L.Control.extend({
+                onAdd: function(map) {
+                    const label = L.DomUtil.create('label', 'map-cluster-control');
+                    const input = L.DomUtil.create('input', 'map-cluster-control', label);
+                    const button = L.DomUtil.create('button', 'map-cluster-control', label);
+                    L.DomUtil.addClass(button, 'activated');
+                    input.value = "true";
+                    input.type = 'hidden';
+                    button.style.width = '30px';
+                    button.style.height = '30px';
+                    button.value = "Cluster";
+                    button.innerHTML = marker;
+                    L.DomEvent.on(button, 'click', () => {
+                        input.value = !(input.value === "true");
+                        input.value === "true"
+                            ? L.DomUtil.addClass(button, 'activated')
+                            : L.DomUtil.removeClass(button, 'activated');
+                        setClustered(input.value === "true");
+                    });
+                    return label;
+                },
+
+                onRemove: function(map) {
+                    // L.DomEvent.off(this, 'click', () => {console.log('cluster off!')});
+                }
+            });
+            L.control.cluster = function(opts) {
+                return new L.Control.Cluster(opts);
+            }
+            L.control.cluster({ position: 'topleft' }).addTo(mapObj.current);
+
             // add layers to leaflet controls
-            L.control.layers(baseLayers, overlays).addTo(mapObj.current);
+            L.control.layers(baseLayers).addTo(mapObj.current);
             L.control.scale().addTo(mapObj.current);
 
             // callback for base layer changes
@@ -393,7 +433,8 @@ function MapNavigator({ data, filter }) {
         reset,
         selectedBaseLayer,
         setBaseLayer,
-        getClusterMarkers
+        getClusterMarkers,
+        setClustered
     ]);
 
     /**

@@ -47,6 +47,13 @@ const DataView = () => {
                 model={api.model}
                 schema={schema}
                 data={api.metadata}
+                options={{
+                    node: {
+                        id: api.id,
+                        type: api.model,
+                        owner: api.owner
+                    }
+                }}
                 route={createNodeRoute(api.model, api.view, api.id)}
                 onCancel={() =>{redirect(createNodeRoute(api.model, 'show', api.id))}}
                 callback={(err, model, id) => {
@@ -71,6 +78,7 @@ const DataView = () => {
         download: () => <div>File Download</div>,
         404: () => <NotfoundError />,
         notFound: () => <NotfoundError />,
+        401: () => <AccessError />,
         403: () => <AccessError />,
         500: () => <ServerError />,
         serverError: () => <ServerError />
@@ -82,7 +90,7 @@ const DataView = () => {
             {
                 renders.hasOwnProperty(render)
                     ? renders[render]()
-                    : <Loading/>
+                    : <Loading />
             }
         </>
     )
