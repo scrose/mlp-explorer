@@ -310,11 +310,13 @@ export default function ModelController(nodeType) {
             await mserve.update(item);
 
             // capture metadata? check for any dependent updates
-            const { data={} } = importedData || {};
-            const { historic_captures={}, modern_captures={} } = data || {};
-            const comparisonCaptures = node.type === 'historic_captures'
-                ? Object.values(modern_captures) : Object.values(historic_captures);
-            await updateComparisons(node, comparisonCaptures, client);
+            if (node.type === 'historic_captures' || node.type === 'modern_captures') {
+                const {data = {}} = importedData || {};
+                const {historic_captures = {}, modern_captures = {}} = data || {};
+                const comparisonCaptures = node.type === 'historic_captures'
+                    ? Object.values(modern_captures) : Object.values(historic_captures);
+                await updateComparisons(node, comparisonCaptures, client);
+            }
 
             // get updated item
             let updatedItem = await nserve.get(id);
