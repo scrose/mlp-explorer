@@ -38,8 +38,37 @@ const DefaultView = ({
     const api = useData();
     const { node, dependents, metadata, attached, files } = api.destructure(data) || {};
 
+    // group dependent nodes
+    const dependentsGrouped = groupBy(Array.isArray(dependents) ? dependents : [], 'type');
+
     // create tab index of metadata and files
     const _tabItems = [];
+
+    // include unsorted captures
+    if (dependentsGrouped.hasOwnProperty('historic_captures')) {
+        _tabItems.unshift({
+            label: 'Historic Captures',
+            data: <FilesView
+                files={{
+                    historic_captures: dependentsGrouped.historic_captures.map(item => {
+                        return item.refImage;
+                    }),
+                }}
+                owner={node}
+            />,
+        });
+    }
+    if (dependentsGrouped.hasOwnProperty('modern_captures')) _tabItems.push({
+        label: 'Modern Captures',
+        data: <FilesView
+            files={{
+                modern_captures: dependentsGrouped.modern_captures.map(item => {
+                    return item.refImage;
+                }),
+            }}
+            owner={node}
+        />,
+    });
 
     // include comparisons metadata
     if (
@@ -50,14 +79,7 @@ const DefaultView = ({
         data: <ComparisonsView data={attached.comparisons} />,
     });
 
-    // add metadata for current node
-    _tabItems.push({
-            label: `${getModelLabel(model)} Details`,
-            data: <MetadataView key={`${model}_${node.id}`} model={model} metadata={metadata} />,
-        });
-
     // include dependent nodes
-    const dependentsGrouped = groupBy(Array.isArray(dependents) ? dependents : [], 'type');
     const nodelist = Object.keys(dependentsGrouped)
         .filter(
             key => key !== 'historic_captures' && key !== 'modern_captures')
@@ -99,6 +121,12 @@ const DefaultView = ({
         });
     if (nodelist) _tabItems.push(...nodelist);
 
+    // add metadata for current node
+    _tabItems.push({
+        label: `${getModelLabel(model)} Details`,
+        data: <MetadataView key={`${model}_${node.id}`} model={model} metadata={metadata} />,
+    });
+
     // include other attached metadata
     const attachedMetadata = Object.keys(attached)
         .filter(key => key !== 'comparisons' && attached[key].length > 0)
@@ -118,31 +146,6 @@ const DefaultView = ({
         data: <FilesView owner={node} files={files} />,
     });
 
-    // include unsorted captures
-    if (dependentsGrouped.hasOwnProperty('historic_captures')) {
-        _tabItems.unshift({
-            label: 'Historic Captures',
-            data: <FilesView
-                files={{
-                    historic_captures: dependentsGrouped.historic_captures.map(item => {
-                        return item.refImage;
-                    }),
-                }}
-                owner={node}
-            />,
-        });
-    }
-    if (dependentsGrouped.hasOwnProperty('modern_captures')) _tabItems.push({
-        label: 'Modern Captures',
-        data: <FilesView
-            files={{
-                modern_captures: dependentsGrouped.modern_captures.map(item => {
-                    return item.refImage;
-                }),
-            }}
-            owner={node}
-        />,
-    });
 
     return <Tabs
         items={_tabItems}

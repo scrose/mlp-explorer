@@ -61,7 +61,7 @@ const TreeNodeMenu = ({
     // handle view events
     const _handleView = () => {
         // add node to session path
-        addNode(id);
+        // addNode(id);
         // reroute to requested data view
         router.update(createNodeRoute(model, 'show', id));
     }
