@@ -334,7 +334,7 @@ function MapNavigator({ data, filter }) {
     React.useEffect(() => {
         const {lat=null, lng=null } = api.metadata;
         if (lat && lng && mapObj.current) {
-            mapObj.current.flyTo([lat, lng], 16);
+            mapObj.current.flyTo([lat, lng], 12);
         }
     }, [api, setClustered])
 
