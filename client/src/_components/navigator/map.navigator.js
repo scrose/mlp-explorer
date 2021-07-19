@@ -335,8 +335,9 @@ function MapNavigator({ data, filter }) {
         const {lat=null, lng=null } = api.metadata;
         if (lat && lng && mapObj.current) {
             mapObj.current.flyTo([lat, lng], 10);
+            setClustered(false);
         }
-    }, [api])
+    }, [api, setClustered])
 
     /**
      * Initialize leaflet map.
@@ -371,9 +372,12 @@ function MapNavigator({ data, filter }) {
 
             if (mapObj.current) return;
 
+            // centre map on selected node
+            const [lat=initCenter.lat, lng=initCenter.lng] = center;
+
             // initialize map with DOM container and initial coordinates
             mapObj.current = L.map(domNode, {
-                center: center,
+                center: [lat, lng],
                 zoom: zoom,
                 layers: [baseLayers[selectedBaseLayer]],
             });
