@@ -44,7 +44,10 @@ function AuthProvider(props) {
                 const { response={} } = res || {};
                 const { user=null, message={} } = response || {};
                 // create user session (if user data provided)
-                if (user) setData(user);
+                if (user) {
+                    setData(user);
+                    return null;
+                }
                 return message;
             });
     }

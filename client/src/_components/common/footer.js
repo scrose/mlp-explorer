@@ -21,15 +21,14 @@ const Footer = () => {
         <footer className="footer">
             <div className={'copyright h-menu'}>
                 <ul>
-                    <li style={{paddingLeft: '20px'}}>
+                    <li>
+                        <p>Copyright &copy; {date.getFullYear()} Mountain Legacy Project</p>
+                    </li>
+                    <li className={'push'} style={{paddingRight: '20px'}}>
                         <a href={"http://mountainlegacy.ca"} rel="noreferrer" target={'_blank'}>
                             <MLPLogo />
                         </a>
                     </li>
-                    <li>
-                        <p>Copyright &copy; {date.getFullYear()} Mountain Legacy Project</p>
-                    </li>
-
                 </ul>
             </div>
         </footer>

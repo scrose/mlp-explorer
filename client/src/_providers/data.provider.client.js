@@ -31,6 +31,7 @@ function DataProvider(props) {
     const router = useRouter();
 
     // API data states
+    const [loaded, setLoaded] = React.useState(false);
     const [apiData, setAPIData] = React.useState({});
     const [view, setView] = React.useState('');
     const [model, setModel] = React.useState('');
@@ -138,6 +139,11 @@ function DataProvider(props) {
         _isMounted.current = true;
         setError(null);
 
+        // if static page, set API data to true
+        if (router.staticView && router.online) {
+            setLoaded(true);
+        }
+
         // request data if not static view
         if (!router.staticView && router.online) {
             // set view to loading
@@ -176,6 +182,7 @@ function DataProvider(props) {
                         setModel(name);
                         setPath(path);
                         setSessionMsg(message);
+                        setLoaded(true);
                     }
                 })
                 .catch(err => console.error(err));
@@ -209,6 +216,7 @@ function DataProvider(props) {
     return (
         <DataContext.Provider value={
             {
+                loaded,
                 view,
                 model,
                 path,

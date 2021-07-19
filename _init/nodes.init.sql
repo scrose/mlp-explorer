@@ -731,11 +731,13 @@ CREATE TABLE "public"."comparison_indices"
 
 -- Delete duplicate rows
 
-DELETE FROM
-    old_comparison_indices a
-    USING old_comparison_indices b
+DELETE FROM old_comparison_indices a USING (
+    SELECT MIN(ctid) as ctid, capture_id
+    FROM old_comparison_indices
+    GROUP BY capture_id HAVING COUNT(*) > 1
+) b
 WHERE a.capture_id = b.capture_id
-  AND a.historic_capture_id = b.historic_capture_id;
+  AND a.ctid <> b.ctid;
 
 -- Update old comparison indices
 
@@ -768,7 +770,6 @@ ALTER TABLE old_comparison_indices
         FOREIGN KEY (modern_captures) REFERENCES modern_captures (nodes_id);
 
 -- migrate comparisons to new comparison table
--- Note: shift from capture comparisons -> capture image comparisons
 
 INSERT INTO comparison_indices (
     historic_captures,

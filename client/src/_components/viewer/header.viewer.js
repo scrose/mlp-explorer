@@ -11,6 +11,8 @@ import Logo from '../common/logo';
 import { redirect } from '../../_utils/paths.utils.client';
 import BreadcrumbMenu from '../menus/breadcrumb.menu';
 import Button from '../common/button';
+import Accordion from "../common/accordion";
+import LoginUsers from "../users/login.users";
 
 /**
  * User navigation menu (unauthenticated).
@@ -20,13 +22,13 @@ import Button from '../common/button';
 
 const UserMenu = () => {
     return (
-        <nav className={'user'}>
-            <Button
-                label={'Sign In'}
-                icon={'login'}
-                onClick={() => redirect("/login")}
-            />
-        </nav>
+    <nav className={'user'}>
+        <Accordion
+            label={'Sign In'}
+        >
+            <LoginUsers />
+        </Accordion>
+    </nav>
     );
 }
 

@@ -14,10 +14,11 @@
 
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
-import { mapToObj, sanitize } from '../lib/data.utils.js';
+import {mapToObj, sanitize} from '../lib/data.utils.js';
 import * as mserve from './metadata.services.js';
+import {getCaptureImage, getStatus} from './metadata.services.js';
 import * as fserve from './files.services.js';
-import { getCaptureImage, getStatus } from './metadata.services.js';
+import {getFileLabel} from './files.services.js';
 
 /**
  * Get node by ID. Returns single node object.
@@ -344,7 +345,7 @@ export const getPath = async (inputNode) => {
             ? {
                 file: node,
                 metadata: await fserve.selectByFile(node, client) || {},
-                label: await mserve.getFileLabel(node)
+                label: await getFileLabel(node)
             }
             : {
                 node: node,

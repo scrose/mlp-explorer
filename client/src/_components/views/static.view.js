@@ -8,8 +8,6 @@
 import React from 'react';
 import DashboardViewer from '../viewer/dashboard.viewer';
 import DashboardEditor from '../editor/dashboard.editor';
-import LoginUsers from '../users/login.users';
-import LogoutUsers from '../users/logout.users';
 import NotfoundError from '../error/notfound.error';
 import UnavailableError from '../error/unavailable.error';
 import ServerError from '../error/server.error';
@@ -34,8 +32,6 @@ const StaticView = ({ type }) => {
         resources: () => <Image url={router.route} />,
         dashboardView: () => <DashboardViewer />,
         dashboardEdit: () => <DashboardEditor />,
-        login: () => <LoginUsers />,
-        logout: () => <LogoutUsers />,
         imageToolkit: () => <ImageTools />,
         notFound: () => <NotfoundError />,
         serverError: () => <ServerError />,

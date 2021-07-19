@@ -45,7 +45,7 @@ function RouterProvider(props) {
     const [staticView, setStaticView] = React.useState(getStaticView(filterPath()));
 
     // clear node path in session state
-    clearNodes();
+    //clearNodes();
 
     /**
      * Handle response data.

@@ -13,6 +13,7 @@ import { redirect } from '../../_utils/paths.utils.client';
 import BreadcrumbMenu from '../menus/breadcrumb.menu';
 import Accordion from '../common/accordion';
 import Button from '../common/button';
+import {useAuth} from "../../_providers/auth.provider.client";
 
 /**
  * User navigation menu (authenticated).
@@ -22,16 +23,17 @@ import Button from '../common/button';
 
 const UserMenu = () => {
     const user = useUser();
+    const auth = useAuth();
     return (
         <nav className={'user'}>
             <Accordion type={'user'}>
-                <div>
-                    <div><b>{user.email}</b></div>
-                    <div>{user.label}</div>
+                <div className={'login'}>
+                    <p className={'centred'}><b>{user.email}</b></p>
+                    <p className={'centred'}>{user.label}</p>
                     <div className={'centred'}><Button
                         icon={'logout'}
                         label={'Sign Out'}
-                        onClick={() => redirect('/logout')}
+                        onClick={() => auth.logout()}
                     /></div>
                 </div>
             </Accordion>

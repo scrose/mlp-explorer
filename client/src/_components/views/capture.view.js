@@ -11,7 +11,7 @@ import Slider from '../common/slider';
 import Table from '../common/table';
 import { sanitize } from '../../_utils/data.utils.client';
 import { useUser } from '../../_providers/user.provider.client';
-import { createNodeRoute } from '../../_utils/paths.utils.client';
+import {createNodeRoute, getExtension} from '../../_utils/paths.utils.client';
 import Image from '../common/image';
 import { useRouter } from '../../_providers/router.provider.client';
 import MenuEditor from '../editor/menu.editor';
@@ -76,7 +76,7 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
                     router.update(createNodeRoute(file_type, 'show', id))
                 }}
             />,
-            mime_type: metadata.mimetype,
+            mime_type: metadata.mimetype || getExtension(filename),
             image_state: imageState && imageState.hasOwnProperty('label')
                 ? imageState.label
                 : 'n/a',

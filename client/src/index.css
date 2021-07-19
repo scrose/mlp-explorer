@@ -56,6 +56,7 @@ div.main {
     display: flex;
     flex-wrap: nowrap;
     background-color: white !important;
+    border-top: 1px solid #002A37;
 }
 
 /*
@@ -142,7 +143,6 @@ Horizontal Layout
 }
 .h-menu ul li {
     display: block;
-    cursor: pointer;
     padding: 0;
     text-align: left;
 }
@@ -169,7 +169,6 @@ Vertical Layout
 .v-menu ul li {
     width: 100%;
     display: block;
-    cursor: pointer;
     margin: 0;
     padding: 5px;
 }
@@ -245,7 +244,7 @@ Accordion Layout
     /*transition: max-height 0.5s ease-in-out;*/
 }
 .accordion .accordion-data.open {
-    max-height: 6000px;
+    max-height: 30000px;
     overflow: visible;
     padding: 8px;
     /*-webkit-transition: max-height 0.5s ease-in;*/
@@ -351,7 +350,7 @@ nav.user .accordion-data.open {
     position:fixed;
 
 }
-nav.user div {
+nav.user .login {
     background-color: #2B5A6B;
     color: #FFFFFF;
     padding: 15px;
@@ -359,14 +358,15 @@ nav.user div {
     height: auto;
     width: auto;
 }
-nav.user table td {
-    padding: 0;
-    margin: 0;
-}
+
 nav.user button  {
     text-align: left;
-    background-color: #282c34;
+    background-color: #00C6BB;
     color: white !important;
+}
+
+.login input {
+    background-color: #FFFFFF !important;
 }
 
 /* Viewer/Editor Panels */
@@ -380,7 +380,7 @@ nav.user button  {
 }
 .view {
     width: 100%;
-    height: 77vh;
+    height: 78vh;
     overflow: auto;
     padding: 0 10px 40px 10px;
 }
@@ -452,6 +452,14 @@ nav.user button  {
     cursor: default;
 }
 
+/* Login Panel */
+
+.login {
+    width: 100% !important;
+    max-width: 500px;
+}
+
+
 /* Navigator Panel */
 
 .navigator {
@@ -467,7 +475,7 @@ nav.user button  {
 /* Navigator Panel: Tree */
 
 .navigator .tree {
-    height: 77vh;
+    height: 78vh;
     overflow: auto;
     width: auto;
     background-color: #002A37;
@@ -481,7 +489,9 @@ nav.user button  {
     -o-transform: translate(-600px,0); /** Opera **/
     -moz-transform: translate(-600px,0); /** Firefox **/
 }
-
+.tree .root {
+    padding-bottom: 60px;
+}
 .tree ul {
     list-style: none;
     text-align: left;
@@ -597,8 +607,10 @@ nav.breadcrumb ul {
     padding: 10px 16px;
     margin: 0;
     list-style: none;
-    background-color: #002A37;
-    color: #95B0B4;
+    background-color: #734277;
+    border-top: 1px solid #B5A7B6;
+    border-bottom: 1px solid #B5A7B6;
+    color: #FFF;
 
 }
 /* Display list items side by side */
@@ -616,7 +628,7 @@ nav.breadcrumb ul li+li:before {
 
 /* Add a color to all links inside the list */
 nav.breadcrumb ul li a {
-    color: #95B0B4;
+    color: #FFFFFF;
     text-decoration: none;
     text-overflow: ellipsis;
 }
@@ -901,8 +913,13 @@ nav.breadcrumb ul li a:hover {
     margin: auto;
     padding: 0;
 }
-.slider .slides figure img {
+.slider .slides figure.thumb img {
     object-fit: cover;
+    width: 100%;
+    height: 400px;
+}
+.slider .slides figure.medium img {
+    object-fit: contain;
     width: 100%;
     height: 400px;
 }
@@ -1292,14 +1309,17 @@ nav.breadcrumb ul li a:hover {
 */
 
 .footer div {
-    padding: 4px;
+    height: 40px;
+    padding: 0;
+    margin: 0;
     color: #DDDDDD;
     background-color: inherit;
 }
 .footer div p {
-    text-align: center;
+    height: 40px;
+    line-height: 40px;
     font-size: small;
-    padding: 10px;
+    padding: 0;
     margin-left: 20px;
     margin-top: 0;
 }
@@ -1606,7 +1626,7 @@ fieldset.hidden {
     border: none;
 }
 fieldset div {
-    height:100%;
+    /*height:100%;*/
     line-height:2em;
 }
 fieldset.submit {
@@ -1929,6 +1949,7 @@ Messages
     padding: 2px;
 }
 .msg.inline .msg-text {
+    background-color: transparent;
     margin: 0;
     padding: 1px;
 }
@@ -1949,8 +1970,8 @@ Messages
     background-color: #FEEFB3;
 }
 .error {
-    color: #E34234;
-    background-color: #FFD2D2;
+    color: #E34234 !important;
+    background-color: #FFD2D2 !important;
 }
 
 /* Validation Messages */

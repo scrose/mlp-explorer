@@ -15,6 +15,7 @@ import {useData} from '../../_providers/data.provider.client';
 import Button from '../common/button';
 import {capitalize, sorter} from '../../_utils/data.utils.client';
 import Loading from '../common/loading';
+import Accordion from "../common/accordion";
 
 /**
  * Inline tree node menu component.
@@ -61,7 +62,7 @@ const TreeNodeMenu = ({
     // handle view events
     const _handleView = () => {
         // add node to session path
-        // addNode(id);
+        addNode(id);
         // reroute to requested data view
         router.update(createNodeRoute(model, 'show', id));
     }
@@ -218,13 +219,7 @@ const TreeNode = ({
         _isMounted.current = true;
 
         // include current node path as toggled
-        if (api.nodes.includes(id)) {
-            setCurrent(true);
-            addNode(id);
-            // setToggle(api.nodes.includes(id));
-            // scroll current node into view
-            // treeNode.current.scrollIntoView();
-        }
+        setCurrent(api.nodes.includes(id));
 
         if (!error && hasDependents && toggle && Array.isArray(loadedData) && loadedData.length === 0) {
             const route = createNodeRoute('nodes', 'show', id);
@@ -374,22 +369,24 @@ const TreeNavigator = ({view, data, filter, setDialog}) => {
                 {/*    />*/}
                 {/*    </li></ul>*/}
                 {/*</div>*/}
-                <ul>
+                <ul className={'root'}>
                     {
                         Object.keys(data)
                             .map((key, index) => {
                                 return (
-                                    <li key={`item_${index}`}>
-                                        <h4>
-                                            <Icon type={key} />&#160;&#160;{getModelLabel(key, 'label')}
-                                        </h4>
+                                    <Accordion
+                                        key={`item_${index}`}
+                                        type={key}
+                                        label={getModelLabel(key, 'label')}
+                                        open={true}
+                                    >
                                         <TreeNodeList
                                             items={data[key]}
                                             filter={filter}
                                             setDialog={setDialog}
                                             showCurrent={showCurrent}
                                         />
-                                    </li>
+                                    </Accordion>
                                 )
                             })
                     }

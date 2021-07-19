@@ -25,19 +25,16 @@ export const updateComparisons = async (node, comparedCaptureIDs, client = pool)
 
     // delete existing comparisons for capture
     const delRes = await deleteComparisons(node);
-    console.log(delRes);
 
     // load comparison capture(s) node data and update comparisons table
     return await Promise.all(
         comparedCaptureIDs.map( async(captureID) => {
             const comparedCapture = await nserve.select(captureID, client);
-            console.log(comparedCapture)
             // check that image pair(s) are sorted and therefore comparable
             if (await isComparable(
                 node.type === 'historic_captures' ? node : comparedCapture,
                 node.type === 'historic_captures' ? comparedCapture : node
             )) {
-                console.log('Comparable!')
                 await upsertComparison(
                     node.type === 'historic_captures' ? node.id : captureID,
                     node.type === 'historic_captures' ? captureID : node.id);

@@ -89,6 +89,7 @@ const DefaultView = ({
                 data: dependentsGrouped[key]
                     .sort(sorter)
                     .map(item => {
+                        // get item metadata
                         const {
                             id,
                             type,
@@ -96,13 +97,16 @@ const DefaultView = ({
                             hasDependents,
                             metadata,
                         } = api.destructure(item);
+                        // toggle accordion data as open/close
+                        // - show historic visits
+                        const toggle = dependentsGrouped[key].length === 1;
                         return <Accordion
                             key={id}
                             id={id}
                             type={type}
                             label={label}
                             hasDependents={hasDependents}
-                            open={false}
+                            open={toggle}
                             menu={
                                 <MenuEditor
                                     model={type}

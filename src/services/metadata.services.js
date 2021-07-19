@@ -14,12 +14,10 @@
 
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
-import * as nserve from './nodes.services.js';
-import { groupBy, sanitize } from '../lib/data.utils.js';
-import { extractFileLabel } from '../lib/file.utils.js';
+import {groupBy, sanitize} from '../lib/data.utils.js';
 import * as cserve from './construct.services.js';
 import * as fserve from './files.services.js';
-import { getComparisonsByCapture, getComparisonsByStation, getComparisonsMetadata } from './comparisons.services.js';
+import {getComparisonsByCapture, getComparisonsByStation, getComparisonsMetadata} from './comparisons.services.js';
 
 /**
  * Get metadata by ID. Returns single metadata object.
@@ -680,45 +678,3 @@ export const getNodeLabel = async (node, files=[], client=pool) => {
     return label;
 };
 
-/**
- * Get file label.
- *
- * @public
- * @param {Object} file
- * @param client
- * @return {Promise} result
- */
-
-export const getFileLabel = async (file, client=pool) => {
-
-    if (!file) return '';
-    const {file_type='', owner_id='', filename=''} = file || {};
-
-    // get image owner
-    const owner = await nserve.select(sanitize(owner_id, 'integer'), client);
-    // check that owner node exists
-    if (!owner) return '';
-    const metadata = await nserve.selectByNode(owner, client);
-
-    const queriesByType = {
-        historic_images: async () => {
-            const {fn_photo_reference=''} = metadata || {};
-            return fn_photo_reference
-                ? fn_photo_reference
-                : extractFileLabel(filename, 'Capture Image');
-        },
-        modern_images: async () => {
-            const {fn_photo_reference=''} = metadata || {};
-            return fn_photo_reference
-                ? fn_photo_reference
-                : extractFileLabel(filename, 'Capture Image');
-        },
-        default: async () => {
-            return filename || 'File Unknown';
-        }
-    };
-
-    return queriesByType.hasOwnProperty(file_type)
-        ? await queriesByType[file_type]() : queriesByType.default();
-
-};

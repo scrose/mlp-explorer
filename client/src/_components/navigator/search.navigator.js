@@ -140,9 +140,10 @@ const SearchNavigator = ({filter=[], limit=5, offset=0}) => {
                     '~~~~SPLIT~~~~$&~~~~SPLIT~~~~');
             });
             blurb = blurb.split('~~~~SPLIT~~~~');
-            blurb = blurb.map(txt => {
+            blurb = blurb.map((txt, index) => {
+                const key = `hi_term_${searchTerms.join('_').substring(0, 10)}${index}`;
                 if (txt.match(new RegExp(`${searchTerms.join('|')}`, 'gi')))
-                    return <b>{txt}</b>;
+                    return <b key={key}>{txt}</b>;
                 return txt;
             })
         }

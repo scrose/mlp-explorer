@@ -290,7 +290,6 @@ export const refresh = async (req) => {
         .then(res => {
             // token is invalid or session is not active
             if (!res || res.status !== 200) return null;
-            console.log(res)
             return res
         })
         .then(res => res.json())

@@ -9,17 +9,17 @@
 
 import path from 'path';
 import fs from 'fs';
-import { mkdir, unlink, copyFile } from 'fs/promises';
+import {copyFile, mkdir, unlink} from 'fs/promises';
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
-import { sanitize } from '../lib/data.utils.js';
+import {sanitize} from '../lib/data.utils.js';
 import * as cserve from './construct.services.js';
 import * as metaserve from '../services/metadata.services.js';
-import * as nserve from '../services/nodes.services.js';
 import ModelServices from './model.services.js';
-import { allowedMIME } from '../lib/file.utils.js';
-import { getImageURL, saveImage } from './images.services.js';
+import {allowedMIME, extractFileLabel} from '../lib/file.utils.js';
+import {getImageURL, saveImage} from './images.services.js';
 import {updateComparisons} from "./comparisons.services.js";
+import * as nserve from "./nodes.services.js";
 
 /**
  * Maximum file size (non-images) = 1GB
@@ -49,6 +49,48 @@ export const select = async function(id, client = pool) {
 };
 
 /**
+ * Get file label.
+ *
+ * @public
+ * @param {Object} file
+ * @param client
+ * @return {Promise} result
+ */
+
+export const getFileLabel = async (file, client = pool) => {
+
+    if (!file) return '';
+    const {file_type = '', owner_id = '', filename = ''} = file || {};
+
+    // get image owner
+    const owner = await nserve.select(sanitize(owner_id, 'integer'), client);
+    // check that owner node exists
+    if (!owner) return '';
+    const metadata = await nserve.selectByNode(owner, client);
+
+    const queriesByType = {
+        historic_images: async () => {
+            const {fn_photo_reference = ''} = metadata || {};
+            return fn_photo_reference
+                ? fn_photo_reference
+                : extractFileLabel(filename, 'Capture Image');
+        },
+        modern_images: async () => {
+            const {fn_photo_reference = ''} = metadata || {};
+            return fn_photo_reference
+                ? fn_photo_reference
+                : extractFileLabel(filename, 'Capture Image');
+        },
+        default: async () => {
+            return extractFileLabel(filename, filename) || 'File Unknown';
+        }
+    };
+
+    return queriesByType.hasOwnProperty(file_type)
+        ? await queriesByType[file_type]() : queriesByType.default();
+
+};
+/**
  * Get file data by file ID. Returns single node object.
  *
  * @public
@@ -77,7 +119,7 @@ export const get = async (id, client = pool) => {
     return {
         file: file,
         owner: owner,
-        label: await metaserve.getFileLabel(file, client),
+        label: await getFileLabel(file, client),
         filename: (filename || '').replace(`_${secure_token}`, ''),
         metadata: metadata,
         metadata_type: await metaserve.selectByName('metadata_file_types', type, client),
@@ -111,7 +153,7 @@ export const selectByOwner = async (id, client = pool) => {
                 const { type = '', secure_token = '' } = fileMetadata || {};
                 return {
                     file: file,
-                    label: await metaserve.getFileLabel(file),
+                    label: await getFileLabel(file),
                     filename: (filename || '').replace(`_${secure_token}`, ''),
                     metadata: fileMetadata,
                     metadata_type: await metaserve.selectByName('metadata_file_types', type, client),

@@ -181,6 +181,7 @@ export function getHistoricCapturesByStationID(id) {
 
 /**
  * Query: Get stations.
+ * - includes project-based and survey-based stations
  *
  * @return {Object} query binding
  */
@@ -195,9 +196,10 @@ export function getMapLocations(filter=null) {
                    ss.nodes_id as surveys,
                    sss.nodes_id as survey_seasons
             FROM stations
-            JOIN survey_seasons sss on stations.owner_id = sss.nodes_id
-            JOIN surveys ss on sss.owner_id = ss.nodes_id
-            JOIN surveyors s on ss.owner_id = s.nodes_id
+            FULL JOIN projects p on stations.owner_id = p.nodes_id
+            FULL JOIN survey_seasons sss on stations.owner_id = sss.nodes_id
+            FULL JOIN surveys ss on sss.owner_id = ss.nodes_id
+            FULL JOIN surveyors s on ss.owner_id = s.nodes_id
             WHERE stations.lat IS NOT NULL AND stations.lng IS NOT NULL;
     `;
     return {

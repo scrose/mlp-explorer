@@ -229,10 +229,9 @@ const Form = ({
      *
      * @private
      * @param {Object} fieldset
-     * @param index
      */
 
-    const _handleCopy = (fieldset, index) => {
+    const _handleCopy = (fieldset) => {
         try {
 
             // make separate copy of the template fieldset
@@ -281,11 +280,12 @@ const Form = ({
 
     /**
      * Render form.
+     * - Filter fieldsets rendered as forms
      *
      * @public
      */
 
-    return (
+    return <>
         <form
             id={formID}
             name={model}
@@ -296,6 +296,7 @@ const Form = ({
         >
             {
                 fieldsetSchema
+                    .filter(fieldset => fieldset.render !== 'component')
                     .map((fieldset, index) => {
                         return (
                             <div key={`fieldset_${index}`}>
@@ -327,7 +328,7 @@ const Form = ({
                                                 onClick={(e) => {
                                                     e.preventDefault();
                                                     // send deep copy of fieldset
-                                                    _handleCopy(fieldset, index);
+                                                    _handleCopy(fieldset);
                                                 }}
                                                 label={`Add ${fieldset.legend}`}
                                                 icon={'add'}
@@ -349,7 +350,33 @@ const Form = ({
                 onReset={onReset}
             />
         </form>
-    );
+        {
+            fieldsetSchema
+                .filter(fieldset => fieldset.render === 'component')
+                .map((fieldset, index) => {
+                    return (
+                        <div key={`fieldset_component_${index}`}>
+                            <Fieldset
+                                formID={formID}
+                                model={model}
+                                index={index}
+                                mode={fieldset.render}
+                                legend={fieldset.legend}
+                                fields={fieldset.fields}
+                                errors={errors}
+                                setErrors={setErrors}
+                                data={data}
+                                setData={setData}
+                                opts={opts}
+                                disabled={isDisabled}
+                                disabledInputs={disabledInputs}
+                                validators={validators}
+                            />
+                        </div>
+                    );
+                })
+        }
+    </>;
 };
 
 export default Form;

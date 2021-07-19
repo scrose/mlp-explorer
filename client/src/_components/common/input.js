@@ -7,19 +7,20 @@
 
 import React from 'react';
 import 'flatpickr/dist/themes/material_green.css';
-import { convertCoordDMS, sorter } from '../../_utils/data.utils.client';
+import {convertCoordDMS, sorter} from '../../_utils/data.utils.client';
 import Icon from './icon';
-import Message, { UserMessage } from './message';
+import Message, {UserMessage} from './message';
 import MultiSelect from './multiselect';
 import DateTimeSelector from './datetime';
 import Autocomplete from './autocomplete';
-import {CompareSelector} from "../tools/selector.tools";
+import {CompareSelector, DependentEditor} from "../tools/editor.tools";
 
 /**
  * No operation.
  */
 
-const noop = () => {};
+const noop = () => {
+};
 
 /**
  * Form input component.
@@ -48,7 +49,7 @@ export const Input = ({
                           label = '',
                           value = '',
                           min = 0,
-                          max=99999,
+                          max = 99999,
                           prefix = '',
                           suffix = '',
                           error = null,
@@ -135,37 +136,38 @@ export const Input = ({
 
         textarea: () => {
             return <textarea
-                    id={id}
-                    name={name}
-                    readOnly={readonly}
-                    value={value || ''}
-                    required={required}
-                    onChange={onChange}
-                    aria-label={ariaLabel}
-                />;
+                id={id}
+                name={name}
+                readOnly={readonly}
+                value={value || ''}
+                required={required}
+                onChange={onChange}
+                aria-label={ariaLabel}
+            />;
         },
 
         checkbox: () => {
             const isChecked = (value && value === true);
             return <input
-                    readOnly={readonly}
-                    disabled={disabled}
-                    type={'checkbox'}
-                    id={id}
-                    value={value}
-                    name={name}
-                    checked={isChecked}
-                    required={required}
-                    onChange={() => {
-                        onChange({
-                            target: {
-                                name: name,
-                                value: !value
-                            }
-                        })}
-                    }
-                    aria-label={ariaLabel}
-                />;
+                readOnly={readonly}
+                disabled={disabled}
+                type={'checkbox'}
+                id={id}
+                value={value}
+                name={name}
+                checked={isChecked}
+                required={required}
+                onChange={() => {
+                    onChange({
+                        target: {
+                            name: name,
+                            value: !value
+                        }
+                    })
+                }
+                }
+                aria-label={ariaLabel}
+            />;
         },
 
         int: () => {
@@ -183,7 +185,7 @@ export const Input = ({
                     value={value || ''}
                     required={required}
                     onChange={onChange}
-                    aria-label={ariaLabel} />
+                    aria-label={ariaLabel}/>
             </>;
         },
 
@@ -202,7 +204,7 @@ export const Input = ({
                     value={value || ''}
                     required={required}
                     onChange={onChange}
-                    aria-label={ariaLabel} />
+                    aria-label={ariaLabel}/>
             </>;
         },
 
@@ -236,7 +238,7 @@ export const Input = ({
                     value={value || ''}
                     required={required}
                     onChange={onChange}
-                    aria-label={ariaLabel} />
+                    aria-label={ariaLabel}/>
                 <span>{convertCoordDMS(value)}</span>
             </>;
         },
@@ -304,7 +306,7 @@ export const Input = ({
             const opts = options
                 .sort(sorter)
                 .map(opt => {
-                    const { value = '', label = '' } = opt || {};
+                    const {value = '', label = ''} = opt || {};
                     return <option
                         key={`${id}_${name}_${value}`}
                         id={`${id}_${name}_${value}`}
@@ -343,6 +345,16 @@ export const Input = ({
                 required={required}
                 disabled={disabled}
                 options={options}
+                onSelect={onMultiselect}
+            />;
+        },
+
+        nodeSelector: () => {
+            return <DependentEditor
+                reference={options}
+                name={name}
+                label={label}
+                value={value || []}
                 onSelect={onMultiselect}
             />;
         },
@@ -386,13 +398,13 @@ export const Input = ({
                 e.preventDefault();
                 // handle files to update form data state
                 const {dataTransfer = {}} = e || {};
-                const {files={}} = dataTransfer || {};
+                const {files = {}} = dataTransfer || {};
                 onFile(files, name)
                 setHighlight(false);
             };
 
             // extract file names
-            const files =  Object.keys(value).map(fkey => {
+            const files = Object.keys(value).map(fkey => {
                 return value[fkey].name
             }) || [];
 
@@ -412,7 +424,7 @@ export const Input = ({
                         multiple={multiple}
                     />
 
-                    <Icon type={'import'} />&#160;
+                    <Icon type={'import'}/>&#160;
                     <span>{multiple ? 'Import Multiple Files' : 'Import File'}</span>
                     <div>{files.join(', ')}</div>
                 </label>
@@ -423,7 +435,7 @@ export const Input = ({
     // get input element
     const input = _inputElements.hasOwnProperty(type)
         ? _inputElements[type]()
-        : <Message message={{msg: 'Loading Error', type: 'error'}} closeable={false} />;
+        : <Message message={{msg: 'Loading Error', type: 'error'}} closeable={false}/>;
 
     return type !== 'hidden' && type !== 'file'
         ? <>
@@ -433,11 +445,11 @@ export const Input = ({
                 {input}
                 <span className={'units'}>{suffix}</span>
             </label>
-            {<UserMessage message={error} closeable={false} />}
+            {<UserMessage message={error} closeable={false}/>}
         </>
         : <>
             {input}
-            {<UserMessage message={error} closeable={false} />}
+            {<UserMessage message={error} closeable={false}/>}
         </>;
 };
 

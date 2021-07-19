@@ -13,6 +13,7 @@ import { redirect } from '../../_utils/paths.utils.client';
 import { setSessionMsg } from '../../_services/session.services.client';
 import { genSchema } from '../../_services/schema.services.client';
 import { UserMessage } from '../common/message';
+import {useRouter} from "../../_providers/router.provider.client";
 
 /**
  * User sign in form component.
@@ -29,26 +30,17 @@ const LoginUsers = () => {
 
     // login callback
     const _callback = async (route, credentials) => {
-        setMessage(null);
-        const msgData = await auth.login(route, credentials);
-        setMessage(msgData)
+        auth.login(route, credentials).then(msg => {
+            if (msg) setMessage(msg);
+        });
     }
-
-    // Redirect to dashboard if logged in
-    React.useEffect(() => {
-        if (user) {
-            setSessionMsg({msg: 'User is signed in.', type:'info'});
-            redirect('/?redirect=true');
-        }
-        return () => {};
-    }, [user]);
 
     return user
         ? <div>User {user.email} is signed in.</div>
-        : <div>
+        : <div className={'login'}>
             <UserMessage
                 message={message}
-                onClose={() => {setMessage(false)}}
+                closeable={false}
             />
                 <Form
                     model={'users'}

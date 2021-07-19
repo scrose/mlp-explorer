@@ -12,6 +12,7 @@ import { useRouter } from '../../_providers/router.provider.client';
 import { useData } from '../../_providers/data.provider.client';
 import { createRoute } from '../../_utils/paths.utils.client';
 import { debounce } from '../../_utils/events.utils.client';
+import Loading from "../common/loading";
 
 /**
  * Map navigator component.
@@ -33,9 +34,14 @@ function MapNavigator({ data, filter }) {
     const { query = [] } = api.data || {};
     const currentFilter = query.length > 0 ? query : api.nodes;
 
+    // centre map on selected node
+    const initCenter = {lat: 51.311809, lng: -119.249230};
+    const {lat=initCenter.lat, lng=initCenter.lng } = api.metadata;
+
     // map initial settings
+    const [loaded, setLoaded] = React.useState(false);
     const [selectedBaseLayer, setBaseLayer] = React.useState('Satellite');
-    const [center, setCenter] = React.useState([51.311809, -119.249230]);
+    const [center, setCenter] = React.useState([lat, lng]);
     const [zoom, setZoom] = React.useState(4);
     const [clustered, setClustered] = React.useState(true);
 
@@ -258,6 +264,7 @@ function MapNavigator({ data, filter }) {
                 ];
                 // set z-index of marker (selected has higher index)
                 const zIndexOffset = cluster.isSelected ? 999 : 0;
+
                 // create marker using station coordinates
                 const marker = L.marker(centroid, {
                     icon: _getMarker(n, cluster.isSelected),
@@ -271,6 +278,9 @@ function MapNavigator({ data, filter }) {
                                 cluster.stations.map(station => {
                                     return station.nodes_id;
                                 }));
+                            // recenter map
+                            const coord = e.latlng;
+                            if (mapObj.current) mapObj.current.panTo(coord);
                         }, 400)();
                     })
                     .on('dblclick', (e) => {
@@ -319,6 +329,15 @@ function MapNavigator({ data, filter }) {
         }
     }, [getClusterMarkers, currentFilter, filter, zoom, center])
 
+    // API data change detected: recenter map to selected coordinate (if available)
+    // - if on station info page, center and zoom to location on the map
+    React.useEffect(() => {
+        const {lat=null, lng=null } = api.metadata;
+        if (lat && lng && mapObj.current) {
+            mapObj.current.flyTo([lat, lng], 10);
+        }
+    }, [api])
+
     /**
      * Initialize leaflet map.
      *
@@ -328,7 +347,7 @@ function MapNavigator({ data, filter }) {
      * @type {function(*=, *=, *=): (undefined)}
      */
 
-    const initMap = React.useCallback((domNode, mapCenter = center, mapZoom = zoom) => {
+    const initMap = React.useCallback((domNode) => {
 
         // create base tile layers
         const baseLayers = {
@@ -348,14 +367,14 @@ function MapNavigator({ data, filter }) {
                 }),
         };
 
-        if (data && Object.keys(data).length > 0) {
+        if (api.loaded && center && zoom && data && Object.keys(data).length > 0) {
 
             if (mapObj.current) return;
 
             // initialize map with DOM container and initial coordinates
             mapObj.current = L.map(domNode, {
-                center: mapCenter,
-                zoom: mapZoom,
+                center: center,
+                zoom: zoom,
                 layers: [baseLayers[selectedBaseLayer]],
             });
 
@@ -363,7 +382,7 @@ function MapNavigator({ data, filter }) {
             // mapObj.current.setMaxBounds(maxBounds);
 
             // reset saved map centre coordinate / zoom level
-            reset(mapCenter, mapZoom);
+            reset(center, zoom);
 
             // add marker layer to map
             layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
@@ -423,9 +442,13 @@ function MapNavigator({ data, filter }) {
             mapObj.current.on('error', err => {
                 console.warn(err);
             });
+
+            setLoaded(true);
         }
 
     }, [
+        api,
+        initCenter,
         currentFilter,
         data,
         center,
@@ -434,14 +457,15 @@ function MapNavigator({ data, filter }) {
         selectedBaseLayer,
         setBaseLayer,
         getClusterMarkers,
-        setClustered
+        setClustered,
+        setLoaded
     ]);
 
     /**
      * Initialize map using reference callback to access DOM container.
      *
      * @param domNode
-     * @type {function(*=, *=, *=): (undefined)}
+     * @type {function(*=): void}
      */
 
     const mapContainer = React.useCallback(domNode => {
@@ -450,10 +474,15 @@ function MapNavigator({ data, filter }) {
 
     return (
         <div className={'map'}>
+            {
+                !loaded && <Loading/>
+            }
             <div
+                style={{visibility: loaded ? 'visible' : 'hidden'}}
                 id={mapID}
                 className={mapID}
-                ref={mapContainer}/>
+                ref={mapContainer}
+            />
         </div>
     );
 }

@@ -9,6 +9,7 @@ import React from 'react';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import Button from './button';
+import Image from "./image";
 
 /**
  * Inline vertical accordion menu component.
@@ -26,6 +27,7 @@ const Accordion = ({
                        open=false,
                        menu=null,
                        hasDependents=false,
+                       thumbnail={},
                        children=null
                    }) => {
 
@@ -34,8 +36,15 @@ const Accordion = ({
     const router = useRouter();
 
     // toggle accordion data
-    const onClick = () => {
+    const _handleExpand = () => {
         setToggle(!toggle);
+    }
+
+    // toggle accordion data
+    const _handleView = () => {
+        id
+            ? router.update(createNodeRoute(type, 'show', id))
+            : setToggle(!toggle)
     }
 
     return <div className={`accordion`}>
@@ -47,9 +56,21 @@ const Accordion = ({
                             <Button
                                 icon={toggle ? 'vopen' : 'vclose'}
                                 title={toggle ? 'Collapse' : 'Expand'}
-                                onClick={onClick}
+                                onClick={_handleExpand}
                             />
                         </li>
+                }
+                {
+                    Object.keys(thumbnail).length > 0 && children &&
+                    <li key={`accordion_thumbnail`}>
+                        <Image
+                            url={thumbnail.url}
+                            scale={'thumb'}
+                            title={label}
+                            label={thumbnail.label}
+                            onClick={_handleExpand}
+                        />
+                    </li>
                 }
                 {
                     type && children &&
@@ -57,7 +78,7 @@ const Accordion = ({
                             <Button
                                 icon={type}
                                 title={toggle ? 'Collapse' : 'Expand'}
-                                onClick={onClick} />
+                                onClick={_handleView} />
                         </li>
                 }
                 {
@@ -65,11 +86,7 @@ const Accordion = ({
                         <li key={`accordion_label`}>
                             <Button
                                 title={`Go to ${label}.`}
-                                onClick={() => {
-                                    id
-                                        ? router.update(createNodeRoute(type, 'show', id))
-                                        : setToggle(!toggle)
-                                }}
+                                onClick={_handleView}
                                 label={label}
                             />
                         </li>

@@ -24,14 +24,6 @@ export const schema = {
             name: 'dashboard',
             label: 'Welcome to the Mountain Legacy Explorer'
         },
-        '/logout': {
-            name: 'logout',
-            label: 'Sign Out'
-        },
-        '/login': {
-            name: 'login',
-            label: 'Sign In'
-        },
         '/iat': {
             name: 'imageToolkit',
             label: 'Image Analysis Toolkit'
@@ -458,6 +450,17 @@ export const schema = {
                     }
                 },
                 {
+                    legend: 'Edit Captures',
+                    render: 'component',
+                    restrict: ['new', 'edit'],
+                    users: ['editor', 'administrator', 'super_administrator'],
+                    modern_captures: {
+                        label: 'Historic Captures',
+                        render: 'nodeSelector',
+                        reference: 'node',
+                    }
+                },
+                {
                     legend: 'Visit Details',
                     date: {
                         render: 'date',
@@ -494,6 +497,17 @@ export const schema = {
                     },
                     owner_id: {
                         render: 'hidden'
+                    }
+                },
+                {
+                    legend: 'Edit Locations',
+                    render: 'component',
+                    restrict: ['new', 'edit'],
+                    users: ['editor', 'administrator', 'super_administrator'],
+                    modern_captures: {
+                        label: 'Locations',
+                        render: 'nodeSelector',
+                        reference: 'node',
                     }
                 },
                 {
