@@ -85,8 +85,10 @@ const Progress = ({
                                 hasUploads && !error &&
                                 (
                                     <>
-                                        <div className={'progress-bar'} style={progressBar}>
-                                            <span>{`${data.percent}%`}</span>
+                                        <div className={'progress-bar-container'}>
+                                            <div className={'progress-bar'} style={progressBar}>
+                                                <span>{`${data.percent}%`}</span>
+                                            </div>
                                         </div>
                                         <div className={'h-menu'}>
                                             <ul>
@@ -95,6 +97,7 @@ const Progress = ({
                                                         icon={'cancel'}
                                                         name={'cancel'}
                                                         label={'Cancel'}
+                                                        disabled={done}
                                                         onClick={
                                                         () => {
                                                             if (xhr.hasOwnProperty(key)) xhr[key].abort();

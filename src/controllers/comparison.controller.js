@@ -81,12 +81,13 @@ export default function ComparisonController() {
 
             // Station found: include available capture data
             const  {type='' } = node || {};
+
             if (stationKey) {
                 const station = path[stationKey].node;
                 // get captures available for comparison
-                availableCaptures = type === 'modern_captures'
-                    ? await metaserve.getHistoricCapturesByStation(station, client)
-                    : await metaserve.getModernCapturesByStation(station, client);
+                availableCaptures = type === 'historic_visits'
+                    ? await metaserve.getModernCapturesByStation(station, client)
+                    : await metaserve.getHistoricCapturesByStation(station, client);
 
                 // get captures available for comparison
                 availableCaptures = await Promise.all(

@@ -214,7 +214,7 @@ library.add(
 
 const getIconClass = (iconType) => {
     const iconComponents = {
-        spinner: 'cog',
+        spinner: 'compass',
         menu: 'bars',
         home: 'home',
         dashboard: 'columns',

@@ -60,7 +60,7 @@ function AuthProvider(props) {
 
     const logout = async () => {
         await router.post('/logout')
-            .then(res => {
+            .then(() => {
                 // Note: Keycloak logout operation returns no_static (204)
                 setData(null);
             });

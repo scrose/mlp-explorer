@@ -245,13 +245,14 @@ export const genSchema = ({ view='', model='', fieldsetKey= '', user= null }) =>
             )
             .map((fieldset, index) => {
 
-                const { render = '', legend = '' } = fieldset || {};
+                const { render = '', legend = '', collapsible=true } = fieldset || {};
 
                 // filter fields
                 let filteredFields = Object.keys(fieldset)
                     .filter(fieldKey =>
                         fieldKey !== 'legend'
                         && fieldKey !== 'render'
+                        && fieldKey !== 'collapsible'
                         && fieldKey !== 'restrict'
                         && fieldKey !== 'users'
                         && (
@@ -294,6 +295,7 @@ export const genSchema = ({ view='', model='', fieldsetKey= '', user= null }) =>
                 return {
                     id: index,
                     legend: legend,
+                    collapsible: collapsible,
                     render: render,
                     fields: filteredFields,
                 };

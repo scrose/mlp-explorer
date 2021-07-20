@@ -76,7 +76,7 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
                     router.update(createNodeRoute(file_type, 'show', id))
                 }}
             />,
-            mime_type: metadata.mimetype || getExtension(filename),
+            mime_type: (metadata.mimetype || getExtension(filename)).toUpperCase(),
             image_state: imageState && imageState.hasOwnProperty('label')
                 ? imageState.label
                 : 'n/a',

@@ -88,19 +88,17 @@ export const MetadataAttached = ({ owner, attached }) => {
                     />}
             >
                 <div className={`${attachedModel}`}>
-                    <ul>
                     {
                         attached[attachedModel].map((attachedMD, index) => {
-                            return <li key={`${keyID}_attached_md_${index}`}>
+                            return <div key={`${keyID}_attached_md_${index}`}>
                                 {
                                     attachedViews.hasOwnProperty(attachedModel)
                                         ? attachedViews[attachedModel](attachedMD)
                                         : attachedViews.default(attachedMD, attachedModel)
                                 }
-                                </li>;
+                                </div>;
                         })
                     }
-                    </ul>
                 </div>
             </Accordion>
     });
@@ -241,6 +239,22 @@ const MetadataView = ({
                         </tbody>
                     </table>;
                 })
+        }
+        { (Object.keys(node).length > 0 || Object.keys(file).length > 0) &&
+        <div style={{textAlign: 'right'}} className={'subtext'}>
+            <table className={'right-aligned'} key={`${keyID}_node_metadata`}>
+                <tbody>
+                <tr>
+                    <th>Created</th>
+                    <td>{sanitize(node.created_at || file.created_at, 'datetime')}</td>
+                </tr>
+                <tr>
+                    <th>Last Modified</th>
+                    <td>{sanitize(node.created_at || file.created_at, 'datetime')}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
         }
     </>;
 };

@@ -349,7 +349,7 @@ export const Input = ({
             />;
         },
 
-        nodeSelector: () => {
+        nodeEditor: () => {
             return <DependentEditor
                 reference={options}
                 name={name}

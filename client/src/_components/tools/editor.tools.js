@@ -11,32 +11,34 @@ import {UserMessage} from '../common/message';
 import {sorter} from '../../_utils/data.utils.client';
 import {useRouter} from '../../_providers/router.provider.client';
 import {useUser} from '../../_providers/user.provider.client';
-import {genSchema} from "../../_services/schema.services.client";
+import {genSchema, getDependentTypes, getModelLabel} from "../../_services/schema.services.client";
 import {createNodeRoute} from "../../_utils/paths.utils.client";
 import Importer from "./import.tools";
 import Accordion from "../common/accordion";
 import MenuEditor from "../editor/menu.editor";
 import Loading from "../common/loading";
+import {FilesTable} from "../views/files.view";
+import {CaptureImagesTable} from "../views/capture.view";
+import {MetadataAttached} from "../views/metadata.view";
 
 /**
  * Dependent node selector and editor widget. Used to select dependents for editor.
  *
  * @public
- * @param {Object} dependent
+ * @param {Object} nodes
  * @param {Object} owner
+ * @param label
  */
 
-export const Dependent = ({dependent, owner}) => {
+export const DependentNodes = ({nodes, owner, ownerLabel=''}) => {
 
     const user = useUser();
-
-    console.log(dependent, owner)
 
     // generate unique ID value for selector inputs
     const selectorID = Math.random().toString(16).substring(2);
 
     // destructure dependent node
-    const { type='', label='', refImage = {}, node = {}, metadata = {}, dependents=[] } = dependent || {};
+    const { type='', label='', refImage = {}, node = {}, metadata = {}, dependents=[] } = nodes || {};
     const isCapture = type === 'historic_captures' || type === 'modern_captures';
     const thumbnail = isCapture ? {
         url: refImage.url,
@@ -45,7 +47,7 @@ export const Dependent = ({dependent, owner}) => {
 
     return (
         <Accordion
-            label={isCapture ? refImage.label : label}
+            label={`${getModelLabel(node.type)} : ${isCapture ? refImage.label : label} (${ownerLabel})`}
             type={node.type}
             thumbnail={thumbnail}
             menu={<MenuEditor
@@ -53,6 +55,7 @@ export const Dependent = ({dependent, owner}) => {
                 id={node.id}
                 metadata={metadata}
                 owner={owner}
+                dependents={getDependentTypes(node.type)}
             />}
         >
             <Importer
@@ -72,8 +75,6 @@ export const Dependent = ({dependent, owner}) => {
                 })}
                 route={createNodeRoute(node.type, 'edit', node.id)}
                 data={metadata}
-                onCancel={() => {
-                }}
                 callback={(error, model, id) => {
                     console.log(error, model, id)
                 }}
@@ -83,19 +84,61 @@ export const Dependent = ({dependent, owner}) => {
                 <>{(dependents || [])
                     .sort(sorter)
                     .map((dependent, index) => {
-                        const { node = {} } = dependent || {};
-                        return <Dependent
-                            key={`selector_${selectorID}_input_${index}`}
-                            dependent={dependent}
-                            owner={{
-                                id: node.owner_id,
-                                type: node.owner_type
-                            }}
-                        />
+                        const { node = {}, label='' } = dependent || {};
+                        return (
+                            <div key={`selector_${selectorID}_input_${node.id}_${index}`}>
+                                <DependentNodes
+                                    nodes={dependent}
+                                    owner={{
+                                        id: node.owner_id,
+                                        type: node.owner_type
+                                    }}
+                                    ownerLabel={label}
+                                />
+                                {/*<DependentFiles files={files} owner={node} />*/}
+                            </div>
+                        )
                     })}
                 </>
             }
         </Accordion>
+    )
+}
+
+/**
+ * Dependent node selector and editor widget. Used to select dependents for editor.
+ *
+ * @public
+ * @param {Object} dependent
+ * @param {Object} owner
+ */
+
+export const DependentFiles = ({files, owner}) => {
+
+    // generate unique ID value for selector inputs
+    const selectorID = Math.random().toString(16).substring(2);
+
+    return (
+        Object.keys(files)
+            .map((fileKey, index) => {
+            return <Accordion
+                key={`selector_${selectorID}_files_${fileKey}_${index}`}
+                label={getModelLabel(fileKey, 'label')}
+                open={true}
+                type={fileKey}
+                menu={<MenuEditor
+                    dependents={[fileKey]}
+                    id={owner.id}
+                    model={owner.type}
+                />}
+            >
+                {
+                    fileKey !== 'modern_images' && fileKey !== 'historic_images'
+                        ? <FilesTable files={files[fileKey]} owner={owner}/>
+                        : <CaptureImagesTable files={files[fileKey]} owner={owner} type={fileKey}/>
+                }
+            </Accordion>
+        })
     )
 }
 
@@ -119,10 +162,14 @@ export const DependentEditor = ({
     const user = useUser();
     const _isMounted = React.useRef(false);
     const [message, setMessage] = React.useState(null);
+    const [loaded, setLoaded] = React.useState(false);
     const [error, setError] = React.useState(false);
 
     // set capture selection states
     const [currentDependents, setCurrentDependents] = React.useState([]);
+    const [currentFiles, setCurrentFiles] = React.useState([]);
+    const [currentAttached, setCurrentAttached] = React.useState([]);
+    const [label, setLabel] = React.useState('');
 
     // generate unique ID value for selector inputs
     const selectorID = Math.random().toString(16).substring(2);
@@ -135,8 +182,7 @@ export const DependentEditor = ({
         _isMounted.current = true;
 
         // request captures for comparison
-        if (!error && currentDependents.length === 0 && reference) {
-            console.log(createNodeRoute(reference.type, 'show', reference.id))
+        if (!loaded && !error && reference) {
             router.get(createNodeRoute(reference.type, 'show', reference.id))
                 .then(res => {
                     if (_isMounted.current) {
@@ -151,16 +197,30 @@ export const DependentEditor = ({
                         // get capture data (if available)
                         const {response = {}} = res || {};
                         const {data = {}} = response || {};
-                        const {dependents = []} = data || {};
+                        const {dependents = [], files={}, attached={}, label=''} = data || {};
+                        setLoaded(true);
 
-                        // no capture data is available
-                        if (dependents.length === 0) {
-                            setError(true);
-                            setMessage({msg: `No captures available.`, type: 'info'});
+                        // no dependent data available
+                        if (
+                            dependents.length === 0
+                            && Object.keys(files).length === 0
+                            && Object.keys(attached).length === 0) {
+                            setMessage({msg: `No dependent nodes found.`, type: 'info'});
                         }
 
-                        // selected dependents
+                        // selected dependents / files / attached metadata
+                        // - omit comparisons from attached metadata
                         setCurrentDependents(dependents);
+                        setCurrentFiles(files);
+                        setCurrentAttached(
+                            Object.keys(attached)
+                                .filter(key => key !== 'comparisons')
+                                .reduce((o, key) => {
+                                    o[key] = attached[key];
+                                    return o;
+                                }, {})
+                        );
+                        setLabel(label);
                     }
                 });
         }
@@ -168,12 +228,15 @@ export const DependentEditor = ({
             _isMounted.current = false;
         };
     }, [
+        loaded,
+        setLoaded,
         reference,
         user,
         router,
         setCurrentDependents,
-        onSelect,
-        callback,
+        setCurrentAttached,
+        setCurrentFiles,
+        setLabel,
         setMessage,
         error,
         setError
@@ -185,16 +248,28 @@ export const DependentEditor = ({
         }
         {
             user && Array.isArray(currentDependents) &&
-            <>{(currentDependents || [])
-                .sort(sorter)
-                .map((dependent, index) => {
-                    return <Dependent
-                        key={`selector_${selectorID}_input_${index}`}
-                        dependent={dependent}
-                        owner={reference}
-                    />
-                })}
+            <>
+                {
+                    (currentDependents || [])
+                    .sort(sorter)
+                    .map((dependentNodes, index) => {
+                        return <DependentNodes
+                            key={`editor_${selectorID}_dependents_${index}`}
+                            nodes={dependentNodes}
+                            owner={reference}
+                            ownerLabel={label}
+                        />
+                    })
+                }
             </>
+        }
+        {
+            user && Object.keys(currentAttached).length > 0 &&
+            <MetadataAttached owner={reference} attached={currentAttached} />
+        }
+        {
+            user && Object.keys(currentFiles).length > 0 &&
+            <DependentFiles files={currentFiles} owner={reference} />
         }
     </>;
 };
@@ -226,6 +301,7 @@ export const CompareSelector = ({
     const _isMounted = React.useRef(false);
     const [message, setMessage] = React.useState(null);
     const [error, setError] = React.useState(false);
+    const [loaded, setLoaded] = React.useState(false);
 
     // set capture selection states
     const [availableCaptures, setAvailableCaptures] = React.useState([]);
@@ -234,17 +310,19 @@ export const CompareSelector = ({
     const selectorID = Math.random().toString(16).substring(2);
 
     /**
-     * Load corresponding images for mastering (if requested)
+     * Load available and selected captures.
      */
 
     React.useEffect(() => {
         _isMounted.current = true;
 
         // request captures for comparison
-        if (!error && availableCaptures.length === 0 && reference) {
+        if (!error && !loaded && reference) {
             router.get('/compare/' + reference.owner.id)
                 .then(res => {
                     if (_isMounted.current) {
+
+                        // handle response errors
                         if (!res || res.error) {
                             setError(true);
                             return res.hasOwnProperty('error')
@@ -268,6 +346,7 @@ export const CompareSelector = ({
                         }
 
                         // filter available / selection captures:
+                        setLoaded(true);
                         onSelect(
                             name,
                             selected
@@ -287,6 +366,7 @@ export const CompareSelector = ({
         reference,
         user,
         router,
+        setLoaded,
         setAvailableCaptures,
         onSelect,
         callback,

@@ -8,10 +8,11 @@
 'use strict';
 
 import * as stream from 'stream';
-import { mkdir, readFile, writeFile } from 'fs/promises';
+import { mkdir, readFile, writeFile, stat } from 'fs/promises';
 import fs from 'fs';
 import {ExifTool} from 'exiftool-vendored';
 import sharp from 'sharp';
+import Jimp from 'jimp';
 import path from 'path';
 import { genUUID } from '../lib/data.utils.js';
 import dcraw from 'dcraw';
@@ -89,7 +90,13 @@ export const transcode = async (data, callback) => {
     try {
 
         // read temporary image into buffer memory
-        // let buffer = await readFile(src);
+        // record buffer size as file size
+        //let buffer = await readFile(src);
+        await stat(src).then(stats => {
+            console.log(stats)
+            metadata.file.file_size = stats.size;
+        });
+
         //
         // // convert RAW image to tiff
         // // Reference: https://github.com/zfedoran/dcraw.js/
@@ -111,7 +118,7 @@ export const transcode = async (data, callback) => {
         // bufferRaw = null;
 
         // get image metadata
-        //await getImageInfo(copySrc, metadata, options, isRAW);
+        await getImageInfo(copySrc, metadata, options, isRAW);
 
         // copy image versions to data storage
         await copyImageTo(src, versions.raw);
@@ -236,28 +243,18 @@ export const getImageInfo = async (
     isRAW,
     onError = console.error,
 ) => {
-    // turn off cache
-    sharp.cache(false);
 
-    // extract file metadata using Sharp
-    // Reference: https://sharp.pixelplumbing.com/
-    const info = await sharp(src).metadata();
-
-    fileData.file.file_size = info.size;
-    fileData.file.mimetype = isRAW ? 'raw' : info.format;
-    fileData.data.format = isRAW ? 'raw' : info.format;
-    fileData.data.x_dim = info.width;
-    fileData.data.y_dim = info.height;
-    fileData.data.bit_depth = info.depth;
-    fileData.data.channels = info.channels;
-    fileData.data.density = info.density;
-    fileData.data.space = info.space;
-
-    // extract exif metadata using ExifTool
+    // extract exif metadata using ExifTool (vendored)
     const exiftool = new ExifTool({ taskTimeoutMillis: 5000 });
     const exifTags = await exiftool.read(src);
 
     const {
+        FileType = '',
+        MIMEType = '',
+        ImageWidth = 0,
+        ImageHeight = 0,
+        BitsPerSample=' ',
+        ColorSpaceData='',
         Model = '',
         ProfileDateTime = '',
         ExposureTime = '',
@@ -269,14 +266,21 @@ export const getImageInfo = async (
         GPSAltitude = '',
     } = exifTags || {};
 
-    // copy additional EXIF metadata
+    // copy EXIF metadata
     if (
         ProfileDateTime
         && (fileData.file.file_type === 'modern_images' || fileData.file.file_type === 'historic_images')
     ) {
         fileData.data.capture_datetime = ProfileDateTime.toDate();
     }
-
+    // fileData.file.file_size = info.size;
+    fileData.file.mimetype = MIMEType;
+    fileData.data.format = isRAW ? 'raw' : FileType;
+    fileData.data.x_dim = ImageWidth;
+    fileData.data.y_dim = ImageHeight;
+    fileData.data.channels = ColorSpaceData === 'RGB' ? 3 : 1;
+    // fileData.data.density = info.density;
+    // fileData.data.space = info.space;
     fileData.data.shutter_speed = sanitize(ExposureTime, 'float');
     fileData.data.f_stop = sanitize(Fnumber, 'float');
     fileData.data.iso = sanitize(ISO, 'integer');
@@ -365,19 +369,38 @@ export const copyImageTo = async (src, output, callback) => {
     // Create pipeline for saving and resizing the image, converting to JPEG
     // and use pipe to read from bucket read stream
 
-    const pipeline = util.promisify(stream.pipeline);
+    // const image = new Jimp(src, function (err, image) {
+    //     const w = image.bitmap.width; //  width of the image
+    //     const h = image.bitmap.height; // height of the image
+    //     console.log(Jimp)
+    // });
 
-    async function run() {
-        await pipeline(
-            fs.createReadStream(src),
-            output.format !== 'raw'
-                ? sharp().resize({ width: output.size }).jpeg({ quality: 80 })
-                : new stream.PassThrough(),
-            fs.createWriteStream(output.path)
-        );
+    if (output.size) {
+        await Jimp.read(src)
+            .then(img => {
+                return img
+                        .resize(output.size, Jimp.AUTO)
+                        .quality(80) // set JPEG quality
+                        .write(output.path)
+            });
+
+        console.log(`Image ${src}: \n\t- resampled to ${output.size}px width \n\t- saved to ${output.path}.`);
+
+    } else {
+        const pipeline = util.promisify(stream.pipeline);
+
+        async function run() {
+            await pipeline(
+                fs.createReadStream(src),
+                output.format !== 'raw'
+                    ? sharp().resize({ width: output.size }).jpeg({ quality: 80 })
+                    : new stream.PassThrough(),
+                fs.createWriteStream(output.path)
+            );
+        }
+
+        await run().catch(console.error);
+        console.log(`Raw image ${src} saved to ${output.path}.`)
     }
-
-    await run().catch(console.error);
-    console.log('Pipeline finished.')
 
 };

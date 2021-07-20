@@ -21,6 +21,7 @@ import Image from "./image";
  */
 
 const Accordion = ({
+                       className='',
                        type='',
                        label='',
                        id='',
@@ -35,8 +36,9 @@ const Accordion = ({
     const [toggle, setToggle] = React.useState(open);
     const router = useRouter();
 
-    // toggle accordion data
-    const _handleExpand = () => {
+    // toggle accordion data display
+    const _handleToggle = (e) => {
+        e.preventDefault();
         setToggle(!toggle);
     }
 
@@ -47,7 +49,7 @@ const Accordion = ({
             : setToggle(!toggle)
     }
 
-    return <div className={`accordion`}>
+    return <div className={`accordion ${className}`}>
         <div className={`h-menu ${type}`}>
             <ul>
                 {
@@ -56,7 +58,7 @@ const Accordion = ({
                             <Button
                                 icon={toggle ? 'vopen' : 'vclose'}
                                 title={toggle ? 'Collapse' : 'Expand'}
-                                onClick={_handleExpand}
+                                onClick={_handleToggle}
                             />
                         </li>
                 }
@@ -68,7 +70,7 @@ const Accordion = ({
                             scale={'thumb'}
                             title={label}
                             label={thumbnail.label}
-                            onClick={_handleExpand}
+                            onClick={_handleToggle}
                         />
                     </li>
                 }

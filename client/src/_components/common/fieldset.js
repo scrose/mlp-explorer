@@ -9,6 +9,7 @@ import React from 'react'
 import Input from './input';
 import Button from './button';
 import { useData } from '../../_providers/data.provider.client';
+import Accordion from "./accordion";
 
 /**
  * Build form fieldset element with inputs. 'Fields' are defined
@@ -34,7 +35,8 @@ const Fieldset = ({
                       validators,
                       opts={},
                       isDisabled=false,
-                      disabledInputs={}
+                      disabledInputs={},
+                      collapsible=true
 }) => {
 
     // get fieldset options (if available)
@@ -119,75 +121,84 @@ const Fieldset = ({
         }));
     }
 
-    // render fieldset component
-    return (
-        <>
-        <fieldset
-            className={legend ? '' : 'hidden'}
-            key={`fset_${model}`}
-            name={`fset_${model}`}
-            disabled={isDisabled}
-        >
-            {
-                legend ? <legend>{legend}</legend> : ''
-            }
-            {
-                mode==='copy'
-                    ? <div className={'removeField'}>
-                        <Button
+    /**
+     * Fieldset component.
+     *
+     * @public
+     * @param name
+     * @param options
+     */
+
+    const fieldset = <fieldset
+        className={legend ? '' : 'hidden'}
+        key={`fset_${model}`}
+        name={`fset_${model}`}
+        disabled={isDisabled}
+    >
+        {
+            mode==='copy'
+                ? <div className={'removeField'}>
+                    <Button
                         key={`fset_${model}_remove`}
                         onClick={remove}
                         label={`Remove ${legend}`}
                         icon={'minus'} />
-                    </div>
-                    : ''
-            }
-            {
-                // render form input fields
-                Object.keys(fields || {}).map(key => {
+                </div>
+                : ''
+        }
+        {
+            // render form input fields
+            Object.keys(fields || {}).map(key => {
 
-                    // get form schema for requested model
-                    const { label='', render='', name='', reference='', attributes={}, readonly=false } = fields[key];
-                    const _value = data.hasOwnProperty(key) ? data[key] : '';
-                    const _error = errors.hasOwnProperty(key) ? errors[key] : '';
-                    const _options = optionsData.hasOwnProperty(reference) ? optionsData[reference] : [];
-                    const _disabled = disabledInputs.hasOwnProperty(name) ? disabledInputs[name]: false;
-                    const _isRequired = validators.hasOwnProperty(name)
-                        ? validators[name].validations.includes('isRequired') : false;
-                    const _prefix = attributes.hasOwnProperty('prefix') ? attributes.prefix : '';
-                    const _suffix = attributes.hasOwnProperty('suffix') ? attributes.suffix : '';
-                    const _min = attributes.hasOwnProperty('min') ? attributes.min : '';
-                    const _max = attributes.hasOwnProperty('max') ? attributes.max : '';
-                    const _multiple = attributes.hasOwnProperty('multiple') ? attributes.multiple : '';
+                // get form schema for requested model
+                const { label='', render='', name='', reference='', attributes={}, readonly=false } = fields[key];
+                const _value = data.hasOwnProperty(key) ? data[key] : '';
+                const _error = errors.hasOwnProperty(key) ? errors[key] : '';
+                const _options = optionsData.hasOwnProperty(reference) ? optionsData[reference] : [];
+                const _disabled = disabledInputs.hasOwnProperty(name) ? disabledInputs[name]: false;
+                const _isRequired = validators.hasOwnProperty(name)
+                    ? validators[name].validations.includes('isRequired') : false;
+                const _prefix = attributes.hasOwnProperty('prefix') ? attributes.prefix : '';
+                const _suffix = attributes.hasOwnProperty('suffix') ? attributes.suffix : '';
+                const _min = attributes.hasOwnProperty('min') ? attributes.min : '';
+                const _max = attributes.hasOwnProperty('max') ? attributes.max : '';
+                const _multiple = attributes.hasOwnProperty('multiple') ? attributes.multiple : '';
 
-                    return (
-                        <Input
-                            key={`input_${name}_${key}`}
-                            id={formID}
-                            type={render}
-                            name={name}
-                            label={label}
-                            readonly={readonly}
-                            prefix={_prefix}
-                            suffix={_suffix}
-                            min={_min}
-                            max={_max}
-                            value={_value}
-                            required={_isRequired}
-                            error={_error}
-                            options={_options}
-                            multiple={_multiple}
-                            disabled={_disabled}
-                            onMultiselect={_handleMultiselect}
-                            onChange={_handleChange}
-                            onFile={_handleFiles}
-                        />
-                    )
-                })
-            }
-        </fieldset>
-    </>
-    )
+                return (
+                    <Input
+                        key={`input_${name}_${key}`}
+                        id={formID}
+                        type={render}
+                        name={name}
+                        label={label}
+                        readonly={readonly}
+                        prefix={_prefix}
+                        suffix={_suffix}
+                        min={_min}
+                        max={_max}
+                        value={_value}
+                        required={_isRequired}
+                        error={_error}
+                        options={_options}
+                        multiple={_multiple}
+                        disabled={_disabled}
+                        onMultiselect={_handleMultiselect}
+                        onChange={_handleChange}
+                        onFile={_handleFiles}
+                    />
+                )
+            })
+        }
+    </fieldset>
+
+    // render fieldset component
+    return <>
+        {
+            collapsible
+            ? <Accordion className={legend ? '' : 'hidden'} label={legend} open={true}>{fieldset}</Accordion>
+            : fieldset
+        }
+        </>
 }
 
 export default Fieldset;

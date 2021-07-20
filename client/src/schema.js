@@ -175,6 +175,7 @@ export const schema = {
             fieldsets: [
                 {
                     legend: 'User Authentication',
+                    collapsible: false,
                     email: {
                         label: 'Email',
                         render: 'email',
@@ -456,7 +457,7 @@ export const schema = {
                     users: ['editor', 'administrator', 'super_administrator'],
                     modern_captures: {
                         label: 'Historic Captures',
-                        render: 'nodeSelector',
+                        render: 'nodeEditor',
                         reference: 'node',
                     }
                 },
@@ -500,13 +501,13 @@ export const schema = {
                     }
                 },
                 {
-                    legend: 'Edit Locations',
+                    legend: 'Edit Attached Metadata',
                     render: 'component',
                     restrict: ['new', 'edit'],
                     users: ['editor', 'administrator', 'super_administrator'],
                     modern_captures: {
-                        label: 'Locations',
-                        render: 'nodeSelector',
+                        label: 'Dependents',
+                        render: 'nodeEditor',
                         reference: 'node',
                     }
                 },
@@ -608,6 +609,16 @@ export const schema = {
                         label: 'Image State',
                         reference: 'image_states',
                         validate: ['isRequired']
+                    }
+                },
+                {
+                    legend: 'Edit Capture Images',
+                    render: 'component',
+                    restrict: ['edit'],
+                    modern_captures: {
+                        label: 'Capture Images',
+                        render: 'nodeEditor',
+                        reference: 'node',
                     }
                 },
                 {
@@ -738,7 +749,7 @@ export const schema = {
                     }
                 },
                 {
-                    legend: 'Image Upload',
+                    legend: 'Bul, Image Upload',
                     restrict: ['import'],
                     users: ['administrator', 'super_administrator'],
                     modern_images: {
@@ -853,6 +864,16 @@ export const schema = {
                         min: 0,
                         suffix: 'mm'
                     }
+                },
+                {
+                    legend: 'Edit Capture Images',
+                    render: 'component',
+                    restrict: ['edit'],
+                    modern_captures: {
+                        label: 'Capture Images',
+                        render: 'nodeEditor',
+                        reference: 'node',
+                    }
                 }
             ]
         },
@@ -887,10 +908,14 @@ export const schema = {
                         label: 'Location ID'
                     },
                     legacy_photos_start: {
-                        label: 'Photo Start Index'
+                        label: 'Photo Start Index',
+                        render: 'int',
+                        min: 0
                     },
                     legacy_photos_end: {
-                        label: 'Photos End Index'
+                        label: 'Photos End Index',
+                        render: 'int',
+                        min: 0
                     }
                 }
             ]

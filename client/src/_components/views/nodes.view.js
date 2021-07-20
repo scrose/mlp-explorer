@@ -128,7 +128,11 @@ const DefaultView = ({
     // add metadata for current node
     _tabItems.push({
         label: `${getModelLabel(model)} Details`,
-        data: <MetadataView key={`${model}_${node.id}`} model={model} metadata={metadata} />,
+        data: <MetadataView
+            key={`${model}_${node.id}`}
+            node={node}
+            model={model}
+            metadata={metadata} />,
     });
 
     // include other attached metadata

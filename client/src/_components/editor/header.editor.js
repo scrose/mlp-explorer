@@ -14,6 +14,7 @@ import BreadcrumbMenu from '../menus/breadcrumb.menu';
 import Accordion from '../common/accordion';
 import Button from '../common/button';
 import {useAuth} from "../../_providers/auth.provider.client";
+import {useRouter} from "../../_providers/router.provider.client";
 
 /**
  * User navigation menu (authenticated).
@@ -33,7 +34,7 @@ const UserMenu = () => {
                     <div className={'centred'}><Button
                         icon={'logout'}
                         label={'Sign Out'}
-                        onClick={() => auth.logout()}
+                        onClick={() => auth.logout().then(() => {redirect('/')})}
                     /></div>
                 </div>
             </Accordion>

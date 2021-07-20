@@ -5,15 +5,15 @@
  * MIT Licensed
  */
 
-import React, { useCallback } from 'react';
-import { createNodeRoute, redirect } from '../../_utils/paths.utils.client';
-import { useRouter } from '../../_providers/router.provider.client';
-import { genSchema, getModelLabel } from '../../_services/schema.services.client';
+import React, {useCallback} from 'react';
+import {createNodeRoute, redirect} from '../../_utils/paths.utils.client';
+import {useRouter} from '../../_providers/router.provider.client';
+import {genSchema, getModelLabel} from '../../_services/schema.services.client';
 import Button from '../common/button';
 import Importer from '../tools/import.tools';
 import Dialog from '../common/dialog';
 import MetadataView from '../views/metadata.view';
-import { useUser } from '../../_providers/user.provider.client';
+import {useUser} from '../../_providers/user.provider.client';
 import Remover from '../views/remover.view';
 import OptionsView from '../views/options.view';
 import HelpView from '../views/help.view';
@@ -27,18 +27,18 @@ import Download from '../common/download';
  */
 
 const MenuEditor = ({
-                        className='node',
+                        className = 'node',
                         model = '',
-                        view='',
+                        view = '',
                         id = '',
                         label = '',
-                        compact=true,
-                        fileType='',
-                        filename='',
-                        owner=null,
+                        compact = true,
+                        fileType = '',
+                        filename = '',
+                        owner = null,
                         metadata = null,
                         dependents = [],
-                        callback=null
+                        callback = null
                     }) => {
 
     const router = useRouter();
@@ -50,7 +50,7 @@ const MenuEditor = ({
     const isAdmin = role[0] === 'administrator' || role[0] === 'super_administrator';
 
     // get optional group type used as fieldset selector (if exists)
-    const {group_type = '', image_state=''} = metadata || {};
+    const {group_type = '', image_state = ''} = metadata || {};
 
     // visibility settings for menu & menu items
     const showExclude = ['dashboard', 'list', 'register', 'new', 'attach', 'attachItem'];
@@ -64,7 +64,7 @@ const MenuEditor = ({
         : [];
 
     // is this a root menu (ie. top editor-tools)?
-    const isEditorMenu = className==='editor-tools';
+    const isEditorMenu = className === 'editor-tools';
     const isOptions = view === 'options';
 
     // get redirect URI
@@ -77,7 +77,7 @@ const MenuEditor = ({
     // visibility of menu items
     const isVisible = {
         menu: !!(id || model || metadata || view),
-        new:  isOptions,
+        new: isOptions,
         show: !!(id && model && metadata && !showExclude.includes(view)),
         edit: !!(id && model && metadata && !editExclude.includes(view)),
         move: (model === 'modern_captures' || model === 'historic_captures')
@@ -89,15 +89,15 @@ const MenuEditor = ({
             || fileType === 'historic_images'
             || fileType === 'supplemental_images'),
         download: fileType === 'modern_images'
-                || fileType === 'historic_images'
-                || fileType === 'supplemental_images',
+            || fileType === 'historic_images'
+            || fileType === 'supplemental_images',
         dependents: !dependentsExclude.includes(view),
         dropdown: !!(isEditorMenu || dependents.length > 0),
         import_hc: isAdmin && !!(dependents || [])
-            .find(dependent => dependent === 'historic_captures')
+                .find(dependent => dependent === 'historic_captures')
             && !dependentsExclude.includes(view),
         import_mc: isAdmin && !!(dependents || [])
-            .find(dependent => dependent === 'modern_captures')
+                .find(dependent => dependent === 'modern_captures')
             && !dependentsExclude.includes(view),
     }
 
@@ -118,108 +118,114 @@ const MenuEditor = ({
     </p>
 
     const _editorDialogs = {
-        help: <HelpView setToggle={setDialogToggle} />,
-        show:   <Dialog
-                    key={`${menuID}_dialog_show`}
-                    title={`${modelLabel} Details`}
-                    setToggle={setDialogToggle}>
-                    <MetadataView model={model} metadata={metadata} />
-                </Dialog>,
-        new:   <Dialog
-                    key={`${menuID}_dialog_new`}
-                    title={`Create New ${getModelLabel(model)}`}
-                    setToggle={setDialogToggle}>
-                    <Importer
-                        view={'new'}
-                        model={model}
-                        options={{
-                            node: {
-                                id: null,
-                                type: model,
-                                owner: owner
-                            }
-                        }}
-                        schema={genSchema({ view:'new', model:model, user: user })}
-                        route={createNodeRoute(model, 'new')}
-                        onCancel={() => {setDialogToggle(null)}}
-                        callback={(error, model, id) => {
-                            console.log(error, model, id)
-                            setDialogToggle(null);
-                            return;
-                            callback
-                                ? callback(error, model, id)
-                                : redirect(createNodeRoute(model, 'show', id));
-                        }}
-                    />
-                </Dialog>,
-        edit:   <Dialog
-                    key={`${menuID}_dialog_edit`}
-                    title={`Edit ${getModelLabel(model)}${label ? ': ' + label : ''}`}
-                    setToggle={setDialogToggle}>
-                        <Importer
-                            view={'edit'}
-                            model={model}
-                            options={{
-                                node: {
-                                    id: id,
-                                    type: model,
-                                    owner: owner
-                                }
-                            }}
-                            schema={genSchema({ view:'edit', model:model, fieldsetKey: group_type, user:user })}
-                            route={createNodeRoute(model, 'edit', id)}
-                            data={metadata}
-                            onCancel={() => {setDialogToggle(null)}}
-                            callback={(error, model, id) => {
-                                setDialogToggle(null);
-                                callback
-                                    ? callback(error, model, id)
-                                    : redirect(router.route);
-                            }}
-                        />
-                    </Dialog>,
-        remove:   <Remover
-                        key={`${menuID}_dialog_remove`}
-                        id={owner && group_type ? owner.id : id}
-                        label={label}
-                        onCancel={() => {setDialogToggle(null)}}
-                        model={model}
-                        groupType={group_type}
-                        callback={() => {
-                            setDialogToggle(null);
-                            callback ? callback() : redirect(
-                                model === 'projects' || model === 'surveyors'
-                                    ? '/'
-                                    : redirectURI
-                            );
-                        }}
-                   />,
-        options:   <OptionsView
-                        setToggle={setDialogToggle}
-                        onCancel={() => {setDialogToggle(null)}}
-                        callback={() => {}}
-                   />,
+        help: <HelpView setToggle={setDialogToggle}/>,
+        show: <Dialog
+            key={`${menuID}_dialog_show`}
+            title={`${modelLabel} Details`}
+            setToggle={setDialogToggle}>
+            <MetadataView model={model} metadata={metadata}/>
+        </Dialog>,
+        new: <Dialog
+            key={`${menuID}_dialog_new`}
+            title={`Create New ${getModelLabel(model)}`}
+            setToggle={setDialogToggle}>
+            <Importer
+                view={'new'}
+                model={model}
+                options={{
+                    node: {
+                        id: null,
+                        type: model,
+                        owner: owner
+                    }
+                }}
+                schema={genSchema({view: 'new', model: model, user: user})}
+                route={createNodeRoute(model, 'new')}
+                onCancel={() => {
+                    setDialogToggle(null)
+                }}
+                callback={(error, model, id) => {
+                    callback
+                        ? callback(error, model, id)
+                        : redirect(createNodeRoute(model, 'show', id));
+                }}
+            />
+        </Dialog>,
+        edit: <Dialog
+            key={`${menuID}_dialog_edit`}
+            title={`Edit ${getModelLabel(model)}${label ? ': ' + label : ''}`}
+            setToggle={setDialogToggle}>
+            <Importer
+                view={'edit'}
+                model={model}
+                options={{
+                    node: {
+                        id: id,
+                        type: model,
+                        owner: owner
+                    }
+                }}
+                schema={genSchema({view: 'edit', model: model, fieldsetKey: group_type, user: user})}
+                route={createNodeRoute(model, 'edit', id)}
+                data={metadata}
+                onCancel={() => {
+                    setDialogToggle(null)
+                }}
+                callback={() => {
+                    setDialogToggle(null);
+                    redirect(router.route);
+                }}
+            />
+        </Dialog>,
+        remove: <Remover
+            key={`${menuID}_dialog_remove`}
+            id={owner && group_type ? owner.id : id}
+            label={label}
+            onCancel={() => {
+                setDialogToggle(null)
+            }}
+            model={model}
+            groupType={group_type}
+            callback={() => {
+                setDialogToggle(null);
+                callback ? callback() : redirect(
+                    model === 'projects' || model === 'surveyors'
+                        ? '/'
+                        : redirectURI
+                );
+            }}
+        />,
+        options: <OptionsView
+            setToggle={setDialogToggle}
+            onCancel={() => {
+                setDialogToggle(null)
+            }}
+            callback={() => {
+            }}
+        />,
         import_hc: <Dialog
-                        key={`${menuID}_dialog_import_hc`}
-                        title={`Bulk ${getModelLabel('historic_captures', 'label')} Import.`}
-                        setToggle={setDialogToggle}>
-                        {
-                            bulkImportDescription
-                        }
-                        <Importer
-                            view={'import'}
-                            model={'historic_captures'}
-                            batchType={'historic_images'}
-                            schema={genSchema({ view:'import', model:'historic_captures', user: user })}
-                            route={createNodeRoute('historic_captures', 'import', id)}
-                            onCancel={() => {setDialogToggle(null)}}
-                            callback={(error, model, id) => {
-                                setDialogToggle(null);
-                                callback ? callback(error, model, id) : redirect(router.route);
-                            }}
-                        />
-                    </Dialog>,
-        import_mc:  <Dialog
+            key={`${menuID}_dialog_import_hc`}
+            title={`Bulk ${getModelLabel('historic_captures', 'label')} Import.`}
+            setToggle={setDialogToggle}>
+            {
+                bulkImportDescription
+            }
+            <Importer
+                view={'import'}
+                model={'historic_captures'}
+                batchType={'historic_images'}
+                schema={genSchema({view: 'import', model: 'historic_captures', user: user})}
+                route={createNodeRoute('historic_captures', 'import', id)}
+                onCancel={() => {
+                    setDialogToggle(null)
+                }}
+                callback={(error, model, id) => {
+                    setDialogToggle(null);
+                    callback ? callback(error, model, id) : redirect(router.route);
+                }}
+            />
+        </Dialog>,
+        import_mc: <Dialog
             key={`${menuID}_dialog_import_mc`}
             title={`Bulk ${getModelLabel('modern_captures', 'label')} Import.`}
             setToggle={setDialogToggle}>
@@ -230,27 +236,29 @@ const MenuEditor = ({
                 view={'import'}
                 model={'modern_captures'}
                 batchType={'modern_images'}
-                schema={genSchema({ view:'import', model:'modern_captures', user: user })}
+                schema={genSchema({view: 'import', model: 'modern_captures', user: user})}
                 hasUploads={true}
                 route={createNodeRoute('modern_captures', 'import', id)}
-                onCancel={() => {setDialogToggle(null)}}
+                onCancel={() => {
+                    setDialogToggle(null)
+                }}
                 callback={(error, model, id) => {
                     setDialogToggle(null);
                     callback ? callback(error, model, id) : redirect(router.route);
                 }}
             />
         </Dialog>,
-        exporter:   <Dialog
+        exporter: <Dialog
             key={`${menuID}_dialog_export`}
             title={`Export Metadata to File`}
             setToggle={setDialogToggle}>
-            <Exporter setToggle={setDialogToggle} />
+            <Exporter setToggle={setDialogToggle}/>
         </Dialog>,
     }
 
     // create dependents dialog popups for requested model
     const _dependentDialogs = (dependents || []).reduce((o, dependent) => {
-        o[dependent] =  <Dialog
+        o[dependent] = <Dialog
             key={`${menuID}_dialog_${dependent}`}
             setToggle={setDialogToggle}
             title={`Add New ${getModelLabel(dependent)}`}>
@@ -267,9 +275,11 @@ const MenuEditor = ({
                         }
                     }
                 }}
-                schema={genSchema({ view:'new', model: dependent, user: user })}
+                schema={genSchema({view: 'new', model: dependent, user: user})}
                 route={createNodeRoute(dependent, 'new', id)}
-                onCancel={() => {setDialogToggle(null)}}
+                onCancel={() => {
+                    setDialogToggle(null)
+                }}
                 callback={(data) => {
                     console.log(data)
                     setDialogToggle(null);
@@ -334,7 +344,8 @@ const MenuEditor = ({
                                 onClick={(e) => {
                                     isEditorMenu
                                         ? _handleClick(e, model, 'new', id)
-                                        : setDialogToggle('new')}
+                                        : setDialogToggle('new')
+                                }
                                 }
                             />
                         </li>
@@ -349,7 +360,8 @@ const MenuEditor = ({
                                 onClick={(e) => {
                                     isEditorMenu
                                         ? _handleClick(e, model, 'show', id)
-                                        : setDialogToggle('show')}
+                                        : setDialogToggle('show')
+                                }
                                 }
                             />
                         </li>
@@ -377,7 +389,8 @@ const MenuEditor = ({
                                 onClick={(e) => {
                                     isEditorMenu
                                         ? _handleClick(e, model, 'edit', id)
-                                        : setDialogToggle('edit')}
+                                        : setDialogToggle('edit')
+                                }
                                 }
                             />
                         </li>
@@ -426,7 +439,7 @@ const MenuEditor = ({
                                 onClick={(e) => {
                                     e.stopPropagation()
                                     setDropdownToggle(true);
-                                }} />
+                                }}/>
 
                             {
                                 // toggle dropdown menu items
@@ -547,7 +560,9 @@ const MenuEditor = ({
                                     icon={'export'}
                                     label={'Export'}
                                     title={`View data export options.`}
-                                    onClick={() => {setDialogToggle('exporter')}}
+                                    onClick={() => {
+                                        setDialogToggle('exporter')
+                                    }}
                                 />
                             </li>
                             <li key={`${menuID}_menuitem_help`}>
@@ -555,7 +570,9 @@ const MenuEditor = ({
                                     icon={'help'}
                                     label={'Help'}
                                     title={`View the help pages.`}
-                                    onClick={() => {setDialogToggle('help')}}
+                                    onClick={() => {
+                                        setDialogToggle('help')
+                                    }}
                                 />
                             </li>
                             <li key={`${menuID}_menuitem_options`}>

@@ -9,11 +9,10 @@ import React from "react";
 import Form from '../common/form';
 import { useUser } from '../../_providers/user.provider.client';
 import { useAuth } from '../../_providers/auth.provider.client';
-import { redirect } from '../../_utils/paths.utils.client';
-import { setSessionMsg } from '../../_services/session.services.client';
 import { genSchema } from '../../_services/schema.services.client';
 import { UserMessage } from '../common/message';
 import {useRouter} from "../../_providers/router.provider.client";
+import {redirect} from "../../_utils/paths.utils.client";
 
 /**
  * User sign in form component.
@@ -27,11 +26,13 @@ const LoginUsers = () => {
     const auth = useAuth();
     const schema = genSchema({ view:'login', model:'users'});
     const [message, setMessage] = React.useState(null);
+    const router = useRouter();
 
     // login callback
     const _callback = async (route, credentials) => {
         auth.login(route, credentials).then(msg => {
             if (msg) setMessage(msg);
+            else redirect(router.route);
         });
     }
 

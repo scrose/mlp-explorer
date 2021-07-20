@@ -38,7 +38,7 @@ const Importer = ({
                       route,
                       data,
                       files=[],
-                      onCancel=()=>{},
+                      onCancel=null,
                       callback
 }) => {
 

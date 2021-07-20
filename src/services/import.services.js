@@ -91,7 +91,7 @@ export const receive = (req, owner_id=null, owner_type=null) => {
                 return reject(err);
             }
             Promise.all(filePromises)
-                .then((files) => {
+                .then(() => {
                     cleanup();
                     // include requested owner ID if not null
                     if (owner_id) metadata.data.owner_id = owner_id;

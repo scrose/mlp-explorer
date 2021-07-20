@@ -59,7 +59,7 @@ export const FilesTable = ({owner, files=[]}) => {
         const rows = {
             mime_type: <Badge icon={ ext || 'file' } title={mimetype || ext} />,
             download: <File data={fileData} />,
-            metadata_type: metadata_type.hasOwnProperty('label') ? metadata_type.label: '-',
+            metadata_type: metadata_type && metadata_type.hasOwnProperty('label') ? metadata_type.label: '-',
             file_size: sanitize(file.file_size, 'filesize') || 'n/a'
         };
 
@@ -73,7 +73,7 @@ export const FilesTable = ({owner, files=[]}) => {
             metadata={{
                 files_id: id,
                 file_size: file_size,
-                type: metadata_type.hasOwnProperty('name') ? metadata_type.name: '-',
+                type: metadata_type && metadata_type.hasOwnProperty('name') ? metadata_type.name : '-',
                 mimetype: mimetype,
                 file_type: file_type,
                 filename: filename,

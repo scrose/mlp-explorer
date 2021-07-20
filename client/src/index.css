@@ -38,7 +38,7 @@ html {
     box-sizing: border-box;
     margin:0;
     padding:0;
-    background-color: #282c34;
+    background-color: #002A37;
 }
 body {
     margin:0;
@@ -56,7 +56,7 @@ div.main {
     display: flex;
     flex-wrap: nowrap;
     background-color: white !important;
-    border-top: 1px solid #002A37;
+    border-top: 1px solid #DFEEE9;
 }
 
 /*
@@ -204,6 +204,9 @@ Accordion Layout
     border-radius: 10px;
     border: 1px solid #2B5A6B;
 }
+.accordion.hidden {
+    display: none;
+}
 .accordion .h-menu {
     border: none;
     border-radius: 8px;
@@ -274,7 +277,7 @@ Page Banner Navigation Menu
 .navbar, .navbar ul li {
     height: 60px;
     min-height: 60px;
-    background-color: #2B5A6B;
+    background-color: #002A37;
     color: #FFFFFF;
     line-height: 60px;
     padding-right: 20px;
@@ -348,17 +351,20 @@ nav.user .accordion-data.open {
     top: 50px;
     right: 0;
     position:fixed;
-
 }
 nav.user .login {
-    background-color: #2B5A6B;
+    min-width: 350px;
+    background-color: #002A37;
     color: #FFFFFF;
     padding: 15px;
     line-height: normal;
     height: auto;
-    width: auto;
 }
-
+nav.user .login fieldset {
+    background-color: #002A37;
+    color: #FFFFFF;
+    border: none;
+}
 nav.user button  {
     text-align: left;
     background-color: #00C6BB;
@@ -380,9 +386,10 @@ nav.user button  {
 }
 .view {
     width: 100%;
-    height: 78vh;
+    height: 77vh;
     overflow: auto;
     padding: 0 10px 40px 10px;
+    border-top: 1px solid #2B5A6B;
 }
 .view .view-panel-group li {
     width: 33%;
@@ -475,7 +482,7 @@ nav.user button  {
 /* Navigator Panel: Tree */
 
 .navigator .tree {
-    height: 78vh;
+    height: 77vh;
     overflow: auto;
     width: auto;
     background-color: #002A37;
@@ -608,8 +615,7 @@ nav.breadcrumb ul {
     margin: 0;
     list-style: none;
     background-color: #734277;
-    border-top: 1px solid #B5A7B6;
-    border-bottom: 1px solid #B5A7B6;
+    border-top: 1px solid #DFEEE9;
     color: #FFF;
 
 }
@@ -650,7 +656,8 @@ nav.breadcrumb ul li a:hover {
     width: 100%;
     height: 40px;
     position: relative;
-    background-color: #DFEEE9;
+    background-color: #008896;
+    color: #DFEEE9;
     z-index: 9999;
     font-size: small;
 }
@@ -672,13 +679,14 @@ nav.breadcrumb ul li a:hover {
 .editor-tools .v-menu.dropdown li  {
     height: auto;
     padding: 5px;
-    background-color: #DFEEE9;
+    background-color: #008896;
+    color: #DFEEE9;
     width: 100% !important;
 }
 .editor-tools.h-menu ul li button, .editor-tools .v-menu ul li button  {
     text-align: left;
     background-color: transparent;
-    color: #002A37 !important;
+    color: #DFEEE9;
 }
 
 .editor-tools.h-menu ul li button:hover, .editor-tools .v-menu ul li button:hover {
@@ -704,7 +712,9 @@ nav.breadcrumb ul li a:hover {
 
 .navigator-tools {
     width: 100%;
-    background-color: #DFEEE9;
+    background-color: #008896;
+    color: #DFEEE9;
+    border-bottom: 1px solid #DFEEE9;
     font-size: small;
 }
 .navigator.hidden .navigator-tools {
@@ -719,7 +729,7 @@ nav.breadcrumb ul li a:hover {
 }
 .navigator-tools .h-menu ul li,
 .navigator-tools .v-menu ul li   {
-    color: #002A37 !important;
+    color: #DFEEE9 !important;
     width: auto;
     height: 40px;
     line-height: 40px;
@@ -732,7 +742,7 @@ nav.breadcrumb ul li a:hover {
 .navigator-tools .h-menu ul li button,
 .navigator-tools .v-menu ul li button  {
     background-color: transparent;
-    color: #002A37 !important;
+    color: #DFEEE9 !important;
 }
 .navigator-tools .h-menu ul li button:hover, .editor-tools .v-menu ul li button:hover {
     opacity: 0.6;
@@ -1312,16 +1322,17 @@ nav.breadcrumb ul li a:hover {
     height: 40px;
     padding: 0;
     margin: 0;
-    color: #DDDDDD;
+    color: #DFEEE9;
     background-color: inherit;
+    border-top: 1px solid #DFEEE9;
 }
 .footer div p {
-    height: 40px;
-    line-height: 40px;
     font-size: small;
     padding: 0;
-    margin-left: 20px;
-    margin-top: 0;
+    margin: 0 0 0 20px;
+}
+.footer ul {
+    align-items:center;
 }
 
 /*
@@ -1434,15 +1445,14 @@ table.item thead {
     background: transparent !important;
 }
 table.item thead tr th {
-    background: #DFEEE9;
-    border-bottom: 1px solid #CCCCCC;
+    background-color: #95B0B4;
+    border-bottom: 1px solid #282c34;
 }
 table.item thead th {
     background: #FFFFFF;
     font-weight: bold;
     color: #282c34;
     text-align: center;
-    border-left: 2px solid #FFFFFF;
 }
 table.item thead th div {
     border: none;
@@ -1462,14 +1472,12 @@ table.item tbody th {
     font-weight: bold;
     color: #282c34;
     text-align: left;
-    border-left: 2px solid #FFFFFF;
 }
 table.item tfoot {
     font-size: small;
     font-weight: bold;
     color: #282c34;
     background: #FFFFFF;
-    border-top: 3px solid #282c34;
 }
 table.item tfoot td {
     font-size: small;
@@ -1478,14 +1486,14 @@ table.item tfoot td {
 /* multiple items list */
 
 table.items {
-    border: 1px solid #FFFFFF;
+    border: none;
     width: 100%;
     text-align: left;
     border-collapse: collapse;
     color: #444;
 }
 table.items td, table.items th {
-    border: 1px solid #FFFFFF;
+    border: none;
     padding: 3px 2px;
     margin:0;
 }
@@ -1496,18 +1504,16 @@ table.items tr:nth-child(even) {
     background: #EEEEEE;
 }
 table.items thead {
-    background: #95B0B4;
-    border-bottom: 5px solid #FFFFFF;
+    background-color: #95B0B4;
 }
 table.items thead th {
     font-size: small;
     font-weight: bold;
     color: #FFFFFF;
     text-align: center;
-    border-left: 2px solid #FFFFFF;
 }
 table.items thead th:first-child {
-    border-left: none;
+    border: none;
 }
 
 table.items tfoot {
@@ -1515,7 +1521,6 @@ table.items tfoot {
     font-weight: bold;
     color: #282c34;
     background: #FFFFFF;
-    border-top: 3px solid #282c34;
 }
 table.items tfoot td {
     font-size: small;
@@ -1531,12 +1536,13 @@ table.files {
     color: #444;
 }
 table.files td, table.files th {
-    border: 1px solid #FFFFFF;
+    border: none;
     padding: 3px 2px;
     margin:0;
 }
 table.files tbody td {
     font-size: small;
+    font-weight: normal;
     text-align: center;
 }
 table.files img {
@@ -1552,14 +1558,13 @@ table.files tr:nth-child(even) {
     background: #EEEEEE;
 }
 table.files thead {
-    background: #EEEEEE;
+    background-color: #95B0B4;
 }
 table.files thead th {
-    color: #888888;
+    color: #FFFFFF;
     font-size: small;
     font-weight: bold;
     text-align: center;
-    border-left: 2px solid #FFFFFF;
 }
 table.files thead th:first-child {
     border-left: none;
@@ -1569,7 +1574,6 @@ table.files tfoot {
     font-weight: bold;
     color: #282c34;
     background: #FFFFFF;
-    border-top: 3px solid #282c34;
 }
 table.files tfoot td {
     font-size: small;
@@ -1616,9 +1620,10 @@ form {
 /* Fieldset */
 
 fieldset {
-    margin: 20px;
-    padding: 20px;
-    border-color: #CCCCCC;
+    background-color: #EEEEEE;
+    border: 1px solid #DFEEE9;
+    border-radius: 15px;
+    margin: 10px 0 20px 0;
 }
 fieldset.hidden {
     padding:0;
@@ -1630,9 +1635,10 @@ fieldset div {
     line-height:2em;
 }
 fieldset.submit {
-    padding: 20px 0;
+    padding: 0;
     margin: 0 0 0 15px;
     border: none;
+    background-color: transparent;
 }
 button.submit {
     background-color: #008896 !important;
@@ -1779,7 +1785,7 @@ input[type=submit], button.submit {
     font-family: 'Inter', Arial, sans-serif;
     background-color: #008896;
     color: white;
-    padding: 12px 20px;
+    padding: 12px 20px !important;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -1797,7 +1803,7 @@ input[type=submit].disabled, input[type=submit].disabled:hover {
 input[type=reset], button.cancel {
     width: auto;
     margin: 5px;
-    padding: 12px 20px;
+    padding: 12px 20px !important;
     font-family: 'Inter', Arial, sans-serif;
     background-color: #999999 !important;
     color: white;
@@ -2033,7 +2039,7 @@ Messages
     padding: 3px !important;
     margin: 0 !important;
     text-align: right;
-    background: #002A37;
+    background: #2B5A6B;
     color: #FFFFFF;
 }
 .dialog-header button {
@@ -2300,7 +2306,7 @@ Define Canvas Layers of Panel (IAT)
 /* Image Capture Selector */
 
 .selector .selected {
-    background-color: #C5FCEF;
+    background-color: lightgreen;
 }
 
 /* Load spinner  */
@@ -2336,6 +2342,16 @@ Define Canvas Layers of Panel (IAT)
 }
 
 /*
+Right-aligned Table
+ */
+
+table.right-aligned {
+    width: auto;
+    margin-right: 0;
+    margin-left: auto;
+}
+
+/*
 Manage Options Editor
 */
 
@@ -2351,6 +2367,12 @@ table.options .node.h-menu {
 Progress Bar
 */
 
+.progress-bar-container {
+    height: 40px;
+    width: 100%;
+    background-color: #CCCCCC;
+    border-radius: 20px;
+}
 .progress-bar {
     height: 40px;
     padding-right: 10px;
@@ -2364,6 +2386,7 @@ Progress Bar
     line-height: 40px;
     vertical-align: middle;
     color: white;
+    font-weight: bold;
 }
 .progress-bar button {
     color: white;
@@ -2414,7 +2437,7 @@ table.help tr:nth-child(even) {
     background: #EEEEEE;
 }
 table.help thead {
-    background: #95B0B4;
+    background-color: #95B0B4;
     border-bottom: 5px solid #FFFFFF;
 }
 table.help thead th {

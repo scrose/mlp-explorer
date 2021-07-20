@@ -30,6 +30,9 @@ function MapNavigator({ data, filter }) {
     const router = useRouter();
     const api = useData();
 
+    // mounted component flag
+    const _isMounted = React.useRef(false);
+
     // get the current node ID (if available)
     const { query = [] } = api.data || {};
     const currentFilter = query.length > 0 ? query : api.nodes;
@@ -323,19 +326,25 @@ function MapNavigator({ data, filter }) {
 
     // assign selected nodes on map
     React.useEffect(() => {
-        if (layerGrp.current) {
+        _isMounted.current = true;
+        if (_isMounted.current && layerGrp.current) {
             layerGrp.current.clearLayers();
             layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
         }
+        return () => {_isMounted.current = false;}
     }, [getClusterMarkers, currentFilter, filter, zoom, center])
 
     // API data change detected: recenter map to selected coordinate (if available)
     // - if on station info page, center and zoom to location on the map
     React.useEffect(() => {
-        const {lat=null, lng=null } = api.metadata;
-        if (lat && lng && mapObj.current) {
-            mapObj.current.flyTo([lat, lng], 12);
+        _isMounted.current = true;
+        if (_isMounted.current) {
+            const {lat = null, lng = null} = api.metadata;
+            if (lat && lng && mapObj.current) {
+                mapObj.current.flyTo([lat, lng], 12);
+            }
         }
+        return () => {_isMounted.current = false;}
     }, [api, setClustered])
 
     /**

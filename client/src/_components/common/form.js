@@ -319,6 +319,7 @@ const Form = ({
                                     disabled={isDisabled}
                                     disabledInputs={disabledInputs}
                                     validators={validators}
+                                    collapsible={fieldset.collapsible}
                                 />
                                 {
                                     fieldset.render === 'multiple'
@@ -371,6 +372,7 @@ const Form = ({
                                 disabled={isDisabled}
                                 disabledInputs={disabledInputs}
                                 validators={validators}
+                                collapsible={fieldset.collapsible}
                             />
                         </div>
                     );

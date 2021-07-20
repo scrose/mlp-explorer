@@ -17,6 +17,7 @@ import FilterTools from '../tools/filter.tools';
 import Loading from '../common/loading';
 import AccessError from '../error/access.error';
 import { useUser } from '../../_providers/user.provider.client';
+import {useRouter} from "../../_providers/router.provider.client";
 
 /**
  * Build requested data view from API data.
@@ -27,6 +28,7 @@ import { useUser } from '../../_providers/user.provider.client';
 const DataView = () => {
 
     const api = useData();
+    const router = useRouter();
     const user = useUser();
 
     // select render type and schema
@@ -56,9 +58,8 @@ const DataView = () => {
                 }}
                 route={createNodeRoute(api.model, api.view, api.id)}
                 onCancel={() =>{redirect(createNodeRoute(api.model, 'show', api.id))}}
-                callback={(err, model, id) => {
-                    if (err || !id) return;
-                    redirect(createNodeRoute(api.model, 'show', id));
+                callback={() => {
+                    redirect(router.route);
                 }}
             />),
         import: () => (
@@ -69,7 +70,8 @@ const DataView = () => {
                 data={api.metadata}
                 onCancel={() =>{redirect(createNodeRoute(api.model, 'show', api.id))}}
                 route={createNodeRoute(api.model, 'import', api.id)}
-                callback={() => {
+                callback={(err, model, id) => {
+                    console.log(err, model, id)
                     redirect(
                         createNodeRoute(api.model, 'show', api.id)
                     );
