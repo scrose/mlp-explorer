@@ -436,7 +436,7 @@ export const CompareSelector = ({
                         })}
                     </ul>
                 </div>
-                : <Loading />
+                : message ? '' : <Loading />
         }
     </>;
 };
