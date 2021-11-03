@@ -456,9 +456,11 @@ export const getFilePath = (type, file, metadata = {}) => {
     // TODO: TO BE REMOVED IN PRODUCTION
     // - check if using MEAT images or local ones
     // ======================================================
-    const rootURI = metadata.channels
-        ? process.env.LOWRES_PATH
-        : `${process.env.DEV_API_HOST}/versions/`;
+    // const rootURI = metadata.channels
+    //     ? process.env.LOWRES_PATH
+    //     : `${process.env.DEV_API_HOST}/versions/`;
+    const rootURI =`${process.env.API_HOST}/uploads/`;
+
     // ======================================================
 
     // handle image source URLs differently than metadata files

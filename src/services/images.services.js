@@ -316,9 +316,11 @@ export const getImageURL = (type = '', data = {}) => {
     // TODO: TO BE REMOVED IN PRODUCTION
     // - check if using MEAT images or local ones
     // ======================================================
-    const rootURI = data.channels
-        ? `${process.env.API_HOST}/uploads/`
-        : `${process.env.DEV_API_HOST}/versions/`;
+    // const rootURI = data.channels
+    //     ? `${process.env.API_HOST}/uploads/`
+    //     : `${process.env.DEV_API_HOST}/versions/`;
+    const rootURI =`${process.env.API_HOST}/uploads/`;
+
     // ======================================================
 
     // generate resampled image URLs
