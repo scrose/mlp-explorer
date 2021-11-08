@@ -25,7 +25,6 @@ const ComparisonsView = ({
 }) => {
 
     const keyID = genID();
-    const router = useRouter();
 
     // toggle to dhow/hide popup dialogs
     const [dialogToggle, setDialogToggle] = React.useState('');

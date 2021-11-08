@@ -123,6 +123,7 @@ const Fieldset = ({
 
     /**
      * Fieldset component.
+     * Note: Ensure legend is added to schema to display fieldset.
      *
      * @public
      * @param name

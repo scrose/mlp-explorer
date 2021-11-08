@@ -453,7 +453,7 @@ export const schema = {
                 {
                     legend: 'Edit Captures',
                     render: 'component',
-                    restrict: ['new', 'edit'],
+                    restrict: ['edit'],
                     users: ['editor', 'administrator', 'super_administrator'],
                     modern_captures: {
                         label: 'Historic Captures',
@@ -1450,6 +1450,8 @@ export const schema = {
             },
             fieldsets: [
                 {
+                    legend: "Camera",
+                    users: ['administrator', 'super_administrator'],
                     make: {
                         label: 'Make',
                         validate: ['isRequired']
@@ -1473,6 +1475,8 @@ export const schema = {
             },
             fieldsets: [
                 {
+                    legend: "Lens",
+                    users: ['administrator', 'super_administrator'],
                     brand: {
                         label: 'Brand',
                         validate: ['isRequired']

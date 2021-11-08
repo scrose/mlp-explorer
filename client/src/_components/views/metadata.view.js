@@ -250,7 +250,7 @@ const MetadataView = ({
                 </tr>
                 <tr>
                     <th>Last Modified</th>
-                    <td>{sanitize(node.created_at || file.created_at, 'datetime')}</td>
+                    <td>{sanitize(node.updated_at || file.updated_at, 'datetime')}</td>
                 </tr>
                 </tbody>
             </table>

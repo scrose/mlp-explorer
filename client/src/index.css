@@ -38,7 +38,7 @@ html {
     box-sizing: border-box;
     margin:0;
     padding:0;
-    background-color: #002A37;
+    background-color: #222222;
 }
 body {
     margin:0;
@@ -277,7 +277,7 @@ Page Banner Navigation Menu
 .navbar, .navbar ul li {
     height: 60px;
     min-height: 60px;
-    background-color: #002A37;
+    background-color: #222222;
     color: #FFFFFF;
     line-height: 60px;
     padding-right: 20px;
@@ -354,14 +354,14 @@ nav.user .accordion-data.open {
 }
 nav.user .login {
     min-width: 350px;
-    background-color: #002A37;
+    background-color: #222222;
     color: #FFFFFF;
     padding: 15px;
     line-height: normal;
     height: auto;
 }
 nav.user .login fieldset {
-    background-color: #002A37;
+    background-color: #222222;
     color: #FFFFFF;
     border: none;
 }
@@ -389,7 +389,6 @@ nav.user button  {
     height: 77vh;
     overflow: auto;
     padding: 0 10px 40px 10px;
-    border-top: 1px solid #2B5A6B;
 }
 .view .view-panel-group li {
     width: 33%;
@@ -485,7 +484,7 @@ nav.user button  {
     height: 77vh;
     overflow: auto;
     width: auto;
-    background-color: #002A37;
+    background-color: #222222;
     color: #FFFFFF;
     transition: width 2s;
     transition-timing-function: ease-in-out;
@@ -736,7 +735,7 @@ nav.breadcrumb ul li a:hover {
 }
 .navigator-tools .h-menu ul li button.active,
 .navigator-tools .v-menu ul li button.active {
-    background-color: #002A37;
+    background-color: #222222;
     color: #FFFFFF !important;
 }
 .navigator-tools .h-menu ul li button,
@@ -2054,7 +2053,7 @@ Messages
     margin: 0 0 20px 0;
     padding: 10px;
     background-color: #E6F4F1;
-    color: #002A37;
+    color: #222222;
     text-align: center;
 }
 .dialog .dialog-title p {

@@ -36,7 +36,7 @@ const BreadcrumbMenu = () => {
 
         // hide breadcrumb menu on front page
         if (path.length === 0) return [];
-        return [<span>{getStaticLabel(`/${path[0]}`) || 'Not Found'}</span>]
+        return [<span>{getStaticLabel(`/${path[0]}`) || ''}</span>]
     };
 
     /**

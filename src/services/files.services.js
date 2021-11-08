@@ -459,7 +459,7 @@ export const getFilePath = (type, file, metadata = {}) => {
     //     ? process.env.LOWRES_PATH
     //     : `${process.env.DEV_API_HOST}/versions/`;
 
-    const rootURI =`${process.env.API_HOST}/uploads/`;
+    const rootURI = process.env.LOWRES_PATH;
 
     // ======================================================
 

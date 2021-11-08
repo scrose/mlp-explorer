@@ -289,7 +289,7 @@ export function update(model, timestamps = ['updated_at']) {
     // return query function
     return function (item) {
 
-        // place ID, creation datetime values at front of array
+        // position ID, creation datetime values at front of array
         let data = [item.id];
 
         // filter input data to match update parameters

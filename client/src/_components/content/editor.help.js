@@ -24,7 +24,7 @@ const explorerHelp = (gotoPage) => {
     const editorStartHelp = <>
         <h4>Getting Started</h4>
         <p>
-            Accessible to <a href={'/login'}>Authenticated Users</a>, the Mountain Legacy Explorer (MLE) Editor
+            Accessible to <em>Authenticated Users</em>, the Mountain Legacy Explorer (MLE) Editor
             can be used to manage the digital assets and metadata of the MLP collection. Through the Editor, users can
             upload or delete images in the collection data store, add and update image metadata, as well as align and
             master historic and repeat digital photographs.
