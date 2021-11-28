@@ -1,0 +1,15 @@
+{
+  "name": "mlp-cli",
+  "version": "1.0.0",
+  "description": "Command-line interface for admin operations.",
+  "main": "bin/index.js",
+  "type": "module",
+  "bin": {
+    "mlp-cli": "./bin/index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Spencer Rose",
+  "license": "MIT"
+}

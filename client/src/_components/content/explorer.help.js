@@ -601,6 +601,15 @@ const explorerHelp = (gotoPage) => {
                     <p>Mastered Capture</p>
                 </th>
                 <td>
+                    <p>Capture is sorted and has at least one image mastered with an historic/modern capture image.</p>
+                </td>
+            </tr>
+            <tr>
+                <th className={'repeated'}><Icon type={'historic_captures'} /></th>
+                <th>
+                    <p>Repeated Capture</p>
+                </th>
+                <td>
                     <p>Capture is sorted and has at least one image paired with an historic/modern capture image.</p>
                 </td>
             </tr>

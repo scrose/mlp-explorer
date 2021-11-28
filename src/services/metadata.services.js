@@ -532,15 +532,18 @@ export const getStatus = async (node, metadata = {}, client = pool) => {
             const comparisons = await getComparisonsByStation(node, client) || [];
             const historicCaptures = await getHistoricCapturesByStation(node, client) || [];
             const modernCaptures = await getModernCapturesByStation(node, client) || [];
-            // tally how many capture images are mastered
+            // tally how many historic capture images are mastered
             let totalRepeats = 0;
-            let mastered = 0;
+            let totalMasters = 0;
+            let isMastered = true;
             await Promise.all(
                 comparisons.map(async (pair) => {
                     const masterStatus = await hasMastered(
                         pair.historic_captures, 'historic_images', client);
-                    mastered += masterStatus.mastered;
-                    totalRepeats += masterStatus.total;
+                    // ensure any unmastered historic images => unmastered station
+                    isMastered = !!parseInt(masterStatus.mastered) && isMastered;
+                    totalMasters += parseInt(masterStatus.mastered);
+                    totalRepeats += parseInt(masterStatus.total);
                 })
             );
             const { lat = null, lng = null } = metadata || {};
@@ -551,28 +554,38 @@ export const getStatus = async (node, metadata = {}, client = pool) => {
                 grouped: historicCaptures.length > 0 && !(lat && lng),
                 located: historicCaptures.length > 0 && !!(lat && lng),
                 repeated: comparisons.length > 0,
-                partial: mastered > 0 && mastered < totalRepeats,
-                mastered: mastered > 0 && mastered === totalRepeats,
+                partial: !isMastered && totalMasters > 0,
+                mastered: isMastered && totalMasters > 0,
+                n_masters: totalMasters,
+                n_repeats: totalRepeats,
             };
         },
         historic_captures: async () => {
             const comparisons = await getComparisonsByCapture(node, client) || [];
-            const files = await fserve.hasFiles(node.id, client) || false;
+            const masterStatus = await hasMastered(node.id, 'historic_images', client);
+            const files = fserve.hasFiles(node.id, client) || false;
             return {
                 comparisons: comparisons,
+                mastered: parseInt(masterStatus.mastered) > 0,
                 compared: comparisons.length > 0,
                 sorted: node.owner_type === 'historic_visits',
-                missing: !files
+                missing: !files,
+                n_masters: parseInt(masterStatus.mastered),
+                n_repeats: parseInt(masterStatus.total),
             };
         },
         modern_captures: async () => {
             const comparisons = await getComparisonsByCapture(node, client) || [];
-            const files = await fserve.hasFiles(node.id, client) || false;
+            const masterStatus = await hasMastered(node.id, 'modern_images', client);
+            const files = fserve.hasFiles(node.id, client) || false;
             return {
                 comparisons: comparisons,
+                mastered: parseInt(masterStatus.mastered) > 0,
                 compared: comparisons.length > 0,
                 sorted: node.owner_type === 'locations',
-                missing: !files
+                missing: !files,
+                n_masters: parseInt(masterStatus.mastered),
+                n_repeats: parseInt(masterStatus.total),
             };
         },
     };

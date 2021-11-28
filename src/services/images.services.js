@@ -191,7 +191,7 @@ export const saveImage = async (filename, metadata, owner, imageState, options) 
         },
         full: {
             format: 'jpeg',
-            path: path.join(process.env.LOWRES_PATH, `${imgToken}.jpeg`),
+            path: path.join(process.env.LOWRES_PATH, `full_${imgToken}.jpeg`),
             size: imageSizes.full,
         },
     };
@@ -202,9 +202,6 @@ export const saveImage = async (filename, metadata, owner, imageState, options) 
     metadata.file.owner_type = owner.type;
     metadata.file.owner_id = owner.id;
     metadata.file.fs_path =  path.join(owner.fs_path, imageState, tokenizedFilename);
-
-    // TODO: Remove this line (only for TESTING)
-    metadata.data.channels = 3;
 
     // prepare metadata for transcoding
     const resData = {
@@ -253,7 +250,7 @@ export const getImageInfo = async (
         MIMEType = '',
         ImageWidth = 0,
         ImageHeight = 0,
-        BitsPerSample=' ',
+        BitsPerSample='',
         ColorSpaceData='',
         Model = '',
         ProfileDateTime = '',
@@ -310,15 +307,6 @@ export const getImageInfo = async (
 export const getImageURL = (type = '', data = {}) => {
 
     const { secure_token = '' } = data || {};
-
-    // ======================================================
-    // DEVELOPMENT TEST
-    // - check if using MEAT images or local ones
-    // ======================================================
-    // const rootURI = data.channels
-    //     ? `${process.env.API_HOST}/uploads/`
-    //     : `${process.env.DEV_API_HOST}/versions/`;
-
     const rootURI =`${process.env.API_HOST}/uploads/`;
 
     // ======================================================
@@ -326,14 +314,13 @@ export const getImageURL = (type = '', data = {}) => {
     // generate resampled image URLs
     const imgSrc = (token) => {
         return Object.keys(imageSizes).reduce((o, key) => {
-            o[key] = new URL(`${key !== 'full' ? key + '_' : ''}${token}.jpeg`, rootURI);
+            o[key] = new URL(`${key}_${token}.jpeg`, rootURI);
             return o;
         }, {});
     };
 
-    // handle image source URLs differently than metadata files
+    // handle image source URLs
     // - images use scaled versions of raw files
-    // - metadata uses PDF downloads
     const fileHandlers = {
         historic_images: () => {
             return imgSrc(secure_token);
@@ -352,7 +339,7 @@ export const getImageURL = (type = '', data = {}) => {
 
 
 /**
- * Copy image file on server. Applies file conversion if requested, otherwise
+ * Copy image files to library. Applies file conversion if requested, otherwise
  * skips conversion on raw files. Images are resized (if requested).
  *
  * @return {Object} output file data

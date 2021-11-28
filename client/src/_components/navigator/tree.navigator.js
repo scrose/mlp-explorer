@@ -7,7 +7,6 @@
 
 import React from 'react'
 import {useRouter} from '../../_providers/router.provider.client';
-import Icon from '../common/icon';
 import {createNodeRoute} from '../../_utils/paths.utils.client';
 import {getModelLabel, getNodeOrder} from '../../_services/schema.services.client';
 import {addNode, checkNode, removeNode} from '../../_services/session.services.client';
@@ -69,15 +68,15 @@ const TreeNodeMenu = ({
 
     // handle status of nodes: cascades status levels
     const getStatus = () => {
-        if (status.compared) return 'mastered';
+        // if (status.compared) return 'compared';
         if (status.mastered) return 'mastered';
         if (status.partial) return 'partial';
         if (status.repeated) return 'repeated';
         if (status.located) return 'located';
         if (status.grouped) return 'grouped';
 
+        // additional classifications for captures
         if (model === 'historic_captures' || model === 'modern_captures') {
-            if (status.compared) return 'mastered';
             if (status.missing) return 'missing';
             if (status.sorted) return 'sorted';
             if (!status.sorted) return 'unsorted';

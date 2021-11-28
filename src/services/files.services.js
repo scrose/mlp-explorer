@@ -450,31 +450,22 @@ export const getFilePath = (type, file, metadata = {}) => {
 
     const { fs_path = '' } = file || {};
     const { secure_token = '' } = metadata || {};
-
-    // ======================================================
-    // DEVELOPMENT TEST
-    // - check if using MEAT images or local ones
-    // ======================================================
-    // const rootURI = metadata.channels
-    //     ? process.env.LOWRES_PATH
-    //     : `${process.env.DEV_API_HOST}/versions/`;
-
     const rootURI = process.env.LOWRES_PATH;
+    const imgPrefix = 'medium';
 
     // ======================================================
-
     // handle image source URLs differently than metadata files
     // - images use scaled versions of raw files
     // - metadata uses PDF downloads
     const fileHandlers = {
         historic_images: () => {
-            return path.join(rootURI, `${secure_token}.jpeg`);
+            return path.join(rootURI, `${imgPrefix}_${secure_token}.jpeg`);
         },
         modern_images: () => {
-            return path.join(rootURI, `${secure_token}.jpeg`);
+            return path.join(rootURI, `${imgPrefix}_${secure_token}.jpeg`);
         },
         supplemental_images: () => {
-            return path.join(rootURI, `${secure_token}.jpeg`);
+            return path.join(rootURI, `${imgPrefix}_${secure_token}.jpeg`);
         },
         default: () => {
             return path.join(path.join(process.env.UPLOAD_DIR, fs_path));

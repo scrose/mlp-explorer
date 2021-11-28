@@ -32,7 +32,7 @@ const Navigator = () => {
     const router = useRouter();
 
     // initialize navigation view settings
-    const [navView, setNavView] = React.useState(getNavView() || 'tree');
+    const [navView, setNavView] = React.useState(getNavView() || 'map');
     const [navToggle, setNavToggle] = React.useState(getPref('navToggle') || true);
 
     // node data state

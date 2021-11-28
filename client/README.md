@@ -14,7 +14,7 @@ and strategies for ecological restoration.
 
 ### MLE Explorer
     
-The Explorer app is a metadata management tool for browsing and editing the MLP collection and 
+The Explorer index is a metadata management tool for browsing and editing the MLP collection and 
 viewing historic and corresponding repeat (modern) survey images. 
 
 Accessible to Authenticated Users, the Mountain Legacy Explorer (MLE) Editor can be 
@@ -32,7 +32,7 @@ The project consists of three microservices:
 3. MLE Image Transcoder (NodeJS)
 
 This project was bootstrapped with 
-[Create React App](https://github.com/facebook/create-react-app).
+[Create React App](https://github.com/facebook/create-react-index).
 
 ## Requirements
 
