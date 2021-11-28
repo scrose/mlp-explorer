@@ -1662,6 +1662,7 @@ fieldset.super_compact label .label-text {
     min-width: 0 !important;
     min-height: 0;
     line-height: 100%;
+    background-color: transparent;
 }
 fieldset.super_compact input {
     width: 50px;
