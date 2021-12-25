@@ -14,7 +14,7 @@ const UnavailableError = () => {
         <div className="page-content">
             <main>
                 <div className={'maintenance'}>
-                    <Logo colour={true} />
+                    <Logo colour={'black'} />
                     <h2>The Mountain Legacy Project Explorer is currently unavailable</h2>
                     <p>Sorry, this application is currently undergoing maintenance
                         and is not available.</p>

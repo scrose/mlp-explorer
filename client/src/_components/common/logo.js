@@ -147,11 +147,11 @@ export const MLPLogo = ({colour='white'}) => {
  * @public
  */
 
-const Logo = () => {
+const Logo = ({colour='white'}) => {
     return (
         <div className={'logo'}>
-            <a href={getRoot()}><MLPWordmark/></a>
-            <a href={getInfo().mlp_url} rel="noreferrer" target={'_blank'}><MLPLogo/></a>
+            <a href={getRoot()}><MLPWordmark colour={colour} /></a>
+            <a href={getInfo().mlp_url} rel="noreferrer" target={'_blank'}><MLPLogo colour={colour} /></a>
         </div>
     );
 };
