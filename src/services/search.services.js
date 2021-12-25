@@ -105,6 +105,12 @@ const searchable = {
             'comments'
         ]
     },
+    files: {
+        type: 'files',
+        heading: ['filename'],
+        required: ['filename'],
+        coalesce: ['filename']
+    },
     maps: {
         type: 'metadata',
         heading: ['nts_map'],
@@ -129,10 +135,10 @@ const searchable = {
  * Full-text search of metadata.
  *
  * @public
- * @param {Array} q
- * @param {Array} filter
+ * @param {String} q
  * @param offset
  * @param limit
+ * @param {Array} filter
  * @return {Promise} result
  */
 
@@ -141,9 +147,9 @@ export const fulltext = async (q, offset, limit, filter) => {
     if (!q) return null;
 
     // sanitize + convert query string to term array
-    q = sanitize(q.replace(/[^a-zA-Z0-9-_ ]/g, ''), 'text').split(' ');
+    let terms = sanitize(q.replace(/[^-a-zA-Z0-9_ ]/g, ''), 'text').split(' ');
     // filter stop words
-    q = q.filter(term => !stopWords.includes(term));
+    terms = terms.filter(term => !stopWords.includes(term));
 
     // NOTE: client undefined if connection fails.
     const client = await pool.connect();
@@ -155,27 +161,44 @@ export const fulltext = async (q, offset, limit, filter) => {
         // list of searchable tables to include
         const results = {};
 
+        // list of query builders for possible search requests
+        const queryBuilders = {
+            metadata: (tbl) => {
+                return queries.search.fulltextMetadataSearch(tbl, searchable[tbl], terms, offset, limit);
+            },
+            participants: (tbl) => {
+                return queries.search.fulltextParticipantSearch(searchable[tbl], terms, offset, limit);
+            },
+            files: (tbl) => {
+                console.log(queries.search.fulltextFileSearch(searchable[tbl], terms, offset, limit))
+                return queries.search.fulltextFileSearch(searchable[tbl], terms, offset, limit);
+            },
+            default: (tbl) => {
+                return queries.search.fulltextNodeSearch(tbl, searchable[tbl], terms, offset, limit);
+            }
+        }
+
+        console.log('!!!', searchable);
+
         // collate results for all searchable tables
         await Promise.all(
             Object.keys(searchable)
                 .filter(tbl => filter.length === 0 || filter.includes(tbl))
                 .map(async (tbl) => {
-
-                let { sql, data } = searchable[tbl].type === 'metadata'
-                    ? queries.search.fulltextMetadataSearch(tbl, searchable[tbl], q, offset, limit)
-                    : searchable[tbl].type === 'participants'
-                            ? queries.search.fulltextParticipantSearch(searchable[tbl], q, offset, limit)
-                            : queries.search.fulltextNodeSearch(tbl, searchable[tbl], q, offset, limit);
-                results[tbl] = await client.query(sql, data)
-                    .then(res => {
-                        return res.rows
-                    });
-            }));
+                    let { sql, data } = queryBuilders.hasOwnProperty(searchable[tbl].type)
+                        ? queryBuilders[searchable[tbl].type](tbl)
+                        : queryBuilders.default(tbl);
+                    results[tbl] = await client.query(sql, data)
+                        .then(res => {
+                            return res.rows;
+                        });
+                }));
 
         // end transaction
         await client.query('COMMIT');
 
         return {
+            terms: terms,
             query: q,
             results: results
         };

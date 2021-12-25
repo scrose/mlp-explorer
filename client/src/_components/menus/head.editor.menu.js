@@ -6,11 +6,11 @@
  */
 
 import React from 'react';
-import MainMenu from '../menus/main.menu';
+import MainMenu from './main.menu';
 import Logo from '../common/logo';
 import { useUser } from '../../_providers/user.provider.client';
 import { redirect } from '../../_utils/paths.utils.client';
-import BreadcrumbMenu from '../menus/breadcrumb.menu';
+import BreadcrumbMenu from './breadcrumb.menu';
 import Accordion from '../common/accordion';
 import Button from '../common/button';
 import {useAuth} from "../../_providers/auth.provider.client";
@@ -48,7 +48,7 @@ const UserMenu = () => {
  * @public
  */
 
-const HeaderEditor = () => {
+const HeadEditorMenu = () => {
     return (
         <header>
             <div className={'banner'}>
@@ -67,4 +67,4 @@ const HeaderEditor = () => {
     );
 };
 
-export default HeaderEditor;
+export default HeadEditorMenu;

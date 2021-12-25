@@ -297,6 +297,27 @@ export const getMetadataOptions = async function(client=pool) {
         ),
         metadata_file_types: await findMetadataOptions(
             'metadata_file_types', 'name', ['label'], '', client
+        ),
+        surveyors: await findNodeOptions(
+            'surveyors',
+            ['last_name', 'given_names', 'short_name', 'affiliation'],
+            ', ',
+            false,
+            client
+        ),
+        survey_seasons: await findNodeOptions(
+            'survey_seasons',
+            ['year'],
+            '',
+            true,
+            client
+        ),
+        surveys: await findNodeOptions(
+            'surveys',
+            ['name'],
+            '',
+            true,
+            client
         )
     }
 };
@@ -336,38 +357,6 @@ const findNodeOptions = async (model, labelCols, delimiter, hasOwner, client=poo
     return metadata.rows;
 }
 
-/**
- * Get filter options to filter map locations.
- *
- * @public
- * @return {Promise} result
- */
-
-export const getMapFilterOptions = async function(client=pool) {
-    return {
-        surveyors: await findNodeOptions(
-            'surveyors',
-            ['last_name', 'given_names', 'short_name', 'affiliation'],
-            ', ',
-            false,
-            client
-        ),
-        survey_seasons: await findNodeOptions(
-            'survey_seasons',
-            ['year'],
-            '',
-            true,
-            client
-        ),
-        surveys: await findNodeOptions(
-            'surveys',
-            ['name'],
-            '',
-            true,
-            client
-        )
-    }
-};
 
 /**
  * Get metadata global settings.

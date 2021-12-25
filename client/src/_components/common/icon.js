@@ -9,6 +9,7 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
+    faGripVertical,
     faCircle,
     faFolderOpen,
     faAngleDoubleLeft,
@@ -121,6 +122,7 @@ export const faMLPWordmark = {
  */
 
 library.add(
+    faGripVertical,
     faCircle,
     faSearchMinus,
     faSearchPlus,
@@ -230,6 +232,7 @@ const getIconClass = (iconType) => {
         crosshairs: 'crosshairs',
         crop: 'crop',
         adjust: 'sliders-h',
+        gripVertical: 'grip-vertical',
         resize: 'ruler-combined',
         edit: 'edit',
         move: 'arrows-alt',

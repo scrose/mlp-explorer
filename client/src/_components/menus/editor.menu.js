@@ -26,7 +26,7 @@ import Download from '../common/download';
  * @public
  */
 
-const MenuEditor = ({
+const EditorMenu = ({
                         className = 'node',
                         model = '',
                         view = '',
@@ -591,4 +591,4 @@ const MenuEditor = ({
     );
 };
 
-export default MenuEditor;
+export default EditorMenu;

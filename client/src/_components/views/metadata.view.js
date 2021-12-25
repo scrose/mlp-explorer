@@ -10,7 +10,7 @@ import { genSchema, getDependentTypes, getModelLabel } from '../../_services/sch
 import { genID, sanitize } from '../../_utils/data.utils.client';
 import Button from '../common/button';
 import Accordion from '../common/accordion';
-import MenuEditor from '../editor/menu.editor';
+import EditorMenu from '../menus/editor.menu';
 import { useData } from '../../_providers/data.provider.client';
 import { useUser } from '../../_providers/user.provider.client';
 
@@ -79,7 +79,7 @@ export const MetadataAttached = ({ owner, attached }) => {
                 key={`${keyID}_${attachedModel}`}
                 type={attachedModel}
                 label={`${getModelLabel(attachedModel, 'label')}`}
-                menu={<MenuEditor
+                menu={<EditorMenu
                         model={attachedModel}
                         id={owner && owner.hasOwnProperty('id') ? owner.id : ''}
                         view={'attach'}
@@ -209,7 +209,7 @@ const MetadataView = ({
                                         <li><Button label={fieldset.legend} /></li>
                                         {
                                             menu && <li className={'editor-menu push'}>
-                                                <MenuEditor
+                                                <EditorMenu
                                                     id={itemID}
                                                     model={model}
                                                     owner={owner}

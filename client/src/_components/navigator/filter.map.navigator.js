@@ -8,6 +8,8 @@
 import React from 'react';
 import Form from '../common/form';
 import { genSchema } from '../../_services/schema.services.client';
+import { useNav } from "../../_providers/nav.provider.client";
+import {useData} from "../../_providers/data.provider.client";
 
 /**
  * Navigator filter component.
@@ -16,13 +18,16 @@ import { genSchema } from '../../_services/schema.services.client';
  * @return {JSX.Element}
  */
 
-function FilterNavigator({data, setData, optionsData, setToggle}) {
+function FilterMapNavigator() {
+
+    const nav = useNav();
+    const api = useData();
 
     // get filter options
-    const {surveyors=[], surveys=[], survey_seasons=[]} = optionsData || {};
+    const { surveyors=[], surveys=[], survey_seasons=[] } = api.options || {};
 
     // create filter data state
-    const [filterData, setFilterData] = React.useState(data);
+    const [filterData, setFilterData] = React.useState(nav.filter);
 
     // filter options by owner ID
     const filterOptions = (selectData, ownerID) => {
@@ -74,11 +79,11 @@ function FilterNavigator({data, setData, optionsData, setToggle}) {
             onReset={()=>{
                 setFilterData({})
             }}
-            onCancel={() => {setToggle(false)}}
+            onCancel={() => {nav.setDialog(null)}}
             onChange={onChange}
             callback={()=>{
-                setData(filterData)
-                setToggle(false)
+                nav.setFilter(filterData)
+                nav.setDialog(null)
             }}
             allowEmpty={true}
         />
@@ -86,4 +91,4 @@ function FilterNavigator({data, setData, optionsData, setToggle}) {
 }
 
 
-export default FilterNavigator;
+export default FilterMapNavigator;

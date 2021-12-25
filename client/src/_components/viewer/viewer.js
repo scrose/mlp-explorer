@@ -11,8 +11,10 @@ import DataView from '../views/data.view';
 import StaticView from '../views/static.view';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
-import MenuViewer from './menu.viewer';
+import ViewerMenu from '../menus/viewer.menu';
 import { useData } from '../../_providers/data.provider.client';
+import Footer from "../common/footer";
+import {useWindowSize} from "../../_utils/events.utils.client";
 
 /**
  * Render viewer panel component (unauthenticated).
@@ -21,22 +23,17 @@ import { useData } from '../../_providers/data.provider.client';
  */
 
 const Viewer = () => {
-
-    // get router context providers
     const router = useRouter();
-    const api = useData();
-    const { file={} } = api.data || {};
-    const { id='', filename='', file_type={} } = file || {};
+
+    // window dimensions
+    const [winWidth, winHeight] = useWindowSize();
 
     return (
         <div className={'viewer'}>
-            <MenuViewer
-                id={id}
-                filename={filename}
-                fileType={file_type}
-                compact={false}
-            />
-            <div className={`view`}>
+            <div
+                className={`view`}
+                style={{height: (window.innerHeight - 140) + 'px'}}
+            >
                 <Heading />
                 <Message />
                 {
@@ -48,6 +45,7 @@ const Viewer = () => {
                     } />
                     : <DataView />
                 }
+                <Footer/>
             </div>
         </div>
     )

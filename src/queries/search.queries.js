@@ -169,3 +169,45 @@ export function fulltextParticipantSearch(fields, q, offset=0, limit=5) {
         data: [queryString],
     };
 }
+
+/**
+ * Query: Filename search query for files table.
+ *
+ * @param {Array} q
+ * @param fields
+ * @param {Integer} limit
+ * @param {Integer} offset
+ * @return {Object} query binding
+ */
+
+export function fulltextFileSearch(fields, q, offset=0, limit=5) {
+    let queryString = q.join(' | ');
+    const blurbFields = fields.coalesce.join(', ');
+    const heading = fields.heading.join(', ');
+
+    return {
+        sql: `
+            WITH search_items as (
+                SELECT
+                   owner_id,
+                   CONCAT_WS(' ', ${heading}) as heading,
+                   CONCAT_WS(' ', ${blurbFields}) as blurb
+                FROM files
+                WHERE filename LIKE $1::varchar
+                GROUP BY owner_id, heading, blurb
+            )
+            SELECT 
+                search_items.owner_id as id,
+                nodes.type as type,
+                search_items.heading,
+                search_items.blurb,
+                nodes.updated_at as last_modified,
+               (SELECT COUNT(*) FROM search_items) as total
+            FROM search_items
+            JOIN nodes ON nodes.id = search_items.owner_id
+            OFFSET ${offset}
+            LIMIT ${limit};
+            `,
+        data: ["%" + queryString + "%"],
+    };
+}

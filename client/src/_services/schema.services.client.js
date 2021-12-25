@@ -9,6 +9,18 @@ import { schema } from '../schema';
 import { capitalize } from '../_utils/data.utils.client';
 
 /**
+ * Get app metadata.
+ *
+ * @public
+ * @return {{}} metadata
+ */
+
+export const getInfo = () => {
+    const { app={} } = schema || {};
+    return app;
+}
+
+/**
  * Get static view render index from given route. Unlike data
  * views, static views do not require input data from API requests.
  *
@@ -36,7 +48,7 @@ export const getStaticView = (uri) => {
  * Get route data from schema.
  *
  * @public
- * @return {String} static route
+ * @return {{}} static route
  */
 
 export const getRoutes = () => {
@@ -196,8 +208,6 @@ const _getViewAttributes = (view, model) => {
  */
 
 export const genSchema = ({ view='', model='', fieldsetKey= '', user= null }) => {
-
-
 
     // get user role
     const {role = ['']} = user || {};

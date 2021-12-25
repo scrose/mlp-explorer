@@ -15,7 +15,7 @@ import MetadataView, { MetadataAttached } from './metadata.view';
 import CaptureView from './capture.view';
 import { groupBy, sorter } from '../../_utils/data.utils.client';
 import Loading from '../common/loading';
-import MenuEditor from '../editor/menu.editor';
+import EditorMenu from '../menus/editor.menu';
 import { useData } from '../../_providers/data.provider.client';
 import FilesView from './files.view';
 import Tabs from '../common/tabs';
@@ -108,7 +108,7 @@ const DefaultView = ({
                             hasDependents={hasDependents}
                             open={toggle}
                             menu={
-                                <MenuEditor
+                                <EditorMenu
                                     model={type}
                                     id={id}
                                     owner={node}

@@ -15,7 +15,7 @@ import {useData} from "../../_providers/data.provider.client";
 import Image from "../common/image";
 import {createNodeRoute, getExtension} from "../../_utils/paths.utils.client";
 import {sanitize} from "../../_utils/data.utils.client";
-import MenuEditor from "../editor/menu.editor";
+import EditorMenu from "../menus/editor.menu";
 import Table from "../common/table";
 
 
@@ -87,7 +87,7 @@ export const ImagesTable = ({type, owner, files=[]}) => {
 
         // add editor menu for logged-in users
         if (user) {
-            row.menu =  <MenuEditor
+            row.menu =  <EditorMenu
                 fileType={type}
                 filename={filename}
                 model={type}

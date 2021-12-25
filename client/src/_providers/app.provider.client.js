@@ -10,6 +10,7 @@ import { AuthProvider } from './auth.provider.client';
 import { RouterProvider } from './router.provider.client';
 import { UserProvider } from './user.provider.client';
 import { DataProvider } from './data.provider.client';
+import {NavProvider} from "./nav.provider.client";
 
 function AppProviders({ children }) {
     return (
@@ -17,7 +18,9 @@ function AppProviders({ children }) {
             <AuthProvider>
                 <UserProvider>
                     <DataProvider>
-                        {children}
+                        <NavProvider>
+                            {children}
+                        </NavProvider>
                     </DataProvider>
                 </UserProvider>
             </AuthProvider>

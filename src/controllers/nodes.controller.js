@@ -11,7 +11,6 @@ import * as expserve from '../services/export.services.js';
 import * as srchserve from '../services/search.services.js';
 import { sanitize } from '../lib/data.utils.js';
 import { json2csv } from '../lib/file.utils.js';
-import { getMapFilterOptions } from '../services/metadata.services.js';
 import { Readable } from 'stream';
 import pool from '../services/db.services.js';
 
@@ -78,7 +77,6 @@ export const tree = async (req, res, next) => {
                         surveyors: await nserve.getTree('surveyors'),
                         projects: await nserve.getTree('projects')
                     },
-                    options: {}
                 }
             }));
 
@@ -108,8 +106,7 @@ export const map = async (req, res, next) => {
             prepare({
                 view: 'map',
                 data: {
-                    nodes: await nserve.getMap() || [],
-                    options: await getMapFilterOptions(client)
+                    nodes: await nserve.getMap() || []
                 }
             }));
 

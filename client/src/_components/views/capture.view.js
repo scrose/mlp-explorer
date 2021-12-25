@@ -14,7 +14,7 @@ import { useUser } from '../../_providers/user.provider.client';
 import {createNodeRoute, getExtension} from '../../_utils/paths.utils.client';
 import Image from '../common/image';
 import { useRouter } from '../../_providers/router.provider.client';
-import MenuEditor from '../editor/menu.editor';
+import EditorMenu from '../menus/editor.menu';
 import { useData } from '../../_providers/data.provider.client';
 import { getModelLabel } from '../../_services/schema.services.client';
 import Tabs from '../common/tabs';
@@ -92,7 +92,7 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
 
         // add editor menu for logged-in users
         if (user) {
-            row.menu =  <MenuEditor
+            row.menu =  <EditorMenu
                             fileType={type}
                             filename={filename}
                             model={type}

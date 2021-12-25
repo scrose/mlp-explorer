@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { getRoot } from '../../_utils/paths.utils.client';
+import {getInfo} from "../../_services/schema.services.client";
 
 /**
  * Component for main navigation menu.
@@ -23,7 +24,7 @@ const MainMenu = () => {
             <div className={'h-menu'}>
                 <ul>
                     <li><a href={rootURL}>Dashboard</a></li>
-                    <li><a href={'http://mountainlegacy.ca'}>About MLP</a></li>
+                    <li><a rel={"noreferrer"} target={'_blank'} href={getInfo().mlp_url}>MLP Website</a></li>
                     <li><a href={'/iat'}>Image Toolkit</a></li>
                 </ul>
             </div>

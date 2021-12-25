@@ -11,9 +11,11 @@ import Message from '../common/message';
 import StaticView from '../views/static.view';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
-import MenuEditor from './menu.editor';
+import EditorMenu from '../menus/editor.menu';
 import { useData } from '../../_providers/data.provider.client';
 import { getDependentTypes } from '../../_services/schema.services.client';
+import {useWindowSize} from "../../_utils/events.utils.client";
+import Footer from "../common/footer";
 
 /**
  * Render editor panel component (authenticated).
@@ -22,30 +24,18 @@ import { getDependentTypes } from '../../_services/schema.services.client';
  */
 
 const Editor = () => {
-
-    // get router context provider
     const router = useRouter();
-    const api = useData();
-    const { file={} } = api.data || {};
-    const { filename=''} = file || {};
+
+    // window dimensions
+    const [winWidth, winHeight] = useWindowSize();
 
     return (
         <>
             <div className={'editor'}>
-                <MenuEditor
-                    className={'editor-tools'}
-                    model={api.model}
-                    view={api.view}
-                    id={api.id}
-                    label={api.label}
-                    owner={api.owner}
-                    metadata={api.metadata}
-                    fileType={api.type}
-                    filename={filename}
-                    compact={false}
-                    dependents={getDependentTypes(api.model)}
-                />
-                <div className={`view dashboard`}>
+                <div
+                    className={`view dashboard`}
+                    style={{height: (winHeight - 140) + 'px'}}
+                >
                     <Heading/>
                     <Message/>
                     {
@@ -57,6 +47,7 @@ const Editor = () => {
                             }/>
                             : <DataView/>
                     }
+                    <Footer/>
                 </div>
             </div>
         </>

@@ -61,7 +61,6 @@ const Slider = ({ images = [] }) => {
                     {label}
                     {metadata.hasOwnProperty('image_state') ? ' [' + metadata.image_state + ']' : ''}
                 </p>
-
             </div>
             <div className={'thumbnails h-menu'}>
                 <ul>

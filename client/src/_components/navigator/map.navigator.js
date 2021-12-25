@@ -10,9 +10,13 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useRouter } from '../../_providers/router.provider.client';
 import { useData } from '../../_providers/data.provider.client';
-import { createRoute } from '../../_utils/paths.utils.client';
-import { debounce } from '../../_utils/events.utils.client';
+import {createNodeRoute, createRoute} from '../../_utils/paths.utils.client';
+import {debounce, useWindowSize} from '../../_utils/events.utils.client';
 import Loading from "../common/loading";
+import {getPref, setPref} from "../../_services/session.services.client";
+import {useNav} from "../../_providers/nav.provider.client";
+import { getMarker, baseLayers } from "../tools/map.tools";
+
 
 /**
  * Map navigator component.
@@ -23,12 +27,13 @@ import Loading from "../common/loading";
  * @return {JSX.Element}
  */
 
-function MapNavigator({ data, filter }) {
+function MapNavigator({ filter, hidden }) {
 
     // let mapContainer = React.createRef();
     const mapID = 'map-container';
     const router = useRouter();
     const api = useData();
+    const nav = useNav();
 
     // mounted component flag
     const _isMounted = React.useRef(false);
@@ -39,58 +44,30 @@ function MapNavigator({ data, filter }) {
 
     // centre map on selected node
     const initCenter = {lat: 51.311809, lng: -119.249230};
-    const {lat=initCenter.lat, lng=initCenter.lng } = api.metadata;
+    const { lat=initCenter.lat, lng=initCenter.lng } = api.metadata;
 
     // map initial settings
     const [loaded, setLoaded] = React.useState(false);
-    const [selectedBaseLayer, setBaseLayer] = React.useState('Satellite');
+    const [selectedBaseLayer, setBaseLayer] = React.useState(getPref('mapBase') || 'Satellite Imagery');
     const [center, setCenter] = React.useState([lat, lng]);
     const [zoom, setZoom] = React.useState(4);
     const [clustered, setClustered] = React.useState(true);
 
+    // window dimensions
+    const [winWidth, winHeight] = useWindowSize();
+
     // leaflet map object
+    const mapPane = React.useRef(null);
     const mapObj = React.useRef(null);
     const layerGrp = React.useRef(null);
 
-    // SVG marker
-    const marker = `<svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 17.638889 21.166664"
-        height="22"
-        width="22">
-        <circle fill="transparent" cx="9" cy="9" r="7"/>
-        <g
-            transform="translate(-78.115082,-80.886905)"
-            id="layer1">
-            <path
-                fill="#000000"
-                d="m 86.934522,80.886905 c -4.8701,0 -8.81944,3.876146 -8.81944,8.656287 0,4.855101 3.8585,8.173855 8.81944,12.510378 4.96094,-4.336523 8.81945,-7.655277 8.81945,-12.510378 0,-4.780141 -3.94935,-8.656287 -8.81945,-8.656287 z m 0,15.875 c -3.89731,0 -7.05555,-3.159125 -7.05555,-7.055555 0,-3.896431 3.15824,-7.055556 7.05555,-7.055556 3.89731,0 7.05556,3.159125 7.05556,7.055556 0,3.89643 -3.15825,7.055555 -7.05556,7.055555 z"
-            />
-        </g>
-        <text
-            x="50%"
-            y="55%"
-            fill="#000000"
-            font-weight="bold"
-            font-family="sans-serif"
-            font-size="10px"
-            text-anchor="middle">N</text>
-    </svg>`
-
-    // destroy map instance
-    // const destroyMap = React.useCallback(() => {
-    //     // check if map initialized
-    //     if (mapObj.current) {
-    //         // mapObj.current._leaflet_id = null;
-    //         mapObj.current.off();
-    //         mapObj.current.remove();
-    //     }
-    // }, []);
-
-
-    // request stations in selected cluster
+    // request station(s) view in selected cluster
+    // - if single station, go to that station info page
+    // - for multiple station, go to filter page for ids
     const loadView = React.useCallback((ids = []) => {
-        router.update(createRoute('/filter', { ids: ids }));
+        ids.length === 1
+            ? router.update(createNodeRoute('stations', 'show', ids[0]))
+            : router.update(createRoute('/filter', { ids: ids }));
     }, [router]);
 
     // cluster station locations for n > 1
@@ -102,16 +79,16 @@ function MapNavigator({ data, filter }) {
         const _applyFilter = (station) => {
 
             // filter is empty
-            if (Object.keys(filter).length === 0) return true;
+            if (Object.keys(nav.filter).length === 0) return true;
 
             // apply data field filters - include stations that:
             // - have the filter property
             // - either have an empty filter property or match in value
-            return Object.keys(filter).reduce((o, key) => {
+            return Object.keys(nav.filter).reduce((o, key) => {
                 return o && station.hasOwnProperty(key)
                     && (
-                        !filter[key]
-                        || parseInt(station[key]) === parseInt(filter[key])
+                        !nav.filter[key]
+                        || parseInt(station[key]) === parseInt(nav.filter[key])
                     );
             }, true);
         };
@@ -122,59 +99,24 @@ function MapNavigator({ data, filter }) {
             // select marker fill colour based on selection
             const fillColour = isSelected ? 'E34234' : '008896';
 
-            // marker SVG templates
-            const markers = {
-                cluster: `<svg
-                           xmlns="http://www.w3.org/2000/svg"
-                           viewBox="0 0 17.638889 21.166664"
-                           height="80"
-                           width="80">
-                            <circle fill="#FFFFFF" cx="9" cy="9" r="7"/>
-                          <g
-                             transform="translate(-78.115082,-80.886905)"
-                             id="layer1">
-                            <path
-                               fill="#${fillColour}"
-                               d="m 86.934522,80.886905 c -4.8701,0 -8.81944,3.876146 -8.81944,8.656287 0,4.855101 3.8585,8.173855 8.81944,12.510378 4.96094,-4.336523 8.81945,-7.655277 8.81945,-12.510378 0,-4.780141 -3.94935,-8.656287 -8.81945,-8.656287 z m 0,15.875 c -3.89731,0 -7.05555,-3.159125 -7.05555,-7.055555 0,-3.896431 3.15824,-7.055556 7.05555,-7.055556 3.89731,0 7.05556,3.159125 7.05556,7.055556 0,3.89643 -3.15825,7.055555 -7.05556,7.055555 z"
-                                />
-                          </g>
-                            <text
-                                x="50%"
-                                y="50%"
-                                fill="#444444"
-                                font-weight="bold"
-                                font-family="sans-serif"
-                                font-size="6px"
-                                text-anchor="middle">
-                                ${n}
-                            </text>
-                        </svg>`,
-                single: `<svg
-                           xmlns="http://www.w3.org/2000/svg"
-                           viewBox="0 0 17.638889 21.166664"
-                           height="50"
-                           width="50">
-                            <circle fill="#00C6BB" cx="9" cy="9" r="7"/>
-                          <g
-                             transform="translate(-78.115082,-80.886905)"
-                             id="layer1">
-                            <path
-                                fill="#${fillColour}"
-                               d="m 86.934522,80.886905 c -4.8701,0 -8.81944,3.876146 -8.81944,8.656287 0,4.855101 3.8585,8.173855 8.81944,12.510378 4.96094,-4.336523 8.81945,-7.655277 8.81945,-12.510378 0,-4.780141 -3.94935,-8.656287 -8.81945,-8.656287 z m 0,15.875 c -3.89731,0 -7.05555,-3.159125 -7.05555,-7.055555 0,-3.896431 3.15824,-7.055556 7.05555,-7.055556 3.89731,0 7.05556,3.159125 7.05556,7.055556 0,3.89643 -3.15825,7.055555 -7.05556,7.055555 z"
-                                />
-                          </g>
-                        </svg>`,
-            };
-
             // select marker icon
-            const iconSVG = n > 1 ? markers.cluster : markers.single;
+            const iconSVG = n > 1 ?
+                getMarker('cluster', fillColour, n)  :
+                getMarker('single', fillColour);
 
-            return L.icon({
-                iconUrl: 'data:image/svg+xml;base64,' + btoa(iconSVG),
-                iconSize: [50, 50],
-                iconAnchor: [25, 50],
-                tooltipAnchor: [10, 0]
-            });
+            return n > 1
+                ? L.icon({
+                    iconUrl: 'data:image/svg+xml;base64,' + btoa(iconSVG),
+                    iconSize: [50, 50],
+                    iconAnchor: [25, 50],
+                    tooltipAnchor: [10, 0]
+                })
+                : L.icon({
+                    iconUrl: 'data:image/svg+xml;base64,' + btoa(iconSVG),
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 40],
+                    tooltipAnchor: [10, 0]
+                });
         };
 
         // grid settings: number of grid cells is scaled by zoom level
@@ -207,7 +149,7 @@ function MapNavigator({ data, filter }) {
         }
 
         // filter stations outside (padded) map view
-        const FilteredData = data
+        const FilteredData = nav.map
             .filter(station => {
                 // filter stations not in map view
                 const coord = L.latLng(station.lat, station.lng);
@@ -291,13 +233,13 @@ function MapNavigator({ data, filter }) {
                         const zoomLevel = mapObj.current.getZoom() + 1;
                         mapObj.current.flyTo(coord, zoomLevel);
                     })
-                    .on('mouseover', function (e) {
+                    .on('mouseover', function () {
                         this.bindTooltip(`
                         Lat: ${centroid[0].toFixed(3)}, 
                         Lng: ${centroid[1].toFixed(3)}
                         `).openTooltip();
                     })
-                    .on('mouseout', function (e) {
+                    .on('mouseout', function () {
                         this.closeTooltip();
                     });
                 // add cluster marker to layer
@@ -306,7 +248,7 @@ function MapNavigator({ data, filter }) {
             }, o);
             return o;
         }, []);
-    }, [data, mapObj, filter, loadView, zoom, clustered]);
+    }, [nav, mapObj, loadView, zoom, clustered]);
 
     /**
      * Reset map view to new center coordinate and zoom level.
@@ -338,14 +280,28 @@ function MapNavigator({ data, filter }) {
     // - if on station info page, center and zoom to location on the map
     React.useEffect(() => {
         _isMounted.current = true;
-        if (_isMounted.current) {
+        if (_isMounted.current && mapObj.current) {
             const {lat = null, lng = null} = api.metadata;
             if (lat && lng && mapObj.current) {
                 mapObj.current.flyTo([lat, lng], 12);
             }
         }
+
         return () => {_isMounted.current = false;}
     }, [api, setClustered])
+
+    // Redraw map if container was resized.
+    React.useEffect(() => {
+        _isMounted.current = true;
+        if (_isMounted.current && mapObj.current) {
+            mapObj.current.invalidateSize();
+        }
+        return () => {
+            _isMounted.current = false;
+            nav.setResize(false);
+        }
+    }, [nav.resize, nav.setResize, winWidth, winHeight]);
+
 
     /**
      * Initialize leaflet map.
@@ -358,25 +314,10 @@ function MapNavigator({ data, filter }) {
 
     const initMap = React.useCallback((domNode) => {
 
-        // create base tile layers
-        const baseLayers = {
-            'Map': L.tileLayer(
-                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                {
-                    maxZoom: 17,
-                    minZoom: 4,
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                }),
-            'Satellite': L.tileLayer(
-                'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-                {
-                    maxZoom: 17,
-                    minZoom: 4,
-                    attribution: '&copy; <a href="https://www.arcgisonline.com/copyright">ARCGIS</a> contributors',
-                }),
-        };
+        // adjust height to fill window
+        domNode.style.height = window.innerHeight - 140 + 'px';
 
-        if (api.loaded && center && zoom && data && Object.keys(data).length > 0) {
+        if (api.loaded && center && zoom && nav.map && Object.keys(nav.map).length > 0) {
 
             if (mapObj.current) return;
 
@@ -398,9 +339,9 @@ function MapNavigator({ data, filter }) {
 
             // add marker layer to map
             layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
-            let overlays = {
-                'Stations': layerGrp.current,
-            };
+            // let overlays = {
+            //     'Stations': layerGrp.current,
+            // };
 
             // Add marker cluster control
             L.Control.Cluster = L.Control.extend({
@@ -408,13 +349,14 @@ function MapNavigator({ data, filter }) {
                     const label = L.DomUtil.create('label', 'map-cluster-control');
                     const input = L.DomUtil.create('input', 'map-cluster-control', label);
                     const button = L.DomUtil.create('button', 'map-cluster-control', label);
+                    button.title = "Toggle Individual Station Markers";
                     L.DomUtil.addClass(button, 'activated');
                     input.value = "true";
                     input.type = 'hidden';
                     button.style.width = '30px';
                     button.style.height = '30px';
                     button.value = "Cluster";
-                    button.innerHTML = marker;
+                    button.innerHTML = getMarker('icon');
                     L.DomEvent.on(button, 'click', () => {
                         input.value = !(input.value === "true");
                         input.value === "true"
@@ -425,9 +367,7 @@ function MapNavigator({ data, filter }) {
                     return label;
                 },
 
-                onRemove: function(map) {
-                    // L.DomEvent.off(this, 'click', () => {console.log('cluster off!')});
-                }
+                onRemove: function(map) {}
             });
             L.control.cluster = function(opts) {
                 return new L.Control.Cluster(opts);
@@ -439,8 +379,10 @@ function MapNavigator({ data, filter }) {
             L.control.scale().addTo(mapObj.current);
 
             // callback for base layer changes
+            // save as user preference
             mapObj.current.on('baselayerchange', e => {
                 setBaseLayer(e.name);
+                setPref('mapBase', e.name);
             });
 
             // create callbacks for map zooming / panning
@@ -460,17 +402,18 @@ function MapNavigator({ data, filter }) {
 
     }, [
         api,
+        nav,
         initCenter,
         currentFilter,
-        data,
         center,
         zoom,
         reset,
         selectedBaseLayer,
+        baseLayers,
         setBaseLayer,
         getClusterMarkers,
         setClustered,
-        setLoaded
+        setLoaded,
     ]);
 
     /**
@@ -485,12 +428,17 @@ function MapNavigator({ data, filter }) {
     }, [initMap]);
 
     return (
-        <div className={'map'}>
+        <div
+            ref={mapPane} className={'map'}
+            style={{
+                display: hidden ? ' none' : ' block',
+                height: (winHeight - 140) + 'px'
+            }}
+        >
             {
                 !loaded && <Loading/>
             }
             <div
-                style={{visibility: loaded ? 'visible' : 'hidden'}}
                 id={mapID}
                 className={mapID}
                 ref={mapContainer}

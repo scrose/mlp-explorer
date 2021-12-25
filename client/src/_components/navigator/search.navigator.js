@@ -12,6 +12,7 @@ import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { genID, sanitize } from '../../_utils/data.utils.client';
 import { getModelLabel } from '../../_services/schema.services.client';
 import Accordion from "../common/accordion";
+import {useWindowSize} from "../../_utils/events.utils.client";
 
 /**
  * Generate unique key.
@@ -26,10 +27,11 @@ const keyID = genID();
  * @param {Array} filter
  * @param {int} limit
  * @param {int} offset
+ * @param hidden
  * @return
  */
 
-const SearchNavigator = ({filter=[], limit=5, offset=0}) => {
+const SearchNavigator = ({filter=[], limit=5, offset=0, hidden=true}) => {
 
     const router = useRouter();
 
@@ -41,6 +43,9 @@ const SearchNavigator = ({filter=[], limit=5, offset=0}) => {
 
     // error flag
     const [error, setError] = React.useState(null);
+
+    // window dimensions
+    const [winWidth, winHeight] = useWindowSize();
 
     // update query string value
     const updateQuery = (e) => {
@@ -71,12 +76,13 @@ const SearchNavigator = ({filter=[], limit=5, offset=0}) => {
                     if (res.error) return setError(res.error);
                     const { response = {} } = res || {};
                     const { data = {} } = response || {};
-                    const { query = [], results = {} } = data || {};
+                    const { terms = [], results = {} } = data || {};
+                    console.log(terms, results)
 
                     // ensure data is an array
-                    if (Object.keys(results).length > 0 && Array.isArray(query)) {
+                    if (Object.keys(results).length > 0 && Array.isArray(terms)) {
                         setSearchResults(results);
-                        setSearchTerms(query);
+                        setSearchTerms(terms);
                     }
                 });
         }
@@ -150,8 +156,13 @@ const SearchNavigator = ({filter=[], limit=5, offset=0}) => {
         return blurb;
     }
 
-    return <>
-        <div className="search">
+    return <div
+        className="search"
+        style={{
+            display: hidden ? ' none' : ' block',
+            height: ( winHeight - 140 ) + 'px'
+        }}>
+        <div className="search-input">
             <input
                 className={'search-query'}
                 type={'search'}
@@ -197,7 +208,7 @@ const SearchNavigator = ({filter=[], limit=5, offset=0}) => {
                                             Last Modified: {sanitize(last_modified, 'date')}
                                         </div>
                                         {
-                                            excerpt && <p>...&#160;{excerpt}&#160;...</p>
+                                            excerpt && <p><em>...&#160;{excerpt}&#160;...</em></p>
                                         }
                                     </div>
                                 })
@@ -215,7 +226,7 @@ const SearchNavigator = ({filter=[], limit=5, offset=0}) => {
                     </Accordion>
                 })
         }</div>
-    </>
+    </div>
 }
 
 export default SearchNavigator;

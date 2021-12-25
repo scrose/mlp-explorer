@@ -15,6 +15,9 @@ import Button from '../common/button';
 import {capitalize, sorter} from '../../_utils/data.utils.client';
 import Loading from '../common/loading';
 import Accordion from "../common/accordion";
+import {useNav} from "../../_providers/nav.provider.client";
+import L from "leaflet";
+import {useWindowSize} from "../../_utils/events.utils.client";
 
 /**
  * Inline tree node menu component.
@@ -337,25 +340,35 @@ const TreeNodeList = ({items, filter, setDialog, showCurrent}) => {
 }
 
 /**
- * Map navigator component.
+ * [Node] Tree navigator component.
  *
  * @public
- * @param view
- * @param data
- * @param filter
- * @param setDialog
  *
  * @return
  */
 
-const TreeNavigator = ({view, data, filter, setDialog}) => {
+const TreeNavigator = ({ hidden=true }) => {
 
+    const nav = useNav();
+    const treeRef = React.useRef();
     const [showCurrent, setShowCurrent] = React.useState(false);
 
-    // render node tree
+    // mounted component flag
+    const _isMounted = React.useRef(false);
+
+    // window dimensions
+    const [winWidth, winHeight] = useWindowSize();
+
     return (
-        data && Object.keys(data).length > 0
-            ? <div className={'tree'}>
+        nav.tree && Object.keys(nav.tree).length > 0
+            ? <div
+                ref={treeRef}
+                className={'tree'}
+                style={{
+                    display: hidden ? ' none' : ' block',
+                    height: ( winHeight - 140 ) + 'px'
+                }}
+            >
                 {/*<div className={'h-menu'}>*/}
                 {/*    <ul><li className={'push'}>*/}
                 {/*    <Button*/}
@@ -370,7 +383,7 @@ const TreeNavigator = ({view, data, filter, setDialog}) => {
                 {/*</div>*/}
                 <ul className={'root'}>
                     {
-                        Object.keys(data)
+                        Object.keys(nav.tree)
                             .map((key, index) => {
                                 return (
                                     <Accordion
@@ -380,9 +393,9 @@ const TreeNavigator = ({view, data, filter, setDialog}) => {
                                         open={true}
                                     >
                                         <TreeNodeList
-                                            items={data[key]}
-                                            filter={filter}
-                                            setDialog={setDialog}
+                                            items={nav.tree[key]}
+                                            filter={nav.filter}
+                                            setDialog={nav.setDialog}
                                             showCurrent={showCurrent}
                                         />
                                     </Accordion>
@@ -395,4 +408,4 @@ const TreeNavigator = ({view, data, filter, setDialog}) => {
     )
 }
 
-export default React.memo(TreeNavigator);
+export default React.memo(TreeNavigator)

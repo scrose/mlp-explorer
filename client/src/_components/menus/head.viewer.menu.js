@@ -6,10 +6,10 @@
  */
 
 import React from 'react';
-import MainMenu from '../menus/main.menu';
+import MainMenu from './main.menu';
 import Logo from '../common/logo';
 import { redirect } from '../../_utils/paths.utils.client';
-import BreadcrumbMenu from '../menus/breadcrumb.menu';
+import BreadcrumbMenu from './breadcrumb.menu';
 import Button from '../common/button';
 import Accordion from "../common/accordion";
 import LoginUsers from "../users/login.users";
@@ -38,7 +38,7 @@ const UserMenu = () => {
  * @public
  */
 
-const HeaderViewer = () => {
+const HeadViewerMenu = () => {
     return (
         <header>
             <div className={'banner'}>
@@ -49,12 +49,9 @@ const HeaderViewer = () => {
                         <li className={'push'}><UserMenu /></li>
                     </ul>
                 </div>
-                <div className={'context-menu'}>
-                    <BreadcrumbMenu />
-                </div>
             </div>
         </header>
     );
 }
 
-export default React.memo(HeaderViewer);
+export default React.memo(HeadViewerMenu);

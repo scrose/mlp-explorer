@@ -9,7 +9,7 @@ import React from 'react';
 import File from '../common/file';
 import Accordion from '../common/accordion';
 import { getModelLabel } from '../../_services/schema.services.client';
-import MenuEditor from '../editor/menu.editor';
+import EditorMenu from '../menus/editor.menu';
 import { useUser } from '../../_providers/user.provider.client';
 import { sanitize } from '../../_utils/data.utils.client';
 import Table from '../common/table';
@@ -64,7 +64,7 @@ export const FilesTable = ({owner, files=[]}) => {
         };
 
         // add editor menu for logged-in users
-        rows.menu = <MenuEditor
+        rows.menu = <EditorMenu
             fileType={file_type}
             model={file_type}
             id={id}
@@ -133,7 +133,7 @@ export const FilesView = ({ files, owner }) => {
                 hasDependents={false}
                 open={true}
                 menu={
-                    <MenuEditor
+                    <EditorMenu
                         model={owner.type}
                         id={owner.id}
                         owner={owner}

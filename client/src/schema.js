@@ -17,7 +17,8 @@ export const schema = {
     app: {
         project: "Mountain Legacy Project",
         name: "Explorer",
-        title: "Welcome to the Mountain Legacy Project Explorer"
+        title: "Welcome to the Mountain Legacy Project Explorer",
+        mlp_url: 'http://mountainlegacy.ca'
     },
     routes: {
         '/': {
@@ -1690,6 +1691,12 @@ export const schema = {
                     }
                 }
             ]
+        },
+        files: {
+            attributes: {
+                label: "Files",
+                singular: "File"
+            }
         }
     }
 }

@@ -20,7 +20,7 @@ import { useRouter } from '../../_providers/router.provider.client';
  * @public
  */
 
-const MenuViewer = ({
+const ViewerMenu = ({
                         id = '',
                         fileType = '',
                         filename = '',
@@ -138,5 +138,5 @@ const MenuViewer = ({
     );
 };
 
-export default MenuViewer;
+export default ViewerMenu;
 

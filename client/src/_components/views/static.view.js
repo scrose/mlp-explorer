@@ -7,7 +7,7 @@
 
 import React from 'react';
 import DashboardViewer from '../viewer/dashboard.viewer';
-import DashboardEditor from '../editor/dashboard.editor';
+import DashboardEditor from '../viewer/dashboard.editor';
 import NotfoundError from '../error/notfound.error';
 import UnavailableError from '../error/unavailable.error';
 import ServerError from '../error/server.error';

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<svg viewBox="0 0 261.575 101.18" width="100px" height="50px" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 261.575 101.18" width="80px" height="40px" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <clipPath id="clippath0" transform="">
       <path d="M 0 612 L 792 612 L 792 0 L 0 0 Z" style="fill: none; clip-rule: nonzero;"/>
@@ -10,7 +10,7 @@
   </g>
   <g style="clip-path: url(#clippath0);" transform="matrix(1, 0, 0, -1, -267.213989, 356.589905)">
     <g transform="translate(302.0812 306.3531)">
-      <path d="M 0 0 C 0.389 0.254 0.782 0.492 1.166 0.71 C 0.725 0.71 0.354 0.482 0 0" style="fill: rgb(44, 46, 53); fill-opacity: 1;"/>
+      <path d="M 0 0 C 0.389 0.254 0.782 0.492 1.166 0.71 C 0.725 0.71 0.354 0.482 0 0" style="fill: rgb(44, 46, 53);"/>
     </g>
   </g>
   <g style="clip-path: url(#clippath0);" transform="matrix(1, 0, 0, -1, -267.213989, 356.589905)">

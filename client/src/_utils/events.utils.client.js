@@ -5,6 +5,8 @@
  * MIT Licensed
  */
 
+import { useLayoutEffect, useState } from 'react';
+
 /**
  * Returns a function, that, as long as it continues to be invoked, will not
  * be triggered. The function will be called after it stops being called for
@@ -32,4 +34,24 @@ export function debounce(func, wait, immediate) {
         timeout = setTimeout(later, wait);
         if (callNow) func.apply(context, args);
     }
+}
+
+/**
+ * Hook that listens to the window resize event.
+ *
+ * @return
+ * @public
+ */
+
+export function useWindowSize() {
+    const [size, setSize] = useState([0, 0]);
+    useLayoutEffect(() => {
+        function updateSize() {
+            setSize([window.innerWidth, window.innerHeight]);
+        }
+        window.addEventListener('resize', updateSize);
+        updateSize();
+        return () => window.removeEventListener('resize', updateSize);
+    }, []);
+    return size;
 }

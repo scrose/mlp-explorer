@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Tools.Selector
+ * MLP.Client.Components.Tools.Editor
  * File: selector.tools.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
@@ -15,7 +15,7 @@ import {genSchema, getDependentTypes, getModelLabel} from "../../_services/schem
 import {createNodeRoute} from "../../_utils/paths.utils.client";
 import Importer from "./import.tools";
 import Accordion from "../common/accordion";
-import MenuEditor from "../editor/menu.editor";
+import EditorMenu from "../menus/editor.menu";
 import Loading from "../common/loading";
 import {FilesTable} from "../views/files.view";
 import {CaptureImagesTable} from "../views/capture.view";
@@ -50,7 +50,7 @@ export const DependentNodes = ({nodes, owner, ownerLabel=''}) => {
             label={`${getModelLabel(node.type)} : ${isCapture ? refImage.label : label} (${ownerLabel})`}
             type={node.type}
             thumbnail={thumbnail}
-            menu={<MenuEditor
+            menu={<EditorMenu
                 model={node.type}
                 id={node.id}
                 metadata={metadata}
@@ -126,7 +126,7 @@ export const DependentFiles = ({files, owner}) => {
                 label={getModelLabel(fileKey, 'label')}
                 open={true}
                 type={fileKey}
-                menu={<MenuEditor
+                menu={<EditorMenu
                     dependents={[fileKey]}
                     id={owner.id}
                     model={owner.type}
