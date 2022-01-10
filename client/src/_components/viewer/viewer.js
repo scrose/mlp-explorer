@@ -11,8 +11,6 @@ import DataView from '../views/data.view';
 import StaticView from '../views/static.view';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
-import ViewerMenu from '../menus/viewer.menu';
-import { useData } from '../../_providers/data.provider.client';
 import Footer from "../common/footer";
 import {useWindowSize} from "../../_utils/events.utils.client";
 
@@ -32,7 +30,7 @@ const Viewer = () => {
         <div className={'viewer'}>
             <div
                 className={`view`}
-                style={{height: (window.innerHeight - 140) + 'px'}}
+                style={{height: (winHeight - 140) + 'px'}}
             >
                 <Heading />
                 <Message />

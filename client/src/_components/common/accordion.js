@@ -69,7 +69,7 @@ const Accordion = ({
                             url={thumbnail.url}
                             scale={'thumb'}
                             title={label}
-                            label={thumbnail.label}
+                            caption={thumbnail.label}
                             onClick={_handleToggle}
                         />
                     </li>

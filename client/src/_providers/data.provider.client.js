@@ -73,11 +73,23 @@ function DataProvider(props) {
         // check if label is empty, if so, use root node label
         const labelAlt = label ? label : getRootNode(path).label;
 
+        // get proximate geographical location of node from station (if available)
+        const location = !metadata.lng || !metadata.lat
+            ? Object.keys(path)
+                .filter(index => path[index].hasOwnProperty('node') && path[index].node.type === 'stations')
+                .reduce((o, index) => {
+                    o.lat = path[index].metadata.lat;
+                    o.lng = path[index].metadata.lng;
+                    return o;
+                    }, {})
+            : { lng: metadata.lng, lat: metadata.lat}
+
         return {
             id: id,
             type: type,
             label: labelAlt,
             metadata: metadata,
+            location: location,
             node: node,
             file: file,
             files: files,
@@ -100,7 +112,7 @@ function DataProvider(props) {
         router.get(`/${type}`)
             .then(res => {
                 if (!res) return null;
-                console.log('\nOptions >>>\n', res);
+                console.log('\n<<< Options >>>\n', res);
                 if (res.error) return setError(res.error);
                 // destructure API data for options
                 const { response = {} } = res || {};
@@ -157,7 +169,7 @@ function DataProvider(props) {
                     if (!res) return null;
                     const { response={} } = res || {};
 
-                    console.log('\n>>> Response >>>\n', res)
+                    console.log('\n<<< Response >>>\n', res)
 
                     // destructure API data for settings
                     const {
@@ -200,6 +212,7 @@ function DataProvider(props) {
         type,
         label,
         metadata,
+        location,
         dependents,
         owner,
         status
@@ -233,6 +246,7 @@ function DataProvider(props) {
                 owner,
                 status,
                 metadata,
+                location,
                 attributes,
                 dependents,
                 options,

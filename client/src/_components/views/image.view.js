@@ -68,8 +68,8 @@ export const ImagesTable = ({type, owner, files=[]}) => {
             thumbnail: <Image
                 url={url}
                 scale={'thumb'}
-                label={filename}
                 title={filename}
+                caption={filename}
                 onClick={()=>{
                     router.update(createNodeRoute(file_type, 'show', id))
                 }}
@@ -106,7 +106,7 @@ export const ImagesTable = ({type, owner, files=[]}) => {
 }
 
 /**
- * Image view component.
+ * Single image view component.
  *
  * @public
  * @param {Object} data

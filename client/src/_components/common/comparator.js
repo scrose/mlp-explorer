@@ -1,252 +1,214 @@
 /*!
  * MLP.Client.Components.Common.Comparator
- * File: comparator.js
+ * File: slider.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
 
 import React from 'react';
-import { schema } from '../../schema';
-import Loading from './loading';
-import { UserMessage } from './message';
-import { scaleToFit } from '../iat/transform.iat';
 import Button from './button';
-
-/**
- * Image comparator maximum dimensions.
- */
-
-const COMPARATOR_MAX_WIDTH = 800;
-const COMPARATOR_MAX_HEIGHT = 500;
+import Image from './image';
+import Dialog from './dialog';
+import { getModelLabel } from '../../_services/schema.services.client';
+import Loading from "./loading";
+import {useRouter} from "../../_providers/router.provider.client";
+import {createNodeRoute} from "../../_utils/paths.utils.client";
+import {FilesList} from "../views/files.view";
+import File from "./file";
+import Slider from "./slider";
 
 /**
  * Image comparator component.
  *
  * @public
  * @param {Array} images
- * @param {float} width
+ * @param menu
+ * @param display
  * @return {JSX.Element}
  */
 
-const Comparator = ({ images = [], scale = 1.0, onStop=()=>{} }) => {
+const Comparator = ({
+                    images = [],
+                    menu = true,
+                    fit='contain',
+                    autoslide=null,
+                    expandable=true
+}) => {
 
-    // input image data
-    const [image1, image2] = images || [];
+    // selected slide state
+    const [selectedIndex, setSelectedIndex] = React.useState(0);
+    const [pairToggle, setPairToggle] = React.useState(false);
+    const [viewerType, setViewerType] = React.useState('overlay');
+    const [expandImage, setExpandImage] = React.useState(false);
+    const selectedImage = images[selectedIndex];
 
-    // error status
-    const [message, setMessage] = React.useState(null);
+    const router = useRouter();
 
-    // loading status
-    const [status, setStatus] = React.useState(0);
-    const [loaded1, setLoaded1] = React.useState(false);
-    const [loaded2, setLoaded2] = React.useState(false);
-    const [img1W, setImg1W] = React.useState(0);
+    // retrieve image metadata
+    const { historic_captures={}, modern_captures={} } = selectedImage || {};
+    const selectedCapture = pairToggle ? historic_captures : modern_captures;
+    const { refImage={} } = selectedCapture || {};
+    const { label='', file={}, url='', title='' } = refImage;
+    const  {file_type='' } = file;
 
-    // slider state
-    let sliding = false;
-
-    // mounted status
-    const _isMounted = React.useRef(false);
-
-    // panel DOM references
-    const panel1Ref = React.useRef();
-    const panel2Ref = React.useRef();
-    const canvas1Ref = React.useRef();
-    const canvas2Ref = React.useRef();
-
-    // image DOM references
-    const img1Ref = React.useRef();
-    const img2Ref = React.useRef();
-
-    // slider DOM reference: element controls display of overlay
-    const sliderRef = React.useRef();
-
-    // Image labels
-    const label1 = image1 && image1.hasOwnProperty('label') ? image1.label : 'Image 1';
-    const label2 = image2 && image2.hasOwnProperty('label') ? image2.label : 'Image 2';
-
-    function _slideFinish() {
-    }
-
-    function _slideMove(e) {
-        /* If the slider is no longer clicked, exit this function: */
-        if (!sliding) return false;
-        // get image boundary dimensions / positions
-        const rect = canvas1Ref.current.getBoundingClientRect();
-        // scale mouse coordinates after they have been adjusted to be relative to element
-        // - Prevent the slider from being positioned outside the image.
-        let pos = Math.max(Math.min(Math.floor((e.clientX - rect.left)), img1W ), 0);
-
-        /* Execute a function that will resize the overlay image according to the cursor: */
-        _slide(pos);
-    }
-
-    /* Position the slider and resize panel */
-    function _slide(x) {
-        panel1Ref.current.style.width = x + 'px';
-        sliderRef.current.style.left = x - (sliderRef.current.offsetWidth / 2) + 'px';
-    }
-
-    // initialize image sources
-    // - (1) data URLs
-    // - (2) URLs
+    // auto-increment slideshow
     React.useEffect(() => {
-        _isMounted.current = true;
-
-        if (loaded1 && loaded2) setStatus(2);
-
-        if (
-            _isMounted.current
-            && image1
-            && image2
-            && panel1Ref.current
-            && panel2Ref.current
-            && img1Ref.current
-            && img2Ref.current
-            && status === 0
-        ) {
-
-            setStatus(1);
-
-            const img1 = img1Ref.current;
-            const img2 = img2Ref.current;
-            const panel1 = panel1Ref.current;
-            const panel2 = panel2Ref.current;
-            const canvas1 = canvas1Ref.current;
-            const canvas2 = canvas2Ref.current;
-            const ctx1 = canvas1.getContext('2d');
-            const ctx2 = canvas2.getContext('2d');
-            const slider = sliderRef.current;
-
-            // set data urls for images
-            const url1 = image1 && image1.hasOwnProperty('url')
-                ? image1.url.medium : image1;
-            const url2 = image2 && image2.hasOwnProperty('url')
-                ? image2.url.medium : image2;
-
-            // load image 1 (overlay)
-            img1.onerror = () => {
-                setMessage({ msg: 'Error: Image could not be loaded.', type: 'error' });
-                img1.src = schema.errors.image.fallbackSrc;
-            };
-            img1.onload = function() {
-
-                // compute scaled canvas dimensions and scale image to fit
-                canvas1.width = COMPARATOR_MAX_WIDTH * scale;
-                canvas1.height = COMPARATOR_MAX_HEIGHT * scale;
-                const {w, h} = scaleToFit(img1.naturalWidth, img1.naturalHeight, canvas1.width, img1.naturalHeight);
-
-                // store scaled image width
-                setImg1W(w);
-
-                /* Initialize the width of overlay image to 50%: */
-                ctx1.drawImage(img1, 0, 0, w, h);
-                panel1.style.width = (w / 2) + 'px';
-                panel1.style.height = h + 'px';
-
-                /* Position the slider in the middle: */
-                slider.style.top = (h / 2) - (slider.offsetHeight / 2) + 'px';
-                slider.style.left = (w / 2) - (slider.offsetWidth / 2) + 'px';
-
-                setLoaded1(true);
-
-            };
-            img1.src = url1;
-
-            // load image 2 (underlay)
-            img2.onerror = () => {
-                setMessage({ msg: 'Error: Image could not be loaded.', type: 'error' });
-                img2.src = schema.errors.image.fallbackSrc;
-            };
-            img2.onload = function() {
-
-                // compute scaled canvas dimensions and scale image to fit
-                canvas2.width = COMPARATOR_MAX_WIDTH * scale;
-                canvas2.height = COMPARATOR_MAX_HEIGHT * scale;
-                const {w, h} = scaleToFit(img2.naturalWidth, img2.naturalHeight, canvas2.width, img2.naturalHeight);
-
-                ctx2.drawImage(img2, 0, 0, w, h);
-                panel2.style.width = w + 'px';
-                panel2.style.height = h + 'px';
-
-                setLoaded2(true);
-            };
-            img2.src = url2;
-        }
+        const timer = autoslide ? setTimeout(() => {
+                setSelectedIndex((selectedIndex + 1) % images.length);
+            }, autoslide) : null;
         return () => {
-            _isMounted.current = false;
+            clearTimeout(timer);
         };
-    }, [
-        image1,
-        image2,
-        scale,
-        status,
-        setStatus,
-        loaded1,
-        setLoaded1,
-        loaded2,
-        setLoaded2,
-    ]);
+    }, [selectedIndex, images.length, setSelectedIndex, autoslide]);
 
-    return <>
-        <UserMessage
-            message={message}
-            onClose={() => {
-                setMessage(false);
-            }}
-        />
-        <div className={'comparator'}>
-            <div
-                className={`comparator-container`}
-                onMouseLeave={_slideFinish}
-                onMouseUp={() => {
-                    sliding = false;
-                }}
-                onMouseMove={_slideMove}
-            >
-                <div
-                    className={`comparator-slider`}
-                    ref={sliderRef}
-                    onTouchStart={() => {
-                        sliding = true;
-                    }}
-                    onTouchMove={_slideMove}
-                    onTouchEnd={(e) => {
-                        e.preventDefault();
-                    }}
-                    onMouseDown={() => {
-                        sliding = true;
-                    }}
-                >
-                    {
-                        status === 2
-                            ? <Button icon={'slide'} />
-                            :   <Loading />
-                    }
+    // increment/decrement index to make slide visible
+    const prevPair = () => {
+        setSelectedIndex((selectedIndex - 1 + images.length) % images.length);
+    };
+    const nextPair = () => {
+        setSelectedIndex((selectedIndex + 1) % images.length);
+    };
+
+    const getViewer = function() {
+        const viewers = {
+            slider: () => {
+                return <Slider images={[historic_captures, modern_captures]} />
+            },
+            default: () => {
+                return <div>
+                    <div className={'fade'} style={{display: pairToggle ? 'block' : 'none'}}>
+                        <Image
+                            url={historic_captures.refImage.url || ''}
+                            scale={'medium'}
+                            fit={fit}
+                        />
+                    </div>
+                    <div className={'fade'} style={{display: !pairToggle ? 'block' : 'none'}}>
+                        <Image
+                            url={modern_captures.refImage.url || ''}
+                            scale={'medium'}
+                            fit={fit}
+                        />
+                    </div>
                 </div>
-                <div ref={panel1Ref} className={'comparator-img overlay'}>
-                    <canvas ref={canvas1Ref} />
-                </div>
-                <div ref={panel2Ref} className={'comparator-img'}>
-                    <canvas ref={canvas2Ref} />
-                </div>
-                <img
-                    style={{ 'display': 'none' }}
-                    ref={img1Ref}
-                    crossOrigin={'anonymous'}
-                    src={schema.errors.image.fallbackSrc}
-                    alt={label1}
-                />
-                <img
-                    style={{ 'display': 'none' }}
-                    ref={img2Ref}
-                    crossOrigin={'anonymous'}
-                    src={schema.errors.image.fallbackSrc}
-                    alt={label2}
-                />
+            }
+        }
+        return viewers.hasOwnProperty(viewerType) ? viewers[viewerType]() : viewers.default();
+    }
+
+    return (
+        <div className="slider">
+            <div className={'slides'}>
+                { images.length > 0 ? getViewer() : <Loading /> }
+                <div className={'numbertext'}>{ selectedIndex + 1 }/{images.length}</div>
+                {
+                    expandable && <div className={'expand-image'}><Button icon={'enlarge'} onClick={() => {
+                        setExpandImage(true);
+                    }}/></div>
+                }
             </div>
+            {
+                label && <div className={'caption h-menu vcentered'}>
+                    <ul>
+                        <li><Button icon={'prev'} className={'prev'} onClick={prevPair} /></li>
+                        <li><Button
+                            title={'View as Overlay'}
+                            className={'capture-toggle'}
+                            icon={'images'}
+                            disabled={viewerType === 'overlay'}
+                            onClick={()=>{setViewerType('overlay')}}
+                        /></li>
+                        <li><Button
+                            title={'View in Slider'}
+                            className={'capture-toggle'}
+                            icon={'overlay'}
+                            onClick={()=>{setViewerType('slider')}}
+                            disabled={viewerType === 'slider'}
+                        /></li>
+                        {
+                            viewerType === 'overlay' && <li><Button
+                                className={'capture-toggle'}
+                                icon={'sync'}
+                                onClick={() => {
+                                    setPairToggle(!pairToggle)
+                                }}
+                                label={pairToggle ? 'Modern' : 'Historic'}
+                            /></li>
+                        }
+                        <li><p>{label}</p></li>
+                        <li className={'push'}><Button icon={'next'} className={'next'} onClick={nextPair} /></li>
+                    </ul>
+                </div>
+            }
+            {
+                menu
+                    ?
+                    <div className={'thumbnails comparisons h-menu'}>
+                        <ul>
+                            {
+                                (images || []).map((imgPair, index) => {
+                                    const { historic_captures={}, modern_captures={} } = imgPair || {};
+                                    return (
+                                        <li
+                                            key={`slide_button_${index}`}
+                                            onClick={(e) => {
+                                                e.stopPropagation(); setSelectedIndex(index)}
+                                            }
+                                        >
+                                            <div className={'h-menu comparison-pair'}>
+                                                <ul>
+                                                    <li>
+                                                        <Image
+                                                            scale={'thumb'}
+                                                            caption={historic_captures.refImage.label}
+                                                            url={historic_captures.refImage.url}
+                                                        />
+                                                    </li>
+                                                    <li>
+                                                        <Image
+                                                            scale={'thumb'}
+                                                            caption={modern_captures.refImage.label}
+                                                            url={modern_captures.refImage.url}
+                                                        />
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </li>
+                                    );
+                                })
+                            }
+                        </ul>
+                    </div>
+                    :
+                    <div className={'dots'}>
+                        {
+                            (images || []).map((image, index) => {
+                                return (
+                                    <span
+                                        key={`slider_img_${index}`}
+                                        className={`dot${index === selectedIndex ? ' active' : ''}`}
+                                        onClick={() => {setSelectedIndex(index)}}
+                                    />
+                                );
+                            })
+                        }
+                    </div>
+            }
+            {
+                expandImage &&
+                <Dialog
+                    title={`${getModelLabel(file_type)}: ${label}`}
+                    setToggle={setExpandImage}>
+                    <Image
+                        key={`slide_${selectedIndex}`}
+                        url={url}
+                        title={title || label}
+                        scale={'medium'}
+                    />
+                </Dialog>
+            }
         </div>
-    </>;
+    );
 };
 
 export default Comparator;

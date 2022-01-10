@@ -16,7 +16,6 @@ import {capitalize, sorter} from '../../_utils/data.utils.client';
 import Loading from '../common/loading';
 import Accordion from "../common/accordion";
 import {useNav} from "../../_providers/nav.provider.client";
-import L from "leaflet";
 import {useWindowSize} from "../../_utils/events.utils.client";
 
 /**
@@ -352,9 +351,6 @@ const TreeNavigator = ({ hidden=true }) => {
     const nav = useNav();
     const treeRef = React.useRef();
     const [showCurrent, setShowCurrent] = React.useState(false);
-
-    // mounted component flag
-    const _isMounted = React.useRef(false);
 
     // window dimensions
     const [winWidth, winHeight] = useWindowSize();

@@ -22,7 +22,7 @@ import { createNodeRoute } from '../../_utils/paths.utils.client';
  * @return {JSX.Element}
  */
 
-const File = ({ data, callback=()=>{}, scale='thumb', owner={} }) => {
+const File = ({ data, callback=()=>{}, scale='thumb' }) => {
 
     const router = useRouter();
 
@@ -39,22 +39,22 @@ const File = ({ data, callback=()=>{}, scale='thumb', owner={} }) => {
         historic_images: () => <Image
             url={url}
             scale={scale}
-            label={label}
             title={filename}
+            caption={label}
             onClick={()=>{router.update(createNodeRoute('historic_captures', 'show', owner_id))}}
         />,
         modern_images: () => <Image
             url={url}
             scale={scale}
-            label={label}
             title={filename}
+            caption={label}
             onClick={()=>{router.update(createNodeRoute('modern_captures', 'show', owner_id))}}
         />,
         supplemental_images: () => <Image
             url={url}
             scale={scale}
-            label={label}
             title={filename}
+            caption={label}
             onClick={()=>{router.update(createNodeRoute('supplemental_images', 'show', id))}}
         />,
         default: () => <Download
@@ -77,7 +77,8 @@ const File = ({ data, callback=()=>{}, scale='thumb', owner={} }) => {
                         : renders.default()
                     : <Image
                         scale={'thumb'}
-                        label={'No File'}
+                        title={'No File'}
+                        caption={'No File'}
                     />}
         </div>
     )

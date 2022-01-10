@@ -7,9 +7,9 @@
 
 import * as React from 'react'
 import { makeRequest } from '../_services/api.services.client';
-import { createNodeRoute, filterPath, reroute, getRoot, createAPIURL } from '../_utils/paths.utils.client';
+import {createNodeRoute, filterPath, reroute, getRoot, createAPIURL } from '../_utils/paths.utils.client';
 import { getStaticView } from '../_services/schema.services.client';
-import { clearNodes, popSessionMsg } from '../_services/session.services.client';
+import { popSessionMsg } from '../_services/session.services.client';
 
 /**
  * Global data provider.
@@ -44,8 +44,27 @@ function RouterProvider(props) {
     // static view state: static views do not require API requests
     const [staticView, setStaticView] = React.useState(getStaticView(filterPath()));
 
-    // clear node path in session state
-    //clearNodes();
+    // Update router states on re-render
+    React.useEffect(() => {
+        const routeUpdater = function () {
+
+            // get the current URI path
+            const uri = window.location.pathname;
+
+            // set app route state
+            setCurrentRoute(uri);
+            setStaticView(getStaticView(filterPath()));
+
+            // update route in browser
+            reroute(uri);
+        }
+        // add history event listener
+        window.addEventListener('popstate', routeUpdater);
+        return () => {
+            window.removeEventListener('popstate', routeUpdater);
+        };
+    }, []);
+
 
     /**
      * Handle response data.
@@ -87,19 +106,6 @@ function RouterProvider(props) {
         // update route in browser
         reroute(uri);
     }
-
-    // add history event listener
-    window.addEventListener('popstate', function () {
-
-        // get the current URI path
-        const uri = window.location.pathname;
-
-        // set app route state
-        setCurrentRoute(uri);
-
-        // update route in browser
-        reroute(uri);
-    });
 
     /**
      * Data request method to fetch data from API.

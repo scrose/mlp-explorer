@@ -8,6 +8,68 @@
 import pool from './db.services.js';
 import * as cmpqueries from '../queries/comparisons.queries.js';
 import * as nserve from './nodes.services.js';
+import queries from "../queries/index.queries.js";
+import {get} from "./nodes.services.js";
+
+
+/**
+ * Filter comparisons by comparison ID array.
+ *
+ * @public
+ * @return {Promise} result
+ * @param comparisonIDs
+ * @param offset
+ * @param limit
+ */
+
+export const filterComparisonsByID = async (comparisonIDs, offset, limit) => {
+
+    if (!comparisonIDs) return null;
+
+    // NOTE: client undefined if connection fails.
+    const client = await pool.connect();
+
+    try {
+        // start transaction
+        await client.query('BEGIN');
+
+        // get filtered nodes
+        let { sql, data } = queries.comparisons.filterByIDArray(comparisonIDs, offset, limit);
+        let comparisons = await client.query(sql, data)
+            .then(res => {
+                return res.rows
+            });
+
+        const count = comparisons.length > 0 ? comparisons[0].total : 0;
+
+        // append model data for modern/historic captures
+        let items = await Promise.all(
+            comparisons.map(async (comparison) => {
+                return {
+                    historic_capture: await get(comparison.historic_captures, client),
+                    modern_capture: await get(comparison.modern_captures, client)
+                }
+            })
+        );
+
+        // end transaction
+        await client.query('COMMIT');
+
+        return {
+            query: comparisonIDs,
+            limit: limit,
+            offset: offset,
+            results: items,
+            count: count
+        };
+
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
+    }
+};
 
 /**
  * Update comparison.

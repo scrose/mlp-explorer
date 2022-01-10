@@ -44,6 +44,27 @@ export function getFilesByType(fileType, limit=10) {
 }
 
 /**
+ * Generate query: Retrieve files by id array.
+ *
+ * @return {Function} query function
+ * @public
+ */
+
+export function filterByIDArray(ids, offset, limit) {
+    const sql = `SELECT 
+            *, 
+            (SELECT COUNT(*) FROM files WHERE id = ANY($1)) as total
+            FROM files 
+            WHERE id = ANY($1)
+            OFFSET ${offset}
+            LIMIT ${limit}`;
+    return {
+        sql: sql,
+        data: [ids],
+    };
+}
+
+/**
  * Generate query: Retrieve file entry for given item
  *
  * @param {Object} fileID

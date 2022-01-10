@@ -128,7 +128,6 @@ export function filterPath() {
         .reduce((o, key) => {
             return staticRoutes[key].redirect;
         }, '');
-
     return filteredURI ? filteredURI : uri;
 }
 

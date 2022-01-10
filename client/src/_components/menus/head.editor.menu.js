@@ -14,7 +14,6 @@ import BreadcrumbMenu from './breadcrumb.menu';
 import Accordion from '../common/accordion';
 import Button from '../common/button';
 import {useAuth} from "../../_providers/auth.provider.client";
-import {useRouter} from "../../_providers/router.provider.client";
 
 /**
  * User navigation menu (authenticated).

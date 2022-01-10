@@ -13,7 +13,7 @@ import {
     scaleToMatch,
 } from './transform.iat';
 import { ImageSelector } from './selector.iat';
-import Comparator from '../common/comparator';
+import Slider from '../common/slider';
 import { SaveAs } from './downloader.iat';
 import Resizer from './resizer.iat';
 import { deselectControlPoint, moveControlPoint, selectControlPoint } from './pointer.iat';
@@ -217,7 +217,7 @@ export const MenuIat = ({
                 key={`${menuID}_dialog_compare`}
                 title={`Image Comparison`}
                 setToggle={setDialogToggle}>
-                <Comparator
+                <Slider
                     images={[panel1.dataURL, panel2.dataURL]}
                     onStop={()=>{setDialogToggle(null)}}
                 />

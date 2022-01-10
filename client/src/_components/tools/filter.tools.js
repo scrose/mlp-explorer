@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Nodes.Filter
+ * MLP.Client.Components.Tools.Filter
  * File: filter.view.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed

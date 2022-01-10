@@ -18,19 +18,33 @@ export const schema = {
         project: "Mountain Legacy Project",
         name: "Explorer",
         title: "Welcome to the Mountain Legacy Project Explorer",
-        mlp_url: 'http://mountainlegacy.ca'
+        mlp_url: 'http://mountainlegacy.ca',
+        carousel: [
+            {
+                url: {
+                    medium: 'http://localhost:3001/uploads/medium_b4_x6gg-T2wXrJ3EgatWy_bqbZE8gyFr02g2VWMlxqV1rtNe.jpeg'
+                }
+            },
+            {
+                url: {
+                    medium: 'http://localhost:3001/uploads/medium_OA1gaQNZqMCah2g4LboSgXFZklyRZKdDLz0oQnLRvsFkHAWh.jpeg'
+                }
+            },
+            {
+                url: {
+                    medium: 'http://localhost:3001/uploads/medium_b4_x6gg-T2wXrJ3EgatWy_bqbZE8gyFr02g2VWMlxqV1rtNe.jpeg'
+                },
+            }
+        ],
     },
     routes: {
         '/': {
             name: 'dashboard',
-            label: 'Welcome to the Mountain Legacy Explorer'
+            label: ''
         },
         '/iat': {
             name: 'imageToolkit',
             label: 'Image Analysis Toolkit'
-        },
-        '/filter': {
-            label: 'Filter Stations'
         },
         '/not_found': {
             name: 'notFound',

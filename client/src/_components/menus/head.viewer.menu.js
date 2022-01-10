@@ -8,29 +8,8 @@
 import React from 'react';
 import MainMenu from './main.menu';
 import Logo from '../common/logo';
-import { redirect } from '../../_utils/paths.utils.client';
-import BreadcrumbMenu from './breadcrumb.menu';
-import Button from '../common/button';
 import Accordion from "../common/accordion";
 import LoginUsers from "../users/login.users";
-
-/**
- * User navigation menu (unauthenticated).
- *
- * @public
- */
-
-const UserMenu = () => {
-    return (
-    <nav className={'user'}>
-        <Accordion
-            label={'Sign In'}
-        >
-            <LoginUsers />
-        </Accordion>
-    </nav>
-    );
-}
 
 /**
  * Page header component (unauthenticated).
@@ -46,7 +25,13 @@ const HeadViewerMenu = () => {
                     <ul>
                         <li><Logo /></li>
                         <li><MainMenu /></li>
-                        <li className={'push'}><UserMenu /></li>
+                        <li className={'push'}>
+                            <nav className={'user'}>
+                                <Accordion label={'Sign In'}>
+                                    <LoginUsers />
+                                </Accordion>
+                            </nav>
+                        </li>
                     </ul>
                 </div>
             </div>

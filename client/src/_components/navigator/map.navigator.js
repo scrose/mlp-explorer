@@ -16,7 +16,13 @@ import Loading from "../common/loading";
 import {getPref, setPref} from "../../_services/session.services.client";
 import {useNav} from "../../_providers/nav.provider.client";
 import { getMarker, baseLayers } from "../tools/map.tools";
+import Button from "../common/button";
 
+/**
+ * Page height offset
+ */
+
+const heightOffset = 140;
 
 /**
  * Map navigator component.
@@ -42,9 +48,9 @@ function MapNavigator({ filter, hidden }) {
     const { query = [] } = api.data || {};
     const currentFilter = query.length > 0 ? query : api.nodes;
 
-    // centre map on selected node
-    const initCenter = {lat: 51.311809, lng: -119.249230};
-    const { lat=initCenter.lat, lng=initCenter.lng } = api.metadata;
+    // centre map on selected node (use local coordinates, if available)
+    const initCenter = React.useMemo(() => { return {lat: 51.311809, lng: -119.249230} }, []);
+    const { lat=initCenter.lat, lng=initCenter.lng } = api.location;
 
     // map initial settings
     const [loaded, setLoaded] = React.useState(false);
@@ -281,12 +287,12 @@ function MapNavigator({ filter, hidden }) {
     React.useEffect(() => {
         _isMounted.current = true;
         if (_isMounted.current && mapObj.current) {
-            const {lat = null, lng = null} = api.metadata;
+            const {lat = null, lng = null} = api.location;
             if (lat && lng && mapObj.current) {
                 mapObj.current.flyTo([lat, lng], 12);
+                setClustered(false);
             }
         }
-
         return () => {_isMounted.current = false;}
     }, [api, setClustered])
 
@@ -300,7 +306,7 @@ function MapNavigator({ filter, hidden }) {
             _isMounted.current = false;
             nav.setResize(false);
         }
-    }, [nav.resize, nav.setResize, winWidth, winHeight]);
+    }, [nav, winWidth, winHeight]);
 
 
     /**
@@ -315,10 +321,11 @@ function MapNavigator({ filter, hidden }) {
     const initMap = React.useCallback((domNode) => {
 
         // adjust height to fill window
-        domNode.style.height = window.innerHeight - 140 + 'px';
+        domNode.style.height = window.innerHeight - heightOffset + 'px';
 
         if (api.loaded && center && zoom && nav.map && Object.keys(nav.map).length > 0) {
 
+            // exit initialization if map already exists
             if (mapObj.current) return;
 
             // centre map on selected node
@@ -339,40 +346,6 @@ function MapNavigator({ filter, hidden }) {
 
             // add marker layer to map
             layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
-            // let overlays = {
-            //     'Stations': layerGrp.current,
-            // };
-
-            // Add marker cluster control
-            L.Control.Cluster = L.Control.extend({
-                onAdd: function(map) {
-                    const label = L.DomUtil.create('label', 'map-cluster-control');
-                    const input = L.DomUtil.create('input', 'map-cluster-control', label);
-                    const button = L.DomUtil.create('button', 'map-cluster-control', label);
-                    button.title = "Toggle Individual Station Markers";
-                    L.DomUtil.addClass(button, 'activated');
-                    input.value = "true";
-                    input.type = 'hidden';
-                    button.style.width = '30px';
-                    button.style.height = '30px';
-                    button.value = "Cluster";
-                    button.innerHTML = getMarker('icon');
-                    L.DomEvent.on(button, 'click', () => {
-                        input.value = !(input.value === "true");
-                        input.value === "true"
-                            ? L.DomUtil.addClass(button, 'activated')
-                            : L.DomUtil.removeClass(button, 'activated');
-                        setClustered(input.value === "true");
-                    });
-                    return label;
-                },
-
-                onRemove: function(map) {}
-            });
-            L.control.cluster = function(opts) {
-                return new L.Control.Cluster(opts);
-            }
-            L.control.cluster({ position: 'topleft' }).addTo(mapObj.current);
 
             // add layers to leaflet controls
             L.control.layers(baseLayers).addTo(mapObj.current);
@@ -409,11 +382,10 @@ function MapNavigator({ filter, hidden }) {
         zoom,
         reset,
         selectedBaseLayer,
-        baseLayers,
         setBaseLayer,
         getClusterMarkers,
         setClustered,
-        setLoaded,
+        setLoaded
     ]);
 
     /**
@@ -429,10 +401,11 @@ function MapNavigator({ filter, hidden }) {
 
     return (
         <div
-            ref={mapPane} className={'map'}
+            ref={mapPane}
+            className={'map'}
             style={{
                 display: hidden ? ' none' : ' block',
-                height: (winHeight - 140) + 'px'
+                height: (winHeight - heightOffset) + 'px'
             }}
         >
             {
@@ -442,7 +415,19 @@ function MapNavigator({ filter, hidden }) {
                 id={mapID}
                 className={mapID}
                 ref={mapContainer}
+                style={{
+                    height: (winHeight - heightOffset) + 'px'
+                }}
             />
+            <div className={'map-menu'}>
+                <Button
+                    icon={'stations'}
+                    size={'lg'}
+                    label={ clustered ? 'cluster on' : 'cluster off'}
+                    className={ clustered ? 'activated' : ''}
+                    onClick={()=>{setClustered(!clustered)}}
+                />
+            </div>
         </div>
     );
 }

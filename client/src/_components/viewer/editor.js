@@ -11,9 +11,6 @@ import Message from '../common/message';
 import StaticView from '../views/static.view';
 import { useRouter } from '../../_providers/router.provider.client';
 import Heading from '../common/heading';
-import EditorMenu from '../menus/editor.menu';
-import { useData } from '../../_providers/data.provider.client';
-import { getDependentTypes } from '../../_services/schema.services.client';
 import {useWindowSize} from "../../_utils/events.utils.client";
 import Footer from "../common/footer";
 

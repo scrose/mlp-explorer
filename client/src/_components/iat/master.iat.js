@@ -8,7 +8,7 @@
 import React from 'react';
 import Importer from '../tools/import.tools';
 import { genSchema } from '../../_services/schema.services.client';
-import Comparator from '../common/comparator';
+import Slider from '../common/slider';
 import MetadataView from '../views/metadata.view';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { useUser } from '../../_providers/user.provider.client';
@@ -51,7 +51,7 @@ export const MasterImage = ({
         <div className={'h-menu centered'}>
             <ul>
                 <li key={'master_comparator'}>
-                    <Comparator images={[panel1.dataURL, panel2.dataURL]} onStop={()=>{setToggle(null)}} />
+                    <Slider images={[panel1.dataURL, panel2.dataURL]} onStop={()=>{setToggle(null)}} />
                 </li>
                 <li key={'master_images_import'}>
                     <MetadataView model={'master_images'} metadata={historicMetadata} />

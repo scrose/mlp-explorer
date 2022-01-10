@@ -7,7 +7,7 @@
 
 import React from 'react';
 import MetadataView from './metadata.view';
-import Slider from '../common/slider';
+import Carousel from '../common/carousel';
 import Table from '../common/table';
 import { sanitize } from '../../_utils/data.utils.client';
 import { useUser } from '../../_providers/user.provider.client';
@@ -18,7 +18,7 @@ import EditorMenu from '../menus/editor.menu';
 import { useData } from '../../_providers/data.provider.client';
 import { getModelLabel } from '../../_services/schema.services.client';
 import Tabs from '../common/tabs';
-import ComparisonsView from './comparisons.view';
+import Comparator from "../common/comparator";
 
 /**
  * View available versions of capture images.
@@ -70,7 +70,7 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
             thumbnail: <Image
                 url={url}
                 scale={'thumb'}
-                label={filename}
+                caption={filename}
                 title={filename}
                 onClick={()=>{
                     router.update(createNodeRoute(file_type, 'show', id))
@@ -144,7 +144,12 @@ const CaptureView = ({model, data, fileType}) => {
     const _tabItems = [
         {
             label: `Image Viewer`,
-            data: <Slider images={captureImages} />,
+            data: <Carousel
+                    fit={'contain'}
+                    autoslide={false}
+                    images={captureImages}
+                    captions={captureImages.map(item => {return `${item.label} [${item.metadata.image_state}]`})}
+                />,
         },
         {
             label: `${getModelLabel(model)} Details`,
@@ -153,14 +158,14 @@ const CaptureView = ({model, data, fileType}) => {
         {
             label: `Comparisons`,
             data: Object.keys(attached.comparisons).length > 0
-                ? <ComparisonsView data={attached.comparisons} />
+                ? <Comparator images={attached.comparisons} />
                 : 'No Paired Images'
         },
         {
             label: `Images`,
             data: <CaptureImagesTable
                     type={fileType}
-                    owner={{ id: id, type: model, sorted: status.sorted}}
+                    owner={{ id: id, type: model, sorted: status.sorted }}
                     files={captureImages}
                 />,
         },

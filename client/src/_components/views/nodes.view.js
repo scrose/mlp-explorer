@@ -19,7 +19,8 @@ import EditorMenu from '../menus/editor.menu';
 import { useData } from '../../_providers/data.provider.client';
 import FilesView from './files.view';
 import Tabs from '../common/tabs';
-import ComparisonsView from './comparisons.view';
+import Carousel from "../common/carousel";
+import Comparator from "../common/comparator";
 
 /**
  * Default view component for model data.
@@ -48,26 +49,26 @@ const DefaultView = ({
     if (dependentsGrouped.hasOwnProperty('historic_captures')) {
         _tabItems.unshift({
             label: 'Historic Captures',
-            data: <FilesView
-                files={{
-                    historic_captures: dependentsGrouped.historic_captures.map(item => {
-                        return item.refImage;
-                    }),
-                }}
-                owner={node}
-            />,
+            data: <>
+                <Carousel
+                    fit={'contain'}
+                    autoslide={false}
+                    images={dependentsGrouped.historic_captures.map(item => {return item.refImage})}
+                    captions={dependentsGrouped.historic_captures.map(item => {return item.refImage.label})}
+                />
+            </>,
         });
     }
     if (dependentsGrouped.hasOwnProperty('modern_captures')) _tabItems.push({
         label: 'Modern Captures',
-        data: <FilesView
-            files={{
-                modern_captures: dependentsGrouped.modern_captures.map(item => {
-                    return item.refImage;
-                }),
-            }}
-            owner={node}
-        />,
+        data: <>
+                <Carousel
+                    fit={'contain'}
+                    autoslide={false}
+                    images={dependentsGrouped.modern_captures.map(item => {return item.refImage})}
+                    captions={dependentsGrouped.modern_captures.map(item => {return item.refImage.label})}
+                />
+            </>,
     });
 
     // include comparisons metadata
@@ -76,7 +77,7 @@ const DefaultView = ({
         && Object.keys(attached.comparisons).length > 0
     ) _tabItems.push({
         label: 'Comparisons',
-        data: <ComparisonsView data={attached.comparisons} />,
+        data: <Comparator images={attached.comparisons} />,
     });
 
     // include dependent nodes
@@ -99,27 +100,27 @@ const DefaultView = ({
                         } = api.destructure(item);
                         // toggle accordion data as open/close
                         // - show historic visits
-                        const toggle = dependentsGrouped[key].length === 1;
+                        const singleNode = dependentsGrouped[key].length === 1;
                         return <Accordion
-                            key={id}
-                            id={id}
-                            type={type}
-                            label={label}
-                            hasDependents={hasDependents}
-                            open={toggle}
-                            menu={
-                                <EditorMenu
-                                    model={type}
-                                    id={id}
-                                    owner={node}
-                                    label={label}
-                                    metadata={metadata}
-                                    dependents={getDependentTypes(type)}
-                                />
-                            }
-                        >
-                            <NodesView model={type} data={item} />
-                        </Accordion>;
+                                key={id}
+                                id={id}
+                                type={type}
+                                label={label}
+                                hasDependents={hasDependents}
+                                open={singleNode}
+                                menu={
+                                    <EditorMenu
+                                        model={type}
+                                        id={id}
+                                        owner={node}
+                                        label={label}
+                                        metadata={metadata}
+                                        dependents={getDependentTypes(type)}
+                                    />
+                                }
+                            >
+                                <NodesView model={type} data={item} />
+                            </Accordion>;
                     }),
             };
         });
@@ -145,15 +146,11 @@ const DefaultView = ({
 
     if (Object.keys(attachedMetadata).length > 0) _tabItems.push({
         label: 'Metadata',
-        data: <MetadataAttached owner={node} attached={attachedMetadata} />,
+        data: <>
+                <MetadataAttached owner={node} attached={attachedMetadata} />
+                { Object.keys(files).length > 0 && <FilesView owner={node} files={files} />}
+            </>,
     });
-
-    // include attached files
-    if (Object.keys(files).length > 0) _tabItems.push({
-        label: 'Files',
-        data: <FilesView owner={node} files={files} />,
-    });
-
 
     return <Tabs
         items={_tabItems}

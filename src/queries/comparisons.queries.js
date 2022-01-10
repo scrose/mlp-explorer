@@ -73,6 +73,27 @@ export function deleteCaptureComparisons(node) {
 }
 
 /**
+ * Generate query: Retrieve comparisons by id array.
+ *
+ * @return {Function} query function
+ * @public
+ */
+
+export function filterByIDArray(ids, offset, limit) {
+    const sql = `SELECT 
+            *, 
+            (SELECT COUNT(*) FROM comparison_indices WHERE id = ANY($1)) as total
+            FROM comparison_indices 
+            WHERE id = ANY($1)
+            OFFSET ${offset}
+            LIMIT ${limit}`;
+    return {
+        sql: sql,
+        data: [ids],
+    };
+}
+
+/**
  * Query: Get comparisons for given capture node. Model options
  * include 'historic_captures' and 'modern_captures'.
  *

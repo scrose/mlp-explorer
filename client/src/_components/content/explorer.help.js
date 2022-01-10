@@ -167,7 +167,7 @@ const explorerHelp = (gotoPage) => {
 
         <Image
             url={dataModel}
-            label={`Figure 1. The data object hierarchy. Example nodes are shown in the tree, while hierarchy 
+            caption={`Figure 1. The data object hierarchy. Example nodes are shown in the tree, while hierarchy 
             levels are defined to the left.`}
         />
 
@@ -405,7 +405,7 @@ const explorerHelp = (gotoPage) => {
         </p>
 
         <Image url={captureModel}
-               label={`
+               caption={`
                Figure 2. The relationship between a capture and its capture images shown pictorially. 
                The capture represents the photo taken at a specific time, while the capture images are 
                instances of that same photo, differentiated by image states,image modifications, and file types.`} />

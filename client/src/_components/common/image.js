@@ -19,8 +19,9 @@ const fallbackSrc = schema.errors.image.fallbackSrc;
 const Image = ({
                    url=fallbackSrc,
                    title='',
-                   label='',
+                   caption ='',
                    scale='',
+                   fit='contain',
                    onClick=()=>{},
                    onDoubleClick=()=>{}
 }) => {
@@ -49,17 +50,18 @@ const Image = ({
     return (
         <figure className={scale}>
             <img
+                style={{objectFit: fit}}
                 src={src}
-                alt={label}
+                alt={caption}
                 title={title}
                 onError={onError}
                 onClick={onClick}
                 onDoubleClick={onDoubleClick}
             />
             {
-                label &&
+                caption &&
                 <figcaption onClick={onClick}>
-                    {label}
+                    {caption}
                 </figcaption>
             }
         </figure>

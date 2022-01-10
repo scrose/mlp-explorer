@@ -18,7 +18,7 @@ const getMarker = (type='single', fill='FFFFFF', text='n') => {
 
     // marker SVG templates
     const markers = {
-        icon: `<svg
+        clusterIcon: `<svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 17.638889 21.166664"
         height="22"

@@ -6,7 +6,7 @@
  */
 
 import React from 'react'
-import { viewerGettingStarted, viewerIAT, viewerWelcome } from '../content/dashboard.viewer.page';
+import { viewerGettingStarted, viewerIAT, viewerWelcome } from '../content/dashboard.static';
 
 
 

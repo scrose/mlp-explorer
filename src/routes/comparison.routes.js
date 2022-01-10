@@ -27,6 +27,13 @@ function ComparisonRoutes() {
     // add controller routes
     // include master endpoint for modern capture images
     this.routes = {
+        filter: {
+            path: path.join('/compare/filter'),
+            get: this.controller.filter,
+            put: null,
+            post: null,
+            delete: null,
+        },
         compare: {
             path: path.join('/compare/:id'),
             get: this.controller.select,

@@ -48,6 +48,56 @@ export const select = async function(id, client = pool) {
     return file.rows[0];
 };
 
+
+/**
+ * Get list of requested files by IDs.
+ *
+ * @public
+ * @params {Array} filesID
+ * @params {int} offset
+ * @params {int} limit
+ * @return {Promise} result
+ */
+
+export const filterFilesByID = async (fileIDs, offset, limit) => {
+
+    if (!fileIDs) return null;
+
+    // NOTE: client undefined if connection fails.
+    const client = await pool.connect();
+
+    try {
+        // start transaction
+        await client.query('BEGIN');
+
+        // get filtered nodes
+        let { sql, data } = queries.files.filterByIDArray(fileIDs, offset, limit);
+        let files = await client.query(sql, data)
+            .then(res => {
+                return res.rows
+            });
+
+        const count = files.length > 0 ? files[0].total : 0;
+
+        // end transaction
+        await client.query('COMMIT');
+
+        return {
+            query: fileIDs,
+            limit: limit,
+            offset: offset,
+            results: items,
+            count: count
+        };
+
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
+    }
+};
+
 /**
  * Get file label.
  *

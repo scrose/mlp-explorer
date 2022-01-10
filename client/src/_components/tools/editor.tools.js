@@ -121,24 +121,24 @@ export const DependentFiles = ({files, owner}) => {
     return (
         Object.keys(files)
             .map((fileKey, index) => {
-            return <Accordion
-                key={`selector_${selectorID}_files_${fileKey}_${index}`}
-                label={getModelLabel(fileKey, 'label')}
-                open={true}
-                type={fileKey}
-                menu={<EditorMenu
-                    dependents={[fileKey]}
-                    id={owner.id}
-                    model={owner.type}
-                />}
-            >
-                {
-                    fileKey !== 'modern_images' && fileKey !== 'historic_images'
-                        ? <FilesTable files={files[fileKey]} owner={owner}/>
-                        : <CaptureImagesTable files={files[fileKey]} owner={owner} type={fileKey}/>
-                }
-            </Accordion>
-        })
+                return <Accordion
+                    key={`selector_${selectorID}_files_${fileKey}_${index}`}
+                    label={getModelLabel(fileKey, 'label')}
+                    open={true}
+                    type={fileKey}
+                    menu={<EditorMenu
+                        dependents={[fileKey]}
+                        id={owner.id}
+                        model={owner.type}
+                    />}
+                >
+                    {
+                        fileKey !== 'modern_images' && fileKey !== 'historic_images'
+                            ? <FilesTable files={files[fileKey]} owner={owner}/>
+                            : <CaptureImagesTable files={files[fileKey]} owner={owner} type={fileKey}/>
+                    }
+                </Accordion>
+            })
     )
 }
 
@@ -372,7 +372,9 @@ export const CompareSelector = ({
         callback,
         setMessage,
         error,
-        setError
+        setError,
+        loaded,
+        name
     ]);
 
     // add capture to selection
@@ -410,7 +412,7 @@ export const CompareSelector = ({
                                             url={refImage.url}
                                             scale={'thumb'}
                                             title={`Select ${refImage.label || ''} for comparison.`}
-                                            label={refImage.label}
+                                            caption={refImage.label}
                                             onClick={() => {
                                                 value.includes(node.id)
                                                     ? _handleDeselectCapture(node.id)

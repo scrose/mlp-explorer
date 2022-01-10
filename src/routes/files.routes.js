@@ -38,6 +38,13 @@ function FilesRoutes(modelType) {
             post: null,
             delete: null,
         },
+        filter: {
+            path: path.join('/files/filter'),
+            get: this.controller.filter,
+            put: null,
+            post: null,
+            delete: null,
+        },
         create: {
             path: path.join('/', this.model, 'new', ':owner_id'),
             get: null,
@@ -66,6 +73,13 @@ function FilesRoutes(modelType) {
             post: null,
             delete: null,
         },
+        // export: {
+        //     path: path.join('/', this.model, 'export', ':' + this.key),
+        //     get: this.controller.exporter,
+        //     put: null,
+        //     post: null,
+        //     delete: null,
+        // },
         raw: {
             path: path.join('/', this.model, 'raw', ':' + this.key),
             get: this.controller.raw,

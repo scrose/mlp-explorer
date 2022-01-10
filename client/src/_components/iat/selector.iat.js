@@ -337,7 +337,7 @@ export const CaptureImagesSelector = ({
                     url={url}
                     scale={'thumb'}
                     title={`Select ${filename || ''}.`}
-                    label={filename}
+                    caption={filename}
                     onClick={() => {
                         onClick(id, captureIndex, fileData);
                     }}

@@ -1,6 +1,6 @@
 /*!
- * MLP.API.Controllers.Master
- * File: master.controller.js
+ * MLP.API.Controllers.Comparisons
+ * File: comparisons.controller.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -10,13 +10,19 @@
  * @private
  */
 
+import pool from '../services/db.services.js';
 import * as fserve from '../services/files.services.js';
 import * as nserve from '../services/nodes.services.js';
 import { prepare } from '../lib/api.utils.js';
-import pool from '../services/db.services.js';
 import * as metaserve from '../services/metadata.services.js';
 import * as importer from '../services/import.services.js';
-import { isComparable, upsertComparison, getComparisonsByCapture } from '../services/comparisons.services.js';
+import {
+    isComparable,
+    upsertComparison,
+    getComparisonsByCapture,
+    filterComparisonsByID
+} from '../services/comparisons.services.js';
+import {sanitize} from "../lib/data.utils.js";
 
 export default function ComparisonController() {
 
@@ -30,6 +36,44 @@ export default function ComparisonController() {
      */
 
     this.init = async () => {};
+
+    /**
+     * Retrieves comparisons using ID array filter.
+     *
+     * @param req
+     * @param res
+     * @param next
+     * @src public
+     */
+
+    this.filter = async (req, res, next) => {
+
+        try {
+
+            // get query parameters
+            const { ids='', offset=0, limit=10 } = req.query || {};
+
+            // sanitize + convert query string to node id array
+            const comparisonIDs = ids
+                .split(' ')
+                .map(id => {
+                    return sanitize(id, 'integer');
+                });
+
+            // get filtered results
+            const resultData = await filterComparisonsByID(comparisonIDs, offset, limit);
+
+            res.status(200).json(
+                prepare({
+                    view: 'filter',
+                    data: resultData
+                }));
+
+        } catch (err) {
+            return next(err);
+        }
+    };
+
 
     /**
      * Get comparison capture data for given capture ID.

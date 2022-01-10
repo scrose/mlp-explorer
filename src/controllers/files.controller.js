@@ -126,6 +126,44 @@ export default function FilesController(modelType) {
 
 
     /**
+     * Retrieves files using ID array filter.
+     *
+     * @param req
+     * @param res
+     * @param next
+     * @src public
+     */
+
+    this.filter = async (req, res, next) => {
+
+        try {
+
+            // get query parameters
+            const { ids='', offset=0, limit=10 } = req.query || {};
+
+            // sanitize + convert query string to node id array
+            const fileIDs = ids
+                .split(' ')
+                .map(id => {
+                    return sanitize(id, 'integer');
+                });
+
+            // get filtered results
+            const resultData = await fserve.filterFilesByID(fileIDs, offset, limit);
+
+            res.status(200).json(
+                prepare({
+                    view: 'filter',
+                    data: resultData
+                }));
+
+        } catch (err) {
+            return next(err);
+        }
+    };
+
+
+    /**
      * Upload files and metadata.
      *
      * @param req
@@ -392,6 +430,45 @@ export default function FilesController(modelType) {
             client.release(true);
         }
     };
+
+    /**
+     * Download bulk files (compressed folder downloads).
+     *
+     * @param req
+     * @param res
+     * @param next
+     * @src public
+     * TODO: Complete bulk download feature
+     */
+
+    // this.exporter = async (req, res, next) => {
+    //
+    //     const client = await pool.connect();
+    //
+    //     try {
+    //
+    //         // get requested file ID
+    //         const fileID = this.getId(req);
+    //
+    //         // get owner node; check that node exists in database
+    //         // and corresponds to requested owner type.
+    //         const fileData = await fserve.get(fileID, client);
+    //         const { file={}, metadata={} } = fileData || {};
+    //         const { file_type={} } = file || {};
+    //
+    //         if (!file) return next(new Error('invalidRequest'));
+    //
+    //         // get the file path for download
+    //         const filePath = getFilePath(file_type, file, metadata);
+    //
+    //         res.download(filePath);
+    //
+    //     } catch (err) {
+    //         return next(err);
+    //     } finally {
+    //         client.release(true);
+    //     }
+    // };
 
 
     /**
