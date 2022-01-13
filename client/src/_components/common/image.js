@@ -21,7 +21,6 @@ const Image = ({
                    title='',
                    caption ='',
                    scale='',
-                   fit='contain',
                    onClick=()=>{},
                    onDoubleClick=()=>{}
 }) => {
@@ -29,6 +28,9 @@ const Image = ({
     // image URL: with scale settings / URL string
     const [src, setSrc] = React.useState(scale ? url[scale] : url);
     const [error, setError] = React.useState(false);
+
+    // const localURL = 'http://localhost:3001';
+    // const remoteURL = 'https://explore.mountainlegacy.ca/api'
 
     // Handler for resource loading errors.
     // - uses fallback image
@@ -46,11 +48,18 @@ const Image = ({
         }
     }, [src, setSrc, setError])
 
+    // update image source
+    React.useEffect(()=> {
+        if (!error) {
+            // setSrc(scale && Object.keys(url).length > 0 ? url[scale].replace(localURL, remoteURL) : url);
+            setSrc(scale && Object.keys(url).length > 0 ? url[scale] : url);
+        }
+    }, [url, setSrc, scale, error])
+
     // render image
     return (
         <figure className={scale}>
             <img
-                style={{objectFit: fit}}
                 src={src}
                 alt={caption}
                 title={title}

@@ -12,7 +12,6 @@ import Icon from './icon';
 import Message, {UserMessage} from './message';
 import MultiSelect from './multiselect';
 import DateTimeSelector from './datetime';
-import Autocomplete from './autocomplete';
 import {CompareSelector, DependentEditor} from "../tools/editor.tools";
 
 /**
@@ -100,18 +99,6 @@ export const Input = ({
                 readOnly={readonly}
                 type={'text'}
                 id={id}
-                name={name}
-                value={value || ''}
-                required={required}
-                onChange={onChange}
-                aria-label={ariaLabel}
-            />;
-        },
-
-        autocomplete: () => {
-            return <Autocomplete
-                id={id}
-                readOnly={readonly}
                 name={name}
                 value={value || ''}
                 required={required}

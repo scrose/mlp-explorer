@@ -75,7 +75,7 @@ const NavigatorMenu = () => {
                     <li>
                         <Button
                             icon={'tree'}
-                            label={'List'}
+                            label={!nav.offCanvas ? 'List' : ''}
                             title={`View navigation tree.`}
                             onClick={() => setMode('tree')}
                         />
@@ -83,7 +83,7 @@ const NavigatorMenu = () => {
                     <li>
                         <Button
                             icon={'map'}
-                            label={'Map'}
+                            label={!nav.offCanvas ? 'Map' : ''}
                             title={`View navigation map.`}
                             onClick={() => setMode('map')}
                         />
@@ -91,7 +91,7 @@ const NavigatorMenu = () => {
                     <li>
                         <Button
                             icon={'filter'}
-                            label={'Filter'}
+                            label={!nav.offCanvas ? 'Filter' : ''}
                             title={`Filter map stations.`}
                             className={nav.hasFilter ? 'active' : ''}
                             onClick={() => nav.setDialog('filter')}
@@ -100,7 +100,7 @@ const NavigatorMenu = () => {
                     <li>
                         <Button
                             icon={'search'}
-                            label={'Search'}
+                            label={!nav.offCanvas ? 'Search' : ''}
                             title={`Full-text search of metadata.`}
                             onClick={() => setMode('search')}
                         />
@@ -108,7 +108,7 @@ const NavigatorMenu = () => {
                     <li>
                         <Button
                             icon={'help'}
-                            label={'Help'}
+                            label={!nav.offCanvas ? 'Help' : ''}
                             title={`View navigator help pages.`}
                             onClick={() => nav.setDialog('help')}
                         />

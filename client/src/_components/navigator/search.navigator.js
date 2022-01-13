@@ -45,7 +45,7 @@ const SearchNavigator = ({filter=[], limit=5, offset=0, hidden=true}) => {
     const [error, setError] = React.useState(null);
 
     // window dimensions
-    const [winWidth, winHeight] = useWindowSize();
+    const [, winHeight] = useWindowSize();
 
     // update query string value
     const updateQuery = (e) => {

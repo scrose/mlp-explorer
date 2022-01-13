@@ -350,10 +350,10 @@ const TreeNavigator = ({ hidden=true }) => {
 
     const nav = useNav();
     const treeRef = React.useRef();
-    const [showCurrent, setShowCurrent] = React.useState(false);
+    const [showCurrent, ] = React.useState(false);
 
     // window dimensions
-    const [winWidth, winHeight] = useWindowSize();
+    const [, winHeight] = useWindowSize();
 
     return (
         nav.tree && Object.keys(nav.tree).length > 0

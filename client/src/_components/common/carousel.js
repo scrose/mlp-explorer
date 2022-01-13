@@ -1,6 +1,6 @@
 /*!
  * MLP.Client.Components.Common.Carousel
- * File: slider.js
+ * File: carousel.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -15,7 +15,7 @@ import {useRouter} from "../../_providers/router.provider.client";
 import {createNodeRoute} from "../../_utils/paths.utils.client";
 
 /**
- * Image slider component.
+ * Image carousel component.
  *
  * @public
  * @param {Array} images
@@ -61,7 +61,7 @@ const Carousel = ({
     };
 
     return (
-        <div className="slider">
+        <div className="carousel">
             <div className={'slides'}>
                 { images.length === 0 && <Loading /> }
                 {
@@ -93,7 +93,7 @@ const Carousel = ({
                 }
             </div>
             {
-                captions.length === images.length && <div className={'caption h-menu vcentered'}>
+                captions.length === images.length && <div className={'slide-menu h-menu vcentered'}>
                     <ul>
                         <li><Button icon={'prev'} className={'prev'} onClick={prevSlide} /></li>
                         <li><p>{captions[selectedIndex]}</p></li>
@@ -130,7 +130,7 @@ const Carousel = ({
                             (images || []).map((image, index) => {
                                 return (
                                     <span
-                                        key={`slider_img_${index}`}
+                                        key={`carousel_img_${index}`}
                                         className={`dot${index === selectedIndex ? ' active' : ''}`}
                                         onClick={() => {setSelectedIndex(index)}}
                                     />

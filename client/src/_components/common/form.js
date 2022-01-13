@@ -317,6 +317,7 @@ const Form = ({
                                         _handleDelete(index);
                                     }}
                                     disabled={isDisabled}
+                                    setDisabled={setDisabled}
                                     disabledInputs={disabledInputs}
                                     validators={validators}
                                     collapsible={fieldset.collapsible}
@@ -370,6 +371,7 @@ const Form = ({
                                 setData={setData}
                                 opts={opts}
                                 disabled={isDisabled}
+                                setDisabled={setDisabled}
                                 disabledInputs={disabledInputs}
                                 validators={validators}
                                 collapsible={fieldset.collapsible}

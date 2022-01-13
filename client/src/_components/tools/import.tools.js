@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.Tools.Importer
- * File: importer.tools.js
+ * MLP.Client.Components.Tools.Import
+ * File: import.tools.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */

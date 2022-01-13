@@ -20,7 +20,6 @@ import { useNav } from "../../_providers/nav.provider.client";
  */
 
 const Navigator = () => {
-
     const nav = useNav();
     return  (
         !nav.error

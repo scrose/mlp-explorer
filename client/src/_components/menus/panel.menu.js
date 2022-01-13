@@ -1,6 +1,6 @@
 /*!
  * MLP.Client.Components.Menu.Panel
- * File: viewer.menu.js
+ * File: panel.menu.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -10,9 +10,9 @@ import MenuNavigator from "./navigator.menu";
 import ViewerMenu from "./viewer.menu";
 import EditorMenu from "./editor.menu";
 import {getDependentTypes} from "../../_services/schema.services.client";
-import {useAuth} from "../../_providers/auth.provider.client";
 import {useData} from "../../_providers/data.provider.client";
 import {useUser} from "../../_providers/user.provider.client";
+import {useNav} from "../../_providers/nav.provider.client";
 
 /**
  * Panel menu component.
@@ -24,6 +24,7 @@ const PanelMenu = () => {
 
     const user = useUser();
     const api = useData();
+    const nav = useNav();
 
     // get current file data (if available)
     const { file={} } = api.data || {};
@@ -47,14 +48,14 @@ const PanelMenu = () => {
                         metadata={api.metadata}
                         fileType={api.type}
                         filename={filename}
-                        compact={false}
+                        compact={nav.offCanvas}
                         dependents={getDependentTypes(api.model)}
                     />
                     : <ViewerMenu
                         id={id}
                         filename={filename}
                         fileType={file_type}
-                        compact={false}
+                        compact={nav.offCanvas}
                     />
             }
             </li>

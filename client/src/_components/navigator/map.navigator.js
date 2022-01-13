@@ -384,7 +384,6 @@ function MapNavigator({ filter, hidden }) {
         selectedBaseLayer,
         setBaseLayer,
         getClusterMarkers,
-        setClustered,
         setLoaded
     ]);
 

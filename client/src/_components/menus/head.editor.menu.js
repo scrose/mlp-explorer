@@ -25,8 +25,8 @@ const UserMenu = () => {
     const user = useUser();
     const auth = useAuth();
     return (
-        <nav className={'user'}>
-            <Accordion type={'user'}>
+        <nav className={'main'}>
+            <Accordion type={'main'}>
                 <div className={'login'}>
                     <p className={'centred'}><b>{user.email}</b></p>
                     <p className={'centred'}>{user.label}</p>

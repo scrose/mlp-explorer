@@ -38,6 +38,7 @@ function NavProvider(props) {
     // initialize navigation view settings
     const [navView, setNavView] = React.useState(getNavView() || 'map');
     const [navToggle, setNavToggle] = React.useState(getPref('navToggle') || true);
+    const [navOffCanvas, setNavOffCanvas] = React.useState(false);
     const [dialog, setDialog] = React.useState(null);
 
     // navigator resize
@@ -80,7 +81,7 @@ function NavProvider(props) {
                         const { data = {} } = response || {};
                         const { nodes={} } = data || {};
 
-                        console.log('\n>>> Response [Tree] >>>\n', res)
+                        console.log('\n<<< Nav [Tree] >>>\n', res)
 
                         // check if response data is empty (set error flag if true)
                         if ( Object.keys(nodes).length === 0 ) {
@@ -116,7 +117,7 @@ function NavProvider(props) {
                         const { data = {} } = response || {};
                         const { nodes={} } = data || {};
 
-                        console.log('\n>>> Map Stations >>>\n', res)
+                        console.log('\n<<< Nav [Map] >>>\n', res)
 
                         // check if response data is empty (set error flag if true)
                         if ( Object.keys(nodes).length === 0 ) {
@@ -144,6 +145,8 @@ function NavProvider(props) {
                 hasFilter: Object.keys(filterData).length > 0,
                 mode: navView,
                 setMode: setNavView,
+                offCanvas: navOffCanvas,
+                setOffCanvas: setNavOffCanvas,
                 toggle: navToggle,
                 resize: resize,
                 setResize: setResize,

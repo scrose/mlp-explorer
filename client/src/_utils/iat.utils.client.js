@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Utilities.Matrix
- * File: matrix.utils.client.js
+ * MLP.Client.Utilities.IAT
+ * File: iat.utils.client.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * Adapted from IAT web application
  * MIT Licensed
@@ -28,30 +28,6 @@ export function swapPts( P )
     }
 }
 
-/**
- *  Matrix transformations
- *  Reference: (Rosetta)
- *  http://rosettacode.org/wiki/Gaussian_elimination#JavaScript
- *  See also for determinant: http://www.aip.de/groups/soe/local/numres/bookcpdf/c2-3.pdf
- *  MJW: This code shouldn't be needed anymore, but I need to work on Cramer and 2 3x3 systems yet
- *  Also missing: what to do with 4 control points or more. Best numerical stability?
-*/
-
-/**
- * Lower Upper Solver
- *
- * @param A
- * @param b
- * @param update
- * @return {any[]}
- */
-
-export function lusolve(A, b, update) {
-    let lu = ludcmp(A, update)
-    if (lu === undefined) return null // Singular Matrix!
-    for (let i=0,j=lu.d?1:-1; i<lu.A.length; i++ ) j*=lu.A[i][i]/100;
-    return lubksb(lu, b, update)
-}
 /**
  * Lower Upper Solver
  *

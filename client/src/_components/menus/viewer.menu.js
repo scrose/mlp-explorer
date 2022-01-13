@@ -111,7 +111,7 @@ const ViewerMenu = ({
                     <li key={`${menuID}_menuitem_export`}>
                         <Button
                             icon={'export'}
-                            label={'Export'}
+                            label={!compact ? 'Export': ''}
                             title={`View data export options.`}
                             onClick={() => {
                                 setDialogToggle('exporter');
@@ -121,7 +121,7 @@ const ViewerMenu = ({
                     <li key={`${menuID}_menuitem_help`}>
                         <Button
                             icon={'help'}
-                            label={'Help'}
+                            label={!compact ? 'Help' : ''}
                             title={`View the help pages.`}
                             onClick={() => {
                                 setDialogToggle('help');

@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.Common.Canvas
- * File: canvas.js
+ * MLP.Client.Components.IAT.Panel
+ * File: panel.iat.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */

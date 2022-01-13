@@ -45,6 +45,7 @@ export default function App() {
     let sliding = false;
     const minWidth = 400;
     const maxWidth = 700;
+    const thresholdWidth = 1000;
     const sliderVerticalOffset = 52;
     let slideInit = 0;
 
@@ -66,6 +67,7 @@ export default function App() {
             && sliderRef.current
             && panel1Ref.current
             && panel2Ref.current
+            && winWidth > thresholdWidth
         ) {
             /* Initialize panel layout */
             const navWidth = getPref('navWidth') || minWidth;
@@ -73,6 +75,13 @@ export default function App() {
             sliderRef.current.style.left = ( navWidth - sliderRef.current.offsetWidth / 2 ) + 'px';
             panel1Ref.current.style.width = navWidth + 'px';
             panel2Ref.current.style.width = nav.toggle ? (winWidth - navWidth) + 'px' : winWidth + 'px';
+            nav.setOffCanvas(false);
+
+        }
+        else {
+            nav.setOffCanvas(true);
+            panel1Ref.current.style.width = minWidth + 'px';
+            panel2Ref.current.style.width = winWidth + 'px';
         }
         return () => {_isMounted.current = false;}
     }, [nav, winWidth, winHeight]);
@@ -117,7 +126,7 @@ export default function App() {
             <PanelMenu/>
             <div
                 style={{
-                    display: nav.toggle ? 'block' : 'none',
+                    display: nav.toggle && !nav.offCanvas ? 'block' : 'none',
                 }}
                 className={`resizer`}
                 ref={sliderRef}
@@ -138,6 +147,7 @@ export default function App() {
                             ref={panel1Ref}
                             id={'navigator-panel'}
                             style={{ display: nav.toggle ? 'block' : 'none'}}
+                            className={nav.offCanvas ? 'off-canvas' : ''}
                         >
                             <Navigator />
                         </div>

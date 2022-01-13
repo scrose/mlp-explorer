@@ -1,6 +1,6 @@
 /*!
  * MLP.Client.Components.Common.Comparator
- * File: slider.js
+ * File: comparator.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -11,10 +11,6 @@ import Image from './image';
 import Dialog from './dialog';
 import { getModelLabel } from '../../_services/schema.services.client';
 import Loading from "./loading";
-import {useRouter} from "../../_providers/router.provider.client";
-import {createNodeRoute} from "../../_utils/paths.utils.client";
-import {FilesList} from "../views/files.view";
-import File from "./file";
 import Slider from "./slider";
 
 /**
@@ -30,7 +26,6 @@ import Slider from "./slider";
 const Comparator = ({
                     images = [],
                     menu = true,
-                    fit='contain',
                     autoslide=null,
                     expandable=true
 }) => {
@@ -40,9 +35,9 @@ const Comparator = ({
     const [pairToggle, setPairToggle] = React.useState(false);
     const [viewerType, setViewerType] = React.useState('overlay');
     const [expandImage, setExpandImage] = React.useState(false);
-    const selectedImage = images[selectedIndex];
-
-    const router = useRouter();
+    const [, setPanelWidth] = React.useState(0);
+    let selectedImage = images[selectedIndex];
+    const slidePanel = React.useRef();
 
     // retrieve image metadata
     const { historic_captures={}, modern_captures={} } = selectedImage || {};
@@ -61,54 +56,76 @@ const Comparator = ({
         };
     }, [selectedIndex, images.length, setSelectedIndex, autoslide]);
 
+    // panel dimensions
+    React.useEffect(() => {
+        console.log('Update panel width..')
+        if (slidePanel.current) setPanelWidth(slidePanel.current.offsetWidth);
+    }, []);
+
     // increment/decrement index to make slide visible
     const prevPair = () => {
-        setSelectedIndex((selectedIndex - 1 + images.length) % images.length);
+        const prevIndex = (selectedIndex - 1 + images.length) % images.length;
+        setSelectedIndex(prevIndex);
     };
     const nextPair = () => {
-        setSelectedIndex((selectedIndex + 1) % images.length);
+        const nextIndex = (selectedIndex + 1) % images.length
+        setSelectedIndex(nextIndex);
     };
 
     const getViewer = function() {
+
+        // For local testing only
+        // const url1 = 'http://localhost:3001/uploads/full_b4_x6gg-T2wXrJ3EgatWy_bqbZE8gyFr02g2VWMlxqV1rtNe.jpeg';
+        // const url2 = 'http://localhost:3001/uploads/CkiulFsfN7EBR1Rhz08P2_K72R4IEYYql02k3fmeRZ4WVJcx.jpeg'
+        // const url3 = 'http://localhost:3001/uploads/_I3ywf_afWO7imTLaSzXM1jfdHJiWi4qVR4SDiGxl9yop3cW.jpeg'
+        // const url4 = 'http://localhost:3001/uploads/_I3ywf_afWO7imTLaSzXM1jfdHJiWi4qVR4SDiGxl9yop3cW.jpeg'
+
         const viewers = {
             slider: () => {
-                return <Slider images={[historic_captures, modern_captures]} />
+                return <Slider images={[historic_captures.refImage, modern_captures.refImage]} />
+                // return <Slider
+                //     canvasWidth={panelWidth}
+                //     images={ selectedIndex === 0
+                //         ? [{url: {medium: url3}}, {url: {medium: url4}}]
+                //         : [{url: {medium: url1}}, {url: {medium: url2}}]
+                // } />
             },
             default: () => {
-                return <div>
-                    <div className={'fade'} style={{display: pairToggle ? 'block' : 'none'}}>
+                return <>
+                    <div className={'slide'} style={{display: pairToggle ? 'block' : 'none'}}>
                         <Image
                             url={historic_captures.refImage.url || ''}
                             scale={'medium'}
-                            fit={fit}
+                            width={'500px'}
                         />
                     </div>
-                    <div className={'fade'} style={{display: !pairToggle ? 'block' : 'none'}}>
+                    <div className={'slide'} style={{display: !pairToggle ? 'block' : 'none'}}>
                         <Image
                             url={modern_captures.refImage.url || ''}
                             scale={'medium'}
-                            fit={fit}
+                            width={'500px'}
                         />
                     </div>
-                </div>
+                </>
             }
         }
         return viewers.hasOwnProperty(viewerType) ? viewers[viewerType]() : viewers.default();
     }
 
     return (
-        <div className="slider">
-            <div className={'slides'}>
+        <div className="comparator">
+            <div ref={slidePanel} className={'slides'}>
                 { images.length > 0 ? getViewer() : <Loading /> }
                 <div className={'numbertext'}>{ selectedIndex + 1 }/{images.length}</div>
                 {
-                    expandable && <div className={'expand-image'}><Button icon={'enlarge'} onClick={() => {
+                    expandable && viewerType === 'overlay' &&
+                    <div className={'expand-image'}><Button icon={'enlarge'} onClick={() => {
                         setExpandImage(true);
                     }}/></div>
                 }
             </div>
             {
-                label && <div className={'caption h-menu vcentered'}>
+                label && <div className={'slide-menu h-menu vcentered'}>
                     <ul>
                         <li><Button icon={'prev'} className={'prev'} onClick={prevPair} /></li>
                         <li><Button
@@ -132,7 +149,7 @@ const Comparator = ({
                                 onClick={() => {
                                     setPairToggle(!pairToggle)
                                 }}
-                                label={pairToggle ? 'Modern' : 'Historic'}
+                                label={pairToggle ? 'Historic' : 'Modern'}
                             /></li>
                         }
                         <li><p>{label}</p></li>
@@ -155,7 +172,7 @@ const Comparator = ({
                                                 e.stopPropagation(); setSelectedIndex(index)}
                                             }
                                         >
-                                            <div className={'h-menu comparison-pair'}>
+                                            <div className={`h-menu comparison-pair ${index === selectedIndex ? 'active' : ''}`}>
                                                 <ul>
                                                     <li>
                                                         <Image
@@ -185,7 +202,7 @@ const Comparator = ({
                             (images || []).map((image, index) => {
                                 return (
                                     <span
-                                        key={`slider_img_${index}`}
+                                        key={`comparator_img_${index}`}
                                         className={`dot${index === selectedIndex ? ' active' : ''}`}
                                         onClick={() => {setSelectedIndex(index)}}
                                     />

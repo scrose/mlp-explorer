@@ -10,6 +10,7 @@ import Carousel from "../common/carousel";
 import {viewerGettingStarted, viewerIAT, viewerWelcome} from "../content/dashboard.static";
 import {useRouter} from "../../_providers/router.provider.client";
 import { createRoute } from "../../_utils/paths.utils.client";
+import Message from "../common/message";
 
 
 /**
@@ -84,6 +85,7 @@ const DashboardViewer = () => {
             captions={[]}
         />
         <div className={'h-menu dashboard view-panel-group'}>
+            { error && <Message message={error} /> }
             <ul>
                 <li>
                     <div className={'view-panel purple'}>

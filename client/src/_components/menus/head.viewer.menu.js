@@ -26,7 +26,7 @@ const HeadViewerMenu = () => {
                         <li><Logo /></li>
                         <li><MainMenu /></li>
                         <li className={'push'}>
-                            <nav className={'user'}>
+                            <nav className={'main'}>
                                 <Accordion label={'Sign In'}>
                                     <LoginUsers />
                                 </Accordion>

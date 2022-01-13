@@ -1,6 +1,6 @@
 /*!
  * MLP.Client.Tools.IAT.Resizer
- * File: iat.resizer.js
+ * File: resizer.iat.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -128,7 +128,7 @@ export const ResizeOptions = ({
 
     // set resize parameter states
     // - ensure deep copy of initial values
-    const [init, setInit] = React.useState(data);
+    const [init, ] = React.useState(data);
     const [aspect, setAspect] = React.useState(true);
     const [scale, setScale] = React.useState(false);
     const [scaleFactor, setScaleFactor] = React.useState(1.0);

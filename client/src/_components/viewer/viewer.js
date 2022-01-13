@@ -24,7 +24,7 @@ const Viewer = () => {
     const router = useRouter();
 
     // window dimensions
-    const [winWidth, winHeight] = useWindowSize();
+    const [, winHeight] = useWindowSize();
 
     return (
         <div className={'viewer'}>

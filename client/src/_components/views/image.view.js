@@ -11,7 +11,6 @@ import Accordion from '../common/accordion';
 import File from '../common/file';
 import {useUser} from "../../_providers/user.provider.client";
 import {useRouter} from "../../_providers/router.provider.client";
-import {useData} from "../../_providers/data.provider.client";
 import Image from "../common/image";
 import {createNodeRoute, getExtension} from "../../_utils/paths.utils.client";
 import {sanitize} from "../../_utils/data.utils.client";
@@ -36,7 +35,6 @@ export const ImagesTable = ({type, owner, files=[]}) => {
 
     const user = useUser();
     const router = useRouter();
-    const api = useData();
 
     // prepare capture images columns
     const cols = [
@@ -57,11 +55,12 @@ export const ImagesTable = ({type, owner, files=[]}) => {
 
         const { file={}, metadata={}, url={}, label='', filename='' } = fileData || {};
         const {file_type='', id=''} = file || {};
-        const { image_states=[] } = api.options || {};
 
         // select image state label for value (if available)
-        const imageState = image_states
-            .find(opt => opt.value === metadata.image_state) || { label: metadata.image_state };
+        // const api = useData();
+        // const { image_states=[] } = api.options || {};
+        // const imageState = image_states
+        //     .find(opt => opt.value === metadata.image_state) || { label: metadata.image_state };
 
         // create table row data
         const row = {

@@ -558,7 +558,7 @@ const EditorMenu = ({
                             <li className={'push'} key={`${menuID}_menuitem_export`}>
                                 <Button
                                     icon={'export'}
-                                    label={'Export'}
+                                    label={!compact ? 'Export' : ''}
                                     title={`View data export options.`}
                                     onClick={() => {
                                         setDialogToggle('exporter')
@@ -568,7 +568,7 @@ const EditorMenu = ({
                             <li key={`${menuID}_menuitem_help`}>
                                 <Button
                                     icon={'help'}
-                                    label={'Help'}
+                                    label={!compact ? 'Help' : ''}
                                     title={`View the help pages.`}
                                     onClick={() => {
                                         setDialogToggle('help')
@@ -578,7 +578,7 @@ const EditorMenu = ({
                             <li key={`${menuID}_menuitem_options`}>
                                 <Button
                                     icon={'options'}
-                                    label={'Options'}
+                                    label={!compact ? 'Options': ''}
                                     title={`Edit metadata options.`}
                                     onClick={() => setDialogToggle('options')}
                                 />

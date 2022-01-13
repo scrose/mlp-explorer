@@ -239,14 +239,12 @@ export const ImageSelector = ({
 export const CaptureSelector = ({ fileType, selection, setSelectedImage, onSubmit }) => {
 
     const [imageIndex, setImageIndex] = React.useState(0);
-    const [captureIndex, setCaptureIndex] = React.useState(-1);
 
     if (!Array.isArray(selection)) return null;
 
     // handle thumbnail click
     const _handleClick = (id, tabIndex, data) => {
         setImageIndex(id);
-        setCaptureIndex(tabIndex);
         setSelectedImage(data);
     };
 

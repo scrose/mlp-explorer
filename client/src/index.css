@@ -286,6 +286,7 @@ Page Banner Navigation Menu
     color: #FFFFFF;
     line-height: 60px;
     padding-right: 20px;
+    z-index: 999999;
 }
 .navbar ul li:last-child {
     padding-right: 10px;
@@ -324,19 +325,19 @@ Logo/Wordmark
 
 /* Page Banner: User Navigation Menu */
 
-nav.user .accordion {
+nav.main .accordion {
     margin: 0;
     padding: 0;
     border: none;
 }
-nav.user .accordion-data.open {
+nav.main .accordion-data.open {
     margin: 0;
     padding: 0;
     top: 50px;
     right: 0;
     position:fixed;
 }
-nav.user .login {
+nav.main .login {
     min-width: 350px;
     background-color: #222222;
     color: #FFFFFF;
@@ -344,12 +345,12 @@ nav.user .login {
     line-height: normal;
     height: auto;
 }
-nav.user .login fieldset {
+nav.main .login fieldset {
     background-color: #222222;
     color: #FFFFFF;
     border: none;
 }
-nav.user button  {
+nav.main button  {
     text-align: left;
     background-color: #00C6BB;
     color: white !important;
@@ -460,12 +461,18 @@ nav.user button  {
 
 .panel-menu {
     border-top: 1px dotted #666;
+    z-index: 999;
 }
 
 /* Navigator Panel */
 
 .navigator {
     overflow: auto;
+}
+.off-canvas {
+    position: absolute;
+    top: 140px;
+    z-index: 999999;
 }
 
 /* Navigator Panel: Tree */
@@ -646,7 +653,7 @@ nav.breadcrumb ul li a:hover {
     position: relative;
     background-color: #222222;
     color: #DFEEE9;
-    z-index: 9999;
+    z-index: 999;
     font-size: small;
 }
 .editor-tools.h-menu ul {
@@ -892,39 +899,43 @@ nav.breadcrumb ul li a:hover {
 }
 
 
-/* Image Slider */
+/* Image Comparator */
 
 /* Position the image container (needed to position the left and right arrows) */
-.slider {
+.comparator, .carousel {
     position: relative;
     width: 100%;
+    background-color: #EEEEEE;
 }
 /* Add a pointer when hovering over the thumbnail images */
-.slider .cursor {
+.comparator .cursor, .carousel .cursor {
     cursor: pointer;
 }
 /* Slide main image view */
-.slider .slides {
+.comparator .slides, .carousel .slides {
     position: relative;
     width: 100%;
-    min-height: 500px;
     cursor: pointer;
+    max-height: 500px;
 }
-.slider .slides figure {
+.comparator .slide, .carousel .slide {
+    height: auto;
+}
+.comparator .slides figure, .carousel .slides figure {
     position: relative;
-    width: 100%;
-    height: 500px !important;
+    height: 500px;
     margin: auto;
     padding: 0;
 }
-.slider .slides figure.thumb img {
+.comparator .slides figure.thumb img, .carousel .slides figure.thumb img {
     object-fit: cover;
 }
-.slider .slides figure.medium img {
-    width: 100%;
+.comparator .slides figure.medium img, .carousel .slides figure.medium img {
+    object-fit: contain;
 }
+
 /* Slide index text (1/3 etc) */
-.slider .numbertext {
+.comparator .numbertext, .carousel .numbertext {
     background-color: #282c34;
     opacity: 0.4;
     color: #f2f2f2;
@@ -932,9 +943,10 @@ nav.breadcrumb ul li a:hover {
     padding: 8px 12px;
     position: absolute;
     top: 0;
+    z-index: 9999;
 }
 /* Slide expand button */
-.slider .expand-image {
+.comparator .expand-image, .carousel .expand-image {
     background-color: #282c34;
     opacity: 0.4;
     font-size: 12px;
@@ -943,20 +955,30 @@ nav.breadcrumb ul li a:hover {
     top: 0;
     right: 0;
 }
-.slider .expand-image button {
+.comparator .expand-image button, .carousel .expand-image button {
     color: #f2f2f2;
     background-color: transparent !important;
 }
 
-/* Slide caption and previous/next buttons */
-.slider .caption ul li {
+/* Slide caption and menu */
+.comparator .slide-menu, .carousel .slide-menu {
+    position: relative;
+    z-index: 99999 !important;
+    text-align: center;
+    background-color: #222;
+    padding: 2px 16px;
+    color: white;
+}
+.comparator .slide-menu ul li, .carousel .slide-menu ul li {
     width: auto !important;
 }
-.slider .caption .capture-toggle {
+.comparator .slide-menu .capture-toggle {
     background-color: #444444;
 }
-.slider .prev,
-.slider .next {
+.comparator .prev,
+.comparator .next,
+.carousel .prev,
+.carousel .next {
     cursor: pointer;
     width: auto !important;
     padding: 16px;
@@ -969,45 +991,32 @@ nav.breadcrumb ul li a:hover {
     -webkit-user-select: none;
 }
 /* Position the "next button" to the right */
-.slider .next {
+.comparator .next, .carousel .next {
     border-radius: 3px 0 0 3px;
 }
-/* On hover, add a black background color with a little bit see-through */
-.slider .prev:hover, .slider .prev:hover button svg,
-.slider .next:hover {
-    color: rgba(255, 255, 255, 0.8);
-}
-/* Slide caption text */
-.slider .caption {
-    text-align: center;
-    background-color: #222;
-    padding: 2px 16px;
-    color: white;
-}
-/* Slider thumbnail menu */
-.slider .row:after {
+
+/* comparator thumbnail menu */
+.comparator .row:after, .carousel .row:after {
     content: "";
     display: table;
     clear: both;
 }
 /* Six columns side by side */
-.slider .column {
+.comparator .column, .carousel .column {
     float: left;
     width: 16.66%;
 }
 /* Add a transparency effect for thumbnail images */
-.slider .demo {
-    opacity: 0.6;
-}
-.slider .active,
-.slider .demo:hover {
+.comparator:hover, .carousel:hover {
     opacity: 1;
 }
-.slider .thumbnails.h-menu{
+.comparator .thumbnails.h-menu, .carousel .thumbnails.h-menu {
+    position: relative;
     background-color: #DDDDDD;
     justify-content: left;
+    z-index: 9999 !important;
 }
-.slider .thumbnails.h-menu ul li{
+.comparator .thumbnails.h-menu ul li, .carousel .thumbnails.h-menu ul li {
     width: auto;
 }
 /* Slider dots indicators */
@@ -1029,7 +1038,7 @@ nav.breadcrumb ul li a:hover {
     background-color: #717171;
 }
 
-/* Slider fading animation */
+/* fading animation */
 .fade {
     -webkit-animation-name: fade;
     -webkit-animation-duration: 1.6s;
@@ -1050,46 +1059,45 @@ nav.breadcrumb ul li a:hover {
 }
 
 
-/* Image Comparator */
+/* Image Slider */
 
-.comparator {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.slider {
+    width: auto;
+    background-color: #EEEEEE;
 }
-.comparator figure {
+.slider figure {
     margin: 0;
     padding: 0;
 }
-.comparator figcaption {
+.slider figcaption {
     text-align: right;
     background-color: #FFFFFF;
 }
-.comparator-container {
+.slider-container {
     position: relative;
     display: block;
+    background-color: transparent;
     margin: auto;
     height: auto; /*should be the same height as the images*/
 }
-.comparator-img {
+.slider-img {
     overflow: hidden;
 }
-.comparator-img img {
+.slider-img img {
     display: block !important;
     vertical-align: middle;
     margin: 0;
     padding: 0;
-    height: 600px;
     max-width: none;
     max-height: none;
 }
-.comparator-img.overlay{
+.slider-img.overlay{
     position: absolute;
     left:0;
     z-index: 999;
+    border-right: 2px solid white;
 }
-/* Comparator slider */
-.comparator-slider, .resizer {
+.slider-button, .resizer {
     z-index: 99990;
     position: absolute;
     display: inline-block;
@@ -1098,10 +1106,10 @@ nav.breadcrumb ul li a:hover {
     width: 60px !important;
     height: 60px !important;
 }
-.comparator-slider.hidden {
+.slider-button.hidden {
     display: none;
 }
-.comparator-slider:hover, .resizer:hover {
+.slider-button:hover, .resizer:hover {
     margin: 0 !important;
     color: #FFFFFF;
     background-color: #00C6BB;
@@ -1110,7 +1118,7 @@ nav.breadcrumb ul li a:hover {
     width: 60px;
     height: 60px;
 }
-.comparator-slider button, .resizer button {
+.slider-button button, .resizer button {
     margin: 0 !important;
     cursor: ew-resize !important;
     color: #FFFFFF;
@@ -1123,7 +1131,7 @@ nav.breadcrumb ul li a:hover {
     padding-left: 25px;
 }
 
-.comparator-slider .spinner {
+.slider-button .spinner {
     position: fixed;
     top: 0;
     left: 0;
@@ -1230,7 +1238,11 @@ nav.breadcrumb ul li a:hover {
 }
 
 /* Capture Comparisons */
+.comparisons {
+    overflow: scroll;
+}
 .comparisons.h-menu ul, .comparisons.h-menu ul li {
+    flex-wrap: nowrap;
     width: auto;
     color: #2B5A6B !important;
     font-size: small;
@@ -1243,6 +1255,12 @@ nav.breadcrumb ul li a:hover {
     margin: 5px;
     border-radius: 5px;
     cursor: pointer;
+}
+.comparison-pair:hover {
+    opacity: 0.8;
+}
+.comparison-pair.active {
+    border-color: #FF8D3F !important;
 }
 .captures {
     width: auto;
@@ -1383,6 +1401,10 @@ figcaption {
     cursor: pointer;
     font-size: 11px;
     color: #008896;
+}
+.thumb {
+    width: 110px;
+    height: 120px;
 }
 .thumb img {
     object-fit: cover;
@@ -1806,7 +1828,10 @@ input[type=checkbox] {
 input[type=date] {}
 
 /* Style inputs with type="email", select elements and textareas */
-input[type=email], input[type=password] {}
+input[type=text], input[type=email], input[type=password] {
+    width: 100%;
+    padding: 6px;
+}
 
 /* Submit button [input] */
 input[type=submit], button.submit {
