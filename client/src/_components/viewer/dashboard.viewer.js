@@ -85,7 +85,7 @@ const DashboardViewer = () => {
             captions={[]}
         />
         <div className={'h-menu dashboard view-panel-group'}>
-            { error && <Message message={error} /> }
+            { error && <Message message={'An error has occurred.'} /> }
             <ul>
                 <li>
                     <div className={'view-panel purple'}>
