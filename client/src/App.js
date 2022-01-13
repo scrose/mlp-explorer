@@ -67,22 +67,24 @@ export default function App() {
             && sliderRef.current
             && panel1Ref.current
             && panel2Ref.current
-            && winWidth > thresholdWidth
         ) {
-            /* Initialize panel layout */
-            const navWidth = getPref('navWidth') || minWidth;
-            sliderRef.current.style.top = sliderVerticalOffset + 'px';
-            sliderRef.current.style.left = ( navWidth - sliderRef.current.offsetWidth / 2 ) + 'px';
-            panel1Ref.current.style.width = navWidth + 'px';
-            panel2Ref.current.style.width = nav.toggle ? (winWidth - navWidth) + 'px' : winWidth + 'px';
-            nav.setOffCanvas(false);
+            if (winWidth > thresholdWidth) {
+                /* Initialize full-sized panel layout */
+                const navWidth = getPref('navWidth') || minWidth;
+                sliderRef.current.style.top = sliderVerticalOffset + 'px';
+                sliderRef.current.style.left = (navWidth - sliderRef.current.offsetWidth / 2) + 'px';
+                panel1Ref.current.style.width = navWidth + 'px';
+                panel2Ref.current.style.width = nav.toggle ? (winWidth - navWidth) + 'px' : winWidth + 'px';
+                nav.setOffCanvas(false);
+            }
+            else {
+                /* Initialize compact panel layout */
+                nav.setOffCanvas(true);
+                panel1Ref.current.style.width = minWidth + 'px';
+                panel2Ref.current.style.width = winWidth + 'px';
+            }
+        }
 
-        }
-        else {
-            nav.setOffCanvas(true);
-            panel1Ref.current.style.width = minWidth + 'px';
-            panel2Ref.current.style.width = winWidth + 'px';
-        }
         return () => {_isMounted.current = false;}
     }, [nav, winWidth, winHeight]);
 
