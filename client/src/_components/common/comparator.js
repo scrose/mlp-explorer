@@ -12,6 +12,7 @@ import Dialog from './dialog';
 import { getModelLabel } from '../../_services/schema.services.client';
 import Loading from "./loading";
 import Slider from "./slider";
+import {useWindowSize} from "../../_utils/events.utils.client";
 
 /**
  * Image comparator component.
@@ -40,6 +41,9 @@ const Comparator = ({
     let selectedImage = images[selectedIndex];
     const slidePanel = React.useRef();
 
+    // window dimensions
+    const [winWidth, winHeight] = useWindowSize();
+
     // retrieve image metadata
     const { historic_captures={}, modern_captures={} } = selectedImage || {};
     const selectedCapture = pairToggle ? historic_captures : modern_captures;
@@ -63,7 +67,7 @@ const Comparator = ({
             setPanelWidth(slidePanel.current.offsetWidth);
             setPanelHeight(slidePanel.current.offsetHeight);
         }
-    }, []);
+    }, [winWidth, winHeight]);
 
     // increment/decrement index to make slide visible
     const prevPair = () => {

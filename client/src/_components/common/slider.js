@@ -79,7 +79,7 @@ const Slider = ({ images = [], canvasWidth = 600, canvasHeight = 500 }) => {
     // trigger redraw of canvas
     React.useEffect(() => {
         setStatus(0);
-    }, [images, setStatus]);
+    }, [images, setStatus, canvasWidth, canvasHeight]);
 
     // initialize image sources
     // - (1) data URLs
