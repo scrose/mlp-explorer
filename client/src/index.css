@@ -963,7 +963,7 @@ nav.breadcrumb ul li a:hover {
 /* Slide caption and menu */
 .comparator .slide-menu, .carousel .slide-menu {
     position: relative;
-    z-index: 99999 !important;
+    z-index: 9999 !important;
     text-align: center;
     background-color: #222;
     padding: 2px 16px;
@@ -1094,6 +1094,7 @@ nav.breadcrumb ul li a:hover {
 .slider-img.overlay{
     position: absolute;
     left:0;
+    top:0;
     z-index: 999;
     border-right: 2px solid white;
 }
@@ -2379,6 +2380,12 @@ Define Canvas Layers of Panel (IAT)
     left: 0;
     right: 0;
     bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 99999;
+}
+.spinner.centered {
+    position: absolute;
+    height: 500px;
     background-color: rgba(255, 255, 255, 0.8);
     z-index: 99999;
 }

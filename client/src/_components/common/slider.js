@@ -21,7 +21,7 @@ import Button from './button';
  * @return
  */
 
-const Slider = ({ images = [], scale = 1.0, canvasWidth = 600, canvasHeight = 500 }) => {
+const Slider = ({ images = [], canvasWidth = 600, canvasHeight = 500 }) => {
 
     // input image data
     const [image1, image2] = images || [];
@@ -69,11 +69,11 @@ const Slider = ({ images = [], scale = 1.0, canvasWidth = 600, canvasHeight = 50
 
         // scale mouse coordinates after they have been adjusted to be relative to element
         // - Prevent the slider from being positioned outside the image.
-        let x = Math.max(Math.min(Math.floor(e.clientX - rect.left), imgOverlayWidth ), 0) ;
+        let x = Math.max(Math.min(Math.floor(e.clientX - rect.left), imgOverlayWidth + imgOffset ), imgOffset) ;
 
         /* Execute a function that will resize the overlay image according to the cursor: */
         panel1Ref.current.style.width = x + 'px';
-        sliderRef.current.style.left = x + imgOffset - (sliderRef.current.offsetWidth / 2) + 'px';
+        sliderRef.current.style.left = x - (sliderRef.current.offsetWidth / 2) + 'px';
     }
 
     // trigger redraw of canvas
@@ -96,9 +96,11 @@ const Slider = ({ images = [], scale = 1.0, canvasWidth = 600, canvasHeight = 50
             && panel2Ref.current
             && img1Ref.current
             && img2Ref.current
+            && canvas1Ref.current
+            && canvas2Ref.current
             && status === 0
         ) {
-
+            // status = image loading has started
             setStatus(1);
 
             const img1 = img1Ref.current;
@@ -124,29 +126,29 @@ const Slider = ({ images = [], scale = 1.0, canvasWidth = 600, canvasHeight = 50
             };
             img1.onload = function() {
 
-                // compute scaled canvas dimensions and scale image to fit
-                canvas1.width = canvasWidth * scale;
-                canvas1.height = canvasHeight * scale;
-                const {w, h} = scaleToFit(img1.naturalWidth, img1.naturalHeight, canvas1.width, canvas1.height);
+                // compute canvas dimensions and scale image to fit
+                canvas1.width = canvasWidth;
+                canvas1.height = canvasHeight;
+                const {w, h} = scaleToFit(img1.naturalWidth, img1.naturalHeight, canvasWidth, canvasHeight);
                 // compute dx offset needed to centre image on canvas
-                const offset1 = (canvas1.width - w) / 2;
+                const offset1 = (canvasWidth - w) / 2;
                 setImgOffset(offset1);
-                // store scaled image width
+                // scaled image width
                 setImgOverlayWidth(w);
 
-                /* Initialize the width of overlay image to 50%: */
-                ctx1.drawImage(img1, 0, 0, w, h);
-                panel1.style.width = (w / 2) + 'px';
-                panel1.style.height = h + 'px';
-                panel1.style.left = offset1 + 'px';
+                /* Initialize the width of overlay image to 50% coverage */
+                ctx1.drawImage(img1, offset1, 0, w, h);
+                panel1.style.width = (canvasWidth / 2) + 'px';
+                panel1.style.height = canvasHeight + 'px';
 
-                /* Position the slider in the middle: */
-                slider.style.top = (canvas1.height / 2) - (slider.offsetHeight / 2) + 'px';
-                slider.style.left = (canvas1.width / 2) - (slider.offsetWidth / 2) + 'px';
+                /* Position the slider in the middle */
+                slider.style.left = (canvasWidth / 2) - (slider.offsetWidth / 2) + 'px';
+                slider.style.top = (canvasHeight / 2) - (slider.offsetHeight / 2) + 'px';
 
                 setLoaded1(true);
 
             };
+            // set image source
             img1.src = url1;
 
             // load image 2 (underlay)
@@ -157,15 +159,14 @@ const Slider = ({ images = [], scale = 1.0, canvasWidth = 600, canvasHeight = 50
             img2.onload = function() {
 
                 // compute scaled canvas dimensions and scale image to fit
-                canvas2.width = canvasWidth * scale;
-                canvas2.height = canvasHeight * scale;
-                const {w, h} = scaleToFit(img2.naturalWidth, img2.naturalHeight, canvas2.width, canvas2.height);
-                const offset2 = (canvas2.width - w) / 2;
+                canvas2.width = canvasWidth;
+                canvas2.height = canvasHeight;
+                const {w, h} = scaleToFit(img2.naturalWidth, img2.naturalHeight, canvasWidth, canvasHeight);
+                const offset2 = (canvasWidth - w) / 2;
 
-                ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
-                ctx2.drawImage(img2, 0, 0, img2.naturalWidth, img2.naturalHeight, offset2, 0, w, h);
-                panel2.style.width = canvas2.width + 'px';
-                panel2.style.height = h + 'px';
+                ctx2.drawImage(img2, offset2, 0, w, h);
+                panel2.style.width = canvasWidth + 'px';
+                panel2.style.height = canvasHeight + 'px';
 
                 setLoaded2(true);
             };
@@ -188,8 +189,7 @@ const Slider = ({ images = [], scale = 1.0, canvasWidth = 600, canvasHeight = 50
         canvasWidth,
         canvasHeight,
         image1,
-        image2,
-        scale
+        image2
     ]);
 
     return <>
@@ -201,6 +201,7 @@ const Slider = ({ images = [], scale = 1.0, canvasWidth = 600, canvasHeight = 50
             }}
         />
         <div className={'slider'}>
+            { ( !loaded1 || !loaded2 ) && <Loading className={'centered'} overlay={false}/> }
             <div
                 className={`slider-container`}
                 onMouseLeave={_slideFinish}
@@ -209,9 +210,7 @@ const Slider = ({ images = [], scale = 1.0, canvasWidth = 600, canvasHeight = 50
                 }}
                 onMouseMove={_slideMove}
             >
-                <div
-                    className={`slider-button`}
-                    ref={sliderRef}
+                <div className={`slider-button`} ref={sliderRef}
                     onTouchStart={() => {
                         sliding = true;
                     }}
@@ -223,17 +222,13 @@ const Slider = ({ images = [], scale = 1.0, canvasWidth = 600, canvasHeight = 50
                         sliding = true;
                     }}
                 >
-                    {
-                        loaded1 && loaded2
-                            ? <Button icon={'slide'} />
-                            :   <Loading overlay={false} />
-                    }
+                    { loaded1 && loaded2 && <Button icon={'slide'}/> }
                 </div>
                 <div ref={panel1Ref} className={'slider-img overlay'}>
-                    <canvas ref={canvas1Ref} />
+                    <canvas width={canvasWidth} height={canvasHeight} ref={canvas1Ref} />
                 </div>
                 <div ref={panel2Ref} className={'slider-img'}>
-                    <canvas ref={canvas2Ref} />
+                    <canvas width={canvasWidth} height={canvasHeight} ref={canvas2Ref} />
                 </div>
                 <img
                     style={{ 'display': 'none' }}

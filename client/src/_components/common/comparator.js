@@ -35,7 +35,8 @@ const Comparator = ({
     const [pairToggle, setPairToggle] = React.useState(false);
     const [viewerType, setViewerType] = React.useState('overlay');
     const [expandImage, setExpandImage] = React.useState(false);
-    const [, setPanelWidth] = React.useState(0);
+    const [panelWidth, setPanelWidth] = React.useState(0);
+    const [panelHeight, setPanelHeight] = React.useState(0);
     let selectedImage = images[selectedIndex];
     const slidePanel = React.useRef();
 
@@ -58,8 +59,10 @@ const Comparator = ({
 
     // panel dimensions
     React.useEffect(() => {
-        console.log('Update panel width..')
-        if (slidePanel.current) setPanelWidth(slidePanel.current.offsetWidth);
+        if (slidePanel.current) {
+            setPanelWidth(slidePanel.current.offsetWidth);
+            setPanelHeight(slidePanel.current.offsetHeight);
+        }
     }, []);
 
     // increment/decrement index to make slide visible
@@ -75,20 +78,21 @@ const Comparator = ({
     const getViewer = function() {
 
         // For local testing only
-        // const url1 = 'http://localhost:3001/uploads/full_b4_x6gg-T2wXrJ3EgatWy_bqbZE8gyFr02g2VWMlxqV1rtNe.jpeg';
-        // const url2 = 'http://localhost:3001/uploads/CkiulFsfN7EBR1Rhz08P2_K72R4IEYYql02k3fmeRZ4WVJcx.jpeg'
-        // const url3 = 'http://localhost:3001/uploads/_I3ywf_afWO7imTLaSzXM1jfdHJiWi4qVR4SDiGxl9yop3cW.jpeg'
-        // const url4 = 'http://localhost:3001/uploads/_I3ywf_afWO7imTLaSzXM1jfdHJiWi4qVR4SDiGxl9yop3cW.jpeg'
+        const url1 = 'http://localhost:3001/uploads/full_b4_x6gg-T2wXrJ3EgatWy_bqbZE8gyFr02g2VWMlxqV1rtNe.jpeg';
+        const url2 = 'http://localhost:3001/uploads/CkiulFsfN7EBR1Rhz08P2_K72R4IEYYql02k3fmeRZ4WVJcx.jpeg'
+        const url3 = 'http://localhost:3001/uploads/_I3ywf_afWO7imTLaSzXM1jfdHJiWi4qVR4SDiGxl9yop3cW.jpeg'
+        const url4 = 'http://localhost:3001/uploads/_I3ywf_afWO7imTLaSzXM1jfdHJiWi4qVR4SDiGxl9yop3cW.jpeg'
 
         const viewers = {
             slider: () => {
-                return <Slider images={[historic_captures.refImage, modern_captures.refImage]} />
-                // return <Slider
-                //     canvasWidth={panelWidth}
-                //     images={ selectedIndex === 0
-                //         ? [{url: {medium: url3}}, {url: {medium: url4}}]
-                //         : [{url: {medium: url1}}, {url: {medium: url2}}]
-                // } />
+                // return <Slider canvasWidth={panelWidth} canvasHeight={panelHeight} images={[historic_captures.refImage, modern_captures.refImage]} />
+                return <Slider
+                    canvasWidth={panelWidth}
+                    canvasHeight={panelHeight}
+                    images={ selectedIndex === 0
+                        ? [{url: {medium: url3}}, {url: {medium: url4}}]
+                        : [{url: {medium: url1}}, {url: {medium: url2}}]
+                } />
             },
             default: () => {
                 return <>
