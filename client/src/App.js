@@ -10,7 +10,7 @@ import { useUser } from './_providers/user.provider.client';
 import { useRouter } from './_providers/router.provider.client';
 import UnavailableError from './_components/error/unavailable.error';
 import { getPref, setPref} from "./_services/session.services.client";
-import HeaderViewer from "./_components/menus/head.viewer.menu";
+import BannerMenu from "./_components/menus/banner.menu";
 import BoundaryError from "./_components/error/boundary.error";
 import Navigator from "./_components/navigator/navigator";
 import Viewer from "./_components/viewer/viewer";
@@ -75,10 +75,19 @@ export default function App() {
                 sliderRef.current.style.left = (navWidth - sliderRef.current.offsetWidth / 2) + 'px';
                 panel1Ref.current.style.width = navWidth + 'px';
                 panel2Ref.current.style.width = nav.toggle ? (winWidth - navWidth) + 'px' : winWidth + 'px';
+                // reset navigator toggle
+                if (nav.offCanvas) {
+                    nav.setToggle(true);
+                    setPref('navToggle', true);
+                }
                 nav.setOffCanvas(false);
             }
             else {
                 /* Initialize compact panel layout */
+                if (!nav.offCanvas) {
+                    nav.setToggle(false);
+                    setPref('navToggle', false);
+                }
                 nav.setOffCanvas(true);
                 panel1Ref.current.style.width = minWidth + 'px';
                 panel2Ref.current.style.width = winWidth + 'px';
@@ -124,7 +133,7 @@ export default function App() {
 
     return router.online
         ? <div className={"page"}>
-            <HeaderViewer/>
+            <BannerMenu/>
             <PanelMenu/>
             <div
                 style={{

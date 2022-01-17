@@ -6,9 +6,7 @@
  */
 
 import React from 'react'
-import { viewerGettingStarted, viewerIAT, viewerWelcome } from '../content/dashboard.static';
-
-
+import {useUser} from "../../_providers/user.provider.client";
 
 /**
  * Editor dashboard component
@@ -17,34 +15,12 @@ import { viewerGettingStarted, viewerIAT, viewerWelcome } from '../content/dashb
  * @return {Promise} result
  */
 
-
-/**
- * Viewer dashboard component
- *
- * @public
- * @return {JSX.Element} result
- */
-
 const DashboardEditor = () => {
+    const user = useUser();
     return (
         <div className={'h-menu view-panel-group'}>
-            <ul>
-                <li>
-                    <div className={'view-panel blue'}>
-                        { viewerWelcome }
-                    </div>
-                </li>
-                <li>
-                    <div className={'view-panel purple'}>
-                        { viewerGettingStarted }
-                    </div>
-                </li>
-                <li>
-                    <div className={'view-panel pink'}>
-                        { viewerIAT }
-                    </div>
-                </li>
-            </ul>
+            <h2>MLE Editor</h2>
+            { user && <p>You are logged in as an <strong>{ user.role }</strong></p> }
         </div>
     );
 }

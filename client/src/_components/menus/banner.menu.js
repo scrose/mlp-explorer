@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.Viewer.Header
- * File: header.viewer.js
+ * MLP.Client.Components.Navigation.Banner
+ * File: banner.menu.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
  */
@@ -8,16 +8,18 @@
 import React from 'react';
 import MainMenu from './main.menu';
 import Logo from '../common/logo';
-import Accordion from "../common/accordion";
-import LoginUsers from "../users/login.users";
+import LogoutMenu from "./logout.menu";
+import LoginMenu from "./login.menu";
+import {useUser} from "../../_providers/user.provider.client";
 
 /**
- * Page header component (unauthenticated).
+ * Main navigation bar.
  *
  * @public
  */
 
-const HeadViewerMenu = () => {
+const BannerMenu = () => {
+    const user = useUser();
     return (
         <header>
             <div className={'banner'}>
@@ -26,17 +28,13 @@ const HeadViewerMenu = () => {
                         <li><Logo /></li>
                         <li><MainMenu /></li>
                         <li className={'push'}>
-                            <nav className={'main'}>
-                                <Accordion label={'Sign In'}>
-                                    <LoginUsers />
-                                </Accordion>
-                            </nav>
+                            { user ? <LogoutMenu /> : <LoginMenu /> }
                         </li>
                     </ul>
                 </div>
             </div>
         </header>
     );
-}
+};
 
-export default React.memo(HeadViewerMenu);
+export default BannerMenu;

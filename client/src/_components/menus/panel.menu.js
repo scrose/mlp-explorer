@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Menu.Panel
+ * MLP.Client.Components.Navigation.Panel
  * File: panel.menu.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed

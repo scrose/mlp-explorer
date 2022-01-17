@@ -15,7 +15,7 @@ import {useWindowSize} from "../../_utils/events.utils.client";
 import Footer from "../common/footer";
 
 /**
- * Render editor panel component (authenticated).
+ * Render editor panel component (authenticated users).
  *
  * @public
  */

@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Editor.Menu
+ * MLP.Client.Components.Navigation.Editor
  * File: editor.menu.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed

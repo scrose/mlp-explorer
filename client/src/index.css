@@ -323,7 +323,7 @@ Logo/Wordmark
     color: #FFFFFF;
 }
 
-/* Page Banner: User Navigation Menu */
+/* Page Banner: Main Navigation Menu */
 
 nav.main .accordion {
     margin: 0;
@@ -334,21 +334,10 @@ nav.main .accordion-data.open {
     margin: 0;
     padding: 0;
     top: 50px;
+    position: absolute;
+}
+.push nav.main .accordion-data.open {
     right: 0;
-    position:fixed;
-}
-nav.main .login {
-    min-width: 350px;
-    background-color: #222222;
-    color: #FFFFFF;
-    padding: 15px;
-    line-height: normal;
-    height: auto;
-}
-nav.main .login fieldset {
-    background-color: #222222;
-    color: #FFFFFF;
-    border: none;
 }
 nav.main button  {
     text-align: left;
@@ -356,11 +345,9 @@ nav.main button  {
     color: white !important;
 }
 
-.login input {
-    background-color: #FFFFFF !important;
-}
 
 /* Viewer/Editor Panels */
+
 #viewer-panel {
     position: relative;
 }
@@ -450,11 +437,25 @@ nav.main button  {
     cursor: default;
 }
 
-/* Login Panel */
+/* User Menu Panel */
 
-.login {
-    width: 100% !important;
+.user-menu {
+    /*width: 100% !important;*/
     max-width: 500px;
+    min-width: 300px;
+    background-color: #222222;
+    color: #FFFFFF;
+    height: auto !important;
+    line-height: normal !important;
+    padding: 15px;
+}
+.user-menu fieldset {
+    background-color: transparent;
+    color: #FFFFFF;
+    border: none;
+}
+.user-menu input {
+    background-color: #FFFFFF !important;
 }
 
 /* Panel Menu */
@@ -746,6 +747,11 @@ nav.breadcrumb ul li a:hover {
     position: absolute;
     background-color: #DDDDDD;
     z-index: 99999;
+}
+button.nav-toggle {
+    margin-left: 8px;
+    margin-right: 8px;
+    border: 1px solid grey;
 }
 
 

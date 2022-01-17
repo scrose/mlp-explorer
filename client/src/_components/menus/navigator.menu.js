@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Menus.Navigator
+ * MLP.Client.Components.Navigation.Navigator
  * File: menu.navigator.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
@@ -62,6 +62,7 @@ const NavigatorMenu = () => {
                 <ul className={`v-menu`}>
                     <li>
                         <Button
+                            className={'nav-toggle'}
                             disabled={nav.mode === 'iat'}
                             icon={nav.toggle ? 'hopenleft' : 'hcloseleft'}
                             title={nav.toggle ? 'Minimize navigator.' : 'Maximize navigator'}

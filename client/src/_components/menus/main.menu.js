@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Menus.Main
+ * MLP.Client.Components.Navigation.Main
  * File: main.menu.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
@@ -28,7 +28,6 @@ const MenuItems = () => {
 
 const MainMenu = () => {
     const nav = useNav();
-
     return nav.offCanvas
         ? <nav className={'main'}>
             <Accordion label={'Menu'}>

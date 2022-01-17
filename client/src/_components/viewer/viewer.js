@@ -15,7 +15,7 @@ import Footer from "../common/footer";
 import {useWindowSize} from "../../_utils/events.utils.client";
 
 /**
- * Render viewer panel component (unauthenticated).
+ * Render viewer panel component (unauthenticated users).
  *
  * @public
  */
