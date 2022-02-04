@@ -10,7 +10,7 @@ import Carousel from "../common/carousel";
 import {viewerGettingStarted, viewerIAT, viewerWelcome} from "../content/dashboard.static";
 import {useRouter} from "../../_providers/router.provider.client";
 import { createRoute } from "../../_utils/paths.utils.client";
-import Message from "../common/message";
+import Message, {UserMessage} from "../common/message";
 
 
 /**
@@ -77,15 +77,16 @@ const DashboardViewer = () => {
 
 
     return (<>
-        <Carousel
-            fit={'cover'}
-            images={images}
-            menu={false}
-            autoslide={4000}
-            captions={[]}
-        />
+        {!error && <Carousel
+                fit={'cover'}
+                images={images}
+                menu={false}
+                autoslide={4000}
+                captions={[]}
+            />
+        }
         <div className={'h-menu dashboard view-panel-group'}>
-            { error && <Message message={'An error has occurred.'} /> }
+            { error && <UserMessage message={{msg: 'A server error has occurred.', type: 'error'}} /> }
             <ul>
                 <li>
                     <div className={'view-panel purple'}>

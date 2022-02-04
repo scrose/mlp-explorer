@@ -622,16 +622,16 @@ export const getNodeLabel = async (node, files=[], client=pool) => {
             id, type, ['date'], 'Historic Visit'
         ),
         modern_visits: queries.metadata.selectLabel(
-            id, type, ['date'], 'MV'
+            id, type, ['date'], ''
         ),
         locations: queries.metadata.selectLabel(
             id, type, ['location_identity'], 'Loc'
         ),
         historic_captures: queries.metadata.selectLabel(
-            id, type, ['fn_photo_reference'], 'HC'
+            id, type, ['fn_photo_reference'], ''
         ),
         modern_captures: queries.metadata.selectLabel(
-            id, type, ['fn_photo_reference'], 'MC'
+            id, type, ['fn_photo_reference'], ''
         ),
         glass_plate_listings: queries.metadata.selectLabel(
             id, type, ['container', 'plates'], '', ', ', 'id'

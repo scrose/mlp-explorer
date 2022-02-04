@@ -32,11 +32,10 @@ export const init = async () => {};
  */
 
 export const show = async (req, res, next) => {
-
-    // NOTE: client undefined if connection fails.
-    const client = await pool.connect();
-
     try {
+
+        // NOTE: client undefined if connection fails.
+        const client = await pool.connect();
 
         const { id='' } = req.params || {};
         const node = await nserve.get(sanitize(id, 'integer'), client);
@@ -47,11 +46,10 @@ export const show = async (req, res, next) => {
                 data: node
             }));
 
+        await client.release(true);
+
     } catch (err) {
         return next(err);
-    }
-    finally {
-        client.release(true);
     }
 };
 
@@ -95,11 +93,10 @@ export const tree = async (req, res, next) => {
  */
 
 export const map = async (req, res, next) => {
-
-    // NOTE: client undefined if connection fails.
-    const client = await pool.connect();
-
     try {
+
+        // NOTE: client undefined if connection fails.
+        const client = await pool.connect();
 
         // get surveyors and projects as root containers
         res.status(200).json(
@@ -110,11 +107,10 @@ export const map = async (req, res, next) => {
                 }
             }));
 
+        await client.release(true);
+
     } catch (err) {
         return next(err);
-    }
-    finally {
-        client.release(true);
     }
 };
 

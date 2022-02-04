@@ -105,37 +105,46 @@ async function initRoutes(routes, baseRouter) {
  */
 
 async function initRouter() {
+    try {
 
-    // initialize main routes
-    initRoutes(main, baseRouter)
-        .catch(err => {throw err});
+        // initialize main routes
+        await initRoutes(main, baseRouter);
 
-    // initialize user routes
-    initRoutes(users, baseRouter)
-        .catch(err => {throw err});
+        // initialize user routes
+        await initRoutes(users, baseRouter)
 
-    // initialize node routes
-    initRoutes(nodes, baseRouter)
-        .catch(err => {throw err});
+        // initialize node routes
+        await initRoutes(nodes, baseRouter)
 
-    // initialize model routes
-    const modelsRoutes = await models();
-    modelsRoutes
-        .map(routes => initRoutes(routes, baseRouter));
+        // initialize model routes
+        const modelsRoutes = await models();
+        await Promise.all(modelsRoutes
+            .map(routes => {
+                return initRoutes(routes, baseRouter)
+            }));
 
-    // initialize metadata routes
-    const metadataRoutes = await metadata();
-    metadataRoutes
-        .map(routes => initRoutes(routes, baseRouter));
+        // initialize metadata routes
+        const metadataRoutes = await metadata();
+        await Promise.all(metadataRoutes
+            .map(routes => {
+                return initRoutes(routes, baseRouter)
+            }));
 
-    // initialize file routes
-    const filesRoutes = await files();
-    filesRoutes
-        .map(routes => initRoutes(routes, baseRouter));
+        // initialize file routes
+        const filesRoutes = await files();
+        await Promise.all(filesRoutes
+            .map(routes => {
+                return initRoutes(routes, baseRouter)
+            }));
 
-    // initialize master routes
-    const masterRoutes = await master();
-    masterRoutes
-        .map(routes => initRoutes(routes, baseRouter));
+        // initialize master routes
+        const masterRoutes = await master();
+        await Promise.all(masterRoutes
+            .map(routes => {
+                return initRoutes(routes, baseRouter)
+            }));
+    } catch (err) {
+        throw err
+    }
 }
 initRouter().catch(err => {throw err});

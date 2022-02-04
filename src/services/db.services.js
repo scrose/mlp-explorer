@@ -1,5 +1,5 @@
 /*!
- * MLP.API.Services.PostGresDB
+ * MLP.API.Services.Database
  * File: db.services.js
  * Copyright(c) 2021 Runtime Software Development Inc.
  * MIT Licensed
