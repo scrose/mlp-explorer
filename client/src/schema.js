@@ -20,7 +20,7 @@ export const schema = {
         name: "Explorer",
         title: "Welcome to the Mountain Legacy Project Explorer",
         mlp_url: 'http://mountainlegacy.ca',
-        carousel: 47285,
+        carousel: 41673,
     },
     routes: {
         '/': {
