@@ -10,7 +10,6 @@
  * @private
  */
 
-import { prepare } from '../lib/api.utils.js';
 import pool from '../services/db.services.js';
 import ModelServices from '../services/model.services.js';
 import * as cserve from '../services/construct.services.js';
@@ -18,9 +17,10 @@ import * as nserve from '../services/nodes.services.js';
 import * as fserve from '../services/files.services.js';
 import * as importer from '../services/import.services.js';
 import * as metaserve from '../services/metadata.services.js';
-import { sanitize, humanize } from '../lib/data.utils.js';
-import { isRelatable } from '../services/schema.services.js';
+import {humanize, sanitize} from '../lib/data.utils.js';
+import {isRelatable} from '../services/schema.services.js';
 import {updateComparisons} from "../services/comparisons.services.js";
+import {prepare} from '../lib/api.utils.js';
 
 /**
  * Shared data.
@@ -82,10 +82,7 @@ export default function ModelController(nodeType) {
      */
 
     this.show = async (req, res, next) => {
-
-        // NOTE: client undefined if connection fails.
         const client = await pool.connect();
-
         try {
 
             // get requested node ID
@@ -128,7 +125,7 @@ export default function ModelController(nodeType) {
             console.error(err)
             return next(err);
         } finally {
-            client.release(true);
+            await client.release(true);
         }
     };
 
@@ -142,6 +139,7 @@ export default function ModelController(nodeType) {
      */
 
     this.add = async (req, res, next) => {
+        const client = await pool.connect();
         try {
 
             // get owner ID from parameters (if exists)
@@ -153,7 +151,7 @@ export default function ModelController(nodeType) {
                 : new Model();
 
             // get path of node in hierarchy
-            const owner = await nserve.select(sanitize(owner_id, 'integer'));
+            const owner = await nserve.select(sanitize(owner_id, 'integer'), client);
             const path = await nserve.getPath(owner) || {};
 
             // send form data response
@@ -168,6 +166,8 @@ export default function ModelController(nodeType) {
         } catch (err) {
             console.error(err)
             return next(err);
+        } finally {
+            await client.release(true);
         }
     };
 
@@ -213,7 +213,7 @@ export default function ModelController(nodeType) {
 
             // get ID for new item
             const { nodes_id = null } = resData || {}
-            const newItem = nodes_id ? await nserve.get(nodes_id) : {};
+            const newItem = nodes_id ? await nserve.get(nodes_id, client) : {};
             const label = `${nodes_id ? newItem.label : model.label}`;
 
             // send response
@@ -232,7 +232,7 @@ export default function ModelController(nodeType) {
             console.error(err)
             return next(err);
         } finally {
-            client.release();
+            await client.release(true);
         }
     };
 
@@ -246,16 +246,17 @@ export default function ModelController(nodeType) {
      */
 
     this.edit = async (req, res, next) => {
+        const client = await pool.connect();
         try {
 
             // get node ID from parameters
             const id = this.getId(req);
 
             // get item data
-            let data = await nserve.get(id);
+            let data = await nserve.get(id, client);
 
             // get path of node in hierarchy
-            const owner = await nserve.select(id);
+            const owner = await nserve.select(id, client);
             const path = await nserve.getPath(owner) || {};
 
             // send form data response
@@ -270,6 +271,8 @@ export default function ModelController(nodeType) {
         } catch (err) {
             console.error(err)
             return next(err);
+        } finally {
+            await client.release(true);
         }
     };
 
@@ -290,7 +293,7 @@ export default function ModelController(nodeType) {
 
             // get node data from parameters
             const id = this.getId(req);
-            const itemData = await nserve.get(id);
+            const itemData = await nserve.get(id, client);
 
             // check that file entry exists
             if (!itemData) {
@@ -319,7 +322,7 @@ export default function ModelController(nodeType) {
             }
 
             // get updated item
-            let updatedItem = await nserve.get(id);
+            let updatedItem = await nserve.get(id, client);
 
             // create node path
             const path = await nserve.getPath(node);
@@ -341,12 +344,12 @@ export default function ModelController(nodeType) {
             console.error(err)
             return next(err);
         } finally {
-            client.release();
+            await client.release(true);
         }
     };
 
     /**
-     * Move item to new owner.
+     * Move capture to new container (owner).
      *
      * @param req
      * @param res
@@ -355,76 +358,53 @@ export default function ModelController(nodeType) {
      */
 
     this.move = async (req, res, next) => {
-
         const client = await pool.connect();
-
         try {
 
-            // get node data from parameters
+            // get dependent node + owner data
             const id = this.getId(req);
-            const itemData = await nserve.get(id);
+            const { owner_id=0 } = req.params || {};
+            const itemData = await nserve.get(id, client);
+            const ownerData = await nserve.select(owner_id, client);
 
-            // check that file entry exists
-            if (!itemData) {
+            // check that both node and owner exist
+            if (!itemData || !ownerData) {
                 return next(new Error('invalidRequest'));
             }
 
-            // process imported metadata
-            const {owner_id=''} = req.body || {};
-            const ownerData = await nserve.select(owner_id);
-
-            // reject if owner does not exist
-            if (!ownerData) {
-                return next(new Error('invalidRequest'));
-            }
-
-            // is the move allowed? (i.e. check if the owner and node relatable)
+            // is the move allowed? (i.e. check if owner and node are relatable)
             const isMoveable = await isRelatable(id, owner_id, client);
             if (!isMoveable) {
                 return next(new Error('invalidMove'));
             }
 
-            const item = new Model(itemData.metadata);
+            // create model instance and inject data (update new owner)
+            const { metadata={} } = itemData || {};
+            const item = new Model(metadata);
+
+            // move item and dependents to new owner
+            const result = await mserve.move(item, ownerData);
+
+            // error occurred in capture image transfer
+            if (!result) return next(new Error('invalidRequest'));
 
             // send response
             return res.status(200).json(
                 prepare({
                     view: 'show',
-                    model: model,
-                    data: await isRelatable(id, owner_id),
+                    model: itemData.type,
+                    data: itemData,
                     message: {
-                        msg: `${humanize(model.name)} moved successfully!`,
+                        msg: `${humanize(itemData.type)} moved successfully!`,
                         type: 'success'
                     },
                 }));
-            //
-            // // update database record
-            // await mserve.update(item);
-            //
-            // // get updated item
-            // let updatedItem = await nserve.get(id);
-            //
-            // // create node path
-            // const path = await nserve.getPath(node);
-            //
-            // // send response
-            // res.status(200).json(
-            //     prepare({
-            //         view: 'show',
-            //         model: model,
-            //         data: updatedItem,
-            //         path: path,
-            //         message: {
-            //             msg: `'${updatedItem.label}' ${humanize(model.name)} updated successfully!`,
-            //             type: 'success'
-            //         },
-            //     }));
 
         } catch (err) {
             console.error(err)
             return next(err);
         } finally {
-            client.release();
+            await client.release(true);
         }
     };
 
@@ -438,22 +418,26 @@ export default function ModelController(nodeType) {
      */
 
     this.remove = async (req, res, next) => {
+        const client = await pool.connect();
         try {
             const id = this.getId(req);
 
             // retrieve item data
-            let nodeData = await nserve.get(id);
+            let nodeData = await nserve.get(id, client);
             // check if node is valid (exists)
-            if (!nodeData)
-                return next(new Error('notFound'));
-            const item = new Model(nodeData.metadata);
+            if (!nodeData) return next(new Error('notFound'));
+
+            // force user to delete dependent nodes separately
+            // - use error code 23503 from FK violation
+            if (nodeData.hasDependents) return next(new Error('23503'));
 
             // get path of owner node in hierarchy (if exists)
+            const item = new Model(nodeData.metadata);
             const { owner_id = null } = item.node || {};
-            const owner = await nserve.select(owner_id);
-            const path = await nserve.getPath(owner);
+            const owner = await nserve.select(owner_id, client);
+            const path = await nserve.getPath(owner, client);
 
-            // delete item
+            // delete item (and attached files, if they exist)
             await mserve.remove(item);
 
             res.status(200).json(
@@ -471,6 +455,8 @@ export default function ModelController(nodeType) {
         } catch (err) {
             console.error(err)
             return next(err);
+        } finally {
+            await client.release(true);
         }
     };
 }

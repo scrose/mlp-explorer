@@ -130,7 +130,7 @@ export default function MetadataController(metadataType) {
             return next(err);
         }
         finally {
-            client.release(true);
+            await client.release(true);
         }
     };
 
@@ -172,7 +172,7 @@ export default function MetadataController(metadataType) {
             console.error(err)
             return next(err);
         } finally {
-            client.release(true);
+            await client.release(true);
         }
     };
 
@@ -230,7 +230,7 @@ export default function MetadataController(metadataType) {
             console.error(err)
             return next(err);
         } finally {
-            client.release();
+            await client.release(true);
         }
     };
 
@@ -294,7 +294,7 @@ export default function MetadataController(metadataType) {
             console.error(err)
             return next(err);
         } finally {
-            client.release();
+            await client.release(true);
         }
     };
 
@@ -398,7 +398,7 @@ export default function MetadataController(metadataType) {
             console.error(err)
             return next(err);
         } finally {
-            client.release();
+            await client.release(true);
         }
     };
 
@@ -465,7 +465,7 @@ export default function MetadataController(metadataType) {
             console.error(err)
             return next(err);
         } finally {
-            client.release();
+            await client.release(true);
         }
     };
 

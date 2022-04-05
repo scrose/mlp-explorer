@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.Components.Common.Slider
  * File: slider.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 
@@ -16,8 +17,6 @@ import Button from './button';
  * Image slider component.
  *
  * @public
- * @param {Array} images
- * @param {number} width
  * @return
  */
 

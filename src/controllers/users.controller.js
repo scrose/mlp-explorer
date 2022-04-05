@@ -47,9 +47,7 @@ export const login = async (req, res, next) => {
     try {
         // check if user is currently logged-in
         const isAuth = await auth.validate(access_token);
-
-        if (isAuth)
-            return next(new Error('redundantLogin'));
+        if (isAuth) return next(new Error('redundantLogin'));
 
         // otherwise, validate user credentials
         const { email = '', password = '' } = req.body || {};
@@ -71,9 +69,8 @@ export const login = async (req, res, next) => {
             const { refresh_token=null, access_token=null } = data || {};
 
             // send access token to the client inside a cookie
-            // TODO: include secure: true on production site
-            res.cookie("access_token", access_token, {httpOnly: true, sameSite: 'strict', signed: true});
-            res.cookie("refresh_token", refresh_token, {httpOnly: true, sameSite: 'strict', signed: true});
+            res.cookie("access_token", access_token, {httpOnly: true, sameSite: 'strict', signed: true, secure: true});
+            res.cookie("refresh_token", refresh_token, {httpOnly: true, sameSite: 'strict', signed: true, secure: true});
 
             // get user role label
             const role = data.roles.length > 0
@@ -121,8 +118,8 @@ export const logout = async (req, res, next) => {
                 throw Error('logoutFailed');
 
             // successful session logout
-            res.cookie("access_token", access_token, {httpOnly: true, sameSite: 'strict', signed: true, maxAge: 0});
-            res.cookie("refresh_token", refresh_token, {httpOnly: true, sameSite: 'strict', signed: true, maxAge: 0});
+            res.cookie("access_token", access_token, {httpOnly: true, sameSite: 'strict', signed: true, maxAge: 0, secure: true});
+            res.cookie("refresh_token", refresh_token, {httpOnly: true, sameSite: 'strict', signed: true, maxAge: 0, secure: true});
             res.status(200).json(
                 prepare({
                     message: {msg: 'Successfully logged out!', type: 'success'}
@@ -146,13 +143,13 @@ export const logout = async (req, res, next) => {
 export const refresh = async (req, res, next) => {
 
     // refresh token (Keycloak API)
-    await auth.refresh(req, res)
+    await auth.refresh(req)
         .then(data => {
 
             // reset tokens if a token is not found or is invalid
             if (!data) {
-                res.cookie("access_token", '', {httpOnly: true, sameSite: 'strict', signed: true, maxAge: 0});
-                res.cookie("refresh_token", '', {httpOnly: true, sameSite: 'strict', signed: true, maxAge: 0});
+                res.cookie("access_token", '', {httpOnly: true, sameSite: 'strict', signed: true, maxAge: 0, secure: true});
+                res.cookie("refresh_token", '', {httpOnly: true, sameSite: 'strict', signed: true, maxAge: 0, secure: true});
                 return res.status(200).json(
                     prepare({
                         message: {msg: 'Token reset.', type: 'success'}

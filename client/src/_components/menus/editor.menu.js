@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.Components.Navigation.Editor
  * File: editor.menu.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 
@@ -186,13 +187,13 @@ const EditorMenu = ({
             }}
             model={model}
             groupType={group_type}
-            callback={() => {
+            callback={(error) => {
                 setDialogToggle(null);
-                callback ? callback() : redirect(
-                    model === 'projects' || model === 'surveyors'
-                        ? '/'
-                        : redirectURI
-                );
+                if (!error) {
+                    callback ? callback() : redirect(
+                        model === 'projects' || model === 'surveyors' ? '/' : redirectURI
+                    );
+                }
             }}
         />,
         options: <OptionsView
@@ -205,7 +206,7 @@ const EditorMenu = ({
         />,
         import_hc: <Dialog
             key={`${menuID}_dialog_import_hc`}
-            title={`Bulk ${getModelLabel('historic_captures', 'label')} Import.`}
+            title={`Bulk ${getModelLabel('historic_captures', 'label')} Import`}
             setToggle={setDialogToggle}>
             {
                 bulkImportDescription
@@ -227,7 +228,7 @@ const EditorMenu = ({
         </Dialog>,
         import_mc: <Dialog
             key={`${menuID}_dialog_import_mc`}
-            title={`Bulk ${getModelLabel('modern_captures', 'label')} Import.`}
+            title={`Bulk ${getModelLabel('modern_captures', 'label')} Import`}
             setToggle={setDialogToggle}>
             {
                 bulkImportDescription
@@ -397,22 +398,23 @@ const EditorMenu = ({
                     }
                     {
                         isVisible.move && <li
-                            draggable={false}
+                            draggable={true}
                             key={`${menuID}_menuitem_move`}
                             onDragStart={(e) => {
-                                // attache node metadata to data transfer object
+                                // attach node metadata to data transfer object
                                 e.dataTransfer.setData(
                                     'application/json',
-                                    JSON.stringify({id: id, type: model, label: label})
+                                    JSON.stringify({
+                                        id: id, model: model, label: label
+                                    })
                                 );
                             }}
                         >
                             <Button
-                                disabled={true}
                                 className={'move'}
                                 label={!compact ? 'Move' : ''}
                                 icon={'move'}
-                                title={`Move ${label}.`}
+                                title={`Move ${label} to a new owner.`}
                             />
                         </li>
                     }

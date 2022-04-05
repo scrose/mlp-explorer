@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.Components.Navigator.Tree
  * File: tree.navigator.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 
@@ -32,24 +33,22 @@ import {useWindowSize} from "../../_utils/events.utils.client";
  * @param {Function} onToggle
  * @param {String} isCurrent
  * @param {boolean} hasDependents
- * @return {JSX.Element}
+ * @return {JSX}
  */
 
 const TreeNodeMenu = ({
                           id,
                           model,
-                          label = '...',
+                          label = '',
                           toggle,
                           setToggle,
-                          setDialog = () => {
-                          },
                           isCurrent = '',
                           hasDependents = false,
                           status = null
                       }) => {
 
     const router = useRouter();
-
+    const nav = useNav();
     const [highlight, setHighlight] = React.useState(false);
 
     // handle toggle events
@@ -70,6 +69,14 @@ const TreeNodeMenu = ({
 
     // handle status of nodes: cascades status levels
     const getStatus = () => {
+
+        // filter classifications for captures
+        if (model === 'historic_captures' || model === 'modern_captures') {
+            if (status.missing) return 'missing';
+            if (status.sorted) return 'sorted';
+            if (!status.sorted) return 'unsorted';
+        }
+
         // if (status.compared) return 'compared';
         if (status.mastered) return 'mastered';
         if (status.partial) return 'partial';
@@ -77,12 +84,6 @@ const TreeNodeMenu = ({
         if (status.located) return 'located';
         if (status.grouped) return 'grouped';
 
-        // additional classifications for captures
-        if (model === 'historic_captures' || model === 'modern_captures') {
-            if (status.missing) return 'missing';
-            if (status.sorted) return 'sorted';
-            if (!status.sorted) return 'unsorted';
-        }
         return 'unprocessed';
     }
 
@@ -118,16 +119,22 @@ const TreeNodeMenu = ({
         setHighlight(false);
 
         // open dialog to process node move
+        // - dialog is defined in navigator.menu.js
         if (nodeData) {
-            setDialog({
-                type: 'move',
-                model: nodeData.type,
-                id: nodeData.id,
-                ownerID: id,
-                label: nodeData.label,
-                ownerLabel: label,
-                ownerType: model
+            const source = JSON.parse(nodeData)
+            nav.setSelected({
+                source: {
+                    id: source.id || '',
+                    model: source.model || '',
+                    label: source.label || ''
+                },
+                destination: {
+                    id: id,
+                    model: model,
+                    label: label,
+                }
             });
+            nav.setDialog('move');
         }
     };
 
@@ -138,7 +145,7 @@ const TreeNodeMenu = ({
             onDragOver={_handleDragOver}
             onDragLeave={_handleDragLeave}
         >
-            <ul>
+            <ul className={highlight ? 'capture-draggable-highlight' : ''}>
                 <li>
                     <Button
                         icon={
@@ -148,16 +155,15 @@ const TreeNodeMenu = ({
                         }
                         className={classnames.join(' ')}
                         title={`Expand ${label}.`}
-                        onClick={hasDependents ? _handleToggle : () => {
-                        }}
+                        onClick={hasDependents ? _handleToggle : () => {}}
                     />
                 </li>
                 <li>
                     <Button
                         icon={model}
                         size={'lg'}
-                        className={`tree-node-icon ${isCurrent || highlight 
-                            ? ' current' 
+                        className={`tree-node-icon ${isCurrent
+                            ? ' current'
                             : ''} ${status ? getStatus() : ''}`}
                         title={
                             `View ${getModelLabel(model)}: ${label} ${status ? ' \nSTATUS: ' + capitalize(getStatus()) : ''}`
@@ -189,7 +195,6 @@ const TreeNodeMenu = ({
  * @param {String} label
  * @param {String} hasDependents
  * @param {Object} status
- * @return {JSX.Element}
  */
 
 const TreeNode = ({
@@ -204,7 +209,7 @@ const TreeNode = ({
     // create dynamic data states
     const [toggle, setToggle] = React.useState(checkNode(id));
     const [isCurrent, setCurrent] = React.useState(false);
-    const [loadedData, setLoadedData] = React.useState([]);
+    const [loadedData, setLoadedData] = React.useState(null);
     const [statusData, setStatusData] = React.useState(status);
     const [error, setError] = React.useState(null);
     const treeNode = React.createRef();
@@ -214,6 +219,17 @@ const TreeNode = ({
     const router = useRouter();
     const api = useData();
 
+    // scroll to current top node
+    React.useEffect(() => {
+        _isMounted.current = true;
+        if ( _isMounted.current && (api.nodes.includes(id) && (type === 'surveyor' || type === 'projects') )) {
+            treeNode.current.scrollIntoView();
+        }
+        return () => {
+            _isMounted.current = false;
+        };
+    }, [api, id, type, treeNode]);
+
     // API call to retrieve node data (if not yet loaded)
     React.useEffect(() => {
 
@@ -222,7 +238,7 @@ const TreeNode = ({
         // include current node path as toggled
         setCurrent(api.nodes.includes(id));
 
-        if (!error && hasDependents && toggle && Array.isArray(loadedData) && loadedData.length === 0) {
+        if (!error && hasDependents && toggle && !loadedData) {
             const route = createNodeRoute('nodes', 'show', id);
             router.get(route)
                 .then(res => {
@@ -235,7 +251,24 @@ const TreeNode = ({
                         const {response = {}} = res || {};
                         let {data = {}} = response || {};
                         const {dependents = [], status = null} = data || {};
-                        setLoadedData(dependents);
+
+                        // separate sorted from unsorted captures or non-capture nodes
+                        const unsorted = dependents.filter(item => {
+                            const { node = {}, status = {} } = item || {};
+                            const {type = ''} = node || {};
+                            return ( type === 'historic_captures' || type === 'modern_captures' ) && (!status.sorted)
+                        });
+                        const sorted = dependents.filter(item => {
+                            const { node = {}, status = {} } = item || {};
+                            const {type = ''} = node || {};
+                            return ( type !== 'historic_captures' && type !== 'modern_captures' ) || status.sorted
+                        });
+
+                        // store separate properties to accommodate sorted/unsorted captures
+                        setLoadedData({
+                            sorted: sorted,
+                            unsorted: unsorted
+                        });
                         setStatusData(status);
                     }
                 })
@@ -259,7 +292,11 @@ const TreeNode = ({
     ]);
 
     return (
-        <div id={`treenode_${id}`} ref={treeNode} className={'tree-node'}>
+        <div
+            id={`treenode_${id}`}
+            ref={treeNode}
+            className={'tree-node'}
+        >
             {
                 <TreeNodeMenu
                     id={id}
@@ -276,10 +313,27 @@ const TreeNode = ({
             {
                 toggle && hasDependents
                     ? error
-                    ? <Button className={'msg error'} label={'An error occurred'} icon={'error'}/>
-                    : Array.isArray(loadedData) && loadedData.length > 0
-                        ? <TreeNodeList items={loadedData} setDialog={setDialog}/>
-                        : <Loading/> : <></>
+                        ? <Button className={'msg error'} label={'An error occurred'} icon={'error'}/>
+                        : loadedData
+                            ?   <>
+                                <TreeNodeList items={loadedData.sorted} setDialog={setDialog}/>
+                                {
+                                    loadedData.unsorted.length > 0 &&
+                                    <ul>
+                                        <li>
+                                            <Accordion
+                                                className={'tree-node-unsorted unsorted'}
+                                                type={'historic_captures'}
+                                                label={'Unsorted Captures'}
+                                            >
+                                                <TreeNodeList items={loadedData.unsorted} setDialog={setDialog}/>
+                                            </Accordion>
+                                        </li>
+                                    </ul>
+                                }
+                            </>
+                            : <Loading/>
+                    : <></>
             }
         </div>
 
@@ -292,13 +346,13 @@ const TreeNode = ({
  * - Sorts node items: (1) Node order; (2) Alphabetically by label
  *
  * @public
- * @return {JSX.Element}
  */
 
-const TreeNodeList = ({items, filter, setDialog, showCurrent}) => {
+const TreeNodeList = ({items, filter, setDialog}) => {
     return (
         <ul>
             {
+                // return sorted nodes
                 items
                     .map(item => {
                         const {node = {}, hasDependents = false, status = {}, label = ''} = item || {};
@@ -328,7 +382,6 @@ const TreeNodeList = ({items, filter, setDialog, showCurrent}) => {
                                     hasDependents={item.hasDependents}
                                     status={item.status}
                                     setDialog={setDialog}
-                                    showCurrent={showCurrent}
                                 />
                             </li>
                         )
@@ -350,34 +403,42 @@ const TreeNavigator = ({ hidden=true }) => {
 
     const nav = useNav();
     const treeRef = React.useRef();
-    const [showCurrent, ] = React.useState(false);
 
     // window dimensions
     const [, winHeight] = useWindowSize();
 
-    return (
+    return <>
+    {
         nav.tree && Object.keys(nav.tree).length > 0
             ? <div
                 ref={treeRef}
                 className={'tree'}
                 style={{
                     display: hidden ? ' none' : ' block',
-                    height: ( winHeight - 140 ) + 'px'
+                    height: (winHeight - 140) + 'px'
                 }}
             >
-                {/*<div className={'h-menu'}>*/}
-                {/*    <ul><li className={'push'}>*/}
-                {/*    <Button*/}
-                {/*        className={'tree-node toggle'}*/}
-                {/*        onClick={() => {*/}
-                {/*            setShowCurrent(true);*/}
-                {/*            setShowCurrent(false);*/}
-                {/*        }}*/}
-                {/*        label={"Scroll to Current"}*/}
-                {/*    />*/}
-                {/*    </li></ul>*/}
-                {/*</div>*/}
-                <ul className={'root'}>
+                <div className={'root'}>
+                    <Accordion
+                        key={`summary_stats`}
+                        type={'chart'}
+                        label={"Collection Summary"}
+                        open={true}
+                    >
+                        <table className={'stats'}>
+                            <tbody>
+                        {
+                            (nav.stats.summary || []).map((stat, index) => {
+                                const {type='', count=''} = stat || {};
+                                return <tr key={`summary_stats_${index}`}>
+                                    <th>{getModelLabel(type, 'label')}</th>
+                                    <td>{count}</td>
+                                </tr>
+                            })
+                        }
+                            </tbody>
+                        </table>
+                    </Accordion>
                     {
                         Object.keys(nav.tree)
                             .map((key, index) => {
@@ -391,17 +452,16 @@ const TreeNavigator = ({ hidden=true }) => {
                                         <TreeNodeList
                                             items={nav.tree[key]}
                                             filter={nav.filter}
-                                            setDialog={nav.setDialog}
-                                            showCurrent={showCurrent}
                                         />
                                     </Accordion>
                                 )
                             })
                     }
-                </ul>
+                </div>
             </div>
             : <Loading overlay={true}/>
-    )
+    }
+    </>
 }
 
 export default React.memo(TreeNavigator)

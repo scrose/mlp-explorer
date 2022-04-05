@@ -41,7 +41,6 @@ const pool = new pg.Pool({
 
 pool.on('error', (err, client) => {
   console.error('Unexpected error on idle client', err, client);
-  process.exit(-1);
 });
 
 pool.on('acquire', function (client) {});

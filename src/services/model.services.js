@@ -16,6 +16,9 @@ import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
 import * as nqueries from '../queries/nodes.queries.js';
 import * as cserve from '../services/construct.services.js';
+import {moveFiles, removeAll} from "./files.services.js";
+import * as fserve from "./files.services.js";
+import {deleteComparisons} from "./comparisons.services.js";
 
 /**
  * Export database model services constructor
@@ -111,6 +114,7 @@ export default function ModelServices(model) {
      */
 
     this.update = async function(item) {
+
         let stmts = {
             node: nqueries.update,
             model: this.queries.update
@@ -121,22 +125,60 @@ export default function ModelServices(model) {
     };
 
     /**
-     * Remove record.
+     * Move model item (and attached files) to new owner.
      *
      * @public
      * @param {String} id
      * @return {Promise} result
      */
 
-    this.remove = async function(item) {
+    this.move = async function(item, owner) {
+        // update item owner
+        item.owner = owner.id || 0;
+        // get attached files
+        const files = await fserve.selectByOwner(item.id) || [];
+        // generate node model from item reference
+        const node = await cserve.createNode(item);
+
         let stmts = {
-            node: nqueries.remove,
-            model: this.queries.remove
+            node: nqueries.update,
+            model: this.queries.update,
+            files: async(client) => {
+                await moveFiles(files, node, client);
+            }
         };
 
         // execute transaction
         return await this.transact(item, stmts);
     };
+
+
+    /**
+     * Remove record. Note: need to delete any dependent files/metadata
+     * before removing node.
+     *
+     * @public
+     * @param item
+     * @param files
+     * @return {Promise} result
+     */
+
+    this.remove = async function(item=[]) {
+        // get attached files
+        const files = await fserve.selectByOwner(item.id) || [];
+
+        let stmts = {
+            node: nqueries.remove,
+            model: this.queries.remove,
+            files: async (client)=>{
+                await removeAll(files, client);
+            }
+        };
+
+        // execute transaction
+        return await this.transact(item, stmts);
+    };
+
 
     /**
      * Perform transaction query.
@@ -148,7 +190,6 @@ export default function ModelServices(model) {
 
     this.transact = async function(item, stmts) {
 
-        // NOTE: client undefined if connection fails.
         const client = await pool.connect();
 
         try {
@@ -158,7 +199,12 @@ export default function ModelServices(model) {
 
             await client.query('BEGIN');
 
-            // process node query (if provided)
+            // [1] process file queries (if provided)
+            if (stmts.files) {
+                res = await stmts.files(client);
+            }
+
+            // [2] process node query (if provided)
             if (stmts.node) {
 
                 // create node model from item reference
@@ -172,9 +218,8 @@ export default function ModelServices(model) {
                 item.id = res.rows[0].id;
             }
 
-            // process model data query (if provided)
+            // [3] process model data query (if provided)
             if (stmts.model) {
-
                 const { sql, data } = stmts.model(item);
                 res = await client.query(sql, data);
             }
@@ -190,7 +235,7 @@ export default function ModelServices(model) {
             await client.query('ROLLBACK');
             throw err;
         } finally {
-            client.release();
+            await client.release(true);
         }
     };
 }

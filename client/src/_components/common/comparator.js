@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.Components.Common.Comparator
  * File: comparator.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 
@@ -13,6 +14,8 @@ import { getModelLabel } from '../../_services/schema.services.client';
 import Loading from "./loading";
 import Slider from "./slider";
 import {useWindowSize} from "../../_utils/events.utils.client";
+import {createNodeRoute} from "../../_utils/paths.utils.client";
+import {useRouter} from "../../_providers/router.provider.client";
 
 /**
  * Image comparator component.
@@ -41,6 +44,9 @@ const Comparator = ({
     let selectedImage = images[selectedIndex];
     const slidePanel = React.useRef();
 
+    // get router
+    const router = useRouter();
+
     // window dimensions
     const [winWidth, winHeight] = useWindowSize();
 
@@ -49,7 +55,10 @@ const Comparator = ({
     const selectedCapture = pairToggle ? historic_captures : modern_captures;
     const { refImage={} } = selectedCapture || {};
     const { label='', file={}, url='', title='' } = refImage;
-    const  {file_type='' } = file;
+    const { file_type='', owner_id='', owner_type='' } = file;
+
+    // create view link for selected image
+    const link = createNodeRoute(owner_type, 'show', owner_id)
 
     // auto-increment slideshow
     React.useEffect(() => {
@@ -142,21 +151,21 @@ const Comparator = ({
                         <li><Button icon={'prev'} className={'prev'} onClick={prevPair} /></li>
                         <li><Button
                             title={'View as Overlay'}
-                            className={'capture-toggle'}
+                            className={'capture-button'}
                             icon={'images'}
                             disabled={viewerType === 'overlay'}
                             onClick={()=>{setViewerType('overlay')}}
                         /></li>
                         <li><Button
                             title={'View in Slider'}
-                            className={'capture-toggle'}
+                            className={'capture-button'}
                             icon={'overlay'}
                             onClick={()=>{setViewerType('slider')}}
                             disabled={viewerType === 'slider'}
                         /></li>
                         {
                             viewerType === 'overlay' && <li><Button
-                                className={'capture-toggle'}
+                                className={'capture-button'}
                                 icon={'sync'}
                                 onClick={() => {
                                     setPairToggle(!pairToggle)
@@ -164,7 +173,13 @@ const Comparator = ({
                                 label={pairToggle ? 'Historic' : 'Modern'}
                             /></li>
                         }
-                        <li><p>{label}</p></li>
+                        <li><Button
+                            title={'View Capture Details'}
+                            className={'capture-button'}
+                            icon={pairToggle ? 'historic_captures' : 'modern_captures'}
+                            onClick={()=>{router.update(link)}}
+                        /></li>
+                        <li><a href={link}>{label}</a></li>
                         <li className={'push'}><Button icon={'next'} className={'next'} onClick={nextPair} /></li>
                     </ul>
                 </div>

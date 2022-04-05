@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.CSS
  * File: index.css
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 
@@ -232,7 +233,7 @@ Accordion Layout
     outline: none;
     cursor: pointer;
     padding: 5px;
-    height: 100%;
+    height: auto;
 }
 /* Change background color of buttons on hover */
 .accordion .h-menu ul li button:hover {
@@ -440,7 +441,6 @@ nav.main button  {
 /* User Menu Panel */
 
 .user-menu {
-    /*width: 100% !important;*/
     max-width: 500px;
     min-width: 300px;
     background-color: #222222;
@@ -494,7 +494,7 @@ nav.main button  {
     -moz-transform: translate(-600px,0); /** Firefox **/
 }
 .tree .root {
-    padding-bottom: 60px;
+    padding: 10px 20px 60px 20px;
 }
 .tree ul {
     list-style: none;
@@ -502,15 +502,20 @@ nav.main button  {
     margin: 0;
     padding:0 10px;
 }
-
 .tree li {
     text-align: left;
     list-style-type: none;
 }
-
 .tree h4 {
     padding-top: 10px;
     color: #FFFFFF;
+}
+.tree table.stats {
+    text-align: left;
+}
+.tree table.stats tbody th, .tree table.stats tbody th {
+    padding-right: 20px;
+    padding-left: 20px;
 }
 
 /* Navigator Panel: Map (Leaflet) */
@@ -566,7 +571,9 @@ nav.main button  {
     text-align: center;
     cursor: pointer;
     border-width: 1px 1px 1px 0;
-    border-color: #CCCCCC;
+    border-color: #282c34;
+    background-color: #282c34;
+    color: white;
     border-style: solid;
     border-radius: 0;
 }
@@ -574,6 +581,7 @@ nav.main button  {
     height: 70vh;
     overflow: auto;
     padding: 10px;
+    background-color: white;
 }
 .search-item {
     margin-top: 20px;
@@ -704,6 +712,22 @@ nav.breadcrumb ul li a:hover {
     cursor: move;
 }
 
+button.capture-draggable {
+    position: relative !important;
+    width: 130px !important;
+    height: 30px !important;
+    margin: auto !important;
+    background-color: #57BECC !important;
+    text-align: center !important;
+    cursor: move !important;
+}
+button.capture-draggable:hover {
+    opacity: 60%;
+}
+.capture-draggable-highlight {
+    background-color: #666666 !important;
+}
+
 /* Navigator Tool Menu */
 
 .navigator-tools {
@@ -823,6 +847,14 @@ button.nav-toggle {
     padding: 0;
     margin: 0;
 }
+.tree-node-unsorted {
+    border: none;
+    margin: auto auto auto 15px;
+}
+.tree-node-unsorted button {
+    color: #B65E88 !important;
+    border-color: #B65E88 !important;
+}
 
 /* Style the tab _static */
 .tab  {
@@ -911,7 +943,7 @@ button.nav-toggle {
 .comparator, .carousel {
     position: relative;
     width: 100%;
-    background-color: #EEEEEE;
+    background-color: transparent;
 }
 /* Add a pointer when hovering over the thumbnail images */
 .comparator .cursor, .carousel .cursor {
@@ -923,8 +955,20 @@ button.nav-toggle {
     width: 100%;
     cursor: pointer;
     max-height: 500px;
+    min-height: 200px;
 }
 .comparator .slide, .carousel .slide {
+    height: auto;
+}
+.carousel .slides .slide:first-child {
+    z-index: 99 !important;
+}
+.carousel .slides .slide {
+    opacity: 1;
+    background-color: white;
+    position: absolute;
+    width: 100%;
+    top: 0;
     height: auto;
 }
 .comparator .slides figure, .carousel .slides figure {
@@ -960,6 +1004,7 @@ button.nav-toggle {
     position: absolute;
     top: 0;
     right: 0;
+    z-index: 99;
 }
 .comparator .expand-image button, .carousel .expand-image button {
     color: #f2f2f2;
@@ -974,11 +1019,27 @@ button.nav-toggle {
     background-color: #222;
     padding: 2px 16px;
     color: white;
+    border-radius: unset !important;
 }
 .comparator .slide-menu ul li, .carousel .slide-menu ul li {
     width: auto !important;
 }
-.comparator .slide-menu .capture-toggle {
+.carousel .caption {
+    margin: auto;
+}
+.carousel .caption p {
+    margin-left: 20px;
+    margin-right: 20px;
+    padding: 15px;
+    font-size: large !important;
+    background-color: #EEEEEE;
+    color: #666666;
+}
+.slide-menu ul li a {
+    text-decoration: none !important;
+    color: white !important;
+}
+.capture-button {
     background-color: #444444;
 }
 .comparator .prev,
@@ -1021,13 +1082,14 @@ button.nav-toggle {
     background-color: #DDDDDD;
     justify-content: left;
     z-index: 9999 !important;
+    border-radius: unset !important;
 }
 .comparator .thumbnails.h-menu ul li, .carousel .thumbnails.h-menu ul li {
     width: auto;
 }
 /* Slider dots indicators */
 .dots {
-    margin: 10px;
+    margin: auto !important;
     text-align: center;
 }
 .dot {
@@ -1056,11 +1118,11 @@ button.nav-toggle {
     animation-timing-function: ease-in-out;
 }
 @-webkit-keyframes fade {
-    from {opacity: .2}
+    from {opacity: 0}
     to {opacity: 1}
 }
 @keyframes fade {
-    from {opacity: .2}
+    from {opacity: 0}
     to {opacity: 1}
 }
 
@@ -1246,7 +1308,7 @@ button.nav-toggle {
 
 /* Capture Comparisons */
 .comparisons {
-    overflow: scroll;
+    overflow-x: scroll;
 }
 .comparisons.h-menu ul, .comparisons.h-menu ul li {
     flex-wrap: nowrap;
@@ -1503,7 +1565,7 @@ table.item thead {
     background: transparent !important;
 }
 table.item thead tr th {
-    background-color: #95B0B4;
+    background-color: #DFF2BF;
     border-bottom: 1px solid #282c34;
 }
 table.item thead th {
@@ -1520,10 +1582,9 @@ table.item thead th div button {
     background-color: transparent;
     font-weight: bold;
     color: #282c34;
-    height: 100%;
+    height: 40px;
 }
 table.item tbody th {
-    padding: 3px;
     width: 25%;
     background: #FFFFFF;
     font-size: small;
@@ -1552,7 +1613,6 @@ table.items {
 }
 table.items td, table.items th {
     border: none;
-    padding: 3px 2px;
     margin:0;
 }
 table.items tbody td {
@@ -1595,7 +1655,6 @@ table.files {
 }
 table.files td, table.files th {
     border: none;
-    padding: 3px 2px;
     margin:0;
 }
 table.files tbody td {
@@ -1807,16 +1866,19 @@ select, textarea {
     width: 100%; /* Full width */
     padding: 12px; /* Some padding */
     margin: 4px;
+    background-color: white;
+    color: #282c34;
     border: 1px solid #ccc; /* Gray border */
     border-radius: 4px; /* Rounded borders */
     box-sizing: border-box; /* Make sure that padding and width stays in place */
 }
 input:required, select:required, textarea:required {
     border-color: #008896;
-    background-color: rgba(0,136,150,0.17);
+    background-color: #ccfaff;
 }
 input.short {
-    width: 30%;
+    width: 30% !important;
+    padding: 1px;
 }
 textarea {
     resize: vertical /* Allow the user to vertically resize the textarea (not horizontally) */
@@ -2129,6 +2191,7 @@ Messages
     padding: 10px;
     text-align: inherit;
     overflow: auto;
+    background-color: white;
 }
 .dialog .dialog-body p {
     margin: 20px;

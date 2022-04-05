@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.Components.Tools.Filter
  * File: filter.view.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 
@@ -25,7 +26,7 @@ const keyID = genID();
  *
  * @public
  * @param {Array} items
- * @return {JSX.Element}
+ * @return {Object}
  */
 
 const FilterTools = ({data}) => {

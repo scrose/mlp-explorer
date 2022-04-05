@@ -8,18 +8,17 @@
 'use strict';
 
 import * as stream from 'stream';
-import { mkdir, readFile, writeFile, stat } from 'fs/promises';
+import {mkdir, stat} from 'fs/promises';
 import fs from 'fs';
 import {ExifTool} from 'exiftool-vendored';
 import sharp from 'sharp';
-import Jimp from 'jimp';
+// import Jimp from 'jimp';
 import path from 'path';
-import { genUUID } from '../lib/data.utils.js';
-import dcraw from 'dcraw';
-import { sanitize } from '../lib/data.utils.js';
+// import dcraw from 'dcraw';
+import {genUUID, sanitize} from '../lib/data.utils.js';
 import Queue from 'bull';
 import redis from 'redis';
-import { insertFile, remove } from './files.services.js';
+import { deleteFiles, insertFile } from './files.services.js';
 import * as util from "util";
 
 
@@ -93,7 +92,7 @@ export const transcode = async (data, callback) => {
         // record buffer size as file size
         //let buffer = await readFile(src);
         await stat(src).then(stats => {
-            console.log(stats)
+            console.log(filename, stats)
             metadata.file.file_size = stats.size;
         });
 
@@ -131,8 +130,8 @@ export const transcode = async (data, callback) => {
 
         // delete temporary files
         src === copySrc
-            ? await remove(null, [src])
-            : await remove(null, [src, copySrc])
+            ? await deleteFiles([src])
+            : await deleteFiles( [src, copySrc])
 
         return {
             raw: isRAW,
@@ -143,6 +142,7 @@ export const transcode = async (data, callback) => {
         callback(err);
     }
 };
+
 /**
  * Save transcoded raw image file and resampled versions.
  *
@@ -309,8 +309,6 @@ export const getImageURL = (type = '', data = {}) => {
     const { secure_token = '' } = data || {};
     const rootURI =`${process.env.API_HOST}/uploads/`;
 
-    // ======================================================
-
     // generate resampled image URLs
     const imgSrc = (token) => {
         return Object.keys(imageSizes).reduce((o, key) => {
@@ -352,8 +350,8 @@ export const getImageURL = (type = '', data = {}) => {
 export const copyImageTo = async (src, output, callback) => {
 
     // Disable Sharp cache
-    // sharp.cache(false);
-    // sharp.concurrency(1);
+    sharp.cache(false);
+    sharp.concurrency(1);
 
     // Create pipeline for saving and resizing the image, converting to JPEG
     // and use pipe to read from bucket read stream
@@ -364,32 +362,20 @@ export const copyImageTo = async (src, output, callback) => {
     //     console.log(Jimp)
     // });
 
-    if (output.size) {
-        await Jimp.read(src)
-            .then(img => {
-                return img
-                        .resize(output.size, Jimp.AUTO)
-                        .quality(80) // set JPEG quality
-                        .write(output.path)
-            });
+    const pipeline = util.promisify(stream.pipeline);
 
-        console.log(`Image ${src}: \n\t- resampled to ${output.size}px width \n\t- saved to ${output.path}.`);
-
-    } else {
-        const pipeline = util.promisify(stream.pipeline);
-
-        async function run() {
-            await pipeline(
-                fs.createReadStream(src),
-                output.format !== 'raw'
-                    ? sharp().resize({ width: output.size }).jpeg({ quality: 80 })
-                    : new stream.PassThrough(),
-                fs.createWriteStream(output.path)
-            );
-        }
-
-        await run().catch(console.error);
-        console.log(`Raw image ${src} saved to ${output.path}.`)
+    async function run() {
+        await pipeline(
+            fs.createReadStream(src),
+            output.format !== 'raw'
+                ? sharp().resize({ width: output.size }).jpeg({ quality: 80 })
+                : new stream.PassThrough(),
+            fs.createWriteStream(output.path)
+        );
     }
 
+    await run().catch(console.error);
+    console.log(`Raw image ${src} saved to ${output.path}.`)
+
 };
+

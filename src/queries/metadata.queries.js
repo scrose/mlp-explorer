@@ -190,6 +190,9 @@ export function getMapLocations(filter=null) {
     let sql = `
             SELECT 
                    stations.nodes_id, 
+                   stations.name,
+                   stations.elev,
+                   stations.azim,
                    stations.lat, 
                    stations.lng,
                    s.nodes_id as surveyors,

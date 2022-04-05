@@ -262,7 +262,7 @@ export function update(model, timestamps = ['updated_at']) {
     if (!model) return null;
 
     // filter ignored columns:
-    // - DO NOTE ignore ID, CREATE_AT columns if model is a node instance
+    // - DO NOT ignore ID, CREATE_AT columns if model is a node instance
     const ignore = model.node ? [] : [model.idKey, 'created_at'];
     const cols = Object
         .keys(model.attributes)

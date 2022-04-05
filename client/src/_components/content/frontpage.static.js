@@ -1,12 +1,14 @@
 /*!
  * MLP.Client.Components.Viewer
  * File: viewer.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 
 import React from 'react';
 import Icon from "../common/icon";
+import {CCLogo} from "../common/logo";
 
 /**
  * Render viewer panel component (unauthenticated).
@@ -58,11 +60,15 @@ export const viewerGettingStarted = <>
  * @public
  */
 
-export const viewerIAT = <>
-    <h4>Using the Image Analysis Toolkit</h4>
-    <h5><Icon size={'2x'} type={'images'} /></h5>
+export const viewerCC = <>
+    <h4>Can I use MLP Images?</h4>
+    <h5><CCLogo colour={'#B65179'} /></h5>
     <p>
-        Interact with the MLP collection images using the built-in Image Toolkit. Load and edit
-        images from the MLP collection or your local computer.
+        All images are available under a Creative Commons license, which means
+        you can copy, print, and share for personal, non-commercial interests.
+        If you intend to use images in publications or other media, including websites,
+        please <a href={"mailto:mntnlgcy@uvic.ca"}><strong>drop us a note</strong></a> to
+        let us know about this &mdash; it’s wonderful to see the images used and enjoyed.
+
     </p>
 </>;

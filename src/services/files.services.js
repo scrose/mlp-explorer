@@ -9,7 +9,7 @@
 
 import path from 'path';
 import fs from 'fs';
-import {copyFile, mkdir, unlink} from 'fs/promises';
+import {copyFile, mkdir, unlink, rename} from 'fs/promises';
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
 import {sanitize} from '../lib/data.utils.js';
@@ -86,7 +86,7 @@ export const filterFilesByID = async (fileIDs, offset, limit) => {
             query: fileIDs,
             limit: limit,
             offset: offset,
-            results: items,
+            results: files,
             count: count
         };
 
@@ -94,7 +94,7 @@ export const filterFilesByID = async (fileIDs, offset, limit) => {
         await client.query('ROLLBACK');
         throw err;
     } finally {
-        client.release();
+        await client.release(true);
     }
 };
 
@@ -140,11 +140,12 @@ export const getFileLabel = async (file, client = pool) => {
         ? await queriesByType[file_type]() : queriesByType.default();
 
 };
+
 /**
  * Get file data by file ID. Returns single node object.
  *
  * @public
- * @param {String} id
+ * @param {Int|String} id
  * @param client
  * @return {Promise} result
  */
@@ -162,7 +163,7 @@ export const get = async (id, client = pool) => {
     // get associated file metadata
     const metadata = await selectByFile(file, client) || {};
     const { type = '', secure_token = '' } = metadata || {};
-    const { file_type = '', filename = '', owner_id = '' } = file || {};
+    const { file_type = '', filename = '', owner_id=0 } = file || {};
     const owner = await nserve.select(owner_id, client) || {};
 
     // include alternate extracted filename (omit the security token)
@@ -320,7 +321,7 @@ export const insert = async (importData, model, fileOwner = null) => {
             const captureData = await mserve.insert(capture);
 
             // get new capture node metadata
-            const { nodes_id = '' } = captureData || {};
+            const { nodes_id = 0 } = captureData || {};
             const newCapture = await nserve.select(nodes_id) || {};
             const { fs_path = '', type='' } = newCapture || {};
 
@@ -390,7 +391,7 @@ export const insert = async (importData, model, fileOwner = null) => {
         await client.query('ROLLBACK');
         throw err;
     } finally {
-        client.release();
+        await client.release(true);
     }
 
 };
@@ -399,64 +400,29 @@ export const insert = async (importData, model, fileOwner = null) => {
  * Update file metadata in existing record.
  *
  * @public
- * @param item
+ * @param file
+ * @param metadata
  * @param client
  * @return {Promise} result
  */
 
-export const update = async (item, client = pool) => {
+export const update = async (file, metadata, client) => {
 
-    let { sql, data } = queries.files.update(item);
-    let response = await client.query(sql, data);
+    // update files record
+    const fileQuery = queries.files.update(file);
+    await client.query(fileQuery.sql, fileQuery.data);
+
+    // update metadata record
+    const metadataQuery = queries.files.update(metadata);
+    let response = await client.query(metadataQuery.sql, metadataQuery.data);
 
     return response.hasOwnProperty('rows') && response.rows.length > 0
         ? response.rows[0]
         : null;
+
 };
 
-/**
- * Delete file(s) and metadata for given file entry.
- *
- * @param {Object} file
- * @param filepaths
- * @param client
- * @return Response data
- * @public
- */
 
-export const remove = async (file=null, filepaths, client = pool) => {
-
-    // [1] delete attached files
-    // - assumes file paths are to regular files.
-    // - requires removal of static slug from file path
-    //   as set in Express static-serve
-    await Promise.all(
-        filepaths.map(async (filePath) => {
-            fs.stat(filePath, async (err, stat) => {
-                if (err == null) {
-                    return await unlink(filePath);
-                } else if (err.code === 'ENOENT') {
-                    // file does not exist (ignore)
-                    console.warn(err);
-                    return null;
-                } else {
-                    throw err;
-                }
-            });
-        }),
-    );
-
-    // [2] remove file node record (if provided)
-    if (file) {
-        let {sql, data} = queries.files.remove(file);
-        let response = await client.query(sql, data) || [];
-
-        // response data
-        return response.hasOwnProperty('rows') && response.rows.length > 0
-            ? response.rows[0]
-            : null;
-    }
-};
 
 /**
  * Download file stream.
@@ -537,7 +503,6 @@ export const getFilePath = (type, file, metadata = {}) => {
  * @param owner
  * @param imageStateData
  * @param options
- * @param callback
  */
 
 export const saveFile = async (
@@ -546,7 +511,6 @@ export const saveFile = async (
     owner,
     imageStateData = null,
     options,
-    callback = console.warn,
 ) => {
 
     // define file upload promises
@@ -643,6 +607,7 @@ export const insertFile = async (
     data.owner_id = owner.id;
     file.owner_id = owner.id;
     file.owner_type = owner.type;
+    file.file_type = file_type;
 
     // include image state for capture images
     if (imageState && captureTypes.includes(owner.type)) {
@@ -663,7 +628,7 @@ export const insertFile = async (
 
     // create file node instance
     // - use file model instance with extracted file data
-    let fileNode = await cserve.createFile(fileItem, file);
+    let fileNode = await cserve.createFile(file);
     const stmtFileNode = queries.files.insert(fileNode);
     let fileRes = await client.query(stmtFileNode.sql, stmtFileNode.data);
 
@@ -686,3 +651,146 @@ export const insertFile = async (
         }
         : null;
 }
+
+/**
+ * Move files to new owner (container)
+ *
+ * @src public
+ * @param files
+ * @param node
+ * @param client
+ */
+
+export const moveFiles = async (files, node, client=pool) => {
+    await Promise.all(
+        // handle each file type
+        Object.keys(files).map(async (fileType) => {
+            await Promise.all(
+                files[fileType].map(async (fileData) => {
+                    const {metadata = {}, file = {}} = fileData || {};
+                    const {image_state = '', secure_token = ''} = metadata || {};
+                    const {filename = '', file_type = ''} = file || {};
+
+                    // insert token into filename
+                    const tokenizedFilename = [
+                        filename.slice(0, filename.lastIndexOf('.')),
+                        secure_token,
+                        filename.slice(filename.lastIndexOf('.'))
+                    ].join('');
+
+                    // check node has file directory path
+                    if (!node.getValue('fs_path') || !file.fs_path) return null;
+
+                    // get the old file path
+                    const oldFileUploadPath = path.join(process.env.UPLOAD_DIR, file.fs_path);
+                    // create new directory and file path (create directory if does not exist)
+                    const newFileNodePath = path.join(node.getValue('fs_path'), image_state || file_type);
+                    const newFileUploadDir = path.join(process.env.UPLOAD_DIR, newFileNodePath);
+                    await mkdir(newFileUploadDir, {recursive: true});
+                    // move file to new directory path
+                    const newFileUploadPath = path.join(newFileUploadDir, tokenizedFilename);
+                    await rename(oldFileUploadPath, newFileUploadPath);
+
+                    // update owner in file metadata model
+                    const FileModel = await cserve.create(file_type);
+                    const fileMetadata = new FileModel(metadata);
+                    fileMetadata.owner = node.id;
+
+                    // updated file path in file model
+                    let fileNode = await cserve.createFile(file);
+                    fileNode.setValue('fs_path', path.join(newFileNodePath, tokenizedFilename));
+
+                    // create file node instance from file model instance
+                    await update(fileNode, fileMetadata, client);
+                })
+            );
+        })
+    );
+}
+
+/**
+ * Delete model-type-indexed files and metadata.
+ *
+ * @param files
+ * @param client
+ * @return Response data
+ * @public
+ */
+
+export const removeAll = async (files=null, client = pool) => {
+    await Promise.all(
+        Object.keys(files).map(
+            async (file_type) => {
+                await Promise.all(
+                    files[file_type].map( async (file) => {
+                        return await remove(file, client);
+                    }));
+            })
+    );
+}
+
+/**
+ * Delete file(s) and metadata for given file entry.
+ *
+ * @param fileItem
+ * @param client
+ * @return Response data
+ * @public
+ */
+
+export const remove = async (fileItem=null, client = pool) => {
+    const { file=null, url=null } = fileItem || {};
+    const { id='', fs_path='' } = file || {};
+
+    // create filepath array (include original or raw file)
+    let filePaths = [path.join(process.env.UPLOAD_DIR, fs_path)];
+
+    // include any image resampled versions (if applicable)
+    if (url) {
+        Object.keys(url).reduce((o, key) => {
+            const filename = url[key].pathname.replace(/^.*[\\\/]/, '');
+            o.push(path.join(process.env.LOWRES_PATH, filename));
+            return o;
+        }, filePaths)
+    }
+
+    // [1] remove file + metadata records
+    const {sql, data} = queries.files.remove(id);
+    const response = await client.query(sql, data) || [];
+
+    // [2] delete attached files
+    // - assumes file paths are to regular files.
+    await deleteFiles(filePaths);
+
+    // return response data
+    return response.hasOwnProperty('rows') && response.rows.length > 0
+        ? response.rows[0]
+        : null;
+};
+
+
+/**
+ * Delete files from filesystem (by file paths).
+ *
+ * @param filePaths
+ * @return Response data
+ * @public
+ */
+
+export const deleteFiles = async (filePaths=[]) => {
+    await Promise.all(
+        filePaths.map(async (filePath) => {
+            fs.stat(filePath, async (err) => {
+                if (err == null) {
+                    return await unlink(filePath);
+                } else if (err.code === 'ENOENT') {
+                    // file does not exist (ignore)
+                    console.warn(err);
+                    return null;
+                } else {
+                    throw err;
+                }
+            });
+        })
+    );
+};

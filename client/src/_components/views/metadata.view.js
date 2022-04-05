@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.Components.Common.MetadataView
  * File: metadata.view.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 
@@ -135,7 +136,13 @@ const MetadataView = ({
 
     // gather the metadata
     const { id = null, nodes_id = null, group_type = '' } = metadata || {};
-    const { fieldsets = [] } = genSchema({ view: 'show', model: model, fieldsetKey: group_type, user: user});
+    // generate the model schema
+    const { fieldsets = [] } = genSchema({
+        view: 'show',
+        model: model,
+        fieldsetKey: group_type,
+        user: user
+    });
     const itemID = id || nodes_id || '';
 
     // prepare data for item table: sanitize data by render type

@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.Components.Common.View.Data
  * File: data.view.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 
@@ -35,14 +36,17 @@ const DataView = () => {
     const render = getRenderType(api.view, api.model);
     const schema = genSchema({ view: api.view, model:api.model, user: user});
 
-    // view components indexed by render type
+    // rendered view components indexed by render type
     const renders = {
+        // render a node view
         nodes: () => (
             <NodesView
                 model={api.model}
                 data={api.data}
             />),
+        // render a filtered list of nodes
         filter: () => <FilterTools data={api.data} />,
+        // render an create/edit form
         update: () => (
             <Importer
                 view={api.view}
@@ -58,10 +62,12 @@ const DataView = () => {
                 }}
                 route={createNodeRoute(api.model, api.view, api.id)}
                 onCancel={() =>{redirect(createNodeRoute(api.model, 'show', api.id))}}
-                callback={() => {
+                callback={(err, model, id) => {
+                    console.log(err, model, id)
                     redirect(router.route);
                 }}
             />),
+        // render an import form for file uploads
         import: () => (
             <Importer
                 view={api.view}
@@ -77,11 +83,15 @@ const DataView = () => {
                     );
                 }}
             />),
+        // render a download link
         download: () => <div>File Download</div>,
+        // render page not found page
         404: () => <NotfoundError />,
         notFound: () => <NotfoundError />,
+        // render not authorized page
         401: () => <AccessError />,
         403: () => <AccessError />,
+        // render server error page
         500: () => <ServerError />,
         serverError: () => <ServerError />
     }

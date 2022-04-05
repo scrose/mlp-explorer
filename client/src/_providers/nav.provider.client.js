@@ -1,7 +1,8 @@
 /*!
- * MLP.Client.Providers.Data
- * File: data.provider.client.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * MLP.Client.Providers.Nave
+ * File: nav.provider.client.js
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 
@@ -31,6 +32,7 @@ function NavProvider(props) {
 
     // tree and map data states
     const [nodeData, setNodeData] = React.useState({});
+    const [statsData, setStatsData] = React.useState([]);
     const [mapData, setMapData] = React.useState({});
     const [filterData, setFilterData] = React.useState({});
     const [selectedNode, setSelectedNode] = React.useState({});
@@ -79,7 +81,7 @@ function NavProvider(props) {
                         if (res.error) return setError(res.error);
                         const {response={} } = res || {};
                         const { data = {} } = response || {};
-                        const { nodes={} } = data || {};
+                        const { nodes={}, stats=[] } = data || {};
 
                         console.log('\n<<< Nav [Tree] >>>\n', res)
 
@@ -90,6 +92,7 @@ function NavProvider(props) {
 
                         // load node data to provider
                         setNodeData(nodes);
+                        setStatsData(stats);
                     }
                 })
                 .catch(err => console.error(err));
@@ -138,6 +141,7 @@ function NavProvider(props) {
             {
                 tree: nodeData,
                 map: mapData,
+                stats: statsData,
                 selected: selectedNode,
                 setSelected: setSelectedNode,
                 filter: filterData,

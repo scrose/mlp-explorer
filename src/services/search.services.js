@@ -178,8 +178,6 @@ export const fulltext = async (q, offset, limit, filter) => {
             }
         }
 
-        console.log('!!!', searchable);
-
         // collate results for all searchable tables
         await Promise.all(
             Object.keys(searchable)
@@ -207,6 +205,6 @@ export const fulltext = async (q, offset, limit, filter) => {
         await client.query('ROLLBACK');
         throw err;
     } finally {
-        client.release();
+        await client.release(true);
     }
 };

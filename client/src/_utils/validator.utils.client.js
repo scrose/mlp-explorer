@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.Utilities.Validator
  * File: validator.utils.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 

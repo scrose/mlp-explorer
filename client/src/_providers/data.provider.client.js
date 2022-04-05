@@ -1,14 +1,15 @@
 /*!
  * MLP.Client.Providers.Data
  * File: data.provider.client.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 
 import * as React from 'react'
 import { useRouter } from './router.provider.client';
 import { getRootNode } from '../_utils/data.utils.client';
-import { setSessionMsg } from '../_services/session.services.client';
+import {addNode, setSessionMsg} from '../_services/session.services.client';
 
 /**
  * Global data provider.
@@ -223,10 +224,10 @@ function DataProvider(props) {
         .map(key => {
             const {node={}} = path[key] || {};
             const {id=''} = node || {};
-            return id
+            // add to local storage
+            addNode(id);
+            return id;
         });
-
-
 
 
     return (

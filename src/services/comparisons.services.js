@@ -67,7 +67,7 @@ export const filterComparisonsByID = async (comparisonIDs, offset, limit) => {
         await client.query('ROLLBACK');
         throw err;
     } finally {
-        client.release();
+        await client.release();
     }
 };
 
@@ -86,7 +86,7 @@ export const updateComparisons = async (node, comparedCaptureIDs, client = pool)
     if (!node || !comparedCaptureIDs) return null;
 
     // delete existing comparisons for capture
-    const delRes = await deleteComparisons(node);
+    await deleteComparisons(node);
 
     // load comparison capture(s) node data and update comparisons table
     return await Promise.all(
@@ -171,6 +171,7 @@ export const deleteComparisons = async (node, client = pool) => {
     if (!node) return [];
 
     let { sql, data } = cmpqueries.deleteCaptureComparisons(node);
+    console.log(sql, data)
     return await client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows') && res.rows.length > 0 ? res.rows : [];

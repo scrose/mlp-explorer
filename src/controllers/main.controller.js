@@ -41,6 +41,6 @@ export const show = async (req, res, next) => {
         return next(err);
     }
     finally {
-        client.release(true);
+        await client.release(true);
     }
 };

@@ -126,7 +126,7 @@ export const errors = {
     },
     '23503': {
         hint: 'Deletion of node before deleting dependent files.',
-        msg: 'Update or delete failed. For node deletions, please ensure all dependent files are deleted before deletion.',
+        msg: 'Update or delete failed. For non-capture deletions, please ensure all dependent nodes are deleted before non-capture deletion.',
         status: 422,
         type: 'error'
     },

@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.IAT.Transform
  * File: transform.iat.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * Adapted from IAT web application
  * MIT Licensed
  */

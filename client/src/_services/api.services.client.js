@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.Services.API
  * File: data.services.client.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  *
  * Reference: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
@@ -80,7 +81,6 @@ export async function makeRequest({
 
     // send request to API
     let res = await fetch(url, opts).catch(console.error);
-
     if (!res) return null;
 
     // Modify response to include status ok, success, and status text
@@ -113,9 +113,9 @@ export const upload = async (route, formData, callback=()=>{}, online=true) => {
     if (!route || !online ) return null;
 
     // DEBUG: Display the key/value pairs of form data
-    for(var pair of formData.entries()) {
-        console.log(pair[0]+ ', '+ pair[1]);
-    }
+    // for(var pair of formData.entries()) {
+    //     console.log(pair[0]+ ', '+ pair[1]);
+    // }
 
     try {
 

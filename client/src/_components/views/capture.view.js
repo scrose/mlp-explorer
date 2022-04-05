@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.Components.Views.Capture
  * File: capture.view.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 
@@ -148,7 +149,7 @@ const CaptureView = ({model, data, fileType}) => {
                     fit={'contain'}
                     autoslide={false}
                     images={captureImages}
-                    captions={captureImages.map(item => {return `${item.label} [${item.metadata.image_state}]`})}
+                    titles={captureImages.map(item => {return `${item.label} [${item.metadata.image_state}]`})}
                 />,
         },
         {
@@ -162,7 +163,7 @@ const CaptureView = ({model, data, fileType}) => {
                 : 'No Paired Images'
         },
         {
-            label: `Images`,
+            label: `Image Versions`,
             data: <CaptureImagesTable
                     type={fileType}
                     owner={{ id: id, type: model, sorted: status.sorted }}

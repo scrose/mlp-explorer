@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.Components.Views.Remover
  * File: remover.view.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 
@@ -81,7 +82,7 @@ const Remover = ({
                             associated survey metadata.</em>
                     </p>
                     <div className={'alert-box-buttons'}>
-                        <Button icon={'success'} name={'ok'} label={'OK'} onClick={_handleSubmit} />
+                        <Button icon={'success'} name={'ok'} label={'Delete'} onClick={_handleSubmit} />
                         <Button icon={'cancel'} name={'cancel'} label={'Cancel'} onClick={onCancel} />
                     </div>
                 </div>
@@ -91,7 +92,14 @@ const Remover = ({
                     <div>
                         <div className={'alert-box-buttons'}>
                             <UserMessage closeable={false} message={resMessage} />
-                            <Button icon={'success'} name={'done'} label={'OK'} onClick={callback} />
+                            <Button
+                                icon={'success'}
+                                name={'done'}
+                                label={'Close'}
+                                onClick={()=>{
+                                    const {type=''} = resMessage || {};
+                                    callback(type==='error' ? true : null, response);
+                                }} />
                         </div>
                     </div>
             }

@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.Components.Navigation.Logout
  * File: login.menu.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 
@@ -29,21 +30,22 @@ const LogoutMenu = () => {
         <nav className={'main'}>
             { isLoggingOut && <Loading overlay={true} /> }
             <Accordion className={'v-menu'} type={'user'} label={ !nav.offCanvas ? user.email : ''}>
-                <ul>
-                    <li style={{textAlign: 'center'}}><b>{user.email}</b></li>
-                    <li style={{textAlign: 'center'}}>{user.label}</li>
-                    <li style={{textAlign: 'center'}}><Button
-                        icon={'logout'}
-                        label={'Sign Out'}
-                        onClick={() => {
-                            setIsLoggingOut(true);
-                            auth.logout().then(() => {
-                                setIsLoggingOut(false);
-                                redirect('/')
-                            })
-                        }}
-                    /></li>
-                </ul>
+                <div className={'user-menu'}>
+                    <ul>
+                        <li style={{textAlign: 'center'}}><b>{user.email} ({user.label})</b></li>
+                        <li style={{textAlign: 'center'}}><Button
+                            icon={'logout'}
+                            label={'Sign Out'}
+                            onClick={() => {
+                                setIsLoggingOut(true);
+                                auth.logout().then(() => {
+                                    setIsLoggingOut(false);
+                                    redirect('/')
+                                })
+                            }}
+                        /></li>
+                    </ul>
+                </div>
             </Accordion>
         </nav>
     );

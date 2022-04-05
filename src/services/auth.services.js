@@ -169,9 +169,8 @@ export const authorize = async (req, res, allowedRoles) => {
         token = access_token;
 
         // send access token to the client inside a cookie
-        // TODO: include secure: true on production site
-        res.cookie("access_token", access_token, {httpOnly: true, sameSite: 'strict', signed: true});
-        res.cookie("refresh_token", refresh_token, {httpOnly: true, sameSite: 'strict', signed: true});
+        res.cookie("access_token", access_token, {httpOnly: true, sameSite: 'strict', signed: true, secure: true});
+        res.cookie("refresh_token", refresh_token, {httpOnly: true, sameSite: 'strict', signed: true, secure: true});
     }
 
     // verify token
@@ -206,7 +205,7 @@ export const authorize = async (req, res, allowedRoles) => {
  * Logout user from KeyCloak.
  *
  * @public
- * @return {String} JSON web token
+ * @return {Promise} JSON web token
  * @param access_token
  * @param refresh_token
  */
@@ -233,7 +232,7 @@ export const logout = async (access_token, refresh_token) => {
  * Validate access token in session cookie with KeyCloak server.
  *
  * @public
- * @return {String} JSON web token
+ * @return {Promise} JSON web token
  * @param access_token
  */
 
@@ -263,7 +262,7 @@ export const validate = async (access_token) => {
  * Validate access token in session cookie with Keycloak server.
  *
  * @public
- * @return {String} JSON web token
+ * @return {Promise} JSON web token
  * @param req
  */
 

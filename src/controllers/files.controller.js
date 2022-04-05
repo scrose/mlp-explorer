@@ -18,7 +18,6 @@ import { prepare } from '../lib/api.utils.js';
 import pool from '../services/db.services.js';
 import { sanitize } from '../lib/data.utils.js';
 import * as importer from '../services/import.services.js';
-import * as cserve from '../services/construct.services.js';
 import { humanize } from '../lib/data.utils.js';
 import path from "path";
 import { getFilePath } from '../services/files.services.js';
@@ -120,7 +119,7 @@ export default function FilesController(modelType) {
             console.error(err)
             return next(err);
         } finally {
-            client.release(true);
+            await client.release(true);
         }
     };
 
@@ -214,7 +213,7 @@ export default function FilesController(modelType) {
             console.error(err)
             return next(err);
         } finally {
-            client.release();
+            await client.release(true);
         }
     };
 
@@ -262,7 +261,7 @@ export default function FilesController(modelType) {
             console.error(err)
             return next(err);
         } finally {
-            client.release(true);
+            await client.release(true);
         }
     };
 
@@ -326,13 +325,12 @@ export default function FilesController(modelType) {
             console.error(err)
             return next(err);
         } finally {
-            client.release();
+            await client.release(true);
         }
     };
 
     /**
-     * Delete file and file metadata.
-     * TODO: update to retrieve file paths
+     * Delete single file and file metadata.
      *
      * @param req
      * @param res
@@ -348,36 +346,19 @@ export default function FilesController(modelType) {
             const id = this.getId(req);
 
             // retrieve item data and create a file instance
-            let fileData = await fserve.get(id, client);
+            let file = await fserve.get(id, client);
 
             // check if node is valid (exists)
-            if (!fileData)
-                return next(new Error('notFound'));
+            if (!file) return next(new Error('notFound'));
 
-            // create file metadata instance
-            const item = new Model(fileData.metadata);
-            let file = await cserve.createFile(item, fileData);
-
-            // create filepath array (include original raw file)
-            let filePaths = [path.join(process.env.UPLOAD_DIR, fileData.file.fs_path)];
-
-            // include image resampled versions (if they exist)
-            if (fileData.url) {
-                Object.keys(fileData.url).reduce((o, key) => {
-                    const filename = fileData.url[key].pathname.replace(/^.*[\\\/]/, '');
-                    o.push(path.join(process.env.LOWRES_PATH, filename));
-                    return o;
-                }, filePaths)
-            }
-
-            // delete files
-            const resData = await fserve.remove(file, filePaths);
+            // delete file + file model metadata
+            const res = await fserve.remove(file);
 
             res.status(200).json(
                 prepare({
                     view: 'remove',
                     model: model,
-                    data: resData,
+                    data: res,
                     message: {
                         msg: `'${fileData.label}' deleted successful!`,
                         type: 'success'
@@ -388,7 +369,7 @@ export default function FilesController(modelType) {
             console.error(err)
             return next(err);
         } finally {
-            client.release(true);
+            await client.release(true);
         }
     };
 
@@ -427,7 +408,7 @@ export default function FilesController(modelType) {
         } catch (err) {
             return next(err);
         } finally {
-            client.release(true);
+            await client.release(true);
         }
     };
 
@@ -502,7 +483,7 @@ export default function FilesController(modelType) {
         } catch (err) {
             return next(err);
         } finally {
-            client.release(true);
+            await client.release(true);
         }
     };
 

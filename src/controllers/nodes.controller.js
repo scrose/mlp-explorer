@@ -7,9 +7,10 @@
 
 import { prepare } from '../lib/api.utils.js';
 import * as nserve from '../services/nodes.services.js';
+import * as statserve from '../services/stats.services.js';
 import * as expserve from '../services/export.services.js';
 import * as srchserve from '../services/search.services.js';
-import { sanitize } from '../lib/data.utils.js';
+import {sanitize} from '../lib/data.utils.js';
 import { json2csv } from '../lib/file.utils.js';
 import { Readable } from 'stream';
 import pool from '../services/db.services.js';
@@ -32,10 +33,11 @@ export const init = async () => {};
  */
 
 export const show = async (req, res, next) => {
-    try {
 
-        // NOTE: client undefined if connection fails.
-        const client = await pool.connect();
+    // NOTE: client undefined if connection fails.
+    const client = await pool.connect();
+
+    try {
 
         const { id='' } = req.params || {};
         const node = await nserve.get(sanitize(id, 'integer'), client);
@@ -46,10 +48,11 @@ export const show = async (req, res, next) => {
                 data: node
             }));
 
-        await client.release(true);
-
     } catch (err) {
         return next(err);
+    }
+    finally {
+        await client.release(true);
     }
 };
 
@@ -75,6 +78,9 @@ export const tree = async (req, res, next) => {
                         surveyors: await nserve.getTree('surveyors'),
                         projects: await nserve.getTree('projects')
                     },
+                    stats: {
+                        summary: await statserve.summary()
+                    }
                 }
             }));
 
@@ -93,10 +99,11 @@ export const tree = async (req, res, next) => {
  */
 
 export const map = async (req, res, next) => {
-    try {
 
-        // NOTE: client undefined if connection fails.
-        const client = await pool.connect();
+    // NOTE: client undefined if connection fails.
+    const client = await pool.connect();
+
+    try {
 
         // get surveyors and projects as root containers
         res.status(200).json(
@@ -107,10 +114,11 @@ export const map = async (req, res, next) => {
                 }
             }));
 
-        await client.release(true);
-
     } catch (err) {
         return next(err);
+    }
+    finally {
+        await client.release(true);
     }
 };
 
@@ -252,4 +260,5 @@ export const search = async (req, res, next) => {
         return next(err);
     }
 };
+
 

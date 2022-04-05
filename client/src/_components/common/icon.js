@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.Components.Common.Icon
  * File: icon.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 
@@ -9,6 +10,7 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
+    faChartBar,
     faGripVertical,
     faCircle,
     faFolderOpen,
@@ -122,6 +124,7 @@ export const faMLPWordmark = {
  */
 
 library.add(
+    faChartBar,
     faGripVertical,
     faCircle,
     faSearchMinus,
@@ -316,7 +319,8 @@ const getIconClass = (iconType) => {
         rtf: 'file-alt',
         default: 'star',
         mlp: 'mlp_logo',
-        wordmark: 'mlp_wordmark'
+        wordmark: 'mlp_wordmark',
+        chart: 'chart-bar'
     };
     return iconComponents.hasOwnProperty(iconType)
         ? iconComponents[iconType]

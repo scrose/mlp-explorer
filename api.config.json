@@ -25,7 +25,10 @@
       "name": "mle-transcoder",
       "script": "./transcoder/app.js",
       "node_args": ["--inspect", "--expose-gc"],
+      "max_memory_restart": "1000M",
       "watch": false,
+      "instances": 3,
+      "exec_mode": "cluster",
       "ignore_watch": [
         "node_modules"
       ],
@@ -33,8 +36,7 @@
         "DYLD_INSERT_LIBRARIES": "/usr/local/Cellar/jemalloc/5.2.1_1/lib/libjemalloc.dylib"
       },
       "error_file": "./logs/mle_transcoder_error.log",
-      "out_file": "./logs/mle_transcoder_output.log",
-      "exec_mode": "fork"
+      "out_file": "./logs/mle_transcoder_output.log"
     }
   ]
 }

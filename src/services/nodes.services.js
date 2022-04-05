@@ -47,7 +47,7 @@ export const select = async (id, client=pool) => {
  * @return {Promise} result
  */
 
-export const selectByNode = async (node, client=pool) => {
+export const selectByNode = async (node, client) => {
     let { sql, data } = queries.defaults.selectByNode(node);
     return client.query(sql, data)
         .then(res => {
@@ -65,11 +65,7 @@ export const selectByNode = async (node, client=pool) => {
  * @return {Promise} result
  */
 
-export const get = async (id, client=pool) => {
-
-
-        // start transaction
-        await client.query('BEGIN');
+export const get = async (id, client) => {
 
         if (!id) return null;
 
@@ -92,7 +88,7 @@ export const get = async (id, client=pool) => {
             files: files,
             refImage: getCaptureImage(files, node),
             dependents: await selectByOwner(id, client) || [],
-            hasDependents: await hasDependents(id, client) || false,
+            hasDependents: await hasDependents(id, client),
             status: await getStatus(node, metadata, client),
         }
 };
@@ -147,7 +143,7 @@ export const getTree = async function(model) {
         await client.query('ROLLBACK');
         throw err;
     } finally {
-        client.release(true);
+        await client.release(true);
     }
 };
 
@@ -186,7 +182,7 @@ export const getMap = async function(filter=null) {
         await client.query('ROLLBACK');
         throw err;
     } finally {
-        client.release(true);
+        await client.release(true);
     }
 };
 
@@ -284,7 +280,7 @@ export const filterNodesByID = async (nodeIDs, offset, limit) => {
         await client.query('ROLLBACK');
         throw err;
     } finally {
-        client.release();
+        await client.release(true);
     }
 };
 
@@ -294,10 +290,10 @@ export const filterNodesByID = async (nodeIDs, offset, limit) => {
  * @public
  * @param {integer} id
  * @param client
- * @return {boolean} result
+ * @return {Promise}
  */
 
-export const hasDependents = async (id, client=pool) => {
+const hasDependents = async function(id, client=pool) {
     let { sql, data } = queries.nodes.hasDependent(id);
     return client.query(sql, data)
         .then(res => {
@@ -367,7 +363,7 @@ export const getPath = async (inputNode) => {
                 let newNode = {};
                 newNode.node = parentNode;
                 newNode.metadata = await selectByNode(parentNode, client) || {};
-                newNode.label = await mserve.getNodeLabel(parentNode);
+                newNode.label = await mserve.getNodeLabel(parentNode, client);
                 nodePath.set(n, newNode);
 
                 // reset node iteration
@@ -386,6 +382,6 @@ export const getPath = async (inputNode) => {
         await client.query('ROLLBACK');
         throw err;
     } finally {
-        client.release();
+        await client.release(true);
     }
 };

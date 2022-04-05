@@ -54,13 +54,6 @@ function ModelRoutes(modelType) {
             post: this.controller.update,
             delete: null,
         },
-        move: {
-            path: path.join('/', this.model, 'move', ':' + this.key),
-            get: null,
-            put: null,
-            post: this.controller.move,
-            delete: null,
-        },
         remove: {
             path: path.join('/', this.model, 'remove', ':' + this.key),
             get: null,
@@ -72,11 +65,20 @@ function ModelRoutes(modelType) {
 
     // include import endpoint for bulk import of image captures
     if (this.model === 'historic_captures' || this.model === 'modern_captures') {
+        // bulk import captures
         this.routes.import = {
             path: path.join('/', this.model, 'import', ':owner_id'),
             get: null,
             put: null,
             post: this.controller.create,
+            delete: null,
+        }
+        // move capture to new owner
+        this.routes.move = {
+            path: path.join('/', this.model, 'move', ':' + this.key, ':owner_id'),
+            get: this.controller.move,
+            put: null,
+            post: null,
             delete: null,
         }
     }

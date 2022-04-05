@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.Components.Navigator.Map
  * File: tree.navigator.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 
@@ -240,10 +241,15 @@ function MapNavigator({ filter, hidden }) {
                         mapObj.current.flyTo(coord, zoomLevel);
                     })
                     .on('mouseover', function () {
-                        this.bindTooltip(`
-                        Lat: ${centroid[0].toFixed(3)}, 
-                        Lng: ${centroid[1].toFixed(3)}
-                        `).openTooltip();
+                        this.bindTooltip(`${
+                            n <= 15 
+                                ? cluster.stations.map(station => {
+                                    return `<strong>${station.name}</strong> [${station.lat.toFixed(3)}, ${station.lng.toFixed(3)}]`
+                                    }).join('<br>') 
+                                : `<strong>Cluster (n = ${n})</strong><br />
+                                    Lat: ${centroid[0].toFixed(3)}<br />
+                                    Lng: ${centroid[1].toFixed(3)}`
+                        }`).openTooltip();
                     })
                     .on('mouseout', function () {
                         this.closeTooltip();

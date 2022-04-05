@@ -144,13 +144,18 @@ export function update(file) {
 
 /**
  * Generate query: Delete file entry for given item
+ * - cascade deletes the metadata record for filetype
  *
- * @param {Object} file
  * @return {Object} query
  * @public
+ * @param id
  */
 
-export function remove(file) {
-    const fn = defaults.remove(file);
-    return fn(file);
+export function remove(id) {
+    return {
+        sql: `DELETE FROM files 
+        WHERE id = $1::integer
+        RETURNING *;`,
+        data: [id],
+    };
 }

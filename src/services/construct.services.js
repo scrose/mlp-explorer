@@ -311,15 +311,17 @@ export const createNode = async function(item) {
  * @return {Promise} result
  */
 
-export const createFile = async function(item, fileData) {
+export const createFile = async function(fileData) {
 
-    if (!item) return null;
+    if (!fileData) return null;
 
     // generate file constructor
     let File = await create('files');
 
     // get additional file metadata from item
     const {
+        id='',
+        file_type='',
         filename='',
         mimetype='',
         owner_type='',
@@ -333,8 +335,8 @@ export const createFile = async function(item, fileData) {
     // return file instance: set owner attribute values from
     // retrieved node attributes
     return new File({
-        id: item.id,
-        file_type: item.name,
+        id: id,
+        file_type: file_type,
         filename: filename,
         file_size: file_size,
         mimetype: mimetype,

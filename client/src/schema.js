@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.Schema
  * File: schema.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 
@@ -19,23 +20,7 @@ export const schema = {
         name: "Explorer",
         title: "Welcome to the Mountain Legacy Project Explorer",
         mlp_url: 'http://mountainlegacy.ca',
-        carousel: [
-            {
-                url: {
-                    medium: 'http://localhost:3001/uploads/medium_b4_x6gg-T2wXrJ3EgatWy_bqbZE8gyFr02g2VWMlxqV1rtNe.jpeg'
-                }
-            },
-            {
-                url: {
-                    medium: 'http://localhost:3001/uploads/medium_OA1gaQNZqMCah2g4LboSgXFZklyRZKdDLz0oQnLRvsFkHAWh.jpeg'
-                }
-            },
-            {
-                url: {
-                    medium: 'http://localhost:3001/uploads/medium_b4_x6gg-T2wXrJ3EgatWy_bqbZE8gyFr02g2VWMlxqV1rtNe.jpeg'
-                },
-            }
-        ],
+        carousel: 47285,
     },
     routes: {
         '/': {
@@ -518,7 +503,7 @@ export const schema = {
                 {
                     legend: 'Edit Attached Metadata',
                     render: 'component',
-                    restrict: ['new', 'edit'],
+                    restrict: ['edit'],
                     users: ['editor', 'administrator', 'super_administrator'],
                     modern_captures: {
                         label: 'Dependents',

@@ -168,7 +168,7 @@ export const updateGroup = async (
             oldItems
                 .filter(pOld =>
                     newItems.length === 0 || newItems.some(pNew =>
-                    parseInt(pOld[idKey]) !== parseInt(pNew[idKey])))
+                        parseInt(pOld[idKey]) !== parseInt(pNew[idKey])))
                 .map(async (pOld) => {
                     return await remove(new ItemModel(pOld), client);
                 }));
@@ -192,7 +192,7 @@ export const updateGroup = async (
         await client.query('ROLLBACK');
         throw err;
     } finally {
-        client.release();
+        await client.release(true);
     }
 };
 
@@ -325,6 +325,7 @@ export const getMetadataOptions = async function(client=pool) {
 /**
  * Get representative capture image file data.
  * - filters capture files by image state
+ * - rank representative images as masters > interim > misc > raw > gridded
  *
  * @param files
  * @param owner
@@ -337,11 +338,11 @@ export const getCaptureImage = (files, owner) => {
     const { id='', type='' } = owner || {};
     const fileType = type === 'historic_captures' ? 'historic_images' : 'modern_images'
     return captureImages.find(file => file.metadata.image_state === 'master')
-    || captureImages.find(file => file.metadata.image_state === 'interim')
-    || captureImages.find(file => file.metadata.image_state === 'raw')
-    || captureImages.find(file => file.metadata.image_state === 'gridded')
-    || captureImages.find(file => file.metadata.image_state === 'misc')
-    || {label: 'No Images', file: {file_type: fileType, owner_id: id }};
+        || captureImages.find(file => file.metadata.image_state === 'interim')
+        || captureImages.find(file => file.metadata.image_state === 'misc')
+        || captureImages.find(file => file.metadata.image_state === 'raw')
+        || captureImages.find(file => file.metadata.image_state === 'gridded')
+        || {label: 'No Images', file: {file_type: fileType, owner_id: id, owner_type: type }};
 }
 
 /**
@@ -664,17 +665,17 @@ export const getNodeLabel = async (node, files=[], client=pool) => {
                 });
         }
 
-        // For captures, check if Photo Reference label is missing. If so, use
+        // For captures, check if photo reference label is missing. If so, use
         // an image file name to label the node.
-        if (type === 'historic_captures' && label === 'HC') {
+        if (type === 'historic_captures' && label === '') {
             const captureImages = await fserve.selectByOwner(id, client);
             const { historic_images = [] } = captureImages || {};
-            label = historic_images.length > 0 ? historic_images[0].label : label;
+            label = historic_images.length > 0 ? historic_images[0].label : label || 'Empty Capture';
         }
-        if (type === 'modern_captures' && label === 'MC') {
+        if (type === 'modern_captures' && label === '') {
             const captureImages = await fserve.selectByOwner(id, client);
             const {modern_images = []} = captureImages || {};
-            label = modern_images.length > 0 ? modern_images[0].label : label;
+            label = modern_images.length > 0 ? modern_images[0].label : label || 'Empty Capture';
         }
     }
     return label;

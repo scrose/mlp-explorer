@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.Utilities.IAT
  * File: iat.utils.client.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * Adapted from IAT web application
  * MIT Licensed
  */

@@ -21,6 +21,7 @@ import * as comparisons from './comparisons.queries.js';
 import * as search from './search.queries.js';
 import * as exporter from './export.queries.js';
 import * as users from './users.queries.js';
+import * as stats from './stats.queries.js';
 
 
 /**
@@ -37,5 +38,6 @@ export default {
     comparisons: comparisons,
     search: search,
     export: exporter,
-    users: users
+    users: users,
+    stats: stats
 };

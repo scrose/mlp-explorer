@@ -1,7 +1,8 @@
 /*!
  * MLP.Client.Components.Views.Nodes
  * File: nodes.view.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2022 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
  */
 
@@ -21,6 +22,7 @@ import FilesView from './files.view';
 import Tabs from '../common/tabs';
 import Carousel from "../common/carousel";
 import Comparator from "../common/comparator";
+import {useUser} from "../../_providers/user.provider.client";
 
 /**
  * Default view component for model data.
@@ -37,39 +39,69 @@ const DefaultView = ({
                      }) => {
 
     const api = useData();
+    const user = useUser();
     const { node, dependents, metadata, attached, files } = api.destructure(data) || {};
 
-    // group dependent nodes
+    // group dependent nodes by model type
     const dependentsGrouped = groupBy(Array.isArray(dependents) ? dependents : [], 'type');
 
     // create tab index of metadata and files
     const _tabItems = [];
 
-    // include unsorted captures
+    // collect any unsorted captures
+    let unsorted = [];
+
+    // [historic captures]
     if (dependentsGrouped.hasOwnProperty('historic_captures')) {
-        _tabItems.unshift({
-            label: 'Historic Captures',
-            data: <>
-                <Carousel
-                    fit={'contain'}
-                    autoslide={false}
-                    images={dependentsGrouped.historic_captures.map(item => {return item.refImage})}
-                    captions={dependentsGrouped.historic_captures.map(item => {return item.refImage.label})}
-                />
-            </>,
+        // filter unsorted captures
+        unsorted.push(...dependentsGrouped.historic_captures.filter(capture => {
+            return !capture.status.sorted
+        }));
+        // filter sorted captures
+        const sorted = dependentsGrouped.historic_captures.filter(capture => {
+            return capture.status.sorted
         });
+
+        // add sorted historic captures tabbed items
+        if (sorted.length > 0) {
+            _tabItems.unshift({
+                label: 'Historic Captures',
+                data: <>
+                    <Carousel
+                        fit={'contain'}
+                        autoslide={false}
+                        images={sorted.map(item => {return item.refImage})}
+                        titles={sorted.map(item => {return item.refImage.label})}
+                        draggable={!!user}
+                    />
+                </>,
+            });
+        }
     }
-    if (dependentsGrouped.hasOwnProperty('modern_captures')) _tabItems.push({
-        label: 'Modern Captures',
-        data: <>
-                <Carousel
-                    fit={'contain'}
-                    autoslide={false}
-                    images={dependentsGrouped.modern_captures.map(item => {return item.refImage})}
-                    captions={dependentsGrouped.modern_captures.map(item => {return item.refImage.label})}
-                />
-            </>,
-    });
+    if (dependentsGrouped.hasOwnProperty('modern_captures')) {
+        // filter unsorted captures
+        unsorted.push(...dependentsGrouped.modern_captures.filter(capture => {
+            return !capture.status.sorted
+        }));
+        // filter sorted captures
+        const sorted = dependentsGrouped.modern_captures.filter(capture => {
+            return capture.status.sorted
+        });
+        if (sorted.length > 0) {
+            _tabItems.push({
+                label: 'Modern Captures',
+                data: <>
+                    <Carousel
+                        fit={'contain'}
+                        autoslide={false}
+                        images={sorted.map(item => {return item.refImage})}
+                        titles={sorted.map(item => {return item.refImage.label})}
+                        draggable={!!user}
+                    />
+                </>,
+            });
+        }
+    }
 
     // include comparisons metadata
     if (
@@ -82,11 +114,15 @@ const DefaultView = ({
 
     // include dependent nodes
     const nodelist = Object.keys(dependentsGrouped)
-        .filter(
-            key => key !== 'historic_captures' && key !== 'modern_captures')
+        .filter(key => key !== 'historic_captures' && key !== 'modern_captures')
         .map(key => {
+            // - for dependent nodes with single entries, do not include the accordion
+            const singleNode = dependentsGrouped[key].length === 1;
+            // get tab label
+            // Note: relabel 'Locations' tab as 'Modern Captures'
+            const tabLabel = getModelLabel(key, 'label');
             return {
-                label: getModelLabel(key, 'label'),
+                label: tabLabel === 'Locations' ? 'Modern Captures' : tabLabel,
                 data: dependentsGrouped[key]
                     .sort(sorter)
                     .map(item => {
@@ -99,15 +135,13 @@ const DefaultView = ({
                             metadata,
                         } = api.destructure(item);
                         // toggle accordion data as open/close
-                        // - show historic visits
-                        const singleNode = dependentsGrouped[key].length === 1;
-                        return <Accordion
+
+                        return !singleNode ? <Accordion
                                 key={id}
                                 id={id}
                                 type={type}
                                 label={label}
                                 hasDependents={hasDependents}
-                                open={singleNode}
                                 menu={
                                     <EditorMenu
                                         model={type}
@@ -120,23 +154,15 @@ const DefaultView = ({
                                 }
                             >
                                 <NodesView model={type} data={item} />
-                            </Accordion>;
+                            </Accordion>
+                            : <NodesView key={id} model={type} data={item} />;
                     }),
             };
         });
+    // add dependent nodes to tablist
     if (nodelist) _tabItems.push(...nodelist);
 
-    // add metadata for current node
-    _tabItems.push({
-        label: `${getModelLabel(model)} Details`,
-        data: <MetadataView
-            key={`${model}_${node.id}`}
-            node={node}
-            model={model}
-            metadata={metadata} />,
-    });
-
-    // include other attached metadata
+    // extract any attached (supplemental) metadata
     const attachedMetadata = Object.keys(attached)
         .filter(key => key !== 'comparisons' && attached[key].length > 0)
         .reduce((o, key) => {
@@ -144,18 +170,42 @@ const DefaultView = ({
             return o;
         }, {});
 
-    if (Object.keys(attachedMetadata).length > 0) _tabItems.push({
-        label: 'Metadata',
+    // add metadata for current node
+    // - place attached metadata and supplementary files in same tab
+    _tabItems.push({
+        label: `${getModelLabel(model)} Details`,
         data: <>
-                <MetadataAttached owner={node} attached={attachedMetadata} />
-                { Object.keys(files).length > 0 && <FilesView owner={node} files={files} />}
-            </>,
+            <MetadataView key={`${model}_${node.id}`} node={node} model={model} metadata={metadata} />
+            {
+                Object.keys(attachedMetadata).length > 0
+                && <MetadataAttached key={`attached_${model}_${node.id}`} owner={node} attached={attachedMetadata} />
+            }
+            {
+                Object.keys(files).length > 0
+                && <FilesView key={`files_${model}_${node.id}`} owner={node} files={files} />
+            }
+        </>
     });
 
-    return <Tabs
-        items={_tabItems}
-        orientation={'horizontal'}
-    />
+    // add tab for any unsorted captures
+    if (unsorted.length > 0) {
+        _tabItems.push({
+            label: 'Unsorted Captures',
+            data: <>
+                <Carousel
+                    fit={'contain'}
+                    autoslide={false}
+                    images={unsorted.map(item => {return item.refImage})}
+                    titles={unsorted.map(item => {
+                        return `${getModelLabel(item.type)}: ${item.refImage.label}`
+                    })}
+                    draggable={!!user}
+                />
+            </>,
+        });
+    }
+
+    return <Tabs items={_tabItems} orientation={'horizontal'} />
 
 };
 
@@ -242,6 +292,7 @@ const NodesView = ({
             data={loadedData}
         />,
     };
+    //console.log('!!!', model, dependents, hasDependents, model && (dependents.length > 0 || !hasDependents))
 
     return <>
 
