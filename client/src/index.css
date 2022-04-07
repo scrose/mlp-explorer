@@ -722,7 +722,7 @@ button.capture-draggable {
     cursor: move !important;
 }
 button.capture-draggable:hover {
-    opacity: 60%;
+    background-color: #FF8D3F !important;
 }
 .capture-draggable-highlight {
     background-color: #666666 !important;
