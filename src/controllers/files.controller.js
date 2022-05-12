@@ -352,13 +352,13 @@ export default function FilesController(modelType) {
             if (!file) return next(new Error('notFound'));
 
             // delete file + file model metadata
-            const res = await fserve.remove(file);
+            const result = await fserve.remove(file);
 
             res.status(200).json(
                 prepare({
                     view: 'remove',
                     model: model,
-                    data: res,
+                    data: result,
                     message: {
                         msg: `'${fileData.label}' deleted successful!`,
                         type: 'success'
