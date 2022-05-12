@@ -360,7 +360,7 @@ export default function FilesController(modelType) {
                     model: model,
                     data: result,
                     message: {
-                        msg: `'${fileData.label}' deleted successful!`,
+                        msg: `'${file.label}' deleted successful!`,
                         type: 'success'
                     }
                 }));
