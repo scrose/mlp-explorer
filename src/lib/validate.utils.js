@@ -70,7 +70,7 @@ Validator.prototype.isRequired = function () {
  */
 
 Validator.prototype.isEmail = function () {
-  if (!/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+$/.test(this.data)) this.error('invalidEmail');
+  if (!/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)?$/.test(this.data)) this.error('invalidEmail');
   return this;
 };
 
