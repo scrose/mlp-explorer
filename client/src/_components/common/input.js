@@ -428,9 +428,10 @@ export const Input = ({
     return type !== 'hidden' && type !== 'file'
         ? <>
             <label key={`label_${name}`} htmlFor={id} className={type}>
-                <span className={'label-text'}>{label}</span>
+                {type !== 'checkbox' ? <span className={'label-text'}>{label}</span> : ''}
                 <span className={'units'}>{prefix}</span>
                 {input}
+                {type === 'checkbox' ? <span className={'label-text'}>{label}</span> : ''}
                 <span className={'units'}>{suffix}</span>
             </label>
             {<UserMessage message={error} closeable={false}/>}

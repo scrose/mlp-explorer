@@ -39,11 +39,7 @@ const DataView = () => {
     // rendered view components indexed by render type
     const renders = {
         // render a node view
-        nodes: () => (
-            <NodesView
-                model={api.model}
-                data={api.data}
-            />),
+        nodes: () => <NodesView model={api.model} data={api.data} />,
         // render a filtered list of nodes
         filter: () => <FilterTools data={api.data} />,
         // render an create/edit form

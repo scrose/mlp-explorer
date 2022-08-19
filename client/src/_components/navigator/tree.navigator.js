@@ -8,10 +8,11 @@
 
 import React from 'react'
 import {useRouter} from '../../_providers/router.provider.client';
+import {useData} from '../../_providers/data.provider.client';
+import {useUser} from '../../_providers/user.provider.client';
 import {createNodeRoute} from '../../_utils/paths.utils.client';
 import {getModelLabel, getNodeOrder} from '../../_services/schema.services.client';
 import {addNode, checkNode, removeNode} from '../../_services/session.services.client';
-import {useData} from '../../_providers/data.provider.client';
 import Button from '../common/button';
 import {capitalize, sorter} from '../../_utils/data.utils.client';
 import Loading from '../common/loading';
@@ -33,7 +34,7 @@ import {useWindowSize} from "../../_utils/events.utils.client";
  * @param {Function} onToggle
  * @param {String} isCurrent
  * @param {boolean} hasDependents
- * @return {JSX}
+ * @return {Object}
  */
 
 const TreeNodeMenu = ({
@@ -50,6 +51,11 @@ const TreeNodeMenu = ({
     const router = useRouter();
     const nav = useNav();
     const [highlight, setHighlight] = React.useState(false);
+
+    // get user role
+    const user = useUser();
+    const {role = ['']} = user || {};
+    const isAdmin = role[0] === 'administrator' || role[0] === 'super_administrator';
 
     // handle toggle events
     const _handleToggle = () => {
@@ -138,51 +144,66 @@ const TreeNodeMenu = ({
         }
     };
 
-    return (
-        <div
-            className={'tree-node h-menu'}
-            onDrop={_handleDrop}
-            onDragOver={_handleDragOver}
-            onDragLeave={_handleDragLeave}
-        >
-            <ul className={highlight ? 'capture-draggable-highlight' : ''}>
-                <li>
-                    <Button
-                        icon={
-                            hasDependents
-                                ? (toggle ? 'collapse' : 'expand')
-                                : 'empty'
-                        }
-                        className={classnames.join(' ')}
-                        title={`Expand ${label}.`}
-                        onClick={hasDependents ? _handleToggle : () => {}}
-                    />
+    return <div
+        className={'tree-node h-menu'}
+        onDrop={_handleDrop}
+        onDragOver={_handleDragOver}
+        onDragLeave={_handleDragLeave}
+    >
+        <ul className={highlight ? 'capture-draggable-highlight' : ''}>
+            <li>
+                <Button
+                    icon={
+                        hasDependents
+                            ? (toggle ? 'collapse' : 'expand')
+                            : 'empty'
+                    }
+                    className={classnames.join(' ')}
+                    title={`Expand ${label}.`}
+                    onClick={hasDependents ? _handleToggle : () => {}}
+                />
+            </li>
+            <li>
+                <Button
+                    icon={model}
+                    size={'lg'}
+                    className={`tree-node-icon ${isCurrent
+                        ? ' current'
+                        : ''} ${status ? getStatus() : ''}`}
+                    title={
+                        `View ${getModelLabel(model)}: ${label} ${status ? ' \nSTATUS: ' + capitalize(getStatus()) : ''}`
+                    }
+                    onClick={_handleView}
+                />
+            </li>
+            <li>
+                <Button
+                    label={label}
+                    size={'sm'}
+                    className={`tree-node-label`}
+                    title={`View ${getModelLabel(model)}: ${label}`}
+                    onClick={_handleView}
+                />
+            </li>
+            {
+                (model === 'modern_captures' || model === 'historic_captures') && isAdmin && <li
+                    className={'move'}
+                    draggable={true}
+                    onDragStart={(e) => {
+                        // attach node metadata to data transfer object
+                        e.dataTransfer.setData(
+                            'application/json',
+                            JSON.stringify({
+                                id: id, model: model, label: label
+                            })
+                        );
+                    }}
+                >
+                    <Button className={'move'} icon={'move'} title={`Move ${label} to a new owner.`} />
                 </li>
-                <li>
-                    <Button
-                        icon={model}
-                        size={'lg'}
-                        className={`tree-node-icon ${isCurrent
-                            ? ' current'
-                            : ''} ${status ? getStatus() : ''}`}
-                        title={
-                            `View ${getModelLabel(model)}: ${label} ${status ? ' \nSTATUS: ' + capitalize(getStatus()) : ''}`
-                        }
-                        onClick={_handleView}
-                    />
-                </li>
-                <li>
-                    <Button
-                        label={label}
-                        size={'sm'}
-                        className={`tree-node-label`}
-                        title={`View ${getModelLabel(model)}: ${label}`}
-                        onClick={_handleView}
-                    />
-                </li>
-            </ul>
-        </div>
-    );
+            }
+        </ul>
+    </div>;
 };
 
 /**
@@ -297,19 +318,17 @@ const TreeNode = ({
             ref={treeNode}
             className={'tree-node'}
         >
-            {
-                <TreeNodeMenu
-                    id={id}
-                    model={type}
-                    label={label}
-                    toggle={toggle}
-                    setToggle={setToggle}
-                    isCurrent={isCurrent}
-                    hasDependents={hasDependents}
-                    status={statusData}
-                    setDialog={setDialog}
-                />
-            }
+            <TreeNodeMenu
+                id={id}
+                model={type}
+                label={label}
+                toggle={toggle}
+                setToggle={setToggle}
+                isCurrent={isCurrent}
+                hasDependents={hasDependents}
+                status={statusData}
+                setDialog={setDialog}
+            />
             {
                 toggle && hasDependents
                     ? error
@@ -408,59 +427,59 @@ const TreeNavigator = ({ hidden=true }) => {
     const [, winHeight] = useWindowSize();
 
     return <>
-    {
-        nav.tree && Object.keys(nav.tree).length > 0
-            ? <div
-                ref={treeRef}
-                className={'tree'}
-                style={{
-                    display: hidden ? ' none' : ' block',
-                    height: (winHeight - 140) + 'px'
-                }}
-            >
-                <div className={'root'}>
-                    <Accordion
-                        key={`summary_stats`}
-                        type={'chart'}
-                        label={"Collection Summary"}
-                        open={true}
-                    >
-                        <table className={'stats'}>
-                            <tbody>
+        {
+            nav.tree && Object.keys(nav.tree).length > 0
+                ? <div
+                    ref={treeRef}
+                    className={'tree'}
+                    style={{
+                        display: hidden ? ' none' : ' block',
+                        height: (winHeight - 140) + 'px'
+                    }}
+                >
+                    <div className={'root'}>
+                        <Accordion
+                            key={`summary_stats`}
+                            type={'chart'}
+                            label={"Collection Summary"}
+                            open={true}
+                        >
+                            <table className={'stats'}>
+                                <tbody>
+                                {
+                                    (nav.stats.summary || []).map((stat, index) => {
+                                        const {type='', count=''} = stat || {};
+                                        return <tr key={`summary_stats_${index}`}>
+                                            <th>{getModelLabel(type, 'label')}</th>
+                                            <td>{count}</td>
+                                        </tr>
+                                    })
+                                }
+                                </tbody>
+                            </table>
+                        </Accordion>
                         {
-                            (nav.stats.summary || []).map((stat, index) => {
-                                const {type='', count=''} = stat || {};
-                                return <tr key={`summary_stats_${index}`}>
-                                    <th>{getModelLabel(type, 'label')}</th>
-                                    <td>{count}</td>
-                                </tr>
-                            })
+                            Object.keys(nav.tree)
+                                .map((key, index) => {
+                                    return (
+                                        <Accordion
+                                            key={`item_${index}`}
+                                            type={key}
+                                            label={getModelLabel(key, 'label')}
+                                            open={true}
+                                        >
+                                            <TreeNodeList
+                                                items={nav.tree[key]}
+                                                filter={nav.filter}
+                                            />
+                                        </Accordion>
+                                    )
+                                })
                         }
-                            </tbody>
-                        </table>
-                    </Accordion>
-                    {
-                        Object.keys(nav.tree)
-                            .map((key, index) => {
-                                return (
-                                    <Accordion
-                                        key={`item_${index}`}
-                                        type={key}
-                                        label={getModelLabel(key, 'label')}
-                                        open={true}
-                                    >
-                                        <TreeNodeList
-                                            items={nav.tree[key]}
-                                            filter={nav.filter}
-                                        />
-                                    </Accordion>
-                                )
-                            })
-                    }
+                    </div>
                 </div>
-            </div>
-            : <Loading overlay={true}/>
-    }
+                : <Loading overlay={true}/>
+        }
     </>
 }
 

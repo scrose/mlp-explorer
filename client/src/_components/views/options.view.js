@@ -40,7 +40,7 @@ const OptionsView = ({
     const [options, setOptions] = React.useState({});
     const [selectedIDs, setSelectedIDs] = React.useState({});
     const [optionData, setOptionData] = React.useState({});
-    const excludedOpts = ['image_states'];
+    const excludedOpts = ['image_states', 'surveyors', 'surveys', 'survey_seasons'];
 
     // generate unique ID value for form inputs
     const menuID = Math.random().toString(16).substring(2);
@@ -149,6 +149,7 @@ const OptionsView = ({
                             view={'options'}
                             model={optType}
                             metadata={selectedOptionData}
+                            label={getModelLabel(optType)}
                             callback={()=>{
                                 // update state of option selection
                                 setSelectedIDs(data => ({...data, [optType]: null}));

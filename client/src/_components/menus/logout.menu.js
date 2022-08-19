@@ -29,11 +29,11 @@ const LogoutMenu = () => {
     return (
         <nav className={'main'}>
             { isLoggingOut && <Loading overlay={true} /> }
-            <Accordion className={'v-menu'} type={'user'} label={ !nav.offCanvas ? user.email : ''}>
-                <div className={'user-menu'}>
-                    <ul>
-                        <li style={{textAlign: 'center'}}><b>{user.email} ({user.label})</b></li>
-                        <li style={{textAlign: 'center'}}><Button
+            <Accordion type={'user'} label={ !nav.offCanvas ? user.email : ''}>
+                <ul className={'user-menu'}>
+                        <li><b>{user.email} ({user.label})</b></li>
+                        <li><Button
+                            className={'submit'}
                             icon={'logout'}
                             label={'Sign Out'}
                             onClick={() => {
@@ -44,8 +44,7 @@ const LogoutMenu = () => {
                                 })
                             }}
                         /></li>
-                    </ul>
-                </div>
+                </ul>
             </Accordion>
         </nav>
     );

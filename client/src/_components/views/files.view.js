@@ -135,6 +135,7 @@ export const FilesView = ({ files, owner }) => {
                 open={true}
                 menu={
                     <EditorMenu
+                        view={'files'}
                         model={owner.type}
                         id={owner.id}
                         owner={owner}

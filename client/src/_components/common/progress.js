@@ -75,10 +75,11 @@ const Progress = ({
                     return (
                         <div key={`${key}_msg_progress`}>
                             <UserMessage
+                                icon={''}
                                 onClose={() => {
                                     setMessages({});
                                 }}
-                                closeable={true}
+                                closeable={false}
                                 message={messages[key]}
                             />
                             {

@@ -119,7 +119,7 @@ const ImageView = ({data, model}) => {
     return (
         <>
             <Accordion
-                type={'show'}
+                type={model}
                 label={`${label} Metadata`}
                 hasDependents={true}
                 open={false}

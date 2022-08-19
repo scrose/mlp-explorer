@@ -6,25 +6,6 @@
  * MIT Licensed
  */
 
-body {
-    margin: 0;
-    height: 100%;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-    font-size: small;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    color: #282c34;
-}
-code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-}
-svg {
-    color: inherit;
-}
-
 /*
 Page Layout (Global)
 */
@@ -35,6 +16,19 @@ Page Layout (Global)
 *:before, *:after {
     box-sizing: inherit;
 }
+/* Works on Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+    width: 12px;
+}
+
+*::-webkit-scrollbar-track {
+    background: #000000;
+}
+*::-webkit-scrollbar-thumb {
+    background-color: #00C3AB;
+    border-radius: 20px;
+    border: 3px solid #00C3AB;
+}
 html {
     box-sizing: border-box;
     margin:0;
@@ -42,8 +36,15 @@ html {
     background-color: #222222;
 }
 body {
-    margin:0;
-    padding:0;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    font-size: small;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: #EEEEEE;
 }
 div#root {
     height: 100%;
@@ -57,7 +58,7 @@ div.main {
     display: flex;
     flex-grow: 1;
     flex-wrap: nowrap;
-    background-color: white !important;
+    background-color: #111111 !important;
     border-top: 1px solid #222222;
 }
 
@@ -85,12 +86,18 @@ p {
 a {
     color: #008896;
 }
-button:disabled {
-    opacity: 0.6;
-    cursor: default;
+table {
+    text-align: left;
 }
 time {
     font-weight: normal;
+}
+code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+svg {
+    color: inherit;
 }
 
 /*
@@ -157,26 +164,70 @@ Horizontal Layout
 
 
 /*
-Vertical Layout
+Vertical Menu Styles
 */
 
 .v-menu {
     width: auto;
-    padding: 10px;
+    padding: 0;
 }
-
 .v-menu ul {
     width: 100%;
     list-style: none;
     margin: 0;
     padding: 0;
 }
-
 .v-menu ul li {
-    width: 100%;
     display: block;
     margin: 0;
     padding: 5px;
+}
+.v-menu.dropdown {
+    position: relative;
+    display: inline-block;
+    text-align: left;
+    padding:0;
+    margin-top: 0;
+}
+.v-menu.dropdown ul {
+    width: 250px;
+    border-radius: 10px;
+
+    /* Position the tooltip text */
+    position: absolute;
+    z-index: 1;
+    top: 20px;
+    right: 0;
+    margin-left: -50px; /* Use half of the width (120/2 = 60), to center the tooltip */
+
+    /* Fade in tooltip */
+    transition: max-height 0.3s;
+}
+.v-menu.dropdown ul::after {
+    content: " ";
+    position: absolute;
+    bottom: 100%;  /* At the top of the tooltip */
+    right: 10px;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent #222222 transparent;
+}
+.v-menu.dropdown li  {
+    background-color: #222222;
+    width: 100% !important;
+    height: auto !important;
+    padding: 5px;
+}
+.v-menu ul li button  {
+    text-align: left;
+    width: auto;
+    height: 100%;
+    background-color: transparent;
+    color: #FFFFFF;
+}
+.v-menu ul li button:hover {
+    opacity: 0.6;
 }
 
 /*
@@ -204,11 +255,10 @@ Accordion Layout
 
 .accordion {
     width: 100%;
-    margin-top: 20px;
-    margin-bottom: 20px;
+    margin: 20px 0 20px 0;
     padding: 3px;
     border-radius: 10px;
-    border: 1px solid #2B5A6B;
+    border: 1px solid #2F4858;
 }
 .accordion.hidden {
     display: none;
@@ -340,11 +390,7 @@ nav.main .accordion-data.open {
 .push nav.main .accordion-data.open {
     right: 0;
 }
-nav.main button  {
-    text-align: left;
-    background-color: #00C6BB;
-    color: white !important;
-}
+
 
 
 /* Viewer/Editor Panels */
@@ -362,7 +408,8 @@ nav.main button  {
 .view {
     height: 78vh;
     overflow: auto;
-    padding: 0 10px;
+    padding: 5px;
+    margin: 0;
 }
 .view .view-panel-group li {
     width: 33%;
@@ -372,14 +419,14 @@ nav.main button  {
 }
 .view .view-panel {
     height: 100%;
-    padding: 10px;
+    padding-left: 20px;
     margin: 15px;
     border-style: solid;
-    border-width: 5px;
-    border-radius: 15px;
+    border-width: 0 0 0 2px;
+    border-color: #2F4858;
 }
 .view .view-panel p, .view .view-panel a {
-    color: inherit;
+    color: #EEEEEE;
     font-size: medium;
     padding: 0;
 }
@@ -387,12 +434,10 @@ nav.main button  {
     opacity: 0.7;
 }
 .view .view-panel h4, .view .view-panel h5 {
-    text-align: center;
     color: inherit;
     background-color: transparent;
     font-size: large;
     padding: 0;
-    height: 10%;
 }
 .view .data {
     display:inline-block;
@@ -404,9 +449,25 @@ nav.main button  {
     padding: 10px;
     margin: 0;
 }
-.heading .badge {
+.view h4 {
+    padding: 0 5px;
+}
+.heading .badge.node_type {
+    color: #00C3AB;
     height: 100%;
     padding: 10px;
+}
+.heading ul {
+    color: #DDDDDD !important;
+    background-color: transparent !important;
+    margin: auto;
+}
+.heading .h-menu ul li {
+    height: 100%;
+    width: auto;
+    margin: 0 !important;
+    overflow: visible;
+    padding: 2px;
 }
 
 /* Badge */
@@ -415,7 +476,7 @@ nav.main button  {
     cursor: default;
     font-size: 1.0em;
     background-color: inherit !important;
-    color: #282c34;
+    color: inherit;
 }
 .badge:focus {
     border: none;
@@ -432,6 +493,10 @@ nav.main button  {
     display: flex;
     justify-content: space-between;
 }
+.pagination button {
+    background-color: #2F4858;
+    color: white;
+}
 
 .pagination .inactive {
     opacity: 0.5;
@@ -441,21 +506,36 @@ nav.main button  {
 /* User Menu Panel */
 
 .user-menu {
+    display: block !important;
     max-width: 500px;
     min-width: 300px;
     background-color: #222222;
-    color: #FFFFFF;
+    color: #EEEEEE;
     height: auto !important;
     line-height: normal !important;
     padding: 15px;
+    text-align: center !important;
+}
+ul.user-menu li {
+    height: auto;
+    min-height: auto;
+    line-height: normal !important;
+    margin: 0 !important;
+    text-align: center !important;
+    padding: 20px 0 20px 10px;
 }
 .user-menu fieldset {
-    background-color: transparent;
+    text-align: left;
+    background-color: #222222;
     color: #FFFFFF;
     border: none;
+    margin: 5px !important;
+    padding: 5px !important;
 }
 .user-menu input {
     background-color: #FFFFFF !important;
+    padding: 5px !important;
+    margin: 0 !important;
 }
 
 /* Panel Menu */
@@ -541,28 +621,26 @@ nav.main button  {
 /* Navigator Panel: Search  */
 
 .search {}
-
 .search-input {
-    width: 100%;
+    width: 95%;
     height: 5vh;
     position: relative;
     display: flex;
 }
-
 .search-query {
     height: 35px;
     width: 100%;
+    border-style: solid;
     border-right: none;
     border-radius: 0;
+    border-color: #D36819;
     padding: 5px;
     margin: 5px 0 5px 5px;
     outline: none;
 }
-
 .search-query:focus{
     color: #282c34;
 }
-
 .search-button {
     height: 35px !important;
     width: 35px !important;
@@ -571,17 +649,17 @@ nav.main button  {
     text-align: center;
     cursor: pointer;
     border-width: 1px 1px 1px 0;
-    border-color: #282c34;
-    background-color: #282c34;
-    color: white;
+    border-color: #D36819;
+    background-color: #D36819;
+    color: #EEEEEE;
     border-style: solid;
     border-radius: 0;
 }
 .navigator .search-results {
-    height: 70vh;
+    height: 100%;
     overflow: auto;
     padding: 10px;
-    background-color: white;
+    background-color: inherit;
 }
 .search-item {
     margin-top: 20px;
@@ -675,25 +753,28 @@ nav.breadcrumb ul li a:hover {
     line-height: 40px;
     width: auto;
 }
-.editor-tools .v-menu.dropdown {
-    position: absolute;
-    margin: 0;
-    padding: 0;
-}
-.editor-tools .v-menu.dropdown li  {
-    height: auto;
-    padding: 5px;
-    background-color: #222222;
-    color: #DFEEE9;
-    width: 100% !important;
-}
-.editor-tools.h-menu ul li button, .editor-tools .v-menu ul li button  {
+/*.editor-tools .v-menu.dropdown {*/
+/*    position: absolute;*/
+/*    right: 50%;*/
+/*    margin: 0;*/
+/*    padding: 0;*/
+/*    width: 220px;*/
+/*}*/
+/*.editor-tools .v-menu.dropdown li  {*/
+/*    height: auto;*/
+/*    padding: 5px;*/
+/*    background-color: #222222;*/
+/*    color: #DFEEE9;*/
+/*    width: 100% !important;*/
+/*}*/
+.editor-tools.h-menu ul li button {
+    width: 100%;
     text-align: left;
     background-color: transparent;
     color: #DFEEE9;
 }
 
-.editor-tools.h-menu ul li button:hover, .editor-tools .v-menu ul li button:hover {
+.editor-tools.h-menu ul li button:hover {
     opacity: 0.6;
 }
 
@@ -709,20 +790,21 @@ nav.breadcrumb ul li a:hover {
 }
 
 .editor-tools .move, .h-menu .move {
-    cursor: move;
+    cursor: move !important;
 }
 
 button.capture-draggable {
     position: relative !important;
-    width: 130px !important;
+    width: 30px !important;
     height: 30px !important;
-    margin: auto !important;
-    background-color: #57BECC !important;
+    margin: 2px !important;
+    background-color: #2ea591 !important;
     text-align: center !important;
     cursor: move !important;
 }
 button.capture-draggable:hover {
-    background-color: #FF8D3F !important;
+    background-color: #D36819 !important;
+    opacity: 1;
 }
 .capture-draggable-highlight {
     background-color: #666666 !important;
@@ -852,8 +934,8 @@ button.nav-toggle {
     margin: auto auto auto 15px;
 }
 .tree-node-unsorted button {
-    color: #B65E88 !important;
-    border-color: #B65E88 !important;
+    color: #EC87E4 !important;
+    border-color: #EC87E4 !important;
 }
 
 /* Style the tab _static */
@@ -870,7 +952,7 @@ button.nav-toggle {
     border-radius: 0;
 }
 .tab-menu.h-menu {
-    border-bottom: 2px solid #2B5A6B;
+    border-bottom: 2px solid #00C3AB;
 }
 .tab-menu.h-menu ul li {
     width: auto;
@@ -882,22 +964,25 @@ button.nav-toggle {
     width: auto;
     padding: 10px;
     margin: 0;
-    border-radius: 0;
+    border-radius: 5px 5px 0 0;
 }
 /* Tab menu panel: vertical orientation */
 .tab-menu.v-menu ul {
     position: fixed;
-    width: 22% !important;
+    width: 15% !important;
 }
 .tab-menu.v-menu ul li, .tab-menu.v-menu ul li button {
     width: 100%;
 }
 .tab-menu button {
+    font-weight: bold;
     text-align: left;
     border: none;
     outline: none;
     cursor: pointer;
     padding: 14px 16px;
+    color: #282c34 !important;
+    background-color: #CCCCCC !important;
 }
 /* Change background color of buttons on hover */
 .tab-menu button:hover {
@@ -908,34 +993,37 @@ button.nav-toggle {
 }
 /* Create an active/current tablink class */
 .tab-menu button.active {
-    background-color: #2B5A6B !important;
-    color: #FFFFFF;
-}
-
-/* Create an active/current tablink class */
-.accordion .tab-menu button.active {
-    background-color: #DDDDDD !important;
-    color: #282c34;
-}
-.accordion .tab-menu.h-menu {
-    border-bottom: 2px solid #DDDDDD;
+    background-color: #00C3AB !important;
+    color: #282c34 !important;
 }
 
 /* Tab data panel */
 .tab-data {
     width: 70%;
-    padding:0;
+    padding: 0;
     cursor: default !important;
 }
 .tab-data.vertical {
     margin-left: 30%;
 }
-.tab-data label.active {
-    background-color: #FFFFFF;
-    color: #FFFFFF;
-    border: 1px solid #2B5A6B;
+.tab-data.horizontal {
+    width: 100%;
 }
 
+/* Create secondary active/current styles for tabs */
+
+.accordion .tab-menu button.active, .tab-data .tab-menu button {
+    background-color: #2F4858 !important;
+    color: #EEEEEE !important;
+    font-weight: normal;
+}
+.accordion .tab-menu button.active, .tab-data .tab-menu button.active {
+    background-color: #4B7A8B !important;
+    color: #FFFFFF;
+}
+.accordion .tab-menu.h-menu, .tab-data .tab-menu.h-menu {
+    border-bottom: 2px solid #2F4858;
+}
 
 /* Image Comparator */
 
@@ -954,7 +1042,7 @@ button.nav-toggle {
     position: relative;
     width: 100%;
     cursor: pointer;
-    max-height: 500px;
+    /*max-height: 500px;*/
     min-height: 200px;
 }
 .comparator .slide, .carousel .slide {
@@ -965,7 +1053,7 @@ button.nav-toggle {
 }
 .carousel .slides .slide {
     opacity: 1;
-    background-color: white;
+    background-color: #111111;
     position: absolute;
     width: 100%;
     top: 0;
@@ -973,7 +1061,7 @@ button.nav-toggle {
 }
 .comparator .slides figure, .carousel .slides figure {
     position: relative;
-    height: 500px;
+    /*height: 500px;*/
     margin: auto;
     padding: 0;
 }
@@ -1016,7 +1104,7 @@ button.nav-toggle {
     position: relative;
     z-index: 9999 !important;
     text-align: center;
-    background-color: #222;
+    background-color: #444444;
     padding: 2px 16px;
     color: white;
     border-radius: unset !important;
@@ -1025,14 +1113,26 @@ button.nav-toggle {
     width: auto !important;
 }
 .carousel .caption {
+    max-width: none !important;
+    position: absolute;
+    bottom: 0;
     margin: auto;
+    z-index: 999999;
+    background-color: #FFFFFF;
+    color: #111111;
+    opacity: 0.75;
+}
+.carousel .caption button {
+    position: relative;
+    background-color: #FFFFFF;
+    color: #111111;
 }
 .carousel .caption p {
     margin-left: 20px;
     margin-right: 20px;
     padding: 15px;
     font-size: large !important;
-    background-color: #EEEEEE;
+    background-color: transparent;
     color: #666666;
 }
 .slide-menu ul li a {
@@ -1041,6 +1141,7 @@ button.nav-toggle {
 }
 .capture-button {
     background-color: #444444;
+    color: #EEEEEE;
 }
 .comparator .prev,
 .comparator .next,
@@ -1079,10 +1180,11 @@ button.nav-toggle {
 }
 .comparator .thumbnails.h-menu, .carousel .thumbnails.h-menu {
     position: relative;
-    background-color: #DDDDDD;
+    background-color: #222222;
     justify-content: left;
     z-index: 9999 !important;
     border-radius: unset !important;
+    text-align: center;
 }
 .comparator .thumbnails.h-menu ul li, .carousel .thumbnails.h-menu ul li {
     width: auto;
@@ -1097,13 +1199,16 @@ button.nav-toggle {
     height: 15px;
     width: 15px;
     margin: 0 2px;
-    background-color: #BBBBBB;
+    background-color: #CCCCCC;
     border-radius: 50%;
     display: inline-block;
     transition: background-color 0.6s ease;
 }
 .dot.active, .dot:hover {
     background-color: #717171;
+}
+.carousel .spinner {
+    margin-top: 20%;
 }
 
 /* fading animation */
@@ -1139,7 +1244,7 @@ button.nav-toggle {
 }
 .slider figcaption {
     text-align: right;
-    background-color: #FFFFFF;
+    background-color: inherit;
 }
 .slider-container {
     position: relative;
@@ -1172,32 +1277,32 @@ button.nav-toggle {
     display: inline-block;
     vertical-align: middle;
     cursor: ew-resize !important;
-    width: 60px !important;
-    height: 60px !important;
+    width: 40px !important;
+    height: 40px !important;
+    margin-top: 10px;
 }
 .slider-button.hidden {
     display: none;
 }
-.slider-button:hover, .resizer:hover {
-    margin: 0 !important;
-    color: #FFFFFF;
-    background-color: #00C6BB;
-    opacity: 0.6;
-    border-radius: 30px;
-    width: 60px;
-    height: 60px;
-}
+/*.slider-button:hover, .resizer:hover {*/
+/*    margin: 0 !important;*/
+/*    color: #FFFFFF;*/
+/*    background-color: #00C6BB;*/
+/*    opacity: 0.6;*/
+/*    border-radius: 30px;*/
+/*}*/
 .slider-button button, .resizer button {
     margin: 0 !important;
     cursor: ew-resize !important;
     color: #FFFFFF;
-    background-color: transparent;
+    background-color: #2ea591;
     opacity: 1.0;
-    border-radius: 30px;
-    width: 20px;
+    width: 40px;
     height: 40px;
-    padding-top: 20px;
-    padding-left: 25px;
+}
+.slider-button button:hover, .resizer button:hover {
+    color: #FFFFFF;
+    background-color: #2ea591;
 }
 
 .slider-button .spinner {
@@ -1206,83 +1311,6 @@ button.nav-toggle {
     left: 0;
     right: 0;
     bottom: 0;
-}
-
-
-/* MetadataView Edit Menu */
-
-.node {
-    margin: 0;
-}
-.node.h-menu {
-}
-.node.h-menu ul {
-    width: 100%;
-    border: none;
-    align-items: flex-end;
-    justify-items: right;
-}
-.node.h-menu ul li {
-    width: auto;
-    height: auto;
-    line-height: normal;
-    margin-left: auto;
-}
-.node .h-menu ul li button {
-    color: #282c34 !important;
-    background-color: transparent;
-}
-.node .v-menu.dropdown {
-    position: relative;
-    display: inline-block;
-    text-align: left;
-    padding:0;
-    margin-top: 0;
-}
-.node .v-menu.dropdown ul {
-    width: 250px;
-    border-radius: 10px;
-    background-color: #222222;
-
-    /* Position the tooltip text */
-    position: absolute;
-    z-index: 1;
-    top: 20px;
-    right: 0;
-    margin-left: -60px; /* Use half of the width (120/2 = 60), to center the tooltip */
-
-    /* Fade in tooltip */
-    transition: max-height 0.3s;
-}
-.node .v-menu.dropdown ul::after {
-    content: " ";
-    position: absolute;
-    bottom: 100%;  /* At the top of the tooltip */
-    right: 20px;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: transparent transparent #222222 transparent;
-}
-.node .v-menu.dropdown li  {
-    background-color: #222222;
-    width: 100% !important;
-}
-.node .v-menu ul li button  {
-    background-color: transparent;
-    color: #FFFFFF;
-}
-.node.h-menu ul li button:hover, .node .v-menu ul li button:hover {
-    opacity: 0.6;
-}
-.node .v-menu {
-    margin:auto;
-    width: auto;
-    max-width: 300px;
-}
-.node .v-menu .collapsible {
-    width: 100%;
-    background-color: inherit;
 }
 
 /* Station Status */
@@ -1313,14 +1341,14 @@ button.nav-toggle {
 .comparisons.h-menu ul, .comparisons.h-menu ul li {
     flex-wrap: nowrap;
     width: auto;
-    color: #2B5A6B !important;
+    color: inherit !important;
     font-size: small;
 }
 .comparison-pair {
     flex-wrap: nowrap;
     align-items: center;
-    border: 1px solid #2B5A6B;
-    background-color: white !important;
+    border: 1px solid #2B5A6B !important;
+    background-color: inherit !important;
     margin: 5px;
     border-radius: 5px;
     cursor: pointer;
@@ -1329,7 +1357,7 @@ button.nav-toggle {
     opacity: 0.8;
 }
 .comparison-pair.active {
-    border-color: #FF8D3F !important;
+    border-color: coral !important;
 }
 .captures {
     width: auto;
@@ -1346,17 +1374,17 @@ button.nav-toggle {
 .blue {
     color: #57BECC !important;
     border-color: #57BECC !important;
-    background-color: white;
+    background-color: transparent;
 }
 .purple {
     color: #8174A7 !important;
     border-color: #8174A7 !important;
-    background-color: white;
+    background-color: transparent;
 }
 .pink {
     color: #B65179 !important;
     border-color: #B65179 !important;
-    background-color: white;
+    background-color: transparent;
 }
 
 /* Model colour schema */
@@ -1364,40 +1392,42 @@ button.nav-toggle {
     color: #282c34 !important;
 }
 .surveys {
-    color: #008896 !important;
-    border-color: #008896 !important;
-    background-color: rgba(0,136,150,0.10);
+    color: #00C3AB !important;
+    border-color: #00C3AB !important;
 }
 .survey_seasons {
-    color: #008896 !important;
-    border-color: #008896 !important;
-    background-color: rgba(0,136,150,0.10);
+    color: #00C3AB !important;
+    border-color: #00C3AB !important;
 }
 .historic_visits {
-    color: #008896 !important;
-    border-color: #008896 !important;
-    background-color: rgba(0,136,150,0.10);
+    color: #00C3AB !important;
+    border-color: #00C3AB !important;
 }
 .modern_visits {
-    color: #008896 !important;
-    border-color: #008896 !important;
-    background-color: rgba(0,136,150,0.10);
+    color: #00C3AB !important;
+    border-color: #00C3AB !important;
 }
 .stations {
-    color: #008896 !important;
-    border-color: #008896 !important;
-    background-color: rgba(0,136,150,0.10);
+    color: #57BECC !important;
+    border-color: #57BECC !important;
 }
 .locations {
-    color: #008896 !important;
-    border-color: #008896 !important;
-    background-color: rgba(0,136,150,0.10);
+    color: #00C3AB !important;
+    border-color: #00C3AB !important;
 }
 .historic_captures {
+    color: #00C3AB !important;
+    border-color: #00C3AB !important;
+}
+.modern_captures {
+    color: #00C3AB !important;
+    border-color: #00C3AB !important;
+}
+.historic_images {
     color: #008896 !important;
     border-color: #008896 !important;
 }
-.modern_captures {
+.modern_images {
     color: #008896 !important;
     border-color: #008896 !important;
 }
@@ -1437,11 +1467,10 @@ button.nav-toggle {
 .footer div {
     width: 100%;
     height: 60px;
-    margin: 20px 0;
+    margin: 50px 0 0 0;
     padding: 2px;
-    color: #444444;
+    color: #2F4858;
     background-color: transparent;
-    border-top: 1px solid #DFEEE9;
 }
 .footer div p {
     font-size: smaller;
@@ -1469,7 +1498,7 @@ figure {
 figcaption {
     cursor: pointer;
     font-size: 11px;
-    color: #008896;
+    color: inherit;
 }
 .thumb {
     width: 110px;
@@ -1548,12 +1577,12 @@ table.item {
     width: 98%;
     text-align: left;
     border-collapse: collapse;
-    color: #444;
-    background-color: #FFFFFF;
+    color: #EEEEEE;
+    background-color: #282c34;
     margin: 10px auto 10px auto;
 }
 table.item tr:nth-child(even) {
-    background: #EEEEEE;
+    background: #383c44;
 }
 table.item tbody td, table.item tbody th {
     font-size: small;
@@ -1565,13 +1594,14 @@ table.item thead {
     background: transparent !important;
 }
 table.item thead tr th {
-    background-color: #DFF2BF;
-    border-bottom: 1px solid #282c34;
+    background-color: #222222;
+    color: #EEEEEE;
+    border-bottom: 1px solid #2F4858;
 }
 table.item thead th {
-    background: #FFFFFF;
+    background: #111111;
     font-weight: bold;
-    color: #282c34;
+    color: #EEEEEE;
     text-align: center;
 }
 table.item thead th div {
@@ -1579,17 +1609,17 @@ table.item thead th div {
 }
 table.item thead th div button {
     border: none;
-    background-color: transparent;
+    background-color: #2F4858;
     font-weight: bold;
-    color: #282c34;
+    color: #EEEEEE;
     height: 40px;
 }
 table.item tbody th {
     width: 25%;
-    background: #FFFFFF;
+    background: #454754;
     font-size: small;
     font-weight: bold;
-    color: #282c34;
+    color: #EEEEEE;
     text-align: left;
 }
 table.item tfoot {
@@ -1619,10 +1649,10 @@ table.items tbody td {
     font-size: small;
 }
 table.items tr:nth-child(even) {
-    background: #EEEEEE;
+    background: #444444;
 }
 table.items thead {
-    background-color: #95B0B4;
+    background-color: #111111;
 }
 table.items thead th {
     font-size: small;
@@ -1651,7 +1681,8 @@ table.files {
     border-bottom: 1px solid #888888 !important;
     width: 100%;
     border-collapse: collapse;
-    color: #444;
+    color: #EEEEEE;
+    background-color: #333333;
 }
 table.files td, table.files th {
     border: none;
@@ -1672,13 +1703,15 @@ table.files tbody td button{
     background-color: transparent;
 }
 table.files tr:nth-child(even) {
-    background: #EEEEEE;
+    background: #444444;
 }
 table.files thead {
-    background-color: #95B0B4;
+    background-color: inherit;
 }
 table.files thead th {
-    color: #FFFFFF;
+    color: #EEEEEE;
+    background-color: #2F4858;
+    padding: 5px;
     font-size: small;
     font-weight: bold;
     text-align: center;
@@ -1689,8 +1722,8 @@ table.files thead th:first-child {
 table.files tfoot {
     font-size: small;
     font-weight: bold;
-    color: #282c34;
-    background: #FFFFFF;
+    color: inherit;
+    background: inherit;
 }
 table.files tfoot td {
     font-size: small;
@@ -1730,16 +1763,17 @@ form {
 }
 /* Add a background color and some padding around the form */
 .form.container {
-    background-color: #FFFFFF;
+    background-color: transparent;
     padding: 20px;
 }
 
 /* Fieldset */
 
 fieldset {
-    background-color: #EEEEEE;
+    background-color: #333333;
     border: 1px solid #DFEEE9;
-    border-radius: 15px;
+    border-radius: 0;
+    padding: 20px;
     margin: 10px 0 20px 0;
 }
 fieldset.hidden {
@@ -1756,10 +1790,6 @@ fieldset.submit {
     margin: 0 0 0 15px;
     border: none;
     background-color: transparent;
-}
-button.submit {
-    background-color: #008896 !important;
-    color: #FFFFFF !important;
 }
 fieldset.compact, fieldset.compact div, fieldset.compact input, fieldset.compact label,
 fieldset.compact label .label-text {
@@ -1794,7 +1824,7 @@ form .addField button {
     text-align: center;
     border-radius: 20px;
     color: #FFFFFF;
-    background-color: #00C6BB !important;
+    background-color: #2ea591 !important;
 }
 fieldset .removeField {
     text-align: center;
@@ -1818,7 +1848,7 @@ fieldset .removeField {
     color: #FFFFFF !important;
 }
 .multiselect button {
-    background-color: #008896 !important;
+    background-color: #2ea591 !important;
     height: auto !important;
 }
 /* Clear floats after the columns */
@@ -1856,7 +1886,7 @@ label .prefix, label .suffix {
 /*    float:right;*/
 /*}*/
 .units {
-    color: #888;
+    color: inherit;
     font-size: smaller;
 }
 
@@ -1907,9 +1937,9 @@ input[type=submit], button.submit {
     width: auto;
     margin: 5px;
     font-family: 'Inter', Arial, sans-serif;
-    background-color: #008896;
-    color: white;
-    padding: 12px 20px !important;
+    background-color: #2ea591;
+    color: #EEEEEE;
+    padding: 10px 15px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -1927,10 +1957,10 @@ input[type=submit].disabled, input[type=submit].disabled:hover {
 input[type=reset], button.cancel {
     width: auto;
     margin: 5px;
-    padding: 12px 20px !important;
+    padding: 10px 15px;
     font-family: 'Inter', Arial, sans-serif;
-    background-color: #999999 !important;
-    color: white;
+    background-color: #999999;
+    color: #EEEEEE;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -1980,8 +2010,8 @@ input[type=file] {
     width: 100% !important;
 }
 .file-upload:hover, .file-upload.ondrag {
-    outline-color: #00C6BB;
-    background-color: #DFF2BF;
+    outline-color: #2ea591;
+    background-color: #57BECC;
 }
 .file-upload:focus{
     outline: 2px dashed #92b0b3;
@@ -2030,7 +2060,8 @@ button {
     border-radius: 4px;
     cursor: pointer;
     padding: 6px;
-    color: inherit;
+    color: #EEEEEE;
+    background-color: #282c34;
 }
 button:hover {
     opacity: 0.6;
@@ -2038,6 +2069,10 @@ button:hover {
 button span {
     padding-left: 5px;
     padding-right: 5px;
+}
+button:disabled {
+    opacity: 0.6;
+    cursor: default;
 }
 
 /*
@@ -2050,6 +2085,7 @@ Messages
     align-items: center;
     flex-wrap: nowrap;
     min-height: 30px;
+    max-width: 600px;
     height: auto;
     margin: 10px auto;
     padding: 10px;
@@ -2092,8 +2128,8 @@ Messages
     background-color: #C5FCEF;
 }
 .success {
-    color: #4F8A10;
-    background-color: #DFF2BF;
+    color: #EDE9D0;
+    background-color: #208218;
 }
 .warning {
     color: #9F6000;
@@ -2140,7 +2176,7 @@ Messages
     right: 0;
     bottom: 0;
     margin: auto;
-    background-color: rgba(1,1,1, 0.8);
+    background-color: rgba(256,256,256, 0.9);
     text-align: left;
     z-index: 99999;
 }
@@ -2149,21 +2185,21 @@ Messages
     font-size: small;
     position: absolute;
     width: auto;
-    height: 85%;
-    left: 2%;
-    right: 2%;
-    top: 2%;
-    bottom: 2%;
+    height: 70vh;
+    left: 18%;
+    right: 18%;
+    top: 10%;
+    bottom: 10%;
     margin: auto;
-    background: #FFFFFF;
-    color: #282c34;
+    background: #222222;
+    color: #EEEEEE;
 }
 .dialog .dialog-header {
     height: fit-content !important;
     padding: 3px !important;
     margin: 0 !important;
     text-align: right;
-    background: #2B5A6B;
+    background-color: #2F4858;
     color: #FFFFFF;
 }
 .dialog-header button {
@@ -2173,12 +2209,14 @@ Messages
 .dialog-header button:hover {
     opacity: 0.6;
 }
-.dialog .dialog-title {
-    font-weight: normal;
-    margin: 0 0 20px 0;
-    padding: 10px;
-    background-color: #E6F4F1;
-    color: #222222;
+.dialog h2.dialog-title {
+    font-weight: bold;
+    font-size: 1.2em;
+    line-height: 30px;
+    margin: auto;
+    padding: 0;
+    background: inherit;
+    color: #FFFFFF;
     text-align: center;
 }
 .dialog .dialog-title p {
@@ -2188,10 +2226,10 @@ Messages
     height: 70vh;
     line-height: normal;
     margin: auto;
-    padding: 10px;
+    padding: 2%;
     text-align: inherit;
     overflow: auto;
-    background-color: white;
+    background-color: inherit;
 }
 .dialog .dialog-body p {
     margin: 20px;
@@ -2215,14 +2253,18 @@ Messages
 /* Alert Dialog Box */
 
 .alert-box {
-    padding: 20px;
-    background-color: #EEEEEE;
+    padding: 15px;
+    margin: 15px;
+    background-color: #282c34;
+    color: #EEEEEE;
+    border-radius: 20px;
 }
 .alert-box-buttons {
+    margin-top: 10%;
     text-align: center;
 }
 .alert-box-buttons button {
-    background-color: #008896 !important;
+    background-color: #2ea591 !important;
     color: #FFFFFF !important;
     margin: 10px;
 }
@@ -2247,7 +2289,7 @@ canvas {
     display: none;
 }
 .canvas {
-    background-color: #282c34;
+    background-color: #111111;
     color: #FFFFFF;
     border-radius: 15px;
     padding: 20px;
@@ -2432,6 +2474,7 @@ Define Canvas Layers of Panel (IAT)
 
 .selector .selected {
     background-color: lightgreen;
+    color: #111111;
 }
 
 /* Load spinner  */
@@ -2461,7 +2504,7 @@ Define Canvas Layers of Panel (IAT)
 .spinner-icon {
     font-size: 2em;
     opacity: 0.7;
-    color: #008896;
+    color: #2ea591;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -2550,12 +2593,12 @@ Progress Bar
 /* multiple items list */
 
 table.help {
-    border-top: 1px solid #888888;
-    border-bottom: 1px solid #888888;
+    border-top: 1px solid #444444;
+    border-bottom: 1px solid #444444;
     width: 100%;
     text-align: left;
     border-collapse: collapse;
-    color: #444;
+    color: #EEEEEE;
 }
 table.help td, table.help th {
     padding: 8px;
@@ -2565,18 +2608,18 @@ table.help tbody td {
     font-size: small;
 }
 table.help tr:nth-child(even) {
-    background: #EEEEEE;
+    background: #333333;
 }
 table.help thead {
-    background-color: #95B0B4;
-    border-bottom: 5px solid #FFFFFF;
+    background-color: #444444;
+    border-bottom: 3px solid #444444;
 }
 table.help thead th {
     font-size: small;
     font-weight: bold;
-    color: #FFFFFF;
+    color: #EEEEEE;
     text-align: center;
-    border-left: 2px solid #FFFFFF;
+    border-left: 2px solid #666666;
 }
 table.help thead th:first-child {
     border-left: none;

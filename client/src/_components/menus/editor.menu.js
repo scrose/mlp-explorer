@@ -1,25 +1,27 @@
 /*!
- * MLP.Client.Components.Navigation.Editor
+ * MLP.Client.Components.Menu.Editor
  * File: editor.menu.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
  */
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {createNodeRoute, redirect} from '../../_utils/paths.utils.client';
 import {useRouter} from '../../_providers/router.provider.client';
+import {useUser} from '../../_providers/user.provider.client';
 import {genSchema, getModelLabel} from '../../_services/schema.services.client';
 import Button from '../common/button';
 import Importer from '../tools/import.tools';
+import Exporter from '../tools/export.tools';
+import Download from '../common/download';
+import Downloader from '../tools/download.tools';
 import Dialog from '../common/dialog';
 import MetadataView from '../views/metadata.view';
-import {useUser} from '../../_providers/user.provider.client';
 import Remover from '../views/remover.view';
 import OptionsView from '../views/options.view';
 import HelpView from '../views/help.view';
-import Exporter from '../tools/export.tools';
-import Download from '../common/download';
+import Dropdown from "../common/dropdown";
 
 /**
  * Editor menu component.
@@ -28,14 +30,14 @@ import Download from '../common/download';
  */
 
 const EditorMenu = ({
-                        className = 'node',
+                        className = '',
                         model = '',
                         view = '',
                         id = '',
                         label = '',
                         compact = true,
                         fileType = '',
-                        filename = '',
+                        filename='',
                         owner = null,
                         metadata = null,
                         dependents = [],
@@ -46,15 +48,18 @@ const EditorMenu = ({
     const user = useUser();
     const modelLabel = getModelLabel(model);
 
+    // generate unique ID value for form inputs
+    const menuID = Math.random().toString(16).substring(2);
+
     // get user role
     const {role = ['']} = user || {};
     const isAdmin = role[0] === 'administrator' || role[0] === 'super_administrator';
 
     // get optional group type used as fieldset selector (if exists)
-    const {group_type = '', image_state = ''} = metadata || {};
+    const {group_type = '', image_state = '' } = metadata || {};
 
     // visibility settings for menu & menu items
-    const showExclude = ['dashboard', 'list', 'register', 'new', 'attach', 'attachItem'];
+    const showExclude = ['dashboard', 'list', 'register', 'new'];
     const editExclude = ['dashboard', 'list', 'register', 'new', 'attach'];
     const removeExclude = ['dashboard', 'list', 'register', 'new', 'attach'];
     const dependentsExclude = ['new'];
@@ -75,25 +80,30 @@ const EditorMenu = ({
         ? createNodeRoute(owner.type, 'show', owner.id)
         : createNodeRoute(model, 'show', id);
 
+    console.log(isEditorMenu , id , model , metadata , view, showExclude.includes(view))
+
     // visibility of menu items
     const isVisible = {
-        menu: !!(id || model || metadata || view),
         new: isOptions,
-        show: !!(id && model && metadata && !showExclude.includes(view)),
-        edit: !!(id && model && metadata && !editExclude.includes(view)),
+        show: !!(!isEditorMenu && id && model && metadata && !showExclude.includes(view)),
+        edit: !!(!isEditorMenu && id && model && metadata && !editExclude.includes(view)),
         move: (model === 'modern_captures' || model === 'historic_captures')
             && !!(id && model && metadata && !editExclude.includes(view)),
-        remove: (isAdmin) && !!(id && model && metadata && !removeExclude.includes(view)),
+        remove: (isAdmin) && !!(!isEditorMenu && id && model && metadata && !removeExclude.includes(view)),
         attach: view === 'attach',
         attachItem: view === 'attachItem',
         iat: image_state !== 'raw' && (fileType === 'modern_images'
             || fileType === 'historic_images'
             || fileType === 'supplemental_images'),
-        download: fileType === 'modern_images'
+        download: !isEditorMenu && (fileType === 'modern_images'
             || fileType === 'historic_images'
-            || fileType === 'supplemental_images',
+            || fileType === 'supplemental_images'),
+        rawDownload: !isEditorMenu && (fileType === 'modern_images'
+            || fileType === 'historic_images'
+            || fileType === 'supplemental_images'),
+        bulkDownload: !isEditorMenu && model === 'stations' && view !== 'files',
         dependents: !dependentsExclude.includes(view),
-        dropdown: !!(isEditorMenu || dependents.length > 0),
+        addNew: !!(!isOptions && dependents.length > 0),
         import_hc: isAdmin && !!(dependents || [])
                 .find(dependent => dependent === 'historic_captures')
             && !dependentsExclude.includes(view),
@@ -102,14 +112,75 @@ const EditorMenu = ({
             && !dependentsExclude.includes(view),
     }
 
-    // generate unique ID value for form inputs
-    const menuID = Math.random().toString(16).substring(2);
-
     // toggle to dhow/hide popup dialogs
     const [dialogToggle, setDialogToggle] = React.useState('');
 
-    // dropdown toggle for tools menu items
-    const [dropdownToggle, setDropdownToggle] = React.useState(false);
+    // include submenu items to add dependent items
+    const dependentItems = (dependents || [])
+        .filter(() => {
+            return isVisible.attach || isVisible.dependents
+        })
+        .map(dependent => {
+            if (dependentsExcludeUser.includes(dependent)) return null;
+            return {
+                icon: 'add',
+                type: dependent,
+                label: `Add New ${getModelLabel(dependent)}`,
+                callback: () => {
+                    setDialogToggle(dependent)
+                }
+            }
+        });
+
+    // include option to import historic captures
+    const importHCItem = isVisible.import_hc
+        ? {
+            icon: 'import',
+            type: 'historic_captures',
+            label: `Import ${getModelLabel('historic_captures', 'label')}`,
+            callback: () => {
+                setDialogToggle('import_hc')
+            }
+        }
+        : null;
+
+    // include option to import modern captures
+    const importMCItem = isVisible.import_hc
+        ? {
+            icon: 'import',
+            type: 'modern_captures',
+            label: `Import ${getModelLabel('modern_captures', 'label')}`,
+            callback: () => {
+                setDialogToggle('import_mc')
+            }
+        }
+        : null;
+
+    // menu item to add new Surveyor
+    const addSurveyorItem = isEditorMenu
+        ? {
+            icon: 'surveyors',
+            type: 'surveyors',
+            label: `Add new ${getModelLabel('surveyors')}`,
+            callback: (e) => {
+                e.preventDefault();
+                router.update(createNodeRoute('surveyors', 'new', id));
+            }
+        }
+        : null;
+
+    // menu item to add new Project
+    const addProjectItem = isEditorMenu
+        ? {
+            icon: 'projects',
+            type: 'projects',
+            label: `Add new ${getModelLabel('projects')}`,
+            callback: (e) => {
+                e.preventDefault();
+                router.update(createNodeRoute('projects', 'new', id));
+            }
+        }
+        : null;
 
     // Bulk import description
     const bulkImportDescription = <p>
@@ -255,6 +326,12 @@ const EditorMenu = ({
             setToggle={setDialogToggle}>
             <Exporter setToggle={setDialogToggle}/>
         </Dialog>,
+        bulkDownload: <Dialog
+            key={`${menuID}_dialog_bulk_download`}
+            title={`Bulk Download Images`}
+            setToggle={setDialogToggle}>
+            <Downloader setToggle={setDialogToggle} id={id} />
+        </Dialog>,
     }
 
     // create dependents dialog popups for requested model
@@ -282,9 +359,8 @@ const EditorMenu = ({
                     setDialogToggle(null)
                 }}
                 callback={(data) => {
-                    console.log(data)
                     setDialogToggle(null);
-                    callback ? callback() : redirect(router.route);
+                    callback ? callback(data) : redirect(router.route);
                 }}
             />
         </Dialog>;
@@ -300,34 +376,8 @@ const EditorMenu = ({
                 : ''
     }
 
-    // Initialize map using reference callback to access DOM
-    const dropdown = useCallback(domNode => {
-        // create hide dropdown function
-        const hideDropdown = (e) => {
-            if (!domNode.contains(e.target)) {
-                setDropdownToggle(false);
-                document.removeEventListener('click', hideDropdown);
-            }
-        };
-        // create event listener to close menu upon click
-        if (domNode && dropdownToggle) {
-            document.addEventListener('click', hideDropdown);
-        } else {
-            document.removeEventListener('click', hideDropdown);
-        }
-
-    }, [dropdownToggle, setDropdownToggle]);
-
-
-    // handle click events -> routing
-    function _handleClick(e, model, view, id) {
-        e.preventDefault();
-        router.update(createNodeRoute(model, view, id));
-    }
-
     return (
         // restrict menu to authenticated users
-        user &&
         <>
             {
                 // render overlay dialog box
@@ -336,19 +386,25 @@ const EditorMenu = ({
             <div className={`${className} h-menu`}>
                 <ul>
                     {
-                        isVisible.new &&
+                        user && isVisible.new &&
                         <li key={`${menuID}_menuitem_new`}>
                             <Button
                                 icon={'new'}
                                 label={!compact ? 'Add New' : ''}
-                                title={`New ${label}.`}
-                                onClick={(e) => {
-                                    isEditorMenu
-                                        ? _handleClick(e, model, 'new', id)
-                                        : setDialogToggle('new')
-                                }
-                                }
+                                title={`Add New ${label}.`}
+                                onClick={() => {setDialogToggle('new')}}
                             />
+                        </li>
+                    }
+                    {
+                        // add dropdown menu for adding dependent nodes
+                        user && isVisible.addNew && <li key={`${menuID}_menuitem_add_new`}>
+                            <Dropdown label={'Add New'} compact={compact} items={dependentItems.concat(
+                                importHCItem,
+                                importMCItem,
+                                addSurveyorItem,
+                                addProjectItem
+                            )} />
                         </li>
                     }
                     {
@@ -358,12 +414,7 @@ const EditorMenu = ({
                                 icon={'show'}
                                 label={!compact ? 'Info' : ''}
                                 title={`View ${modelLabel} details.`}
-                                onClick={(e) => {
-                                    isEditorMenu
-                                        ? _handleClick(e, model, 'show', id)
-                                        : setDialogToggle('show')
-                                }
-                                }
+                                onClick={() => {setDialogToggle('show')}}
                             />
                         </li>
                     }
@@ -371,55 +422,54 @@ const EditorMenu = ({
                         isVisible.download &&
                         <li key={`${menuID}_menuitem_download`}>
                             <Download
-                                filename={filename || 'download'}
-                                label={!compact ? 'Download' : ''}
                                 type={fileType}
-                                format={'img'}
-                                route={createNodeRoute(fileType, 'raw', id)}
                                 callback={console.log}
+                                route={`/files/download/${id}`}
+                                format={'img'}
+                                label={compact ? '' : `Download`}
+                                filename ={filename}
                             />
                         </li>
                     }
                     {
-                        isVisible.edit &&
+                        user && isVisible.rawDownload &&
+                        <li key={`${menuID}_menuitem_raw_download`}>
+                            <Download
+                                type={fileType}
+                                callback={console.log}
+                                route={`/files/download/raw?id=${id}`}
+                                format={'zip'}
+                                label={compact ? '' : `Download Raw File`}
+                                filename ={`${filename}.zip`}
+                            />
+                        </li>
+                    }
+                    {
+                        user && isVisible.bulkDownload &&
+                        <li key={`${menuID}_menuitem_bulk_download`}>
+                            <Button
+                                icon={'bulk_download'}
+                                label={!compact ? 'Download' : ''}
+                                title={`Bulk Downloader.`}
+                                onClick={() => {
+                                    setDialogToggle('bulkDownload')
+                                }}
+                            />
+                        </li>
+                    }
+                    {
+                        user && isVisible.edit &&
                         <li key={`${menuID}_menuitem_edit`}>
                             <Button
                                 icon={'edit'}
                                 label={!compact ? 'Edit' : ''}
                                 title={`Edit ${label}.`}
-                                onClick={(e) => {
-                                    isEditorMenu
-                                        ? _handleClick(e, model, 'edit', id)
-                                        : setDialogToggle('edit')
-                                }
-                                }
+                                onClick={() => { setDialogToggle('edit') } }
                             />
                         </li>
                     }
                     {
-                        isVisible.move && <li
-                            draggable={true}
-                            key={`${menuID}_menuitem_move`}
-                            onDragStart={(e) => {
-                                // attach node metadata to data transfer object
-                                e.dataTransfer.setData(
-                                    'application/json',
-                                    JSON.stringify({
-                                        id: id, model: model, label: label
-                                    })
-                                );
-                            }}
-                        >
-                            <Button
-                                className={'move'}
-                                label={!compact ? 'Move' : ''}
-                                icon={'move'}
-                                title={`Move ${label} to a new owner.`}
-                            />
-                        </li>
-                    }
-                    {
-                        isVisible.remove &&
+                        user && isVisible.remove &&
                         <li key={`${menuID}_menuitem_remove`}>
                             <Button
                                 icon={'delete'}
@@ -432,160 +482,14 @@ const EditorMenu = ({
                         </li>
                     }
                     {
-                        // add dropdown menu for adding dependent nodes
-                        isVisible.dropdown &&
-                        <li ref={dropdown} key={`${menuID}_menuitem_dropdown`}>
+                        user && isEditorMenu && <li key={`${menuID}_menuitem_options`}>
                             <Button
-                                icon={'add'}
-                                label={!compact ? 'Add New' : ''}
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    setDropdownToggle(true);
-                                }}/>
-
-                            {
-                                // toggle dropdown menu items
-                                <div
-                                    key={`${menuID}_data_dropdown`}
-                                    className={`v-menu dropdown${dropdownToggle ? ' active' : ''}`}
-                                >
-                                    <ul>
-                                        {
-                                            (isVisible.attach || isVisible.dependents) &&
-                                            <>
-                                                {
-                                                    // include submenu items to add dependent items
-                                                    (dependents || []).map(dependent => {
-                                                        if (dependentsExcludeUser.includes(dependent)) return null;
-                                                        return (
-                                                            <li key={`add_${dependent}`}>
-                                                                <Button
-                                                                    icon={'add'}
-                                                                    type={dependent}
-                                                                    label={`Add New ${getModelLabel(dependent)}`}
-                                                                    onClick={() => {
-                                                                        setDialogToggle(dependent);
-                                                                    }}
-                                                                />
-                                                            </li>
-                                                        );
-                                                    })
-                                                }
-                                            </>
-                                        }
-                                        {
-                                            // include option to import historic captures
-                                            isVisible.import_hc &&
-                                            <li key={'import_historic'}>
-                                                <Button
-                                                    icon={'import'}
-                                                    type={'historic_captures'}
-                                                    label={`Import ${getModelLabel('historic_captures', 'label')}`}
-                                                    onClick={() => {
-                                                        setDialogToggle('import_hc');
-                                                    }}
-                                                />
-                                            </li>
-                                        }
-                                        {
-                                            // include option to add modern captures
-                                            isVisible.import_mc &&
-                                            <li key={'import_modern'}>
-                                                <Button
-                                                    icon={'import'}
-                                                    type={'modern_captures'}
-                                                    label={`Import ${getModelLabel('modern_captures', 'label')}`}
-                                                    onClick={() => {
-                                                        setDialogToggle('import_mc');
-                                                    }}
-                                                />
-                                            </li>
-                                        }
-                                        {
-                                            // show project / surveyor create buttons on editor tools menu
-                                            isEditorMenu &&
-                                            <>
-                                                <li>
-                                                    <Button
-                                                        icon={'surveyors'}
-                                                        label={`Add New ${getModelLabel('surveyors')}`}
-                                                        title={`Add new ${getModelLabel('surveyors')}`}
-                                                        onClick={(e) => {
-                                                            setDropdownToggle(false);
-                                                            _handleClick(e, 'surveyors', 'new');
-                                                        }}
-                                                    />
-                                                </li>
-                                                <li>
-                                                    <Button
-                                                        icon={'projects'}
-                                                        label={`Add New ${getModelLabel('projects')}`}
-                                                        title={`Add new ${getModelLabel('projects')}`}
-                                                        onClick={(e) => {
-                                                            setDropdownToggle(false);
-                                                            _handleClick(e, 'projects', 'new');
-                                                        }}
-                                                    />
-                                                </li>
-                                            </>
-                                        }
-                                    </ul>
-                                </div>
-                            }
-                        </li>
-                    }
-                    {
-                        isVisible.iat &&
-                        <li key={`${menuID}_menuitem_iat`}>
-                            <Button
-                                icon={'iat'}
-                                label={!compact ? 'Open in IAT' : ''}
-                                title={`Load ${getModelLabel(fileType)} ${label} in IAT.`}
-                                onClick={() =>
-                                    // launch IAT tool for capture image mastering:
-                                    // - load historic images into Panel 1
-                                    // - load modern images into Panel 2
-                                    router.update(
-                                        fileType === 'historic_images'
-                                            ? `/iat?input1=${id}&type1=${fileType}`
-                                            : `/iat?input2=${id}&type2=${fileType}`
-                                    )
-                                }
+                                icon={'options'}
+                                label={!compact ? 'Options': ''}
+                                title={`Edit metadata options.`}
+                                onClick={() => setDialogToggle('options')}
                             />
                         </li>
-                    }
-                    {
-                        isEditorMenu &&
-                        <>
-                            <li className={'push'} key={`${menuID}_menuitem_export`}>
-                                <Button
-                                    icon={'export'}
-                                    label={!compact ? 'Export' : ''}
-                                    title={`View data export options.`}
-                                    onClick={() => {
-                                        setDialogToggle('exporter')
-                                    }}
-                                />
-                            </li>
-                            <li key={`${menuID}_menuitem_help`}>
-                                <Button
-                                    icon={'help'}
-                                    label={!compact ? 'Help' : ''}
-                                    title={`View the help pages.`}
-                                    onClick={() => {
-                                        setDialogToggle('help')
-                                    }}
-                                />
-                            </li>
-                            <li key={`${menuID}_menuitem_options`}>
-                                <Button
-                                    icon={'options'}
-                                    label={!compact ? 'Options': ''}
-                                    title={`Edit metadata options.`}
-                                    onClick={() => setDialogToggle('options')}
-                                />
-                            </li>
-                        </>
                     }
                 </ul>
             </div>

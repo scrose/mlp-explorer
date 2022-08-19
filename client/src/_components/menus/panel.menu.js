@@ -36,9 +36,8 @@ const PanelMenu = () => {
             <li>
                 <MenuNavigator/>
             </li>
-            <li className={'push'}>
             {
-                user ?
+                user && <li className={user ? 'push' : ''}>
                     <EditorMenu
                         className={'editor-tools'}
                         model={api.model}
@@ -52,13 +51,15 @@ const PanelMenu = () => {
                         compact={nav.offCanvas}
                         dependents={getDependentTypes(api.model)}
                     />
-                    : <ViewerMenu
-                        id={id}
-                        filename={filename}
-                        fileType={file_type}
-                        compact={nav.offCanvas}
-                    />
+                </li>
             }
+            <li className={user ? '' : 'push'}>
+                <ViewerMenu
+                    id={id}
+                    filename={filename}
+                    fileType={file_type}
+                    compact={nav.offCanvas}
+                />
             </li>
         </ul>
     </div>

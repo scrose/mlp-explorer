@@ -11,6 +11,7 @@ import { saveAs } from 'file-saver';
 import { useRouter } from '../../_providers/router.provider.client';
 import { download } from '../../_services/api.services.client'
 import Button from './button';
+import Badge from "./badge";
 
 /**
  * Defines download button.
@@ -19,7 +20,15 @@ import Button from './button';
  * @return {JSX.Element}
  */
 
-const Download = ({ filename='download', type='', format='', label='', route=null, callback=()=>{} }) => {
+const Download = ({
+                      filename='',
+                      type='',
+                      format='',
+                      label='',
+                      route=null,
+                      className='',
+                      callback=()=>{}
+                  }) => {
 
     // download link
     const router = useRouter();
@@ -44,34 +53,48 @@ const Download = ({ filename='download', type='', format='', label='', route=nul
                 setLoading(false);
                 return _handleError({msg: 'File download failed.', type:'error'});
             }
-            saveAs(res.data, filename);
+            saveAs(res.data, filename || `file_${id}.${format}`);
             setLoading(false);
+            setMessage({msg: 'File downloaded.', type: 'success'});
+            callback()
         }
         catch (err) {
             setLoading(false);
-            _handleError({msg: 'File download failed.', type:'error'})
+            _handleError({msg: 'File download failed.', type: 'error'})
         }
     }
 
     // render download button
-    return <Button
-                name={id}
-                icon={
-                    loading
-                        ? 'spinner'
-                        : message && message.hasOwnProperty('msg')
-                            ? 'error'
-                            : 'download'
-                }
-                spin={loading}
-                label={label}
-                title={
-                    message && message.hasOwnProperty('msg')
-                        ? message.msg
-                        : `Download ${filename}.`
-                }
-                onClick={_handleDownload}>
-            </Button>
+    return <>
+        <Button
+            name={id}
+            icon={
+                loading
+                    ? 'spinner'
+                    : message && message.type === 'error'
+                        ? 'error'
+                        : format === 'zip' ? 'bulk_download' : 'download'
+            }
+            spin={loading}
+            label={label}
+            className={className}
+            title={
+                message && message.hasOwnProperty('msg')
+                    ? message.msg
+                    : `Download ${format === 'zip' ? 'Original (Raw) Version:' : 'Scaled Version:'} ${filename || `file_${id}.${format}`}.`
+            }
+            onClick={_handleDownload}>
+        </Button>
+        {
+            message && <div className={`v-menu dropdown${message ? ' active' : ''}`}>
+            <ul>
+                <li className={message.type} style={{textAlign: 'center'}}>
+                    <Badge className={message.type} icon={message.type} label={message.msg} title={message}/>
+                </li>
+            </ul>
+        </div>
+        }
+    </>
 }
 
 export default Download;

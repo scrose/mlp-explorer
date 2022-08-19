@@ -63,7 +63,7 @@ const File = ({ data, callback=()=>{}, scale='thumb' }) => {
             label={label}
             type={file_type}
             format={'any'}
-            route={createNodeRoute(file_type, 'download', id)}
+            route={`/files/download/raw?${file_type}=${id}`}
             callback={callback}
         />
     }

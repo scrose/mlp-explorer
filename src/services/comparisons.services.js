@@ -171,7 +171,6 @@ export const deleteComparisons = async (node, client = pool) => {
     if (!node) return [];
 
     let { sql, data } = cmpqueries.deleteCaptureComparisons(node);
-    console.log(sql, data)
     return await client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows') && res.rows.length > 0 ? res.rows : [];

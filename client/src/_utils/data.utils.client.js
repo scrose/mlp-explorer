@@ -109,7 +109,7 @@ export function groupBy(arr, key) {
 }
 
 /**
- * Natural sort items by alpha-numerical values in strings.
+ * Natural sort items by alpha-numerical values in label strings.
  *
  * @param {Object} a
  * @param {Object} b

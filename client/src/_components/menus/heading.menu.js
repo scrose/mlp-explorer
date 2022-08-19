@@ -8,13 +8,15 @@
 
 import React from 'react';
 import {
+    getDependentTypes,
     getModelLabel,
     getStaticLabel, getStaticView,
     getViewLabel,
 } from '../../_services/schema.services.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import { useData } from '../../_providers/data.provider.client';
-import Badge from './badge';
+import Badge from '../common/badge';
+import EditorMenu from "./editor.menu";
 
 /**
  * Render view heading component.
@@ -22,7 +24,7 @@ import Badge from './badge';
  * @public
  */
 
-const Heading = () => {
+const HeadingMenu = () => {
 
     const router = useRouter();
     const api = useData();
@@ -60,20 +62,37 @@ const Heading = () => {
 
     const headingText = genHeading();
 
+    // get any file info
+    const {filename=''} = api.file;
+
     return <div className={'heading h-menu'}>
         {
             // Page Header
             headingText &&
             <ul>
-                <li><h3>{genHeading()}</h3></li>
                 {
                     api.model &&
-                    <li className={'push'}>
+                    <li>
                         <Badge
-                            className={api.model}
+                            className={`node_type ${api.model}`}
                             icon={api.model}
                             title={modelLabel}
                             label={modelLabel}
+                        />
+                    </li>
+                }
+                <li><h3>{genHeading()}</h3></li>
+                {
+                    api.model && <li className={'push'}>
+                        <EditorMenu
+                            fileType={api.type}
+                            filename={filename}
+                            id={api.id}
+                            model={api.model}
+                            view={api.view}
+                            metadata={api.metadata}
+                            owner={api.owner}
+                            dependents={getDependentTypes(api.model)}
                         />
                     </li>
                 }
@@ -82,4 +101,4 @@ const Heading = () => {
     </div>
 }
 
-export default Heading;
+export default HeadingMenu;

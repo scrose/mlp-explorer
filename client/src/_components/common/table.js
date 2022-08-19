@@ -55,7 +55,7 @@ const TableBody = ({tableID, rows, cols}) => {
                                 .filter(col => row.hasOwnProperty(col.name))
                                 .map(col =>
                                     <td
-                                        key={`td_${col.name}`}
+                                        key={`td_${index}_${col.name}`}
                                         className={col.name}>
                                         {row[col.name]}
                                     </td>
@@ -78,7 +78,7 @@ const TableBody = ({tableID, rows, cols}) => {
  * @param {Array} rows
  * @param {Array} cols
  * @param {String} classname (Optional)
- * @return {JSX.Element}
+ * @return {Object}
  */
 
 const Table = ({ rows, cols, className=''}) => {

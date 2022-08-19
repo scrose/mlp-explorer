@@ -74,7 +74,7 @@ const Remover = ({
             {
                 !response &&
                 <div className={'alert-box'}>
-                    <p>Please confirm the deletion of this {modelLabel}.</p>
+                    <p>Please confirm the deletion of this {modelLabel} (ID <b>{id}</b>).</p>
                     {label && <p><b>{label}</b></p>}
                     <p>
                         <em>Note that any dependent metadata attached to this record will also be

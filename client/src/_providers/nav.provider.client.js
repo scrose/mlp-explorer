@@ -9,6 +9,7 @@
 import * as React from 'react'
 import { useRouter } from './router.provider.client';
 import {getNavView, getPref} from "../_services/session.services.client";
+import kmlData from '../_components/kml/example-2.kml';
 
 /**
  * Global navigation data provider.
@@ -34,6 +35,7 @@ function NavProvider(props) {
     const [nodeData, setNodeData] = React.useState({});
     const [statsData, setStatsData] = React.useState([]);
     const [mapData, setMapData] = React.useState({});
+    const [mapOverlayData, setMapOverlayData] = React.useState(null);
     const [filterData, setFilterData] = React.useState({});
     const [selectedNode, setSelectedNode] = React.useState({});
 
@@ -136,6 +138,36 @@ function NavProvider(props) {
         return () => {_isMounted.current = false;};
     }, [router, mapData, setMapData, error, setError]);
 
+    // API call to retrieve map KML data
+    React.useEffect(() => {
+        _isMounted.current = true;
+        // proceed if:
+        // - no error found (e.g. empty response)
+        // - navigator route is defined
+        // - KML overlay data not yet loaded
+
+        if (!error && (!mapOverlayData && kmlData)) {
+
+            // load KML map overlay data
+            router.getXML(kmlData)
+                .then(res => {
+
+                    if (_isMounted.current) {
+
+                        // destructure map data
+                        if (res.error) return setError(res.error);
+
+                        console.log('\n<<< Nav [KML] >>>\n', res)
+
+                        // load node data to provider
+                        setMapOverlayData(res);
+                    }
+                })
+                .catch(err => console.error(err));
+        }
+        return () => {_isMounted.current = false;};
+    }, [router, mapOverlayData, setMapOverlayData, error, setError]);
+
     return (
         <NavContext.Provider value={
             {
@@ -145,6 +177,7 @@ function NavProvider(props) {
                 selected: selectedNode,
                 setSelected: setSelectedNode,
                 filter: filterData,
+                overlay: mapOverlayData,
                 setFilter: setFilterData,
                 hasFilter: Object.keys(filterData).length > 0,
                 mode: navView,

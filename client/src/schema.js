@@ -18,9 +18,10 @@ export const schema = {
     app: {
         project: "Mountain Legacy Project",
         name: "Explorer",
-        title: "Welcome to the Mountain Legacy Project Explorer",
-        mlp_url: 'http://mountainlegacy.ca',
-        carousel: 47294,
+        title: "Capturing change in Canada's mountains",
+        url: "https://explore.mountainlegacy.ca",
+        mlp_url: 'https://mountainlegacy.ca',
+        version: "1.4.0"
     },
     routes: {
         '/': {
@@ -917,7 +918,32 @@ export const schema = {
                         render: 'int',
                         min: 0
                     }
-                }
+                },
+                {
+                    restrict: ['new', 'show', 'edit', 'delete'],
+                    legend: 'Coordinates',
+                    lat: {
+                        label: 'Latitude',
+                        render: 'coord',
+                        validate: ['isLatitude']
+                    },
+                    lng: {
+                        label: 'Longitude',
+                        render: 'coord',
+                        validate: ['isLongitude']
+                    },
+                    elev: {
+                        label: 'Elevation',
+                        render: 'float',
+                        suffix: 'm'
+                    },
+                    azim: {
+                        label: 'Azimuth',
+                        render: 'float',
+                        suffix: '°',
+                        validate: ['isAzimuth']
+                    }
+                },
             ]
         },
         historic_images: {
@@ -1425,6 +1451,137 @@ export const schema = {
                         label: 'Last Updated',
                         render: 'datetime',
                     },
+                }]
+        },
+        showcase_images: {
+            attributes: {
+                filetype: 'image',
+                order: 12,
+                label: "Showcase Images",
+                singular: "Showcase Image"
+            },
+            fieldsets: [
+                {
+                    restrict: ['edit'],
+                    files_id: {
+                        render: 'hidden'
+                    }
+                },
+                {
+                    legend: 'Image Upload',
+                    restrict: ['new'],
+                    users: ['administrator', 'super_administrator'],
+                    supplemental_images: {
+                        label: 'Image File',
+                        render: 'file',
+                        validate: ['filesSelected']
+                    }
+                },
+                {
+                    legend: 'Image Details',
+                    restrict: ['new', 'edit'],
+                    capture_datetime: {
+                        label: 'Capture Datetime',
+                        render: 'datetime'
+                    },
+                    comments: {
+                        label: 'Caption',
+                        render: 'textarea'
+                    }
+                },
+                {
+                    legend: 'Image Details',
+                    restrict: ['show'],
+                    filename: {
+                        render: 'text',
+                        label: 'Filename',
+                        restrict: ['show']
+                    },
+                    image_type: {
+                        label: 'Image Type',
+                        render: 'select',
+                        reference: 'image_types'
+                    },
+                    mimetype: {
+                        render: 'text',
+                        label: 'Format',
+                        restrict: ['show']
+                    },
+                    file_size: {
+                        render: 'filesize',
+                        label: 'File size',
+                        restrict: ['show']
+                    },
+                    x_dim: {
+                        render: 'imgsize',
+                        label: 'Image Width',
+                        restrict: ['show']
+                    },
+                    y_dim: {
+                        render: 'imgsize',
+                        label: 'Image Height',
+                        restrict: ['show']
+                    },
+                    bit_depth: {
+                        label: 'Bit Depth',
+                        restrict: ['show']
+                    },
+                    capture_datetime: {
+                        label: 'Capture Datetime',
+                        render: 'datetime',
+                        restrict: ['show']
+                    },
+                    comments: {
+                        label: 'Caption',
+                        render: 'textarea',
+                        restrict: ['show', 'edit']
+                    }
+                },
+                {
+                    legend: 'Coordinates',
+                    lat: {
+                        label: 'Latitude',
+                        render: 'coord',
+                        validate: ['isLatitude']
+                    },
+                    lng: {
+                        label: 'Longitude',
+                        render: 'coord',
+                        validate: ['isLongitude']
+                    }
+                },
+                {
+                    legend: 'Camera Details',
+                    cameras_id: {
+                        render: 'select',
+                        label: 'Camera',
+                        reference: 'cameras'
+                    },
+                    lens_id: {
+                        render: 'select',
+                        label: 'Lens',
+                        reference: 'lens'
+                    },
+                    f_stop: {
+                        label: 'F-stop',
+                        render: 'float',
+                        min: 0,
+                        prefix: 'f/'
+                    },
+                    shutter_speed: {
+                        label: 'Shutter Speed',
+                        render: 'smallText'
+                    },
+                    focal_length: {
+                        label: 'Focal Length',
+                        render: 'float',
+                        min: 0,
+                        suffix: 'mm'
+                    },
+                    iso: {
+                        label: 'ISO',
+                        render: 'int'
+                    }
                 }]
         },
         image_states: {

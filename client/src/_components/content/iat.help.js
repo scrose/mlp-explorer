@@ -570,11 +570,11 @@ const iatHelp = (gotoPage) => {
             data: iatBasicHelp,
         },
         {
-            label: 'Image Alignment',
+            label: 'Alignment',
             data: alignmentIATHelp,
         },
         {
-            label: 'Image Registration',
+            label: 'Registration',
             data: iatRegistrationHelp,
         },
         {

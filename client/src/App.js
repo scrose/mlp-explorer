@@ -14,8 +14,8 @@ import { getPref, setPref} from "./_services/session.services.client";
 import BannerMenu from "./_components/menus/banner.menu";
 import BoundaryError from "./_components/error/boundary.error";
 import Navigator from "./_components/navigator/navigator";
-import Viewer from "./_components/viewer/viewer";
-import Editor from "./_components/viewer/editor";
+import Viewer from "./_components/views/visitor.view";
+import Editor from "./_components/views/editor.view";
 import PanelMenu from "./_components/menus/panel.menu";
 import BreadcrumbMenu from "./_components/menus/breadcrumb.menu";
 import Button from "./_components/common/button";
@@ -149,7 +149,7 @@ export default function App() {
                 onTouchStart={_resizeStart}
                 onTouchEnd={_resizeEnd}
                 onTouchMove={_resize}
-            ><Button icon={'slide'} />
+            ><Button icon={'arrows'} size={'2x'} />
             </div>
             <BreadcrumbMenu />
             <main>

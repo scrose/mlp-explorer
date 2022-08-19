@@ -57,10 +57,11 @@ function DataProvider(props) {
             node = {},
             file = {},
             files={},
-            dependents={},
+            dependents=[],
             owner={},
             attached={},
-            status={}
+            status={},
+            hasDependents=false,
         } = dataObj || {};
         const type = node.type || file.file_type || '';
         const id = node.id || file.id || '';
@@ -97,7 +98,8 @@ function DataProvider(props) {
             dependents: dependents,
             attached: attached,
             owner: ownerData,
-            status: status
+            status: status,
+            hasDependents: hasDependents
         }
     }
 
@@ -216,6 +218,7 @@ function DataProvider(props) {
         location,
         dependents,
         owner,
+        file,
         status
     } = destructure(apiData);
 
@@ -239,6 +242,7 @@ function DataProvider(props) {
                 path,
                 nodes: currentNodes,
                 root,
+                file,
                 data: apiData,
                 error,
                 label,

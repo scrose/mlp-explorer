@@ -7,11 +7,11 @@
  */
 
 import React from 'react';
-import DataView from '../views/data.view';
+import DataView from './data.view';
 import Message from '../common/message';
-import StaticView from '../views/static.view';
+import StaticView from './static.view';
 import { useRouter } from '../../_providers/router.provider.client';
-import Heading from '../common/heading';
+import HeadingMenu from '../menus/heading.menu';
 import {useWindowSize} from "../../_utils/events.utils.client";
 import Footer from "../common/footer";
 
@@ -21,7 +21,7 @@ import Footer from "../common/footer";
  * @public
  */
 
-const Editor = () => {
+const EditorView = () => {
     const router = useRouter();
 
     // window dimensions
@@ -34,13 +34,13 @@ const Editor = () => {
                     className={`view dashboard`}
                     style={{height: (winHeight - 140) + 'px'}}
                 >
-                    <Heading/>
+                    <HeadingMenu/>
                     <Message/>
                     {
                         router.staticView
                             ? <StaticView type={
                                 router.staticView === 'dashboard'
-                                    ? 'dashboardEdit'
+                                    ? 'dashboardView'
                                     : router.staticView
                             }/>
                             : <DataView/>
@@ -52,4 +52,4 @@ const Editor = () => {
         )
 };
 
-export default React.memo(Editor);
+export default React.memo(EditorView);

@@ -22,6 +22,7 @@ import * as search from './search.queries.js';
 import * as exporter from './export.queries.js';
 import * as users from './users.queries.js';
 import * as stats from './stats.queries.js';
+import * as other from './other.queries.js';
 
 
 /**
@@ -39,5 +40,6 @@ export default {
     search: search,
     export: exporter,
     users: users,
-    stats: stats
+    stats: stats,
+    other: other
 };

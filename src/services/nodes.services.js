@@ -167,15 +167,27 @@ export const getMap = async function(filter=null) {
 
         // get all nodes for station model
         let { sql, data } = queries.metadata.getMapLocations('stations');
-        let stations = await client.query(sql, data)
-            .then(res => {
-                return res.rows || [];
-            });
+        // let stations = await client.query(sql, data)
+        //     .then(res => {
+        //         return res.rows || [];
+        //     });
+        const stations = await client.query(sql, data).then(res => {return res.rows || []});
+        // const result = await Promise.all(
+        //     stations.map( async(station) => {
+        //         const node = {
+        //             id: station.nodes_id,
+        //             type: 'stations'
+        //         }
+        //         console.log(station)
+        //         return await mserve.getStatus(node, station, client)
+        //     })
+        // );
+
 
         // end transaction
         await client.query('COMMIT');
 
-        // return nodes
+        // return station results
         return stations;
 
     } catch (err) {

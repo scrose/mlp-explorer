@@ -87,7 +87,7 @@ export const baseLayers = {
  * @return string
  */
 
-export const getMarker = (type='single', fill='FFFFFF', text='n') => {
+export const getMarker = (type='single', fill='#FFFFFF', text='n') => {
 
     // marker SVG templates
     const markers = {
@@ -116,7 +116,7 @@ export const getMarker = (type='single', fill='FFFFFF', text='n') => {
     </svg>`,
 
         cluster: `<svg viewBox="0 0 19.757 23.289" height="80" width="80" xmlns="http://www.w3.org/2000/svg">
-  <path d="M 9.879 1.214 C 5.008 1.214 1.059 5.09 1.059 9.87 C 1.059 14.725 4.918 18.044 9.879 22.381 C 14.839 18.044 18.698 14.725 18.698 9.87 C 18.698 5.09 14.749 1.214 9.879 1.214 Z" id="path28" stroke="white" stroke-width="4%" fill="#${fill}" />
+  <path d="M 9.879 1.214 C 5.008 1.214 1.059 5.09 1.059 9.87 C 1.059 14.725 4.918 18.044 9.879 22.381 C 14.839 18.044 18.698 14.725 18.698 9.87 C 18.698 5.09 14.749 1.214 9.879 1.214 Z" id="path28" stroke="white" stroke-width="4%" fill="${fill}" />
   <circle fill="#FFFFFF" cx="10.004" cy="10.095" r="7" />
                             <text
                                 x="50%"
@@ -132,7 +132,7 @@ export const getMarker = (type='single', fill='FFFFFF', text='n') => {
 
         single: `<svg viewBox="0 0 146.398 200" xmlns="http://www.w3.org/2000/svg">
     <path d="M 65.93 189.262 C 12.853 112.314 3 104.417 3 76.138 C 3 37.402 34.402 6 73.138 6 C 111.874 6 143.276 37.402 143.276 76.138 C 143.276 104.417 133.424 112.314 80.346 189.262 C 76.863 194.293 69.413 194.293 65.93 189.262 Z M 73.138 105.363 C 89.279 105.363 102.363 92.279 102.363 76.138 C 102.363 59.998 89.279 46.914 73.138 46.914 C 56.998 46.914 43.914 59.998 43.914 76.138 C 43.914 92.279 56.998 105.363 73.138 105.363 Z" 
-   stroke="white" stroke-width="5%" fill="#${fill}" />
+   stroke="white" stroke-width="5%" fill="${fill}" />
 </svg>`,
     };
 

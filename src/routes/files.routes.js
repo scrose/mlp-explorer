@@ -45,6 +45,13 @@ function FilesRoutes(modelType) {
             post: null,
             delete: null,
         },
+        search: {
+            path: path.join('/files/select/:owner_id'),
+            get: this.controller.select,
+            put: null,
+            post: null,
+            delete: null,
+        },
         create: {
             path: path.join('/', this.model, 'new', ':owner_id'),
             get: null,
@@ -66,23 +73,16 @@ function FilesRoutes(modelType) {
             post: this.controller.remove,
             delete: null,
         },
-        download: {
-            path: path.join('/', this.model, 'download', ':' + this.key),
-            get: this.controller.download,
+        raw: {
+            path: '/files/download/raw',
+            get: this.controller.raw,
             put: null,
             post: null,
             delete: null,
         },
-        // export: {
-        //     path: path.join('/', this.model, 'export', ':' + this.key),
-        //     get: this.controller.exporter,
-        //     put: null,
-        //     post: null,
-        //     delete: null,
-        // },
-        raw: {
-            path: path.join('/', this.model, 'raw', ':' + this.key),
-            get: this.controller.raw,
+        download: {
+            path: path.join('/files/download', ':' + this.key),
+            get: this.controller.download,
             put: null,
             post: null,
             delete: null,

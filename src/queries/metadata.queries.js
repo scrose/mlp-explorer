@@ -101,7 +101,7 @@ export function removeGroup(ownerID, model, groupType, groupCol) {
 }
 
 /**
- * Query: Get modern capture ID values by station ID.
+ * Query: Get modern captures values by station ID.
  *
  * @return {Object} query binding
  */

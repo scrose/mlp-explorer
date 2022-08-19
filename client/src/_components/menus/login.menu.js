@@ -24,7 +24,7 @@ import {useNav} from "../../_providers/nav.provider.client";
  * @public
  */
 
-const LoginMenu = ( toggle=false ) => {
+const LoginMenu = () => {
 
     const user = useUser();
     const auth = useAuth();

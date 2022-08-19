@@ -14,6 +14,8 @@ import { getModelLabel } from '../../_services/schema.services.client';
 import {useRouter} from "../../_providers/router.provider.client";
 import {createNodeRoute} from "../../_utils/paths.utils.client";
 import {useData} from "../../_providers/data.provider.client";
+import MetadataView from "../views/metadata.view";
+import Loading from "./loading";
 
 /**
  * Image carousel component.
@@ -26,6 +28,7 @@ import {useData} from "../../_providers/data.provider.client";
  * @param autoslide
  * @param titles
  * @param captions
+ * @param metadata
  * @param expandable
  * @return {JSX.Element}
  */
@@ -38,6 +41,8 @@ const Carousel = ({
                       autoslide=null,
                       titles=[],
                       captions=[],
+                      links=[],
+                      metadata=null,
                       expandable=true,
                       draggable=false
                   }) => {
@@ -45,20 +50,24 @@ const Carousel = ({
     // selected slide state
     const [selectedIndex, setSelectedIndex] = React.useState(0);
     const [expandImage, setExpandImage] = React.useState(false);
+    const [dialogToggle, setDialogToggle] = React.useState(false);
+    const [captionToggle, setCaptionToggle] = React.useState(true);
     const selectedImage = images[selectedIndex];
-    const { file={}, url={}, label='' } = selectedImage || {};
+
+    const { file={}, url={}, label='', node={} } = selectedImage || {};
     const { owner_id='', owner_type='', file_type='', id='' } = file || {};
+    const itemMetadata = metadata && metadata[selectedIndex] !== undefined
+        ? metadata[selectedIndex]
+        : selectedImage && selectedImage.hasOwnProperty('metadata') ? selectedImage.metadata : null
 
     const router = useRouter();
     const api = useData();
 
     // create view link for selected image
     const isImage = api.model === 'historic_captures' || api.model === 'modern_captures';
-    const link = createNodeRoute(
-        isImage ? file_type : owner_type,
-        'show',
-        isImage ? id: owner_id
-    )
+    const link = links[selectedIndex] !== undefined
+            ? links[selectedIndex]
+            : createNodeRoute(isImage ? file_type : owner_type, 'show', isImage ? id : owner_id );
 
     // auto-increment slideshow
     React.useEffect(() => {
@@ -77,17 +86,36 @@ const Carousel = ({
     const nextSlide = () => {
         setSelectedIndex((selectedIndex + 1) % images.length);
     };
+    const showCaptions = () => {
+        setCaptionToggle(!captionToggle);
+    };
 
     return (
         <div className="carousel">
             {
-                images.length > 0 && <div className={'slides fade'}>
+                itemMetadata && dialogToggle && <Dialog
+                    key={`carousel_dialog_info_show`}
+                    title={isImage ? `Image Metadata` : `Capture Metadata`}
+                    setToggle={setDialogToggle}>
+                    <MetadataView
+                        model={isImage ? file_type : file_type === 'historic_images' ? 'historic_captures' : 'modern_captures'}
+                        metadata={itemMetadata}
+                        file={file || {}}
+                        node={node || {}}
+                    />
+                </Dialog>
+            }
+            {
+                images.length === 0 && <Loading className={'carousel'} />
+            }
+            {
+                images.length > 0 && <div className={`slides${slideshow ? ' fade' : ''}`}>
                     {
                         images.map((img, index) => {
                             const {url = null} = img || {};
                             return <div
                                 key={`slide_${index}`}
-                                className={`slide fade`}
+                                className={`slide${slideshow ? ' fade' : ''}`}
                                 style={{
                                     opacity: index === selectedIndex ? 1.0 : 0,
                                     position: index === selectedIndex ? 'relative' : 'absolute'
@@ -98,7 +126,7 @@ const Carousel = ({
                                     scale={'medium'}
                                     fit={fit}
                                     onClick={() => {
-                                        return slideshow ? null : router.update(link)
+                                        return router.update(link)
                                     }}
                                 />
                             </div>
@@ -110,6 +138,12 @@ const Carousel = ({
                             setExpandImage(true);
                         }}/></div>
                     }
+                    {
+                        captionToggle && slideshow && images.length > 0 && captions.length === images.length && captions[selectedIndex] &&
+                        <div className={'caption'}>
+                            <p>{captions[selectedIndex]}</p>
+                        </div>
+                    }
                 </div>
             }
             {
@@ -117,15 +151,28 @@ const Carousel = ({
                 && <div className={'slide-menu h-menu vcentered'}>
                     <ul>
                         <li><Button icon={'prev'} className={'prev'} onClick={prevSlide} /></li>
-                        <li><Button
-                            label={'Click to View'}
-                            title={'View Capture Details'}
+                        <li><a href={link}>{titles[selectedIndex]}</a></li>
+                        <li className={'push'}><Button
+                            label={isImage ? 'View Image' : 'Versions'}
+                            title={'Open Capture'}
                             className={'capture-button'}
                             icon={file_type}
                             onClick={()=>{router.update(link)}}
-                        /></li>
-                        <li><a href={link}>{titles[selectedIndex]}</a></li>
-                        <li className={'push'}><Button icon={'next'} className={'next'} onClick={nextSlide} /></li>
+                        /> </li>
+                        {
+                            itemMetadata && <li style={{marginLeft:'8px'}}>
+                                <Button
+                                    label={`${isImage ? 'Image' : 'Capture'} Info`}
+                                    title={`${isImage ? 'Image' : 'Capture'} Details`}
+                                    className={'capture-button'}
+                                    icon={'info'}
+                                    onClick={() => {
+                                        setDialogToggle(true)
+                                    }}
+                                />
+                            </li>
+                        }
+                        <li><Button icon={'next'} className={'next'} onClick={nextSlide} /></li>
                     </ul>
                 </div>
             }
@@ -154,11 +201,11 @@ const Carousel = ({
                                         >
                                             {
                                                 draggable &&
-                                                    <Button
-                                                        className={'move capture-draggable'}
-                                                        icon={'move'}
-                                                        title={`Move ${titles[index] || label}.`}
-                                                    />
+                                                <Button
+                                                    className={'move capture-draggable'}
+                                                    icon={'move'}
+                                                    title={`Move ${titles[index] || label}.`}
+                                                />
                                             }
                                             <Image
                                                 url={url}
@@ -174,43 +221,29 @@ const Carousel = ({
                         </ul>
                     </div>
                     :
-                    <div className={'slide-menu h-menu vcentered'}>
-                        <ul>
-                            <li><Button icon={'prev'} className={'prev'} onClick={prevSlide} /></li>
-                            <li style={{flexGrow: 1}} className={'centred'}>
-                                <div className={'dots'}>
-                                    {
-                                        (images || []).map((image, index) => {
-                                            return (
-                                                <span
-                                                    key={`carousel_img_${index}`}
-                                                    className={`dot${index === selectedIndex ? ' active' : ''}`}
-                                                    onClick={() => {setSelectedIndex(index)}}
-                                                />);
-                                        })
-                                    }
-                                </div>
-                            </li>
-                            <li className={'push'}><Button icon={'next'} className={'next'} onClick={nextSlide} /></li>
-                        </ul>
-                    </div>
-            }
-            {
-                slideshow && images.length > 0 && captions.length === images.length && captions[selectedIndex] &&
-                <div className={'caption'}>
-                    <p>{captions[selectedIndex]}</p>
-                </div>
-            }
-            {
-                images.length === 0 && <div>
-                    <h4>No Images Found</h4>
-                    <Image
-                        scale={'medium'}
-                        fit={fit}
-                        title={'No Images Found'}
-                        caption={'No Images Found'}
-                    />
-                </div>
+                    <>
+                        <div className={'slide-menu h-menu vcentered'}>
+                            <ul>
+                                <li><Button icon={'prev'} className={'prev'} onClick={prevSlide} /></li>
+                                <li style={{flexGrow: 1}} className={'centred'}>
+                                    <div className={'dots'}>
+                                        {
+                                            (images || []).map((image, index) => {
+                                                return (
+                                                    <span
+                                                        key={`carousel_img_${index}`}
+                                                        className={`dot${index === selectedIndex ? ' active' : ''}`}
+                                                        onClick={() => {setSelectedIndex(index)}}
+                                                    />);
+                                            })
+                                        }
+                                    </div>
+                                </li>
+                                <li><Button label={captionToggle ? 'Hide Captions' : 'Show Captions'} icon={'info'} onClick={showCaptions} /></li>
+                                <li className={'push'}><Button icon={'next'} className={'next'} onClick={nextSlide} /></li>
+                            </ul>
+                        </div>
+                    </>
             }
             {
                 expandImage &&

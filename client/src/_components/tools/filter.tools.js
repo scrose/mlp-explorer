@@ -89,11 +89,11 @@ const FilterTools = ({data}) => {
     const hasPrev = 0 < searchOffset;
 
     return <>
-        <h3>
+        <h4>
             {
                 results.length > 0 &&`Results found: ${count}`
             }
-        </h3>
+        </h4>
         <PageMenu
             total={count}
             hasPrev={hasPrev}

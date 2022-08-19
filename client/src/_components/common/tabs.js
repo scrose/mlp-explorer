@@ -29,6 +29,9 @@ const Tabs = ({
     // selected tab state
     const [selectedTabID, setSelectedTabID] = React.useState(defaultTab);
 
+    // generate unique ID value for tabs
+    const tabID = Math.random().toString(16).substring(2);
+
     // highlight selected tab (via classname)
     const onToggle = (id) => {
         return orientation === 'vertical'
@@ -36,24 +39,28 @@ const Tabs = ({
             : id === selectedTabID ? 'hopen' : 'hclose'
     };
 
+    // check if single tab
+    const isSingle = items.length === 1;
     // select view orientation
     const tabOrientation = orientation === 'vertical' ? 'h-menu' : 'v-menu';
     const menuOrientation = orientation === 'vertical' ? 'v-menu' : 'h-menu';
 
     return (
-        <div className={`tab ${tabOrientation} ${className}`}>
+        isSingle
+            ? (items[selectedTabID] && items[selectedTabID].data) || '' :
+            <div className={`tab ${tabOrientation} ${className}`}>
             <ul>
                 <li className={`tab-menu ${menuOrientation}`}>
                     <ul>
                         {
                             items.map((item, id) => {
                                 const { label = '' } = item || {};
-                                return <li key={`tab_${id}`}>
+                                return <li key={`tab_${tabID}_${id}`}>
                                     <Button
                                         disabled={!item.data}
                                         className={selectedTabID === id ? 'active' : ''}
                                         icon={onToggle(id)}
-                                        title={`View ${label}.`}
+                                        title={`Open ${label} tab.`}
                                         label={label}
                                         onClick={() => {
                                             setSelectedTabID(id);

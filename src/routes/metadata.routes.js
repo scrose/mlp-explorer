@@ -31,7 +31,7 @@ function MetadataRoutes(metadataType) {
 
     // define models that group metadata
     const groupedModels = ['participant_groups'];
-    const optionModels = ['cameras', 'lens', 'participants', 'participant_group_types'];
+    const optionModels = ['cameras', 'lens', 'participants', 'participant_group_types', 'image_types'];
 
     // add controller routes
     this.routes = {

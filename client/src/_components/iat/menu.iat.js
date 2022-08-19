@@ -385,6 +385,7 @@ export const MenuIat = ({
                 <ul>
                     <li>
                         <Button
+                            disabled={!image1 && !image2}
                             title={'Image edit mode.'}
                             className={options.mode === 'default' ? 'active' : ''}
                             icon={'select'}

@@ -18,6 +18,7 @@ import {getPref, setPref} from "../../_services/session.services.client";
 import {useNav} from "../../_providers/nav.provider.client";
 import { getMarker, baseLayers } from "../tools/map.tools";
 import Button from "../common/button";
+import 'leaflet-kml/L.KML.js';
 
 /**
  * Page height offset
@@ -101,12 +102,25 @@ function MapNavigator({ filter, hidden }) {
         };
 
         // create map marker icon
-        const _getMarker = (n, isSelected = false) => {
+        const _getMarker = (n, cluster ) => {
+            // select marker fill colour based on selection and station status
+            const fillColours = {
+                missing: '#E34234',
+                grouped: 'skyblue',
+                located: 'indianred',
+                repeated: 'purple',
+                partial: 'greenyellow',
+                mastered: 'green',
+                selected: '#E34234',
+                default: '#008896'
+            }
+            const fillColour = cluster.isSelected
+                ? fillColours.selected
+                : n === 1
+                    ? fillColours.default
+                    : fillColours.default;
 
-            // select marker fill colour based on selection
-            const fillColour = isSelected ? 'E34234' : '008896';
-
-            // select marker icon
+            // select marker icon based on cluster count value 'n'
             const iconSVG = n > 1 ?
                 getMarker('cluster', fillColour, n)  :
                 getMarker('single', fillColour);
@@ -219,20 +233,19 @@ function MapNavigator({ filter, hidden }) {
 
                 // create marker using station coordinates
                 const marker = L.marker(centroid, {
-                    icon: _getMarker(n, cluster.isSelected),
+                    icon: _getMarker(n, cluster),
                     zIndexOffset: zIndexOffset,
                     riseOnHover: true,
                 })
-                    .on('click', (e) => {
+                    .on('click', () => {
                         // clicking on marker loads filter results in data pane
                         debounce(() => {
                             loadView(
-                                cluster.stations.map(station => {
-                                    return station.nodes_id;
-                                }));
+                                cluster.stations.map(station => {return station.nodes_id})
+                            );
                             // recenter map
-                            const coord = e.latlng;
-                            if (mapObj.current) mapObj.current.panTo(coord);
+                            //const coord = e.latlng;
+                            //if (mapObj.current) mapObj.current.panTo(coord);
                         }, 400)();
                     })
                     .on('dblclick', (e) => {
@@ -241,6 +254,7 @@ function MapNavigator({ filter, hidden }) {
                         mapObj.current.flyTo(coord, zoomLevel);
                     })
                     .on('mouseover', function () {
+                        // show station name and location on clusters where n < 15
                         this.bindTooltip(`${
                             n <= 15 
                                 ? cluster.stations.map(station => {
@@ -295,8 +309,12 @@ function MapNavigator({ filter, hidden }) {
         if (_isMounted.current && mapObj.current) {
             const {lat = null, lng = null} = api.location;
             if (lat && lng && mapObj.current) {
-                mapObj.current.flyTo([lat, lng], 12);
-                setClustered(false);
+                // recentre and fly-to location if not zoomed in
+                // console.log('zoom level', mapObj.current.getZoom());
+                if (mapObj.current.getZoom() < 8) {
+                    mapObj.current.flyTo([lat, lng], 8);
+                    setClustered(false);
+                }
             }
         }
         return () => {_isMounted.current = false;}
@@ -352,6 +370,12 @@ function MapNavigator({ filter, hidden }) {
 
             // add marker layer to map
             layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
+
+            // Include any kml overlay
+            if (nav.overlay) {
+                const track = new L.KML(nav.overlay);
+                mapObj.current.addLayer(track);
+            }
 
             // add layers to leaflet controls
             L.control.layers(baseLayers).addTo(mapObj.current);

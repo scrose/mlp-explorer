@@ -21,7 +21,7 @@ import { getQuery } from '../../_utils/paths.utils.client';
  * @public
  */
 
-const Message = ({closeable=true, message=''}) => {
+const Message = ({closeable=true, message='', icon=''}) => {
 
     // check if redirect
     const redirected = getQuery('redirect');
@@ -43,7 +43,12 @@ const Message = ({closeable=true, message=''}) => {
         popSessionMsg();
     };
 
-    return <UserMessage closeable={closeable} message={msgData} onClose={_handleClose} />;
+    return <UserMessage
+        icon={icon}
+        closeable={closeable}
+        message={msgData}
+        onClose={_handleClose}
+    />;
 };
 
 export default Message;
@@ -63,30 +68,37 @@ export default Message;
 export const UserMessage = ({
                                 message,
                                 closeable = true,
-                                onClose = () => {},
                                 scrollTo=false,
                                 className = '',
-                                icon=null
+                                icon=null,
+                                onClose=()=>{}
                             }) => {
 
     const container = React.useRef(null);
     const { msg = '', type = 'error' } = message || {};
+    const [toggle, setToggle] = React.useState(true);
 
     // scroll to position of message on page
     React.useEffect(() => {
         if (scrollTo && container.current) container.current.scrollIntoView();
     }, [container, scrollTo]);
 
-    return !!msg && !!type &&
+    return toggle && !!msg && !!type &&
         <div className={`msg ${type} ${className}`}>
             {
-                icon && <div className={`msg-icon`}><Icon type={icon} /></div>
+                (icon || type) && <div className={`msg-icon`}><Icon type={icon || type} /></div>
             }
             <div className={'msg-text'}>{msg}</div>
             {
                 closeable &&
                 <div className={'close'}>
-                    <Button icon={'close'} onClick={onClose}/>
+                    <Button className={type}
+                            icon={'close'}
+                            onClick={() =>{
+                                setToggle(false);
+                                onClose();
+                            }}
+                    />
                 </div>
             }
         </div>;

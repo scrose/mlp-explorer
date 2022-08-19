@@ -666,7 +666,7 @@ const explorerHelp = (gotoPage) => {
             data: modelExplorerHelp,
         },
         {
-            label: 'Historic/Modern Captures',
+            label: 'Capture Images',
             data: captureExplorerHelp,
         },
     ];

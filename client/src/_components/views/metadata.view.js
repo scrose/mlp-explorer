@@ -9,7 +9,6 @@
 import React from 'react';
 import { genSchema, getDependentTypes, getModelLabel } from '../../_services/schema.services.client';
 import { genID, sanitize } from '../../_utils/data.utils.client';
-import Button from '../common/button';
 import Accordion from '../common/accordion';
 import EditorMenu from '../menus/editor.menu';
 import { useData } from '../../_providers/data.provider.client';
@@ -80,6 +79,7 @@ export const MetadataAttached = ({ owner, attached }) => {
                 key={`${keyID}_${attachedModel}`}
                 type={attachedModel}
                 label={`${getModelLabel(attachedModel, 'label')}`}
+                className={attachedModel}
                 menu={<EditorMenu
                         model={attachedModel}
                         id={owner && owner.hasOwnProperty('id') ? owner.id : ''}
@@ -213,7 +213,7 @@ const MetadataView = ({
                             <th colSpan={'2'}>
                                 <div className={`h-menu`}>
                                     <ul>
-                                        <li><Button label={fieldset.legend} /></li>
+                                        <li><h4>{fieldset.legend}</h4></li>
                                         {
                                             menu && <li className={'editor-menu push'}>
                                                 <EditorMenu
@@ -248,8 +248,8 @@ const MetadataView = ({
                 })
         }
         { (Object.keys(node).length > 0 || Object.keys(file).length > 0) &&
-        <div style={{textAlign: 'right'}} className={'subtext'}>
-            <table className={'right-aligned'} key={`${keyID}_node_metadata`}>
+        <div className={'subtext'}>
+            <table key={`${keyID}_node_metadata`}>
                 <tbody>
                 <tr>
                     <th>Created</th>

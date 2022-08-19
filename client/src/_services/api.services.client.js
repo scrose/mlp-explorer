@@ -8,7 +8,7 @@
  * Reference: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
  */
 
-import { createAPIURL } from '../_utils/paths.utils.client';
+import {createAPIURL} from '../_utils/paths.utils.client';
 
 /**
  * Fetch options for JSON API request.
@@ -202,6 +202,8 @@ export const download = async (route, format, online=true) => {
     // reject null paths or when API is offline
     if (!route || !online ) return null;
 
+    console.log(createAPIURL(route), format)
+
     return await makeRequest({url: createAPIURL(route), method:'GET', download: format})
         .then(res => {
             if (!res || !res.success) {
@@ -216,6 +218,30 @@ export const download = async (route, format, online=true) => {
                 data: new Blob([res.response])
             }
 
+        })
+        .catch(console.error);
+}
+
+/**
+ * Get KML metadata as parsed XML string.
+ *
+ * @src public
+ * @param route
+ * @return {Promise} KML string
+ */
+
+export const loadXML = async (route) => {
+
+    // reject null paths
+    if (!route ) return null;
+
+    // Load kml file
+    return await fetch(route)
+        .then(res => res.text())
+        .then(xmlString => {
+            // Parse XML string
+            const parser = new DOMParser();
+            return parser.parseFromString(xmlString, 'text/xml');
         })
         .catch(console.error);
 }

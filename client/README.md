@@ -17,8 +17,8 @@ and strategies for ecological restoration.
 The Explorer index is a metadata management tool for browsing and editing the MLP collection and 
 viewing historic and corresponding repeat (modern) survey images. 
 
-Accessible to Authenticated Users, the Mountain Legacy Explorer (MLE) Editor can be 
-used to manage the digital assets and metadata of the MLP collection. Through the Editor, 
+Accessible to Authenticated Users, the Mountain Legacy Explorer (MLE) EditorView can be 
+used to manage the digital assets and metadata of the MLP collection. Through the EditorView, 
 users can upload or delete images in the collection data store, add and update image 
 metadata, as well as align and master historic and repeat digital photographs.
 

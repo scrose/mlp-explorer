@@ -8,10 +8,10 @@
 
 import React from 'react';
 import Message from '../common/message';
-import DataView from '../views/data.view';
-import StaticView from '../views/static.view';
+import DataView from './data.view';
+import StaticView from './static.view';
 import { useRouter } from '../../_providers/router.provider.client';
-import Heading from '../common/heading';
+import HeadingMenu from '../menus/heading.menu';
 import Footer from "../common/footer";
 import {useWindowSize} from "../../_utils/events.utils.client";
 
@@ -21,7 +21,7 @@ import {useWindowSize} from "../../_utils/events.utils.client";
  * @public
  */
 
-const Viewer = () => {
+const VisitorView = () => {
     const router = useRouter();
 
     // window dimensions
@@ -33,7 +33,7 @@ const Viewer = () => {
                 className={`view`}
                 style={{height: (winHeight - 140) + 'px'}}
             >
-                <Heading />
+                <HeadingMenu />
                 <Message />
                 {
                     router.staticView
@@ -50,4 +50,4 @@ const Viewer = () => {
     )
 };
 
-export default React.memo(Viewer);
+export default React.memo(VisitorView);

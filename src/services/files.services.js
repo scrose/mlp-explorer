@@ -20,6 +20,7 @@ import {allowedMIME, extractFileLabel} from '../lib/file.utils.js';
 import {getImageURL, saveImage} from './images.services.js';
 import {updateComparisons} from "./comparisons.services.js";
 import * as nserve from "./nodes.services.js";
+import AdmZip from 'adm-zip';
 
 /**
  * Maximum file size (non-images) = 1GB
@@ -181,7 +182,7 @@ export const get = async (id, client = pool) => {
 };
 
 /**
- * Get files for given owner.
+ * Select files attached to a given owner (Does not include dependent files).
  *
  * @public
  * @param {integer} id
@@ -227,6 +228,62 @@ export const selectByOwner = async (id, client = pool) => {
         o[file_type].push(f);
         return o;
     }, {});
+};
+
+/**
+ * Select all files under a given node
+ *
+ * @public
+ * @params {Object} owner
+ * @return {Promise} result
+ */
+
+export const selectAllByOwner = async (id) => {
+
+    if (!id) return null;
+
+    // NOTE: client undefined if connection fails.
+    const client = await pool.connect();
+
+    let results = {}
+
+    // query handlers for different file types
+    const handlers = {
+        historic_images: async () => {
+            const {sql, data} = queries.files.getHistoricImageFilesByStationID(id);
+            const {rows = []} = await client.query(sql, data);
+            return rows.map(row => {
+                row.url = getImageURL('historic_images', row);
+                return row
+            });
+        },
+        modern_images: async () => {
+            const {sql, data} = queries.files.getModernImageFilesByStationID(id);
+            const {rows = []} = await client.query(sql, data);
+            return rows.map(row => {
+                row.url = getImageURL('modern_images', row);
+                return row
+            });
+        }
+    }
+
+    try {
+        // start transaction
+        await client.query('BEGIN');
+
+        // get all dependent files for requested owner
+        results.historic_images = await handlers.historic_images();
+        results.modern_images = await handlers.modern_images();
+
+        await client.query('COMMIT');
+        return results
+
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        await client.release(true);
+    }
 };
 
 /**
@@ -452,6 +509,39 @@ export const download = async (res, src) => {
 };
 
 /**
+ * Compress requested files in a zipped folder
+ * - input param is an ile objects
+ *
+ * @param files
+ * @return Response data
+ * @public
+ */
+
+export const compress = async (files={}) => {
+
+    // creating new archive (ADM-ZIP)
+    let zip = new AdmZip();
+
+    // add requested files to archive; separate different image types in folders
+    await Promise.all(
+        Object.keys(files).map(async (imageType) => {
+            await Promise.all(
+                files[imageType].map(async (file) => {
+                    console.log(file)
+                    const filePath = getFilePath('raw', file);
+                    // places file in folder labelled by image type
+                    zip.addLocalFile(filePath, imageType);
+                })
+            )}
+        )
+    );
+
+    // return file buffer
+    return zip.toBuffer();
+};
+
+
+/**
  * Build file source path for resampled images and metadata files
  * from file data.
  *
@@ -469,7 +559,6 @@ export const getFilePath = (type, file, metadata = {}) => {
     const rootURI = process.env.LOWRES_PATH;
     const imgPrefix = 'medium';
 
-    // ======================================================
     // handle image source URLs differently than metadata files
     // - images use scaled versions of raw files
     // - metadata uses PDF downloads
@@ -794,3 +883,4 @@ export const deleteFiles = async (filePaths=[]) => {
         })
     );
 };
+

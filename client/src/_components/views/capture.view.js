@@ -94,6 +94,7 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
         // add editor menu for logged-in users
         if (user) {
             row.menu =  <EditorMenu
+                            view={'capture'}
                             fileType={type}
                             filename={filename}
                             model={type}

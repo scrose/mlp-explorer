@@ -116,7 +116,7 @@ const Importer = ({
             router.online
         )
             .then(xhr => {
-                // get the XML request
+                // set the XML request
                 setXHR(data => ({ ...data, [0]: xhr}));
             })
             .catch(console.error);
@@ -171,7 +171,7 @@ const Importer = ({
     const description = error
         ? 'An error occurred.'
         : response && Object.keys(response).length > 0
-            ? 'Upload Finished!'
+            ? 'Update Finished!'
             : 'Uploading in progress ...';
 
     return (

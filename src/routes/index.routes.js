@@ -19,6 +19,7 @@ import models from './model.routes.js'
 import metadata from './metadata.routes.js'
 import files from './files.routes.js'
 import master from './comparison.routes.js'
+import other from './other.routes.js'
 
 /**
  * Create base router to add routes.
@@ -116,6 +117,9 @@ async function initRouter() {
         // initialize node routes
         await initRoutes(nodes, baseRouter)
 
+        // initialize other routes
+        await initRoutes(other, baseRouter)
+
         // initialize model routes
         const modelsRoutes = await models();
         await Promise.all(modelsRoutes
@@ -132,6 +136,13 @@ async function initRouter() {
 
         // initialize file routes
         const filesRoutes = await files();
+        await Promise.all(filesRoutes
+            .map(routes => {
+                return initRoutes(routes, baseRouter)
+            }));
+
+        // initialize other routes
+        const otherRoutes = await files();
         await Promise.all(filesRoutes
             .map(routes => {
                 return initRoutes(routes, baseRouter)

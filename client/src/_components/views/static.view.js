@@ -7,8 +7,7 @@
  */
 
 import React from 'react';
-import DashboardViewer from '../viewer/dashboard.viewer';
-import DashboardEditor from '../viewer/dashboard.editor';
+import DashboardView from './dashboard.view';
 import NotfoundError from '../error/notfound.error';
 import UnavailableError from '../error/unavailable.error';
 import ServerError from '../error/server.error';
@@ -31,8 +30,8 @@ const StaticView = ({ type }) => {
     // view components indexed by render type
     const renders = {
         resources: () => <Image url={router.route} />,
-        dashboardView: () => <DashboardViewer />,
-        dashboardEdit: () => <DashboardEditor />,
+        dashboardView: () => <DashboardView />,
+        dashboardEdit: () => <DashboardView />,
         imageToolkit: () => <ImageTools />,
         notFound: () => <NotfoundError />,
         serverError: () => <ServerError />,

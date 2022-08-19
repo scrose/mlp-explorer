@@ -7,15 +7,18 @@
  */
 
 import React from "react";
+import {UserMessage} from "../common/message";
 
 const AccessError = () => {
-    return (
-        <div className={'msg error'}>
-            <h3>Access Denied</h3>
-            <p>This page is only accessible to authenticated users.</p>
-            <p>Return to the <a href={"/"}>Homepage</a>.</p>
-        </div>
-    );
+    return <>
+            <h2>Access Denied</h2>
+                <UserMessage
+                    className={'msg error'}
+                    message={{msg: 'This page is only accessible to authenticated users.', type: 'error'}}
+                    closeable={false}
+                />
+            <p>Return to the <a href={"/"}>Explorer Homepage</a>.</p>
+        </>;
 }
 
 export default AccessError;

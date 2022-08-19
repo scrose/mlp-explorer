@@ -27,7 +27,7 @@ const Footer = () => {
                     </li>
                     <li className={'push'} style={{paddingRight: '20px'}}>
                         <a href={getInfo().mlp_url} rel="noreferrer" target={'_blank'}>
-                            <MLPLogo colour={'black'} />
+                            <MLPLogo colour={'#2F4858'} />
                         </a>
                     </li>
                 </ul>

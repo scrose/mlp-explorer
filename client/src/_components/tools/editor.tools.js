@@ -52,6 +52,7 @@ export const DependentNodes = ({nodes, owner, ownerLabel=''}) => {
             type={node.type}
             thumbnail={thumbnail}
             menu={<EditorMenu
+                view={'dependent'}
                 model={node.type}
                 id={node.id}
                 metadata={metadata}
@@ -128,6 +129,7 @@ export const DependentFiles = ({files, owner}) => {
                     open={true}
                     type={fileKey}
                     menu={<EditorMenu
+                        view={'selector'}
                         dependents={[fileKey]}
                         id={owner.id}
                         model={owner.type}

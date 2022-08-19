@@ -12,7 +12,7 @@ import Dialog from '../common/dialog';
 import HelpView from '../views/help.view';
 import Exporter from '../tools/export.tools';
 import Download from '../common/download';
-import { createNodeRoute, redirect } from '../../_utils/paths.utils.client';
+import { redirect } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 
 /**
@@ -73,7 +73,7 @@ const ViewerMenu = ({
                                 label={!compact ? 'Download' : ''}
                                 type={fileType}
                                 format={'img'}
-                                route={createNodeRoute(fileType, 'download', id)}
+                                route={`/files/download/${id}`}
                                 callback={console.log}
                             />
                         </li>

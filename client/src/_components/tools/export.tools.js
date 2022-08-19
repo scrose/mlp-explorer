@@ -44,13 +44,16 @@ const Exporter = ({setToggle}) => {
     // render download-as button
     return <fieldset className={'submit'}>
         <UserMessage message={message} closeable={false} />
-        <Input
-            label={'Export as'}
-            type={'select'}
-            options={options}
-            value={format ? format.value : ''}
-            onChange={_handleSelect}
-        />
+        <p>Export and download raw capture metadata available in different formats.</p>
+        <fieldset>
+            <Input
+                label={'Export as'}
+                type={'select'}
+                options={options}
+                value={format ? format.value : ''}
+                onChange={_handleSelect}
+            />
+        </fieldset>
         {
             format &&
             <div className={'h-menu'}>

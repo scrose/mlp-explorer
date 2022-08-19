@@ -24,19 +24,21 @@ const Dialog = ({title, setToggle, callback=()=>{}, children}) => {
         <div className={`dialog`}>
             <div className={'content-box'}>
                 <div className={'dialog-header'}>
-                    <Button
-                        icon={'close'}
-                        name={'close'}
-                        className={'closer'}
-                        onClick={() => {
-                            setToggle(null);
-                            callback();
-                        }}
-                    />
+                    <h2 className={'dialog-title'} id="dialog-title">{title}</h2>
+                                <div style={{position: 'absolute', right: 0, top: '2px'}}>
+                                    <Button
+                                        label={'Close'}
+                                        icon={'close'}
+                                        name={'close'}
+                                        className={'closer'}
+                                        onClick={() => {
+                                            setToggle(null);
+                                            callback();
+                                        }}
+                                    />
+                                </div>
+
                 </div>
-                <h2 className={'dialog-title'} id="dialog-title">
-                    {title}
-                </h2>
                 <div className={'dialog-body'} aria-labelledby="dialog-title">
                     {children}
                 </div>

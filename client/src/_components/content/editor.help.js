@@ -52,63 +52,74 @@ const explorerHelp = (gotoPage) => {
         <h5>User Permissions</h5>
         <p>Authenticated users are assigned roles that have defined access permissions to Editor features, as shown in
             the table below. </p>
-        <table className={'files'}>
+        <table className={'help'} style={{textAlign: 'center'}}>
             <thead>
             <tr>
-                <th colSpan={11}>Permissions</th>
-            </tr>
-            <tr>
-                <th>User Role</th>
-                <th>View</th>
-                <th>Download*</th>
-                <th>Raw Files*</th>
-                <th>Export</th>
-                <th>Create</th>
-                <th>Edit</th>
-                <th>Delete</th>
-                <th>Upload</th>
-                <th>Master</th>
-                <th>Edit Options</th>
+                <th>Permissions</th>
+                <th>Visitor</th>
+                <th>Editor</th>
+                <th>Administrator</th>
             </tr>
             </thead>
             <tbody>
             <tr>
-                <th>Visitor</th>
+                <th>View</th>
                 <td><Icon type={'success'} /></td>
                 <td><Icon type={'success'} /></td>
-                <td>-</td>
                 <td><Icon type={'success'} /></td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
             </tr>
             <tr>
-                <th>Editor</th>
+                <th>Download*</th>
                 <td><Icon type={'success'} /></td>
                 <td><Icon type={'success'} /></td>
                 <td><Icon type={'success'} /></td>
-                <td><Icon type={'success'} /></td>
-                <td><Icon type={'success'} /></td>
-                <td><Icon type={'success'} /></td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
             </tr>
             <tr>
-                <th>Administrator</th>
+                <th>Raw Download*</th>
+                <td>-</td>
+                <td><Icon type={'success'} /></td>
+                <td><Icon type={'success'} /></td>
+            </tr>
+            <tr>
+                <th>Export</th>
                 <td><Icon type={'success'} /></td>
                 <td><Icon type={'success'} /></td>
                 <td><Icon type={'success'} /></td>
+            </tr>
+            <tr>
+                <th>Create</th>
+                <td>-</td>
                 <td><Icon type={'success'} /></td>
                 <td><Icon type={'success'} /></td>
+            </tr>
+            <tr>
+                <th>Edit</th>
+                <td>-</td>
                 <td><Icon type={'success'} /></td>
                 <td><Icon type={'success'} /></td>
+            </tr>
+            <tr>
+                <th>Delete</th>
+                <td>-</td>
+                <td>-</td>
                 <td><Icon type={'success'} /></td>
+            </tr>
+            <tr>
+                <th>Upload</th>
+                <td>-</td>
+                <td>-</td>
                 <td><Icon type={'success'} /></td>
+            </tr>
+            <tr>
+                <th>Master</th>
+                <td>-</td>
+                <td>-</td>
+                <td><Icon type={'success'} /></td>
+            </tr>
+            <tr>
+                <th>Edit Options</th>
+                <td>-</td>
+                <td>-</td>
                 <td><Icon type={'success'} /></td>
             </tr>
             </tbody>

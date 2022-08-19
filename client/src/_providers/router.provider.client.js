@@ -7,7 +7,7 @@
  */
 
 import * as React from 'react'
-import { makeRequest } from '../_services/api.services.client';
+import {loadXML, makeRequest} from '../_services/api.services.client';
 import {createNodeRoute, filterPath, reroute, getRoot, createAPIURL } from '../_utils/paths.utils.client';
 import { getStaticView } from '../_services/schema.services.client';
 import { popSessionMsg } from '../_services/session.services.client';
@@ -134,6 +134,22 @@ function RouterProvider(props) {
     };
 
     /**
+     * Data request method to fetch data from API.
+     *
+     * @public
+     * @param {String} route
+     *
+     * @param params
+     */
+
+    const getXML = async (route, params=null) => {
+
+        // reject null paths or when API is offline
+        if (!route || !online ) return null;
+        return await loadXML(route);
+    };
+
+    /**
      * Request method to post data from API.
      *
      * @public
@@ -203,6 +219,7 @@ function RouterProvider(props) {
                 setFilter,
                 staticView,
                 get,
+                getXML,
                 post,
                 remove,
                 online,
