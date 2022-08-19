@@ -103,7 +103,7 @@ const EditorMenu = ({
             || fileType === 'supplemental_images'),
         bulkDownload: !isEditorMenu && model === 'stations' && view !== 'files',
         dependents: !dependentsExclude.includes(view),
-        addNew: !!(!isOptions && dependents.length > 0),
+        addNew: !!(isEditorMenu || (!isOptions && dependents.length > 0)),
         import_hc: isAdmin && !!(dependents || [])
                 .find(dependent => dependent === 'historic_captures')
             && !dependentsExclude.includes(view),
