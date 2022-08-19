@@ -152,7 +152,7 @@ const Logo = ({colour='white'}) => {
     return (
         <div className={'logo'}>
             <a href={getRoot()}><MLPWordmark colour={colour} /></a>
-            <a href={getRoot()}><MLPWordmark colour={colour} /><MLPLogo colour={colour} /></a>
+            <a href={getRoot()}><MLPLogo colour={colour} /></a>
         </div>
     );
 };

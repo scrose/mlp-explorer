@@ -235,7 +235,6 @@ const DefaultView = ({model, data}) => {
                             </div>
                             : <Accordion
                                 key={id}
-                                id={id}
                                 type={type}
                                 label={label}
                                 hasDependents={hasDependents}
