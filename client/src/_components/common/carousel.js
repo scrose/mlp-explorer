@@ -157,7 +157,13 @@ const Carousel = ({
                     <ul>
                         {
                             (items || []).map((item, index) => {
-                                const {metadata={}, url = null, owner={}, label = ''} = item || {};
+                                const {
+                                    id='',
+                                    model='',
+                                    metadata={},
+                                    url = null,
+                                    owner={},
+                                    label = ''} = item || {};
 
                                 return <li key={`slide_button_${index}`}>
                                     <div className={user ? 'move' : ''}

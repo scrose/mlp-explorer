@@ -33,10 +33,13 @@ const Remover = ({
                      id,
                      model,
                      groupType='',
+                     owner={},
                      metadata={},
                      onCancel=()=>{},
                      callback=()=>{}
                  }) => {
+
+    console.log(id, model, owner, metadata, !!groupType)
 
     const dialog = useDialog();
     const api = useData();
@@ -73,7 +76,7 @@ const Remover = ({
     const _handleSubmit = (e) => {
         if (!e) return;
         e.preventDefault();
-        router.remove(id, model, groupType, _handleCompletion);
+        router.remove(groupType && owner.hasOwnProperty('id') ? owner.id : id, model, groupType, _handleCompletion);
     }
 
     return <>{

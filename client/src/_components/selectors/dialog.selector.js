@@ -176,15 +176,16 @@ const DialogSelector = () => {
                     className={index > 0 ? 'hidden' : ''}
                 >
                 <Remover
-                    id={owner && group_type ? owner.id : id}
-                    label={label}
-                    onCancel={_handleCancel}
+                    id={id}
                     model={model}
+                    label={label}
+                    owner={owner}
                     groupType={group_type}
                     metadata={metadata}
                     callback={(err, model) => {
                         model === 'projects' || model === 'surveyors' ? redirect('/') : _handleCallback();
                     }}
+                    onCancel={_handleCancel}
                 /></Dialog>,
             filter: <Dialog key={_key} title={`Filter Map Stations`} callback={_handleDialogClose}>
                 <FilterNavigator/>
