@@ -22,7 +22,7 @@ const carouselID = genID();
 
 /**
  * Image carousel component.
- *
+ *f
  * @public
  * @param {Array} items
  * @param fit

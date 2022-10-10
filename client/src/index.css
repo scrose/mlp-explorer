@@ -1054,6 +1054,7 @@ button.nav-toggle {
     width: auto !important;
 }
 .carousel .caption {
+    width: 100%;
     max-width: none !important;
     position: absolute;
     bottom: 0;
