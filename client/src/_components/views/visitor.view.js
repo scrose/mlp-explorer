@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.Viewer
- * File: viewer.js
+ * MLP.Client.Components.Views.Visitor
+ * File: visitor.view.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
@@ -8,10 +8,10 @@
 
 import React from 'react';
 import Message from '../common/message';
-import DataView from './data.view';
-import StaticView from './static.view';
+import DataView from '../selectors/view.selector';
+import StaticView from '../selectors/static.selector';
 import { useRouter } from '../../_providers/router.provider.client';
-import HeadingMenu from '../menus/heading.menu';
+import HeaderMenu from '../menus/header.menu';
 import Footer from "../common/footer";
 import {useWindowSize} from "../../_utils/events.utils.client";
 
@@ -33,7 +33,7 @@ const VisitorView = () => {
                 className={`view`}
                 style={{height: (winHeight - 140) + 'px'}}
             >
-                <HeadingMenu />
+                <HeaderMenu />
                 <Message />
                 {
                     router.staticView

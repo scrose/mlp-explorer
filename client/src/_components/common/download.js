@@ -11,22 +11,29 @@ import { saveAs } from 'file-saver';
 import { useRouter } from '../../_providers/router.provider.client';
 import { download } from '../../_services/api.services.client'
 import Button from './button';
-import Badge from "./badge";
+import {genID} from "../../_utils/data.utils.client";
 
 /**
  * Defines download button.
  *
  * @public
+ * @param filename
+ * @param format
+ * @param label
+ * @param route
+ * @param className
+ * @param size
+ * @param callback
  * @return {JSX.Element}
  */
 
 const Download = ({
                       filename='',
-                      type='',
                       format='',
                       label='',
                       route=null,
                       className='',
+                      size='lg',
                       callback=()=>{}
                   }) => {
 
@@ -36,7 +43,7 @@ const Download = ({
     const [message, setMessage] = React.useState(null);
 
     // create download ID
-    const id = `${type}_${format}`;
+    const id = genID();
 
     const _handleError = (err) => {
         setMessage(err);
@@ -51,23 +58,23 @@ const Download = ({
             const res = await download(route, format, router.online);
             if (!res || res.error) {
                 setLoading(false);
-                return _handleError({msg: 'File download failed.', type:'error'});
+                return _handleError({msg: label ? 'File download failed.' : '', type:'error'});
             }
             saveAs(res.data, filename || `file_${id}.${format}`);
             setLoading(false);
-            setMessage({msg: 'File downloaded.', type: 'success'});
+            setMessage({msg: label ? 'File downloaded.' : '', type: 'success'});
             callback()
         }
         catch (err) {
             setLoading(false);
-            _handleError({msg: 'File download failed.', type: 'error'})
+            _handleError({msg: label ? 'File download failed.' : '', type: 'error'})
         }
     }
 
     // render download button
-    return <>
-        <Button
-            name={id}
+    return <Button
+            disabled={loading}
+            size={size}
             icon={
                 loading
                     ? 'spinner'
@@ -76,25 +83,15 @@ const Download = ({
                         : format === 'zip' ? 'bulk_download' : 'download'
             }
             spin={loading}
-            label={label}
-            className={className}
+            label={message ? message.msg : label}
+            className={`${className} ${message ? message.type : ''}`}
             title={
                 message && message.hasOwnProperty('msg')
                     ? message.msg
-                    : `Download ${format === 'zip' ? 'Original (Raw) Version:' : 'Scaled Version:'} ${filename || `file_${id}.${format}`}.`
+                    : `Download ${route.indexOf('raw') > 0 ? 'Original (Raw) Version:' : 'Scaled Version:'} ${filename || `file_${id}.${format}`}.`
             }
             onClick={_handleDownload}>
         </Button>
-        {
-            message && <div className={`v-menu dropdown${message ? ' active' : ''}`}>
-            <ul>
-                <li className={message.type} style={{textAlign: 'center'}}>
-                    <Badge className={message.type} icon={message.type} label={message.msg} title={message}/>
-                </li>
-            </ul>
-        </div>
-        }
-    </>
 }
 
 export default Download;

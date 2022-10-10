@@ -9,16 +9,19 @@
 import React from "react";
 import Download from '../common/download';
 import { UserMessage } from '../common/message';
-import Input from '../common/input';
+import InputSelector from '../selectors/input.selector';
 import Button from '../common/button';
+import {useDialog} from "../../_providers/dialog.provider.client";
 
 /**
- * File/metadata importer.
+ * Exports full metadata in selected format
  *
  * @public
  */
 
-const Exporter = ({setToggle}) => {
+const Exporter = () => {
+
+    const dialog = useDialog();
 
     const options = [
         { label: 'CSV (GIS)', value: 'csv', endpoint: 'gis/csv' },
@@ -38,7 +41,6 @@ const Exporter = ({setToggle}) => {
         const { value = '' } = target;
         const opt = options.find(opt => value === opt.value);
         setFormat(opt);
-        setMessage({ msg: `Export format ${opt.label} selected.`, type: 'info' });
     };
 
     // render download-as button
@@ -46,7 +48,7 @@ const Exporter = ({setToggle}) => {
         <UserMessage message={message} closeable={false} />
         <p>Export and download raw capture metadata available in different formats.</p>
         <fieldset>
-            <Input
+            <InputSelector
                 label={'Export as'}
                 type={'select'}
                 options={options}
@@ -60,6 +62,7 @@ const Exporter = ({setToggle}) => {
                 <ul>
                     <li>
                         <Download
+                            className={'submit'}
                             filename ={`mlp_export.${format.value}`}
                             type={'mlp_export'}
                             format={format.value}
@@ -69,7 +72,12 @@ const Exporter = ({setToggle}) => {
                         />
                     </li>
                     <li>
-                        <Button icon={'cancel'} label={'Cancel'} onClick={()=>{setToggle(false)}} />
+                        <Button
+                            className={'cancel'}
+                            icon={'cancel'}
+                            label={'Cancel'}
+                            onClick={dialog.clear}
+                        />
                     </li>
                 </ul>
             </div>

@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Navigation.Main
+ * MLP.Client.Components.Menus.Main
  * File: main.menu.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

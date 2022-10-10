@@ -61,9 +61,8 @@ export function json2csv(json) {
  * @return {String} mimetype
  */
 
-export const mimeTypes = {
-    'pdf': 'application/pdf',
-    'rtf': 'application/rtf',
+// allowed MIME types for images
+export const imageMIMETypes = {
     'bm': 'image/bmp',
     'bmp': 'image/bmp',
     'gif': 'image/gif',
@@ -90,16 +89,35 @@ export const mimeTypes = {
     'RAW': 'image/x-panasonic-raw',
     'SR2': 'image/x-sony-sr2',
     'SRF': 'image/x-sony-srf',
-    'X3F': 'image/x-sigma-x3f'
+    'X3F': 'image/x-sigma-x3f',
+    'stream': 'application/octet-stream'
 };
 
+// extended MIME types for supplemental files
+export const supplementalMIMETypes = {
+    'pdf': 'application/pdf',
+    'rtf': 'application/rtf'
+};
+
+// retrieve MIME type from filename extension
 export function getMIME(filename) {
-    const ext = filename.split('.').pop();
-    return mimeTypes.hasOwnProperty(ext) ? mimeTypes[ext] : null;
+    const ext = filename.split('.').pop().toLowerCase();
+    return imageMIMETypes.hasOwnProperty(ext)
+        ? imageMIMETypes[ext]
+        : supplementalMIMETypes.hasOwnProperty(ext)
+            ? supplementalMIMETypes[ext]
+            : null;
 }
 
+// determine if any MIME type is allowed
 export function allowedMIME(mimeType) {
-    return Object.keys(mimeTypes).find(ext => mimeTypes[ext] === mimeType);
+    return Object.keys(imageMIMETypes).find(ext => imageMIMETypes[ext] === mimeType)
+        || Object.keys(supplementalMIMETypes).find(ext => supplementalMIMETypes[ext] === mimeType);
+}
+
+// determine if image MIME type is allowed
+export function allowedImageMIME(mimeType) {
+    return Object.keys(imageMIMETypes).find(ext => imageMIMETypes[ext] === mimeType);
 }
 
 

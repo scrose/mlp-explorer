@@ -65,7 +65,7 @@ export function filterByIDArray(ids, offset, limit) {
 }
 
 /**
- * Query: Get all files attached to a station ID.
+ * Query: Get all historic image files attached to a station ID.
  *
  * @return {Object} query binding
  */
@@ -95,7 +95,7 @@ export function getHistoricImageFilesByStationID(id) {
 }
 
 /**
- * Query: Get all files attached to a station ID.
+ * Query: Get all modern image files attached to a station ID.
  *
  * @return {Object} query binding
  */
@@ -122,6 +122,53 @@ export function getModernImageFilesByStationID(id) {
             )
             SELECT * FROM files 
                 INNER JOIN mcaps ON mcaps.nodes_id = files.owner_id
+                INNER JOIN modern_images ON modern_images.files_id = files.id
+          ;`;
+    return {
+        sql: sql,
+        data: [id],
+    };
+}
+
+/**
+ * Query: Get all unsorted capture image files attached to a station ID.
+ *
+ * @return {Object} query binding
+ */
+
+export function getUnsortedImageFilesByStationID(id) {
+    let sql = `
+            WITH 
+            hcaps AS (
+                SELECT historic_captures.nodes_id, historic_captures.owner_id
+                FROM historic_captures
+                WHERE owner_id = $1::integer
+            ),
+            mcaps AS (
+                SELECT modern_captures.nodes_id, modern_captures.owner_id
+                FROM modern_captures
+                WHERE owner_id = $1::integer
+            ),
+            mvs AS (
+                SELECT modern_visits.nodes_id as mv_node_id
+                FROM modern_visits
+                WHERE owner_id = $1::integer
+            ),
+            mvcaps AS (
+                SELECT modern_captures.nodes_id, modern_captures.owner_id 
+                FROM modern_captures
+                    INNER JOIN mvs ON modern_captures.owner_id = mv_node_id
+            )
+            SELECT * FROM files 
+                INNER JOIN hcaps ON hcaps.nodes_id = files.owner_id 
+                INNER JOIN historic_images ON historic_images.files_id = files.id
+            UNION
+            SELECT * FROM files 
+                INNER JOIN mcaps ON mcaps.nodes_id = files.owner_id 
+                INNER JOIN modern_images ON modern_images.files_id = files.id
+            UNION
+            SELECT * FROM files 
+                INNER JOIN mvcaps ON mvcaps.nodes_id = files.owner_id 
                 INNER JOIN modern_images ON modern_images.files_id = files.id
           ;`;
     return {

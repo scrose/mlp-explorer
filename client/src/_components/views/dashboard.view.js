@@ -7,12 +7,12 @@
  */
 
 import React from 'react'
-import Carousel from "../common/carousel";
 import {viewerWelcome} from "../content/frontpage.static";
 import {useRouter} from "../../_providers/router.provider.client";
 import {UserMessage} from "../common/message";
 import {MLPLogo} from "../common/logo";
 import {schema} from "../../schema";
+import Slideshow from "../common/slideshow";
 
 
 /**
@@ -25,19 +25,29 @@ import {schema} from "../../schema";
 const DashboardView = () => {
 
     const [error, setError] = React.useState(null);
-    const [images, setLoadedImages] = React.useState([]);
-    const [captions, setCaptions] = React.useState([]);
-    const [titles, setTitles] = React.useState([]);
+    const [images, setImages] = React.useState([]);
+    const [loaded, setLoaded] = React.useState(false);
+
     const _isMounted = React.useRef(true);
 
     const router = useRouter();
 
-    // API call to retrieve random image data
+    /**
+     * Viewer slideshow: References Project with 'showcase' as the description
+     * - Use unsorted captures for the slides.
+     * - slide order = capture fn_photo_reference;
+     * - slide caption = capture comments;
+     * - slide title = capture label;
+     * - slide link = capture digitization_location;
+     *
+     * @public
+     * @return {JSX.Element} result
+     */
     React.useEffect(() => {
 
         _isMounted.current = true;
 
-        if (!error && images.length === 0) {
+        if (_isMounted.current && !error && !loaded) {
 
             // get project showcase data
             // - defined project ID
@@ -47,13 +57,15 @@ const DashboardView = () => {
                     if (_isMounted.current) {
                         if (res.error) return setError(res.error);
                         const {response = {}} = res || {};
-                        const {data = {}} = response || {};
+                        const {data = []} = response || {};
 
                         const sorter = function(a, b) {
                             try {
-                                return a.metadata.fn_photo_reference
+                                return (a.metadata.fn_photo_reference || '')
                                     .localeCompare(
-                                        b.metadata.fn_photo_reference, undefined, { numeric: true, sensitivity: 'base' }
+                                        (b.metadata.fn_photo_reference || ''),
+                                        undefined,
+                                        { numeric: true, sensitivity: 'base' }
                                     );
                             } catch (err) {
                                 console.error(err);
@@ -63,25 +75,16 @@ const DashboardView = () => {
                         // sort by label
                         data.sort(sorter);
 
-                        // set loaded image pairs
-                        let loadedTitles = [];
-                        let loadedCaptions = [];
-                        let loadedLinks = [];
-                        setLoadedImages(data.map(capture => {
+                        // load slideshow images
+                        setImages(data.map(capture => {
                             const {refImage = {}, label = '', metadata = {}} = capture || {};
                             const {comments = '', digitization_location=''} = metadata || {};
-                            console.log(data, comments)
-                            loadedCaptions.push(comments);
-                            loadedTitles.push(label);
-                            loadedLinks.push(digitization_location);
+                            refImage.caption = comments;
+                            refImage.title = label;
+                            refImage.link = digitization_location;
                             return refImage
                         }));
-
-
-                        // set loaded image pairs captions
-                        setCaptions(loadedCaptions);
-                        // set loaded image pairs titles
-                        setTitles(loadedTitles);
+                        setLoaded(true);
                     }
                 })
                 .catch(err => console.error(err)
@@ -90,11 +93,11 @@ const DashboardView = () => {
                 _isMounted.current = false;
             };
         }
-    });
+    }, [error, router, images, loaded]);
 
     return <>
         <div className={'heading h-menu'}>
-            <ul style={{flex: ''}}>
+            <ul>
                 <li>
                     <div className={'logo'}><MLPLogo colour={'#EEEEEE'} /></div>
                 </li>
@@ -102,15 +105,13 @@ const DashboardView = () => {
             </ul>
         </div>
         <div style={{paddingTop: '20px'}}>
-            {!error && <Carousel
+            {!error && <Slideshow
                 fit={'cover'}
-                images={images}
+                fixedHeight={false}
+                items={images}
                 thumbnails={false}
                 slideshow={true}
                 autoslide={8000}
-                titles={titles}
-                captions={captions}
-                links={[]}
             />
             }
             <div className={'dashboard'}>

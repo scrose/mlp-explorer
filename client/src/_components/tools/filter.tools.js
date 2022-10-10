@@ -1,6 +1,6 @@
 /*!
  * MLP.Client.Components.Tools.Filter
- * File: filter.view.js
+ * File: filter.tools.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
@@ -11,31 +11,28 @@ import { genID } from '../../_utils/data.utils.client';
 import MetadataView from '../views/metadata.view';
 import { getModelLabel } from '../../_services/schema.services.client';
 import Accordion from '../common/accordion';
-import PageMenu from '../menus/page.menu';
+import SearchMenu from '../menus/search.menu';
 import { useRouter } from '../../_providers/router.provider.client';
 import { createRoute } from '../../_utils/paths.utils.client';
-
-/**
- * Generate unique key.
- */
-
-const keyID = genID();
 
 /**
  * Filtered items component.
  *
  * @public
- * @param {Array} items
- * @return {Object}
+ * @param {Array} data
+ * @return {JSX.Element}
  */
 
 const FilterTools = ({data}) => {
 
+    const router = useRouter();
+
+    // Generate unique key for listed items
+    const keyID = genID();
+
     let {query='', offset=0, limit=10, results=[], count=0} = data || {};
     limit = parseInt(String(limit));
-    offset = parseInt(String(offset))
-
-    const router = useRouter();
+    offset = parseInt(String(offset));
 
     // create search data state
     const [searchOffset, setSearchOffset] = React.useState(offset);
@@ -89,12 +86,8 @@ const FilterTools = ({data}) => {
     const hasPrev = 0 < searchOffset;
 
     return <>
-        <h4>
-            {
-                results.length > 0 &&`Results found: ${count}`
-            }
-        </h4>
-        <PageMenu
+        <h4>{ results.length > 0 &&`Results found: ${count}` }</h4>
+        <SearchMenu
             total={count}
             hasPrev={hasPrev}
             hasNext={hasNext}
@@ -110,7 +103,7 @@ const FilterTools = ({data}) => {
             </ol>
             : <p>No Results.</p>
         }
-        <PageMenu
+        <SearchMenu
             total={count}
             hasPrev={hasPrev}
             hasNext={hasNext}

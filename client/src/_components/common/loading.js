@@ -15,10 +15,10 @@ import Icon from './icon';
  * @public
  */
 
-const Loading = ({ overlay = false, className='', onStop=()=>{} }) => {
+const Loading = ({ overlay = false, label='', className='', onStop=()=>{} }) => {
     return <div onDoubleClick={onStop}  className={`spinner ${overlay ? 'overlay' : ''} ${className}`}>
         <div className={`spinner-icon ${overlay ? 'overlay' : ''}`}>
-            <Icon type={'spinner'} size={'lg'} spin={true} />
+            <Icon type={'spinner'} size={'lg'} spin={true} />{ label && <span>{label}</span> }
         </div>
     </div>;
 };

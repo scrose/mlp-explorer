@@ -94,6 +94,7 @@ import {
     faFileArchive,
     faExternalLinkSquareAlt,
     faExclamationTriangle,
+    faArrowAltCircleRight,
 
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -107,7 +108,7 @@ import {
  */
 
 
-export const faSurveyor = {
+export const facSurveyor = {
     prefix: 'fas',
     iconName: 'surveyor',
     icon: [22, 32, [], null,
@@ -115,7 +116,7 @@ export const faSurveyor = {
     ]
 }
 
-export const faMLPWordmark = {
+export const facMLPWordmark = {
     prefix: 'fas',
     iconName: 'mlp_wordmark',
     icon: [103, 35, [], null,
@@ -136,8 +137,8 @@ library.add(
     faCircle,
     faSearchMinus,
     faSearchPlus,
-    faSurveyor,
-    faMLPWordmark,
+    facSurveyor,
+    facMLPWordmark,
     faSync,
     faFileAlt,
     faFileCsv,
@@ -221,6 +222,7 @@ library.add(
     faArrowsAlt,
     faExternalLinkSquareAlt,
     faExclamationTriangle,
+    faArrowAltCircleRight
 );
 
 
@@ -237,8 +239,10 @@ const getIconClass = (iconType) => {
         menu: 'bars',
         home: 'home',
         dashboard: 'columns',
+        submit: 'check-circle',
         user: 'user',
         login: 'sign-in-alt',
+        users: 'sign-in-alt',
         logout: 'sign-out-alt',
         info: 'info-circle',
         show: 'info-circle',
@@ -264,8 +268,10 @@ const getIconClass = (iconType) => {
         align: 'images',
         overlay: 'columns',
         filter: 'filter',
+        mapFilter: 'filter',
         search: 'search',
         undo: 'undo',
+        reset: 'undo',
         sync: 'sync',
         erase: 'eraser',
         swap: 'exchange-alt',
@@ -326,6 +332,9 @@ const getIconClass = (iconType) => {
         maps: 'map',
         participants: 'users',
         participant_groups: 'users',
+        hiking_party: 'users',
+        photographers: 'users',
+        field_notes_authors: 'users',
         comparisons: 'images',
         iat: 'toolbox',
         jpg: 'file-image',

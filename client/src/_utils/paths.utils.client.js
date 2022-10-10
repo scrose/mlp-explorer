@@ -35,6 +35,10 @@ export function getRoot() {
  * Create node route for requested model, view, id, group.
  * - format: <MODEL>/<VIEW>/<ID>/<GROUP>
  *
+ * @param {String} model
+ * @param {String} view
+ * @param {String} id
+ * @param {String} group
  * @public
  */
 

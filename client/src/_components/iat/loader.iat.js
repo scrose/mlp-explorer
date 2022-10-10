@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.IAT.Load
+ * MLP.Client.IAT.Loader
  * File: loader.iat.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -135,7 +135,7 @@ export const loadImageData = async (properties, callback) => {
     // invalid load request
     return callback({
         status: 'cancel',
-        error: {msg: 'Image load cancelled.', type:'info'}
+        message: {msg: 'Image load cancelled.', type:'info'}
     });
 }
 

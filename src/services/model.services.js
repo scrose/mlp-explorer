@@ -131,11 +131,11 @@ export default function ModelServices(model) {
      * @return {Promise} result
      */
 
-    this.move = async function(item, owner) {
+    this.move = async function(item, owner, client) {
         // update item owner
         item.owner = owner.id || 0;
         // get attached files
-        const files = await fserve.selectByOwner(item.id) || [];
+        const files = await fserve.selectByOwner(item.id, client) || [];
         // generate node model from item reference
         const node = await cserve.createNode(item);
 
@@ -158,13 +158,13 @@ export default function ModelServices(model) {
      *
      * @public
      * @param item
-     * @param files
+     * @param client
      * @return {Promise} result
      */
 
-    this.remove = async function(item=[]) {
+    this.remove = async function(item=[], client) {
         // get attached files
-        const files = await fserve.selectByOwner(item.id) || [];
+        const files = await fserve.selectByOwner(item.id, client) || [];
 
         let stmts = {
             node: nqueries.remove,

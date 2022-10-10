@@ -10,7 +10,6 @@ import React from 'react';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
 import Button from './button';
-import Image from "./image";
 
 /**
  * Inline vertical accordion menu component.
@@ -18,6 +17,15 @@ import Image from "./image";
  *   be toggled.
  *
  * @public
+ * @param {String} className
+ * @param type
+ * @param label
+ * @param id
+ * @param open
+ * @param menu
+ * @param hasDependents
+ * @param hideOnClick
+ * @param children
  * @return {JSX.Element}
  */
 
@@ -29,25 +37,45 @@ const Accordion = ({
                        open=false,
                        menu=null,
                        hasDependents=false,
-                       thumbnail={},
+                       hideOnClick=false,
                        children=null
                    }) => {
 
+    const router = useRouter();
+
     // accordion toggle state
     const [toggle, setToggle] = React.useState(open);
-    const router = useRouter();
+    const dropdown = React.useRef();
+
+    // Add document click event listener to allow dropdown to close on body click
+    React.useEffect(() => {
+        if (hideOnClick) {
+            // create hide dropdown function
+            const hideDropdown = (e) => {
+                if (dropdown.current && !dropdown.current.contains(e.target)) {
+                    setToggle(false);
+                }
+            }
+            // add event listener to handle document click (to close dropdown)
+            document.addEventListener('click', hideDropdown);
+            // remove the event listener when component unmounts
+            return () => {
+                document.removeEventListener('click', hideDropdown);
+            };
+        }
+    });
 
     // toggle accordion data display
     const _handleToggle = (e) => {
         e.preventDefault();
+        e.stopPropagation();
         setToggle(!toggle);
     }
 
     // toggle accordion data
-    const _handleView = () => {
-        id
-            ? router.update(createNodeRoute(type, 'show', id))
-            : setToggle(!toggle)
+    const _handleView = (e) => {
+        e.stopPropagation();
+        id ? router.update(createNodeRoute(type, 'show', id)) : setToggle(!toggle);
     }
 
     return <div className={`accordion ${className}`}>
@@ -55,56 +83,41 @@ const Accordion = ({
             <ul>
                 {
                     (hasDependents || children) &&
-                        <li key={`accordion_toggle`}>
-                            <Button
-                                icon={toggle ? 'vopen' : 'vclose'}
-                                title={toggle ? 'Collapse' : 'Expand'}
-                                onClick={_handleToggle}
-                            />
-                        </li>
-                }
-                {
-                    Object.keys(thumbnail).length > 0 && children &&
-                    <li key={`accordion_thumbnail`}>
-                        <Image
-                            url={thumbnail.url}
-                            scale={'thumb'}
-                            title={label}
-                            caption={thumbnail.label}
+                    <li key={`accordion_toggle`}>
+                        <Button
+                            icon={toggle ? 'vopen' : 'vclose'}
+                            title={toggle ? 'Collapse' : 'Expand'}
                             onClick={_handleToggle}
                         />
                     </li>
                 }
                 {
                     type && children &&
-                        <li key={`accordion_icon`}>
-                            <Button
-                                icon={type}
-                                title={toggle ? 'Collapse' : 'Expand'}
-                                onClick={_handleView} />
-                        </li>
+                    <li key={`accordion_icon`}>
+                        <Button
+                            icon={type}
+                            title={toggle ? 'Collapse' : 'Expand'}
+                            onClick={_handleView} />
+                    </li>
                 }
                 {
                     label &&
-                        <li key={`accordion_label`}>
-                            <Button
-                                title={`Go to ${label}.`}
-                                onClick={_handleView}
-                                label={label}
-                            />
-                        </li>
+                    <li key={`accordion_label`}>
+                        <Button
+                            title={`View ${label}.`}
+                            onClick={_handleView}
+                            label={label}
+                        />
+                    </li>
                 }
                 {
                     menu && <li key={`accordion_menu`} className={'accordion-menu'}>{ menu }</li>
                 }
             </ul>
         </div>
-        {
-            toggle &&
-            <div className={`accordion-data ${toggle ? 'open' : ''}`}>
-                <>{children}</>
-            </div>
-        }
+        <div ref={dropdown} className={`accordion-data ${toggle ? 'open' : ''}`}>
+            { toggle && <>{children}</> }
+        </div>
     </div>
 }
 

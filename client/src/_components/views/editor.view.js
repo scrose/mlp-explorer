@@ -1,17 +1,17 @@
 /*!
- * MLP.Client.Components.Editor
- * File: editor.js
+ * MLP.Client.Components.Views.Editor
+ * File: editor.view.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
  */
 
 import React from 'react';
-import DataView from './data.view';
+import DataView from '../selectors/view.selector';
 import Message from '../common/message';
-import StaticView from './static.view';
+import StaticView from '../selectors/static.selector';
 import { useRouter } from '../../_providers/router.provider.client';
-import HeadingMenu from '../menus/heading.menu';
+import HeaderMenu from '../menus/header.menu';
 import {useWindowSize} from "../../_utils/events.utils.client";
 import Footer from "../common/footer";
 
@@ -34,7 +34,7 @@ const EditorView = () => {
                     className={`view dashboard`}
                     style={{height: (winHeight - 140) + 'px'}}
                 >
-                    <HeadingMenu/>
+                    <HeaderMenu/>
                     <Message/>
                     {
                         router.staticView

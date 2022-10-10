@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Views.Capture
+ * MLP.Client.Components.Views.Captures
  * File: capture.view.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -11,15 +11,13 @@ import MetadataView from './metadata.view';
 import Carousel from '../common/carousel';
 import Table from '../common/table';
 import { sanitize } from '../../_utils/data.utils.client';
-import { useUser } from '../../_providers/user.provider.client';
 import {createNodeRoute, getExtension} from '../../_utils/paths.utils.client';
 import Image from '../common/image';
 import { useRouter } from '../../_providers/router.provider.client';
-import EditorMenu from '../menus/editor.menu';
 import { useData } from '../../_providers/data.provider.client';
-import { getModelLabel } from '../../_services/schema.services.client';
 import Tabs from '../common/tabs';
 import Comparator from "../common/comparator";
+import {EditorMenu} from "../menus/editor.menu";
 
 /**
  * View available versions of capture images.
@@ -27,33 +25,30 @@ import Comparator from "../common/comparator";
  *   modern capture images only.
  *
  * @public
- * @param {String} model
  * @param {String} type
  * @param {Object} owner
  * @param {Array} files
+ * @param callback
+ * @param menu
  * @return {JSX.Element}
  */
 
-export const CaptureImagesTable = ({type, owner, files=[]}) => {
+export const CaptureImagesTable = ({type, owner, files=[], callback=()=>{}}) => {
 
-    const user = useUser();
     const router = useRouter();
     const api = useData();
 
     // prepare capture images columns
     const cols = [
         { name: 'thumbnail', label: 'Image', class: 'image-thumbnail'},
-        { name: 'mime_type', label: 'Format'},
-        { name: 'image_state', label: 'State'},
+        { name: 'details', label: 'Details'},
         { name: 'width', label: 'Width'},
         { name: 'height', label: 'Height'},
         { name: 'file_size', label: 'File Size'}
     ];
 
     // include editor menu for logged-in users
-    if (user) {
-        cols.push({ name: 'menu', label: 'Edit Options' })
-    }
+    cols.push({ name: 'menu', label: '' })
 
     // prepare capture image data rows
     const rows = files.map(fileData => {
@@ -77,10 +72,10 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
                     router.update(createNodeRoute(file_type, 'show', id))
                 }}
             />,
-            mime_type: (metadata.mimetype || getExtension(filename)).toUpperCase(),
-            image_state: imageState && imageState.hasOwnProperty('label')
-                ? imageState.label
-                : 'n/a',
+            details: <>
+                <div>{(metadata.mimetype || getExtension(filename)).toUpperCase()}</div>
+                <div>{imageState && imageState.hasOwnProperty('label') ? imageState.label : 'n/a'}</div>
+            </>,
             width: sanitize(metadata.x_dim, 'imgsize'),
             height: sanitize(metadata.y_dim, 'imgsize'),
             file_size: sanitize(file.file_size, 'filesize')
@@ -91,25 +86,23 @@ export const CaptureImagesTable = ({type, owner, files=[]}) => {
         metadata.file_size = file.file_size;
         metadata.mimetype = file.mimetype;
 
-        // add editor menu for logged-in users
-        if (user) {
-            row.menu =  <EditorMenu
-                            view={'capture'}
-                            fileType={type}
-                            filename={filename}
-                            model={type}
-                            id={id}
-                            owner={owner}
-                            label={label}
-                            metadata={metadata}
-                          />;
-        }
+        // add menu
+        row.menu = <EditorMenu
+            className={'right-aligned'}
+            id={id}
+            model={type}
+            owner={owner}
+            label={label}
+            metadata={metadata}
+            callback={callback}
+            visible={['show', 'edit', 'remove']}
+        />;
         return row;
     });
 
     return  rows.length > 0
         ? <Table rows={rows} cols={cols} className={'files'} />
-        : <div>No Images</div>
+        : <p>No Images</p>
 }
 
 /**
@@ -146,36 +139,48 @@ const CaptureView = ({model, data, fileType}) => {
     const _tabItems = [
         {
             label: `Image Viewer`,
-            data: <Carousel
-                    fit={'contain'}
-                    autoslide={false}
-                    images={captureImages}
-                    titles={captureImages.map(item => {return `${item.label} [${item.metadata.image_state}]`})}
-                />,
-        },
-        {
-            label: `${getModelLabel(model)} Details`,
-            data: <MetadataView model={model} metadata={metadata} node={node} />,
+            data: <Carousel items={captureImages.map(image => {
+                // get node metadata
+                const {
+                    id = '',
+                    file={},
+                    owner = {},
+                    type = '',
+                    label = '',
+                    metadata = {}
+                } = api.destructure(image) || {};
+                const {url={}} = image || {};
+                // include file metadata
+                const updatedMetadata = Object.keys(file).reduce((o, key) => {
+                    o[key] = file[key];
+                    return o;
+                }, metadata);
+                return { id: id, owner: owner, model: type, url: url, label: label, metadata: updatedMetadata }
+            })} />,
         },
         {
             label: `Comparisons`,
-            data: Object.keys(attached.comparisons).length > 0
+            data: Object.keys(attached.comparisons || {}).length > 0
                 ? <Comparator images={attached.comparisons} />
-                : 'No Paired Images'
+                : <p>No Paired Images</p>
         },
         {
-            label: `Image Versions`,
+            label: `Versions`,
             data: <CaptureImagesTable
-                    type={fileType}
-                    owner={{ id: id, type: model, sorted: status.sorted }}
-                    files={captureImages}
-                />,
+                type={fileType}
+                owner={{ id: id, type: model, sorted: status.sorted }}
+                files={captureImages}
+            />,
+        },
+        {
+            label: `Details`,
+            data: <MetadataView model={model} metadata={metadata} node={node} />,
         },
     ];
 
     // render capture tabs
     return (
-        <Tabs items={_tabItems} orientation={'horizontal'} />
+        <Tabs className={'captures'} items={_tabItems} orientation={'horizontal'} />
     )
 }
 

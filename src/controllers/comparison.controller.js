@@ -76,7 +76,7 @@ export default function ComparisonController() {
 
 
     /**
-     * Get comparison capture data for given capture ID.
+     * Get comparison capture data for given capture owner ID.
      *
      * @param req
      * @param res
@@ -91,8 +91,8 @@ export default function ComparisonController() {
 
         try {
 
-            // get parent node ID and type from parameters
-            const parentID = req.params.id;
+            // get owner ID from parameters
+            const ownerID = req.params.id;
 
             // message
             let msg = null;
@@ -102,20 +102,19 @@ export default function ComparisonController() {
             let selectedCaptures = null;
 
             // get parent node data
-            const parentData = await nserve.get(parentID, client);
-            const { node = {} } = parentData || {};
+            const owner = await nserve.select(ownerID, client);
 
             // does the parent node exist?
-            if (!node.hasOwnProperty('type'))
+            if (!owner.hasOwnProperty('type'))
                 return next(new Error('invalidRequest'));
             // is it a valid sorted parent?
-            if ( node.type !== 'historic_visits' && node.type !== 'locations' )
+            if ( owner.type !== 'historic_visits' && owner.type !== 'locations' )
                 return next(new Error('invalidComparison'));
 
             // get path of owner node in hierarchy
-            const path = await nserve.getPath(node);
+            const path = await nserve.getPath(owner);
 
-            // get station node from capture
+            // get station node from current node path
             const stationKey = Object.keys(path)
                 .find(key => {
                     const {node={}} = path[key] || {};
@@ -124,20 +123,20 @@ export default function ComparisonController() {
                 });
 
             // Station found: include available capture data
-            const  {type='' } = node || {};
-
             if (stationKey) {
                 const station = path[stationKey].node;
-                // get captures available for comparison
-                availableCaptures = type === 'historic_visits'
+                // get capture IDs available for comparison
+                availableCaptures = owner.type === 'historic_visits'
                     ? await metaserve.getModernCapturesByStation(station, client)
                     : await metaserve.getHistoricCapturesByStation(station, client);
 
-                // get captures available for comparison
+                // get capture metadata available for comparison
                 availableCaptures = await Promise.all(
                     (availableCaptures || [])
                         .map(async (capture) => {
-                            return await nserve.get(capture.nodes_id, client);
+                            const captureNode = await nserve.select(capture.nodes_id, client);
+                            const {id=null, type=null} = captureNode || {};
+                            return await nserve.get(id, type, client);
                         })
                 );
 
@@ -145,10 +144,11 @@ export default function ComparisonController() {
                 selectedCaptures = await Promise.all(
                     (availableCaptures || [])
                         .map(async (capture) => {
-                            const { node={}} = capture || {};
+                            const {node=null} = capture || {};
                             return await getComparisonsByCapture(node, client) || [];
                         })
                 );
+
                 // reduce selected captures to array of node IDs
                 selectedCaptures = selectedCaptures.reduce((o, captures) => {
                     // const captureIDs = captures.map(capture => {
@@ -247,9 +247,8 @@ export default function ComparisonController() {
                 // append file data
                 const captureData = await Promise.all(
                     (captures || [])
-                        // .filter(comparison => comparison)
                         .map(async (capture) => {
-                            return await nserve.get(capture.id, client);
+                            return await nserve.get(capture.id, capture.type, client);
                         })
                 );
 

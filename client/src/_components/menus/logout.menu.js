@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Navigation.Logout
+ * MLP.Client.Components.Menus.Logout
  * File: login.menu.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -12,7 +12,6 @@ import { useAuth } from '../../_providers/auth.provider.client';
 import {redirect} from "../../_utils/paths.utils.client";
 import Accordion from "../common/accordion";
 import Button from "../common/button";
-import Loading from "../common/loading";
 import {useNav} from "../../_providers/nav.provider.client";
 
 /**
@@ -22,14 +21,14 @@ import {useNav} from "../../_providers/nav.provider.client";
  */
 
 const LogoutMenu = () => {
+
     const user = useUser();
     const auth = useAuth();
     const nav = useNav();
-    const [isLoggingOut, setIsLoggingOut] = React.useState(false);
+
     return (
         <nav className={'main'}>
-            { isLoggingOut && <Loading overlay={true} /> }
-            <Accordion type={'user'} label={ !nav.offCanvas ? user.email : ''}>
+            <Accordion type={'user'} label={ !nav.offCanvas ? user.email : ''} hideOnClick={true}>
                 <ul className={'user-menu'}>
                         <li><b>{user.email} ({user.label})</b></li>
                         <li><Button
@@ -37,11 +36,7 @@ const LogoutMenu = () => {
                             icon={'logout'}
                             label={'Sign Out'}
                             onClick={() => {
-                                setIsLoggingOut(true);
-                                auth.logout().then(() => {
-                                    setIsLoggingOut(false);
-                                    redirect('/')
-                                })
+                                auth.logout().then(() => {redirect('/')})
                             }}
                         /></li>
                 </ul>

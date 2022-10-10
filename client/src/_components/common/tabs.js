@@ -8,6 +8,11 @@
 
 import React from 'react';
 import Button from './button';
+import {genID} from "../../_utils/data.utils.client";
+import {getPref, setPref} from "../../_services/session.services.client";
+
+// generate unique ID value for tabs
+const tabID = genID();
 
 /**
  * Tab layout.
@@ -16,21 +21,27 @@ import Button from './button';
  *   {[ID]: { label: <LABEL>, data: <CONTENT>}, ... }
  *
  * @public
+ * @param items
+ * @param defaultTab
+ * @param className
+ * @param orientation
+ * @param menu
  * @return {JSX.Element}
  */
 
 const Tabs = ({
+                  prefKey=null,
                   items = [],
                   defaultTab = 0,
-                  className = '',
-                  orientation = 'vertical',
+                  className = 'default',
+                  orientation = 'vertical'
               }) => {
 
-    // selected tab state
-    const [selectedTabID, setSelectedTabID] = React.useState(defaultTab);
+    // get preferential tab ID in local storage as initial open tab
+    const initTab = prefKey && getPref(prefKey) ? getPref(prefKey) : defaultTab;
 
-    // generate unique ID value for tabs
-    const tabID = Math.random().toString(16).substring(2);
+    // selected tab state (get any preference history for selected tabs component)
+    const [selectedTabID, setSelectedTabID] = React.useState(initTab);
 
     // highlight selected tab (via classname)
     const onToggle = (id) => {
@@ -53,17 +64,19 @@ const Tabs = ({
                 <li className={`tab-menu ${menuOrientation}`}>
                     <ul>
                         {
-                            items.map((item, id) => {
+                            items.map((item, index) => {
                                 const { label = '' } = item || {};
-                                return <li key={`tab_${tabID}_${id}`}>
+                                return <li key={`tab_${tabID}_${index}`}>
                                     <Button
                                         disabled={!item.data}
-                                        className={selectedTabID === id ? 'active' : ''}
-                                        icon={onToggle(id)}
+                                        className={selectedTabID === index ? 'active' : ''}
+                                        icon={onToggle(index)}
                                         title={`Open ${label} tab.`}
                                         label={label}
                                         onClick={() => {
-                                            setSelectedTabID(id);
+                                            setSelectedTabID(index);
+                                            // set tab preference to index
+                                            if (prefKey) setPref(prefKey, index);
                                         }}
                                     />
                                 </li>;
@@ -73,9 +86,7 @@ const Tabs = ({
                 </li>
                 <li className={`tab-data ${orientation}`}>
                     {
-                        items.hasOwnProperty(selectedTabID)
-                            ? items[selectedTabID].data || ''
-                            : ''
+                        items.hasOwnProperty(selectedTabID) ? items[selectedTabID].data || '' : ''
                     }
                 </li>
             </ul>

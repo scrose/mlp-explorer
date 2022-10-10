@@ -9,7 +9,6 @@
 import React from 'react'
 import {useRouter} from '../../_providers/router.provider.client';
 import {useData} from '../../_providers/data.provider.client';
-import {useUser} from '../../_providers/user.provider.client';
 import {createNodeRoute} from '../../_utils/paths.utils.client';
 import {getModelLabel, getNodeOrder} from '../../_services/schema.services.client';
 import {addNode, checkNode, removeNode} from '../../_services/session.services.client';
@@ -19,43 +18,54 @@ import Loading from '../common/loading';
 import Accordion from "../common/accordion";
 import {useNav} from "../../_providers/nav.provider.client";
 import {useWindowSize} from "../../_utils/events.utils.client";
+import {EditorMenu} from "../menus/editor.menu";
+import {useUser} from "../../_providers/user.provider.client";
+import {useDialog} from "../../_providers/dialog.provider.client";
 
 /**
- * Inline tree node menu component.
- * - Creates collapsible containers for dependent nodes that can
- *   be toggled.
- * - Sets route for requested node data not yet loaded.
+ * Navigation tree node component.
  *
  * @public
- * @param {String} id
- * @param {String} model
- * @param {String} label
- * @param {boolean} toggle
- * @param {Function} onToggle
- * @param {String} isCurrent
- * @param {boolean} hasDependents
- * @return {Object}
+ * @param {Object} item
  */
 
-const TreeNodeMenu = ({
-                          id,
-                          model,
-                          label = '',
-                          toggle,
-                          setToggle,
-                          isCurrent = '',
-                          hasDependents = false,
-                          status = null
-                      }) => {
+const TreeNode = ({data}) => {
 
-    const router = useRouter();
-    const nav = useNav();
+    // destructure node data
+    const {
+        type='',
+        id='',
+        label='',
+        hasDependents=false,
+        status=null,
+        metadata=null,
+        attached=null,
+        owner=null
+    } = data || {};
+
+    // create dynamic data states
+    const [toggle, setToggle] = React.useState(checkNode(id));
+    const [isCurrent, setCurrent] = React.useState(false);
+    const [loadedData, setLoadedData] = React.useState(null);
     const [highlight, setHighlight] = React.useState(false);
+    const [menu, setMenu] = React.useState(false);
+    const [error, setError] = React.useState(null);
+    const treeNode = React.createRef();
+    const _isMounted = React.useRef(true);
+
+    // initialization
+    const router = useRouter();
+    const api = useData();
+    const nav = useNav();
+    const dialog = useDialog();
 
     // get user role
     const user = useUser();
     const {role = ['']} = user || {};
     const isAdmin = role[0] === 'administrator' || role[0] === 'super_administrator';
+
+    // get full model label
+    const modelLabel = getModelLabel(type);
 
     // handle toggle events
     const _handleToggle = () => {
@@ -70,14 +80,30 @@ const TreeNodeMenu = ({
         // add node to session path
         addNode(id);
         // reroute to requested data view
-        router.update(createNodeRoute(model, 'show', id));
+        router.update(createNodeRoute(type, 'show', id));
     }
 
+    // handle dialog view
+    // - sets node data in provider to load in dialog view
+    const _handleDialog = (dialogID) => {
+        dialog.setCurrent({
+            dialogID: dialogID,
+            id: id,
+            model: type,
+            label: label,
+            metadata: metadata,
+            attached: attached,
+            owner: owner,
+        });
+    };
+
     // handle status of nodes: cascades status levels
-    const getStatus = () => {
+    const _getStatus = () => {
 
         // filter classifications for captures
-        if (model === 'historic_captures' || model === 'modern_captures') {
+        if (type === 'historic_captures' || type === 'modern_captures') {
+            if (status.mastered) return 'mastered';
+            if (status.repeated) return 'repeated';
             if (status.missing) return 'missing';
             if (status.sorted) return 'sorted';
             if (!status.sorted) return 'unsorted';
@@ -93,14 +119,6 @@ const TreeNodeMenu = ({
         return 'unprocessed';
     }
 
-    // toggle button classnames
-    const classnames = [
-        'tree-node',
-        hasDependents ? 'toggle' : 'leaf',
-        toggle || checkNode(id) ? 'active' : '',
-        isCurrent ? 'current' : ''
-    ];
-
     /**
      * Drag-and-drop handlers for node moves.
      *
@@ -108,6 +126,15 @@ const TreeNodeMenu = ({
      * @param {Object} e
      */
 
+    const _handleDragStart = (e) => {
+        // attach node metadata to data transfer object
+        e.dataTransfer.setData(
+            'application/json',
+            JSON.stringify({
+                id: id, model: type, label: label, metadata: metadata, owner: owner
+            })
+        );
+    };
     const _handleDragOver = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -132,118 +159,32 @@ const TreeNodeMenu = ({
                 source: {
                     id: source.id || '',
                     model: source.model || '',
-                    label: source.label || ''
+                    label: source.label || '',
+                    metadata: source.metadata || {},
+                    owner: source.owner || {}
                 },
                 destination: {
                     id: id,
-                    model: model,
+                    model: type,
                     label: label,
                 }
             });
-            nav.setDialog('move');
+            _handleDialog('move');
         }
     };
 
-    return <div
-        className={'tree-node h-menu'}
-        onDrop={_handleDrop}
-        onDragOver={_handleDragOver}
-        onDragLeave={_handleDragLeave}
-    >
-        <ul className={highlight ? 'capture-draggable-highlight' : ''}>
-            <li>
-                <Button
-                    icon={
-                        hasDependents
-                            ? (toggle ? 'collapse' : 'expand')
-                            : 'empty'
-                    }
-                    className={classnames.join(' ')}
-                    title={`Expand ${label}.`}
-                    onClick={hasDependents ? _handleToggle : () => {}}
-                />
-            </li>
-            <li>
-                <Button
-                    icon={model}
-                    size={'lg'}
-                    className={`tree-node-icon ${isCurrent
-                        ? ' current'
-                        : ''} ${status ? getStatus() : ''}`}
-                    title={
-                        `View ${getModelLabel(model)}: ${label} ${status ? ' \nSTATUS: ' + capitalize(getStatus()) : ''}`
-                    }
-                    onClick={_handleView}
-                />
-            </li>
-            <li>
-                <Button
-                    label={label}
-                    size={'sm'}
-                    className={`tree-node-label`}
-                    title={`View ${getModelLabel(model)}: ${label}`}
-                    onClick={_handleView}
-                />
-            </li>
-            {
-                (model === 'modern_captures' || model === 'historic_captures') && isAdmin && <li
-                    className={'move'}
-                    draggable={true}
-                    onDragStart={(e) => {
-                        // attach node metadata to data transfer object
-                        e.dataTransfer.setData(
-                            'application/json',
-                            JSON.stringify({
-                                id: id, model: model, label: label
-                            })
-                        );
-                    }}
-                >
-                    <Button className={'move'} icon={'move'} title={`Move ${label} to a new owner.`} />
-                </li>
-            }
-        </ul>
-    </div>;
-};
-
-/**
- * Navigation tree node component.
- *
- * @public
- * @param {String} id
- * @param {Object} node
- * @param {String} type
- * @param {String} label
- * @param {String} hasDependents
- * @param {Object} status
- */
-
-const TreeNode = ({
-                      id,
-                      type,
-                      label,
-                      hasDependents,
-                      status,
-                      setDialog
-                  }) => {
-
-    // create dynamic data states
-    const [toggle, setToggle] = React.useState(checkNode(id));
-    const [isCurrent, setCurrent] = React.useState(false);
-    const [loadedData, setLoadedData] = React.useState(null);
-    const [statusData, setStatusData] = React.useState(status);
-    const [error, setError] = React.useState(null);
-    const treeNode = React.createRef();
-    const _isMounted = React.useRef(true);
-
-    // initialization
-    const router = useRouter();
-    const api = useData();
+    // toggle button classnames
+    const classnames = [
+        'tree-node',
+        hasDependents ? 'toggle' : 'leaf',
+        toggle || checkNode(id) ? 'active' : '',
+        isCurrent ? 'current' : ''
+    ];
 
     // scroll to current top node
     React.useEffect(() => {
         _isMounted.current = true;
-        if ( _isMounted.current && (api.nodes.includes(id) && (type === 'surveyor' || type === 'projects') )) {
+        if ( _isMounted.current && (api.nodes.includes(id) && (type === 'surveyors' || type === 'projects') )) {
             treeNode.current.scrollIntoView();
         }
         return () => {
@@ -251,14 +192,16 @@ const TreeNode = ({
         };
     }, [api, id, type, treeNode]);
 
+    // highlight tree node if in the current path
+    React.useEffect(() => {
+        setCurrent(api.nodes.includes(id));
+    }, [api, id]);
+
     // API call to retrieve node data (if not yet loaded)
     React.useEffect(() => {
-
         _isMounted.current = true;
 
-        // include current node path as toggled
-        setCurrent(api.nodes.includes(id));
-
+        // load tree node data
         if (!error && hasDependents && toggle && !loadedData) {
             const route = createNodeRoute('nodes', 'show', id);
             router.get(route)
@@ -271,7 +214,7 @@ const TreeNode = ({
                         // destructure any available dependent nodes
                         const {response = {}} = res || {};
                         let {data = {}} = response || {};
-                        const {dependents = [], status = null} = data || {};
+                        const {dependents = []} = data || {};
 
                         // separate sorted from unsorted captures or non-capture nodes
                         const unsorted = dependents.filter(item => {
@@ -290,7 +233,6 @@ const TreeNode = ({
                             sorted: sorted,
                             unsorted: unsorted
                         });
-                        setStatusData(status);
                     }
                 })
                 .catch(err => console.error(err)
@@ -308,8 +250,7 @@ const TreeNode = ({
         treeNode,
         loadedData,
         setLoadedData,
-        error,
-        setStatusData
+        error
     ]);
 
     return (
@@ -318,24 +259,87 @@ const TreeNode = ({
             ref={treeNode}
             className={'tree-node'}
         >
-            <TreeNodeMenu
-                id={id}
-                model={type}
-                label={label}
-                toggle={toggle}
-                setToggle={setToggle}
-                isCurrent={isCurrent}
-                hasDependents={hasDependents}
-                status={statusData}
-                setDialog={setDialog}
-            />
+            <div
+                className={'h-menu'}
+                onDrop={_handleDrop}
+                onDragOver={_handleDragOver}
+                onDragLeave={_handleDragLeave}
+            >
+                <ul className={highlight ? 'capture-draggable-highlight' : ''}>
+                    {
+                        isAdmin && ( type === 'historic_captures' || type === 'modern_captures' ) ?
+                            <li
+                                className={'move'}
+                                draggable={true}
+                                onDragStart={_handleDragStart}
+                            >
+                                <Button className={'capture-draggable'} icon={'move'} title={`Move ${label} to a new owner.`}/>
+                            </li>
+                            : <li>
+                                <Button
+                                    icon={hasDependents ? (toggle ? 'collapse' : 'expand') : 'empty'}
+                                    className={classnames.join(' ')}
+                                    title={`Expand ${label}.`}
+                                    onClick={hasDependents ? _handleToggle : () => {}}
+                                />
+                            </li>
+                    }
+                    <li>
+                        <Button
+                            icon={type}
+                            size={'lg'}
+                            className={`tree-node-icon ${isCurrent ? ' current' : ''} ${status ? _getStatus() : ''}`}
+                            title={
+                                `View ${modelLabel}: ${label} ${status ? ' \nSTATUS: ' + capitalize(_getStatus()) : ''}`
+                            }
+                            onClick={_handleView}
+                        />
+                    </li>
+                    <li>
+                        <Button
+                            label={label}
+                            size={'sm'}
+                            className={`tree-node-label`}
+                            title={`View ${modelLabel}: ${label}`}
+                            onClick={_handleView}
+                        />
+                    </li>
+                    <li className={'push'}>
+                        {
+                            user
+                                ? <Button className={'right-aligned'} icon={menu ? 'close' : 'options'} size={'sm'} onClick={() => {
+                                    setMenu(!menu)
+                                }}/>
+                                : <EditorMenu
+                                    size={'sm'}
+                                    id={id}
+                                    model={type}
+                                    label={label}
+                                    metadata={metadata}
+                                    owner={owner}
+                                />}
+                    </li>
+                </ul>
+                {
+                    menu && <EditorMenu
+                        size={'lg'}
+                        className={'right-aligned node-menu'}
+                        id={id}
+                        model={type}
+                        label={label}
+                        metadata={metadata}
+                        owner={owner}
+                    />
+                }
+            </div>
             {
+                // toggle dependent nodes list
                 toggle && hasDependents
                     ? error
                         ? <Button className={'msg error'} label={'An error occurred'} icon={'error'}/>
                         : loadedData
                             ?   <>
-                                <TreeNodeList items={loadedData.sorted} setDialog={setDialog}/>
+                                <TreeNodeList items={loadedData.sorted} />
                                 {
                                     loadedData.unsorted.length > 0 &&
                                     <ul>
@@ -345,7 +349,7 @@ const TreeNode = ({
                                                 type={'historic_captures'}
                                                 label={'Unsorted Captures'}
                                             >
-                                                <TreeNodeList items={loadedData.unsorted} setDialog={setDialog}/>
+                                                <TreeNodeList items={loadedData.unsorted} />
                                             </Accordion>
                                         </li>
                                     </ul>
@@ -367,22 +371,39 @@ const TreeNode = ({
  * @public
  */
 
-const TreeNodeList = ({items, filter, setDialog}) => {
+const TreeNodeList = ({items}) => {
     return (
         <ul>
             {
                 // return sorted nodes
                 items
                     .map(item => {
-                        const {node = {}, hasDependents = false, status = {}, label = ''} = item || {};
-                        const {id = '', type = ''} = node || {};
+                        const {
+                            node = {},
+                            file={},
+                            hasDependents = false,
+                            status = {},
+                            label = '',
+                            metadata={},
+                            attached={}
+                        } = item || {};
+                        const { id = '', type = '', owner_id='', owner_type=''} = node || {};
+                        const { file_size=0, mimetype='', filename='' } = file || {};
+                        let itemMetadata = metadata || {};
+                        // include file metadata in details
+                        itemMetadata.filename = filename;
+                        itemMetadata.file_size = file_size;
+                        itemMetadata.mimetype = mimetype;
                         return {
                             type: type,
                             id: id,
                             label: label,
                             order: getNodeOrder(type || '') || 0,
                             hasDependents: hasDependents,
-                            status: status
+                            status: status,
+                            metadata: itemMetadata,
+                            attached: attached,
+                            owner: {type: owner_type, id: owner_id}
                         }
                     })
                     // sort alphabetically / numerically
@@ -393,15 +414,8 @@ const TreeNodeList = ({items, filter, setDialog}) => {
                     })
                     .map(item => {
                         return (
-                            <li key={`${item.id}`}>
-                                <TreeNode
-                                    id={item.id}
-                                    type={item.type}
-                                    label={item.label}
-                                    hasDependents={item.hasDependents}
-                                    status={item.status}
-                                    setDialog={setDialog}
-                                />
+                            <li key={`tree_node_${item.id}`}>
+                                <TreeNode data={item} />
                             </li>
                         )
                     })
@@ -463,7 +477,7 @@ const TreeNavigator = ({ hidden=true }) => {
                                 .map((key, index) => {
                                     return (
                                         <Accordion
-                                            key={`item_${index}`}
+                                            key={`nav_tree_item__${key}_${index}`}
                                             type={key}
                                             label={getModelLabel(key, 'label')}
                                             open={true}

@@ -11,7 +11,8 @@ import { AuthProvider } from './auth.provider.client';
 import { RouterProvider } from './router.provider.client';
 import { UserProvider } from './user.provider.client';
 import { DataProvider } from './data.provider.client';
-import {NavProvider} from "./nav.provider.client";
+import { NavProvider } from "./nav.provider.client";
+import { DialogProvider } from "./dialog.provider.client";
 
 function AppProviders({ children }) {
     return (
@@ -20,7 +21,9 @@ function AppProviders({ children }) {
                 <UserProvider>
                     <DataProvider>
                         <NavProvider>
+                            <DialogProvider>
                             {children}
+                            </DialogProvider>
                         </NavProvider>
                     </DataProvider>
                 </UserProvider>

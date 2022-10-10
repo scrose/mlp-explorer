@@ -64,7 +64,7 @@ function RouterProvider(props) {
         return () => {
             window.removeEventListener('popstate', routeUpdater);
         };
-    }, []);
+    });
 
 
     /**

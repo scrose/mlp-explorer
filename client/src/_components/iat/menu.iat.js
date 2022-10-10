@@ -26,7 +26,7 @@ import MetadataView from '../views/metadata.view';
 import { alignImages } from './aligner.iat';
 import { moveAt, moveEnd, moveStart } from './panner.iat';
 import { createNodeRoute } from '../../_utils/paths.utils.client';
-import Importer from '../tools/import.tools';
+import Editor from '../editors/default.editor';
 
 /**
  * No operation.
@@ -64,7 +64,7 @@ export const MenuIat = ({
                             setPanel1 = noop,
                             setPanel2 = noop,
                             image1 = null,
-                            setImage1 = noop,
+                            // setImage1 = noop,
                             image2 = null,
                             setImage2 = noop,
                             setSignal1 = noop,
@@ -109,7 +109,7 @@ export const MenuIat = ({
             data=null,
             callback = ()=>{},
         } = dialog || {};
-        return _menuDialogs.hasOwnProperty(type) && _menuDialogs[type](id, label, callback, data);
+        return _menuDialogs.hasOwnProperty(type) ? _menuDialogs[type](id, label, callback, data) : <></>;
     };
 
     /**
@@ -119,8 +119,14 @@ export const MenuIat = ({
      * @return {JSX.Element}
      */
 
-    const _handleCancel = (id) => {
-        id === panel1.id ? setSignal1('loaded') : setSignal2('loaded');
+    const _handleCancel = function (e, id) {
+        // set status signal for panel as loaded or empty
+        id === panel1.id
+            ? (panel1.file ? setSignal1('loaded') : setSignal1('empty'))
+            : id === panel2.id
+                ? (panel2.file ? setSignal2('loaded') : setSignal2('empty'))
+                : noop();
+        // close dialog
         setDialogToggle(null);
     };
 
@@ -135,26 +141,28 @@ export const MenuIat = ({
         selectImage: (id, label, callback) => {
             return <Dialog
                 key={`${id}_dialog_select_image`}
-                title={`Select Image for ${label}`}
-                callback={callback}
-                setToggle={_handleCancel.bind(id)}>
+                title={`Load Image for ${label}`}
+                callback={_handleCancel.bind(null, id)}
+            >
                 <ImageSelector
                     properties={id === panel1.id ? panel1 : panel2}
                     otherProperties={id === panel1.id ? panel2 : panel1}
                     options={options}
-                    setToggle={setDialogToggle}
-                    callback={callback}
+                    callback={(data)=>{
+                        setDialogToggle(null);
+                        callback(data);
+                    }}
                 />
             </Dialog>;
         },
-        uploadImage: (id, label, callback) => {
+        uploadImage: (id) => {
             const panel = id === panel1.id ? panel1 : panel2;
             return <Dialog
                 key={`${id}_dialog_upload`}
                 title={`Upload Image to MLP Library`}
-                setToggle={_handleCancel.bind(id)}
+                callback={_handleCancel.bind(null, id)}
             >
-                <Importer
+                <Editor
                     model={panel.file_type}
                     view={'upload'}
                     schema={genSchema({ view:'upload', model:panel.file_type, user: user })}
@@ -167,8 +175,8 @@ export const MenuIat = ({
                             filename: panel.filename
                         }
                     ]}
-                    callback={(err, model, id) => {
-                        console.log(err, model, id);
+                    callback={() => {
+                        // console.log(err, model, id);
                         setDialogToggle(null);
                     }}
                 />
@@ -178,7 +186,7 @@ export const MenuIat = ({
             return <Dialog
                         key={`${id}_dialog_master`}
                         title={`Confirm Mastered Image`}
-                        setToggle={_handleCancel.bind(id)}
+                        callback={_handleCancel.bind(null, id)}
                     >
                         <MasterImage
                             panel1={panel1}
@@ -192,7 +200,7 @@ export const MenuIat = ({
             return <Dialog
                 key={`${menuID}_dialog_save_image`}
                 title={`Save ${label} Image Data as File`}
-                setToggle={_handleCancel.bind(id)}>
+                callback={_handleCancel.bind(null, id)}>
                 <SaveAs options={options.formats}
                         setToggle={setDialogToggle}
                         callback={callback}
@@ -203,7 +211,7 @@ export const MenuIat = ({
             return <Dialog
                 key={`${menuID}_dialog_resize`}
                 title={`Resize ${label}`}
-                setToggle={_handleCancel.bind(id)}>
+                callback={_handleCancel.bind(null, id)}>
                 <Resizer
                     id={id}
                     properties={id === panel1.id ? panel1 : panel2}
@@ -217,14 +225,17 @@ export const MenuIat = ({
             return <Dialog
                 key={`${menuID}_dialog_compare`}
                 title={`Image Comparison`}
-                setToggle={setDialogToggle}>
+                callback={()=>{setDialogToggle(null)}}
+            >
                 <Slider
+                    canvasHeight={500}
+                    canvasWidth={680}
                     images={[panel1.dataURL, panel2.dataURL]}
                     onStop={()=>{setDialogToggle(null)}}
                 />
             </Dialog>;
         },
-        capture: (id, label) => {
+        capture: (id) => {
             const panel = id === panel1.id ? panel1 : panel2;
             const owner = {
                 owner_id: panel.owner_id,
@@ -241,7 +252,7 @@ export const MenuIat = ({
             return <Dialog
                 key={`panel_info_dialog_capture`}
                 title={`Image Info: ${panel.filename}`}
-                setToggle={setDialogToggle}>
+                callback={()=>{setDialogToggle(null)}}>
                 <MetadataView
                     metadata={metadata}
                     model={panel.file_type}
@@ -413,7 +424,7 @@ export const MenuIat = ({
                     </li>
                     <li>
                         <Button
-                            disabled={!image1 && !image2}
+                            disabled={!image1 || !image2}
                             title={'Select control coordinates.'}
                             label={'Mark'}
                             className={options.mode === 'select' ? 'active' : ''}

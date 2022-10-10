@@ -1,12 +1,10 @@
 /*!
  * MLP.Client.Utilities.Data
- * File: data.utils.client.js
+ * File: data.utils.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
  */
-
-import { getNodeOrder } from '../_services/schema.services.client';
 
 export const genHash = function(str) {
     let hash = 0, i, chr;
@@ -30,6 +28,36 @@ export const genHash = function(str) {
 export const capitalize = (str) => {
     if (typeof str !== 'string') return ''
     return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+/**
+ * Make camelCase strings snake_case.
+ *
+ * @param {String} str
+ * @return {String} snake_case string
+ * @src public
+ */
+
+export const toSnake = (str) => {
+    return str.replace(/[A-Z]/g,
+        (letter) => `_${letter.toLowerCase()}`);
+};
+
+/**
+ * Make snake/camel case strings readable.
+ *
+ * @param {String} str
+ * @return {String} readable string
+ * @src public
+ */
+
+export function humanize(str) {
+    str = toSnake(str);
+    let i, frags = str.split('_');
+    for (i = 0; i < frags.length; i++) {
+        frags[i] = frags[i].charAt(0).toUpperCase() + frags[i].slice(1);
+    }
+    return frags.join(' ');
 }
 
 /**
@@ -121,25 +149,6 @@ export function sorter(a, b) {
         return a.label
             .localeCompare(
                 b.label, undefined, { numeric: true, sensitivity: 'base' }
-            );
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-/**
- * Natural sort items by node order.
- *
- * @param {Object} a
- * @param {Object} b
- * @src public
- */
-
-export function sortByNodeOrder(a, b) {
-    try {
-        return getNodeOrder(a.node.type)
-            .localeCompare(
-                a.node.type, undefined, { numeric: true, sensitivity: 'base' }
             );
     } catch (err) {
         console.error(err);

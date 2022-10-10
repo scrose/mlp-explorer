@@ -37,7 +37,7 @@ create TABLE IF NOT EXISTS participant_groups
     id    serial PRIMARY KEY,
     owner_id       INTEGER     NOT NULL,
     participant_id INTEGER     NOT NULL,
-    group_type     varchar(40),
+    group_type     varchar(40) NOT NULL,
     "created_at" timestamp without time zone NOT NULL,
     "updated_at" timestamp without time zone NOT NULL,
     UNIQUE (owner_id, participant_id, group_type),

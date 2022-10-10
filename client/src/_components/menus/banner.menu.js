@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Navigation.Banner
+ * MLP.Client.Components.Menus.Banner
  * File: banner.menu.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -27,8 +27,8 @@ const BannerMenu = () => {
                 <div className={'navbar h-menu'}>
                     <ul>
                         <li><Logo /></li>
-                        <li><MainMenu /></li>
-                        <li className={'push'}>
+                        <li className={'push'}><MainMenu /></li>
+                        <li>
                             { user ? <LogoutMenu /> : <LoginMenu /> }
                         </li>
                     </ul>

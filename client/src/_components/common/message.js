@@ -9,46 +9,77 @@
 import React from 'react';
 import Button from './button';
 import Icon from './icon';
-import { getSessionMsg, popSessionMsg } from '../../_services/session.services.client';
-import { getQuery } from '../../_utils/paths.utils.client';
 
 /**
  * System message component.
  *
  * @param closeable
  * @param message
- * @param level
+ * @param icon
+ * @param timeout
+ * @param className
+ * @param callback
  * @public
  */
 
-const Message = ({closeable=true, message='', icon=''}) => {
+const Message = ({
+                     closeable=true,
+                     message='',
+                     icon='info',
+                     timeout=false,
+                     className='',
+                     callback=()=>{}
+}) => {
 
-    // check if redirect
-    const redirected = getQuery('redirect');
-    const [msgData, setMsgData] = React.useState(message || redirected ? getSessionMsg() : popSessionMsg());
+    const [msgData, setMsgData] = React.useState(message);
+    const { msg = '', type = 'error' } = message || {};
+    const _isMounted = React.useRef(null);
 
-    // clear session messages
+    // set message data
     React.useEffect(() => {
-        return ()=> { if(redirected) popSessionMsg() }
-    }, [redirected]);
+        _isMounted.current = true;
+        if (_isMounted.current) {
+            setMsgData(message)
+        }
+        return () => {
+            _isMounted.current = false;
+        };
+    }, [message]);
 
     /**
-     * Handle close of message.
+     * Set interval timout if requested.
+     *
+     * @public
+     */
+
+    if (timeout) {
+        setInterval(()=>{message = null}, 1500)
+    }
+
+    /**
+     * Handle message closing.
      *
      * @public
      */
 
     const _handleClose = () => {
-        setMsgData(null)
-        popSessionMsg();
+        setMsgData(null);
+        callback();
     };
 
-    return <UserMessage
-        icon={icon}
-        closeable={closeable}
-        message={msgData}
-        onClose={_handleClose}
-    />;
+    return !!msgData && !!type &&
+        <div className={`msg ${type} ${className}`}>
+            {
+                (icon || type) && <div className={`msg-icon`}><Icon type={icon || type} /></div>
+            }
+            <div className={'msg-text'}>{msg}</div>
+            {
+                closeable &&
+                <div className={'close'}>
+                    <Button className={type} icon={'close'} onClick={_handleClose} />
+                </div>
+            }
+        </div>;
 };
 
 export default Message;
@@ -60,9 +91,12 @@ export default Message;
  *
  * @public
  * @param message
+ * @param timeout
  * @param closeable
+ * @param scrollTo
  * @param className
- * @param error
+ * @param icon
+ * @param onClose
  */
 
 export const UserMessage = ({
@@ -84,7 +118,7 @@ export const UserMessage = ({
     }, [container, scrollTo]);
 
     return toggle && !!msg && !!type &&
-        <div className={`msg ${type} ${className}`}>
+        <div ref={container} className={`msg ${type} ${className}`}>
             {
                 (icon || type) && <div className={`msg-icon`}><Icon type={icon || type} /></div>
             }

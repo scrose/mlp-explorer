@@ -170,7 +170,6 @@ export const fulltext = async (q, offset, limit, filter) => {
                 return queries.search.fulltextParticipantSearch(searchable[tbl], terms, offset, limit);
             },
             files: (tbl) => {
-                console.log(queries.search.fulltextFileSearch(searchable[tbl], terms, offset, limit))
                 return queries.search.fulltextFileSearch(searchable[tbl], terms, offset, limit);
             },
             default: (tbl) => {

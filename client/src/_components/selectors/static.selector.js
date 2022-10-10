@@ -1,13 +1,13 @@
 /*!
- * MLP.Client.Components.Common.View.Static
- * File: static.view.js
+ * MLP.Client.Components.Selectors.Static
+ * File: static.selector.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
  */
 
 import React from 'react';
-import DashboardView from './dashboard.view';
+import DashboardView from '../views/dashboard.view';
 import NotfoundError from '../error/notfound.error';
 import UnavailableError from '../error/unavailable.error';
 import ServerError from '../error/server.error';
@@ -23,7 +23,7 @@ import { useRouter } from '../../_providers/router.provider.client';
  * @public
  */
 
-const StaticView = ({ type }) => {
+const StaticSelector = ({ type }) => {
 
     const router = useRouter();
 
@@ -48,4 +48,4 @@ const StaticView = ({ type }) => {
 
 }
 
-export default StaticView;
+export default React.memo(StaticSelector);

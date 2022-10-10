@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.Common.Datetime
- * File: datetime.js
+ * MLP.Client.Components.Selectors.Datetime
+ * File: datetime.selector.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
@@ -21,7 +21,17 @@ import Flatpickr from 'react-flatpickr';
  */
 
 export const DateTimeSelector = ({ value, name, filter = 'datetime', onChange=()=>{} }) => {
-    const [date, setDate] = React.useState(value ? new Date(value) : null);
+
+    // initialize date/time input value
+    let init;
+    switch (filter) {
+        case "datetime": init = value ? new Date(value) : value; break;
+        case "date": init = value ? new Date(value) : value; break;
+        default: init = value; break;
+    }
+    const [date, setDate] = React.useState(init);
+
+    // select date picker format
     const dateSelectors = {
         datetime: <Flatpickr
             name={name}
@@ -31,7 +41,7 @@ export const DateTimeSelector = ({ value, name, filter = 'datetime', onChange=()
             }}
             data-enable-time={true}
             value={date}
-            onChange={(selectedDates, dateStr, instance) => {
+            onChange={(selectedDates, dateStr) => {
                 const e = {target: {name: name, value: dateStr}};
                 setDate(selectedDates);
                 onChange(e);
@@ -45,7 +55,7 @@ export const DateTimeSelector = ({ value, name, filter = 'datetime', onChange=()
             }}
             data-enable-time={false}
             value={date}
-            onChange={(selectedDates, dateStr, instance) => {
+            onChange={(selectedDates, dateStr) => {
                 const e = {target: {name: name, value: dateStr}};
                 setDate(selectedDates);
                 onChange(e);
@@ -60,7 +70,7 @@ export const DateTimeSelector = ({ value, name, filter = 'datetime', onChange=()
             }}
             data-enable-time={true}
             value={date}
-            onChange={(selectedDates, dateStr, instance) => {
+            onChange={(selectedDates, dateStr) => {
                 const e = {target: {name: name, value: dateStr}};
                 setDate(selectedDates);
                 onChange(e);

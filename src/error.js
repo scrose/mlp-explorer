@@ -11,7 +11,7 @@
  */
 
 import { prepare } from './lib/api.utils.js';
-import { mimeTypes } from './lib/file.utils.js';
+import {imageMIMETypes, supplementalMIMETypes} from './lib/file.utils.js';
 
 'use strict';
 
@@ -31,13 +31,13 @@ export const errors = {
     invalidRequest: {
         hint: 'The request data is malformed.',
         msg: 'Request is invalid.',
-        status: 500,
+        status: 422,
         type: 'error'
     },
     noFiles: {
         hint: 'No files were sent in request data.',
         msg: 'No files found in request data.',
-        status: 500,
+        status: 422,
         type: 'error'
     },
     invalidData: {
@@ -48,7 +48,15 @@ export const errors = {
     },
     invalidMIMEType: {
         hint: 'Invalid MIME for this operation.',
-        msg: `Invalid MIME Type. Allowed types: ${Object.keys(mimeTypes).map(key => mimeTypes[key]).join(', ')}`,
+        msg: `Operation does not support file format. 
+            Allowed image types: ${Object.keys(imageMIMETypes).map(key => imageMIMETypes[key]).join(', ')} 
+            Extended supplemental types: ${Object.keys(supplementalMIMETypes).map(key => supplementalMIMETypes[key]).join(', ')}`,
+        status: 422,
+        type: 'error'
+    },
+    invalidGroupType: {
+        hint: 'Invalid participant group type requested.',
+        msg: `An invalid participant group type was requested.`,
         status: 422,
         type: 'error'
     },
@@ -125,8 +133,8 @@ export const errors = {
         type: 'error'
     },
     '23503': {
-        hint: 'Deletion of node before deleting dependent files.',
-        msg: 'Update or delete failed. For non-capture deletions, please ensure all dependent nodes are deleted before non-capture deletion.',
+        hint: 'Update to node data violates node relation restrictions.',
+        msg: 'An error occurred. This operation is not permitted.',
         status: 422,
         type: 'error'
     },

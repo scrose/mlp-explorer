@@ -133,7 +133,8 @@ export const PanelIat = ({
 
         // handle error in response
         if (error) {
-            console.warn(error);
+            const {msg='An error occurred.'} = error || {};
+            console.warn(msg);
             setSignal('error');
             setMessage(error);
             return;

@@ -8,8 +8,8 @@
 
 import React from 'react';
 import Button from '../common/button';
-import { UserMessage } from '../common/message';
-import Input from '../common/input';
+import Message, { UserMessage } from '../common/message';
+import InputSelector from '../selectors/input.selector';
 
 /**
  * Adjustments to layer dimensions.
@@ -67,6 +67,7 @@ export const Resizer = ({
 
     return <div>
         <UserMessage
+            closeable={true}
             message={{ msg: error, type: 'error' }}
             onClose={() => {
                 setError(null);
@@ -224,7 +225,7 @@ export const ResizeOptions = ({
             <div className={'h-menu centered'}>
                 <ul>
                     <li>
-                        <Input
+                        <InputSelector
                             id={id}
                             name={'x'}
                             disabled={scale}
@@ -235,7 +236,7 @@ export const ResizeOptions = ({
                         />
                     </li>
                     <li>
-                        <Input
+                        <InputSelector
                             id={id}
                             disabled={aspect || scale}
                             name={'y'}
@@ -256,7 +257,7 @@ export const ResizeOptions = ({
             <div className={'h-menu'}>
                 <ul>
                     <li>
-                        <Input
+                        <InputSelector
                             id={id}
                             name={'aspect'}
                             disabled={scale}
@@ -265,7 +266,7 @@ export const ResizeOptions = ({
                             value={aspect}
                             onChange={_toggleAspect}
                         /></li>
-                    <li><Input
+                    <li><InputSelector
                         id={id}
                         disabled={!aspect}
                         name={'scale'}
@@ -274,7 +275,7 @@ export const ResizeOptions = ({
                         value={scale}
                         onChange={_toggleScale}
                     /></li>
-                    <li><Input
+                    <li><InputSelector
                         id={id}
                         disabled={!aspect || !scale}
                         name={'scale_factor'}

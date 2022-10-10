@@ -13,6 +13,13 @@ const fallbackSrc = schema.errors.image.fallbackSrc;
 /**
  * Defines image component.
  *
+ * @param url
+ * @param title
+ * @param caption
+ * @param scale
+ * @param fit
+ * @param fixedHeight
+ * @param onClick
  * @public
  * @return {JSX.Element}
  */
@@ -22,8 +29,9 @@ const Image = ({
                    title='',
                    caption ='',
                    scale='',
+                   fit='contain',
+                   fixedHeight=false,
                    onClick=()=>{},
-                   onDoubleClick=()=>{},
 }) => {
 
     // fallback for null url
@@ -60,17 +68,19 @@ const Image = ({
     }, [url, setSrc, scale, error])
 
     // render image
+    // - thumbnails must use cover object-fit
     return (
         <figure className={scale}>
             {!loaded && <span>Loading...</span>}
             <img
+                className={error ? 'fallback' : ''}
+                style={{objectFit: scale === 'thumb' ? 'cover' : fit, maxHeight: fixedHeight ? '500px' : '100%'}}
                 src={src}
                 alt={caption}
                 title={title}
                 onLoad={() => setLoaded(true)}
                 onError={onError}
                 onClick={onClick}
-                onDoubleClick={onDoubleClick}
             />
             {
                 caption &&

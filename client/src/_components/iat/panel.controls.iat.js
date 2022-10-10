@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.IAT.Canvas.Controls
- * File: iat.canvas.controls.js
+ * MLP.Client.Components.IAT.Panel.Controls
+ * File: iat.panel.controls.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
@@ -56,8 +56,11 @@ const PanelControls = ({
                             id: properties.id,
                             label: properties.label,
                             callback: (data) => {
-                                loadImageData(data, callback).catch(callback);
+                                loadImageData(data, callback)
+                                    .catch(callback)
+                                    .finally(()=>{data ? setSignal('loaded') : setSignal('empty')});
                             },
+                            onCancel: ()=>{setSignal('empty')}
                         });
                     }}
                 /></li>
@@ -215,7 +218,7 @@ export const filterKeyDown = (e, properties, pointer, options, callback) => {
  * @return {JSX.Element}
  */
 
-export const filterKeyUp = (e, properties, pointer, options, callback) => {
+export const filterKeyUp = (e, properties, pointer) => {
 
     const { keyCode = '' } = e || [];
     const _methods = {

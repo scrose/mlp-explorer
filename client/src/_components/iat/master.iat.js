@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import Importer from '../tools/import.tools';
+import Editor from '../editors/default.editor';
 import { genSchema } from '../../_services/schema.services.client';
 import Slider from '../common/slider';
 import MetadataView from '../views/metadata.view';
@@ -18,9 +18,10 @@ import { useUser } from '../../_providers/user.provider.client';
  * Image selector widget.
  *
  * @public
- * @param {String} panelID
- * @param setToggle
- * @param callback
+ * @param {Object} panel1
+ * @param {Object} panel2
+ * @param {Function} setToggle
+ * @param {Function} callback
  */
 
 export const MasterImage = ({
@@ -57,7 +58,7 @@ export const MasterImage = ({
                 <li key={'master_images_import'}>
                     <MetadataView model={'master_images'} metadata={historicMetadata} />
                     <MetadataView model={'master_images'} metadata={modernMetadata} />
-                    <Importer
+                    <Editor
                         model={'modern_images'}
                         view={'master'}
                         schema={genSchema({ view:'master', model:'modern_images', user: user })}
@@ -80,7 +81,7 @@ export const MasterImage = ({
                             }
                             ]}
                         callback={(err, model, id) => {
-                            console.log(err, model, id);
+                            // console.log(err, model, id);
                             setToggle(null)
                         }}
                     />

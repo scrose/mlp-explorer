@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { drawBoundingBox } from './graphics.iat';
-import Input from '../common/input';
+import InputSelector from '../selectors/input.selector';
 import Button from '../common/button';
 import { getScale, scalePoint } from './transform.iat';
 
@@ -90,7 +90,7 @@ const Cropper = ({ properties, pointer, callback }) => {
                         />
                     </li>
                     <li>
-                        <Input
+                        <InputSelector
                             disabled={isEmptyCropBox}
                             id={'crop_x'}
                             name={'x'}
@@ -103,7 +103,7 @@ const Cropper = ({ properties, pointer, callback }) => {
                         />
                     </li>
                     <li>
-                        <Input
+                        <InputSelector
                             id={'crop_y'}
                             disabled={isEmptyCropBox}
                             name={'y'}
@@ -116,7 +116,7 @@ const Cropper = ({ properties, pointer, callback }) => {
                         />
                     </li>
                     <li>
-                        <Input
+                        <InputSelector
                             id={'crop_w'}
                             disabled={isEmptyCropBox}
                             name={'w'}
@@ -129,7 +129,7 @@ const Cropper = ({ properties, pointer, callback }) => {
                         />
                     </li>
                     <li>
-                        <Input
+                        <InputSelector
                             id={'crop_h'}
                             disabled={isEmptyCropBox}
                             name={'h'}

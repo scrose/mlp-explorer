@@ -7,7 +7,7 @@
  */
 
 /**
- * MLP Schema
+ * MLP Application Schema
  * Description: This is a configuration document for defining rendering,
  *              labelling, routing, input validation, node/file relations
  *              and other settings for the client-side web application.
@@ -52,13 +52,14 @@ export const schema = {
         }
     },
     errors: {
+        default: 'An error has occurred. Please contact the site administrator.',
         image: {
             fallbackSrc: '/fallback_img.png'
         },
         validation: {
             isRequired: 'This field is required.',
             isSelected: 'Please select an item.',
-            isMultiSelected: 'Please select at least one item.',
+            isMultiSelected: 'Please select at least one option or item.',
             filesSelected: 'Please select files to upload.',
             isLatitude: 'Latitude is invalid.',
             isLongitude: 'Longitude is invalid.',
@@ -170,6 +171,7 @@ export const schema = {
         sorted: ['historic_visits', 'locations'],
         unsorted: ['projects', 'surveys', 'survey_seasons', 'modern_visits']
     },
+    imageTypes: ['historic_images', 'modern_images', 'supplemental_images'],
     excluded: ['historic_images', 'modern_images', 'supplemental_images', 'historic_captures', 'modern_captures'],
     models: {
         users: {
@@ -218,7 +220,18 @@ export const schema = {
                     description: {
                         label: 'Description'
                     }
-                }]
+                },
+                {
+                    legend: 'Dependent Nodes',
+                    render: 'component',
+                    restrict: ['edit'],
+                    dependents: {
+                        label: 'Edit Dependents Metadata/Files',
+                        render: 'dependentsEditor',
+                        reference: 'node',
+                    }
+                },
+            ]
         },
         surveyors: {
             attributes: {
@@ -286,7 +299,19 @@ export const schema = {
                     historical_map_sheet: {
                         label: 'Historical Map Sheet'
                     }
-                }]
+                },
+                {
+                    legend: 'Attached Metadata and Files',
+                    render: 'component',
+                    restrict: ['edit'],
+                    users: ['editor', 'administrator', 'super_administrator'],
+                    attached: {
+                        label: 'Edit Dependent Nodes',
+                        render: 'dependentsEditor',
+                        reference: 'node',
+                    },
+                },
+            ]
         },
         survey_seasons: {
             attributes: {
@@ -315,6 +340,17 @@ export const schema = {
                     owner_id: {
                         render: 'hidden'
                     }
+                },
+                {
+                    legend: 'Attached/Dependent Metadata',
+                    render: 'component',
+                    restrict: ['edit'],
+                    users: ['editor', 'administrator', 'super_administrator'],
+                    attached: {
+                        label: 'Edit Dependent Items',
+                        render: 'dependentsEditor',
+                        reference: 'node',
+                    },
                 },
                 {
                     legend: 'Survey Season Details',
@@ -414,6 +450,17 @@ export const schema = {
                     }
                 },
                 {
+                    legend: 'Attached/Dependent Metadata',
+                    render: 'component',
+                    restrict: ['edit'],
+                    users: ['editor', 'administrator', 'super_administrator'],
+                    attached: {
+                        label: 'Edit Dependent Items',
+                        render: 'dependentsEditor',
+                        reference: 'node',
+                    },
+                },
+                {
                     legend: 'Filter Map Stations',
                     restrict: ['mapFilter'],
                     surveyors: {
@@ -452,13 +499,13 @@ export const schema = {
                     }
                 },
                 {
-                    legend: 'Edit Captures',
+                    legend: 'Historic Visit: Dependent Nodes',
                     render: 'component',
                     restrict: ['edit'],
                     users: ['editor', 'administrator', 'super_administrator'],
-                    modern_captures: {
-                        label: 'Historic Captures',
-                        render: 'nodeEditor',
+                    dependents: {
+                        label: 'Edit Historic Captures',
+                        render: 'dependentsEditor',
                         reference: 'node',
                     }
                 },
@@ -502,15 +549,15 @@ export const schema = {
                     }
                 },
                 {
-                    legend: 'Edit Attached Metadata',
+                    legend: 'Attached Metadata and Files',
                     render: 'component',
                     restrict: ['edit'],
                     users: ['editor', 'administrator', 'super_administrator'],
-                    modern_captures: {
-                        label: 'Dependents',
-                        render: 'nodeEditor',
+                    attached: {
+                        label: 'Edit Metadata and Files',
+                        render: 'dependentsEditor',
                         reference: 'node',
-                    }
+                    },
                 },
                 {
                     legend: 'Visit Details',
@@ -580,6 +627,15 @@ export const schema = {
                 }
             ]
         },
+        unsorted_captures: {
+            attributes: {
+                order: 8,
+                label: "Unsorted Captures",
+                singular: "Unsorted Capture",
+                prefix: "Unsorted Capture",
+                dependents: ['historic_images', 'modern_images']
+            }
+        },
         historic_captures: {
             attributes: {
                 order: 8,
@@ -593,6 +649,16 @@ export const schema = {
                     restrict: ['edit', 'delete'],
                     nodes_id: {
                         render: 'hidden'
+                    }
+                },
+                {
+                    legend: 'Modern Repeat Capture',
+                    restrict: ['new', 'edit'],
+                    users: ['editor', 'administrator', 'super_administrator'],
+                    modern_captures: {
+                        label: 'Repeated Modern Captures for Comparison',
+                        render: 'comparisonEditor',
+                        reference: 'node',
                     }
                 },
                 {
@@ -613,12 +679,12 @@ export const schema = {
                     }
                 },
                 {
-                    legend: 'Edit Capture Images',
+                    legend: 'Historic Capture Images',
                     render: 'component',
                     restrict: ['edit'],
-                    modern_captures: {
-                        label: 'Capture Images',
-                        render: 'nodeEditor',
+                    dependents: {
+                        label: 'Edit Capture Images Metadata',
+                        render: 'dependentsEditor',
                         reference: 'node',
                     }
                 },
@@ -637,16 +703,6 @@ export const schema = {
                         label: 'Image State',
                         reference: 'image_states',
                         validate: ['isRequired']
-                    }
-                },
-                {
-                    legend: 'Comparison',
-                    restrict: ['new', 'edit'],
-                    users: ['editor', 'administrator', 'super_administrator'],
-                    modern_captures: {
-                        label: 'Repeated Modern Captures for Comparison',
-                        render: 'compareSelector',
-                        reference: 'node',
                     }
                 },
                 {
@@ -750,7 +806,7 @@ export const schema = {
                     }
                 },
                 {
-                    legend: 'Bul, Image Upload',
+                    legend: 'Bulk Image Upload',
                     restrict: ['import'],
                     users: ['administrator', 'super_administrator'],
                     modern_images: {
@@ -784,12 +840,12 @@ export const schema = {
                     }
                 },
                 {
-                    legend: 'Comparison',
+                    legend: 'Compare Historic Capture',
                     restrict: ['new', 'edit'],
                     users: ['editor', 'administrator', 'super_administrator'],
                     historic_captures: {
                         label: 'Historic Captures for Comparison',
-                        render: 'compareSelector',
+                        render: 'comparisonEditor',
                         reference: 'node',
                     }
                 },
@@ -867,12 +923,12 @@ export const schema = {
                     }
                 },
                 {
-                    legend: 'Edit Capture Images',
+                    legend: 'Modern Capture Images',
                     render: 'component',
                     restrict: ['edit'],
-                    modern_captures: {
-                        label: 'Capture Images',
-                        render: 'nodeEditor',
+                    dependents: {
+                        label: 'Edit Capture Images',
+                        render: 'dependentsEditor',
                         reference: 'node',
                     }
                 }
@@ -944,6 +1000,17 @@ export const schema = {
                         validate: ['isAzimuth']
                     }
                 },
+                {
+                    legend: 'Attached Metadata and Files',
+                    render: 'component',
+                    restrict: ['edit'],
+                    users: ['editor', 'administrator', 'super_administrator'],
+                    attached: {
+                        label: 'Edit Dependent Nodes',
+                        render: 'dependentsEditor',
+                        reference: 'node',
+                    },
+                },
             ]
         },
         historic_images: {
@@ -977,7 +1044,7 @@ export const schema = {
                     }
                 },
                 {
-                    legend: 'Capture Details',
+                    legend: 'Capture Image',
                     restrict: ['edit', 'show', 'upload'],
                     image_state: {
                         label: 'Image State',
@@ -1116,7 +1183,7 @@ export const schema = {
                     }
                 },
                 {
-                    legend: 'Capture Details',
+                    legend: 'Capture Image',
                     restrict: ['edit', 'show', 'upload'],
                     image_state: {
                         label: 'Image State',
@@ -1764,7 +1831,10 @@ export const schema = {
         participant_groups: {
             attributes: {
                 label: 'Visit Participants',
-                singular: 'Participant Group'
+                singular: 'Participant Group',
+                dependents: [
+                    'participants',
+                ],
             },
             fieldsets: [
                 {

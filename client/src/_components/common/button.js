@@ -1,6 +1,6 @@
 /*!
  * MLP.Client.Components.Common.Button
- * File: footer.js
+ * File: button.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
@@ -54,7 +54,7 @@ const Button = ({
         },
         reset: () => {
             return (
-                <input
+                <button
                     disabled={disabled}
                     className={className}
                     title={`Reset form.`}
@@ -62,7 +62,7 @@ const Button = ({
                     name={name}
                     value={label}
                     onClick={onClick}
-                />)
+                ><Icon type={'reset'} size={size} /> Reset</button>)
         },
         rightAlign: () => {
             return (

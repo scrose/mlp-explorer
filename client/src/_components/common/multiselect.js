@@ -9,7 +9,7 @@
 import React from 'react';
 import Button from './button';
 import { sorter } from '../../_utils/data.utils.client';
-import Input from './input';
+import InputSelector from '../selectors/input.selector';
 
 /**
  * No operation.
@@ -47,7 +47,7 @@ const MultiSelect = ({ id, name, label, selected, required, options, onSelect })
                     id={`${id}_${name}_${value}`}
                     name={`${name}_${value}`}
                     value={value || ''}
-                    disabled={(selected || []).some(item => parseInt(item.value) === parseInt(opt.value))}
+                    disabled={(selected || []).some(item => parseInt(item.value) === parseInt(value))}
                 >{label}</option>;
             });
     };
@@ -72,7 +72,7 @@ const MultiSelect = ({ id, name, label, selected, required, options, onSelect })
         return (selected || [])
             .map((opt, index) => {
                 const { value = '' } = opt || {};
-                return <Input
+                return <InputSelector
                     type={'hidden'}
                     key={`${id}_${name}_${value}`}
                     id={`${id}_${name}_${value}`}

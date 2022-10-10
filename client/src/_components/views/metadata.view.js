@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Common.MetadataView
+ * MLP.Client.Components.Views.Metadata
  * File: metadata.view.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -7,15 +7,61 @@
  */
 
 import React from 'react';
-import { genSchema, getDependentTypes, getModelLabel } from '../../_services/schema.services.client';
-import { genID, sanitize } from '../../_utils/data.utils.client';
+import { genSchema, getModelLabel } from '../../_services/schema.services.client';
+import {genID, humanize, sanitize} from '../../_utils/data.utils.client';
 import Accordion from '../common/accordion';
-import EditorMenu from '../menus/editor.menu';
 import { useData } from '../../_providers/data.provider.client';
 import { useUser } from '../../_providers/user.provider.client';
+import FilesView from "./files.view";
 
 // generate random key
 const keyID = genID();
+
+/**
+ * Filter metadata for views/editor processing.
+ *
+ * @param {Object} metadata
+ * @param {Object} owner
+ * @param {String} filter
+ * @public
+ * @return {JSX.Element}
+ */
+
+export const filterAttachedMetadata = (metadata, owner, filter='comparisons') => {
+
+    return Object.keys(metadata || {})
+        .filter(key => key !== filter)
+        .reduce((o, key) => {
+            if (key === 'participant_groups' && !Array.isArray(metadata[key])) {
+                o[key] = [];
+                // separate participant groups as single attached item
+                Object.keys(metadata[key] || {})
+                    .sort()
+                    .forEach((pgroup) => {
+                        // get participant group metadata and add to attached metadata
+                        const pgMetadata = {
+                            id: owner.id || '',
+                            label: humanize(pgroup),
+                            model: key,
+                            group_type: pgroup,
+                            data: {
+                                id: owner.id || '',
+                                group_type: pgroup,
+                                [pgroup]: metadata[key][pgroup].map(participant => {
+                                    return {
+                                        value: participant.id,
+                                        label: participant.full_name,
+                                    };
+                                })
+                            }
+                        };
+                        o[key].push(pgMetadata);
+                    })
+            }
+            else o[key] = metadata[key];
+            return o;
+        }, {});
+}
 
 /**
  * Attached node data component.
@@ -28,49 +74,7 @@ const keyID = genID();
  * @return {Array} components
  */
 
-export const MetadataAttached = ({ owner, attached }) => {
-    const attachedViews = {
-        participant_groups: (data) => {
-            return Object.keys(data || {})
-                .sort()
-                .map((pgroup, index) => {
-                    // get participant group ID
-                    const pgrp = data[pgroup].find(pg => pg !== null);
-                    const { pg_id = '' } = pgrp || {};
-                    return <MetadataView
-                        key={`${keyID}_${pgroup}_${index}`}
-                        model={'participant_groups'}
-                        owner={owner}
-                        view={'attachItem'}
-                        metadata={
-                            {
-                                id: pg_id,
-                                group_type: pgroup,
-                                [pgroup]: data[pgroup].map(participant => {
-                                    return {
-                                        value: participant.id,
-                                        label: participant.full_name,
-                                    };
-                                }),
-                            }
-                        }
-                        menu={true}
-                    />;
-                });
-        },
-        default: (mdData, model) => {
-            const { label = '', data = {} } = mdData || {};
-            return <MetadataView
-                key={`${keyID}_${model}_${label}_metadata`}
-                view={'attachItem'}
-                model={model}
-                owner={owner}
-                label={label}
-                metadata={data}
-                menu={true}
-            />;
-        },
-    };
+export const AttachedMetadataView = ({ owner, attached }) => {
 
     // iterate over attached data types
     return Object.keys(attached || {}).map(attachedModel => {
@@ -80,24 +84,19 @@ export const MetadataAttached = ({ owner, attached }) => {
                 type={attachedModel}
                 label={`${getModelLabel(attachedModel, 'label')}`}
                 className={attachedModel}
-                menu={<EditorMenu
-                        model={attachedModel}
-                        id={owner && owner.hasOwnProperty('id') ? owner.id : ''}
-                        view={'attach'}
-                        owner={owner}
-                        dependents={[attachedModel]}
-                    />}
+                open={true}
             >
                 <div className={`${attachedModel}`}>
                     {
                         attached[attachedModel].map((attachedMD, index) => {
-                            return <div key={`${keyID}_attached_md_${index}`}>
-                                {
-                                    attachedViews.hasOwnProperty(attachedModel)
-                                        ? attachedViews[attachedModel](attachedMD)
-                                        : attachedViews.default(attachedMD, attachedModel)
-                                }
-                                </div>;
+                            const { label = '', data = {} } = attachedMD || {};
+                            return <MetadataView
+                                    key={`${keyID}_attached_${attachedModel}_${index}`}
+                                    model={attachedModel}
+                                    owner={owner}
+                                    label={label}
+                                    metadata={data}
+                                />
                         })
                     }
                 </div>
@@ -106,36 +105,32 @@ export const MetadataAttached = ({ owner, attached }) => {
 };
 
 /**
- * Render item table component.
+ * Render item metadata (and attached metadata, files) as table component.
  *
  * @public
  * @param {String} model
- * @param {Object} owner
  * @param {Object} metadata
- * @param {String} view
- * @param {String} label
  * @param {Object} node
  * @param {Object} file
- * @param {Boolean} menu
+ * @param {Object} attached
+ * @param {Object} files
  * @return {JSX.Element}
  */
 
 const MetadataView = ({
                           model,
-                          owner = null,
                           metadata = {},
-                          view = 'show',
-                          label = '',
                           node = {},
                           file = {},
-                          menu = false,
+                          attached={},
+                          files={}
                       }) => {
 
     const api = useData();
     const user = useUser();
 
     // gather the metadata
-    const { id = null, nodes_id = null, group_type = '' } = metadata || {};
+    const { group_type = '' } = metadata || {};
     // generate the model schema
     const { fieldsets = [] } = genSchema({
         view: 'show',
@@ -143,7 +138,10 @@ const MetadataView = ({
         fieldsetKey: group_type,
         user: user
     });
-    const itemID = id || nodes_id || '';
+
+    // extract any attached (supplemental) metadata
+    // - filter out comparisons metadata
+    const attachedMetadata = filterAttachedMetadata(attached, node, 'comparisons');
 
     // prepare data for item table: sanitize data by render type
     const filterData = (fieldset) => {
@@ -159,7 +157,7 @@ const MetadataView = ({
                 const { prefix = '', suffix = '' } = attributes || {};
 
                 // cascade data sources
-                let value = metadata.hasOwnProperty(fieldKey)
+                let value = (metadata || {}).hasOwnProperty(fieldKey)
                     ? metadata[fieldKey]
                     : file.hasOwnProperty(fieldKey)
                         ? file[fieldKey]
@@ -180,11 +178,7 @@ const MetadataView = ({
                             {
                                 metadata[group_type].map((item, index) => {
                                     const { label = '' } = item || {};
-                                    return (
-                                        <li key={`${keyID}_${model}_${index}`}>
-                                            {sanitize(label)}
-                                        </li>
-                                    );
+                                    return <li key={`${keyID}_${model}_${index}`}>{sanitize(label)}</li>;
                                 })
                             }
                         </ul>,
@@ -202,50 +196,36 @@ const MetadataView = ({
     return <>
         {
             fieldsets
-                .filter(fieldset =>
-                    !group_type
-                    || fieldset.fields.hasOwnProperty(group_type),
-                )
+                .filter(fieldset => !group_type || fieldset.fields.hasOwnProperty(group_type))
                 .map((fieldset, index) => {
                     return <table key={`${keyID}_${index}`} className={'item'}>
-                        <thead>
-                        <tr>
-                            <th colSpan={'2'}>
-                                <div className={`h-menu`}>
-                                    <ul>
-                                        <li><h4>{fieldset.legend}</h4></li>
-                                        {
-                                            menu && <li className={'editor-menu push'}>
-                                                <EditorMenu
-                                                    id={itemID}
-                                                    model={model}
-                                                    owner={owner}
-                                                    view={view}
-                                                    label={label}
-                                                    metadata={metadata}
-                                                    dependents={getDependentTypes(model)}
-                                                />
-                                            </li>
-                                        }
-                                    </ul>
-                                </div>
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {
-                            filterData(fieldset).map((field, index) => {
-                                return (
-                                    <tr key={`${keyID}_tr_${index}`}>
-                                        <th>{field.label}</th>
-                                        <td>{field.value}</td>
-                                    </tr>
-                                );
-                            })
-                        }
-                        </tbody>
-                    </table>;
+                            <thead>
+                                <tr>
+                                    <th colSpan={'2'}>{fieldset.legend}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {
+                                filterData(fieldset).map((field, index) => {
+                                    return (
+                                        <tr key={`${keyID}_tr_${index}`}>
+                                            <th>{field.label}</th>
+                                            <td>{field.value}</td>
+                                        </tr>
+                                    );
+                                })
+                            }
+                            </tbody>
+                        </table>;
                 })
+        }
+        {
+            Object.keys(attachedMetadata).length > 0 &&
+            <AttachedMetadataView owner={node} attached={attachedMetadata} />
+        }
+        {
+            Object.keys(files).length > 0 &&
+            <FilesView key={`files_${model}_${node.id}`} owner={node} files={files} />
         }
         { (Object.keys(node).length > 0 || Object.keys(file).length > 0) &&
         <div className={'subtext'}>

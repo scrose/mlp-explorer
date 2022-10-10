@@ -11,7 +11,7 @@ import { PanelIat } from './panel.iat';
 import { MenuIat } from './menu.iat';
 import { createNodeRoute, getQuery } from '../../_utils/paths.utils.client';
 import { useRouter } from '../../_providers/router.provider.client';
-import { UserMessage } from '../common/message';
+import Message from '../common/message';
 import { filterKeyDown, filterKeyUp } from './panel.controls.iat';
 import { loadImageData } from './loader.iat';
 import { addNode } from '../../_services/session.services.client';
@@ -226,9 +226,10 @@ const Iat = () => {
 
     return <>
         <div className={'canvas-board'}>
-            <UserMessage
+            <Message
+                closeable={true}
                 message={message}
-                onClose={() => {
+                callback={() => {
                     setMessage(false);
                 }}
             />

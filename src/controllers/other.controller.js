@@ -33,10 +33,11 @@ export const show = async (req, res, next) => {
 
     // retrieve captures attached to 'showcase' project
     try {
+        const showcaseImages = await getShowcaseCaptures(client) || [];
         res.status(200).json(
             prepare({
                 view: 'showcase',
-                data: await getShowcaseCaptures(client) || []
+                data: showcaseImages
             }));
     } catch (err) {
         return next(err);

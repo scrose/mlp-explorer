@@ -95,9 +95,9 @@ function FilesRoutes(modelType) {
  * defined models in the file_types relation.
  */
 
-export default async function generate() {
+export default async function generate(client) {
     let routes = [];
-    await getFileTypes()
+    await getFileTypes(client)
         .then(fileTypes => {
             fileTypes.map(fileType => {
                 // add routes instance to array

@@ -24,7 +24,7 @@ export function types() {
 }
 
 /**
- * Query: Insert metadata entry for given item instance.
+ * Query: Retrieve metadata for given item instance.
  *
  * @public
  * @param {integer} id
@@ -186,7 +186,7 @@ export function getHistoricCapturesByStationID(id) {
  * @return {Object} query binding
  */
 
-export function getMapLocations(filter=null) {
+export function getMapLocations() {
     let sql = `
             SELECT 
                    stations.nodes_id, 
@@ -332,7 +332,7 @@ export function participantGroupTypes() {
  * @return {Object} query binding
  */
 
-export function getParticipantOptions(ownerID, groupType = null) {
+export function getParticipantGroups(ownerID, groupType = null) {
     let sql = `
             SELECT
                 CONCAT_WS(', ', p.last_name, p.given_names) AS full_name,

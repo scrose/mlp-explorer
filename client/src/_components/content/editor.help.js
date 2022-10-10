@@ -153,7 +153,7 @@ const explorerHelp = (gotoPage) => {
                             confirming the update.
                         </li>
                         <li>
-                            You will be redirected to the new info page for this item.
+                            You will be redirected to the new page.
                         </li>
                     </ol>
                 </td>
@@ -218,7 +218,7 @@ const explorerHelp = (gotoPage) => {
                 <th><Icon type={'delete'} /></th>
                 <th>Delete Items</th>
                 <td>
-                    <p>To delete an item, click the <b>Delete</b> menu button and
+                    <p>To delete an item, click the delete (trash can) menu button and
                         confirm the deletion. Note that deleting an item requires that all of the dependent
                         files have first been deleted.</p>
                 </td>

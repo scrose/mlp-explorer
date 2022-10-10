@@ -24,7 +24,7 @@ import { createNodeRoute, redirect } from '../../_utils/paths.utils.client';
  * @public
  */
 
-const PanelInfo = ({ properties, pointer, status, setDialog, options }) => {
+const PanelInfo = ({ properties, pointer, status, setDialog }) => {
 
     // compute actual cursor position in image
     const scale = getScale(properties);

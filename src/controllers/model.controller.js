@@ -23,14 +23,6 @@ import {updateComparisons} from "../services/comparisons.services.js";
 import {prepare} from '../lib/api.utils.js';
 
 /**
- * Shared data.
- *
- * @src public
- */
-
-let Model, model, mserve;
-
-/**
  * Export controller constructor.
  *
  * @param {String} nodeType
@@ -43,6 +35,14 @@ export default function ModelController(nodeType) {
     if (!nodeType) throw new Error('invalidModel');
 
     /**
+     * Shared data.
+     *
+     * @src public
+     */
+
+    let Model, model, mserve;
+
+    /**
      * Initialize the controller: generate services for model
      *
      * @param req
@@ -52,9 +52,14 @@ export default function ModelController(nodeType) {
      */
 
     this.init = async () => {
-        Model = await cserve.create(nodeType);
-        model = new Model();
-        mserve = new ModelServices(model);
+        try {
+            Model = await cserve.create(nodeType);
+            model = new Model();
+            mserve = new ModelServices(model);
+        }
+        catch (err) {
+            return next(err);
+        }
     }
 
     /**
@@ -82,18 +87,21 @@ export default function ModelController(nodeType) {
      */
 
     this.show = async (req, res, next) => {
+
+        // NOTE: client undefined if connection fails.
         const client = await pool.connect();
+
         try {
 
             // get requested node ID
-            let id = parseInt(this.getId(req));
+            let id = this.getId(req);
 
             // get item node + metadata
-            let itemData = await nserve.get(sanitize(id, 'integer'), client);
+            let itemData = await nserve.get(id, nodeType, client);
+            const {type=''} = itemData || {};
 
             // item record and/or node not found in database
-            if (!itemData)
-                return next(new Error('notFound'));
+            if (!itemData || nodeType !== type) return next(new Error('notFound'));
 
             // get node path
             const path = await nserve.getPath(itemData.node);
@@ -145,10 +153,8 @@ export default function ModelController(nodeType) {
             // get owner ID from parameters (if exists)
             let { owner_id = 0 } = req.params || {};
 
-            // create model instance
-            const item = owner_id
-                ? new Model({ owner_id: owner_id })
-                : new Model();
+            // create model instance of owner
+            const item = owner_id ? new Model({ owner_id: owner_id }) : new Model();
 
             // get path of node in hierarchy
             const owner = await nserve.select(sanitize(owner_id, 'integer'), client);
@@ -194,7 +200,8 @@ export default function ModelController(nodeType) {
             // check owner exists
             if (!owner && !model.isRoot) return next(new Error('invalidRequest'));
             // get owner type (null owner use current model name)
-            const { type = model.name } = owner || {};
+            // const { type = model.name } = owner || {};
+            const { type = null } = owner || {};
 
             // filter metadata through importer
             // - saves any attached files to library
@@ -213,7 +220,7 @@ export default function ModelController(nodeType) {
 
             // get ID for new item
             const { nodes_id = null } = resData || {}
-            const newItem = nodes_id ? await nserve.get(nodes_id, client) : {};
+            const newItem = nodes_id ? await nserve.get(nodes_id, nodeType, client) : {};
             const label = `${nodes_id ? newItem.label : model.label}`;
 
             // send response
@@ -253,7 +260,11 @@ export default function ModelController(nodeType) {
             const id = this.getId(req);
 
             // get item data
-            let data = await nserve.get(id, client);
+            let itemData = await nserve.get(id, nodeType, client);
+
+            // item record and/or node not found in database
+            const {type=''} = itemData || {};
+            if (!itemData || nodeType !== type) return next(new Error('notFound'));
 
             // get path of node in hierarchy
             const owner = await nserve.select(id, client);
@@ -264,7 +275,7 @@ export default function ModelController(nodeType) {
                 prepare({
                     view: 'edit',
                     model: model,
-                    data: data,
+                    data: itemData,
                     path: path
                 }));
 
@@ -293,12 +304,10 @@ export default function ModelController(nodeType) {
 
             // get node data from parameters
             const id = this.getId(req);
-            const itemData = await nserve.get(id, client);
+            const itemData = await nserve.get(id, nodeType, client);
 
-            // check that file entry exists
-            if (!itemData) {
-                return next(new Error('invalidRequest'));
-            }
+            // item record and/or node not found in database
+            if (!itemData) return next(new Error('notFound'));
 
             // process imported metadata
             const {node={}, metadata={}} = itemData || {};
@@ -322,7 +331,7 @@ export default function ModelController(nodeType) {
             }
 
             // get updated item
-            let updatedItem = await nserve.get(id, client);
+            let updatedItem = await nserve.get(id, nodeType, client);
 
             // create node path
             const path = await nserve.getPath(node);
@@ -363,14 +372,13 @@ export default function ModelController(nodeType) {
 
             // get dependent node + owner data
             const id = this.getId(req);
-            const { owner_id=0 } = req.params || {};
-            const itemData = await nserve.get(id, client);
+            const { owner_id=null } = req.params || {};
+            const itemData = await nserve.get(id, nodeType, client);
             const ownerData = await nserve.select(owner_id, client);
 
-            // check that both node and owner exist
-            if (!itemData || !ownerData) {
-                return next(new Error('invalidRequest'));
-            }
+            // item record and/or node/owner not found in database
+            const {type=''} = itemData || {};
+            if (!ownerData || !itemData || nodeType !== type) return next(new Error('notFound'));
 
             // is the move allowed? (i.e. check if owner and node are relatable)
             const isMoveable = await isRelatable(id, owner_id, client);
@@ -383,7 +391,7 @@ export default function ModelController(nodeType) {
             const item = new Model(metadata);
 
             // move item and dependents to new owner
-            const result = await mserve.move(item, ownerData);
+            const result = await mserve.move(item, ownerData, client);
 
             // error occurred in capture image transfer
             if (!result) return next(new Error('invalidRequest'));
@@ -423,30 +431,35 @@ export default function ModelController(nodeType) {
             const id = this.getId(req);
 
             // retrieve item data
-            let nodeData = await nserve.get(id, client);
+            let itemData = await nserve.get(id, nodeType, client);
+
+            // item record and/or node/owner not found in database
+            const {type=''} = itemData || {};
+            if (!itemData || nodeType !== type) return next(new Error('notFound'));
+
             // check if node is valid (exists)
-            if (!nodeData) return next(new Error('notFound'));
+            if (!itemData) return next(new Error('notFound'));
 
             // force user to delete dependent nodes separately
             // - use error code 23503 from FK violation
-            if (nodeData.hasDependents) return next(new Error('23503'));
+            if (itemData.hasDependents) return next(new Error('23503'));
 
             // get path of owner node in hierarchy (if exists)
-            const item = new Model(nodeData.metadata);
+            const item = new Model(itemData.metadata);
             const { owner_id = null } = item.node || {};
             const owner = await nserve.select(owner_id, client);
-            const path = await nserve.getPath(owner, client);
+            const path = await nserve.getPath(owner);
 
             // delete item (and attached files, if they exist)
-            await mserve.remove(item);
+            await mserve.remove(item, client);
 
             res.status(200).json(
                 prepare({
                     view: 'remove',
                     model: model,
-                    data: nodeData,
+                    data: itemData,
                     message: {
-                        msg: `'${nodeData.label}' ${humanize(model.name)} deleted successful!`,
+                        msg: `'${itemData.label}' ${humanize(model.name)} deleted successful!`,
                         type: 'success'
                     },
                     path: path

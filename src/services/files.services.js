@@ -16,11 +16,12 @@ import {sanitize} from '../lib/data.utils.js';
 import * as cserve from './construct.services.js';
 import * as metaserve from '../services/metadata.services.js';
 import ModelServices from './model.services.js';
-import {allowedMIME, extractFileLabel} from '../lib/file.utils.js';
+import {allowedImageMIME, allowedMIME, extractFileLabel} from '../lib/file.utils.js';
 import {getImageURL, saveImage} from './images.services.js';
 import {updateComparisons} from "./comparisons.services.js";
 import * as nserve from "./nodes.services.js";
 import AdmZip from 'adm-zip';
+import {Readable} from "stream";
 
 /**
  * Maximum file size (non-images) = 1GB
@@ -43,7 +44,7 @@ const captureTypes = ['historic_captures', 'modern_captures'];
  * @return {Promise} result
  */
 
-export const select = async function(id, client = pool) {
+export const select = async function(id, client ) {
     let { sql, data } = queries.files.select(id);
     let file = await client.query(sql, data);
     return file.rows[0];
@@ -108,7 +109,7 @@ export const filterFilesByID = async (fileIDs, offset, limit) => {
  * @return {Promise} result
  */
 
-export const getFileLabel = async (file, client = pool) => {
+export const getFileLabel = async (file, client) => {
 
     if (!file) return '';
     const {file_type = '', owner_id = '', filename = ''} = file || {};
@@ -151,7 +152,7 @@ export const getFileLabel = async (file, client = pool) => {
  * @return {Promise} result
  */
 
-export const get = async (id, client = pool) => {
+export const get = async (id, client ) => {
 
     if (!id) return null;
 
@@ -190,7 +191,7 @@ export const get = async (id, client = pool) => {
  * @return {Promise} result
  */
 
-export const selectByOwner = async (id, client = pool) => {
+export const selectByOwner = async (id, client ) => {
 
     // get all dependent files for requested owner
     const { sql, data } = queries.files.selectByOwner(id);
@@ -205,7 +206,7 @@ export const selectByOwner = async (id, client = pool) => {
                 const { type = '', secure_token = '' } = fileMetadata || {};
                 return {
                     file: file,
-                    label: await getFileLabel(file),
+                    label: await getFileLabel(file, client),
                     filename: (filename || '').replace(`_${secure_token}`, ''),
                     metadata: fileMetadata,
                     metadata_type: await metaserve.selectByName('metadata_file_types', type, client),
@@ -264,6 +265,14 @@ export const selectAllByOwner = async (id) => {
                 row.url = getImageURL('modern_images', row);
                 return row
             });
+        },
+        unsorted_images: async () => {
+            const {sql, data} = queries.files.getUnsortedImageFilesByStationID(id);
+            const {rows = []} = await client.query(sql, data);
+            return rows.map(row => {
+                row.url = getImageURL('modern_images', row);
+                return row
+            });
         }
     }
 
@@ -274,6 +283,7 @@ export const selectAllByOwner = async (id) => {
         // get all dependent files for requested owner
         results.historic_images = await handlers.historic_images();
         results.modern_images = await handlers.modern_images();
+        results.unsorted_images = await handlers.unsorted_images();
 
         await client.query('COMMIT');
         return results
@@ -292,12 +302,12 @@ export const selectAllByOwner = async (id) => {
  * @public
  * @param {integer} id
  * @param client
- * @return {boolean} result
+ * @return {Promise}
  */
 
-export const hasFiles = async (id, client = pool) => {
+export const hasFiles = async (id, client) => {
     let { sql, data } = queries.files.hasFile(id);
-    return client.query(sql, data)
+    return await client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows') && res.rows.length > 0
                 ? res.rows[0].exists
@@ -314,9 +324,9 @@ export const hasFiles = async (id, client = pool) => {
  * @return {Promise} result
  */
 
-export const selectByFile = async (file, client = pool) => {
+export const selectByFile = async (file, client ) => {
     let { sql, data } = queries.defaults.selectByFile(file);
-    return client.query(sql, data)
+    return await client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows')
             && res.rows.length > 0 ? res.rows[0] : {};
@@ -341,75 +351,75 @@ export const selectByFile = async (file, client = pool) => {
 
 export const insert = async (importData, model, fileOwner = null) => {
 
-    const { files = {}, data = {}, owner = {} } = importData || {};
-    const metadata = data;
-
-    // filter image states from imported metadata
-    // - for multiple images, image state is indexed by file key
-    const imageState = metadata.image_state;
-
-    // reject null parameters
-    if (
-        Object.keys(files).length === 0
-        || Object.keys(fileOwner || owner || {}).length === 0
-        || Object.keys(metadata).length === 0
-    ) {
-        return null;
-    }
-
-    // init transaction result
-    let res;
-
-    // initialize immediate file owners for given file type
-    const initFileOwners = {
-
-        // file is a capture image
-        captures: async () => {
-
-            // initialize capture database services
-            const CaptureModel = await cserve.create(model);
-            const mserve = new ModelServices(new CaptureModel());
-
-            // remove image state from capture data (not in model)
-            delete metadata.image_state;
-
-            // insert new capture owner for image file
-            const capture = new CaptureModel(metadata);
-            const captureData = await mserve.insert(capture);
-
-            // get new capture node metadata
-            const { nodes_id = 0 } = captureData || {};
-            const newCapture = await nserve.select(nodes_id) || {};
-            const { fs_path = '', type='' } = newCapture || {};
-
-            // check for any capture comparison updates
-            const { historic_captures = {}, modern_captures = {} } = data || {};
-            const comparisonCaptures = type === 'historic_captures'
-                ? Object.values(modern_captures)
-                : Object.values(historic_captures);
-            await updateComparisons(newCapture, comparisonCaptures, client);
-
-            return {
-                id: nodes_id,
-                type: model,
-                fs_path: fs_path,
-            };
-        },
-
-        // owner already exists
-        default: async () => {
-            return {
-                id: owner.id,
-                type: owner.type,
-                fs_path: owner.fs_path,
-            };
-        },
-    };
-
     // NOTE: client undefined if connection fails.
     const client = await pool.connect();
 
     try {
+
+        const { files = {}, data = {}, owner = {} } = importData || {};
+        const metadata = data;
+
+        // filter image states from imported metadata
+        // - for multiple images, image state is indexed by file key
+        const imageState = metadata.image_state;
+
+        // reject null parameters
+        if (
+            Object.keys(files).length === 0
+            || Object.keys(fileOwner || owner || {}).length === 0
+            || Object.keys(metadata).length === 0
+        ) {
+            return null;
+        }
+
+        // init transaction result
+        let res;
+
+        // initialize immediate file owners for given file type
+        const initFileOwners = {
+
+            // file is a capture image
+            captures: async () => {
+
+                // initialize capture database services
+                const CaptureModel = await cserve.create(model);
+                const mserve = new ModelServices(new CaptureModel());
+
+                // remove image state from capture data (not in model)
+                delete metadata.image_state;
+
+                // insert new capture owner for image file
+                const capture = new CaptureModel(metadata);
+                const captureData = await mserve.insert(capture, client);
+
+                // get new capture node metadata
+                const { nodes_id = 0 } = captureData || {};
+                const newCapture = await nserve.select(nodes_id, client) || {};
+                const { fs_path = '', type='' } = newCapture || {};
+
+                // check for any capture comparison updates
+                const { historic_captures = {}, modern_captures = {} } = data || {};
+                const comparisonCaptures = type === 'historic_captures'
+                    ? Object.values(modern_captures)
+                    : Object.values(historic_captures);
+                await updateComparisons(newCapture, comparisonCaptures, client);
+
+                return {
+                    id: nodes_id,
+                    type: model,
+                    fs_path: fs_path,
+                };
+            },
+
+            // owner already exists
+            default: async () => {
+                return {
+                    id: owner.id,
+                    type: owner.type,
+                    fs_path: owner.fs_path,
+                };
+            },
+        };
 
         // start import transaction
         await client.query('BEGIN');
@@ -422,7 +432,7 @@ export const insert = async (importData, model, fileOwner = null) => {
                 : await initFileOwners.default();
 
         // get file options
-        const options = await metaserve.getMetadataOptions();
+        const options = await metaserve.getMetadataOptions(client);
 
         // saves attached files and inserts metadata record for each
         res = await Promise
@@ -434,9 +444,8 @@ export const insert = async (importData, model, fileOwner = null) => {
                         fileOwner,
                         imageState,
                         options,
-                        (err) => {
-                            throw new Error(err);
-                        });
+                        client
+                    );
                 }));
 
         await client.query('COMMIT');
@@ -510,27 +519,30 @@ export const download = async (res, src) => {
 
 /**
  * Compress requested files in a zipped folder
- * - input param is an ile objects
+ * - input param contains file objects
  *
- * @param files
+ * @param {Object} files
+ * @param {String} version
+ * @param {Object} metadata
  * @return Response data
  * @public
  */
 
-export const compress = async (files={}) => {
+export const compress = async (files={}, version, metadata) => {
 
     // creating new archive (ADM-ZIP)
     let zip = new AdmZip();
 
-    // add requested files to archive; separate different image types in folders
+    // add requested files to archive; separate different file types in folders
     await Promise.all(
-        Object.keys(files).map(async (imageType) => {
+        Object.keys(files).map(async (fileType) => {
             await Promise.all(
-                files[imageType].map(async (file) => {
-                    console.log(file)
-                    const filePath = getFilePath('raw', file);
-                    // places file in folder labelled by image type
-                    zip.addLocalFile(filePath, imageType);
+                files[fileType].map(async (file) => {
+                    // get file path for given version type
+                    const filePath = getFilePath(version, file, metadata);
+                    // places file in folder labelled by file type
+                    // - only include files that exist
+                    if (fs.existsSync(filePath)) zip.addLocalFile(filePath, fileType);
                 })
             )}
         )
@@ -546,13 +558,13 @@ export const compress = async (files={}) => {
  * from file data.
  *
  * @public
- * @param {String} type
+ * @param {String} version
  * @param file
  * @param metadata
- * @return {Promise} result
+ * @return {String} result
  */
 
-export const getFilePath = (type, file, metadata = {}) => {
+export const getFilePath = (version, file, metadata = {}) => {
 
     const { fs_path = '' } = file || {};
     const { secure_token = '' } = metadata || {};
@@ -578,8 +590,8 @@ export const getFilePath = (type, file, metadata = {}) => {
     };
 
     // Handle file types
-    return fileHandlers.hasOwnProperty(type)
-        ? fileHandlers[type]()
+    return fileHandlers.hasOwnProperty(version)
+        ? fileHandlers[version]()
         : fileHandlers.default();
 };
 
@@ -592,6 +604,7 @@ export const getFilePath = (type, file, metadata = {}) => {
  * @param owner
  * @param imageStateData
  * @param options
+ * @param client
  */
 
 export const saveFile = async (
@@ -600,6 +613,7 @@ export const saveFile = async (
     owner,
     imageStateData = null,
     options,
+    client
 ) => {
 
     // define file upload promises
@@ -622,19 +636,27 @@ export const saveFile = async (
     // reject null file data
     if (!file_type || !mimetype || !filename) throw new Error();
 
+    const _handleError = (err) =>{throw new Error(err);}
+
     // handle file upload procedure based on file type
     const _fileHandlers = {
         historic_images: async () => {
+            // check for supported MIME types
+            if (!allowedImageMIME(mimetype)) throw new Error('invalidMIMEType');
             await saveImage(filename, fileData, owner, imageState || 'no_state', options);
         },
         modern_images: async () => {
+            // check for supported MIME types
+            if (!allowedImageMIME(mimetype)) throw new Error('invalidMIMEType');
             await saveImage(filename, fileData, owner, imageState || 'no_state', options);
         },
         supplemental_images: async () => {
+            // check for supported MIME types
+            if (!allowedImageMIME(mimetype)) throw new Error('invalidMIMEType');
             await saveImage(filename, fileData, owner, 'supplemental_images', options);
         },
-        default: async () => {
-            // check for supported MIME type
+        default: async (client) => {
+            // check for supported MIME types
             if (!allowedMIME(mimetype)) throw new Error('invalidMIMEType');
             const saveType = importData.data.hasOwnProperty('type') ? importData.data.type : 'unknown';
 
@@ -658,14 +680,14 @@ export const saveFile = async (
             await copyFile(fileData.tmp, filePath, fs.constants.COPYFILE_EXCL);
 
             // insert file record in database
-            await insertFile(fileData, owner, imageState);
+            await insertFile(fileData, owner, imageState, _handleError, client);
         },
     };
 
     // process file by type
     _fileHandlers.hasOwnProperty(file_type)
-        ? await _fileHandlers[file_type]()
-        : await _fileHandlers.default();
+        ? await _fileHandlers[file_type](client)
+        : await _fileHandlers.default(client);
 
     return Promise.all(filePromises);
 };
@@ -686,7 +708,7 @@ export const insertFile = async (
     owner,
     imageState,
     callback=console.error,
-    client=pool) => {
+    client) => {
 
     // get imported metadata
     const { data = {}, file = {} } = importData || {};
@@ -750,11 +772,12 @@ export const insertFile = async (
  * @param client
  */
 
-export const moveFiles = async (files, node, client=pool) => {
+export const moveFiles = async (files, node, client) => {
     await Promise.all(
-        // handle each file type
+        // handle move for each file type
         Object.keys(files).map(async (fileType) => {
             await Promise.all(
+                // handle move for each file
                 files[fileType].map(async (fileData) => {
                     const {metadata = {}, file = {}} = fileData || {};
                     const {image_state = '', secure_token = ''} = metadata || {};
@@ -778,7 +801,8 @@ export const moveFiles = async (files, node, client=pool) => {
                     await mkdir(newFileUploadDir, {recursive: true});
                     // move file to new directory path
                     const newFileUploadPath = path.join(newFileUploadDir, tokenizedFilename);
-                    await rename(oldFileUploadPath, newFileUploadPath);
+                    // rename file path (if exists)
+                    if (fs.existsSync(oldFileUploadPath)) await rename(oldFileUploadPath, newFileUploadPath);
 
                     // update owner in file metadata model
                     const FileModel = await cserve.create(file_type);
@@ -806,7 +830,7 @@ export const moveFiles = async (files, node, client=pool) => {
  * @public
  */
 
-export const removeAll = async (files=null, client = pool) => {
+export const removeAll = async (files=null, client ) => {
     await Promise.all(
         Object.keys(files).map(
             async (file_type) => {
@@ -827,7 +851,7 @@ export const removeAll = async (files=null, client = pool) => {
  * @public
  */
 
-export const remove = async (fileItem=null, client = pool) => {
+export const remove = async (fileItem=null, client ) => {
     const { file=null, url=null } = fileItem || {};
     const { id='', fs_path='' } = file || {};
 
@@ -857,7 +881,6 @@ export const remove = async (fileItem=null, client = pool) => {
         : null;
 };
 
-
 /**
  * Delete files from filesystem (by file paths).
  *
@@ -884,3 +907,24 @@ export const deleteFiles = async (filePaths=[]) => {
     );
 };
 
+/**
+ * Stream readable data to response
+ * - pushes data buffer to readable stream
+ *
+ * @return Response data
+ * @public
+ * @param res
+ * @param buffer
+ */
+
+export const streamDownload = (res, buffer) => {
+    let rs = new Readable();
+    rs._read = () => {}; // may be redundant
+    rs.pipe(res);
+    rs.on('error',function(err) {
+        console.error(err)
+        res.status(404).end();
+    });
+    rs.push(buffer);
+    rs.push(null);
+}

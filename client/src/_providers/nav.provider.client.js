@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Providers.Nave
+ * MLP.Client.Providers.Navigation
  * File: nav.provider.client.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -17,7 +17,7 @@ import kmlData from '../_components/kml/example-2.kml';
  * @public
  */
 
-const NavContext = React.createContext({})
+const NavContext = React.createContext({});
 
 /**
  * Provider component to allow consuming components to subscribe to
@@ -43,12 +43,11 @@ function NavProvider(props) {
     const [navView, setNavView] = React.useState(getNavView() || 'map');
     const [navToggle, setNavToggle] = React.useState(getPref('navToggle') || true);
     const [navOffCanvas, setNavOffCanvas] = React.useState(false);
-    const [dialog, setDialog] = React.useState(null);
 
-    // navigator resize
+    // navigator resize signal
     const [resize, setResize] = React.useState(false);
 
-    // data error
+    // navigator data loading error
     const [error, setError] = React.useState(false);
 
     // Addresses: Can't perform a React state update on unmounted component.
@@ -57,6 +56,11 @@ function NavProvider(props) {
     // asynchronous tasks in a useEffect cleanup function.
     const _isMounted = React.useRef(false);
 
+    // refresh navigator data
+    const _refresh = () => {
+        setNodeData(null);
+        setMapData(null);
+    }
 
     /**
      * Load API global node tree data.
@@ -85,7 +89,8 @@ function NavProvider(props) {
                         const { data = {} } = response || {};
                         const { nodes={}, stats=[] } = data || {};
 
-                        console.log('\n<<< Nav [Tree] >>>\n', res)
+                        // [DEBUG]
+                        // console.log('\n<<< Nav [Tree] >>>\n', res)
 
                         // check if response data is empty (set error flag if true)
                         if ( Object.keys(nodes).length === 0 ) {
@@ -105,6 +110,7 @@ function NavProvider(props) {
     // API call to retrieve map data
     React.useEffect(() => {
         _isMounted.current = true;
+
         // proceed if:
         // - no error found (e.g. empty response)
         // - navigator route is defined
@@ -122,7 +128,7 @@ function NavProvider(props) {
                         const { data = {} } = response || {};
                         const { nodes={} } = data || {};
 
-                        console.log('\n<<< Nav [Map] >>>\n', res)
+                        // console.log('\n<<< Nav [Map] >>>\n', res)
 
                         // check if response data is empty (set error flag if true)
                         if ( Object.keys(nodes).length === 0 ) {
@@ -157,7 +163,7 @@ function NavProvider(props) {
                         // destructure map data
                         if (res.error) return setError(res.error);
 
-                        console.log('\n<<< Nav [KML] >>>\n', res)
+                        // console.log('\n<<< Nav [KML] >>>\n', res)
 
                         // load node data to provider
                         setMapOverlayData(res);
@@ -171,6 +177,8 @@ function NavProvider(props) {
     return (
         <NavContext.Provider value={
             {
+                error,
+                refresh: _refresh,
                 tree: nodeData,
                 map: mapData,
                 stats: statsData,
@@ -187,10 +195,7 @@ function NavProvider(props) {
                 toggle: navToggle,
                 resize: resize,
                 setResize: setResize,
-                setToggle: setNavToggle,
-                dialog: dialog,
-                setDialog: setDialog,
-                error
+                setToggle: setNavToggle
             }
         } {...props} />
     )

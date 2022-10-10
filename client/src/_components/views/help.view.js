@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Common.Views.Help
+ * MLP.Client.Components.Views.Help
  * File: help.view.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -7,7 +7,6 @@
  */
 
 import React from 'react';
-import Dialog from '../common/dialog';
 import explorerHelpContent from '../content/explorer.help';
 import iatHelpContent from '../content/iat.help';
 import editorHelpContent from '../content/editor.help';
@@ -84,7 +83,7 @@ const HelpTabs = ({
  * @public
  */
 
-const HelpView = ({ setToggle, section = 0, page = 0 }) => {
+const HelpView = ({ section = 0, page = 0 }) => {
 
     const [sectionSelected, setSectionSelected] = React.useState(section);
     const [explorerPageSelected, setExplorerPageSelected] = React.useState(page);
@@ -148,15 +147,13 @@ const HelpView = ({ setToggle, section = 0, page = 0 }) => {
         },
     ];
 
-    return <Dialog setToggle={setToggle} title={'Mountain Legacy Explorer User Guide'}>
-        <HelpTabs
-            orientation={'horizontal'}
-            items={_sections}
-            selectedTab={sectionSelected}
-            setSelectedTab={setSectionSelected}
-            className={'help'}
-        />
-    </Dialog>;
+    return <HelpTabs
+        orientation={'horizontal'}
+        items={_sections}
+        selectedTab={sectionSelected}
+        setSelectedTab={setSectionSelected}
+        className={'help'}
+    />;
 };
 
 export default HelpView;

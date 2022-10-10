@@ -8,6 +8,10 @@
 
 import React from 'react';
 import Button from './button';
+import {genID} from "../../_utils/data.utils.client";
+
+// generate unique ID value for menu items
+const menuID = genID();
 
 /**
  * Dropdown component.
@@ -15,38 +19,39 @@ import Button from './button';
  * @param label
  * @param compact
  * @param items
+ * @param size
+ * @param icon
  * @public
  */
 
-const Dropdown = ({label, compact, items}) => {
+const Dropdown = ({label, compact, items, size ='lg', icon='add'}) => {
 
-    // generate unique ID value for menu items
-    const menuID = Math.random().toString(16).substring(2);
+    const dropdown = React.useRef();
 
     // dropdown toggle view
     const [dropdownToggle, setDropdownToggle] = React.useState(false);
 
-    // Initialize map using reference callback to access DOM
-    const dropdown = React.useCallback(domNode => {
+    // Add document click event listener to allow dropdown to close on body click
+    React.useEffect(() => {
         // create hide dropdown function
         const hideDropdown = (e) => {
-            if (!domNode.contains(e.target)) {
+            if (dropdown.current && !dropdown.current.contains(e.target)) {
                 setDropdownToggle(false);
-                document.removeEventListener('click', hideDropdown);
             }
-        };
-        // create event listener to close menu upon click
-        if (domNode && dropdownToggle) {
-            document.addEventListener('click', hideDropdown);
-        } else {
-            document.removeEventListener('click', hideDropdown);
         }
+        // add event listener to handle document click (to close dropdown)
+        document.addEventListener('click', hideDropdown);
+        // remove the event listener when component unmounts
+        return () => {
+            document.removeEventListener('click', hideDropdown);
+        };
+    });
 
-    }, [dropdownToggle, setDropdownToggle]);
 
     return <div>
         <Button
-            icon={'add'}
+            icon={icon}
+            size={size}
             label={!compact ? label : ''}
             onClick={(e) => {
                 e.stopPropagation()

@@ -9,7 +9,7 @@
 import React from 'react';
 import Button from '../common/button';
 import Message from '../common/message';
-import Input from '../common/input';
+import InputSelector from '../selectors/input.selector';
 import { saveAs } from 'file-saver';
 
 /**
@@ -28,7 +28,7 @@ export const downloader = async (id, canvas, format) => {
 
     // save canvas blob as file to local disk (file-saver)
     canvas.toBlob((blob) => {
-        saveAs(blob, filename);
+        if (blob) saveAs(blob, filename);
     }, format.type, format.quality);
 }
 
@@ -72,7 +72,7 @@ export const SaveAs = ({ options = [], setToggle=()=>{}, callback=()=>{} }) => {
             closeable={false}
             message={{ msg: `File format ${format} selected.`, type: 'info' }}
         />
-        <Input
+        <InputSelector
             label={'Save the file as'}
             type={'select'}
             options={options}
@@ -94,5 +94,3 @@ export const SaveAs = ({ options = [], setToggle=()=>{}, callback=()=>{} }) => {
         }
     </fieldset>;
 };
-
-export default SaveAs;

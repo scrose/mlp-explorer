@@ -25,7 +25,7 @@ const TableHeader = ({ tableID, cols }) => {
                         cols.map((col, index) =>
                             <th
                                 key={`${tableID}_col_${index}`}
-                                className={col.class}
+                                className={col.className}
                             >
                                 {col.label}
                             </th>)
@@ -56,7 +56,7 @@ const TableBody = ({tableID, rows, cols}) => {
                                 .map(col =>
                                     <td
                                         key={`td_${index}_${col.name}`}
-                                        className={col.name}>
+                                        className={col.className}>
                                         {row[col.name]}
                                     </td>
                                 )
@@ -77,8 +77,8 @@ const TableBody = ({tableID, rows, cols}) => {
  * @public
  * @param {Array} rows
  * @param {Array} cols
- * @param {String} classname (Optional)
- * @return {Object}
+ * @param {String} className (Optional)
+ * @return {JSX.Element}
  */
 
 const Table = ({ rows, cols, className=''}) => {

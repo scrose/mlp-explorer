@@ -49,20 +49,6 @@ export const mapToObj = (map) => {
 }
 
 /**
- * Remove empty elements from array
- *
- * @param {Array} arr
- * @src public
- */
-
-export function removeEmpty(arr) {
-    // remove "Falsy" elements then null elements
-    return arr.filter(Boolean).filter(function(el) {
-        return el != null;
-    });
-}
-
-/**
  * Sanitize data by PostGreSQL data type. Note for composite
  * user-defined types (i.e. coord, camera_settings, dims) the
  * data array is converted to a string representation of its tuple.

@@ -29,7 +29,7 @@ import {getFileLabel} from './files.services.js';
  * @return {Promise} result
  */
 
-export const select = async (id, client=pool) => {
+export const select = async (id, client) => {
     if (!id) return null;
     let { sql, data } = queries.nodes.select(id);
     let node = await client.query(sql, data);
@@ -49,7 +49,7 @@ export const select = async (id, client=pool) => {
 
 export const selectByNode = async (node, client) => {
     let { sql, data } = queries.defaults.selectByNode(node);
-    return client.query(sql, data)
+    return await client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows')
             && res.rows.length > 0 ? res.rows[0] : null;
@@ -61,19 +61,20 @@ export const selectByNode = async (node, client) => {
  *
  * @public
  * @param {integer} id
+ * @param type
  * @param client
  * @return {Promise} result
  */
 
-export const get = async (id, client) => {
+export const get = async (id, type, client) => {
 
         if (!id) return null;
 
-        // get requested node
+        // get requested node by ID
         const node = await select(id, client);
 
-        // check that node exists
-        if (!node) return null;
+        // check that node exists and node type matches
+        if (!node || type !== node.type) return null;
 
         // get node model metadata
         const metadata = await selectByNode(node, client);
@@ -124,7 +125,7 @@ export const getTree = async function(model) {
                 const metadata = await selectByNode(node, client);
                 return {
                     node: node,
-                    label: await mserve.getNodeLabel(node, client),
+                    label: await mserve.getNodeLabel(node, [], client),
                     type: node.type,
                     metadata: metadata,
                     hasDependents: await hasDependents(node.id, client) || false,
@@ -151,11 +152,10 @@ export const getTree = async function(model) {
  * Get filtered station location data and additional context metadata.
  *
  * @public
- * @param {Object} filter
  * @return {Promise} result
  */
 
-export const getMap = async function(filter=null) {
+export const getMap = async function() {
 
     // NOTE: client undefined if connection fails.
     const client = await pool.connect();
@@ -208,7 +208,7 @@ export const getMap = async function(filter=null) {
  * @return {Promise} result
  */
 
-export const selectByOwner = async (id, client=pool) => {
+export const selectByOwner = async (id, client) => {
 
     id = sanitize(id, 'integer');
 
@@ -226,7 +226,7 @@ export const selectByOwner = async (id, client=pool) => {
             const files = await fserve.selectByOwner(node.id, client);
             return {
                 node: node,
-                label: await mserve.getNodeLabel(node, client),
+                label: await mserve.getNodeLabel(node, [], client),
                 type: node.type,
                 metadata: metadata,
                 files: files,
@@ -273,7 +273,7 @@ export const filterNodesByID = async (nodeIDs, offset, limit) => {
         // append model data and dependents (child nodes)
         let items = await Promise.all(
             nodes.map(async (node) => {
-                return await get(node.id, client);
+                return await get(node.id, node.type, client);
             })
         );
 
@@ -305,9 +305,9 @@ export const filterNodesByID = async (nodeIDs, offset, limit) => {
  * @return {Promise}
  */
 
-const hasDependents = async function(id, client=pool) {
+const hasDependents = async function(id, client) {
     let { sql, data } = queries.nodes.hasDependent(id);
-    return client.query(sql, data)
+    return await client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows') && res.rows.length > 0
                 ? res.rows[0].exists
@@ -353,12 +353,12 @@ export const getPath = async (inputNode) => {
             ? {
                 file: node,
                 metadata: await fserve.selectByFile(node, client) || {},
-                label: await getFileLabel(node)
+                label: await getFileLabel(node, client)
             }
             : {
                 node: node,
                 metadata: await selectByNode(node, client) || {},
-                label: await mserve.getNodeLabel(node)
+                label: await mserve.getNodeLabel(node, [], client)
             }
 
         // set leaf node of tree
@@ -375,7 +375,7 @@ export const getPath = async (inputNode) => {
                 let newNode = {};
                 newNode.node = parentNode;
                 newNode.metadata = await selectByNode(parentNode, client) || {};
-                newNode.label = await mserve.getNodeLabel(parentNode, client);
+                newNode.label = await mserve.getNodeLabel(parentNode, [], client);
                 nodePath.set(n, newNode);
 
                 // reset node iteration

@@ -19,8 +19,8 @@
 export function showcase() {
     let sql = `
             SELECT * 
-            FROM nodes 
-            WHERE nodes.owner_id = (
+            FROM nodes
+            WHERE nodes.owner_id IN (
                 SELECT nodes_id 
                 FROM projects 
                 WHERE projects.description = 'showcase'

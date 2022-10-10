@@ -27,6 +27,16 @@ import 'leaflet-kml/L.KML.js';
 const heightOffset = 140;
 
 /**
+ * Initial map centre coordinate
+ */
+const initCentre = {lat: 51.311809, lng: -119.249230};
+
+/**
+ * Default base layer
+ */
+const defaultBaseLayer = 'Satellite Imagery';
+
+/**
  * Map navigator component.
  * - Requires third-party tile layer
  *   (See: https://leaflet-extras.github.io/leaflet-providers/preview/)
@@ -51,15 +61,15 @@ function MapNavigator({ filter, hidden }) {
     const currentFilter = query.length > 0 ? query : api.nodes;
 
     // centre map on selected node (use local coordinates, if available)
-    const initCenter = React.useMemo(() => { return {lat: 51.311809, lng: -119.249230} }, []);
-    const { lat=initCenter.lat, lng=initCenter.lng } = api.location;
+    const { lat=initCentre.lat, lng=initCentre.lng } = api.location;
 
     // map initial settings
     const [loaded, setLoaded] = React.useState(false);
-    const [selectedBaseLayer, setBaseLayer] = React.useState(getPref('mapBase') || 'Satellite Imagery');
+    const [selectedBaseLayer, setBaseLayer] = React.useState(getPref('mapBase') || defaultBaseLayer);
     const [center, setCenter] = React.useState([lat, lng]);
     const [zoom, setZoom] = React.useState(4);
     const [clustered, setClustered] = React.useState(true);
+    const [stale, setStale] = React.useState(true);
 
     // window dimensions
     const [winWidth, winHeight] = useWindowSize();
@@ -68,6 +78,17 @@ function MapNavigator({ filter, hidden }) {
     const mapPane = React.useRef(null);
     const mapObj = React.useRef(null);
     const layerGrp = React.useRef(null);
+
+    // refresh navigator data
+    const _handleRefresh = () => {
+        nav.refresh();
+        setStale(true);
+    };
+
+    // toggle markers as clustered
+    const _handleCluster = () => {
+        setClustered(!clustered)
+    };
 
     // request station(s) view in selected cluster
     // - if single station, go to that station info page
@@ -170,7 +191,7 @@ function MapNavigator({ filter, hidden }) {
         }
 
         // filter stations outside (padded) map view
-        const FilteredData = nav.map
+        const FilteredData = (nav.map || [])
             .filter(station => {
                 // filter stations not in map view
                 const coord = L.latLng(station.lat, station.lng);
@@ -295,7 +316,7 @@ function MapNavigator({ filter, hidden }) {
     // assign selected nodes on map
     React.useEffect(() => {
         _isMounted.current = true;
-        if (_isMounted.current && layerGrp.current) {
+        if (_isMounted.current && mapObj.current && layerGrp.current) {
             layerGrp.current.clearLayers();
             layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
         }
@@ -353,13 +374,15 @@ function MapNavigator({ filter, hidden }) {
             if (mapObj.current) return;
 
             // centre map on selected node
-            const [lat=initCenter.lat, lng=initCenter.lng] = center;
+            const [lat=initCentre.lat, lng=initCentre.lng] = Array.isArray(center)
+                ? center
+                : [center.lat || '', center.lng || ''];
 
             // initialize map with DOM container and initial coordinates
             mapObj.current = L.map(domNode, {
                 center: [lat, lng],
                 zoom: zoom,
-                layers: [baseLayers[selectedBaseLayer]],
+                layers: [baseLayers[selectedBaseLayer || defaultBaseLayer]],
             });
 
             // set maximum bounds to map view
@@ -401,32 +424,33 @@ function MapNavigator({ filter, hidden }) {
             });
 
             setLoaded(true);
+            setStale(false);
         }
 
     }, [
         api,
         nav,
-        initCenter,
         currentFilter,
         center,
         zoom,
         reset,
         selectedBaseLayer,
         setBaseLayer,
+        setStale,
         getClusterMarkers,
         setLoaded
     ]);
 
     /**
      * Initialize map using reference callback to access DOM container.
-     *
+     *x
      * @param domNode
      * @type {function(*=): void}
      */
 
     const mapContainer = React.useCallback(domNode => {
-        if (domNode) initMap(domNode);
-    }, [initMap]);
+        if (domNode && stale) initMap(domNode);
+    }, [initMap, stale]);
 
     return (
         <div
@@ -450,11 +474,16 @@ function MapNavigator({ filter, hidden }) {
             />
             <div className={'map-menu'}>
                 <Button
+                    icon={'sync'}
+                    size={'lg'}
+                    onClick={_handleRefresh}
+                />
+                <Button
                     icon={'stations'}
                     size={'lg'}
                     label={ clustered ? 'cluster on' : 'cluster off'}
                     className={ clustered ? 'activated' : ''}
-                    onClick={()=>{setClustered(!clustered)}}
+                    onClick={_handleCluster}
                 />
             </div>
         </div>

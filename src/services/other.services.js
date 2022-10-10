@@ -26,7 +26,7 @@ import * as nserve from "./nodes.services.js";
  * @return {Promise} result
  */
 
-export const getShowcaseCaptures = async (client=pool) => {
+export const getShowcaseCaptures = async (client) => {
     let { sql, data } = queries.other.showcase();
     let node = await client.query(sql, data);
 
@@ -37,8 +37,8 @@ export const getShowcaseCaptures = async (client=pool) => {
 
     // return captures with metadata
     return await Promise.all(
-        showcaseCaptures.map(async (capture) => {
-            const {id = {}} = capture || {};
-            return await nserve.get(id, client);
+        (showcaseCaptures || []).map(async (capture) => {
+            const { id = null, type=null } = capture || {};
+            return await nserve.get(id, type, client);
         }));
 };

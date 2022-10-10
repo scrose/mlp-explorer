@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.Common.Input
- * File: input.js
+ * MLP.Client.Components.Selectors.Input
+ * File: input.selector.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
@@ -9,11 +9,13 @@
 import React from 'react';
 import 'flatpickr/dist/themes/material_green.css';
 import {convertCoordDMS, sorter} from '../../_utils/data.utils.client';
-import Icon from './icon';
-import Message, {UserMessage} from './message';
-import MultiSelect from './multiselect';
-import DateTimeSelector from './datetime';
-import {CompareSelector, DependentEditor} from "../tools/editor.tools";
+import Icon from '../common/icon';
+import Message, {UserMessage} from '../common/message';
+import MultiSelect from '../common/multiselect';
+import DateTimeSelector from './datetime.selector';
+import {AttachedMetadataEditor} from "../editors/attached.editor";
+import {DependentsEditor} from "../editors/dependents.editor";
+import {ComparisonEditor} from "../editors/comparison.editor";
 
 /**
  * No operation.
@@ -42,7 +44,7 @@ const noop = () => {
  * <select>
  */
 
-export const Input = ({
+export const InputSelector = ({
                           id,
                           type,
                           name,
@@ -71,6 +73,9 @@ export const Input = ({
     // create event listener for file input
     // - simulates a click of the file browser
     const [highlight, setHighlight] = React.useState(false);
+
+    // define label-less inputs
+    const noLabel = [ 'hidden', 'file', 'dependentEditor', 'compareSelector', 'attachedMetadataEditor'];
 
     // append unique ID value for input
     id = `${name}_${id}`;
@@ -141,7 +146,7 @@ export const Input = ({
                 disabled={disabled}
                 type={'checkbox'}
                 id={id}
-                value={value}
+                value={value || ''}
                 name={name}
                 checked={isChecked}
                 required={required}
@@ -227,14 +232,14 @@ export const Input = ({
                     required={required}
                     onChange={onChange}
                     aria-label={ariaLabel}/>
-                <span>{convertCoordDMS(value)}</span>
+                <span>{convertCoordDMS(value || '')}</span>
             </>;
         },
 
         date: () => {
             return <DateTimeSelector
                 name={name}
-                value={value || ''}
+                value={value ? new Date(value) : value}
                 filter={'date'}
                 onChange={onChange}
             />;
@@ -328,7 +333,7 @@ export const Input = ({
                 id={id}
                 readOnly={readonly}
                 name={name}
-                selected={value}
+                selected={value || ''}
                 label={label}
                 required={required}
                 disabled={disabled}
@@ -337,18 +342,16 @@ export const Input = ({
             />;
         },
 
-        nodeEditor: () => {
-            return <DependentEditor
-                reference={options}
-                name={name}
-                label={label}
-                value={value || []}
-                onSelect={onMultiselect}
-            />;
+        dependentsEditor: () => {
+            return <DependentsEditor owner={options} />;
         },
 
-        compareSelector: () => {
-            return <CompareSelector
+        attachedMetadataEditor: () => {
+            return <AttachedMetadataEditor owner={options} />;
+        },
+
+        comparisonEditor: () => {
+            return <ComparisonEditor
                 reference={options}
                 name={name}
                 label={label}
@@ -425,8 +428,12 @@ export const Input = ({
         ? _inputElements[type]()
         : <Message message={{msg: 'Loading Error', type: 'error'}} closeable={false}/>;
 
-    return type !== 'hidden' && type !== 'file'
+    return noLabel.includes(type)
         ? <>
+            {input}
+            {<UserMessage message={error} closeable={false}/>}
+        </>
+        : <>
             <label key={`label_${name}`} htmlFor={id} className={type}>
                 {type !== 'checkbox' ? <span className={'label-text'}>{label}</span> : ''}
                 <span className={'units'}>{prefix}</span>
@@ -434,12 +441,10 @@ export const Input = ({
                 {type === 'checkbox' ? <span className={'label-text'}>{label}</span> : ''}
                 <span className={'units'}>{suffix}</span>
             </label>
-            {<UserMessage message={error} closeable={false}/>}
-        </>
-        : <>
-            {input}
-            {<UserMessage message={error} closeable={false}/>}
+            {
+                <UserMessage message={error} closeable={false}/>
+            }
         </>;
 };
 
-export default Input;
+export default InputSelector;

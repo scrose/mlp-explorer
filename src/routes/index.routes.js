@@ -20,6 +20,7 @@ import metadata from './metadata.routes.js'
 import files from './files.routes.js'
 import master from './comparison.routes.js'
 import other from './other.routes.js'
+import pool from "../services/db.services.js";
 
 /**
  * Create base router to add routes.
@@ -39,66 +40,77 @@ async function initRoutes(routes, baseRouter) {
     let router = express.Router({strict: true});
 
     // get user permission settings
-    let permissions = await schema.getPermissions();
+    // NOTE: client undefined if connection fails.
+    const client = await pool.connect();
 
-    // add API endpoints
-    Object.entries(routes.routes).forEach(([view, route]) => {
-        router.route(route.path)
-            .all(async (req, res, next) => {
-                try {
+    try {
+        let permissions = await schema.getPermissions(client);
 
-                    // initialize controller
-                    await routes.controller.init(req, res, next)
-                        .catch(err => {
-                            throw err;
-                        });
+        // add API endpoints
+        Object.entries(routes.routes).forEach(([view, route]) => {
+            router.route(route.path)
+                .all(async (req, res, next) => {
+                    try {
 
-                    // filter permissions for given view
-                    const allowedRoles = permissions
-                        .filter(viewPermissions => {
-                            return viewPermissions.view === view;
-                        })
-                        .map(permission => {
-                            return permission.role;
-                        });
+                        // initialize controller
+                        await routes.controller.init(req, res, next)
+                            .catch(err => {
+                                throw err;
+                            });
 
-                    // authorize user access based on role permissions
-                    // - user data set to null for anonymous users (visitors)
-                    req.user = await auth.authorize(req, res, allowedRoles)
-                        .catch(err => {
-                            throw err;
-                        });
+                        // filter permissions for given view
+                        const allowedRoles = permissions
+                            .filter(viewPermissions => {
+                                return viewPermissions.view === view;
+                            })
+                            .map(permission => {
+                                return permission.role;
+                            });
 
-                }
-                catch (err) {
-                    return next(err);
-                }
-                next();
-            })
-            .get(function(req, res, next) {
-                if (!route.get)
-                    return next(new Error(`${view} [get] route not implemented.`));
-                route.get(req, res, next);
-            })
-            .put(function(req, res, next) {
-                if (!route.put)
-                    return next(new Error(`${view} [put] route not implemented.`));
-                route.put(req, res, next);
-            })
-            .post(function(req, res, next) {
-                if (!route.post)
-                    return next(new Error(`${view} [post] route not implemented.`));
-                route.post(req, res, next);
-            })
-            .delete(function(req, res, next) {
-                if (!route.delete)
-                    return next(new Error(`${view} [delete] route not implemented.`));
-                route.delete(req, res, next);
-            });
+                        // authorize user access based on role permissions
+                        // - user data set to null for anonymous users (visitors)
+                        req.user = await auth.authorize(req, res, allowedRoles)
+                            .catch(err => {
+                                throw err;
+                            });
 
-        // add secondary router to main router
-        baseRouter.use('', router);
-    });
+                    }
+                    catch (err) {
+                        return next(err);
+                    }
+                    next();
+                })
+                .get(function(req, res, next) {
+                    if (!route.get)
+                        return next(new Error(`${view} [get] route not implemented.`));
+                    route.get(req, res, next);
+                })
+                .put(function(req, res, next) {
+                    if (!route.put)
+                        return next(new Error(`${view} [put] route not implemented.`));
+                    route.put(req, res, next);
+                })
+                .post(function(req, res, next) {
+                    if (!route.post)
+                        return next(new Error(`${view} [post] route not implemented.`));
+                    route.post(req, res, next);
+                })
+                .delete(function(req, res, next) {
+                    if (!route.delete)
+                        return next(new Error(`${view} [delete] route not implemented.`));
+                    route.delete(req, res, next);
+                });
+
+            // add secondary router to main router
+            baseRouter.use('', router);
+        });
+
+    } catch (err) {
+        console.error(err)
+        return next(err);
+    } finally {
+        await client.release(true);
+    }
 }
 
 /**
@@ -106,6 +118,10 @@ async function initRoutes(routes, baseRouter) {
  */
 
 async function initRouter() {
+
+    // NOTE: client undefined if connection fails.
+    const client = await pool.connect();
+
     try {
 
         // initialize main routes
@@ -121,41 +137,37 @@ async function initRouter() {
         await initRoutes(other, baseRouter)
 
         // initialize model routes
-        const modelsRoutes = await models();
+        const modelsRoutes = await models(client);
         await Promise.all(modelsRoutes
             .map(routes => {
                 return initRoutes(routes, baseRouter)
             }));
 
         // initialize metadata routes
-        const metadataRoutes = await metadata();
+        const metadataRoutes = await metadata(client);
         await Promise.all(metadataRoutes
             .map(routes => {
                 return initRoutes(routes, baseRouter)
             }));
 
         // initialize file routes
-        const filesRoutes = await files();
-        await Promise.all(filesRoutes
-            .map(routes => {
-                return initRoutes(routes, baseRouter)
-            }));
-
-        // initialize other routes
-        const otherRoutes = await files();
+        const filesRoutes = await files(client);
         await Promise.all(filesRoutes
             .map(routes => {
                 return initRoutes(routes, baseRouter)
             }));
 
         // initialize master routes
-        const masterRoutes = await master();
+        const masterRoutes = await master(client);
         await Promise.all(masterRoutes
             .map(routes => {
                 return initRoutes(routes, baseRouter)
             }));
     } catch (err) {
         throw err
+    }
+    finally {
+        await client.release(true);
     }
 }
 initRouter().catch(err => {throw err});

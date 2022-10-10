@@ -11,6 +11,7 @@ import path from 'path';
 import { humanize, sanitize } from '../lib/data.utils.js';
 import * as schemaConstructor from './schema.services.js';
 import { select as nselect } from './nodes.services.js';
+import pool from "./db.services.js";
 
 /**
  * Create derived model through composition. The model schema
@@ -273,33 +274,44 @@ function setData(data=null) {
 
 export const createNode = async function(item) {
 
-    if (!item.node) return null;
+    // NOTE: client undefined if connection fails.
+    const client = await pool.connect();
 
-    // generate node constructor
-    let Node = await create('nodes');
+    try {
+        if (!item.node) return null;
 
-    // get owner attributes (if they exist)
-    const { owner={} } = item || {};
-    const { value=0 } = owner || {};
-    let ownerAttrs = await nselect(value) || owner;
-    const { id=null, type=null, fs_path=item.fsRoot } = ownerAttrs || {};
+        // generate node constructor
+        let Node = await create('nodes');
 
-    // create new filesystem path using generated node label
-    // - only return alphanumeric characters (also: '_', '-')
-    const fsPath = path.join(
-        fs_path,
-        item.label.replace(' ', '_').replace(/[^a-z0-9_-]/gi,'')
-    );
+        // get owner attributes (if they exist)
+        const { owner={} } = item || {};
+        const { value='' } = owner || {};
+        let ownerAttrs = await nselect(value, client) || owner;
+        const { id=null, type=null, fs_path=item.fsRoot } = ownerAttrs || {};
 
-    // return node instance: set owner attribute values from
-    // retrieved node attributes
-    return new Node({
-        id: item.id,
-        type: item.name,
-        owner_id: id,
-        owner_type: type,
-        fs_path: fsPath
-    });
+        // create new filesystem path using generated node label
+        // - only return alphanumeric characters (also: '_', '-')
+        const fsPath = path.join(
+            fs_path,
+            item.label.replace(' ', '_').replace(/[^a-z0-9_-]/gi,'')
+        );
+
+        // return node instance: set owner attribute values from
+        // retrieved node attributes
+        return new Node({
+            id: item.id,
+            type: item.name,
+            owner_id: id,
+            owner_type: type,
+            fs_path: fsPath
+        });
+
+    } catch (err) {
+        console.error(err)
+        throw err;
+    } finally {
+        await client.release(true);
+    }
 };
 
 /**

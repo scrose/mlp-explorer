@@ -14,13 +14,12 @@ import * as db from '../services/index.services.js';
 import ModelServices from '../services/model.services.js';
 import * as fserve from '../services/files.services.js';
 import * as nserve from '../services/nodes.services.js';
+import * as cserve from "../services/construct.services.js";
 import { prepare } from '../lib/api.utils.js';
 import pool from '../services/db.services.js';
 import { sanitize } from '../lib/data.utils.js';
 import * as importer from '../services/import.services.js';
 import { humanize } from '../lib/data.utils.js';
-import { getFilePath } from '../services/files.services.js';
-import { Readable } from 'stream'
 
 /**
  * Export controller constructor.
@@ -138,13 +137,11 @@ export default function FilesController(modelType) {
         const client = await pool.connect();
 
         try {
-
             // get owner ID from parameters (if exists)
             const { owner_id = null } = req.params || {};
 
-            // get owner metadata record
-            const owner = await nserve.get(owner_id, client);
-
+            // get owner node record and files
+            const owner = await nserve.select(owner_id, client);
             let files = await fserve.selectAllByOwner(owner_id) || [];
 
             // send response
@@ -334,7 +331,7 @@ export default function FilesController(modelType) {
 
             // get metadata fields
             const {metadata='', file=''} = fileData || {};
-            const {owner_id='', owner_type=''} = file || {};
+            const {owner_id='', owner_type='', file_type=''} = file || {};
             const imported = await importer.receive(req, owner_id, owner_type);
 
             // overwrite metadata
@@ -342,11 +339,16 @@ export default function FilesController(modelType) {
                 metadata[field] = imported.data[field];
             });
 
+            // update owner in file metadata model
+            const fileNode = new Model(metadata);
+            const FileModel = await cserve.create(file_type);
+            const fileMetadata = new FileModel(metadata);
+
             // update file metadata record
-            await fserve.update(new Model(metadata));
+            await fserve.update(fileNode, fileMetadata, client);
 
             // get updated file
-            let updatedItem = await fserve.get(id);
+            let updatedItem = await fserve.get(id, client);
 
             // get path of owner node in hierarchy
             const path = await nserve.getPath(file);
@@ -395,7 +397,7 @@ export default function FilesController(modelType) {
             if (!file) return next(new Error('notFound'));
 
             // delete file + file model metadata
-            const result = await fserve.remove(file);
+            const result = await fserve.remove(file, client);
 
             res.status(200).json(
                 prepare({
@@ -441,11 +443,13 @@ export default function FilesController(modelType) {
             const { file={}, metadata={} } = fileData || {};
             const { file_type='' } = file || {};
 
+            // file does not exist
             if (!file) return next(new Error('invalidRequest'));
 
-            // get the file path for download
-            const filePath = getFilePath(file_type, file, metadata);
-            res.download(filePath);
+            const buffer = await fserve.compress( {[file_type]: [file]}, file_type, metadata);
+
+            // push buffer to download stream
+            fserve.streamDownload(res, buffer);
 
         } catch (err) {
             return next(err);
@@ -476,10 +480,17 @@ export default function FilesController(modelType) {
                 historic_images='',
                 modern_images='',
                 metadata_files='',
-                supplemental_images=''
+                supplemental_images='',
+                unsorted_images=''
             } = req.query || {};
 
-            if (!id && !historic_images && !modern_images && !metadata_files && !supplemental_images)
+            if (
+                !id &&
+                !historic_images &&
+                !modern_images &&
+                !metadata_files &&
+                !supplemental_images &&
+                !unsorted_images)
                 return next(new Error('invalidRequest'));
 
             // sanitize single file ID
@@ -498,6 +509,12 @@ export default function FilesController(modelType) {
                     return sanitize(id, 'integer');
                 });
 
+            const unsortedFileIDs = unsorted_images
+                .split(' ')
+                .map(id => {
+                    return sanitize(id, 'integer');
+                });
+
             const metadataFileIDs = metadata_files
                 .split(' ')
                 .map(id => {
@@ -511,11 +528,12 @@ export default function FilesController(modelType) {
                 });
 
             // get filtered files by ID
-            const singleFile = await fserve.select(singleFileId);
+            const singleFile = await fserve.select(singleFileId, client);
             const historicFiles = await fserve.filterFilesByID(historicFileIDs, 0, 100);
             const modernFiles = await fserve.filterFilesByID(modernFileIDs, 0, 100);
             const metadataFiles = await fserve.filterFilesByID(metadataFileIDs, 0, 100);
             const supplementalFiles = await fserve.filterFilesByID(supplementalFileIDs, 0, 100);
+            const unsortedFiles = await fserve.filterFilesByID(unsortedFileIDs, 0, 100);
 
             // create buffer for either single raw file or compressed image folder
             const buffer = singleFile
@@ -523,20 +541,13 @@ export default function FilesController(modelType) {
                 : await fserve.compress({
                     'historic_images': historicFiles.results,
                     'modern_images': modernFiles.results,
+                    'unsorted_images': unsortedFiles.results,
                     'metadata_files': metadataFiles.results,
                     'supplemental_files': supplementalFiles.results,
                 });
 
-            // push data buffer to readable stream
-            let rs = new Readable();
-            rs._read = () => {}; // may be redundant
-            rs.pipe(res);
-            rs.on('error',function(err) {
-                console.error(err)
-                res.status(404).end();
-            });
-            rs.push(buffer);
-            rs.push(null);
+            // push buffer to download stream
+            fserve.streamDownload(res, buffer);
 
         } catch (err) {
             return next(err);

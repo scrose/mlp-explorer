@@ -8,7 +8,6 @@
 
 import React from 'react';
 import { getRoot } from '../../_utils/paths.utils.client';
-import {getInfo} from "../../_services/schema.services.client";
 
 export const MLPWordmark = ({colour='white'}) => {
     return (

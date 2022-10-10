@@ -29,6 +29,7 @@ function AuthProvider(props) {
 
     const _isMounted = React.useRef(false);
     let [data, setData] = React.useState(null);
+    let [processing, setProcessing] = React.useState(false);
 
     const router = useRouter();
 
@@ -39,11 +40,13 @@ function AuthProvider(props) {
      *
      */
 
-    const login = async (route, credentials) => {
+    const login = async (credentials) => {
+        setProcessing(true);
         return await router.post('/login', credentials)
             .then(res => {
                 const { response={} } = res || {};
                 const { user=null, message={} } = response || {};
+                setProcessing(false);
                 // create user session (if user data provided)
                 if (user) {
                     setData(user);
@@ -60,11 +63,13 @@ function AuthProvider(props) {
      */
 
     const logout = async () => {
+        setProcessing(true);
         await router.post('/logout')
             .then(() => {
                 // Note: Keycloak logout operation returns no_static (204)
                 setData(null);
             });
+        setProcessing(false);
     }
 
     /**
@@ -98,7 +103,7 @@ function AuthProvider(props) {
     */
 
     return (
-        <AuthContext.Provider value={{data, login, logout}} {...props} />
+        <AuthContext.Provider value={{data, processing, login, logout}} {...props} />
     )
 
 }

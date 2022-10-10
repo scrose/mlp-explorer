@@ -15,6 +15,8 @@
 import Busboy from 'busboy';
 import fs from 'fs';
 import path from 'path';
+import {genID} from "../lib/data.utils.js";
+import {allowedImageMIME, allowedMIME} from "../lib/file.utils.js";
 
 /**
  * Async busboy file and data importer.
@@ -132,22 +134,36 @@ export const onFile = (filePromises, metadata, onError, fieldname, file, filenam
 
     // reject file upload empty of files
     if (!filename) {
-        return onError(new Error('invalidRequest'))
+        return onError(new Error('invalidRequest'));
     }
-
-    // create temporary file for upload
-    // - NOTE: temporary directory path set in ENV
-    const tmpName = file.tmpName = Math.random().toString(16).substring(2) + '-' + filename;
-    const saveTo = path.join(process.env.TMP_DIR, path.basename(tmpName));
-
-    // initialize file metadata
-    let fileData = {};
 
     // Parse any stringified arrays
     // - extracts file type from multiple images
     const [file_type, index] = fieldname.indexOf('[') > -1
         ? extractFieldData(fieldname)
         : [fieldname, null];
+
+    // reject unacceptable mimetype for given file type
+    if (
+        (file_type === 'historic_images'
+        || file_type === 'modern_images'
+        || file_type === 'supplemental_images')
+        && !allowedImageMIME(mimetype)) {
+        console.error('Invalid MIME Type:', mimetype);
+        return onError(new Error('invalidMIMEType'));
+    }
+    else if (!allowedMIME(mimetype)) {
+        console.error('Invalid MIME Type:', mimetype);
+        return onError(new Error('invalidMIMEType'));
+    }
+
+    // create temporary file for upload
+    // - NOTE: temporary directory path set in ENV
+    const tmpName = file.tmpName = genID() + '-' + filename;
+    const saveTo = path.join(process.env.TMP_DIR, path.basename(tmpName));
+
+    // initialize file metadata
+    let fileData = {};
 
     fileData.file = {
         file_type: file_type,

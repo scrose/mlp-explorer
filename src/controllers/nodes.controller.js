@@ -39,13 +39,13 @@ export const show = async (req, res, next) => {
 
     try {
 
-        const { id='' } = req.params || {};
-        const node = await nserve.get(sanitize(id, 'integer'), client);
+        const { id=null } = req.params || {};
+        const node = await nserve.select(id, client);
 
         res.status(200).json(
             prepare({
                 view: 'show',
-                data: node
+                data: await nserve.get(node.id, node.type, client)
             }));
 
     } catch (err) {

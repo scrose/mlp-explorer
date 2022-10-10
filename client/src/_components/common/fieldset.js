@@ -7,7 +7,7 @@
  */
 
 import React from 'react'
-import Input from './input';
+import InputSelector from '../selectors/input.selector';
 import Button from './button';
 import { useData } from '../../_providers/data.provider.client';
 import Accordion from "./accordion";
@@ -25,13 +25,14 @@ import Accordion from "./accordion";
 const Fieldset = ({
                       formID,
                       model,
+                      index,
                       mode,
                       legend,
                       fields,
                       errors,
                       setErrors,
                       data,
-                      setData,
+                      onChange,
                       remove,
                       validators,
                       opts={},
@@ -64,11 +65,11 @@ const Fieldset = ({
             : {};
 
         // update state with input data
-        setData(data => ({...data, [name]: value}));
+        onChange(name, value);
 
         // update files (if exist)
         if (Object.keys(attachedFiles).length > 0) {
-            setData(data => ({ ...data, [name]: attachedFiles }));
+            onChange(name, attachedFiles);
         }
 
         // update validation errors
@@ -92,14 +93,11 @@ const Fieldset = ({
 
         // update files (if exist)
         if (files.length > 0) {
-            setData(data => ({ ...data, [name]: files }));
+            onChange(name, files);
         }
 
         // update validation errors
-        setErrors(errors => ({
-            ...errors,
-            [name]: validators[name].check(files)
-        }));
+        setErrors(errors => ({...errors, [name]: validators[name].check(files)}));
     }
 
     /**
@@ -113,13 +111,10 @@ const Fieldset = ({
     const _handleMultiselect = (name, options) => {
 
         // update state with input data
-        setData(data => ({...data, [name]: options}));
+        onChange(name, options);
 
         // update validation errors
-        setErrors(errors => ({
-            ...errors,
-            [name]: validators[name].check(options)
-        }));
+        setErrors(errors => ({...errors, [name]: validators[name].check(options)}));
     }
 
     /**
@@ -132,21 +127,20 @@ const Fieldset = ({
      */
 
     const fieldset = <fieldset
+        name={`${formID}_fieldset_${model}_${index}`}
         className={legend ? '' : 'hidden'}
-        key={`fset_${model}`}
-        name={`fset_${model}`}
         disabled={isDisabled}
     >
         {
             mode==='copy'
                 ? <div className={'removeField'}>
                     <Button
-                        key={`fset_${model}_remove`}
+                        key={`${formID}_fieldset_remove_${index}`}
                         onClick={remove}
                         label={`Remove ${legend}`}
                         icon={'minus'} />
                 </div>
-                : ''
+                : <></>
         }
         {
             // render form input fields
@@ -154,10 +148,10 @@ const Fieldset = ({
 
                 // get form schema for requested model
                 const { label='', render='', name='', reference='', attributes={}, readonly=false } = fields[key];
-                const _value = data.hasOwnProperty(key) ? data[key] : '';
-                const _error = errors.hasOwnProperty(key) ? errors[key] : '';
-                const _options = optionsData.hasOwnProperty(reference) ? optionsData[reference] : [];
-                const _disabled = disabledInputs.hasOwnProperty(name) ? disabledInputs[name]: false;
+                const _value = data && data.hasOwnProperty(key) ? data[key] : '';
+                const _error = errors && errors.hasOwnProperty(key) ? errors[key] : '';
+                const _options = optionsData && optionsData.hasOwnProperty(reference) ? optionsData[reference] : [];
+                const _disabled = disabledInputs && disabledInputs.hasOwnProperty(name) ? disabledInputs[name]: false;
                 const _isRequired = validators.hasOwnProperty(name)
                     ? validators[name].validations.includes('isRequired') : false;
                 const _prefix = attributes.hasOwnProperty('prefix') ? attributes.prefix : '';
@@ -167,8 +161,8 @@ const Fieldset = ({
                 const _multiple = attributes.hasOwnProperty('multiple') ? attributes.multiple : '';
 
                 return (
-                    <Input
-                        key={`input_${name}_${key}`}
+                    <InputSelector
+                        key={`${formID}_input_${name}_${key}`}
                         id={formID}
                         type={render}
                         name={name}

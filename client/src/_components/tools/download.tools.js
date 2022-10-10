@@ -1,6 +1,6 @@
 /*!
  * MLP.Client.Components.Tools.Downloader
- * File: exporter.tools.js
+ * File: download.tools.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
@@ -8,10 +8,11 @@
 
 import React from "react";
 import { UserMessage } from '../common/message';
-import Input from '../common/input';
+import InputSelector from '../selectors/input.selector';
 import Button from '../common/button';
 import Download from "../common/download";
 import {useRouter} from "../../_providers/router.provider.client";
+import {useDialog} from "../../_providers/dialog.provider.client";
 import {FilesList} from "../views/files.view";
 
 /**
@@ -50,20 +51,25 @@ import {FilesList} from "../views/files.view";
 /**
  * Bulk downloader
  * all historical captures, all modern captures; best available historical,
- * best available moderns; fieldnote data; station details; location images.
+ * best available moderns; field note data; station details; location images.
  *
  * @public
+ * @param id
+ * @return {JSX.Element}
  */
 
-const Downloader = ({setToggle, id}) => {
+const Downloader = ({id}) => {
+
+    const router = useRouter();
+    const dialog = useDialog();
 
     // create dynamic data states
     const [loadedData, setLoadedData] = React.useState(null);
+    const [isEmpty, setIsEmpty] = React.useState(false);
     const [error, setError] = React.useState(null);
     const [imageFilter, setImageFilter] = React.useState([]);
     const [message, setMessage] = React.useState(null);
     const _isMounted = React.useRef(true);
-    const router = useRouter();
 
     // retrieve capture images for node
     // API call to retrieve node data (if not yet loaded)
@@ -79,7 +85,9 @@ const Downloader = ({setToggle, id}) => {
                         if (res.error) return setError(res.error);
                         const { response = {} } = res || {};
                         const { data = {} } = response || {};
-                        // console.log(data)
+                        // check if empty of downloadables
+                        setIsEmpty(Object.keys(data).filter(key => data[key].length > 0).length === 0);
+                        // console.log('Images available for download:', data)
                         setLoadedData(data);
                     }
                 })
@@ -151,6 +159,16 @@ const Downloader = ({setToggle, id}) => {
                 ? _getFileIDs(loadedData.modern_images)
                 : []
         },
+        {
+            value: 'unsorted_images',
+            label: 'All unsorted capture images',
+            files: loadedData && loadedData.hasOwnProperty('unsorted_images')
+                ? _getFileList(loadedData.unsorted_images)
+                : [],
+            data: loadedData && loadedData.hasOwnProperty('unsorted_images')
+                ? _getFileIDs(loadedData.unsorted_images)
+                : []
+        },
         // {
         //     value: 'supplemental_images',
         //     label: 'All supplemental images',
@@ -164,7 +182,15 @@ const Downloader = ({setToggle, id}) => {
     ];
 
     const _handleCallback = (err) => {
-        err ? setMessage(err) : setToggle(false);
+        err ? setMessage(err) : dialog.cancel();
+    }
+
+    /**
+     * Handler for cancel operation
+     * @private
+     */
+    const _handleCancel = () => {
+        dialog.cancel();
     }
 
     // Handler for image filter select all
@@ -195,61 +221,69 @@ const Downloader = ({setToggle, id}) => {
 
     // render download-as button
     return <fieldset className={'submit'}>
-        <UserMessage message={message} closeable={false} />
+        <UserMessage message={message} closeable={true} />
         <div>
-            <fieldset>
-                <Input
-                    key={`bulk_download_filter_option_select_none`}
-                    label={'Deselect All Images'}
-                    type={'checkbox'}
-                    value={Array.isArray(imageFilter) && imageFilter.length === 0}
-                    onChange={() => _handleDeselectAll()}
-                />
-                <Input
-                    key={`bulk_download_filter_option_select_all`}
-                    label={'Select All Images'}
-                    type={'checkbox'}
-                    value={Array.isArray(imageFilter) && options.filter(
-                        opt => !imageFilter.includes(opt.value) && opt.data.length > 0).length === 0
-                    }
-                    onChange={() => _handleSelectAll()}
-                />
-                {
-                    options.map((opt, index) => {
-                        return Array.isArray(opt.data) && opt.data.length > 0 && <Input
-                            key={`bulk_download_filter_option_${index}`}
-                            label={opt.label}
+            {
+                !isEmpty && loadedData ?
+                    <fieldset>
+                        <InputSelector
+                            disabled={isEmpty}
+                            key={`bulk_download_filter_option_select_none`}
+                            label={'Deselect All Images'}
                             type={'checkbox'}
-                            value={Array.isArray(imageFilter) && imageFilter.includes(opt.value)}
-                            onChange={() => _handleSelect(opt.value)}
+                            value={Array.isArray(imageFilter) && imageFilter.length === 0}
+                            onChange={() => _handleDeselectAll()}
                         />
-                    })
-                }
-                {
-                    Array.isArray(imageFilter) && imageFilter.length > 0 &&
-                    <div className={'h-menu'}>
-                        <ul>
-                            <li>
-                                <Download
-                                    filename ={`mlp_download.zip`}
-                                    format={'zip'}
-                                    label={`Download`}
-                                    route={`/files/download/raw?${_getFileQuery()}`}
-                                    callback={_handleCallback}
+                        <InputSelector
+                            disabled={isEmpty}
+                            key={`bulk_download_filter_option_select_all`}
+                            label={'Select All Images'}
+                            type={'checkbox'}
+                            value={Array.isArray(imageFilter) && options.filter(
+                                opt => !imageFilter.includes(opt.value) && opt.data.length > 0).length === 0
+                            }
+                            onChange={() => _handleSelectAll()}
+                        />
+                        {
+                            options.map((opt, index) => {
+                                return Array.isArray(opt.data) && opt.data.length > 0 && <InputSelector
+                                    key={`bulk_download_filter_option_${index}`}
+                                    label={opt.label}
+                                    type={'checkbox'}
+                                    value={Array.isArray(imageFilter) && imageFilter.includes(opt.value)}
+                                    onChange={() => _handleSelect(opt.value)}
                                 />
-                            </li>
-                            <li>
-                                <Button
-                                    icon={'cancel'}
-                                    label={'Cancel'}
-                                    className={'cancel'}
-                                    onClick={()=>{setToggle(false)}}
-                                />
-                            </li>
-                        </ul>
-                    </div>
-                }
-            </fieldset>
+                            })
+                        }
+                    </fieldset>
+                    : <UserMessage message={{msg: 'No downloads available', type: 'warning'}} closeable={false} />
+            }
+            <div className={'h-menu'}>
+                <ul>
+                    {
+                        Array.isArray(imageFilter) && imageFilter.length > 0 &&
+                        <li>
+                            <Download
+                                className={'submit'}
+                                filename ={`mlp_download.zip`}
+                                format={'zip'}
+                                label={`Download`}
+                                route={`/files/download/raw?${_getFileQuery()}`}
+                                callback={_handleCallback}
+                            />
+                        </li>
+                    }
+                    <li>
+                        <Button
+                            icon={'cancel'}
+                            label={'Cancel'}
+                            className={'cancel'}
+                            onClick={_handleCancel}
+                        />
+                    </li>
+                </ul>
+            </div>
+
             <div>
                 {
                     options

@@ -14,7 +14,7 @@
 
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
-import { humanize } from '../lib/data.utils.js';
+import {humanize} from '../lib/data.utils.js';
 import { participantGroupTypes } from '../queries/metadata.queries.js';
 
 /**
@@ -28,97 +28,109 @@ import { participantGroupTypes } from '../queries/metadata.queries.js';
 
 export const create = async (constructorType) => {
 
-    // initialize db schema attributes
-    const nodeTypes = await getNodeTypes();
-    const metadataTypes = await getMetadataTypes();
-    const fileTypes = await getFileTypes();
-    const permissions = await getPermissions();
-    const attributes = await getAttributes(constructorType);
-    const nodeAttributes = await getAttributes('nodes');
-    const fileAttributes = await getAttributes('files');
+    // NOTE: client undefined if connection fails.
+    const client = await pool.connect();
 
-    // check type definition in db. The 'nodes' model includes all
-    // data containers (e.g. historic visits); the 'files'
-    // model handles all nodes attached to files in the library
-    // (e.g. historic images).
-    if (
-        !(nodeTypes.includes(constructorType)
-            || fileTypes.includes(constructorType)
-            || metadataTypes.includes(constructorType)
-            || constructorType === 'nodes'
-            || constructorType === 'files')
-    )
-        throw Error('invalidConstructorType');
+    try {
 
-    // set identifier key based on model attributes.
-    const idKey = (attributes == null || attributes.hasOwnProperty('files_id'))
-        ? 'files_id'
-        : attributes.hasOwnProperty('nodes_id')
-            ? 'nodes_id'
-            : 'id';
+        // initialize db schema attributes
+        const nodeTypes = await getNodeTypes(client);
+        const metadataTypes = await getMetadataTypes(client);
+        const fileTypes = await getFileTypes(client);
+        const permissions = await getPermissions(client);
+        const attributes = await getAttributes(constructorType, client);
+        const nodeAttributes = await getAttributes('nodes', client);
+        const fileAttributes = await getAttributes('files', client);
 
-    // construct schema for model type
-    let Schema = function() {
-        this.model = constructorType;
-    };
+        // check type definition in db. The 'nodes' model includes all
+        // data containers (e.g. historic visits); the 'files'
+        // model handles all nodes attached to files in the library
+        // (e.g. historic images).
+        if (
+            !(nodeTypes.includes(constructorType)
+                || fileTypes.includes(constructorType)
+                || metadataTypes.includes(constructorType)
+                || constructorType === 'nodes'
+                || constructorType === 'files')
+        )
+            next('invalidConstructorType');
 
-    // define model properties
-    Object.defineProperties(Schema.prototype, {
-        nodeTypes: {
-            value: nodeTypes,
-            writable: false
-        },
-        metadataTypes: {
-            value: metadataTypes,
-            writable: false
-        },
-        fileTypes: {
-            value: fileTypes,
-            writable: false
-        },
-        attributes: {
-            value: attributes || [],
-            writable: true
-        },
-        nodeAttributes: {
-            value: nodeAttributes || [],
-            writable: true
-        },
-        fileAttributes: {
-            value: fileAttributes || [],
-            writable: true
-        },
-        idKey: {
-            value: idKey,
-            writable: false
-        },
-        permissions: {
-            value: permissions[constructorType],
-            writable: false
-        },
-        rootNodeTypes: {
-            value: ['projects', 'surveyors'],
-            writable: false
-        },
-        fsRoot: {
-            value: {
-                projects: 'Organized_by_Projects',
-                surveyors: 'Organized_by_Surveyor'
+        // set identifier key based on model attributes.
+        const idKey = (attributes == null || attributes.hasOwnProperty('files_id'))
+            ? 'files_id'
+            : attributes.hasOwnProperty('nodes_id')
+                ? 'nodes_id'
+                : 'id';
+
+        // construct schema for model type
+        let Schema = function() {
+            this.model = constructorType;
+        };
+
+        // define model properties
+        Object.defineProperties(Schema.prototype, {
+            nodeTypes: {
+                value: nodeTypes,
+                writable: false
             },
-            writable: false
-        },
-        nodeDepth: {
-            value: {
-                'projects': 0,
-                'surveyors': 0,
-                'surveys': 0,
-                'survey_seasons': 1,
-                'default': 2
+            metadataTypes: {
+                value: metadataTypes,
+                writable: false
             },
-            writable: false
-        }
-    });
-    return Schema;
+            fileTypes: {
+                value: fileTypes,
+                writable: false
+            },
+            attributes: {
+                value: attributes || [],
+                writable: true
+            },
+            nodeAttributes: {
+                value: nodeAttributes || [],
+                writable: true
+            },
+            fileAttributes: {
+                value: fileAttributes || [],
+                writable: true
+            },
+            idKey: {
+                value: idKey,
+                writable: false
+            },
+            permissions: {
+                value: permissions[constructorType],
+                writable: false
+            },
+            rootNodeTypes: {
+                value: ['projects', 'surveyors'],
+                writable: false
+            },
+            fsRoot: {
+                value: {
+                    projects: 'Organized_by_Projects',
+                    surveyors: 'Organized_by_Surveyor'
+                },
+                writable: false
+            },
+            nodeDepth: {
+                value: {
+                    'projects': 0,
+                    'surveyors': 0,
+                    'surveys': 0,
+                    'survey_seasons': 1,
+                    'default': 2
+                },
+                writable: false
+            }
+        });
+        return Schema;
+
+    } catch (err) {
+        console.error(err)
+        return next(err);
+    } finally {
+        await client.release(true);
+    }
 };
 
 /**
@@ -128,7 +140,7 @@ export const create = async (constructorType) => {
  * @return {Promise} result
  */
 
-export const getNodeTypes = async function(client=pool) {
+export const getNodeTypes = async function(client) {
     let { sql, data } = queries.nodes.types();
     let nodeTypes = await client.query(sql, data);
 
@@ -146,7 +158,7 @@ export const getNodeTypes = async function(client=pool) {
  * @return {Promise} result
  */
 
-export const isRelatable = async function(nodeID, ownerID, client=pool) {
+export const isRelatable = async function(nodeID, ownerID, client) {
     let { sql, data } = queries.schema.isRelatable(nodeID, ownerID);
     const res = await client.query(sql, data);
     return res.rows.length > 0 && res.rows[0].exists;
@@ -159,7 +171,7 @@ export const isRelatable = async function(nodeID, ownerID, client=pool) {
  * @return {Promise} result
  */
 
-export const getMetadataTypes = async function(client=pool) {
+export const getMetadataTypes = async function(client) {
     let { sql, data } = queries.metadata.types();
     let nodeTypes = await client.query(sql, data);
 
@@ -168,13 +180,13 @@ export const getMetadataTypes = async function(client=pool) {
 };
 
 /**
- * Get all metadata types.
+ * Get all participant group types.
  *
  * @public
  * @return {Promise} result
  */
 
-export const getParticipantGroupTypes = async function(client=pool) {
+export const getParticipantGroupTypes = async function(client) {
     let { sql, data } = participantGroupTypes();
     let pgTypes = await client.query(sql, data);
 
@@ -189,7 +201,7 @@ export const getParticipantGroupTypes = async function(client=pool) {
  * @return {Promise} result
  */
 
-export const getFileTypes = async function(client=pool) {
+export const getFileTypes = async function(client) {
     let { sql, data } = queries.files.types();
     let fileTypes = await client.query(sql, data);
 
@@ -206,7 +218,7 @@ export const getFileTypes = async function(client=pool) {
  * @return {Promise} result
  */
 
-export const getAttributes = async function(type, client=pool) {
+export const getAttributes = async function(type, client) {
 
     if (type == null) return null;
 
@@ -240,8 +252,7 @@ export const getAttributes = async function(type, client=pool) {
  * @return {Promise} result
  */
 
-export const getPermissions = async function(client=pool) {
-
+export const getPermissions = async function(client) {
     let { sql, data } = queries.users.getPermissions();
     let permissions = await client.query(sql, data);
     return permissions.rows;

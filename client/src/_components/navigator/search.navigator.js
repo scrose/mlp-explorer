@@ -14,6 +14,7 @@ import { genID, sanitize } from '../../_utils/data.utils.client';
 import { getModelLabel } from '../../_services/schema.services.client';
 import Accordion from "../common/accordion";
 import {useWindowSize} from "../../_utils/events.utils.client";
+import Loading from "../common/loading";
 
 /**
  * Generate unique key.
@@ -25,18 +26,18 @@ const keyID = genID();
  * Search navigator component.
  *
  * @public
- * @param {Array} filter
  * @param {int} limit
  * @param {int} offset
  * @param hidden
  * @return
  */
 
-const SearchNavigator = ({filter=[], limit=5, offset=0, hidden=true}) => {
+const SearchNavigator = ({limit=5, offset=0, hidden=true}) => {
 
     const router = useRouter();
 
     // create search data state
+    const [loading, setLoading] = React.useState(false);
     const [searchQuery, setSearchQuery] = React.useState('');
     const [searchTerms, setSearchTerms] = React.useState([]);
     const [searchResults, setSearchResults] = React.useState(null);
@@ -64,6 +65,8 @@ const SearchNavigator = ({filter=[], limit=5, offset=0, hidden=true}) => {
     // submit main search query
     const _handleSubmit = () => {
 
+        setLoading(true);
+
         const params = {
             q: searchQuery,
             offset: searchOffset,
@@ -78,19 +81,21 @@ const SearchNavigator = ({filter=[], limit=5, offset=0, hidden=true}) => {
                     const { response = {} } = res || {};
                     const { data = {} } = response || {};
                     const { terms = [], results = {} } = data || {};
-                    console.log(terms, results)
 
                     // ensure data is an array
                     if (Object.keys(results).length > 0 && Array.isArray(terms)) {
                         setSearchResults(results);
                         setSearchTerms(terms);
                     }
+                    setLoading(false);
                 });
         }
     };
 
     // filter options by owner ID
     const _handleGetMore = (model, offset) => {
+
+        setLoading(true);
 
         const params = {
             q: searchQuery,
@@ -115,12 +120,13 @@ const SearchNavigator = ({filter=[], limit=5, offset=0, hidden=true}) => {
 
                     // add additional results to search results
                     setSearchResults(JSON.parse(JSON.stringify(newResults)));
+                    setLoading(false);
                 });
         }
     };
 
     // extract an excerpt from the search results item
-    const getExcerpt = (str, index) => {
+    const getExcerpt = (str) => {
 
         let blurb;
 
@@ -186,47 +192,54 @@ const SearchNavigator = ({filter=[], limit=5, offset=0, hidden=true}) => {
         </div>
         <div className={'search-results'}>
             <h3>{searchTerms.length > 0 ? `Search Results for '${searchTerms.join(' ')}'` : ''}</h3>
-        {
-            (Object.keys(searchResults || {}))
-                .filter(model => searchResults[model].length > 0)
-                .map((model, index) => {
-                    return <Accordion
-                        type={model}
-                        label={`${getModelLabel(model, 'label')}: ${searchResults[model][0].total} Results Found`}
-                        key={`search_results_${model}_${index}`}>
-                        <div>
-                            {
-                                searchResults[model].map((item, index) => {
-                                    const {id = '', type = '', last_modified = '', blurb = ''} = item || {};
-                                    const excerpt = getExcerpt(blurb, index);
-                                    return <div key={`${keyID}_searchresults_${index}`} className={'search-item'}>
-                                        <h4 onClick={() => {
-                                            router.update(createNodeRoute(type, 'show', id))
-                                        }}>
-                                            {getModelLabel(item.type)}: {sanitize(item.heading)}
-                                        </h4>
-                                        <div className={'subtext'}>
-                                            Last Modified: {sanitize(last_modified, 'date')}
+            {
+                (Object.keys(searchResults || {}))
+                    .filter(model => searchResults[model].length > 0)
+                    .map((model, index) => {
+                        return <Accordion
+                            type={model}
+                            label={`${getModelLabel(model, 'label')}: ${searchResults[model][0].total} Results Found`}
+                            key={`search_results_${model}_${index}`}>
+                            <div>
+                                {
+                                    searchResults[model].map((item, index) => {
+                                        const {id = '', type = '', last_modified = '', blurb = ''} = item || {};
+                                        const excerpt = getExcerpt(blurb, index);
+                                        return <div key={`${keyID}_searchresults_${index}`} className={'search-item'}>
+                                            <h4 onClick={() => {
+                                                router.update(createNodeRoute(type, 'show', id))
+                                            }}>
+                                                {getModelLabel(item.type)}: {sanitize(item.heading)}
+                                            </h4>
+                                            <div className={'subtext'}>
+                                                Last Modified: {sanitize(last_modified, 'date')}
+                                            </div>
+                                            {
+                                                excerpt && <p><em>...&#160;{excerpt}&#160;...</em></p>
+                                            }
                                         </div>
-                                        {
-                                            excerpt && <p><em>...&#160;{excerpt}&#160;...</em></p>
-                                        }
-                                    </div>
-                                })
+                                    })
+                                }
+                            </div>
+                            {
+                                searchResults[model].length < searchResults[model][0].total &&
+                                <Button
+                                    label={'See More Results'}
+                                    onClick={() => {
+                                        _handleGetMore(model, searchResults[model].length)
+                                    }}
+                                />
                             }
-                        </div>
-                        {
-                            searchResults[model].length < searchResults[model][0].total &&
-                            <Button
-                                label={'See More Results'}
-                                onClick={() => {
-                                    _handleGetMore(model, searchResults[model].length)
-                                }}
-                            />
-                        }
-                    </Accordion>
-                })
-        }</div>
+                            {
+                                loading && <Loading />
+                            }
+                        </Accordion>
+                    })
+            }
+            {
+                loading && <Loading />
+            }
+        </div>
     </div>
 }
 

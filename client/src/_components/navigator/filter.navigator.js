@@ -11,6 +11,7 @@ import Form from '../common/form';
 import { genSchema } from '../../_services/schema.services.client';
 import { useNav } from "../../_providers/nav.provider.client";
 import {useData} from "../../_providers/data.provider.client";
+import {useDialog} from "../../_providers/dialog.provider.client";
 
 /**
  * Navigator filter component.
@@ -19,10 +20,11 @@ import {useData} from "../../_providers/data.provider.client";
  * @return {JSX.Element}
  */
 
-function FilterMapNavigator() {
+function FilterNavigator() {
 
     const nav = useNav();
     const api = useData();
+    const dialog = useDialog();
 
     // get filter options
     const { surveyors=[], surveys=[], survey_seasons=[] } = api.options || {};
@@ -65,6 +67,8 @@ function FilterMapNavigator() {
     const filteredSurveys = filterOptions(surveys, surveyorID);
     const filteredSurveySeasons = filterOptions(survey_seasons, surveyID);
 
+    const _loader = async () => {return filterData}
+
     return (
         <Form
             model={'stations'}
@@ -75,16 +79,16 @@ function FilterMapNavigator() {
                     survey_seasons: filteredSurveySeasons
                 }
             }
-            init={filterData}
+            loader={_loader}
             schema={genSchema({ view:'mapFilter', model:'stations'})}
             onReset={()=>{
                 setFilterData({})
             }}
-            onCancel={() => {nav.setDialog(null)}}
+            onCancel={() => {dialog.cancel()}}
             onChange={onChange}
-            callback={()=>{
+            callback={async ()=>{
                 nav.setFilter(filterData)
-                nav.setDialog(null)
+                dialog.clear();
             }}
             allowEmpty={true}
         />
@@ -92,4 +96,4 @@ function FilterMapNavigator() {
 }
 
 
-export default FilterMapNavigator;
+export default FilterNavigator;

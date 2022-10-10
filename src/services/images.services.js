@@ -12,15 +12,15 @@ import {mkdir, stat} from 'fs/promises';
 import fs from 'fs';
 import {ExifTool} from 'exiftool-vendored';
 import sharp from 'sharp';
-// import Jimp from 'jimp';
 import path from 'path';
-// import dcraw from 'dcraw';
 import {genUUID, sanitize} from '../lib/data.utils.js';
 import Queue from 'bull';
 import redis from 'redis';
 import { deleteFiles, insertFile } from './files.services.js';
 import * as util from "util";
-
+import pool from "./db.services.js";
+// import Jimp from 'jimp';
+// import dcraw from 'dcraw';
 
 /* Available image version sizes */
 
@@ -53,7 +53,7 @@ const redisConnect = redis.createClient({
 
 // handle Redis connection error
 redisConnect.on('error', error => {
-    console.log('ERROR initialising Redis connection', error.message);
+    console.error('ERROR initialising Redis connection', error.message);
 });
 
 // test Redis connection.
@@ -74,9 +74,10 @@ redisConnect.on('connect', async () => {
 
 export const transcode = async (data, callback) => {
 
+    // extract queued data
     const {
         src = '',
-        filename = '',
+        // filename = '',
         metadata = {},
         versions = {},
         owner = {},
@@ -86,13 +87,15 @@ export const transcode = async (data, callback) => {
     let isRAW = false;
     let copySrc = src;
 
+    // NOTE: client undefined if connection fails.
+    const client = await pool.connect();
+
     try {
 
         // read temporary image into buffer memory
         // record buffer size as file size
         //let buffer = await readFile(src);
         await stat(src).then(stats => {
-            console.log(filename, stats)
             metadata.file.file_size = stats.size;
         });
 
@@ -126,7 +129,7 @@ export const transcode = async (data, callback) => {
         await copyImageTo(copySrc, versions.full);
 
         // add file record to database
-        await insertFile(metadata, owner, imageState);
+        await insertFile(metadata, owner, imageState, callback, client);
 
         // delete temporary files
         src === copySrc
@@ -140,6 +143,8 @@ export const transcode = async (data, callback) => {
         };
     } catch (err) {
         callback(err);
+    } finally {
+        await client.release(true);
     }
 };
 
@@ -230,15 +235,13 @@ export const saveImage = async (filename, metadata, owner, imageState, options) 
  * @param fileData
  * @param options
  * @param isRAW
- * @param onError
  */
 
 export const getImageInfo = async (
     src,
     fileData,
     options,
-    isRAW,
-    onError = console.error,
+    isRAW
 ) => {
 
     // extract exif metadata using ExifTool (vendored)
@@ -250,7 +253,7 @@ export const getImageInfo = async (
         MIMEType = '',
         ImageWidth = 0,
         ImageHeight = 0,
-        BitsPerSample='',
+        BitDepth='',
         ColorSpaceData='',
         Model = '',
         ProfileDateTime = '',
@@ -276,7 +279,7 @@ export const getImageInfo = async (
     fileData.data.x_dim = ImageWidth;
     fileData.data.y_dim = ImageHeight;
     fileData.data.channels = ColorSpaceData === 'RGB' ? 3 : 1;
-    // fileData.data.density = info.density;
+    fileData.data.density = sanitize(BitDepth, 'integer');
     // fileData.data.space = info.space;
     fileData.data.shutter_speed = sanitize(ExposureTime, 'float');
     fileData.data.f_stop = sanitize(Fnumber, 'float');
@@ -344,10 +347,9 @@ export const getImageURL = (type = '', data = {}) => {
  * @src public
  * @param src
  * @param output
- * @param callback
  */
 
-export const copyImageTo = async (src, output, callback) => {
+export const copyImageTo = async (src, output) => {
 
     // Disable Sharp cache
     sharp.cache(false);

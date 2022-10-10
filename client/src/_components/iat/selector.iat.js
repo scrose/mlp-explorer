@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.IAT.ImageSelector
- * File: imgselector.iat.js
+ * MLP.Client.Components.IAT.Selector
+ * File: selector.iat.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
@@ -10,7 +10,7 @@ import React from 'react';
 import Accordion from '../common/accordion';
 import Button from '../common/button';
 import Image from '../common/image';
-import Input from '../common/input';
+import InputSelector from '../selectors/input.selector';
 import { UserMessage } from '../common/message';
 import { sanitize, sorter } from '../../_utils/data.utils.client';
 import Table from '../common/table';
@@ -40,8 +40,7 @@ export const ImageSelector = ({
                                   otherProperties={},
                                   options = {},
                                   setToggle = () => {},
-                                  callback = () => {
-                                  },
+                                  callback = () => {},
                               }) => {
 
     const router = useRouter();
@@ -191,7 +190,7 @@ export const ImageSelector = ({
                 </>
         }
         <Accordion label={'Select Image'} type={'image'} open={true}>
-            <Input
+            <InputSelector
                 type={'file'}
                 name={'image_file'}
                 value={{importFiles: { name: selectedFile }}}
@@ -204,11 +203,13 @@ export const ImageSelector = ({
                 <ul>
                     {
                         selectedImage &&
-                        <li key={'submit_selector'}><Button
-                            icon={'download'}
-                            label={'Load Image'}
-                            onClick={_handleSubmit}
-                        /></li>
+                        <li key={'submit_selector'}>
+                            <Button
+                                icon={'download'}
+                                label={'Load Image'}
+                                onClick={_handleSubmit}
+                            />
+                        </li>
                     }
                     <li key={'cancel_selector'}>
                         <Button
@@ -284,8 +285,11 @@ export const CaptureSelector = ({ fileType, selection, setSelectedImage, onSubmi
  * Image selector widget.
  *
  * @public
- * @param {Array} captures
  * @param {Array} files
+ * @param imageIndex
+ * @param captureIndex
+ * @param onClick
+ * @param onDblClick
  */
 
 export const CaptureImagesSelector = ({

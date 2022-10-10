@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.Navigation.Page
- * File: page.menu.js
+ * MLP.Client.Components.Menus.Search
+ * File: search.menu.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
@@ -10,14 +10,14 @@ import React from 'react';
 import Button from '../common/button';
 
 /**
- * Inline menu component to edit node items.
+ * Inline menu component to navigate search results in viewer
  *
  * @public
  * @param {Object} data
  * @return {JSX.Element}
  */
 
-const PageMenu = ({total, hasNext, hasPrev, onPrev, onNext}) => {
+const SearchMenu = ({total, hasNext, hasPrev, onPrev, onNext}) => {
 
     return <div className={'pagination'}>
         {
@@ -48,4 +48,4 @@ const PageMenu = ({total, hasNext, hasPrev, onPrev, onNext}) => {
     </div>
 };
 
-export default PageMenu;
+export default SearchMenu;

@@ -29,13 +29,11 @@ import {getComparisonsByCapture, getComparisonsByStation, getComparisonsMetadata
  * @return {Promise} result
  */
 
-export const select = async (id, model, client=pool) => {
+export const select = async (id, model, client) => {
     if (!id) return null;
     let { sql, data } = queries.metadata.select(sanitize(id, 'integer'), model);
     let metadata = await client.query(sql, data);
-    return metadata.hasOwnProperty('rows') && metadata.rows.length > 0
-        ? metadata.rows[0]
-        : null;
+    return metadata.hasOwnProperty('rows') && metadata.rows.length > 0 ? metadata.rows[0] : null;
 };
 
 /**
@@ -48,7 +46,7 @@ export const select = async (id, model, client=pool) => {
  * @return {Promise} result
  */
 
-export const selectByName = async (model, value, client=pool) => {
+export const selectByName = async (model, value, client) => {
     let { sql, data } = queries.defaults.selectByField(model, 'name', value, 'varchar');
     let metadata = await client.query(sql, data);
     return metadata.hasOwnProperty('rows') && metadata.rows.length > 0
@@ -66,7 +64,7 @@ export const selectByName = async (model, value, client=pool) => {
  * @return {Promise} result
  */
 
-export const selectByOwner = async (id, model, client=pool) => {
+export const selectByOwner = async (id, model, client) => {
     if (!id) return null;
     let { sql, data } = queries.defaults.selectByOwner(sanitize(id, 'integer'), model);
     let metadata = await client.query(sql, data);
@@ -86,14 +84,29 @@ export const selectByOwner = async (id, model, client=pool) => {
  * @return {Promise} result
  */
 
-export const getGroup = async function(
-    ownerID,
-    modelType,
-    groupType,
-    client = pool) {
+export const getGroup = async function(ownerID, modelType, groupType, client ) {
     let { sql, data } = queries.defaults.getGroup(ownerID, modelType, groupType);
     let items = await client.query(sql, data);
     return items.rows;
+};
+
+/**
+ * Get group participants metadata.
+ *
+ * @public
+ * @param {String} ownerID
+ * @param {String} groupType
+ * @param client
+ * @return {Promise} result
+ */
+
+export const getGroupParticipants = async function(ownerID, groupType, client ) {
+    let { sql, data } = queries.metadata.getParticipantGroups(ownerID, groupType);
+    let participantGroups = await client.query(sql, data);
+    // group by participant group type
+    participantGroups = groupBy(participantGroups.rows, 'group_type') || {};
+    // return only model type names as list
+    return Object.keys(participantGroups).length > 0 ? participantGroups[groupType] : [];
 };
 
 /**
@@ -106,7 +119,7 @@ export const getGroup = async function(
  * @public
  */
 
-export const insert = async(item, upsert=false, client=pool) => {
+export const insert = async(item, upsert=false, client) => {
     let { sql, data } = queries.metadata.insert(item, upsert);
     let response = await client.query(sql, data);
     return response.hasOwnProperty('rows') && response.rows.length > 0
@@ -124,7 +137,7 @@ export const insert = async(item, upsert=false, client=pool) => {
  * @public
  */
 
-export const update = async(item, model, client=pool) => {
+export const update = async(item, model, client) => {
     let { sql, data } = queries.metadata.update(item);
     let response = await client.query(sql, data);
     return response.hasOwnProperty('rows') && response.rows.length > 0
@@ -144,12 +157,7 @@ export const update = async(item, model, client=pool) => {
  * @public
  */
 
-export const updateGroup = async (
-    newItems,
-    modelType,
-    ownerID,
-    groupType,
-    idKey='id') => {
+export const updateGroup = async (newItems, modelType, ownerID, groupType, idKey='id') => {
 
     // NOTE: client undefined if connection fails.
     const client = await pool.connect();
@@ -205,7 +213,7 @@ export const updateGroup = async (
  * @public
  */
 
-export const remove = async(item, client=pool) => {
+export const remove = async(item, client) => {
     let { sql, data } = queries.metadata.remove(item);
     let response = await client.query(sql, data);
     return response.hasOwnProperty('rows') && response.rows.length > 0
@@ -219,7 +227,6 @@ export const remove = async(item, client=pool) => {
  * @param {String} ownerID
  * @param {String} modelType
  * @param {String} groupType
- * @param {String} groupCol
  * @param client
  * @return {Function} query function / null if no node
  * @public
@@ -229,10 +236,9 @@ export const removeGroup = async (
     ownerID,
     modelType,
     groupType,
-    groupCol='group_type',
-    client = pool
+    client 
 ) => {
-    let { sql, data } = queries.metadata.removeGroup(ownerID, modelType, groupType, groupCol);
+    let { sql, data } = queries.metadata.removeGroup(ownerID, modelType, groupType, 'group_type');
     let response = await client.query(sql, data);
     return response.hasOwnProperty('rows') && response.rows.length > 0
         ? response.rows[0]
@@ -248,7 +254,7 @@ export const removeGroup = async (
  * @return {Promise} result
  */
 
-export const getAll = async function(model, client=pool) {
+export const getAll = async function(model, client) {
     let { sql, data } = queries.defaults.selectByModel(model);
     let items = await client.query(sql, data);
     return items.rows;
@@ -261,7 +267,7 @@ export const getAll = async function(model, client=pool) {
  * @return {Promise} result
  */
 
-const findMetadataOptions = async (model, valueCol, labelCols, delimiter, client=pool) => {
+const findMetadataOptions = async (model, valueCol, labelCols, delimiter, client) => {
     let { sql, data } = queries.metadata.selectMetadataOptionsByModel(
         model, valueCol, labelCols, delimiter);
     let metadata = await client.query(sql, data);
@@ -275,7 +281,7 @@ const findMetadataOptions = async (model, valueCol, labelCols, delimiter, client
  * @return {Promise} result
  */
 
-export const getMetadataOptions = async function(client=pool) {
+export const getMetadataOptions = async function(client) {
     return {
         image_states: await findMetadataOptions(
             'image_states', 'name', ['label'], '', client
@@ -352,7 +358,7 @@ export const getCaptureImage = (files, owner) => {
  * @return {Promise} result
  */
 
-const findNodeOptions = async (model, labelCols, delimiter, hasOwner, client=pool) => {
+const findNodeOptions = async (model, labelCols, delimiter, hasOwner, client) => {
     let { sql, data } = queries.metadata.selectNodeOptionsByModel(model, labelCols, delimiter, hasOwner);
     let metadata = await client.query(sql, data);
     return metadata.rows;
@@ -366,7 +372,7 @@ const findNodeOptions = async (model, labelCols, delimiter, hasOwner, client=poo
  * @return {Promise} result
  */
 
-export const getAllSettings = async function(client=pool) {
+export const getAllSettings = async function(client) {
     return {
         library_root_dir: await findMetadataOptions(
             'library_root_dir', 'id', ['label'], '', client),
@@ -402,26 +408,26 @@ export const getAllSettings = async function(client=pool) {
  * @return {Promise} result
  */
 
-export const getAttachedByNode = async function(node, client=pool) {
+export const getAttachedByNode = async function(node, client) {
 
     const {id=''} = node || {};
 
     // get participants
-    const getParticipantOptions = async (id) => {
-        let { sql, data } = queries.metadata.getParticipantOptions(id);
-        let participants = await client.query(sql, data);
+    const getParticipantGroups = async (id) => {
+        let { sql, data } = queries.metadata.getParticipantGroups(id);
+        let participantGroups = await client.query(sql, data);
         // group by participant group type
-        participants = groupBy(participants.rows, 'group_type') || {};
+        participantGroups = groupBy(participantGroups.rows, 'group_type') || {};
         // return only model type names as list
-        return Object.keys(participants).length > 0 ? [participants] : [];
+        return Object.keys(participantGroups).length > 0 ? participantGroups : {};
     }
 
     // get attached data and include labels
     const getAttachedData = async (id, model) => {
         const attachedItems = await selectByOwner(id, model, client) || [];
-        return Promise.all(attachedItems.map( async (item) => {
+        return await Promise.all(attachedItems.map( async (item) => {
             return {
-                label: await getNodeLabel({id: item.id, type: model}, client),
+                label: await getNodeLabel({id: item.id, type: model}, [], client),
                 data: item
             }
         }));
@@ -430,7 +436,7 @@ export const getAttachedByNode = async function(node, client=pool) {
     return {
         glass_plate_listings: await getAttachedData(id, 'glass_plate_listings'),
         maps: await getAttachedData(id, 'maps'),
-        participant_groups: await getParticipantOptions(id),
+        participant_groups: await getParticipantGroups(id),
         comparisons: await getComparisonsMetadata(node, client) || []
     }
 };
@@ -444,7 +450,7 @@ export const getAttachedByNode = async function(node, client=pool) {
  * @return {Promise} result
  */
 
-export const getModernCapturesByStation = async (node, client=pool) => {
+export const getModernCapturesByStation = async (node, client) => {
 
     const {id=''} = node || {};
     const { sql, data } = queries.metadata.getModernCapturesByStationID(id);
@@ -464,7 +470,7 @@ export const getModernCapturesByStation = async (node, client=pool) => {
  * @return {Promise} result
  */
 
-export const getHistoricCapturesByStation = async (node, client=pool) => {
+export const getHistoricCapturesByStation = async (node, client) => {
     const {id=''} = node || {};
     const { sql, data } = queries.metadata.getHistoricCapturesByStationID(id);
     return await client.query(sql, data)
@@ -481,7 +487,7 @@ export const getHistoricCapturesByStation = async (node, client=pool) => {
  * @return {Promise} result
  */
 
-const hasMastered = async (captureID, captureImageType, client=pool) => {
+const hasMastered = async (captureID, captureImageType, client) => {
     const { sql, data } = queries.metadata.hasMastered(captureID, captureImageType);
     let response = await client.query(sql, data);
     return response.hasOwnProperty('rows') && response.rows.length > 0
@@ -512,7 +518,7 @@ const hasMastered = async (captureID, captureImageType, client=pool) => {
  * @return {Promise} result
  */
 
-export const getStatus = async (node, metadata = {}, client = pool) => {
+export const getStatus = async (node, metadata = {}, client ) => {
 
     const { type = '' } = node || {};
 
@@ -528,8 +534,7 @@ export const getStatus = async (node, metadata = {}, client = pool) => {
             let isMastered = true;
             await Promise.all(
                 comparisons.map(async (pair) => {
-                    const masterStatus = await hasMastered(
-                        pair.historic_captures, 'historic_images', client);
+                    const masterStatus = await hasMastered(pair.historic_captures, 'historic_images', client);
                     // ensure any unmastered historic images => unmastered station
                     isMastered = !!parseInt(masterStatus.mastered) && isMastered;
                     totalMasters += parseInt(masterStatus.mastered);
@@ -553,11 +558,12 @@ export const getStatus = async (node, metadata = {}, client = pool) => {
         historic_captures: async () => {
             const comparisons = await getComparisonsByCapture(node, client) || [];
             const masterStatus = await hasMastered(node.id, 'historic_images', client);
-            const files = fserve.hasFiles(node.id, client) || false;
+            const files = await fserve.hasFiles(node.id, client) || false;
             return {
                 comparisons: comparisons,
-                mastered: parseInt(masterStatus.mastered) > 0,
+                mastered: parseInt(masterStatus.mastered) > 0 && comparisons.length > 0,
                 compared: comparisons.length > 0,
+                repeated: comparisons.length > 0,
                 sorted: node.owner_type === 'historic_visits',
                 missing: !files,
                 n_masters: parseInt(masterStatus.mastered),
@@ -567,11 +573,12 @@ export const getStatus = async (node, metadata = {}, client = pool) => {
         modern_captures: async () => {
             const comparisons = await getComparisonsByCapture(node, client) || [];
             const masterStatus = await hasMastered(node.id, 'modern_images', client);
-            const files = fserve.hasFiles(node.id, client) || false;
+            const files = await fserve.hasFiles(node.id, client) || false;
             return {
                 comparisons: comparisons,
-                mastered: parseInt(masterStatus.mastered) > 0,
+                mastered: parseInt(masterStatus.mastered) > 0 && comparisons.length > 0,
                 compared: comparisons.length > 0,
+                repeated: comparisons.length > 0,
                 sorted: node.owner_type === 'locations',
                 missing: !files,
                 n_masters: parseInt(masterStatus.mastered),
@@ -597,12 +604,12 @@ export const getStatus = async (node, metadata = {}, client = pool) => {
  * @return {Promise} result
  */
 
-export const getNodeLabel = async (node, files=[], client=pool) => {
+export const getNodeLabel = async (node, files=[], client) => {
 
     if (!node) return [];
     let label = '';
 
-    const {type='', id=''} = node || {};
+    const {type='', id=null} = node || {};
 
     const queriesByType = {
         projects: queries.metadata.selectLabel(

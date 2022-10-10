@@ -50,8 +50,12 @@ function MetadataRoutes(metadataType) {
             delete: null,
         },
         show: {
-            path: path.join('/', this.model, 'show', ':' + this.key),
-            get: this.controller.show,
+            path: groupedModels.includes(this.model)
+                ? path.join('/', this.model, 'show', ':owner_id', ':group_type')
+                : path.join('/', this.model, 'show', ':' + this.key),
+            get: groupedModels.includes(this.model)
+                ? this.controller.showGroup
+                : this.controller.show,
             put: null,
             post: null,
             delete: null,
@@ -68,7 +72,9 @@ function MetadataRoutes(metadataType) {
             delete: null
         },
         edit: {
-            path: path.join('/', this.model, 'edit', ':' + this.key),
+            path: groupedModels.includes(this.model)
+                ? path.join('/', this.model, 'edit', ':owner_id', ':group_type')
+                : path.join('/', this.model, 'edit', ':' + this.key),
             get: null,
             put: null,
             post: groupedModels.includes(this.model)
@@ -95,11 +101,11 @@ function MetadataRoutes(metadataType) {
  * defined models in the node_types relation.
  */
 
-export default async function generate() {
+export default async function generate(client) {
     let routes = [];
 
     // metadata
-    await schema.getMetadataTypes()
+    await schema.getMetadataTypes(client)
         .then(metadataTypes => {
             metadataTypes.map(metadataType => {
                 // add routes instance to array

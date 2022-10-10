@@ -46,8 +46,8 @@ export const filterComparisonsByID = async (comparisonIDs, offset, limit) => {
         let items = await Promise.all(
             comparisons.map(async (comparison) => {
                 return {
-                    historic_capture: await get(comparison.historic_captures, client),
-                    modern_capture: await get(comparison.modern_captures, client)
+                    historic_capture: await get(comparison.historic_captures, 'historic_captures', client),
+                    modern_capture: await get(comparison.modern_captures, 'modern_captures', client)
                 }
             })
         );
@@ -81,12 +81,12 @@ export const filterComparisonsByID = async (comparisonIDs, offset, limit) => {
  * @return {Promise} result
  */
 
-export const updateComparisons = async (node, comparedCaptureIDs, client = pool) => {
+export const updateComparisons = async (node, comparedCaptureIDs, client ) => {
 
     if (!node || !comparedCaptureIDs) return null;
 
     // delete existing comparisons for capture
-    await deleteComparisons(node);
+    await deleteComparisons(node, client);
 
     // load comparison capture(s) node data and update comparisons table
     return await Promise.all(
@@ -99,7 +99,8 @@ export const updateComparisons = async (node, comparedCaptureIDs, client = pool)
             )) {
                 await upsertComparison(
                     node.type === 'historic_captures' ? node.id : captureID,
-                    node.type === 'historic_captures' ? captureID : node.id);
+                    node.type === 'historic_captures' ? captureID : node.id,
+                    client);
             }
             return comparedCapture;
         })
@@ -119,7 +120,7 @@ export const updateComparisons = async (node, comparedCaptureIDs, client = pool)
 export const upsertComparison = async (
     historicCaptureID,
     modernCaptureID,
-    client = pool
+    client 
 ) => {
 
     if (!historicCaptureID || !modernCaptureID) return [];
@@ -132,30 +133,30 @@ export const upsertComparison = async (
         });
 };
 
-/**
- * Delete comparison.
- *
- * @public
- * @param capture1ID
- * @param capture2ID
- * @param client
- * @return {Promise} result
- */
-
-export const deleteComparison = async (
-    capture1ID,
-    capture2ID=null,
-    client = pool
-) => {
-
-    if (!capture1ID || !capture2ID) return [];
-
-    let { sql, data } = cmpqueries.deleteComparison(capture1ID, capture2ID);
-    return await client.query(sql, data)
-        .then(res => {
-            return res.hasOwnProperty('rows') && res.rows.length > 0 ? res.rows : [];
-        });
-};
+// /**
+//  * Delete comparison.
+//  *
+//  * @public
+//  * @param capture1ID
+//  * @param capture2ID
+//  * @param client
+//  * @return {Promise} result
+//  */
+//
+// export const deleteComparison = async (
+//     capture1ID,
+//     capture2ID=null,
+//     client
+// ) => {
+//
+//     if (!capture1ID || !capture2ID) return [];
+//
+//     let { sql, data } = cmpqueries.deleteComparison(capture1ID, capture2ID);
+//     return await client.query(sql, data)
+//         .then(res => {
+//             return res.hasOwnProperty('rows') && res.rows.length > 0 ? res.rows : [];
+//         });
+// };
 
 /**
  * Delete comparison.
@@ -166,7 +167,7 @@ export const deleteComparison = async (
  * @return {Promise} result
  */
 
-export const deleteComparisons = async (node, client = pool) => {
+export const deleteComparisons = async (node, client ) => {
 
     if (!node) return [];
 
@@ -186,7 +187,7 @@ export const deleteComparisons = async (node, client = pool) => {
  * @return {Promise} result
  */
 
-export const getComparisonsMetadata = async (node, client = pool) => {
+export const getComparisonsMetadata = async (node, client) => {
 
     if (!node) return [];
 
@@ -217,9 +218,9 @@ export const getComparisonsMetadata = async (node, client = pool) => {
                 // .filter(comparison => comparison)
                 .map(async (comparison) => {
                     const historic_data = await nserve.get(
-                        comparison.historic_captures, client);
+                        comparison.historic_captures, 'historic_captures', client);
                     const modern_data = await nserve.get(
-                        comparison.modern_captures, client);
+                        comparison.modern_captures, 'modern_captures', client);
                     return {
                         id: comparison.id,
                         historic_captures: historic_data,
@@ -239,10 +240,9 @@ export const getComparisonsMetadata = async (node, client = pool) => {
  * @return {Promise} result
  */
 
-export const getComparisonsByCapture = async (node, client = pool) => {
-
+export const getComparisonsByCapture = async (node, client ) => {
     let { sql, data } = cmpqueries.getComparisons(node);
-    return client.query(sql, data)
+    return await client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows')
             && res.rows.length > 0 ? res.rows : null;
@@ -258,11 +258,11 @@ export const getComparisonsByCapture = async (node, client = pool) => {
  * @return {Promise} result
  */
 
-export const getComparisonsByStation = async (node, client = pool) => {
+export const getComparisonsByStation = async (node, client ) => {
 
     const { id = '' } = node || {};
     let { sql, data } = cmpqueries.getComparisonsByStationID(id);
-    return client.query(sql, data)
+    return await client.query(sql, data)
         .then(res => {
             return res.hasOwnProperty('rows')
             && res.rows.length > 0 ? res.rows : [];

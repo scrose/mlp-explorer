@@ -89,9 +89,9 @@ function ModelRoutes(modelType) {
  * defined models in the node_types relation.
  */
 
-export default async function generate() {
+export default async function generate(client) {
     let routes = [];
-    await schema.getNodeTypes()
+    await schema.getNodeTypes(client)
         .then(nodeTypes => {
             nodeTypes.map(nodeType => {
                 // add routes instance to array

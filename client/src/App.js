@@ -14,18 +14,19 @@ import { getPref, setPref} from "./_services/session.services.client";
 import BannerMenu from "./_components/menus/banner.menu";
 import BoundaryError from "./_components/error/boundary.error";
 import Navigator from "./_components/navigator/navigator";
-import Viewer from "./_components/views/visitor.view";
-import Editor from "./_components/views/editor.view";
-import PanelMenu from "./_components/menus/panel.menu";
+import VisitorView from "./_components/views/visitor.view";
+import EditorView from "./_components/views/editor.view";
+import ViewerMenu from "./_components/menus/viewer.menu";
 import BreadcrumbMenu from "./_components/menus/breadcrumb.menu";
 import Button from "./_components/common/button";
 import {useNav} from "./_providers/nav.provider.client";
 import {useWindowSize} from "./_utils/events.utils.client";
-
+import DialogSelector from "./_components/selectors/dialog.selector";
+import Loading from "./_components/common/loading";
+import {useAuth} from "./_providers/auth.provider.client";
 
 /**
  * Core client application component.
- * - initialize user idle timer
  *
  * @public
  */
@@ -35,6 +36,7 @@ export default function App() {
     const router = useRouter();
     const user = useUser();
     const nav = useNav();
+    const auth = useAuth();
 
     // create reference to navigator panels and resize slider
     const mainRef = React.useRef();
@@ -134,8 +136,10 @@ export default function App() {
 
     return router.online
         ? <div className={"page"}>
+            { auth.processing && <Loading overlay={true} /> }
+            <DialogSelector/>
             <BannerMenu/>
-            <PanelMenu/>
+            <ViewerMenu/>
             <div
                 style={{
                     display: nav.toggle && !nav.offCanvas ? 'block' : 'none',
@@ -149,7 +153,7 @@ export default function App() {
                 onTouchStart={_resizeStart}
                 onTouchEnd={_resizeEnd}
                 onTouchMove={_resize}
-            ><Button icon={'arrows'} size={'2x'} />
+            ><Button icon={'arrows'} size={'2x'} title={'Resize Navigation Panel'} />
             </div>
             <BreadcrumbMenu />
             <main>
@@ -170,9 +174,7 @@ export default function App() {
                             id={'viewer-panel'}
                         >
                             {
-                                user
-                                    ? <Editor/>
-                                    : <Viewer/>
+                                user ? <EditorView/> : <VisitorView/>
                             }
                         </div>
                     </BoundaryError>

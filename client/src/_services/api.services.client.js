@@ -1,6 +1,6 @@
 /*!
  * MLP.Client.Services.API
- * File: data.services.client.js
+ * File: api.services.client.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
@@ -130,7 +130,7 @@ export const upload = async (route, formData, callback=()=>{}, online=true) => {
                 const {statusText='An API Error Occurred.'} = e.currentTarget || {};
                 const { response={} } = e.currentTarget || {};
                 const { message={} } = response || {};
-                const {msg=statusText} = message || {};
+                const { msg=statusText } = message || {};
 
                 // success
                 if (xhr.status === 200) {
@@ -160,23 +160,23 @@ export const upload = async (route, formData, callback=()=>{}, online=true) => {
         };
 
         // Upload error callback
-        xhr.upload.onerror = function() {
-            return callback(null, {msg: 'An upload error has occurred.', type: 'error'});
+        xhr.upload.onerror = function(e) {
+            return callback(null, {msg: 'An unknown API error has occurred.', type: 'error'});
         };
 
         // Upload timeout callback
         xhr.upload.ontimeout = function() {
-            return callback(null, {msg: 'Upload has timed out.', type: 'error'});
+            return callback(null, {msg: 'Update has timed out.', type: 'error'});
         };
 
         // Upload abort callback
         xhr.upload.onabort = function() {
-            return callback(null, {msg: 'Upload was aborted.', type: 'warn'});
+            return callback(null, {msg: 'Update was aborted.', type: 'warn'});
         };
 
         // Upload end callback
         xhr.upload.onloadend = function() {
-            return callback(null, {msg: 'Upload completed!', type: 'success'});
+            return callback(null, {msg: 'Update completed!', type: 'success'});
         };
 
         // send POST request to server and return request
@@ -201,8 +201,6 @@ export const download = async (route, format, online=true) => {
 
     // reject null paths or when API is offline
     if (!route || !online ) return null;
-
-    console.log(createAPIURL(route), format)
 
     return await makeRequest({url: createAPIURL(route), method:'GET', download: format})
         .then(res => {

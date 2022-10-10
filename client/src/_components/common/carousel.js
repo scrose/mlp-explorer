@@ -12,110 +12,89 @@ import Image from './image';
 import Dialog from './dialog';
 import { getModelLabel } from '../../_services/schema.services.client';
 import {useRouter} from "../../_providers/router.provider.client";
+import {EditorMenu} from "../menus/editor.menu";
+import {useDialog} from "../../_providers/dialog.provider.client";
+import {genID} from "../../_utils/data.utils.client";
 import {createNodeRoute} from "../../_utils/paths.utils.client";
-import {useData} from "../../_providers/data.provider.client";
-import MetadataView from "../views/metadata.view";
-import Loading from "./loading";
+import {useUser} from "../../_providers/user.provider.client";
+
+const carouselID = genID();
 
 /**
  * Image carousel component.
  *
  * @public
- * @param {Array} images
- * @param thumbnails
- * @param navigation
+ * @param {Array} items
  * @param fit
- * @param autoslide
- * @param titles
- * @param captions
- * @param metadata
+ * @param fixedHeight
  * @param expandable
  * @return {JSX.Element}
  */
 
 const Carousel = ({
-                      images = [],
-                      thumbnails = true,
-                      slideshow=false,
+                      items = [],
                       fit='contain',
-                      autoslide=null,
-                      titles=[],
-                      captions=[],
-                      links=[],
-                      metadata=null,
-                      expandable=true,
-                      draggable=false
+                      fixedHeight=false
                   }) => {
 
-    // selected slide state
+    // selected slide states
     const [selectedIndex, setSelectedIndex] = React.useState(0);
     const [expandImage, setExpandImage] = React.useState(false);
-    const [dialogToggle, setDialogToggle] = React.useState(false);
-    const [captionToggle, setCaptionToggle] = React.useState(true);
-    const selectedImage = images[selectedIndex];
-
-    const { file={}, url={}, label='', node={} } = selectedImage || {};
-    const { owner_id='', owner_type='', file_type='', id='' } = file || {};
-    const itemMetadata = metadata && metadata[selectedIndex] !== undefined
-        ? metadata[selectedIndex]
-        : selectedImage && selectedImage.hasOwnProperty('metadata') ? selectedImage.metadata : null
+    const selectedImage = items[selectedIndex];
 
     const router = useRouter();
-    const api = useData();
+    const dialog = useDialog();
+    const user = useUser();
+
+    // destructure item data
+    const { id='', model='', url={}, label='', metadata={} } = selectedImage || {};
 
     // create view link for selected image
-    const isImage = api.model === 'historic_captures' || api.model === 'modern_captures';
-    const link = links[selectedIndex] !== undefined
-            ? links[selectedIndex]
-            : createNodeRoute(isImage ? file_type : owner_type, 'show', isImage ? id : owner_id );
-
-    // auto-increment slideshow
-    React.useEffect(() => {
-        const timer = autoslide ? setTimeout(() => {
-            setSelectedIndex((selectedIndex + 1) % images.length);
-        }, autoslide) : null;
-        return () => {
-            clearTimeout(timer);
-        };
-    }, [selectedIndex, images.length, setSelectedIndex, autoslide]);
+    const isCapture = model === 'historic_captures' || model === 'modern_captures';
+    const modelLabel = getModelLabel(model);
+    const itemLink = createNodeRoute(model, 'show', id);
 
     // increment/decrement index to make slide visible
-    const prevSlide = () => {
-        setSelectedIndex((selectedIndex - 1 + images.length) % images.length);
+    const _prevSlide = () => {
+        setSelectedIndex((selectedIndex - 1 + items.length) % items.length);
     };
-    const nextSlide = () => {
-        setSelectedIndex((selectedIndex + 1) % images.length);
+    const _nextSlide = () => {
+        setSelectedIndex((selectedIndex + 1) % items.length);
     };
-    const showCaptions = () => {
-        setCaptionToggle(!captionToggle);
-    };
+    // image enlarged view
+    const _handleExpandOpen = () => {
+        setExpandImage(true);
+    }
+    const _handleExpandClose = () => {
+        setExpandImage(false);
+    }
+    // handle item selection
+    const _handleSelection = (id) => {
+        setSelectedIndex(id);
+    }
+    // handle item move
+    const _handleMove = (e, item) => {
+        // attach node metadata to data transfer object
+        e.dataTransfer.setData(
+            'application/json',
+            JSON.stringify(item)
+        );
+    }
 
-    return (
-        <div className="carousel">
+
+    return <div className="carousel">
             {
-                itemMetadata && dialogToggle && <Dialog
-                    key={`carousel_dialog_info_show`}
-                    title={isImage ? `Image Metadata` : `Capture Metadata`}
-                    setToggle={setDialogToggle}>
-                    <MetadataView
-                        model={isImage ? file_type : file_type === 'historic_images' ? 'historic_captures' : 'modern_captures'}
-                        metadata={itemMetadata}
-                        file={file || {}}
-                        node={node || {}}
-                    />
-                </Dialog>
+                (!selectedImage || items.length === 0) && <Image />
             }
-            {
-                images.length === 0 && <Loading className={'carousel'} />
-            }
-            {
-                images.length > 0 && <div className={`slides${slideshow ? ' fade' : ''}`}>
+        {
+            items.length > 0 &&
+            <div>
+                <div className={'slides'}>
                     {
-                        images.map((img, index) => {
-                            const {url = null} = img || {};
+                        items.map((item, index) => {
+                            const {url = null, model = '', id = ''} = item || {};
                             return <div
-                                key={`slide_${index}`}
-                                className={`slide${slideshow ? ' fade' : ''}`}
+                                key={`carousel_${carouselID}_slide_${index}`} className={`slide`}
                                 style={{
                                     opacity: index === selectedIndex ? 1.0 : 0,
                                     position: index === selectedIndex ? 'relative' : 'absolute'
@@ -125,141 +104,116 @@ const Carousel = ({
                                     url={url}
                                     scale={'medium'}
                                     fit={fit}
+                                    fixedHeight={fixedHeight}
+                                    title={`Go to ${label} ${modelLabel} page.`}
                                     onClick={() => {
-                                        return router.update(link)
+                                        return router.update(createNodeRoute(model, 'show', id));
                                     }}
                                 />
                             </div>
                         })
                     }
-                    <div className={'numbertext'}>{selectedIndex + 1}/{images.length}</div>
-                    {
-                        expandable && <div className={'expand-image'}><Button icon={'enlarge'} onClick={() => {
-                            setExpandImage(true);
-                        }}/></div>
-                    }
-                    {
-                        captionToggle && slideshow && images.length > 0 && captions.length === images.length && captions[selectedIndex] &&
-                        <div className={'caption'}>
-                            <p>{captions[selectedIndex]}</p>
-                        </div>
-                    }
+                    <div className={'numbertext'}>{selectedIndex + 1}/{items.length}</div>
+                    <div className={'expand-image'}><Button icon={'enlarge'} onClick={_handleExpandOpen}/></div>
                 </div>
-            }
-            {
-                !slideshow && images.length > 0 && titles.length === images.length
-                && <div className={'slide-menu h-menu vcentered'}>
+                <div className={'slide-menu h-menu vcentered'}>
                     <ul>
-                        <li><Button icon={'prev'} className={'prev'} onClick={prevSlide} /></li>
-                        <li><a href={link}>{titles[selectedIndex]}</a></li>
-                        <li className={'push'}><Button
-                            label={isImage ? 'View Image' : 'Versions'}
-                            title={'Open Capture'}
-                            className={'capture-button'}
-                            icon={file_type}
-                            onClick={()=>{router.update(link)}}
-                        /> </li>
+                        <li><Button icon={'prev'} className={'prev'} onClick={_prevSlide}/></li>
+                        <li>{label || modelLabel}</li>
                         {
-                            itemMetadata && <li style={{marginLeft:'8px'}}>
+                            <li className={'push'}>
                                 <Button
-                                    label={`${isImage ? 'Image' : 'Capture'} Info`}
-                                    title={`${isImage ? 'Image' : 'Capture'} Details`}
                                     className={'capture-button'}
+                                    label={`${modelLabel} Info`}
+                                    title={`${modelLabel} Details`}
                                     icon={'info'}
                                     onClick={() => {
-                                        setDialogToggle(true)
+                                        dialog.setCurrent({
+                                            dialogID: 'show',
+                                            id: id,
+                                            model: model,
+                                            label: label,
+                                            metadata: metadata
+                                        });
                                     }}
                                 />
                             </li>
                         }
-                        <li><Button icon={'next'} className={'next'} onClick={nextSlide} /></li>
+                        <li className={`${metadata ? '' : 'push'}`}>
+                            <Button
+                                label={'Go to Page'}
+                                title={'Open Capture'}
+                                className={'capture-button'}
+                                icon={'externalLink'}
+                                onClick={() => {
+                                    router.update(itemLink)
+                                }}
+                            />
+                        </li>
+                        <li><Button icon={'next'} className={'next'} onClick={_nextSlide}/></li>
                     </ul>
                 </div>
-            }
-            {
-                thumbnails
-                    ?
-                    <div className={'thumbnails h-menu'}>
-                        <ul>
-                            {
-                                (images || []).map((image, index) => {
-                                    const {url = null, file=null, label=''} = image || {};
-                                    const { owner_id='', owner_type='' } = file || {};
-                                    return (
-                                        <li
-                                            key={`slide_button_${index}`}
-                                            draggable={draggable}
-                                            onDragStart={(e) => {
-                                                // attach node metadata to data transfer object
-                                                e.dataTransfer.setData(
-                                                    'application/json',
-                                                    JSON.stringify({
-                                                        id: owner_id, model: owner_type, label: titles[index] || label
-                                                    })
-                                                );
-                                            }}
-                                        >
-                                            {
-                                                draggable &&
-                                                <Button
-                                                    className={'move capture-draggable'}
-                                                    icon={'move'}
-                                                    title={`Move ${titles[index] || label}.`}
-                                                />
-                                            }
-                                            <Image
-                                                url={url}
-                                                title={titles[index] || label}
-                                                caption={titles[index] || label}
-                                                scale={'thumb'}
-                                                onClick={() => {setSelectedIndex(index)}}
-                                            />
-                                        </li>
-                                    );
-                                })
-                            }
-                        </ul>
-                    </div>
-                    :
-                    <>
-                        <div className={'slide-menu h-menu vcentered'}>
-                            <ul>
-                                <li><Button icon={'prev'} className={'prev'} onClick={prevSlide} /></li>
-                                <li style={{flexGrow: 1}} className={'centred'}>
-                                    <div className={'dots'}>
+                <div className={'thumbnails h-menu'}>
+                    <ul>
+                        {
+                            (items || []).map((item, index) => {
+                                const {metadata={}, url = null, owner={}, label = ''} = item || {};
+
+                                return <li key={`slide_button_${index}`}>
+                                    <div className={user ? 'move' : ''}
+                                         draggable={user && isCapture}
+                                         onDragStart={(e)=>{
+                                             _handleMove(e, item)
+                                         }}
+                                    >
                                         {
-                                            (images || []).map((image, index) => {
-                                                return (
-                                                    <span
-                                                        key={`carousel_img_${index}`}
-                                                        className={`dot${index === selectedIndex ? ' active' : ''}`}
-                                                        onClick={() => {setSelectedIndex(index)}}
-                                                    />);
-                                            })
+                                            user && isCapture &&
+                                            <div style={{position: 'absolute'}}>
+                                                <Button className={'capture-draggable'} size={'lg'} icon={'move'}/>
+                                            </div>
+                                        }
+                                        <Image
+                                            url={url}
+                                            title={label}
+                                            caption={label}
+                                            scale={'thumb'}
+                                            onClick={() => {
+                                                _handleSelection(index)
+                                            }}
+                                        />
+                                        {
+                                            user &&
+                                            <EditorMenu
+                                                className={'centered'}
+                                                size={'sm'}
+                                                model={model}
+                                                id={id}
+                                                owner={owner}
+                                                metadata={metadata}
+                                                visible={['show', 'edit', 'remove', isCapture ? '' : 'download']}
+                                            />
                                         }
                                     </div>
-                                </li>
-                                <li><Button label={captionToggle ? 'Hide Captions' : 'Show Captions'} icon={'info'} onClick={showCaptions} /></li>
-                                <li className={'push'}><Button icon={'next'} className={'next'} onClick={nextSlide} /></li>
-                            </ul>
-                        </div>
-                    </>
-            }
-            {
-                expandImage &&
-                <Dialog
-                    title={`${getModelLabel(file_type)}: ${label}`}
-                    setToggle={setExpandImage}>
-                    <Image
-                        key={`slide_${selectedIndex}`}
-                        url={url}
-                        title={label}
-                        scale={'medium'}
-                    />
-                </Dialog>
-            }
-        </div>
-    );
+                                </li>;
+                            })
+                        }
+                    </ul>
+                </div>
+                {
+                    expandImage &&
+                    <Dialog className={'wide'} title={`${modelLabel}: ${label}`} callback={_handleExpandClose}>
+                        <Image
+                            fit={'contain'}
+                            key={`slide_${selectedIndex}`}
+                            url={url}
+                            title={label}
+                            scale={'medium'}
+                        />
+                    </Dialog>
+                }
+            </div>
+        }
+    </div>;
 };
 
 export default Carousel;

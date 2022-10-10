@@ -242,7 +242,8 @@ const Comparator = ({
                 expandImage &&
                 <Dialog
                     title={`${getModelLabel(file_type)}: ${label}`}
-                    setToggle={setExpandImage}>
+                    callback={()=>{setExpandImage(null)}}
+                >
                     <Image
                         key={`slide_${selectedIndex}`}
                         url={url}

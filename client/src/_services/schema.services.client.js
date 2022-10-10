@@ -33,6 +33,8 @@ export const getInfo = () => {
 export const getStaticView = (uri) => {
     const routes = getRoutes();
 
+    if (!uri) return '/not_found';
+
     // filter static files
     if (uri.indexOf('/resources') === 0) {
         return 'resources';
@@ -41,6 +43,7 @@ export const getStaticView = (uri) => {
     // filter route of query string
     const route = uri.split('?')[0];
 
+    // lookup route in schema
     const routeData = routes.hasOwnProperty(route) ? routes[route] : {};
     return routeData.hasOwnProperty('name') ? routeData.name : null;
 }
@@ -66,6 +69,9 @@ export const getRoutes = () => {
  */
 
 export const getStaticLabel = (route) => {
+
+    if (!route) return 'Not Found';
+
     // remove query
     route = route.split('?')[0];
     const { routes={} } = schema || {};
@@ -80,12 +86,13 @@ export const getStaticLabel = (route) => {
  * @public
  */
 
-export const getError = (key, type) => {
-    const errorSchema = schema.errors.hasOwnProperty(type)
-        ? schema.errors[type] : '';
+export const getError = (key='', type='') => {
+    const errorSchema = schema.errors.hasOwnProperty(type) ? schema.errors[type] : null;
     return errorSchema
         ? errorSchema.hasOwnProperty(key)
-            ? errorSchema[key] : '' : '';
+            ? errorSchema[key]
+            : schema.errors.default
+        : schema.errors.default;
 }
 
 /**
@@ -171,6 +178,18 @@ export const getNodeOrder = (type) => {
 }
 
 /**
+ * Check if file type is an image.
+ *
+ * @public
+ * @param {String} type
+ * @return {Boolean}
+ */
+
+export const isImageType = (type) => {
+    return schema.imageTypes.includes(type);
+}
+
+/**
  * Returns schema attributes for view/model. Model and view labels
  * must be unique.
  *
@@ -214,9 +233,7 @@ export const genSchema = ({ view='', model='', fieldsetKey= '', user= null }) =>
     const {role = ['']} = user || {};
 
     // model schema configuration
-    const modelSchema = schema.models.hasOwnProperty(model)
-        ? schema.models[model]
-        : {};
+    const modelSchema = schema.models.hasOwnProperty(model) ? schema.models[model] : {};
 
     // view schema configuration
     const viewAttributes = _getViewAttributes(view, model);
@@ -224,8 +241,8 @@ export const genSchema = ({ view='', model='', fieldsetKey= '', user= null }) =>
     // does the schema include file uploads?
     let hasFiles = false;
 
-    /** create renderable elements based on schema Filters out omitted
-     * fields (array) for view.
+    /** create renderable elements based on schema
+     *  - filters out omitted fields (array) for requested view.
      *  - set in schema 'restrict' settings (list of views restricted for showing the field).
      *  - when 'restrict' is absent, field is not restricted by view type.
      *  - set in schema 'user' settings (list of user roles restricted for showing the field).
@@ -285,8 +302,9 @@ export const genSchema = ({ view='', model='', fieldsetKey= '', user= null }) =>
                         const _readonly = fieldset[fieldKey].hasOwnProperty('readonly');
 
                         return {
-                            name: render === 'multiple' ? `${fieldKey}[${index}]` : fieldKey,
+                            name: render === 'multiple' ? `${fieldKey}[0]` : fieldKey,
                             id: fieldKey,
+                            index: index,
                             label: fieldset[fieldKey].label,
                             attributes: fieldset[fieldKey],
                             render: _render,

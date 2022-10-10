@@ -13,27 +13,31 @@ import Button from './button';
  * Form submission buttons component.
  *
  * @public
- * @param { model, label }
+ * @param model
+ * @param label
+ * @param icon
+ * @param disable
+ * @param onCancel
+ * @param onReset
+ * @param onSubmit
  */
 
 export const Submit = ({
                            model,
                            label = '',
-                           message,
+                           icon='submit',
+                           disabled=false,
                            onCancel,
                            onReset,
                            onSubmit = true,
                        }) => {
 
-    const { msg = '', type = '' } = message || {};
     return (
         <fieldset className={'submit'}>
-            {msg &&
-            <div className={`msg ${type}`}>
-                <span>{msg}</span>
-            </div>}
             {onSubmit &&
             <Button
+                disabled={disabled}
+                icon={icon}
                 className={'submit'}
                 type={'submit'}
                 label={label || 'Submit'}
@@ -41,6 +45,9 @@ export const Submit = ({
             />}
             {onReset &&
             <Button
+                disabled={disabled}
+                className={'reset'}
+                icon={'reset'}
                 type={'reset'}
                 label={'Reset'}
                 name={`reset_${model}`}
@@ -48,9 +55,11 @@ export const Submit = ({
             />}
             {onCancel &&
             <Button
+                disabled={disabled}
+                icon={'cancel'}
                 className={'cancel'}
                 type={'cancel'}
-                label={'Cancel'}
+                label={'Close'}
                 name={`cancel_${model}`}
                 onClick={(e) => {
                     e.preventDefault();
