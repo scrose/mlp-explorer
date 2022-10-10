@@ -39,8 +39,6 @@ const Remover = ({
                      callback=()=>{}
                  }) => {
 
-    console.log(id, model, owner, metadata, !!groupType)
-
     const dialog = useDialog();
     const api = useData();
     const nav = useNav();
