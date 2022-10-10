@@ -296,9 +296,9 @@ const DialogSelector = () => {
         };
 
         // create add new dependents dialog popups for requested model
-        const _dependentDialogs = (getDependentTypes(model) || []).reduce((o, dependent, index) => {
+        const _dependentDialogs = (getDependentTypes(model) || []).reduce((o, dependent, dependentIndex) => {
             o[dependent] = <Dialog
-                key={`${_key}_${dependent}_${index}`}
+                key={`${_key}_${dependent}_${dependentIndex}`}
                 title={`Add New ${getModelLabel(dependent)}`}
                 callback={_handleDialogClose}
                 className={index > 0 ? 'hidden' : ''}
@@ -333,7 +333,6 @@ const DialogSelector = () => {
                 : <Dialog
                     key={_key} title={'An Error Occurred'}
                     callback={_handleDialogClose}
-                    className={index > 0 ? 'hidden' : ''}
                 >
                     <h2>Operation Not Found</h2>
                     <p>Sorry, the system encountered an error. Please close this dialog box.</p>
