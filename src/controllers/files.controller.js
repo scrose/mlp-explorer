@@ -537,14 +537,14 @@ export default function FilesController(modelType) {
 
             // create buffer for either single raw file or compressed image folder
             const buffer = singleFile
-                ? await fserve.compress({file: [singleFile]})
+                ? await fserve.compress({file: [singleFile]}, 'raw')
                 : await fserve.compress({
                     'historic_images': historicFiles.results,
                     'modern_images': modernFiles.results,
                     'unsorted_images': unsortedFiles.results,
                     'metadata_files': metadataFiles.results,
                     'supplemental_files': supplementalFiles.results,
-                });
+                }, 'raw');
 
             // push buffer to download stream
             fserve.streamDownload(res, buffer);

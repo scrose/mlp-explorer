@@ -528,7 +528,7 @@ export const download = async (res, src) => {
  * @public
  */
 
-export const compress = async (files={}, version, metadata) => {
+export const compress = async (files={}, version, metadata={}) => {
 
     // creating new archive (ADM-ZIP)
     let zip = new AdmZip();
@@ -540,6 +540,7 @@ export const compress = async (files={}, version, metadata) => {
                 files[fileType].map(async (file) => {
                     // get file path for given version type
                     const filePath = getFilePath(version, file, metadata);
+                    console.log(filePath, file, fileType)
                     // places file in folder labelled by file type
                     // - only include files that exist
                     if (fs.existsSync(filePath)) zip.addLocalFile(filePath, fileType);
