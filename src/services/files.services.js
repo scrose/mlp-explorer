@@ -540,7 +540,7 @@ export const compress = async (files={}, version, metadata={}) => {
                 files[fileType].map(async (file) => {
                     // get file path for given version type
                     const filePath = getFilePath(version, file, metadata);
-                    console.log(filePath, file, fileType)
+                    console.log(fs.existsSync(filePath), filePath, file, fileType)
                     // places file in folder labelled by file type
                     // - only include files that exist
                     if (fs.existsSync(filePath)) zip.addLocalFile(filePath, fileType);
