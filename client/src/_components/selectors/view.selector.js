@@ -12,7 +12,7 @@ import NotfoundError from '../error/notfound.error';
 import ServerError from '../error/server.error';
 import { useData } from '../../_providers/data.provider.client';
 import { getRenderType } from '../../_services/schema.services.client';
-import FilterTools from '../tools/filter.tools';
+import PaginationTools from '../tools/pagination.tools';
 import AccessError from '../error/access.error';
 import Loading from "../common/loading";
 
@@ -33,8 +33,8 @@ const ViewSelector = () => {
     const renders = {
         // render a node view
         nodes: () => <NodeSelector model={api.model} data={api.data} />,
-        // render a filtered list of nodes
-        filter: () => <FilterTools data={api.data} />,
+        // render paginated results
+        filter: () => <PaginationTools data={api.data} />,
         // render page not found page
         404: () => <NotfoundError />,
         notFound: () => <NotfoundError />,

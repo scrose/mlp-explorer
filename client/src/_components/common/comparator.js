@@ -17,6 +17,54 @@ import {useWindowSize} from "../../_utils/events.utils.client";
 import {createNodeRoute} from "../../_utils/paths.utils.client";
 import {useRouter} from "../../_providers/router.provider.client";
 
+
+/**
+ * Image pair component.
+ *
+ * @public
+ * @param {Boolean} selected
+ * @param {Object} historicImage
+ * @param {Object} modernImage
+ * @return
+ */
+
+const ImagePair = ({
+                       selected = false,
+                       historicImage,
+                       modernImage
+                   }) => {
+
+    const pairRef = React.useRef();
+
+    // auto-increment slideshow
+    // scroll to current top node
+    React.useEffect(() => {
+        if ( pairRef.current && selected) {
+            pairRef.current.scrollIntoView();
+        }
+        return () => {};
+    }, [selected]);
+
+    return <div ref={pairRef} className={`h-menu comparison-pair ${selected ? 'active' : ''}`}>
+        <ul>
+            <li>
+                <Image
+                    scale={'thumb'}
+                    caption={historicImage.label || ''}
+                    url={historicImage.url || ''}
+                />
+            </li>
+            <li>
+                <Image
+                    scale={'thumb'}
+                    caption={modernImage.label || ''}
+                    url={modernImage.url || ''}
+                />
+            </li>
+        </ul>
+    </div>
+
+}
 /**
  * Image comparator component.
  *
@@ -28,11 +76,11 @@ import {useRouter} from "../../_providers/router.provider.client";
  */
 
 const Comparator = ({
-                    images = [],
-                    menu = true,
-                    autoslide=null,
-                    expandable=true
-}) => {
+                        images = [],
+                        menu = true,
+                        autoslide=null,
+                        expandable=true
+                    }) => {
 
     // selected slide state
     const [selectedIndex, setSelectedIndex] = React.useState(0);
@@ -63,8 +111,8 @@ const Comparator = ({
     // auto-increment slideshow
     React.useEffect(() => {
         const timer = autoslide ? setTimeout(() => {
-                setSelectedIndex((selectedIndex + 1) % images.length);
-            }, autoslide) : null;
+            setSelectedIndex((selectedIndex + 1) % images.length);
+        }, autoslide) : null;
         return () => {
             clearTimeout(timer);
         };
@@ -89,13 +137,6 @@ const Comparator = ({
     };
 
     const getViewer = function() {
-
-        // For local testing only
-        // const url1 = 'http://localhost:3001/uploads/full_b4_x6gg-T2wXrJ3EgatWy_bqbZE8gyFr02g2VWMlxqV1rtNe.jpeg';
-        // const url2 = 'http://localhost:3001/uploads/CkiulFsfN7EBR1Rhz08P2_K72R4IEYYql02k3fmeRZ4WVJcx.jpeg'
-        // const url3 = 'http://localhost:3001/uploads/_I3ywf_afWO7imTLaSzXM1jfdHJiWi4qVR4SDiGxl9yop3cW.jpeg'
-        // const url4 = 'http://localhost:3001/uploads/_I3ywf_afWO7imTLaSzXM1jfdHJiWi4qVR4SDiGxl9yop3cW.jpeg'
-
         const viewers = {
             slider: () => {
                 return <Slider
@@ -103,13 +144,6 @@ const Comparator = ({
                     canvasHeight={panelHeight}
                     images={[historic_captures.refImage, modern_captures.refImage]}
                 />
-                // return <Slider
-                //     canvasWidth={panelWidth}
-                //     canvasHeight={panelHeight}
-                //     images={ selectedIndex === 0
-                //         ? [{url: {medium: url3}}, {url: {medium: url4}}]
-                //         : [{url: {medium: url1}}, {url: {medium: url2}}]
-                // } />
             },
             default: () => {
                 return <>
@@ -192,6 +226,7 @@ const Comparator = ({
                             {
                                 (images || []).map((imgPair, index) => {
                                     const { historic_captures={}, modern_captures={} } = imgPair || {};
+
                                     return (
                                         <li
                                             key={`slide_button_${index}`}
@@ -199,24 +234,11 @@ const Comparator = ({
                                                 e.stopPropagation(); setSelectedIndex(index)}
                                             }
                                         >
-                                            <div className={`h-menu comparison-pair ${index === selectedIndex ? 'active' : ''}`}>
-                                                <ul>
-                                                    <li>
-                                                        <Image
-                                                            scale={'thumb'}
-                                                            caption={historic_captures.refImage.label}
-                                                            url={historic_captures.refImage.url}
-                                                        />
-                                                    </li>
-                                                    <li>
-                                                        <Image
-                                                            scale={'thumb'}
-                                                            caption={modern_captures.refImage.label}
-                                                            url={modern_captures.refImage.url}
-                                                        />
-                                                    </li>
-                                                </ul>
-                                            </div>
+                                            <ImagePair
+                                                historicImage={historic_captures.refImage}
+                                                modernImage={modern_captures.refImage}
+                                                selected={index === selectedIndex}
+                                            />
                                         </li>
                                     );
                                 })

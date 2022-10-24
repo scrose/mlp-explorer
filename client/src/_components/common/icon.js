@@ -10,6 +10,7 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
+    faLocationArrow,
     faChartBar,
     faGripVertical,
     faCircle,
@@ -131,6 +132,7 @@ export const facMLPWordmark = {
  */
 
 library.add(
+    faLocationArrow,
     faArrowsAltH,
     faChartBar,
     faGripVertical,
@@ -264,11 +266,13 @@ const getIconClass = (iconType) => {
         delete: 'trash-alt',
         import: 'file-import',
         export: 'file-export',
+        scroll: 'location-arrow',
         externalLink: 'external-link-square-alt',
         align: 'images',
         overlay: 'columns',
         filter: 'filter',
-        mapFilter: 'filter',
+        filterBySurvey: 'filter',
+        filterByStation: 'filter',
         search: 'search',
         undo: 'undo',
         reset: 'undo',

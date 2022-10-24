@@ -84,10 +84,38 @@ export const baseLayers = {
  * Generate map marker SVG.
  *
  * @public
+ * @param {int} count,
+ * @param {Object} cluster
  * @return string
  */
 
-export const getMarker = (type='single', fill='#FFFFFF', text='n') => {
+export const getMarker = (count=0, cluster=false) => {
+
+    const {isSelected=false, stations=[]} = cluster || {};
+
+    // select marker fill colour based on selection and station status
+    const fillColours = {
+        missing: '#E34234',
+        grouped: '#63BAAB',
+        located: '#008DF2',
+        repeated: '#8E36A8',
+        partial: 'darkgoldenrod',
+        mastered: '#00A652',
+        selected: 'coral',
+        default: '#008896'
+    }
+
+    // set fill colour based on station status
+    const _getFillColour = (station) => {
+        const { status='' } = station || {};
+        return fillColours.hasOwnProperty(status) ? fillColours[status] : fillColours.default;
+    }
+
+    const fill = isSelected
+        ? fillColours.selected
+        : count === 1 && stations.length === 1
+            ? _getFillColour(stations[0])
+            : fillColours.default;
 
     // marker SVG templates
     const markers = {
@@ -126,7 +154,7 @@ export const getMarker = (type='single', fill='#FFFFFF', text='n') => {
                                 font-family="sans-serif"
                                 font-size="6px"
                                 text-anchor="middle">
-                                ${text}
+                                ${count}
                             </text>
                         </svg>`,
 
@@ -136,7 +164,5 @@ export const getMarker = (type='single', fill='#FFFFFF', text='n') => {
 </svg>`,
     };
 
-    return markers.hasOwnProperty(type)
-        ? markers[type]
-        : <></>
+    return count === 1 ? markers.single : markers.cluster;
 };

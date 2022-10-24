@@ -298,10 +298,10 @@ export const InputSelector = ({
             // prepare options data for select input
             const opts = options
                 .sort(sorter)
-                .map(opt => {
+                .map((opt, index) => {
                     const {value = '', label = ''} = opt || {};
                     return <option
-                        key={`${id}_${name}_${value}`}
+                        key={`${id}_${name}_${value}_${index}`}
                         id={`${id}_${name}_${value}`}
                         name={`${name}_${value}`}
                         value={value || ''}>{label}</option>;

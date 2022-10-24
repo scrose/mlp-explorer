@@ -67,7 +67,10 @@ export const NavigatorMenu = () => {
                                 icon={'tree'}
                                 label={!nav.offCanvas ? 'List' : ''}
                                 title={`View navigation tree.`}
-                                onClick={() => setMode('tree')}
+                                onClick={() => {
+                                    setMode('tree')
+                                    nav.scroll(true);
+                                }}
                             />
                         </li>
                         <li>

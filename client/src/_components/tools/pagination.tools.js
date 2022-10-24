@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.Tools.Filter
- * File: filter.tools.js
+ * MLP.Client.Components.Tools.Pagination
+ * File: paginate.tools.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
@@ -11,19 +11,19 @@ import { genID } from '../../_utils/data.utils.client';
 import MetadataView from '../views/metadata.view';
 import { getModelLabel } from '../../_services/schema.services.client';
 import Accordion from '../common/accordion';
-import SearchMenu from '../menus/search.menu';
+import PaginationMenu from '../menus/pagination.menu';
 import { useRouter } from '../../_providers/router.provider.client';
 import { createRoute } from '../../_utils/paths.utils.client';
 
 /**
- * Filtered items component.
+ * Paginate results component.
  *
  * @public
  * @param {Array} data
  * @return {JSX.Element}
  */
 
-const FilterTools = ({data}) => {
+const PaginationTools = ({data}) => {
 
     const router = useRouter();
 
@@ -87,7 +87,7 @@ const FilterTools = ({data}) => {
 
     return <>
         <h4>{ results.length > 0 &&`Results found: ${count}` }</h4>
-        <SearchMenu
+        <PaginationMenu
             total={count}
             hasPrev={hasPrev}
             hasNext={hasNext}
@@ -103,7 +103,7 @@ const FilterTools = ({data}) => {
             </ol>
             : <p>No Results.</p>
         }
-        <SearchMenu
+        <PaginationMenu
             total={count}
             hasPrev={hasPrev}
             hasNext={hasNext}
@@ -113,4 +113,4 @@ const FilterTools = ({data}) => {
     </>
 }
 
-export default FilterTools;
+export default PaginationTools;

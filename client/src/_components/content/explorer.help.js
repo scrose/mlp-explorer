@@ -494,7 +494,8 @@ const explorerHelp = (gotoPage) => {
                 <th><Icon type={'filter'} /></th>
                 <th>Filter</th>
                 <td>
-                    <p>Filter the map station markers by surveyor, survey and survey season.</p>
+                    <p>Filter the map station markers by surveyor, survey, survey season and station
+                        status (see "Station/Capture Status" below).</p>
                 </td>
             </tr>
             <tr>
@@ -535,33 +536,12 @@ const explorerHelp = (gotoPage) => {
             </thead>
             <tbody>
             <tr>
-                <th className={'grouped'}><Icon type={'stations'} /></th>
+                <th className={'mastered'}><Icon type={'stations'} /></th>
                 <th>
-                    <p>Grouped Station</p>
+                    <p>Mastered Station</p>
                 </th>
                 <td>
-                    <p>Station contains historic captures that have been grouped together as a single
-                        historic station, but the location of this station as not been estimated.</p>
-                </td>
-            </tr>
-            <tr>
-                <th className={'located'}><Icon type={'stations'} /></th>
-                <th>
-                    <p>Located Station</p>
-                </th>
-                <td>
-                    <p>Station contains grouped historic captures and the location of the station has been estimated.
-                        Historic captures have not been repeated.</p>
-                </td>
-            </tr>
-            <tr>
-                <th className={'repeated'}><Icon type={'stations'} /></th>
-                <th>
-                    <p>Repeated Station</p>
-                </th>
-                <td>
-                    <p>Station contains repeat captures, but at least one of these captures need to be mastered
-                        with its historic capture counterpart.</p>
+                    <p>Station has been repeated and all of its captures have been mastered.</p>
                 </td>
             </tr>
             <tr>
@@ -575,12 +555,33 @@ const explorerHelp = (gotoPage) => {
                 </td>
             </tr>
             <tr>
-                <th className={'mastered'}><Icon type={'stations'} /></th>
+                <th className={'repeated'}><Icon type={'stations'} /></th>
                 <th>
-                    <p>Mastered Station</p>
+                    <p>Repeated Station</p>
                 </th>
                 <td>
-                    <p>Station has been repeated and all of its captures have been mastered.</p>
+                    <p>Station contains repeat captures, but at least one of these captures need to be mastered
+                        with its historic capture counterpart.</p>
+                </td>
+            </tr>
+            <tr>
+                <th className={'located'}><Icon type={'stations'} /></th>
+                <th>
+                    <p>Located Station</p>
+                </th>
+                <td>
+                    <p>Station contains grouped historic captures and the location of the station has been estimated.
+                        Historic captures have not been repeated.</p>
+                </td>
+            </tr>
+            <tr>
+                <th className={'grouped'}><Icon type={'stations'} /></th>
+                <th>
+                    <p>Grouped Station</p>
+                </th>
+                <td>
+                    <p>Station contains historic captures that have been grouped together as a single
+                        historic station, but the location of this station as not been estimated.</p>
                 </td>
             </tr>
             </tbody>
@@ -603,6 +604,16 @@ const explorerHelp = (gotoPage) => {
                 </th>
                 <td>
                     <p>Capture is sorted and has at least one image mastered with an historic/modern capture image.</p>
+                </td>
+            </tr>
+            <tr>
+                <th className={'partial'}><Icon type={'historic_captures'} /></th>
+                <th>
+                    <p>Partially Mastered Station</p>
+                </th>
+                <td>
+                    <p>Capture contains repeat capture images and at least one of them has been mastered, while
+                        others still require mastering.</p>
                 </td>
             </tr>
             <tr>

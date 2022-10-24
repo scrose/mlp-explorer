@@ -37,7 +37,7 @@ const TreeNode = ({data}) => {
         id='',
         label='',
         hasDependents=false,
-        status=null,
+        status='',
         metadata=null,
         attached=null,
         owner=null
@@ -96,28 +96,6 @@ const TreeNode = ({data}) => {
             owner: owner,
         });
     };
-
-    // handle status of nodes: cascades status levels
-    const _getStatus = () => {
-
-        // filter classifications for captures
-        if (type === 'historic_captures' || type === 'modern_captures') {
-            if (status.mastered) return 'mastered';
-            if (status.repeated) return 'repeated';
-            if (status.missing) return 'missing';
-            if (status.sorted) return 'sorted';
-            if (!status.sorted) return 'unsorted';
-        }
-
-        // if (status.compared) return 'compared';
-        if (status.mastered) return 'mastered';
-        if (status.partial) return 'partial';
-        if (status.repeated) return 'repeated';
-        if (status.located) return 'located';
-        if (status.grouped) return 'grouped';
-
-        return 'unprocessed';
-    }
 
     /**
      * Drag-and-drop handlers for node moves.
@@ -184,13 +162,14 @@ const TreeNode = ({data}) => {
     // scroll to current top node
     React.useEffect(() => {
         _isMounted.current = true;
-        if ( _isMounted.current && (api.nodes.includes(id) && (type === 'surveyors' || type === 'projects') )) {
+        if ( _isMounted.current && nav.scrollToView && (api.nodes.includes(id) && (type === 'surveyors' || type === 'projects') )) {
             treeNode.current.scrollIntoView();
+            nav.scroll(false);
         }
         return () => {
             _isMounted.current = false;
         };
-    }, [api, id, type, treeNode]);
+    }, [api, id, type, treeNode, nav]);
 
     // highlight tree node if in the current path
     React.useEffect(() => {
@@ -218,14 +197,14 @@ const TreeNode = ({data}) => {
 
                         // separate sorted from unsorted captures or non-capture nodes
                         const unsorted = dependents.filter(item => {
-                            const { node = {}, status = {} } = item || {};
+                            const { node = {}, status = '' } = item || {};
                             const {type = ''} = node || {};
-                            return ( type === 'historic_captures' || type === 'modern_captures' ) && (!status.sorted)
+                            return ( type === 'historic_captures' || type === 'modern_captures' ) && (status === 'unsorted')
                         });
                         const sorted = dependents.filter(item => {
-                            const { node = {}, status = {} } = item || {};
+                            const { node = {}, status = '' } = item || {};
                             const {type = ''} = node || {};
-                            return ( type !== 'historic_captures' && type !== 'modern_captures' ) || status.sorted
+                            return ( type !== 'historic_captures' && type !== 'modern_captures' ) || status !== 'unsorted'
                         });
 
                         // store separate properties to accommodate sorted/unsorted captures
@@ -288,9 +267,9 @@ const TreeNode = ({data}) => {
                         <Button
                             icon={type}
                             size={'lg'}
-                            className={`tree-node-icon ${isCurrent ? ' current' : ''} ${status ? _getStatus() : ''}`}
+                            className={`tree-node-icon ${isCurrent ? ' current' : ''} ${status}`}
                             title={
-                                `View ${modelLabel}: ${label} ${status ? ' \nSTATUS: ' + capitalize(_getStatus()) : ''}`
+                                `View ${modelLabel}: ${label} ${status ? ' \nSTATUS: ' + capitalize(status) : ''}`
                             }
                             onClick={_handleView}
                         />
@@ -382,7 +361,7 @@ const TreeNodeList = ({items}) => {
                             node = {},
                             file={},
                             hasDependents = false,
-                            status = {},
+                            status = '',
                             label = '',
                             metadata={},
                             attached={}

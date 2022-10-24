@@ -180,11 +180,11 @@ const NodesView = ({model, data}) => {
     if (dependentsGrouped.hasOwnProperty('modern_captures')) {
         // filter unsorted captures
         unsorted.push(...dependentsGrouped.modern_captures.filter(capture => {
-            return !capture.status.sorted
+            return capture.status === 'unsorted'
         }));
         // filter sorted captures
         const sorted = dependentsGrouped.modern_captures.filter(capture => {
-            return capture.status.sorted
+            return capture.status !== 'unsorted'
         });
         if (sorted.length > 0) {
             _tabItems.push({
@@ -209,11 +209,11 @@ const NodesView = ({model, data}) => {
     if (dependentsGrouped.hasOwnProperty('historic_captures')) {
         // filter unsorted captures
         unsorted.push(...dependentsGrouped.historic_captures.filter(capture => {
-            return !capture.status.sorted
+            return capture.status === 'unsorted'
         }));
         // filter sorted captures
         const sorted = dependentsGrouped.historic_captures.filter(capture => {
-            return capture.status.sorted
+            return capture.status !== 'unsorted'
         });
 
         // add sorted historic captures tabbed items

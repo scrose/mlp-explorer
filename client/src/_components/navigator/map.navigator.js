@@ -1,6 +1,6 @@
 /*!
  * MLP.Client.Components.Navigator.Map
- * File: tree.navigator.js
+ * File: map.navigator.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
@@ -23,7 +23,6 @@ import 'leaflet-kml/L.KML.js';
 /**
  * Page height offset
  */
-
 const heightOffset = 140;
 
 /**
@@ -118,33 +117,16 @@ function MapNavigator({ filter, hidden }) {
                     && (
                         !nav.filter[key]
                         || parseInt(station[key]) === parseInt(nav.filter[key])
+                        || station[key] === nav.filter[key]
                     );
             }, true);
         };
 
         // create map marker icon
-        const _getMarker = (n, cluster ) => {
-            // select marker fill colour based on selection and station status
-            const fillColours = {
-                missing: '#E34234',
-                grouped: 'skyblue',
-                located: 'indianred',
-                repeated: 'purple',
-                partial: 'greenyellow',
-                mastered: 'green',
-                selected: '#E34234',
-                default: '#008896'
-            }
-            const fillColour = cluster.isSelected
-                ? fillColours.selected
-                : n === 1
-                    ? fillColours.default
-                    : fillColours.default;
+        const _getMarker = (n, cluster) => {
 
             // select marker icon based on cluster count value 'n'
-            const iconSVG = n > 1 ?
-                getMarker('cluster', fillColour, n)  :
-                getMarker('single', fillColour);
+            const iconSVG = getMarker(n, cluster);
 
             return n > 1
                 ? L.icon({
@@ -395,10 +377,10 @@ function MapNavigator({ filter, hidden }) {
             layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
 
             // Include any kml overlay
-            if (nav.overlay) {
-                const track = new L.KML(nav.overlay);
-                mapObj.current.addLayer(track);
-            }
+            // if (nav.overlay) {
+            //     const track = new L.KML(nav.overlay);
+            //     mapObj.current.addLayer(track);
+            // }
 
             // add layers to leaflet controls
             L.control.layers(baseLayers).addTo(mapObj.current);

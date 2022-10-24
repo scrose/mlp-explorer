@@ -66,7 +66,7 @@ function DataProvider(props) {
             dependents = [],
             owner = {},
             attached = {},
-            status = {},
+            status = '',
             refImage = {},
             hasDependents = false,
         } = dataObj || {};
@@ -128,7 +128,7 @@ function DataProvider(props) {
                 if (!res) return null;
                 const {response = {}} = res || {};
 
-                // console.log('\n<<< Response >>>\n', res)
+                console.log('\n<<< Response >>>\n', res)
 
                 // destructure API data for settings
                 const {
@@ -168,7 +168,9 @@ function DataProvider(props) {
         router.get(`/${type}`)
             .then(res => {
                 if (!res) return null;
-                // console.log('\n<<< Options >>>\n', res);
+                
+                console.log('\n<<< Options >>>\n', res);
+
                 if (res.error) return setError(res.error);
                 // destructure API data for options
                 const { response = {} } = res || {};

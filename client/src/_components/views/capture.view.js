@@ -128,7 +128,7 @@ const CaptureView = ({model, data, fileType}) => {
         attached={} } = api.destructure(data);
 
     // get capture status
-    const { status={ sorted: false } } = data || {};
+    const { status='unsorted' } = data || {};
 
     // get capture images
     const captureImages = files.hasOwnProperty(fileType)
@@ -168,7 +168,7 @@ const CaptureView = ({model, data, fileType}) => {
             label: `Versions`,
             data: <CaptureImagesTable
                 type={fileType}
-                owner={{ id: id, type: model, sorted: status.sorted }}
+                owner={{ id: id, type: model, sorted: status !== 'unsorted' }}
                 files={captureImages}
             />,
         },

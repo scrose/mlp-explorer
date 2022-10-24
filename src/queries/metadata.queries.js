@@ -180,34 +180,131 @@ export function getHistoricCapturesByStationID(id) {
 }
 
 /**
- * Query: Get stations.
- * - includes project-based and survey-based stations
+ * Query: Get historic capture status metadata
  *
+ * @param {int} id
  * @return {Object} query binding
  */
 
-export function getMapLocations() {
-    let sql = `
-            SELECT 
-                   stations.nodes_id, 
-                   stations.name,
-                   stations.elev,
-                   stations.azim,
-                   stations.lat, 
-                   stations.lng,
-                   s.nodes_id as surveyors,
-                   ss.nodes_id as surveys,
-                   sss.nodes_id as survey_seasons
-            FROM stations
-            FULL JOIN projects p on stations.owner_id = p.nodes_id
-            FULL JOIN survey_seasons sss on stations.owner_id = sss.nodes_id
-            FULL JOIN surveys ss on sss.owner_id = ss.nodes_id
-            FULL JOIN surveyors s on ss.owner_id = s.nodes_id
-            WHERE stations.lat IS NOT NULL AND stations.lng IS NOT NULL;
-    `;
+export function getHistoricCaptureStatus(id) {
+    let sql = `SELECT
+                COUNT(DISTINCT cmp.id) as n_comparisons,
+                COUNT(DISTINCT hi.files_id) = 0 as missing,
+                CASE WHEN COUNT(DISTINCT cmp.id) > 0 then true else false end AS repeated,
+                CASE WHEN hv.nodes_id notnull then true else false end AS sorted,
+                (COUNT(DISTINCT (
+                    CASE WHEN hi.image_state = 'master' AND hi.owner_id = cmp.historic_captures then cmp.historic_captures end) 
+                )) > 0 as partial,
+                COUNT(DISTINCT (
+                    CASE WHEN hi.image_state = 'master' AND hi.owner_id = cmp.historic_captures then cmp.historic_captures end)
+                ) = COUNT(DISTINCT cmp.id)
+                AND COUNT(DISTINCT (
+                    CASE WHEN hi.image_state = 'master' AND hi.owner_id = cmp.historic_captures then cmp.historic_captures end)
+                ) = COUNT(DISTINCT hc.nodes_id) as mastered
+            FROM historic_captures hc
+                LEFT JOIN comparison_indices cmp ON cmp.historic_captures = hc.nodes_id
+                LEFT JOIN historic_images hi ON hi.owner_id = hc.nodes_id
+                LEFT JOIN historic_visits hv ON hv.nodes_id = hc.owner_id
+            WHERE hc.nodes_id = $1::integer
+            GROUP BY hc.nodes_id, hv.nodes_id
+            LIMIT 1`;
     return {
         sql: sql,
-        data: [],
+        data: [id],
+    };
+}
+
+
+/**
+ * Query: Get modern capture status metadata
+ *
+ * @param {int} id
+ * @return {Object} query binding
+ */
+
+export function getModernCaptureStatus(id) {
+    let sql = `SELECT
+                COUNT(DISTINCT cmp.id) as n_comparisons,
+                COUNT(DISTINCT mi.files_id) = 0 as missing,
+                CASE WHEN COUNT(DISTINCT cmp.id) > 0 then true else false end AS repeated,
+                CASE WHEN loc.nodes_id notnull then true else false end AS sorted,
+                (COUNT(DISTINCT (
+                    CASE WHEN mi.image_state = 'master' AND mi.owner_id = cmp.modern_captures then cmp.modern_captures end) 
+                )) > 0 as partial,
+                COUNT(DISTINCT (
+                    CASE WHEN mi.image_state = 'master' AND mi.owner_id = cmp.modern_captures then cmp.modern_captures end)
+                ) = COUNT(DISTINCT cmp.id)
+                AND COUNT(DISTINCT (
+                    CASE WHEN mi.image_state = 'master' AND mi.owner_id = cmp.modern_captures then cmp.modern_captures end)
+                ) = COUNT(DISTINCT mc.nodes_id) as mastered
+            FROM modern_captures mc
+                LEFT JOIN comparison_indices cmp ON cmp.modern_captures = mc.nodes_id
+                LEFT JOIN modern_images mi ON mi.owner_id = mc.nodes_id
+                LEFT JOIN locations loc ON loc.nodes_id = mc.owner_id
+            WHERE mc.nodes_id = $1::integer
+            GROUP BY mc.nodes_id, loc.nodes_id
+            LIMIT 1`;
+    return {
+        sql: sql,
+        data: [id],
+    };
+}
+
+/**
+ * Query: Get station status metadata
+ * - includes project-based and survey-based stations
+ *
+ * @param {int} id
+ * @return {Object} query binding
+ */
+
+export function getStationStatus(id=0) {
+    let sql = `SELECT
+        stn.nodes_id as nodes_id,
+        stn.name as name,
+        stn.elev as elev,
+        stn.azim as azim,
+        stn.lat as lat,
+        stn.lng as lng,
+        svr.nodes_id as surveyors,
+        svy.nodes_id as surveys,
+        svs.nodes_id as survey_seasons,
+        COUNT(DISTINCT hc.nodes_id) as n_hc,
+        COUNT(DISTINCT mc.nodes_id) as n_mc,
+        COUNT(DISTINCT cmp.id) as n_comparisons,
+        (COUNT(DISTINCT (CASE WHEN hi.image_state = 'master' AND hi.owner_id = cmp.historic_captures then cmp.historic_captures end) )) as hc_mastered,
+        (COUNT(DISTINCT (CASE WHEN mi.image_state = 'master' AND mi.owner_id = cmp.modern_captures then cmp.modern_captures end) )) as mc_mastered,
+        CASE WHEN COUNT(DISTINCT hc.nodes_id) > 0 AND stn.lat isnull AND stn.lng isnull then true else false end AS grouped,
+        CASE WHEN COUNT(DISTINCT hc.nodes_id) > 0 AND stn.lat notnull AND stn.lng notnull then true else false end AS located,
+        CASE WHEN COUNT(DISTINCT cmp.id) > 0 then true else false end AS repeated,
+        (COUNT(DISTINCT (
+            CASE WHEN hi.image_state = 'master' AND hi.owner_id = cmp.historic_captures then cmp.historic_captures end) 
+            )) > 0 as partial,
+        COUNT(DISTINCT cmp.id) >= COUNT(DISTINCT hc.nodes_id) 
+            AND COUNT(DISTINCT (
+                    CASE WHEN hi.image_state = 'master' AND hi.owner_id = cmp.historic_captures then cmp.historic_captures end)
+                ) = COUNT(DISTINCT cmp.id)
+            AND COUNT(DISTINCT (
+                    CASE WHEN hi.image_state = 'master' AND hi.owner_id = cmp.historic_captures then cmp.historic_captures end
+                )) = COUNT(DISTINCT hc.nodes_id) as mastered
+        FROM historic_captures hc
+            LEFT JOIN comparison_indices cmp ON cmp.historic_captures = hc.nodes_id
+            LEFT JOIN historic_images hi ON hi.owner_id = hc.nodes_id
+            LEFT JOIN historic_visits hv ON hv.nodes_id = hc.owner_id
+            LEFT JOIN stations stn ON stn.nodes_id = hv.owner_id
+            LEFT JOIN survey_seasons svs ON svs.nodes_id = stn.owner_id
+            LEFT JOIN surveys svy ON svy.nodes_id = svs.owner_id
+            LEFT JOIN surveyors svr ON svr.nodes_id = svy.owner_id
+            LEFT JOIN modern_visits mv ON mv.owner_id = stn.nodes_id
+            LEFT JOIN locations loc ON loc.owner_id = mv.nodes_id
+            LEFT JOIN modern_captures mc ON mc.owner_id = loc.nodes_id
+            LEFT JOIN modern_images mi ON mi.owner_id = mc.nodes_id
+      WHERE stn.lat notnull AND stn.lng notnull${id ? ` AND stn.nodes_id = $1::integer` : ''}
+      GROUP BY stn.nodes_id, svs.nodes_id, svy.nodes_id, svr.nodes_id
+      ${id ? 'LIMIT 1' : ''}`;
+    return {
+        sql: sql,
+        data: id ? [id] : [],
     };
 }
 

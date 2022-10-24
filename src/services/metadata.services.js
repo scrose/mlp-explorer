@@ -17,7 +17,8 @@ import queries from '../queries/index.queries.js';
 import {groupBy, sanitize} from '../lib/data.utils.js';
 import * as cserve from './construct.services.js';
 import * as fserve from './files.services.js';
-import {getComparisonsByCapture, getComparisonsByStation, getComparisonsMetadata} from './comparisons.services.js';
+import {getComparisonsMetadata} from './comparisons.services.js';
+import {getStatusTypes} from "./schema.services.js";
 
 /**
  * Get metadata by ID. Returns single metadata object.
@@ -324,7 +325,8 @@ export const getMetadataOptions = async function(client) {
             '',
             true,
             client
-        )
+        ),
+        statuses: getStatusTypes()
     }
 };
 
@@ -481,19 +483,64 @@ export const getHistoricCapturesByStation = async (node, client) => {
 };
 
 /**
- * Get number of mastered capture images associated with a capture
+ * Get filtered station location data and additional context metadata.
  *
  * @public
  * @return {Promise} result
  */
 
-const hasMastered = async (captureID, captureImageType, client) => {
-    const { sql, data } = queries.metadata.hasMastered(captureID, captureImageType);
-    let response = await client.query(sql, data);
-    return response.hasOwnProperty('rows') && response.rows.length > 0
-        ? response.rows[0]
-        : null;
-}
+export const getStationMetadata = async function (id, client) {
+
+    // get all nodes for station model
+    let {sql, data} = queries.metadata.getStationStatus(id);
+
+    // return station results
+    return await client.query(sql, data).then(res => {
+        return res.rows.length > 0
+            ? id ? res.rows[0] || {} : res.rows || []
+            : [];
+    });
+
+};
+
+
+/**
+ * Get filtered historic capture location data and additional context metadata.
+ *
+ * @public
+ * @return {Promise} result
+ */
+
+export const getHistoricCaptureMetadata = async function (id, client) {
+
+        // get all nodes for station model
+        let {sql, data} = queries.metadata.getHistoricCaptureStatus(id);
+        // return station results
+        return await client.query(sql, data).then(res => {
+            return res.rows.length > 0
+                ? id ? res.rows[0] || {} : res.rows || []
+                : [];
+        });
+};
+
+/**
+ * Get filtered modern capture location data and additional context metadata.
+ *
+ * @public
+ * @return {Promise} result
+ */
+
+export const getModernCaptureMetadata = async function (id, client) {
+
+    // get all nodes for station model
+    let {sql, data} = queries.metadata.getModernCaptureStatus(id);
+    // return station results
+    return await client.query(sql, data).then(res => {
+        return res.rows.length > 0
+            ? id ? res.rows[0] || {} : res.rows || []
+            : [];
+    });
+};
 
 /**
  * Get status information for node.
@@ -513,77 +560,43 @@ const hasMastered = async (captureID, captureImageType, client) => {
  *
  * @public
  * @param {Object} node
- * @param {Object} metadata
  * @param client
  * @return {Promise} result
  */
 
-export const getStatus = async (node, metadata = {}, client ) => {
+export const getStatus = async (node, client) => {
 
-    const { type = '' } = node || {};
+    const { id='', type = '' } = node || {};
 
     // initialize image versions
     const statusInfo = {
         stations: async () => {
-            const comparisons = await getComparisonsByStation(node, client) || [];
-            const historicCaptures = await getHistoricCapturesByStation(node, client) || [];
-            const modernCaptures = await getModernCapturesByStation(node, client) || [];
-            // tally how many historic capture images are mastered
-            let totalRepeats = 0;
-            let totalMasters = 0;
-            let isMastered = true;
-            await Promise.all(
-                comparisons.map(async (pair) => {
-                    const masterStatus = await hasMastered(pair.historic_captures, 'historic_images', client);
-                    // ensure any unmastered historic images => unmastered station
-                    isMastered = !!parseInt(masterStatus.mastered) && isMastered;
-                    totalMasters += parseInt(masterStatus.mastered);
-                    totalRepeats += parseInt(masterStatus.total);
-                })
-            );
-            const { lat = null, lng = null } = metadata || {};
-            return {
-                comparisons: comparisons,
-                historic_captures: historicCaptures.length,
-                modern_captures: modernCaptures.length,
-                grouped: historicCaptures.length > 0 && !(lat && lng),
-                located: historicCaptures.length > 0 && !!(lat && lng),
-                repeated: comparisons.length > 0,
-                partial: !isMastered && totalMasters > 0,
-                mastered: isMastered && totalMasters > 0,
-                n_masters: totalMasters,
-                n_repeats: totalRepeats,
-            };
+            const stationMetadata = await getStationMetadata(id, client);
+            if (stationMetadata.mastered) return 'mastered';
+            if (stationMetadata.partial) return 'partial';
+            if (stationMetadata.repeated) return 'repeated';
+            if (stationMetadata.located) return 'located';
+            if (stationMetadata.grouped) return 'grouped';
+            return 'unprocessed';
         },
         historic_captures: async () => {
-            const comparisons = await getComparisonsByCapture(node, client) || [];
-            const masterStatus = await hasMastered(node.id, 'historic_images', client);
-            const files = await fserve.hasFiles(node.id, client) || false;
-            return {
-                comparisons: comparisons,
-                mastered: parseInt(masterStatus.mastered) > 0 && comparisons.length > 0,
-                compared: comparisons.length > 0,
-                repeated: comparisons.length > 0,
-                sorted: node.owner_type === 'historic_visits',
-                missing: !files,
-                n_masters: parseInt(masterStatus.mastered),
-                n_repeats: parseInt(masterStatus.total),
-            };
+            const captureMetadata = await getHistoricCaptureMetadata(id, client);
+            if (captureMetadata.mastered) return 'mastered';
+            if (captureMetadata.partial) return 'partial';
+            if (captureMetadata.repeated) return 'repeated';
+            if (captureMetadata.missing) return 'missing';
+            if (captureMetadata.sorted) return 'sorted';
+            return 'unsorted';
+
         },
         modern_captures: async () => {
-            const comparisons = await getComparisonsByCapture(node, client) || [];
-            const masterStatus = await hasMastered(node.id, 'modern_images', client);
-            const files = await fserve.hasFiles(node.id, client) || false;
-            return {
-                comparisons: comparisons,
-                mastered: parseInt(masterStatus.mastered) > 0 && comparisons.length > 0,
-                compared: comparisons.length > 0,
-                repeated: comparisons.length > 0,
-                sorted: node.owner_type === 'locations',
-                missing: !files,
-                n_masters: parseInt(masterStatus.mastered),
-                n_repeats: parseInt(masterStatus.total),
-            };
+            const captureMetadata = await getModernCaptureMetadata(id, client);
+            if (captureMetadata.mastered) return 'mastered';
+            if (captureMetadata.partial) return 'partial';
+            if (captureMetadata.repeated) return 'repeated';
+            if (captureMetadata.missing) return 'missing';
+            if (captureMetadata.sorted) return 'sorted';
+            return 'unsorted';
         },
     };
 

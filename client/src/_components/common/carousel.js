@@ -83,9 +83,9 @@ const Carousel = ({
 
 
     return <div className="carousel">
-            {
-                (!selectedImage || items.length === 0) && <Image />
-            }
+        {
+            (!selectedImage || items.length === 0) && <Image />
+        }
         {
             items.length > 0 &&
             <div>

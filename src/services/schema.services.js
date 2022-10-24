@@ -259,6 +259,23 @@ export const getPermissions = async function(client) {
 };
 
 /**
+ * Get station status types.
+ *
+ * @public
+ * @return {Array} result
+ */
+
+export const getStatusTypes = function() {
+    return [
+        {value: 'grouped', label: 'Grouped'},
+        {value: 'located', label: 'Located'},
+        {value: 'repeated', label: 'Repeated'},
+        {value: 'partial', label: 'Partial'},
+        {value: 'mastered', label: 'Mastered'}
+    ]
+}
+
+/**
  * Generate instance label from attributes.
  *
  * @param model

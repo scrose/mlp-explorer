@@ -111,11 +111,11 @@ export const CapturesEditor = ({owner}) => {
     if (dependents.hasOwnProperty('modern_captures')) {
         // filter unsorted captures
         captureGroups.unsorted_captures.push(...dependents.modern_captures.filter(capture => {
-            return !capture.status.sorted
+            return capture.status === 'unsorted'
         }));
         // filter sorted modern captures
         captureGroups.modern_captures = dependents.modern_captures.filter(capture => {
-            return capture.status.sorted
+            return capture.status !== 'unsorted'
         });
     }
 
@@ -123,11 +123,11 @@ export const CapturesEditor = ({owner}) => {
     if (dependents.hasOwnProperty('historic_captures')) {
         // filter unsorted captures
         captureGroups.unsorted_captures.push(...dependents.historic_captures.filter(capture => {
-            return !capture.status.sorted
+            return capture.status === 'unsorted'
         }));
         // filter sorted captures
         captureGroups.historic_captures = dependents.historic_captures.filter(capture => {
-            return capture.status.sorted
+            return capture.status !== 'unsorted'
         });
     }
 

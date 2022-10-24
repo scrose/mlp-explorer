@@ -38,6 +38,7 @@ function NavProvider(props) {
     const [mapOverlayData, setMapOverlayData] = React.useState(null);
     const [filterData, setFilterData] = React.useState({});
     const [selectedNode, setSelectedNode] = React.useState({});
+    const [scrollToView, setScrollToView] = React.useState(false);
 
     // initialize navigation view settings
     const [navView, setNavView] = React.useState(getNavView() || 'map');
@@ -60,6 +61,11 @@ function NavProvider(props) {
     const _refresh = () => {
         setNodeData(null);
         setMapData(null);
+    }
+
+    // scroll to current tree node
+    const _handleScroll = (toggle) => {
+        setScrollToView(toggle);
     }
 
     /**
@@ -128,7 +134,7 @@ function NavProvider(props) {
                         const { data = {} } = response || {};
                         const { nodes={} } = data || {};
 
-                        // console.log('\n<<< Nav [Map] >>>\n', res)
+                        console.log('\n<<< Nav [Map] >>>\n', res)
 
                         // check if response data is empty (set error flag if true)
                         if ( Object.keys(nodes).length === 0 ) {
@@ -192,6 +198,8 @@ function NavProvider(props) {
                 setMode: setNavView,
                 offCanvas: navOffCanvas,
                 setOffCanvas: setNavOffCanvas,
+                scrollToView: scrollToView,
+                scroll: _handleScroll,
                 toggle: navToggle,
                 resize: resize,
                 setResize: setResize,

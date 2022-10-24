@@ -5,14 +5,14 @@
  * MIT Licensed
  */
 
-import { prepare } from '../lib/api.utils.js';
+import {prepare} from '../lib/api.utils.js';
 import * as nserve from '../services/nodes.services.js';
 import * as statserve from '../services/stats.services.js';
 import * as expserve from '../services/export.services.js';
 import * as srchserve from '../services/search.services.js';
 import {sanitize} from '../lib/data.utils.js';
-import { json2csv } from '../lib/file.utils.js';
-import { Readable } from 'stream';
+import {json2csv} from '../lib/file.utils.js';
+import {Readable} from 'stream';
 import pool from '../services/db.services.js';
 
 /**
@@ -110,7 +110,7 @@ export const map = async (req, res, next) => {
             prepare({
                 view: 'map',
                 data: {
-                    nodes: await nserve.getMap() || []
+                    nodes: await nserve.getMap(client) || []
                 }
             }));
 

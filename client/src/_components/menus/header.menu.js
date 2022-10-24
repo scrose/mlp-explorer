@@ -16,6 +16,7 @@ import { useRouter } from '../../_providers/router.provider.client';
 import { useData } from '../../_providers/data.provider.client';
 import Badge from '../common/badge';
 import {EditorMenu} from "./editor.menu";
+import {capitalize} from "../../_utils/data.utils.client";
 
 /**
  * Render view heading component.
@@ -76,9 +77,9 @@ const HeaderMenu = () => {
                     api.model &&
                     <li>
                         <Badge
-                            className={`node_type ${api.model}`}
+                            className={`node_type ${api.status || api.model}`}
                             icon={api.model}
-                            title={modelLabel}
+                            title={`${modelLabel}${api.status ? ' [' + capitalize(api.status) + ']' : ''}`}
                             label={modelLabel}
                         />
                     </li>

@@ -177,7 +177,7 @@ export const get = async (id, client ) => {
         metadata: metadata,
         metadata_type: await metaserve.selectByName('metadata_file_types', type, client),
         url: getImageURL(file_type, metadata),
-        status: await metaserve.getStatus(owner, metadata, client),
+        status: await metaserve.getStatus(owner, client),
     };
 
 };
@@ -540,8 +540,7 @@ export const compress = async (files={}, version, metadata={}) => {
                 files[fileType].map(async (file) => {
                     // get file path for given version type
                     const filePath = getFilePath(version, file, metadata);
-                    console.log(fs.existsSync(filePath), filePath, file, fileType)
-                    // places file in folder labelled by file type
+                    // places file in a subfolder labelled by image/file type
                     // - only include files that exist
                     if (fs.existsSync(filePath)) zip.addLocalFile(filePath, fileType);
                 })

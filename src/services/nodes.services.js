@@ -90,9 +90,38 @@ export const get = async (id, type, client) => {
             refImage: getCaptureImage(files, node),
             dependents: await selectByOwner(id, client) || [],
             hasDependents: await hasDependents(id, client),
-            status: await getStatus(node, metadata, client),
+            status: await getStatus(node, client),
         }
 };
+
+/**
+ * Get all nodes for top-level station map. Includes dependents data.
+ *
+ * @public
+ * @return {Promise} result
+ */
+
+export const getMap = async function(client) {
+
+        // get all nodes for model
+        let { sql, data } = queries.metadata.getStationStatus();
+        let stations = await client.query(sql, data)
+            .then(res => {
+                return res.rows
+            });
+
+        // set station status
+        return stations.map(station => {
+            if (station.mastered) station.status = 'mastered';
+            else if (station.partial) station.status = 'partial';
+            else if (station.repeated) station.status =  'repeated';
+            else if (station.located) station.status =  'located';
+            else if (station.grouped) station.status =  'grouped';
+            else station.status = 'unprocessed';
+            return station;
+        })
+}
+
 
 /**
  * Get all nodes for top-level node tree. Includes dependents data.
@@ -129,7 +158,7 @@ export const getTree = async function(model) {
                     type: node.type,
                     metadata: metadata,
                     hasDependents: await hasDependents(node.id, client) || false,
-                    status: await getStatus(node, metadata, client)
+                    status: await getStatus(node, client)
                 }
             })
         );
@@ -139,56 +168,6 @@ export const getTree = async function(model) {
 
         // return nodes
         return items;
-
-    } catch (err) {
-        await client.query('ROLLBACK');
-        throw err;
-    } finally {
-        await client.release(true);
-    }
-};
-
-/**
- * Get filtered station location data and additional context metadata.
- *
- * @public
- * @return {Promise} result
- */
-
-export const getMap = async function() {
-
-    // NOTE: client undefined if connection fails.
-    const client = await pool.connect();
-
-    try {
-
-        // start transaction
-        await client.query('BEGIN');
-
-        // get all nodes for station model
-        let { sql, data } = queries.metadata.getMapLocations('stations');
-        // let stations = await client.query(sql, data)
-        //     .then(res => {
-        //         return res.rows || [];
-        //     });
-        const stations = await client.query(sql, data).then(res => {return res.rows || []});
-        // const result = await Promise.all(
-        //     stations.map( async(station) => {
-        //         const node = {
-        //             id: station.nodes_id,
-        //             type: 'stations'
-        //         }
-        //         console.log(station)
-        //         return await mserve.getStatus(node, station, client)
-        //     })
-        // );
-
-
-        // end transaction
-        await client.query('COMMIT');
-
-        // return station results
-        return stations;
 
     } catch (err) {
         await client.query('ROLLBACK');
@@ -232,7 +211,7 @@ export const selectByOwner = async (id, client) => {
                 files: files,
                 refImage: getCaptureImage(files, node),
                 hasDependents: await hasDependents(node.id, client),
-                status: await getStatus(node, metadata, client)
+                status: await getStatus(node, client)
             }
     }));
 

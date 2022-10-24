@@ -34,8 +34,11 @@ const Image = ({
                    onClick=()=>{},
 }) => {
 
-    // fallback for null url
-    if (!url) url = fallbackSrc;
+    // fallback for null or empty url
+    if (!url || Object.keys(url).length === 0) {
+        url = fallbackSrc;
+    }
+    const isFallback = url === fallbackSrc;
 
     // image URL: with scale settings / URL string
     const [src, setSrc] = React.useState(url.hasOwnProperty(scale) && scale ? url[scale] : url );
@@ -71,9 +74,8 @@ const Image = ({
     // - thumbnails must use cover object-fit
     return (
         <figure className={scale}>
-            {!loaded && <span>Loading...</span>}
             <img
-                className={error ? 'fallback' : ''}
+                className={error || !loaded || isFallback ? 'fallback' : ''}
                 style={{objectFit: scale === 'thumb' ? 'cover' : fit, maxHeight: fixedHeight ? '500px' : '100%'}}
                 src={src}
                 alt={caption}
@@ -83,10 +85,8 @@ const Image = ({
                 onClick={onClick}
             />
             {
-                caption &&
-                <figcaption onClick={onClick}>
-                    {caption}
-                </figcaption>
+                loaded
+                    ? caption && <figcaption onClick={onClick}>{caption}</figcaption> : <span>Loading...</span>
             }
         </figure>
     )

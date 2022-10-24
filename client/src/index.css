@@ -247,7 +247,7 @@ Vertical Menu Styles
 }
 .v-menu.dropdown ul li:hover {
     color: #FFF;
-    background-color: #D36819;
+    background-color: coral;
 }
 
 /*
@@ -560,6 +560,18 @@ ul.user-menu li {
     top: 140px;
     z-index: 999999;
 }
+button.nav-toggle {
+    margin-left: 8px;
+    margin-right: 8px;
+    border: 1px solid grey;
+}
+div.nav-scroll {
+    position: fixed;
+}
+div.nav-scroll button {
+    background-color: coral !important;
+    color: #222222 !important;
+}
 
 /* Navigator Panel: Tree */
 
@@ -623,7 +635,7 @@ ul.user-menu li {
     margin: 0 3px;
 }
 .navigator .map .map-menu button.activated {
-    color: #FF8D3F;
+    color: coral;
 }
 #map-container {
     height: 500px;
@@ -792,11 +804,6 @@ nav.breadcrumb ul li a:hover {
     background-color: #DDDDDD;
     z-index: 99990;
 }
-button.nav-toggle {
-    margin-left: 8px;
-    margin-right: 8px;
-    border: 1px solid grey;
-}
 
 
 /* Tree Node Menu */
@@ -833,7 +840,7 @@ button.nav-toggle {
     color: #95B0B4;
 }
 .tree-node .h-menu ul li button.current {
-    color:  #FF8D3F !important;
+    color: coral !important;
 }
 .tree-node .h-menu ul li button.toggle:hover {
     opacity: 0.6;
@@ -1271,19 +1278,22 @@ button.nav-toggle {
     color: #E34234 !important;
 }
 .grouped {
-    color: skyblue !important;
+    color: #63BAAB !important;
 }
 .located {
-    color: indianred !important;
+    color: #008DF2 !important;
 }
 .repeated {
-    color: royalblue !important;
+    color: #8E36A8 !important;
 }
 .partial {
-    color: yellow !important;
+    color: darkgoldenrod !important;
 }
 .mastered {
-    color: limegreen !important;
+    color: #00A652 !important;
+}
+.selected {
+    color: coral !important;
 }
 
 /* Capture Comparisons */
@@ -2064,7 +2074,7 @@ button.capture-draggable {
     cursor: move !important;
 }
 button.capture-draggable:hover {
-    background-color: #D36819 !important;
+    background-color: coral !important;
     opacity: 1;
 }
 .capture-draggable-highlight {
@@ -2432,7 +2442,7 @@ Define Canvas Layers of Panel (IAT)
 }
 
 .canvas-status {
-    background-color: #D36819;
+    background-color: coral;
     padding: 10px;
     border-radius: 10px;
     position: absolute;

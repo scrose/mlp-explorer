@@ -141,8 +141,8 @@ export const schema = {
             submit: 'Upload Mastered Image',
             render: 'master'
         },
-        mapFilter: {
-            label: 'Map Filter',
+        filterNavigation: {
+            label: 'Filter Navigation',
             legend: 'Filter',
             submit: 'Filter',
             render: 'form'
@@ -461,8 +461,8 @@ export const schema = {
                     },
                 },
                 {
-                    legend: 'Filter Map Stations',
-                    restrict: ['mapFilter'],
+                    legend: 'Filter Stations',
+                    restrict: ['filterNavigation'],
                     surveyors: {
                         render: 'select',
                         reference: 'surveyors',
@@ -477,8 +477,14 @@ export const schema = {
                         render: 'select',
                         reference: 'survey_seasons',
                         label: 'Survey Season'
+                    },
+                    status: {
+                        render: 'select',
+                        reference: 'statuses',
+                        label: 'Station Status'
                     }
-                }]
+                }
+            ]
         },
         historic_visits: {
             attributes: {

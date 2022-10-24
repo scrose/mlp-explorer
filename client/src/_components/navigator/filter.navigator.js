@@ -12,6 +12,7 @@ import { genSchema } from '../../_services/schema.services.client';
 import { useNav } from "../../_providers/nav.provider.client";
 import {useData} from "../../_providers/data.provider.client";
 import {useDialog} from "../../_providers/dialog.provider.client";
+import Tabs from "../common/tabs";
 
 /**
  * Navigator filter component.
@@ -27,7 +28,12 @@ function FilterNavigator() {
     const dialog = useDialog();
 
     // get filter options
-    const { surveyors=[], surveys=[], survey_seasons=[] } = api.options || {};
+    const {
+        surveyors=[],
+        surveys=[],
+        survey_seasons=[],
+        statuses=[]
+    } = api.options || {};
 
     // create filter data state
     const [filterData, setFilterData] = React.useState(nav.filter);
@@ -40,10 +46,8 @@ function FilterNavigator() {
 
     // filter options by owner ID
     const onChange = (e) => {
-
         const {target={}} = e || {};
         const { name='', value=''} = target;
-
         const updates = {
             surveyors: ()=>{
                 setFilterData({ surveyors: value });
@@ -53,7 +57,10 @@ function FilterNavigator() {
             },
             survey_seasons: ()=>{
                 setFilterData(data => ({...data, survey_seasons: value}));
-            }
+            },
+            status: ()=>{
+                setFilterData(data => ({...data, status: value}));
+            },
         }
 
         // update filter data state with input selection
@@ -67,32 +74,33 @@ function FilterNavigator() {
     const filteredSurveys = filterOptions(surveys, surveyorID);
     const filteredSurveySeasons = filterOptions(survey_seasons, surveyID);
 
+    // data loaders
     const _loader = async () => {return filterData}
 
-    return (
-        <Form
-            model={'stations'}
-            opts={
-                {
-                    surveyors: surveyors,
-                    surveys: filteredSurveys,
-                    survey_seasons: filteredSurveySeasons
-                }
+    return <Form
+        key={'filter_by_survey'}
+        model={'stations'}
+        opts={
+            {
+                surveyors: surveyors,
+                surveys: filteredSurveys,
+                survey_seasons: filteredSurveySeasons
             }
-            loader={_loader}
-            schema={genSchema({ view:'mapFilter', model:'stations'})}
-            onReset={()=>{
-                setFilterData({})
-            }}
-            onCancel={() => {dialog.cancel()}}
-            onChange={onChange}
-            callback={async ()=>{
-                nav.setFilter(filterData)
-                dialog.clear();
-            }}
-            allowEmpty={true}
-        />
-    )
+        }
+        loader={_loader}
+        schema={genSchema({ view:'filterNavigation', model:'stations'})}
+        onReset={()=>{
+            setFilterData({})
+        }}
+        onCancel={() => {dialog.cancel()}}
+        onChange={onChange}
+        callback={async ()=>{
+            nav.setFilter(filterData)
+            dialog.clear();
+        }}
+        allowEmpty={true}
+    />
+
 }
 
 
