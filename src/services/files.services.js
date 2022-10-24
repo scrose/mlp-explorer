@@ -542,6 +542,7 @@ export const compress = async (files={}, version, metadata={}) => {
                     const filePath = getFilePath(version, file, metadata);
                     // places file in a subfolder labelled by image/file type
                     // - only include files that exist
+                    console.log(filePath)
                     if (fs.existsSync(filePath)) zip.addLocalFile(filePath, fileType);
                 })
             )}
