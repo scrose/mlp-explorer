@@ -55,7 +55,9 @@ const getFetchOptions = ({ data=null, files=null, download=null, method='POST'})
 
         // for file downloads, modify header to accept requested file format
         if (download) {
-            opts.headers = { Accept: getMIME(download) };
+            opts.headers = {
+                Accept: getMIME(download)
+            };
         }
 
     return opts
@@ -90,9 +92,7 @@ export async function makeRequest({
         statusText: res.statusText,
         response: files
             ? null
-            : download
-                ? await res.blob()
-                : await res.json()
+            : download ? await res.blob() : await res.json()
     }
 }
 
@@ -160,7 +160,7 @@ export const upload = async (route, formData, callback=()=>{}, online=true) => {
         };
 
         // Upload error callback
-        xhr.upload.onerror = function(e) {
+        xhr.upload.onerror = function() {
             return callback(null, {msg: 'An unknown API error has occurred.', type: 'error'});
         };
 
@@ -202,20 +202,16 @@ export const download = async (route, format, online=true) => {
     // reject null paths or when API is offline
     if (!route || !online ) return null;
 
-    return await makeRequest({url: createAPIURL(route), method:'GET', download: format})
+    return await makeRequest({
+        url: createAPIURL(route),
+        method:'GET',
+        download: format
+    })
         .then(res => {
-            if (!res || !res.success) {
-                return {
-                    error: res.statusText,
-                    data: null,
-                };
-            }
+            if (!res || !res.success) { return { error: res.statusText, data: null } }
             const {error=null} = res || {};
-            return {
-                error: error,
-                data: new Blob([res.response])
-            }
-
+            // return { error: error, data: new Blob([res.response]) }
+            return { error: error, data: res.response }
         })
         .catch(console.error);
 }

@@ -1,6 +1,6 @@
 /*!
- * MLP.Client.Components.Content.Help
- * File: index.help.js
+ * MLP.Client.Content.Help.Explorer
+ * File: explorer.help.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed

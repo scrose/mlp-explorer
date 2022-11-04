@@ -489,7 +489,7 @@ export const getHistoricCapturesByStation = async (node, client) => {
  * @return {Promise} result
  */
 
-export const getStationMetadata = async function (id, client) {
+export const getStationStatus = async function (id, client) {
 
     // get all nodes for station model
     let {sql, data} = queries.metadata.getStationStatus(id);
@@ -571,7 +571,7 @@ export const getStatus = async (node, client) => {
     // initialize image versions
     const statusInfo = {
         stations: async () => {
-            const stationMetadata = await getStationMetadata(id, client);
+            const stationMetadata = await getStationStatus(id, client);
             if (stationMetadata.mastered) return 'mastered';
             if (stationMetadata.partial) return 'partial';
             if (stationMetadata.repeated) return 'repeated';

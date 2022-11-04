@@ -6,7 +6,6 @@
  * MIT Licensed
  */
 
-import React from 'react';
 import L from "leaflet";
 
 /**

@@ -165,7 +165,7 @@ const Editor = ({
      * @param formData
      */
 
-    const _importData = (formData) => {
+    const _importData = async (formData) => {
 
         // append any additional files to form data
         files.forEach(file => {
@@ -191,22 +191,26 @@ const Editor = ({
      * @param formData
      */
 
-    const _importBatchData = (formData) => {
+    const _importBatchData = async (formData) => {
 
         // get files set for bulk import
         const fileList = formData.getAll(batchType);
 
         // import files individually with same metadata
-        fileList.map((file, index) => {
-            formData.set(batchType, file);
-            return upload(route, formData, _updateProgress.bind(this, index, file.name), router.online)
-                .then(xhr => {
-                    // get the XML request
-                    setXHR(data => ({ ...data, [index]: xhr }));
-                })
-                .then(onRefresh)
-                .catch(_handleError);
-        });
+        await Promise.all(
+            fileList.map( async (file, index) => {
+                formData.set(batchType, file);
+                try {
+                    return await upload(route, formData, _updateProgress.bind(this, index, file.name), router.online)
+                        .then(xhr => {
+                            // get the XML request
+                            setXHR(data => ({...data, [index]: xhr}));
+                        })
+                        .then(onRefresh);
+                } catch (e) {
+                    _handleError(e)
+                }
+            }));
     }
 
     /**

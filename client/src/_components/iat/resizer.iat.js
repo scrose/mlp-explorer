@@ -8,7 +8,7 @@
 
 import React from 'react';
 import Button from '../common/button';
-import Message, { UserMessage } from '../common/message';
+import { UserMessage } from '../common/message';
 import InputSelector from '../selectors/input.selector';
 
 /**

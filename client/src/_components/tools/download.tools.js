@@ -14,6 +14,7 @@ import Download from "../common/download";
 import {useRouter} from "../../_providers/router.provider.client";
 import {useDialog} from "../../_providers/dialog.provider.client";
 import {FilesList} from "../views/files.view";
+import Loading from "../common/loading";
 
 /**
  * Image selector.
@@ -221,10 +222,12 @@ const Downloader = ({id}) => {
 
     // render download-as button
     return <fieldset className={'submit'}>
+        { !loadedData && <Loading label={'Loading...'}/> }
+        { isEmpty && <UserMessage message={{msg: 'No downloads available', type: 'warning'}} closeable={false} /> }
         <UserMessage message={message} closeable={true} />
         <div>
             {
-                !isEmpty && loadedData ?
+                !isEmpty && loadedData &&
                     <fieldset>
                         <InputSelector
                             disabled={isEmpty}
@@ -256,7 +259,6 @@ const Downloader = ({id}) => {
                             })
                         }
                     </fieldset>
-                    : <UserMessage message={{msg: 'No downloads available', type: 'warning'}} closeable={false} />
             }
             <div className={'h-menu'}>
                 <ul>

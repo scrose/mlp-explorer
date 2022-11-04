@@ -83,7 +83,7 @@ const Download = ({
                         : format === 'zip' ? 'bulk_download' : 'download'
             }
             spin={loading}
-            label={message ? message.msg : label}
+            label={message ? message.msg : loading && label ? 'Downloading...' : label}
             className={`${className} ${message ? message.type : ''}`}
             title={
                 message && message.hasOwnProperty('msg')

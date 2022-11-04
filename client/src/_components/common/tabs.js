@@ -41,7 +41,8 @@ const Tabs = ({
     const initTab = prefKey && getPref(prefKey) ? getPref(prefKey) : defaultTab;
 
     // selected tab state (get any preference history for selected tabs component)
-    const [selectedTabID, setSelectedTabID] = React.useState(initTab);
+    // - ensure initial tab is in range of tabs
+    const [selectedTabID, setSelectedTabID] = React.useState(items.length <= initTab ? 0 : initTab);
 
     // highlight selected tab (via classname)
     const onToggle = (id) => {

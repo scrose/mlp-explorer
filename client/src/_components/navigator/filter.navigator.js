@@ -12,7 +12,6 @@ import { genSchema } from '../../_services/schema.services.client';
 import { useNav } from "../../_providers/nav.provider.client";
 import {useData} from "../../_providers/data.provider.client";
 import {useDialog} from "../../_providers/dialog.provider.client";
-import Tabs from "../common/tabs";
 
 /**
  * Navigator filter component.
@@ -31,8 +30,7 @@ function FilterNavigator() {
     const {
         surveyors=[],
         surveys=[],
-        survey_seasons=[],
-        statuses=[]
+        survey_seasons=[]
     } = api.options || {};
 
     // create filter data state

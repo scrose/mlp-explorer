@@ -174,7 +174,7 @@ const Carousel = ({
                                     >
                                         {
                                             user && isCapture &&
-                                            <div style={{position: 'absolute'}}>
+                                            <div style={{position: 'absolute', marginTop: '-5px'}}>
                                                 <Button className={'capture-draggable'} size={'lg'} icon={'move'}/>
                                             </div>
                                         }

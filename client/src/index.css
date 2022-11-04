@@ -644,7 +644,9 @@ div.nav-scroll button {
 
 /* Navigator Panel: Search  */
 
-.search {}
+.search {
+    background-color: #222222;
+}
 .search-input {
     width: 95%;
     height: 5vh;
