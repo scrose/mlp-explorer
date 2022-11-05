@@ -9,6 +9,7 @@
 
 import path from 'path';
 import fs from 'fs';
+import { Buffer } from 'node:buffer';
 import {copyFile, mkdir, unlink, rename} from 'fs/promises';
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
@@ -542,7 +543,6 @@ export const compress = async (files={}, version, metadata={}) => {
                     const filePath = getFilePath(version, file, metadata);
                     // places file in a subfolder labelled by image/file type
                     // - only include files that exist
-                    console.log(filePath)
                     if (fs.existsSync(filePath)) zip.addLocalFile(filePath, fileType);
                 })
             )}
@@ -920,10 +920,14 @@ export const deleteFiles = async (filePaths=[]) => {
 
 export const streamDownload = (res, buffer) => {
     let rs = new Readable();
+
+    // set buffer size in response
+    res.setHeader('Content-Length', Buffer.byteLength(buffer));
+
     rs._read = () => {}; // may be redundant
     rs.pipe(res);
     rs.on('error',function(err) {
-        console.error(err)
+        console.error(err);
         res.status(404).end();
     });
     rs.push(buffer);

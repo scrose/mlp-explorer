@@ -9,6 +9,7 @@
  */
 
 import {createAPIURL} from '../_utils/paths.utils.client';
+import { saveAs } from 'file-saver';
 
 /**
  * Fetch options for JSON API request.
@@ -32,33 +33,33 @@ const getFetchOptions = ({ data=null, files=null, download=null, method='POST'})
 
     // set request options
     const opts = {
-            method: method,
-            mode: 'cors',
-            cache: 'no-cache',
-            credentials: 'include',
-            redirect: 'follow',
-            referrerPolicy: 'no-referrer'
-        }
+        method: method,
+        mode: 'cors',
+        cache: 'no-cache',
+        credentials: 'include',
+        redirect: 'follow',
+        referrerPolicy: 'no-referrer'
+    }
 
-        // include form data in body for posts
-        // body data type must match "Content-Type" header
-        if (data) {
-            opts.headers = {'Content-Type': 'application/json'};
-            opts.body = JSON.stringify(data);
-        }
+    // include form data in body for posts
+    // body data type must match "Content-Type" header
+    if (data) {
+        opts.headers = {'Content-Type': 'application/json'};
+        opts.body = JSON.stringify(data);
+    }
 
-        // omit _static type from header for file(s) uploads
-        if (files) {
-            // opts.header = { 'Content-Type' : 'multipart/form-data' };
-            opts.body = files;
-        }
+    // omit _static type from header for file(s) uploads
+    if (files) {
+        // opts.header = { 'Content-Type' : 'multipart/form-data' };
+        opts.body = files;
+    }
 
-        // for file downloads, modify header to accept requested file format
-        if (download) {
-            opts.headers = {
-                Accept: getMIME(download)
-            };
-        }
+    // for file downloads, modify header to accept requested file format
+    if (download) {
+        opts.headers = {
+            Accept: getMIME(download)
+        };
+    }
 
     return opts
 }
@@ -76,7 +77,7 @@ export async function makeRequest({
                                       files=null,
                                       method='POST',
                                       download=null
-})  {
+                                  })  {
 
     // compose request headers/options
     const opts = getFetchOptions({data, files, method, download});
@@ -197,24 +198,98 @@ export const upload = async (route, formData, callback=()=>{}, online=true) => {
  * @param online
  */
 
-export const download = async (route, format, online=true) => {
+/**
+ * Request method to upload file(s) via API.
+ *
+ * @public
+ * @param {String} route
+ * @param callback
+ * @param filename
+ * @param online
+ */
+
+export const download = async (route, callback=()=>{}, filename, online=true) => {
 
     // reject null paths or when API is offline
     if (!route || !online ) return null;
 
-    return await makeRequest({
-        url: createAPIURL(route),
-        method:'GET',
-        download: format
-    })
-        .then(res => {
-            if (!res || !res.success) { return { error: res.statusText, data: null } }
-            const {error=null} = res || {};
-            // return { error: error, data: new Blob([res.response]) }
-            return { error: error, data: res.response }
-        })
-        .catch(console.error);
-}
+    // DEBUG: Display the key/value pairs of form data
+    // for(var pair of formData.entries()) {
+    //     console.log(pair[0]+ ', '+ pair[1]);
+    // }
+
+    try {
+
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', createAPIURL(route), true);
+        xhr.withCredentials = true;
+        xhr.responseType = 'blob';
+
+        // request finished event
+        xhr.onload = function(e) {
+            if (xhr.readyState === 4) {
+                const {statusText='An API Error Occurred.'} = e.currentTarget || {};
+                const { response={} } = e.currentTarget || {};
+                const { message={} } = response || {};
+                const { msg=statusText } = message || {};
+
+                // const contentDispo = e.currentTarget.getResponseHeader('Content-Disposition');
+                // // https://stackoverflow.com/a/23054920/
+                // const fileName = contentDispo.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)[1];
+                saveAs(response, filename);
+
+                // success
+                if (xhr.status === 200) {
+                    return callback(null, {msg: msg, type: 'success'}, response);
+                }
+                // error
+                else {
+                    return callback(null, {msg: msg, type: 'error'});
+                }
+            }
+        };
+
+        // listen for `progress` event
+        xhr.onprogress = callback;
+
+        // error in sending network request
+        xhr.onerror = function(e) {
+            const { statusText='' } = e.currentTarget || {};
+            return callback(null, {msg: statusText || 'An API Error Occurred.', type: 'error'});
+        };
+
+        // abort network request
+        xhr.onabort = function() {
+            return callback(null, {msg: 'Download has been stopped.', type: 'warn'});
+        };
+
+        // send POST request to server and return request
+        xhr.send();
+        return xhr;
+
+    } catch (err) {
+        return callback(null, {msg: 'Submission Failed. Please try again.', type: 'error'});
+    }
+};
+
+// export const download = async (route, format, online=true) => {
+//
+//     // reject null paths or when API is offline
+//     if (!route || !online ) return null;
+//
+//     return await makeRequest({
+//         url: createAPIURL(route),
+//         method:'GET',
+//         download: format
+//     })
+//         .then(res => {
+//             if (!res || !res.success) { return { error: res.statusText, data: null } }
+//             const {error=null} = res || {};
+//             // return { error: error, data: new Blob([res.response]) }
+//             return { error: error, data: res.response }
+//         })
+//         .catch(console.error);
+// }
 
 /**
  * Get KML metadata as parsed XML string.
