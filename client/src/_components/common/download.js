@@ -7,7 +7,6 @@
  */
 
 import React from 'react';
-import { saveAs } from 'file-saver';
 import { useRouter } from '../../_providers/router.provider.client';
 import { download } from '../../_services/api.services.client'
 import Button from './button';
@@ -45,9 +44,42 @@ const Download = ({
     // create download ID
     const id = genID();
 
+    // handle error events
     const _handleError = (err) => {
-        setMessage(err);
+        console.error(err);
+        setLoading(false);
+        setMessage({msg: label ? 'File download failed.' : '', type: 'error'});
         callback({msg: 'Download error', type:'error'});
+    }
+
+    /**
+     * Update progress data. Progress data is updated until
+     * uploading has completed.
+     *
+     * @param e
+     * @private
+     */
+
+    const _handleProgress = (e) => {
+        // update progress indicator only if event available
+        if (e) {
+            // get loaded/total bytes data from XHR progress event
+            // - converted to MB
+            const { loaded = 0, total = 0 } = e || {};
+
+            const completedBytes = (loaded / 1000000).toFixed(2);
+            const totalBytes = (total / 1000000).toFixed(2);
+            const percent = (100 * (completedBytes / totalBytes)).toFixed(0);
+            const done = total > 0 && loaded > 0 && total === loaded;
+
+            // update progress state
+            setMessage({msg: `${percent}%`, type: 'info'});
+
+            if (done) {
+                setMessage(null);
+                setLoading(false);
+            }
+        }
     }
 
     // Handler for file download request.
@@ -55,19 +87,12 @@ const Download = ({
         // save data stream to file
         try {
             setLoading(true);
-            const res = await download(route, format, router.online);
-            if (!res || res.error) {
-                setLoading(false);
-                return _handleError({msg: label ? 'File download failed.' : '', type:'error'});
-            }
-            saveAs(res.data, filename || `file_${id}.${format}`);
-            setLoading(false);
-            setMessage({msg: label ? 'File downloaded.' : '', type: 'success'});
-            callback()
+            // upload metadata/files via API
+            await download(route, _handleProgress, filename || `file_${id}.${format}`, router.online)
+                .catch(_handleError);
         }
         catch (err) {
-            setLoading(false);
-            _handleError({msg: label ? 'File download failed.' : '', type: 'error'})
+            _handleError(err)
         }
     }
 
@@ -88,7 +113,9 @@ const Download = ({
             title={
                 message && message.hasOwnProperty('msg')
                     ? message.msg
-                    : `Download ${route.indexOf('raw') > 0 ? 'Original (Raw) Version:' : 'Scaled Version:'} ${filename || `file_${id}.${format}`}.`
+                    : `Download ${route.indexOf('raw') > 0 
+                        ? 'Original (Raw) Version:' 
+                        : 'Scaled Version:'} ${filename || `file_${id}.${format}`}.`
             }
             onClick={_handleDownload}>
         </Button>

@@ -230,6 +230,7 @@ const Downloader = ({id}) => {
                 !isEmpty && loadedData &&
                     <fieldset>
                         <InputSelector
+                            id={'deselect_all_images'}
                             disabled={isEmpty}
                             key={`bulk_download_filter_option_select_none`}
                             label={'Deselect All Images'}
@@ -238,6 +239,7 @@ const Downloader = ({id}) => {
                             onChange={() => _handleDeselectAll()}
                         />
                         <InputSelector
+                            id={'select_all_images'}
                             disabled={isEmpty}
                             key={`bulk_download_filter_option_select_all`}
                             label={'Select All Images'}
@@ -250,6 +252,7 @@ const Downloader = ({id}) => {
                         {
                             options.map((opt, index) => {
                                 return Array.isArray(opt.data) && opt.data.length > 0 && <InputSelector
+                                    id={`select_images_${index}`}
                                     key={`bulk_download_filter_option_${index}`}
                                     label={opt.label}
                                     type={'checkbox'}
