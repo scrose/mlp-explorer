@@ -22,6 +22,7 @@ import {getImageURL, saveImage} from './images.services.js';
 import {updateComparisons} from "./comparisons.services.js";
 import * as nserve from "./nodes.services.js";
 import AdmZip from 'adm-zip';
+import archiver from 'archiver';
 import {Readable} from "stream";
 
 /**
@@ -909,6 +910,90 @@ export const deleteFiles = async (filePaths=[]) => {
 };
 
 /**
+ * Stream archive data to response
+ *
+ * @return Response data
+ * @public
+ * @param {Response} res
+ * @param {Object} files
+ * @param {String} version
+ * @param metadata
+ */
+
+export const streamArchive = async (res, files={}, version, metadata={}) => {
+
+    res.on('error',function(err) {
+        console.error(err);
+        res.status(404).end();
+    });
+
+    // create an archive
+    const archive = archiver('zip', {
+        zlib: { level: 9 } // Sets the compression level.
+    });
+
+    // listen for all archive data to be written
+    // 'close' event is fired only when a file descriptor is involved
+    res.on('close', function() {
+        console.log(archive.pointer() + ' total bytes');
+        console.log('archiver has been finalized and the output file descriptor has closed.');
+    });
+
+    // This event is fired when the data source is drained no matter what was the data source.
+    // It is not part of this library but rather from the NodeJS Stream API.
+    // @see: https://nodejs.org/api/stream.html#stream_event_end
+    res.on('end', function() {
+        console.log('Data has been drained');
+    });
+
+    // good practice to catch warnings (ie stat failures and other non-blocking errors)
+    archive.on('warning', function(err) {
+        if (err.code === 'ENOENT') {
+            // log warning
+        } else {
+            // throw error
+            throw err;
+        }
+    });
+
+    // good practice to catch this error explicitly
+    archive.on('error', function(err) {
+        throw err;
+    });
+
+    // pipe data to response
+    archive.pipe(res)
+
+    // add requested files to archive; separate different file types in folders
+    await Promise.all(
+        Object.keys(files).map(async (fileType) => {
+            await Promise.all(
+                files[fileType].map(async (file, index) => {
+                    // get file path for given version type
+                    const filePath = getFilePath(version, file, metadata);
+                    const {filename=``} = file || {};
+                    console.log(file)
+                    // places file in a subfolder labelled by image/file type
+                    // - only include files that exist
+                    if (fs.existsSync(filePath)) {
+                        console.log(filePath)
+                        // append a file
+                        archive.file(filePath, { name: path.join(fileType, filename)});
+                    }
+                })
+            )}
+        )
+    );
+
+    // finalize the archive (ie we are done appending files but streams have to finish yet)
+    // 'close', 'end' or 'finish' may be fired right after calling this method so register to them beforehand
+    await archive.finalize();
+
+    // return archive
+    return archive;
+};
+
+/**
  * Stream readable data to response
  * - pushes data buffer to readable stream
  *
@@ -916,6 +1001,7 @@ export const deleteFiles = async (filePaths=[]) => {
  * @public
  * @param res
  * @param buffer
+ *
  */
 
 export const streamDownload = (res, buffer) => {
@@ -924,12 +1010,16 @@ export const streamDownload = (res, buffer) => {
     // set buffer size in response
     res.setHeader('Content-Length', Buffer.byteLength(buffer));
 
-    rs._read = () => {}; // may be redundant
+    // pipe stream to response
     rs.pipe(res);
     rs.on('error',function(err) {
         console.error(err);
         res.status(404).end();
     });
+    // pipe archive data to the file
+    // archive.pipe(output);
     rs.push(buffer);
     rs.push(null);
 }
+
+

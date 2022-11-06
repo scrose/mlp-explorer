@@ -68,10 +68,6 @@ export const SaveAs = ({ options = [], setToggle=()=>{}, callback=()=>{} }) => {
 
     // render download-as button
     return <fieldset className={'submit'}>
-        <Message
-            closeable={false}
-            message={{ msg: `File format ${format} selected.`, type: 'info' }}
-        />
         <InputSelector
             label={'Save the file as'}
             type={'select'}

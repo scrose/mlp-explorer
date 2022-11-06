@@ -288,7 +288,7 @@ export const refresh = async (req) => {
     let data = await fetch(kcTokenURL, opts)
         .then(res => {
             // token is invalid or session is not active
-            if (!res || res.status !== 200) return null;
+            if (!res || res.status !== 200) throw new Error('noauth');
             return res
         })
         .then(res => res.json())

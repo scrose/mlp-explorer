@@ -107,7 +107,7 @@ export const ImageSelector = ({
             _loader();
         }
         if (selectedFile) {
-            setMessage({ msg: `Image ${selectedFile} selected.`, type: 'info' });
+            // setMessage({ msg: `Image ${selectedFile} selected.`, type: 'info' });
         }
         return () => {
             _isMounted.current = false;
