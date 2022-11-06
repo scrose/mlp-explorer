@@ -176,12 +176,7 @@ export const exporter = async (req, res, next) => {
             console.error('Error in write stream:', err);
         });
         let rs = new Readable();
-        rs._read = () => {}; // may be redundant
         rs.pipe(res);
-        rs.on('error',function(err) {
-                console.error(err)
-                res.status(404).end();
-            });
         rs.on('error',function(err) {
             console.error(err)
             res.status(404).end();

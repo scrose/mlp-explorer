@@ -233,9 +233,7 @@ export const download = async (route, callback=()=>{}, filename, online=true) =>
                 const { message={} } = response || {};
                 const { msg=statusText } = message || {};
 
-                // const contentDispo = e.currentTarget.getResponseHeader('Content-Disposition');
-                // // https://stackoverflow.com/a/23054920/
-                // const fileName = contentDispo.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)[1];
+                // save response as streamed blob
                 saveAs(response, filename);
 
                 // success
@@ -250,17 +248,24 @@ export const download = async (route, callback=()=>{}, filename, online=true) =>
         };
 
         // listen for `progress` event
-        xhr.onprogress = callback;
+        xhr.onprogress = function(e) {
+            return callback(null, e);
+        };
+
+        // end of download
+        xhr.onloadend = function(e) {
+            return callback();
+        };
 
         // error in sending network request
         xhr.onerror = function(e) {
             const { statusText='' } = e.currentTarget || {};
-            return callback(null, {msg: statusText || 'An API Error Occurred.', type: 'error'});
+            return callback({msg: statusText || 'An API Error Occurred.', type: 'error'}, e);
         };
 
         // abort network request
-        xhr.onabort = function() {
-            return callback(null, {msg: 'Download has been stopped.', type: 'warn'});
+        xhr.onabort = function(e) {
+            return callback({msg: 'Download has been stopped.', type: 'warn'}, e);
         };
 
         // send POST request to server and return request

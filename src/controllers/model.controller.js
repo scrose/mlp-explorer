@@ -19,7 +19,7 @@ import * as importer from '../services/import.services.js';
 import * as metaserve from '../services/metadata.services.js';
 import {humanize, sanitize} from '../lib/data.utils.js';
 import {isRelatable} from '../services/schema.services.js';
-import {updateComparisons} from "../services/comparisons.services.js";
+import {getComparisonsByCapture, updateComparisons} from "../services/comparisons.services.js";
 import {prepare} from '../lib/api.utils.js';
 
 /**
@@ -377,12 +377,12 @@ export default function ModelController(nodeType) {
             const ownerData = await nserve.select(owner_id, client);
 
             // item record and/or node/owner not found in database
-            const {type=''} = itemData || {};
+            const {type='', status=''} = itemData || {};
             if (!ownerData || !itemData || nodeType !== type) return next(new Error('notFound'));
 
-            // is the move allowed? (i.e. check if owner and node are relatable)
+            // is the move allowed? (i.e. check if owner and node are relatable or is not repeated)
             const isMoveable = await isRelatable(id, owner_id, client);
-            if (!isMoveable) {
+            if (!isMoveable || (status !== 'unsorted' && status !== 'sorted')) {
                 return next(new Error('invalidMove'));
             }
 

@@ -56,11 +56,14 @@ const Download = ({
      * Update progress data. Progress data is updated until
      * uploading has completed.
      *
+     * @param error
      * @param e
      * @private
      */
 
-    const _handleProgress = (e) => {
+    const _handleProgress = (error, e) => {
+        // handle error
+        if (error) _handleError(error);
         // update progress indicator only if event available
         if (e) {
             // get loaded/total bytes data from XHR progress event
@@ -70,15 +73,22 @@ const Download = ({
             const completedBytes = (loaded / 1000000).toFixed(2);
             const totalBytes = (total / 1000000).toFixed(2);
             const percent = (100 * (completedBytes / totalBytes)).toFixed(0);
-            const done = total > 0 && loaded > 0 && total === loaded;
+            const notProgressive = total === 0;
+            const done = (total > 0 && loaded > 0 && total === loaded);
 
             // update progress state
-            setMessage({msg: `${percent}%`, type: 'info'});
+            if (!notProgressive) setMessage({msg: `${percent}%`, type: 'info'});
+            else setMessage({msg: `${completedBytes}MB`, type: 'info'});
 
+            // end loading
             if (done) {
                 setMessage(null);
                 setLoading(false);
             }
+        }
+        else {
+            setMessage(null);
+            setLoading(false);
         }
     }
 

@@ -250,26 +250,6 @@ export const getComparisonsByCapture = async (node, client ) => {
 };
 
 /**
- * Get comparisons (aligned capture pairs) for given station node.
- *
- * @public
- * @param {Object} node
- * @param client
- * @return {Promise} result
- */
-
-export const getComparisonsByStation = async (node, client ) => {
-
-    const { id = '' } = node || {};
-    let { sql, data } = cmpqueries.getComparisonsByStationID(id);
-    return await client.query(sql, data)
-        .then(res => {
-            return res.hasOwnProperty('rows')
-            && res.rows.length > 0 ? res.rows : [];
-        });
-};
-
-/**
  * Check whether capture images are compatible for comparison.
  * - find a common station
  *

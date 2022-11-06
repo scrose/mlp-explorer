@@ -535,19 +535,16 @@ export default function FilesController(modelType) {
             const supplementalFiles = await fserve.filterFilesByID(supplementalFileIDs, 0, 100);
             const unsortedFiles = await fserve.filterFilesByID(unsortedFileIDs, 0, 100);
 
-            // create buffer for either single raw file or compressed image folder
-            const buffer = singleFile
-                ? await fserve.compress({file: [singleFile]}, 'raw')
-                : await fserve.compress({
+            // stream archive data for either single raw file or compressed image folder
+            return singleFile
+                ? await fserve.streamArchive(res, {file: [singleFile]}, 'raw')
+                : await fserve.streamArchive(res, {
                     'historic_images': historicFiles.results,
                     'modern_images': modernFiles.results,
                     'unsorted_images': unsortedFiles.results,
                     'metadata_files': metadataFiles.results,
                     'supplemental_files': supplementalFiles.results,
                 }, 'raw');
-
-            // push buffer to download stream
-            fserve.streamDownload(res, buffer);
 
         } catch (err) {
             return next(err);

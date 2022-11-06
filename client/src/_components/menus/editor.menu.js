@@ -186,15 +186,29 @@ export const EditorMenu = ({
                 </li>
             }
             {
-                // Download media file
+                // Download raw media file
                 isAdmin && id && (isImageType(model) || visible.includes('download')) &&
-                <li key={`${menuID}_node_menuitem_download_file`}>
+                <li key={`${menuID}_node_menuitem_download_raw_file`}>
                     <Download
                         label={compact ? '' : 'Download'}
                         size={size}
                         filename={`${filename}.zip`}
                         format={'zip'}
                         route={`/files/download/raw?${model}=${id}`}
+                        callback={callback}
+                    />
+                </li>
+            }
+            {
+                // Download public media file
+                !isAdmin && id && (isImageType(model) || visible.includes('download')) &&
+                <li key={`${menuID}_node_menuitem_download_file`}>
+                    <Download
+                        label={compact ? '' : 'Download'}
+                        size={size}
+                        filename={`${filename}.zip`}
+                        format={'zip'}
+                        route={`/files/download/${id}`}
                         callback={callback}
                     />
                 </li>
