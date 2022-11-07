@@ -34,7 +34,7 @@ const Dialog = ({title, className='', callback=()=>{}, children}) => {
     }, [container]);
 
     return (
-        <div className={`dialog ${className ? className : ''} ${nav.setOffCanvas ? 'wide' : ''}`}>
+        <div className={`dialog ${className ? className : ''} ${nav.offCanvas ? 'wide' : ''}`}>
             <div className={'content-box'}>
                 <div className={'dialog-header'}>
                     <h2 className={'dialog-title'} id="dialog-title">{title}</h2>
