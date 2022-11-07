@@ -627,9 +627,9 @@ div.nav-scroll button {
 .navigator .map .map-menu {
     position: absolute;
     color: #444444;
-    top: 150px;
     margin-left: 60px;
     z-index: 9999;
+    top: 150px;
 }
 .navigator .map .map-menu button {
     margin: 0 3px;
@@ -2701,14 +2701,31 @@ table.help tfoot td {
 }
 
 /* Small devices (portrait tablets and large phones, 600px and up) */
-@media only screen and (min-width: 600px) {}
+@media only screen and (min-width: 200px) {
+    .navigator .map .map-menu {
+        position: absolute;
+        color: #444444;
+        margin-left: 60px;
+        z-index: 9999;
+        top: 12px;
+    }
+}
 
 /* Medium devices (landscape tablets, 768px and up) */
-@media only screen and (min-width: 768px) {}
+@media only screen and (min-width: 800px) {
+}
 
 /* Large devices (laptops/desktops, 992px and up) */
-@media only screen and (min-width: 992px) {}
+@media only screen and (min-width: 992px) {
+    .navigator .map .map-menu {
+        position: absolute;
+        color: #444444;
+        margin-left: 60px;
+        z-index: 9999;
+        top: 150px;
+    }
+}
 
 /* Extra large devices (large laptops and desktops, 1200px and up) */
-@media only screen and (min-width: 1200px) {}
+@media only screen and (min-width: 1200px) {  }
 

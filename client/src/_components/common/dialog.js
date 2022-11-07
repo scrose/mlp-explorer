@@ -8,6 +8,7 @@
 
 import React from 'react';
 import Button from './button';
+import {useNav} from "../../_providers/nav.provider.client";
 
 /**
  * Dialog component.
@@ -24,13 +25,16 @@ const Dialog = ({title, className='', callback=()=>{}, children}) => {
     // create DOM reference for dialog box
     const container = React.useRef(null);
 
+    // get nav provider
+    const nav = useNav();
+
     // scroll to top of dialog
     React.useEffect(() => {
         if (container.current) container.current.scrollIntoView();
     }, [container]);
 
     return (
-        <div className={`dialog ${className ? className : ''}`}>
+        <div className={`dialog ${className ? className : ''} ${nav.setOffCanvas ? 'wide' : ''}`}>
             <div className={'content-box'}>
                 <div className={'dialog-header'}>
                     <h2 className={'dialog-title'} id="dialog-title">{title}</h2>

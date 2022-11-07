@@ -86,6 +86,14 @@ function AuthProvider(props) {
             .then(res => {
                 const { response={} } = res || {};
                 const { user = null } = response || {};
+
+                // include role nesting
+                if (user && user.hasOwnProperty('role')) {
+                    const {role = ['']} = user || {};
+                    user.isEditor = role[0] === 'editor' || role[0] === 'administrator' || role[0] === 'super_administrator';
+                    user.isAdmin = role[0] === 'administrator' || role[0] === 'super_administrator';
+                }
+
                 if (_isMounted.current) {
                     setData(user);
                 }
@@ -103,7 +111,12 @@ function AuthProvider(props) {
     */
 
     return (
-        <AuthContext.Provider value={{data, processing, login, logout}} {...props} />
+        <AuthContext.Provider value={{
+            data,
+            processing,
+            login,
+            logout
+        }} {...props} />
     )
 
 }

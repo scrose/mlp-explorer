@@ -8,7 +8,6 @@
 
 import React from 'react';
 import Button from '../common/button';
-import Message from '../common/message';
 import InputSelector from '../selectors/input.selector';
 import { saveAs } from 'file-saver';
 
