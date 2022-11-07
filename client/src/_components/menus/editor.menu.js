@@ -142,7 +142,7 @@ export const EditorMenu = ({
                 </li>
             }
             {
-                // Download media for node
+                // Download bulk images for station
                 isEditor && id && model === 'stations' &&
                 <li key={`${menuID}_node_menuitem_download_bulk`}>
                     <Button
@@ -186,7 +186,7 @@ export const EditorMenu = ({
             }
             {
                 // Download raw media file
-                isAdmin && id && (isImageType(model) || visible.includes('download')) &&
+                isEditor && id && (isImageType(model) || visible.includes('download')) &&
                 <li key={`${menuID}_node_menuitem_download_raw_file`}>
                     <Download
                         label={compact ? '' : 'Download'}
