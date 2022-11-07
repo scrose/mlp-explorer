@@ -119,6 +119,9 @@ const ViewerPanelMenu = () => {
     const dialog = useDialog();
     const api = useData();
 
+    // get roles
+    const {isAdmin=false, isEditor=false} = user || {};
+
     // generate unique ID value for form inputs
     const menuID = genID();
 
@@ -132,7 +135,7 @@ const ViewerPanelMenu = () => {
         <div className={'h-menu'}>
             <ul>
                 {
-                    user && <li className={user ? 'push' : ''}>
+                    isAdmin && <li className={user ? 'push' : ''}>
                         <Dropdown
                             compact={nav.offCanvas}
                             label={'New'}
@@ -188,7 +191,7 @@ const ViewerPanelMenu = () => {
                     />
                 </li>
                 {
-                    user &&
+                    isAdmin &&
                     <li key={`${menuID}_menuitem_options`}>
                         <Button
                             icon={'options'}
