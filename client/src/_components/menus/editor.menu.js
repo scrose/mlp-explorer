@@ -57,8 +57,7 @@ export const EditorMenu = ({
 
     // get user role
     const user = useUser();
-    const {role = ['']} = user || {};
-    const isAdmin = role[0] === 'administrator' || role[0] === 'super_administrator';
+    const {isAdmin=false, isEditor=false} = user || {};
 
     // destructure file metadata
     const {filename=`download_${model}_${id}`} = metadata || {};
@@ -144,7 +143,7 @@ export const EditorMenu = ({
             }
             {
                 // Download media for node
-                isAdmin && id && model === 'stations' &&
+                isEditor && id && model === 'stations' &&
                 <li key={`${menuID}_node_menuitem_download_bulk`}>
                     <Button
                         label={compact ? '' : 'Bulk Download'}
@@ -201,7 +200,7 @@ export const EditorMenu = ({
             }
             {
                 // Download public media file
-                !isAdmin && id && (isImageType(model) || visible.includes('download')) &&
+                !isEditor && id && (isImageType(model) || visible.includes('download')) &&
                 <li key={`${menuID}_node_menuitem_download_file`}>
                     <Download
                         label={compact ? '' : 'Download'}

@@ -50,9 +50,11 @@ const ViewSelector = () => {
     return (
         <>
             {
-                renders.hasOwnProperty(render)
-                    ? renders[render]()
-                    : <Loading />
+                !render && <Loading />
+            }
+            {
+                render && renders.hasOwnProperty(render)
+                    ? renders[render]() : <NotfoundError />
             }
         </>
     )

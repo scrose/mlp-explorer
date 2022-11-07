@@ -972,11 +972,9 @@ export const streamArchive = async (res, files={}, version, metadata={}) => {
                     // get file path for given version type
                     const filePath = getFilePath(version, file, metadata);
                     const {filename=``} = file || {};
-                    console.log(file)
                     // places file in a subfolder labelled by image/file type
                     // - only include files that exist
                     if (fs.existsSync(filePath)) {
-                        console.log(filePath)
                         // append a file
                         archive.file(filePath, { name: path.join(fileType, filename)});
                     }
