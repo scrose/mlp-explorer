@@ -206,9 +206,11 @@ export const upload = async (route, formData, callback=()=>{}, online=true) => {
  * @param callback
  * @param filename
  * @param online
+ * @param save
+ * @return {Promise}
  */
 
-export const download = async (route, callback=()=>{}, filename, online=true) => {
+export const download = async (route, callback=()=>{}, filename, online=true, save=true) => {
 
     // reject null paths or when API is offline
     if (!route || !online ) return null;
@@ -233,8 +235,8 @@ export const download = async (route, callback=()=>{}, filename, online=true) =>
                 const { message={} } = response || {};
                 const { msg=statusText } = message || {};
 
-                // save response as streamed blob
-                saveAs(response, filename);
+                // (optional) save file to local drive as streamed blob
+                if (save) saveAs(response, filename);
 
                 // success
                 if (xhr.status === 200) {

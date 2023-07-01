@@ -14,7 +14,7 @@ import {useRouter} from '../../_providers/router.provider.client';
 import {useUser} from '../../_providers/user.provider.client';
 import {genSchema, getModelLabel} from "../../_services/schema.services.client";
 import {createNodeRoute} from "../../_utils/paths.utils.client";
-import {EditorMenu} from "../menus/editor.menu";
+import EditorMenu from "../menus/editor.menu";
 import {FilesEditor} from "./files.editor";
 import {CapturesEditor} from "./captures.editor";
 import Loading from "../common/loading";

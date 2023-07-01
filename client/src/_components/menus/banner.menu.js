@@ -38,4 +38,4 @@ const BannerMenu = () => {
     );
 };
 
-export default BannerMenu;
+export default React.memo(BannerMenu);

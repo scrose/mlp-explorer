@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Tools.IAT.Download
+ * MLP.Client.Tools.IAT.Downloader
  * File: downloader.iat.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -7,29 +7,9 @@
  */
 
 import React from 'react';
-import Button from '../common/button';
-import InputSelector from '../selectors/input.selector';
-import { saveAs } from 'file-saver';
-
-/**
- * Creates a Blob object representing the image contained in
- * the canvas; this file may be cached on the disk or stored
- * in memory at the discretion of the user agent. If type
- * is not specified, the image type is image/png. The created
- * image is in a resolution of 96dpi.
- *
- * @private
- */
-
-export const downloader = async (id, canvas, format) => {
-    const filename = `${id}.${format.ext}`;
-    console.log('Saving to file ...', filename);
-
-    // save canvas blob as file to local disk (file-saver)
-    canvas.toBlob((blob) => {
-        if (blob) saveAs(blob, filename);
-    }, format.type, format.quality);
-}
+import Button from '../../common/button';
+import InputSelector from '../../selectors/input.selector';
+import { useIat } from "../../../_providers/iat.provider.client";
 
 /**
  * Defines download local file button. Expects callback to retrieve data
@@ -39,30 +19,29 @@ export const downloader = async (id, canvas, format) => {
  * @return {JSX.Element}
  */
 
-export const SaveAs = ({ options = [], setToggle=()=>{}, callback=()=>{} }) => {
+export const SaveAs = ({ callback=()=>{} }) => {
 
+    const iat = useIat();
     const [format, setFormat] = React.useState(null);
 
     // Handler for file format selection.
     const _handleSelect = (e) => {
         const { target = {} } = e || {};
         const { value = '' } = target;
-        const opt = options.find(opt => value === opt.value);
+        const {formats=[], blobQuality} = iat.options || {};
+        const opt = formats.find(opt => value === opt.value);
         setFormat({
             type: value,
             ext: opt ? opt.label : null,
-            quality: 0.95
+            quality: blobQuality
         });
     };
 
     // Handler for file save as request.
     // - set canvas properties for file save
     const _handleDownload = () => {
-        callback({
-            status: 'save',
-            props: format
-        });
-        setToggle(false);
+        callback(format);
+        iat.setDialog(null);
     };
 
     // render download-as button
@@ -70,7 +49,7 @@ export const SaveAs = ({ options = [], setToggle=()=>{}, callback=()=>{} }) => {
         <InputSelector
             label={'Save the file as'}
             type={'select'}
-            options={options}
+            options={iat.options.formats}
             value={format}
             onChange={_handleSelect}
         />
@@ -84,7 +63,7 @@ export const SaveAs = ({ options = [], setToggle=()=>{}, callback=()=>{} }) => {
                         title={`Save As ${String(format.ext).toUpperCase()}`}
                         onClick={_handleDownload}>
                     </Button>&#160;
-                    <Button icon={'cancel'} label={'Cancel'} onClick={()=>{setToggle(false)}} />
+                    <Button icon={'cancel'} label={'Cancel'} onClick={()=>{iat.setDialog(null)}} />
             </>
         }
     </fieldset>;

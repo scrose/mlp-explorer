@@ -20,6 +20,7 @@ import pool from '../services/db.services.js';
 import { sanitize } from '../lib/data.utils.js';
 import * as importer from '../services/import.services.js';
 import { humanize } from '../lib/data.utils.js';
+import {getFilePath} from "../services/files.services.js";
 
 /**
  * Export controller constructor.
@@ -418,9 +419,8 @@ export default function FilesController(modelType) {
         }
     };
 
-
     /**
-     * Download files (for unauthenticated downloads).
+     * Download file without compression (for unauthenticated downloads).
      *
      * @param req
      * @param res
@@ -429,6 +429,47 @@ export default function FilesController(modelType) {
      */
 
     this.download = async (req, res, next) => {
+
+        const client = await pool.connect();
+
+        try {
+
+            // get requested file ID
+            const fileID = this.getId(req);
+
+            // get owner node; check that node exists in database
+            // and corresponds to requested owner type.
+            const fileData = await fserve.get(fileID, client);
+            const { file={}, metadata={} } = fileData || {};
+            const { file_type='', filename='', mime_type='' } = file || {};
+            const filePath = getFilePath(file_type, file, metadata);
+
+            // file does not exist
+            if (!file) return next(new Error('invalidRequest'));
+
+            res.setHeader('Content-disposition', 'attachment; filename=' + filename);
+            res.setHeader('Content-type', mime_type);
+
+            await fserve.download(res, filePath);
+
+        } catch (err) {
+            return next(err);
+        } finally {
+            await client.release(true);
+        }
+    };
+
+
+    /**
+     * Bulk download files (for unauthenticated downloads).
+     *
+     * @param req
+     * @param res
+     * @param next
+     * @src public
+     */
+
+    this.bulk = async (req, res, next) => {
 
         const client = await pool.connect();
 
@@ -476,6 +517,7 @@ export default function FilesController(modelType) {
 
             // get query parameters
             const {
+                file_id='',
                 id='',
                 historic_images='',
                 modern_images='',
@@ -485,6 +527,7 @@ export default function FilesController(modelType) {
             } = req.query || {};
 
             if (
+                !file_id &&
                 !id &&
                 !historic_images &&
                 !modern_images &&
@@ -492,6 +535,24 @@ export default function FilesController(modelType) {
                 !supplemental_images &&
                 !unsorted_images)
                 return next(new Error('invalidRequest'));
+
+            // stream single raw image file without compression
+            if (file_id) {
+                // get owner node; check that node exists in database
+                // and corresponds to requested owner type.
+                const fileData = await fserve.get(sanitize(file_id, 'integer'), client);
+                const { file={}, metadata={} } = fileData || {};
+                const { filename='', mime_type='' } = file || {};
+                const filePath = getFilePath('raw', file, metadata);
+
+                // file does not exist
+                if (!file) return next(new Error('invalidRequest'));
+
+                res.setHeader('Content-disposition', 'attachment; filename=' + filename);
+                res.setHeader('Content-type', mime_type);
+
+                return await fserve.download(res, filePath);
+            }
 
             // sanitize single file ID
             const singleFileId = sanitize(id);

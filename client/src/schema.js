@@ -32,6 +32,10 @@ export const schema = {
             name: 'imageToolkit',
             label: 'Image Analysis Toolkit'
         },
+        '/admin': {
+            name: 'admin',
+            label: 'Administration Panel'
+        },
         '/not_found': {
             name: 'notFound',
             label: '404 Not Found'

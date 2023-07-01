@@ -195,10 +195,10 @@ const explorerHelp = (gotoPage) => {
             </tr>
             <tr>
                 <th><Icon type={'move'} /></th>
-                <th>Move Capture (Currently Disabled)</th>
+                <th>Move Capture</th>
                 <td>
-                    <p>To move a capture to a new owner, drag the <b>Move</b> menu button in the editor
-                        menu to the new owner in the list navigator.</p>
+                    <p>To move a capture to a new owner, open the list (tree) navigator to a capture. Select the <Icon type={'move'} /> icon handle
+                        to the left of the capture item and drag it to the new container in the list navigator. A confirmation dialog will pop-up for the move.</p>
                     <p>Refer to the table below for allowed owner-dependent relationships.</p>
                     <table className={'help'}>
                         <tbody>

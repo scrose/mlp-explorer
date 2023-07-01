@@ -8,7 +8,7 @@
 
 import * as React from 'react'
 import { useRouter } from './router.provider.client';
-import {getNavView, getPref} from "../_services/session.services.client";
+import {getNavView} from "../_services/session.services.client";
 import kmlData from '../_components/kml/example-2.kml';
 
 /**
@@ -40,9 +40,12 @@ function NavProvider(props) {
     const [selectedNode, setSelectedNode] = React.useState({});
     const [scrollToView, setScrollToView] = React.useState(false);
 
+    // IAT data states
+    const [iatSettings, setIATSettings] = React.useState(null);
+
     // initialize navigation view settings
     const [navView, setNavView] = React.useState(getNavView() || 'map');
-    const [navToggle, setNavToggle] = React.useState(getPref('navToggle') || true);
+    const [navToggle, setNavToggle] = React.useState(false);
     const [navOffCanvas, setNavOffCanvas] = React.useState(false);
 
     // navigator resize signal
@@ -83,6 +86,7 @@ function NavProvider(props) {
         // - navigator route is defined
         // - node data not yet loaded
         if (!error && (!nodeData || Object.keys(nodeData).length === 0)) {
+            console.log('Load Nav Tree')
             // load API data
             router.get('/nodes/tree')
                 .then(res => {
@@ -122,6 +126,7 @@ function NavProvider(props) {
         // - navigator route is defined
         // - node data not yet loaded
         if (!error && (!mapData || Object.keys(mapData).length === 0)) {
+            console.log('Load Nav Map')
             // load API data
             router.get('/nodes/map')
                 .then(res => {
@@ -187,6 +192,8 @@ function NavProvider(props) {
                 refresh: _refresh,
                 tree: nodeData,
                 map: mapData,
+                iat: iatSettings,
+                setIAT: setIATSettings,
                 stats: statsData,
                 selected: selectedNode,
                 setSelected: setSelectedNode,

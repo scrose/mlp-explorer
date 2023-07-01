@@ -19,7 +19,7 @@ let routes = new OtherRoutes();
 export default routes;
 
 /**
- * Define other routes constructor
+ * Define alternate and miscellaneous routes constructor
  *
  * @public
  */

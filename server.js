@@ -24,7 +24,7 @@ let app = createApp();
 function onListening () {
     const addr = server.address();
     const uri = typeof addr === 'string' ? addr : `${process.env.API_HOST}`
-    console.log(`Listening on ${uri}`)
+    console.log(`API Listening on ${uri}`);
 }
 
 /**
@@ -101,7 +101,7 @@ function onError (error) {
  */
 
 process.on('uncaughtException', function(err) {
-    console.error('Fatal Error occurred.')
+    console.error('Fatal Error occurred.', err)
     process.exit(1);
 })
 

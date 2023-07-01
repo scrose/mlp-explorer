@@ -18,6 +18,7 @@
  */
 
 export function moveStart(e, properties, pointer, options) {
+    e.preventDefault();
 }
 
 /**
@@ -31,6 +32,7 @@ export function moveStart(e, properties, pointer, options) {
  */
 
 export function moveEnd(e, properties, pointer, options) {
+    e.preventDefault();
     pointer.setSelect(null);
 }
 

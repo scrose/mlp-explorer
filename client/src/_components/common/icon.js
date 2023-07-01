@@ -341,7 +341,7 @@ const getIconClass = (iconType) => {
         photographers: 'users',
         field_notes_authors: 'users',
         comparisons: 'images',
-        iat: 'toolbox',
+        iat: 'tools',
         jpg: 'file-image',
         jpeg: 'file-image',
         png: 'file-image',

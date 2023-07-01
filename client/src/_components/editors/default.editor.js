@@ -229,7 +229,7 @@ const Editor = ({
     const description = error
         ? 'An error occurred.'
         : response && Object.keys(response).length > 0
-            ? 'Update is processing...'
+            ? 'Update is processing ...'
             : 'Uploading in progress ...';
 
     return (

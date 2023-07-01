@@ -3,30 +3,33 @@
  * File: loader.iat.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
- * Adapted from IAT web application
  * MIT Licensed
  */
 
 import * as UTIF from 'utif';
-import { download, getMIME } from '../../_services/api.services.client';
-import { createNodeRoute } from '../../_utils/paths.utils.client';
-import { getError } from '../../_services/schema.services.client';
+import { download, getMIME } from '../../../_services/api.services.client';
+import { getError } from '../../../_services/schema.services.client';
 
 /**
- * Prepares image file data for use in canvas layers.
+ * Loads and converts image file data for use in IAT canvas layers.
  *
  * @param properties
  * @param callback
  * @private
  */
 
-export const loadImageData = async (properties, callback) => {
+export const loadImage = async (properties, callback) => {
 
     /**
      * Load file data into canvas layers (indexed by MIME type).
      */
 
     const loadFile = (fileData, mimeType, url = null) => {
+
+        /**
+         * Image data processors indexed by file type
+         */
+
         const fileHandlers = {
             'image/tiff': () => {
                 loadTIFF(fileData)
@@ -44,13 +47,15 @@ export const loadImageData = async (properties, callback) => {
                     .catch((err) => {callback({status: 'empty', error: err})});
             },
             'default': () => {
+                // select (blob) file data or convert to string containing a URL representing
+                // the object given in the parameter.
                 const src = fileData ? URL.createObjectURL(fileData) : url;
-                // load image source
+
+                // load image source and set panel properties
                 const img = new Image();
                 img.onerror = (err) => {callback({status: 'empty', error: err})};
                 img.onload = function() {
                     URL.revokeObjectURL(src); // free memory held by Object URL
-
                     // update local panel properties
                     properties.mime_type = mimeType;
                     properties.original_dims = { w: img.width, h: img.height };
@@ -78,32 +83,69 @@ export const loadImageData = async (properties, callback) => {
          *  - download image file from MLP library
          */
 
-        api: () => {
+        api: (id, selectRaw) => {
 
-            // create file download route
-            const mimeType = getMIME('img');
-            const route = createNodeRoute(
-                properties.file_type, 'download', properties.files_id);
+            /**
+             * Update progress data. Progress data is updated until
+             * uploading has completed.
+             *
+             * @param error
+             * @param e
+             * @param response
+             * @private
+             */
 
-            // download image data to canvas
-            download(route, mimeType)
-                .then(res => {
-                    if (res.error) return callback({error: { msg: res.error, type: 'error' }});
-                    // determine image format
+            const _handleProgress = (error, e, response) => {
+                // handle error
+                if (error) callback(error);
+                // update progress indicator only if event available
+                if (e) {
+                    // get loaded/total bytes data from XHR progress event
+                    // - converted to MB
+                    const { loaded = 0, total = 0 } = e || {};
+
+                    // const completedBytes = (loaded / 1000000).toFixed(2);
+                    // const totalBytes = (total / 1000000).toFixed(2);
+                    // const percent = (100 * (completedBytes / totalBytes)).toFixed(0);
+                    // const notProgressive = total === 0;
+                    const done = (total > 0 && loaded > 0 && total === loaded);
+
+                    // update progress state
+                    // if (!notProgressive) setMessage({msg: `${percent}%`, type: 'info'});
+                    // else setMessage({msg: `${completedBytes}MB`, type: 'info'});
+                    //console.log(e, {msg: `${percent}%`, type: 'info'});
+
+                    // end loading
+                    if (done) {
+                        // setMessage(null);
+                        callback(null);
+                    }
+                }
+                // response data is returned once file stream has ended
+                if (response) {
+                    // create image reader to load file data into canvas
                     const reader = new FileReader();
+                    // set reader to load file (blob) data on stream end
                     reader.addEventListener('loadend', () => {
                         // reader.result contains the contents of blob as a typed array
                         const imgType = getImageType(reader.result);
-                        loadFile(res.data, getMIME(imgType));
+                        loadFile(response, getMIME(imgType));
                     });
                     // load blob into reader to determine image format
-                    reader.readAsArrayBuffer(res.data);
-                })
-                .catch(err => {callback({ status: 'empty', error: { msg: err, type: 'error' } })});
+                    reader.readAsArrayBuffer(response);
+                    // setMessage(null);
+                    callback({ error: null, props: properties });
+                }
+            }
+
+            // download metadata/files to canvas via API
+            // - select either full-sized raw image or low-res version based on 'selectRaw' flag
+            const route = selectRaw ? `/files/download/raw?file_id=${id}` : `/files/download/${id}`;
+            download(route, _handleProgress, `file_${id}`, true, false).catch(callback);
         },
 
         /**
-         * Handle image data downloaded from file
+         * Handle image data downloaded from local directory
          *  - loads TIFF format image data
          */
 
@@ -124,10 +166,10 @@ export const loadImageData = async (properties, callback) => {
     };
 
     // Filter load method by input file data
-    const { files_id = '', file = null, url = '' } = properties || [];
+    const { files_id='', file=null, url='', raw_file=false } = properties || [];
 
     // Load file from API
-    if (files_id) return loaders.api();
+    if (files_id) return loaders.api(files_id, raw_file);
     // Load from uploaded file
     if (file) return loaders.file();
     // Load file from URL
@@ -135,7 +177,7 @@ export const loadImageData = async (properties, callback) => {
     // invalid load request
     return callback({
         status: 'cancel',
-        message: {msg: 'Image load cancelled.', type:'info'}
+        message: null
     });
 }
 

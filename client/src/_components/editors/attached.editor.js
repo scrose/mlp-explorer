@@ -13,7 +13,7 @@ import {useRouter} from '../../_providers/router.provider.client';
 import {getModelLabel} from "../../_services/schema.services.client";
 import {createNodeRoute} from "../../_utils/paths.utils.client";
 import Accordion from "../common/accordion";
-import {EditorMenu} from "../menus/editor.menu";
+import EditorMenu from "../menus/editor.menu";
 import MetadataView, {filterAttachedMetadata} from "../views/metadata.view";
 import Loading from "../common/loading";
 import {useUser} from "../../_providers/user.provider.client";

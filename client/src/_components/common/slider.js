@@ -10,7 +10,7 @@ import React from 'react';
 import { schema } from '../../schema';
 import Loading from './loading';
 import { UserMessage } from './message';
-import { scaleToFit } from '../iat/transform.iat';
+import { scaleToFit } from '../iat/controls/transform.iat';
 import Button from './button';
 
 /**

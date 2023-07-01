@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import {getDependentTypes, getModelLabel, isImageType} from '../../_services/schema.services.client';
+import {getDependentTypes, getModelLabel, isImageType, isCaptureType} from '../../_services/schema.services.client';
 import Button from '../common/button';
 import Dropdown from "../common/dropdown";
 import {useUser} from "../../_providers/user.provider.client";
@@ -38,7 +38,7 @@ import {useDialog} from "../../_providers/dialog.provider.client";
  * @return {JSX.Element}
  */
 
-export const EditorMenu = ({
+const EditorMenu = ({
                                id,
                                model,
                                label = '',
@@ -115,7 +115,8 @@ export const EditorMenu = ({
 
     return <div className={`h-menu ${className}`}>
         <ul>
-            { id && metadata && visible.includes('show') &&
+            {
+                id && metadata && visible.includes('show') &&
             <li key={`${menuID}_node_menuitem_show`}>
                 <Button
                     label={compact ? '' : 'View'}
@@ -138,6 +139,18 @@ export const EditorMenu = ({
                         icon={'externalLink'}
                         title={`Go to ${modelLabel} page.`}
                         onClick={() => { redirect(createNodeRoute(model, 'show', id)) }}
+                    />
+                </li>
+            }
+            {
+                ( ( id && isCaptureType(model) ) || visible.includes('iat')) &&
+                <li key={`${menuID}_node_menuitem_iat`}>
+                    <Button
+                        label={compact ? '' : 'Use IAT'}
+                        size={size}
+                        icon={'iat'}
+                        title={`Use Image Analysis Toolkit dialog.`}
+                        onClick={() => { _handleDialog('iat') }}
                     />
                 </li>
             }
@@ -207,7 +220,7 @@ export const EditorMenu = ({
                         size={size}
                         filename={`${filename}.zip`}
                         format={'zip'}
-                        route={`/files/download/${id}`}
+                        route={`/files/download/bulk/${id}`}
                         callback={callback}
                     />
                 </li>
@@ -228,3 +241,5 @@ export const EditorMenu = ({
         </ul>
     </div>;
 };
+
+export default React.memo(EditorMenu);

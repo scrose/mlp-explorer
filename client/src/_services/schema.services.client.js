@@ -180,6 +180,18 @@ export const getNodeOrder = (type) => {
 }
 
 /**
+ * Check if file type is a Capture.
+ *
+ * @public
+ * @param {String} type
+ * @return {Boolean}
+ */
+
+export const isCaptureType = (type) => {
+    return schema.captures.types.includes(type);
+}
+
+/**
  * Check if file type is an image.
  *
  * @public

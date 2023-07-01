@@ -1,30 +1,32 @@
 /*!
  * MLP.Client.Components.IAT.Cropper
- * File: cropper.points.js
+ * File: cropper.iat.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
  */
 
 import React from 'react';
-import { drawBoundingBox } from './graphics.iat';
-import InputSelector from '../selectors/input.selector';
-import Button from '../common/button';
-import { getScale, scalePoint } from './transform.iat';
+import InputSelector from '../../selectors/input.selector';
+import Button from '../../common/button';
+import {getScale} from './transform.iat';
+import {useIat} from "../../../_providers/iat.provider.client";
 
 /**
  * Creates cropper control panel component.
  *
  * @param properties
- * @param pointer
- * @param canvas
  * @param callback
  * @return
  */
 
-const Cropper = ({ properties, pointer, callback }) => {
+const Cropper = ({ id, callback, update }) => {
+
+    const iat = useIat();
 
     // render dimensions
+    const pointer = iat[id].pointer;
+    const properties = iat[id].properties;
     const _imgW = properties.image_dims.w;
     const _imgH = properties.image_dims.h;
 
@@ -65,11 +67,7 @@ const Cropper = ({ properties, pointer, callback }) => {
 
         // update pointer state and draw crop box to canvas
         pointer.setSelectBox(updatedSelectBox);
-        callback({
-            draw: drawBoundingBox.bind(this, scaled.x, scaled.y, scaled.w, scaled.h),
-            status: 'draw',
-            props: {}
-        });
+        update(scaled.x, scaled.y, scaled.w, scaled.h);
     };
 
     // is the crop box empty?
@@ -79,16 +77,6 @@ const Cropper = ({ properties, pointer, callback }) => {
         <fieldset className={'super_compact'}>
             <div className={'h-menu centered'}>
                 <ul>
-                    <li>
-                        <Button
-                            disabled={isEmptyCropBox}
-                            icon={'crop'}
-                            label={`Crop`}
-                            onClick={() => {
-                                crop(pointer, properties, callback)
-                            }}
-                        />
-                    </li>
                     <li>
                         <InputSelector
                             disabled={isEmptyCropBox}
@@ -141,6 +129,15 @@ const Cropper = ({ properties, pointer, callback }) => {
                             onChange={_handleChange}
                         />
                     </li>
+                    <li>
+                        <Button
+                            disabled={isEmptyCropBox}
+                            className={'success'}
+                            icon={'crop'}
+                            label={`Crop`}
+                            onClick={callback}
+                        />
+                    </li>
                 </ul>
             </div>
         </fieldset>
@@ -149,118 +146,6 @@ const Cropper = ({ properties, pointer, callback }) => {
 
 export default Cropper;
 
-/**
- * Start image crop bounding box.
- *
- * @public
- * @param e
- * @param properties
- * @param options
- * @param pointer
- * @param callback
- */
-
-export function cropStart(e, properties, pointer, options, callback) {
-    const scaledPt = scalePoint(pointer, properties);
-    pointer.setSelectBox({
-        x: scaledPt.x,
-        y: scaledPt.y,
-        w: 0,
-        h: 0,
-    });
-    // update image offset coordinate
-    callback({
-        status: 'draw', props: {},
-        draw: drawBoundingBox.bind(this, 0, 0, 0, 0),
-    });
-}
-
-/**
- * Crop image by pointer selected dimensions.
- * - sets image source data to the (x,y) offset and (w,h) dimensions
- *   of the selected crop box to draw to the render canvas.
- * @param pointer
- * @param properties
- * @param callback
- */
-
-export function crop(pointer, properties, callback) {
-
-    // check that mouse start position was selected
-    if (!pointer.selectBox) return;
-
-    // is the crop box empty? If so, return.
-    if (pointer.selectBox.w === 0 && pointer.selectBox.h === 0) return;
-
-    // update image crop dimensions and rerender
-    callback({
-        status: 'render',
-        props: {
-            source_dims: pointer.selectBox,
-            image_dims: {
-                w: pointer.selectBox.w,
-                h: pointer.selectBox.h,
-            },
-            render_dims: {
-                w: pointer.selectBox.w,
-                h: pointer.selectBox.h,
-                x: 0, y: 0
-            }
-        },
-    });
-
-    // reset selection box
-    pointer.setSelectBox({ x: 0, y: 0, w: 0, h: 0 });
-}
-
-/**
- * Mouse up on crop bounding box.
- *
- * @public
- * @param e
- * @param properties
- * @param options
- * @param pointer
- */
-
-export function cropEnd(e, properties, pointer, options) {}
-
-/**
- * Update canvas offset by cursor position
- * @param e
- * @param properties
- * @param pointer
- * @param options
- * @param callback
- */
-
-export function cropBound(e, properties, pointer, options, callback) {
-
-    // check that mouse start position was selected
-    if (!pointer.selected) return;
-
-    e.preventDefault();
-
-    // compute select box dimensions
-    const scale = getScale(properties);
-    const _w = properties.render_dims.x + pointer.x - pointer.selected.x;
-    const _h = properties.render_dims.y + pointer.y - pointer.selected.y;
-
-    // update the pointer select box
-    pointer.setSelectBox({
-        x: pointer.selectBox.x,
-        y: pointer.selectBox.y,
-        w: Math.round(scale.x * _w),
-        h: Math.round(scale.y * _h),
-    });
-
-    // update image offset coordinate
-    callback({
-        status: 'draw', props: {},
-        draw: drawBoundingBox.bind(
-            this, pointer.selected.x, pointer.selected.y, _w, _h),
-    });
-}
 
 /**
  * Scale selection by current render dimensions.
@@ -271,7 +156,7 @@ export function cropBound(e, properties, pointer, options, callback) {
 const scaleSelectBox = (selectBox, properties) => {
 
     // get current render scale
-    let scale = getScale(properties);
+    let scale = getScale(properties.image_dims, properties.render_dims);
 
     // compute scaled dimensions / coordinates
     const scaledSelectBox =

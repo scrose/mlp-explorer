@@ -13,7 +13,7 @@ import { useRouter } from '../../_providers/router.provider.client';
 import Table from '../common/table';
 import InputSelector from '../selectors/input.selector';
 import Button from '../common/button';
-import {EditorMenu} from "../menus/editor.menu";
+import EditorMenu from "../menus/editor.menu";
 
 /**
  * Render global metadata options editor component.

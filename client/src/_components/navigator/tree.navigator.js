@@ -10,7 +10,7 @@ import React from 'react'
 import {useRouter} from '../../_providers/router.provider.client';
 import {useData} from '../../_providers/data.provider.client';
 import {createNodeRoute} from '../../_utils/paths.utils.client';
-import {getModelLabel, getNodeOrder} from '../../_services/schema.services.client';
+import {getModelLabel, getNodeOrder, isCaptureType} from '../../_services/schema.services.client';
 import {addNode, checkNode, removeNode} from '../../_services/session.services.client';
 import Button from '../common/button';
 import {capitalize, sorter} from '../../_utils/data.utils.client';
@@ -18,9 +18,10 @@ import Loading from '../common/loading';
 import Accordion from "../common/accordion";
 import {useNav} from "../../_providers/nav.provider.client";
 import {useWindowSize} from "../../_utils/events.utils.client";
-import {EditorMenu} from "../menus/editor.menu";
+import EditorMenu from "../menus/editor.menu";
 import {useUser} from "../../_providers/user.provider.client";
 import {useDialog} from "../../_providers/dialog.provider.client";
+import Image from "../common/image";
 
 /**
  * Navigation tree node component.
@@ -40,7 +41,8 @@ const TreeNode = ({data}) => {
         status='',
         metadata=null,
         attached=null,
-        owner=null
+        owner=null,
+        url=null
     } = data || {};
 
     // create dynamic data states
@@ -48,6 +50,7 @@ const TreeNode = ({data}) => {
     const [isCurrent, setCurrent] = React.useState(false);
     const [loadedData, setLoadedData] = React.useState(null);
     const [highlight, setHighlight] = React.useState(false);
+    const [imagePreviewPos, setImagePreviewPos] = React.useState(null);
     const [menu, setMenu] = React.useState(false);
     const [error, setError] = React.useState(null);
     const treeNode = React.createRef();
@@ -95,6 +98,24 @@ const TreeNode = ({data}) => {
             attached: attached,
             owner: owner,
         });
+    };
+
+    /**
+     * Mouseover image preview handler
+     *
+     * @public
+     */
+
+    const _handleMouseover = (e) => {
+        setImagePreviewPos({
+            position: 'absolute',
+            left: e.pageX + 'px',
+            top: e.pageY + 'px'
+        });
+    };
+
+    const _handleMouseout = () => {
+        setImagePreviewPos(null);
     };
 
     /**
@@ -233,11 +254,18 @@ const TreeNode = ({data}) => {
     ]);
 
     return (
+        <>
         <div
             id={`treenode_${id}`}
             ref={treeNode}
             className={'tree-node'}
         >
+            {
+                isCaptureType(type) && imagePreviewPos &&
+                <div style={imagePreviewPos || {}}>
+                    <Image scale={'thumb'} url={url} />
+                </div>
+            }
             <div
                 className={'h-menu'}
                 onDrop={_handleDrop}
@@ -263,7 +291,10 @@ const TreeNode = ({data}) => {
                                 />
                             </li>
                     }
-                    <li>
+                    <li
+                        onMouseOver={_handleMouseover}
+                        onMouseLeave={_handleMouseout}
+                    >
                         <Button
                             icon={type}
                             size={'lg'}
@@ -338,7 +369,7 @@ const TreeNode = ({data}) => {
                     : <></>
             }
         </div>
-
+        </>
     );
 }
 
@@ -364,10 +395,12 @@ const TreeNodeList = ({items}) => {
                             status = '',
                             label = '',
                             metadata={},
+                            refImage={},
                             attached={}
                         } = item || {};
                         const { id = '', type = '', owner_id='', owner_type=''} = node || {};
                         const { file_size=0, mimetype='', filename='' } = file || {};
+                        const { url='' } = refImage || {};
                         let itemMetadata = metadata || {};
                         // include file metadata in details
                         itemMetadata.filename = filename;
@@ -381,6 +414,7 @@ const TreeNodeList = ({items}) => {
                             hasDependents: hasDependents,
                             status: status,
                             metadata: itemMetadata,
+                            url: url,
                             attached: attached,
                             owner: {type: owner_type, id: owner_id}
                         }

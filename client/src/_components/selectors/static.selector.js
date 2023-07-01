@@ -12,9 +12,10 @@ import NotfoundError from '../error/notfound.error';
 import UnavailableError from '../error/unavailable.error';
 import ServerError from '../error/server.error';
 import Loading from '../common/loading';
-import ImageTools from '../iat/iat';
 import Image from '../common/image';
 import { useRouter } from '../../_providers/router.provider.client';
+import Iat from "../iat/iat";
+import AdminView from "../views/admin.view";
 
 /**
  * Build requested static page view.
@@ -32,7 +33,8 @@ const StaticSelector = ({ type }) => {
         resources: () => <Image url={router.route} />,
         dashboardView: () => <DashboardView />,
         dashboardEdit: () => <DashboardView />,
-        imageToolkit: () => <ImageTools />,
+        admin: () => <AdminView />,
+        imageToolkit: () => <Iat />,
         notFound: () => <NotfoundError />,
         serverError: () => <ServerError />,
         unavailable: () => <UnavailableError />,

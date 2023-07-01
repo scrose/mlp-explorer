@@ -120,7 +120,7 @@ const ViewerPanelMenu = () => {
     const api = useData();
 
     // get roles
-    const {isAdmin=false, isEditor=false} = user || {};
+    const {isAdmin=false} = user || {};
 
     // generate unique ID value for form inputs
     const menuID = genID();
@@ -166,7 +166,7 @@ const ViewerPanelMenu = () => {
                         title={`Image Analysis Toolkit`}
                         onClick={() => {
                             // redirect to IAT in viewer/editor
-                            redirect('/iat')
+                            redirect('/iat');
                         }}
                     />
                 </li>

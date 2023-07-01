@@ -80,6 +80,13 @@ function FilesRoutes(modelType) {
             post: null,
             delete: null,
         },
+        export: {
+            path: path.join('/files/download/bulk', ':' + this.key),
+            get: this.controller.bulk,
+            put: null,
+            post: null,
+            delete: null,
+        },
         download: {
             path: path.join('/files/download', ':' + this.key),
             get: this.controller.download,

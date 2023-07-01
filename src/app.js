@@ -21,7 +21,6 @@ import { globalHandler, notFoundHandler } from './error.js';
 import router from './routes/index.routes.js';
 import st from 'st';
 
-
 /**
  * Create Express application.
  * @private

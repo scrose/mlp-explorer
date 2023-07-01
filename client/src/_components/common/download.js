@@ -23,6 +23,7 @@ import {genID} from "../../_utils/data.utils.client";
  * @param className
  * @param size
  * @param callback
+ * @param save
  * @return {JSX.Element}
  */
 
@@ -33,7 +34,8 @@ const Download = ({
                       route=null,
                       className='',
                       size='lg',
-                      callback=()=>{}
+                      callback=()=>{},
+                      save=true
                   }) => {
 
     // download link
@@ -98,8 +100,13 @@ const Download = ({
         try {
             setLoading(true);
             // upload metadata/files via API
-            await download(route, _handleProgress, filename || `file_${id}.${format}`, router.online)
-                .catch(_handleError);
+            await download(
+                route,
+                _handleProgress,
+                filename || `file_${id}.${format}`,
+                router.online,
+                save
+            ).catch(_handleError);
         }
         catch (err) {
             _handleError(err)
