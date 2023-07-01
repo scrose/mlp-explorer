@@ -399,23 +399,23 @@ const iatHelp = (gotoPage) => {
         <h4>Image Alignment</h4>
         <p>
             Image Alignment is the process of finding a spatial mapping between two images based on a meaningful
-            correspondence between elements within each image.
+            correspondence between elements within each image. Image registration is the digital image processing
+            technique that helps us align different images of the same scene.
         </p>
         <p>
             In IAT, the alignment transformation is applied to the <b>target</b> image, which is loaded
             in the right panel; whereas the <b>source</b> image is loaded into the left panel, and is not altered
             during alignment. When aligning images for registration (mastering), it is important to load each image from the
             historic and repeat pair into the correct panel. By convention, we transform the modern repeat image of the
-            pair, so we load it into Panel 2, while the historic image is loaded into Panel 1.
+            pair, so we load it into Panel 2 on the right, while the historic image is loaded into Panel 1 on the left.
         </p>
         <p>
             IAT's alignment tool for image pairs utilizes user-selected control points to map coordinates
             in one image to another. These control points are used to compute a transformation matrix that
-            warps the target image to spatially correspond to the other. To align images loaded in the canvas, you must select four control points
-            in each image for a total of eight
-            points. Control points are coordinate pairs that map from one image to another and are used to warp the
-            image to match
-            the perspective.
+            warps the target image to spatially correspond to the other. To align images loaded in the canvas,
+            you must select four control points in each image for a total of eight points. Control points are
+            coordinate pairs that map from one image to another and are used to warp the
+            image to match the perspective.
         </p>
 
         <h5>Selecting Control Points</h5>

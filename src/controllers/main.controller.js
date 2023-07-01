@@ -8,6 +8,8 @@
 import { prepare } from '../lib/api.utils.js';
 import { getMetadataOptions } from '../services/metadata.services.js';
 import pool from '../services/db.services.js';
+import fs from "fs";
+import path from 'path';
 
 /**
  * Controller initialization.
@@ -44,3 +46,38 @@ export const show = async (req, res, next) => {
         await client.release(true);
     }
 };
+
+/**
+ * Administrative analytics and logs request controller.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @src public
+ */
+
+export const logs = async (req, res, next) => {
+    try {
+
+        const rootPAth = process.env.NODE_PATH;
+
+        // read log files
+        fs.readdir(path.join(rootPAth, '/logs'), (err, files) => {
+            files.forEach(file => {
+                console.log(file);
+            });
+        });
+
+        res.status(200).json(
+            prepare({
+                view: 'dashboard',
+                data: []
+            }));
+    } catch (err) {
+        return next(err);
+    }
+    finally {
+        await client.release(true);
+    }
+};
+

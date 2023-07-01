@@ -1,12 +1,12 @@
 /*!
- * MLP.Client.Tools.IAT.Canvas
- * File: canvas.iat.js
+ * MLP.Client.Tools.IAT.Basic
+ * File: basic.iat.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
  */
 
-import { scaleToFit } from './transform.iat';
+import {scaleToFit} from './transform.iat';
 
 /**
  * Resets image data to source data.
@@ -18,7 +18,6 @@ import { scaleToFit } from './transform.iat';
 
 export const reset = async (properties, callback) => {
     callback({
-        status: 'reset',
         props: {
             source_dims: {
                 x: 0, y: 0,
@@ -83,24 +82,14 @@ export const fit = async (properties, callback) => {
 
     // compute scaled dimensions
     const dims = scaleToFit(
-            properties.image_dims.w,
-            properties.image_dims.h,
-            properties.base_dims.w,
-            properties.base_dims.h,
-        );
+        properties.image_dims.w,
+        properties.image_dims.h,
+        properties.base_dims.w,
+        properties.base_dims.h,
+    );
 
     // update panel properties
-    return callback({
-        status: 'view',
-        props: {
-            render_dims: {
-                x: 0,
-                y: 0,
-                w: dims.w,
-                h: dims.h
-            },
-        },
-    });
+    return callback({ x: 0, y: 0, w: dims.w, h: dims.h });
 };
 
 /**
@@ -126,45 +115,34 @@ export const expand = async (properties, callback) => {
 };
 
 /**
- * Expand to full-sized image.
+ * Update render dimensions for zoom-in
  *
  * @public
- * @param properties
- * @param callback
+ * @param dims
  */
 
-export const zoomIn = async (properties, callback) => {
-    return callback({
-        status: 'view',
-        props: {
-            render_dims: {
-                x: Math.round(properties.render_dims.x * 1.1),
-                y: Math.round(properties.render_dims.y * 1.1),
-                w: Math.round(properties.render_dims.w * 1.1),
-                h: Math.round(properties.render_dims.h * 1.1)
-            },
-        }
-    });
+export const zoomIn = (dims) => {
+    return {
+        x: Math.round(dims.x * 1.1),
+        y: Math.round(dims.y * 1.1),
+        w: Math.round(dims.w * 1.1),
+        h: Math.round(dims.h * 1.1)
+    }
 };
 
 /**
- * Expand to full-sized image.
+ * Update render dimensions for zoom-out
  *
  * @public
- * @param properties
- * @param callback
  */
 
-export const zoomOut = async (properties, callback) => {
-    return callback({
-        status: 'view',
-        props: {
-            render_dims: {
-                x: Math.round(properties.render_dims.x / 1.1),
-                y: Math.round(properties.render_dims.y / 1.1),
-                w: Math.round(properties.render_dims.w / 1.1),
-                h: Math.round(properties.render_dims.h / 1.1)
-            },
-        }
-    });
+export const zoomOut = (dims) => {
+    return {
+        x: Math.round(dims.x / 1.1),
+        y: Math.round(dims.y / 1.1),
+        w: Math.round(dims.w / 1.1),
+        h: Math.round(dims.h / 1.1)
+
+    };
 };
+

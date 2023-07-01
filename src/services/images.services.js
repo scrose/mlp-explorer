@@ -19,6 +19,7 @@ import redis from 'redis';
 import { deleteFiles, insertFile } from './files.services.js';
 import * as util from "util";
 import pool from "./db.services.js";
+import fetch from "node-fetch";
 // import Jimp from 'jimp';
 // import dcraw from 'dcraw';
 
@@ -27,8 +28,22 @@ import pool from "./db.services.js";
 const imageSizes = {
     thumb: 150,
     medium: 900,
-    full: 2100,
+    full: 1500,
 };
+
+/**
+ * Test transcoder connection
+ * @private
+ */
+
+export const transcoderReady = () => {
+    return fetch(`${process.env.TRANSCODER_HOST}:${process.env.TRANSCODER_PORT}`)
+        .then(() => { return true })
+        .catch(err => {
+            console.error('Transcoder error:', err);
+            return false;
+        });
+}
 
 /**
  * Connect to Redis message broker
@@ -61,7 +76,9 @@ redisConnect.on('connect', async () => {
     console.log(
         `Connected to Redis: ${redisConnect.address}`,
     );
+    console.log(`Transcoder: ${await transcoderReady() ? 'Ready' : 'Not Ready'}`);
 });
+
 
 /**
  * Transcode image file.
@@ -122,14 +139,14 @@ export const transcode = async (data, callback) => {
         // get image metadata
         await getImageInfo(copySrc, metadata, options, isRAW);
 
+        // add file record to database
+        await insertFile(metadata, owner, imageState, callback, client);
+
         // copy image versions to data storage
         await copyImageTo(src, versions.raw);
         await copyImageTo(copySrc, versions.medium);
         await copyImageTo(copySrc, versions.thumb);
         await copyImageTo(copySrc, versions.full);
-
-        // add file record to database
-        await insertFile(metadata, owner, imageState, callback, client);
 
         // delete temporary files
         src === copySrc

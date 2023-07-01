@@ -196,12 +196,7 @@ function RouterProvider(props) {
 
         // reject null paths or when API is offline, error found
         if (!route || !online ) return null;
-
-        post(route)
-            .then(res => {
-                callback(res);
-            })
-            .catch(console.error);
+        post(route).then(callback).catch(console.error);
     }
 
     /**

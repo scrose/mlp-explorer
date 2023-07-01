@@ -24,6 +24,7 @@ import {useWindowSize} from "./_utils/events.utils.client";
 import DialogSelector from "./_components/selectors/dialog.selector";
 import Loading from "./_components/common/loading";
 import {useAuth} from "./_providers/auth.provider.client";
+import {useIat} from "./_providers/iat.provider.client";
 
 /**
  * Core client application component.
@@ -37,6 +38,7 @@ export default function App() {
     const user = useUser();
     const nav = useNav();
     const auth = useAuth();
+    const iat = useIat();
 
     // create reference to navigator panels and resize slider
     const mainRef = React.useRef();
@@ -85,6 +87,14 @@ export default function App() {
                 }
                 nav.setOffCanvas(false);
             }
+            else if (iat && Object.keys(iat).length > 0) {
+                // set navigation to off-canvas is IAT mode
+                if (nav.offCanvas) {
+                    nav.setToggle(true);
+                    setPref('navToggle', true);
+                }
+                nav.setOffCanvas(false);
+            }
             else {
                 /* Initialize compact panel layout */
                 if (!nav.offCanvas) {
@@ -98,7 +108,7 @@ export default function App() {
         }
 
         return () => {_isMounted.current = false;}
-    }, [nav, winWidth, winHeight]);
+    }, [nav, iat, winWidth, winHeight]);
 
     /* Initialize panel resize */
     function _resizeStart(e) {
@@ -155,7 +165,7 @@ export default function App() {
                 onTouchMove={_resize}
             ><Button icon={'arrows'} size={'2x'} title={'Resize Navigation Panel'} />
             </div>
-            <BreadcrumbMenu />
+            <BreadcrumbMenu/>
             <main>
                 <div className={'main'} ref={mainRef}>
                     <BoundaryError>

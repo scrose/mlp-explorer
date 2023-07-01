@@ -40,6 +40,13 @@ function MainRoutes() {
             put: null,
             post: null,
             delete: null,
+        },
+        export: {
+            path: '/admin/logs',
+            get: this.controller.logs,
+            put: null,
+            post: null,
+            delete: null,
         }
     }
 }

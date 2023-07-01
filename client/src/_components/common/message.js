@@ -38,9 +38,7 @@ const Message = ({
     // set message data
     React.useEffect(() => {
         _isMounted.current = true;
-        if (_isMounted.current) {
-            setMsgData(message)
-        }
+        if (_isMounted.current) setMsgData(message)
         return () => {
             _isMounted.current = false;
         };

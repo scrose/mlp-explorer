@@ -39,6 +39,7 @@ const noop = () => {
  * <input type="password">
  * <input type="radio">
  * <input type="text">
+ * <input type="range">
  * <textarea>
  * <input type="url">
  * <select>
@@ -164,8 +165,7 @@ export const InputSelector = ({
         },
 
         int: () => {
-            return <>
-                <input
+            return <input
                     readOnly={readonly}
                     disabled={disabled}
                     type={'number'}
@@ -178,8 +178,8 @@ export const InputSelector = ({
                     value={value || ''}
                     required={required}
                     onChange={onChange}
-                    aria-label={ariaLabel}/>
-            </>;
+                    aria-label={ariaLabel}
+                />;
         },
 
         float: () => {
@@ -340,6 +340,22 @@ export const InputSelector = ({
                 options={options}
                 onSelect={onMultiselect}
             />;
+        },
+
+        range: () => {
+            return <input
+                type={'range'}
+                readOnly={readonly}
+                disabled={disabled}
+                min={min}
+                max={max}
+                id={id}
+                name={name}
+                value={value || ''}
+                required={required}
+                onChange={onChange}
+                aria-label={ariaLabel}
+            />
         },
 
         dependentsEditor: () => {

@@ -103,7 +103,6 @@ export function serialize(obj) {
             let qStr = Array.isArray(obj[p])
                 ? obj[p].join('-')
                 : String(obj[p]).replace(/\s+/g, "-");
-
             // encode uri components for query string
             qStr = encodeURIComponent(qStr).replace(/-/g, '+')
             return encodeURIComponent(p) + "=" + qStr;

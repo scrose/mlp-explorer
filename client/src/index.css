@@ -864,11 +864,12 @@ nav.breadcrumb ul li a:hover {
     background-color: transparent !important;
     color: #FFFFFF;
     text-align: left;
-    width: 100%;
+    width: auto;
 }
 .tree-node .h-menu ul li button.tree-node-label:hover {
     background-color: transparent;
 }
+
 .tree-node .collapsible {
     padding-left: 30px;
 }
@@ -1799,7 +1800,8 @@ fieldset.super_compact label .label-text {
     min-width: 0 !important;
     min-height: 0;
     line-height: 100%;
-    background-color: transparent;
+    background-color: #444444;
+    color: #EEEEEE;
 }
 fieldset.super_compact input {
     width: 50px;
@@ -2321,13 +2323,14 @@ canvas {
     position: absolute;
 }
 .layer.hidden {
+    visibility: hidden;
     display: none;
 }
 .canvas {
     background-color: #111111;
     color: #FFFFFF;
     border-radius: 15px;
-    padding: 20px;
+    /*padding: 20px;*/
 }
 .canvas-layers {
     position: relative;
@@ -2341,7 +2344,7 @@ Define Canvas Layers of Panel (IAT)
 */
 
 .canvas-placeholder {
-    z-index: 88885;
+    z-index: 88890;
     text-align: center;
     background-color: transparent;
     color: #282c34;
@@ -2354,15 +2357,22 @@ Define Canvas Layers of Panel (IAT)
     color: #FFFFFF;
 }
 .canvas-layer-control-default {
+    cursor: default;
+    z-index: 88880;
+}
+.canvas-layer-control-pan {
     cursor: move;
     z-index: 88880;
 }
 .canvas-layer-control-select, .canvas-layer-control-crop {
     cursor: crosshair;
-    z-index: 99998;
+    z-index: 88885;
 }
 .canvas-layer-control-default.magnify, .canvas-layer-control-select.magnify {
     cursor: none;
+}
+.canvas-layer-magnifier {
+    z-index: 35;
 }
 .canvas-layer-overlay {
     z-index: 30;
@@ -2402,26 +2412,27 @@ Define Canvas Layers of Panel (IAT)
 .canvas-board img {
     display: none;
 }
+.canvas-menu-bar {
+    background-color: #444444;
+    color: #FFFFFF;
+}
+.canvas-menu-bar li {
+    padding: 5px !important;
+}
 .canvas-option-controls {
-    margin: 0;
-    padding: 0;
     font-size: small;
 }
-.canvas-option-controls button {
+.canvas-option-controls button, .canvas-menu-bar button {
     min-width: 30px;
     color: #FFFFFF;
-    background-color: #282c34;
+    background-color: #008896;
 }
-.canvas-option-controls button.active {
+.canvas-option-controls button.active, .canvas-menu-bar button.active {
     background-color: #F49431;
     color: #FFFFFF;
 }
-#canvas-top-menu {
-    justify-content: left;
-    margin: 4px;
-}
-#canvas-top-menu button {
-    margin: 4px;
+.canvas-menu-bar-title {
+    background-color: transparent;
 }
 .canvas-view-info {
     padding: 3px;
@@ -2430,8 +2441,27 @@ Define Canvas Layers of Panel (IAT)
     font-size: small;
     vertical-align: middle;
     color: #FFFFFF;
-    background-color: #282c34;
+    background-color: transparent;
     border: 1px solid #282c34;
+}
+.canvas-view-info .accordion {
+    padding: 3px;
+    margin: 0;
+    text-align: left;
+    line-height: 100%;
+    font-size: small;
+    vertical-align: middle;
+    color: #FFFFFF;
+    background-color: transparent;
+    border: none;
+}
+.canvas-view-info .accordion-data.open {
+    margin: 10px 0 0 -5px;
+    width: 45%;
+    z-index: 99999;
+    position: absolute;
+    background-color: #282c34;
+    opacity: 0.8;
 }
 .canvas-view-info .h-menu ul {
     align-items: center;
@@ -2446,11 +2476,9 @@ Define Canvas Layers of Panel (IAT)
     width: auto;
 }
 
-.canvas-status {
+button.canvas-status {
     background-color: coral;
-    padding: 10px;
-    border-radius: 10px;
-    position: absolute;
+    color: white;
 }
 .canvas-view-info table {
     width: 100%;
@@ -2466,7 +2494,7 @@ Define Canvas Layers of Panel (IAT)
 }
 .canvas-view-controls {
     background-color: transparent;
-    color: #FFFFFF;
+    color: #FFFFFF !important;
     padding: 5px;
     font-size: small;
 }
@@ -2482,6 +2510,7 @@ Define Canvas Layers of Panel (IAT)
 .canvas-view-control-points button {
     background-color: #282c34;
     color: #FFFFFF;
+    margin: 2px;
 }
 /* Canvas magnifier */
 .canvas-magnifier {
@@ -2489,6 +2518,8 @@ Define Canvas Layers of Panel (IAT)
     position: absolute;
     border: 3px solid #000;
     border-radius: 50%;
+    margin: 0;
+    padding: 0;
     /*Set the size of the magnifier glass:*/
     width: 100px;
     height: 100px;
@@ -2499,14 +2530,16 @@ Define Canvas Layers of Panel (IAT)
     position: absolute;
     width: 100px;
     height: 100px;
+    margin: 0;
+    padding: 0;
     z-index: 29;
 }
 
 /* Image Capture Selector */
 
-.selector .selected {
+.selector .selected, .files .selected {
     background-color: lightgreen;
-    color: #111111;
+    color: #111111 !important;
 }
 
 /* Load spinner  */

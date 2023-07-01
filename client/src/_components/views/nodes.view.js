@@ -21,7 +21,7 @@ import NodeSelector from "../selectors/node.selector";
 import Loading from "../common/loading";
 import {useDialog} from "../../_providers/dialog.provider.client";
 import Button from "../common/button";
-import {EditorMenu} from "../menus/editor.menu";
+import EditorMenu from "../menus/editor.menu";
 
 // generate unique ID value for form inputs
 const menuID = genID();

@@ -13,18 +13,35 @@ import { UserProvider } from './user.provider.client';
 import { DataProvider } from './data.provider.client';
 import { NavProvider } from "./nav.provider.client";
 import { DialogProvider } from "./dialog.provider.client";
+import { IatProvider } from "./iat.provider.client";
+import {getStaticView} from "../_services/schema.services.client";
+import {filterPath} from "../_utils/paths.utils.client";
 
 function AppProviders({ children }) {
+
+    // get current view type
+    const view = getStaticView(filterPath());
+
     return (
         <RouterProvider>
             <AuthProvider>
                 <UserProvider>
                     <DataProvider>
-                        <NavProvider>
-                            <DialogProvider>
-                            {children}
-                            </DialogProvider>
-                        </NavProvider>
+                            {
+                                view === 'imageToolkit'
+                                ? <IatProvider>
+                                    <NavProvider>
+                                        <DialogProvider>
+                                            {children}
+                                        </DialogProvider>
+                                    </NavProvider>
+                                </IatProvider>
+                                : <NavProvider>
+                                    <DialogProvider>
+                                        {children}
+                                    </DialogProvider>
+                                </NavProvider>
+                            }
                     </DataProvider>
                 </UserProvider>
             </AuthProvider>

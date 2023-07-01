@@ -149,7 +149,7 @@ export const getFileLabel = async (file, client) => {
  * Get file data by file ID. Returns single node object.
  *
  * @public
- * @param {Int|String} id
+ * @param {String} id
  * @param client
  * @return {Promise} result
  */
@@ -678,12 +678,13 @@ export const saveFile = async (
             fileData.file.fs_path = path.join(owner.fs_path, saveType, filename);
             fileData.file.file_size = fileSize;
 
+            // insert file record in database
+            await insertFile(fileData, owner, imageState, _handleError, client);
+
             // copy file to data storage
             await copyFile(fileData.tmp, filePath, fs.constants.COPYFILE_EXCL);
 
-            // insert file record in database
-            await insertFile(fileData, owner, imageState, _handleError, client);
-        },
+        }
     };
 
     // process file by type
@@ -875,7 +876,7 @@ export const remove = async (fileItem=null, client ) => {
 
     // [2] delete attached files
     // - assumes file paths are to regular files.
-    await deleteFiles(filePaths);
+    // await deleteFiles(filePaths);
 
     // return response data
     return response.hasOwnProperty('rows') && response.rows.length > 0

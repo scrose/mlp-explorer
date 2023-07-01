@@ -12,7 +12,7 @@ import Image from './image';
 import Dialog from './dialog';
 import { getModelLabel } from '../../_services/schema.services.client';
 import {useRouter} from "../../_providers/router.provider.client";
-import {EditorMenu} from "../menus/editor.menu";
+import EditorMenu from "../menus/editor.menu";
 import {useDialog} from "../../_providers/dialog.provider.client";
 import {genID} from "../../_utils/data.utils.client";
 import {createNodeRoute} from "../../_utils/paths.utils.client";

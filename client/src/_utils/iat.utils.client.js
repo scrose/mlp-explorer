@@ -32,7 +32,7 @@ export function swapPts( P )
 /**
  * Lower Upper Solver
  *
- * @return {any[]}
+ * @return {Number}
  * @param pts
  */
 

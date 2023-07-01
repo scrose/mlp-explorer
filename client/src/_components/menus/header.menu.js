@@ -15,7 +15,7 @@ import {
 import { useRouter } from '../../_providers/router.provider.client';
 import { useData } from '../../_providers/data.provider.client';
 import Badge from '../common/badge';
-import {EditorMenu} from "./editor.menu";
+import EditorMenu from "./editor.menu";
 import {capitalize} from "../../_utils/data.utils.client";
 
 /**

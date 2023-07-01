@@ -24,6 +24,8 @@ import Button from "../common/button";
 import {useDialog} from "../../_providers/dialog.provider.client";
 import {useData} from "../../_providers/data.provider.client";
 import {useNav} from "../../_providers/nav.provider.client";
+import {SelectorIat} from "../iat/loaders/selector.iat";
+import Accordion from "../common/accordion";
 
 /**
  * Dialog view for selecting forms/content to display in dialog popup components.
@@ -44,15 +46,15 @@ const DialogSelector = () => {
         // destructure dialog data
         const {
             dialogID='',
-                model = '',
-                id = '',
-                label = '',
-                file = {},
-                files = {},
-                owner = null,
-                metadata = null,
-                attached = {},
-                callback = ()=>{}
+            model = '',
+            id = '',
+            label = '',
+            file = {},
+            files = {},
+            owner = null,
+            metadata = null,
+            attached = {},
+            callback = ()=>{}
         } = data || {};
 
         const _key = `dialog_${dialogID}_${model}_${id}_${index}`;
@@ -170,11 +172,11 @@ const DialogSelector = () => {
                 />
             </Dialog>,
             remove: <Dialog
-                    key={_key}
-                    title={`Delete ${getModelLabel(model)} ${label ? ': ' + label : ''}`}
-                    callback={_handleDialogClose}
-                    className={index > 0 ? 'hidden' : ''}
-                >
+                key={_key}
+                title={`Delete ${getModelLabel(model)} ${label ? ': ' + label : ''}`}
+                callback={_handleDialogClose}
+                className={index > 0 ? 'hidden' : ''}
+            >
                 <Remover
                     id={id}
                     model={model}
@@ -192,6 +194,17 @@ const DialogSelector = () => {
             </Dialog>,
             move: <Dialog key={_key} title={`Move Item to New Container (Owner)`} callback={_handleDialogClose}>
                 <Mover callback={_handleCallback} />
+            </Dialog>,
+            iat: <Dialog key={_key} title={`Transfer Image to/from Image Toolkit`} callback={_handleDialogClose}>
+                <Accordion label={`MLP Container Source/Target: ${label || 'unknown'}`} type={model} open={false}>
+                    <MetadataView owner={owner} model={model} metadata={metadata} />
+                </Accordion>
+                <SelectorIat
+                    id={id}
+                    model={model}
+                    callback={_handleDialogClose}
+                    cancel={_handleCancel}
+                />
             </Dialog>,
             options: <Dialog
                 key={_key}
@@ -345,7 +358,7 @@ const DialogSelector = () => {
         {
             dialog.current ? dialog.stack.map(showDialog).reverse() : <></>
         }
-        </>;
+    </>;
 };
 
 export default DialogSelector;

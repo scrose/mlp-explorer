@@ -12,7 +12,7 @@ import Accordion from '../common/accordion';
 import { getModelLabel } from '../../_services/schema.services.client';
 import { sanitize } from '../../_utils/data.utils.client';
 import Table from '../common/table';
-import {EditorMenu} from "../menus/editor.menu";
+import EditorMenu from "../menus/editor.menu";
 import {useUser} from "../../_providers/user.provider.client";
 
 export const
@@ -35,6 +35,8 @@ export const
             {name: 'mime_type', label: 'Format'},
             {name: 'details', label: 'Details'},
             {name: 'file_size', label: 'File Size'},
+            {name: 'updated_at', label: 'Updated'},
+            {name: 'created_at', label: 'Created'},
             {name: 'menu', label: ''},
         ];
 
@@ -61,7 +63,7 @@ export const
             metadata.file_type = file_type;
             metadata.filename = filename;
             metadata.created_at = created_at;
-            metadata.updated_at = updated_at
+            metadata.updated_at = updated_at;
 
             // return files row
             return {
@@ -71,6 +73,8 @@ export const
                     ? metadata_type.label
                     : image_type,
                 file_size: sanitize(file.file_size, 'filesize') || 'n/a',
+                updated_at: metadata.updated_at,
+                created_at: metadata.created_at,
                 menu: menu && <EditorMenu
                     size={user ? 'sm' : 'lg'}
                     className={'right-aligned'}

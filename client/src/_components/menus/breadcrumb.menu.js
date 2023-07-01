@@ -59,8 +59,7 @@ const BreadcrumbMenu = () => {
                     'show',
                     node.id || file.id);
                 return <>
-                        <Icon type={node.type || file.file_type} size={'sm'} />
-                            &#160;&#160;<a href={href}>{label}</a>
+                        <Icon type={node.type || file.file_type} size={'sm'} />&#160;&#160;<a href={href}>{label}</a>
                         </>
             });
 

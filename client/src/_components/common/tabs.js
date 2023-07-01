@@ -19,6 +19,7 @@ const tabID = genID();
  * - Creates tab to toggle data panels (<Tab>).
  * - Input Data Format:
  *   {[ID]: { label: <LABEL>, data: <CONTENT>}, ... }
+ *   orientation: [vertical | horizontal]
  *
  * @public
  * @param items

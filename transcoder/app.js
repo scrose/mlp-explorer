@@ -7,7 +7,7 @@
 import express from 'express';
 import Queue from 'bull';
 import { transcode } from '../src/services/images.services.js';
-import heapdump from 'heapdump';
+// import heapdump from 'heapdump';
 
 /**
  * Create Transcoder application.
@@ -24,7 +24,8 @@ const app = express();
  * Get port from environment and store in Express
  */
 
-const port = 3002;
+const host = process.env.TRANSCODER_HOST;
+const port = process.env.TRANSCODER_PORT;
 app.set('port', port);
 
 app.get('/', (req, res) => {
@@ -32,7 +33,7 @@ app.get('/', (req, res) => {
 })
 
 app.listen(port, () => {
-    console.log(`Transcoder listening on http://localhost:${port}`);
+    console.log(`Transcoder listening on ${host}:${port}`);
     console.log('\n- (Node) Exposed Garbage Collection:', !!global.gc);
 });
 

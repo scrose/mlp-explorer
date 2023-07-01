@@ -11,7 +11,7 @@ import Image from '../common/image';
 import {genID, groupBy} from '../../_utils/data.utils.client';
 import {genSchema, getModelLabel} from "../../_services/schema.services.client";
 import Accordion from "../common/accordion";
-import {EditorMenu} from "../menus/editor.menu";
+import EditorMenu from "../menus/editor.menu";
 import {createNodeRoute} from "../../_utils/paths.utils.client";
 import Editor from "./default.editor";
 import {useUser} from "../../_providers/user.provider.client";

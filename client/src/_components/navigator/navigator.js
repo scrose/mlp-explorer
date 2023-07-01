@@ -33,4 +33,4 @@ const Navigator = () => {
         )
 }
 
-export default Navigator;
+export default React.memo(Navigator);

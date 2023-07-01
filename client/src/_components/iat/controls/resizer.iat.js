@@ -6,10 +6,12 @@
  * MIT Licensed
  */
 
-import React from 'react';
-import Button from '../common/button';
-import { UserMessage } from '../common/message';
-import InputSelector from '../selectors/input.selector';
+import React, {useEffect, useRef} from 'react';
+import Button from '../../common/button';
+import { UserMessage } from '../../common/message';
+import InputSelector from '../../selectors/input.selector';
+import {useIat} from "../../../_providers/iat.provider.client";
+import Loading from "../../common/loading";
 
 /**
  * Adjustments to layer dimensions.
@@ -18,22 +20,20 @@ import InputSelector from '../selectors/input.selector';
  * @return {JSX.Element}
  */
 
-export const Resizer = ({
-                            id = '',
-                            properties,
-                            setToggle,
-                            options,
-                            callback,
-                        }) => {
+export const Resizer = ({id = '', callback}) => {
+
+    const iat = useIat();
+    const panel = iat ? iat[id] : null;
+    const loadRef = useRef(null);
 
     const [canvasDims, setCanvasDims] = React.useState({
-            w: properties.base_dims.w,
-            h: properties.base_dims.h
-        });
+        w: panel && panel.properties.base_dims.w || 0,
+        h: panel && panel.properties.base_dims.h || 0
+    });
     const [imageDims, setImageDims] = React.useState({
-            w: properties.image_dims.w,
-            h: properties.image_dims.h
-        });
+        w: panel && panel.properties.image_dims.w || 0,
+        h: panel && panel.properties.image_dims.h
+    });
 
     // error state
     const [error, setError] = React.useState(null);
@@ -41,46 +41,38 @@ export const Resizer = ({
     // Handle dimensional change submission
     const _handleUpdate = () => {
         callback({
-            status: 'render',
-            props: {
-                base_dims: canvasDims,
-                image_dims: {
-                    w: imageDims.w,
-                    h: imageDims.h,
-                },
-                source_dims: {
-                    w: properties.image_dims.w,
-                    h: properties.image_dims.h,
-                    x: 0,
-                    y: 0
-                },
-                render_dims: {
-                    w: imageDims.w,
-                    h: imageDims.h,
-                    x: 0,
-                    y: 0
-                }
+            base_dims: canvasDims,
+            image_dims: {
+                w: imageDims.w,
+                h: imageDims.h,
             },
+            source_dims: {
+                w: panel.properties.image_dims.w,
+                h: panel.properties.image_dims.h,
+                x: 0,
+                y: 0
+            },
+            render_dims: {
+                w: imageDims.w,
+                h: imageDims.h,
+                x: 0,
+                y: 0
+            }
         });
-        setToggle(false);
+        iat.setDialog(null);
     };
 
     return <div>
-        <UserMessage
-            closeable={true}
-            message={{ msg: error, type: 'error' }}
-            onClose={() => {
-                setError(null);
-            }}
-        />
+        <UserMessage closeable={true} message={{ msg: error, type: 'error' }} onClose={setError} />
         <ResizeOptions
             id={id}
             label={'Image Size'}
             data={imageDims}
             update={setImageDims}
             setError={setError}
-            min={{ w: options.minImageWidth, h: options.minImageHeight }}
-            max={{ w: options.maxImageWidth, h: options.maxImageHeight }}
+            min={{ w: iat.options.minImageWidth, h: iat.options.minImageHeight }}
+            max={{ w: iat.options.maxImageWidth, h: iat.options.maxImageHeight }}
+            iat={iat}
         />
         <ResizeOptions
             id={id}
@@ -88,8 +80,9 @@ export const Resizer = ({
             data={canvasDims}
             update={setCanvasDims}
             setError={setError}
-            min={{ w: options.minCanvasWidth, h: options.minCanvasHeight }}
-            max={{ w: options.maxCanvasWidth, h: options.maxCanvasHeight }}
+            min={{ w: iat.options.minCanvasWidth, h: iat.options.minCanvasHeight }}
+            max={{ w: iat.options.maxCanvasWidth, h: iat.options.maxCanvasHeight }}
+            iat={iat}
         />
         <fieldset className={'submit h-menu'}>
             <ul>
@@ -97,20 +90,21 @@ export const Resizer = ({
                     disabled={!!error}
                     icon={'success'}
                     label={`Update`}
-                    title={`Update layer dimensions.`}
+                    title={`Update canvas/image dimensions.`}
                     onClick={_handleUpdate}
                 /></li>
                 <li><Button
                     icon={'cancel'}
                     label={'Cancel'}
                     onClick={() => {
-                        setToggle(false);
+                        iat.setDialog(null);
                     }}
                 /></li>
             </ul>
         </fieldset>
     </div>;
 };
+
 /**
  * Resize options to layer dimensions.
  *
@@ -125,7 +119,8 @@ export const ResizeOptions = ({
                                   update = () => {},
                                   setError = () => {},
                                   max = { w: 300, h: 300 },
-                                  min = {w: 100, h: 100 }
+                                  min = {w: 100, h: 100 },
+                                  iat=null
                               }) => {
 
     // set resize parameter states
@@ -210,6 +205,14 @@ export const ResizeOptions = ({
         update({ w: Math.floor(init.w * value), h: Math.floor(init.h * value) });
     };
 
+    // match to opposite panel image dimensions
+    const _handleMatch = () => {
+        const panelSrc = id === 'panel1' ? iat.panel2 : iat.panel1;
+        const aspectRatio = (init.h + 0.01) / (init.w + 0.01);
+        const refW = (label === 'Canvas Size') ? panelSrc.properties.base_dims.w : panelSrc.properties.image_dims.w;
+        update({w: refW, h: Math.round(aspectRatio * refW)});
+    }
+
     // Handle reset
     const _handleReset = () => {
         setAspect(true);
@@ -248,10 +251,18 @@ export const ResizeOptions = ({
                     </li>
                     <li className={'push'}>
                         <Button
+                            icon={'images'}
+                            label={'Match'}
+                            onClick={_handleMatch}
+                        />
+                    </li>
+                    <li>
+                        <Button
                             icon={'undo'}
                             label={'Reset'}
                             onClick={_handleReset}
-                        /></li>
+                        />
+                    </li>
                 </ul>
             </div>
             <div className={'h-menu'}>
@@ -265,16 +276,18 @@ export const ResizeOptions = ({
                             type={'checkbox'}
                             value={aspect}
                             onChange={_toggleAspect}
+                        />
+                    </li>
+                    <li>
+                        <InputSelector
+                            id={id}
+                            disabled={!aspect}
+                            name={'scale'}
+                            label={'Scale'}
+                            type={'checkbox'}
+                            value={scale}
+                            onChange={_toggleScale}
                         /></li>
-                    <li><InputSelector
-                        id={id}
-                        disabled={!aspect}
-                        name={'scale'}
-                        label={'Scale'}
-                        type={'checkbox'}
-                        value={scale}
-                        onChange={_toggleScale}
-                    /></li>
                     <li><InputSelector
                         id={id}
                         disabled={!aspect || !scale}

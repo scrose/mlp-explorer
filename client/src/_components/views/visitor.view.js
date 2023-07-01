@@ -37,11 +37,7 @@ const VisitorView = () => {
                 <Message />
                 {
                     router.staticView
-                    ? <StaticView type={
-                        router.staticView === 'dashboard'
-                            ? 'dashboardView'
-                            : router.staticView
-                    } />
+                    ? <StaticView type={router.staticView === 'dashboard' ? 'dashboardView' : router.staticView} />
                     : <DataView />
                 }
                 <Footer/>

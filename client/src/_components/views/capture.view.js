@@ -17,7 +17,7 @@ import { useRouter } from '../../_providers/router.provider.client';
 import { useData } from '../../_providers/data.provider.client';
 import Tabs from '../common/tabs';
 import Comparator from "../common/comparator";
-import {EditorMenu} from "../menus/editor.menu";
+import EditorMenu from "../menus/editor.menu";
 
 /**
  * View available versions of capture images.
@@ -44,7 +44,8 @@ export const CaptureImagesTable = ({type, owner, files=[], callback=()=>{}}) => 
         { name: 'details', label: 'Details'},
         { name: 'width', label: 'Width'},
         { name: 'height', label: 'Height'},
-        { name: 'file_size', label: 'File Size'}
+        { name: 'file_size', label: 'File Size'},
+        { name: 'uploaded', label: 'Uploaded'},
     ];
 
     // include editor menu for logged-in users
@@ -78,8 +79,9 @@ export const CaptureImagesTable = ({type, owner, files=[], callback=()=>{}}) => 
             </>,
             width: sanitize(metadata.x_dim, 'imgsize'),
             height: sanitize(metadata.y_dim, 'imgsize'),
+            uploaded: sanitize(file.created_at, 'datetime'),
             file_size: sanitize(file.file_size, 'filesize')
-        };
+    };
 
         // include select file metadata
         metadata.filename = file.filename;
@@ -95,7 +97,7 @@ export const CaptureImagesTable = ({type, owner, files=[], callback=()=>{}}) => 
             label={label}
             metadata={metadata}
             callback={callback}
-            visible={['show', 'edit', 'remove']}
+            visible={['show', 'iat', 'edit', 'remove']}
         />;
         return row;
     });
