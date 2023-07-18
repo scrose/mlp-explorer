@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Views.Nodes
+ * MLE.Client.Components.Views.Nodes
  * File: nodes.view.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

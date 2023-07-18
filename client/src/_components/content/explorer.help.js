@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Content.Help.Explorer
+ * MLE.Client.Content.Help.Explorer
  * File: explorer.help.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -26,12 +26,16 @@ const explorerHelp = (gotoPage) => {
      */
 
     const explorerHelp = <>
-        <h4>Getting Started</h4>
+        <h4>Explorer: Getting Started</h4>
         <p>
-            Welcome to the The Mountain Legacy Explorer user guide. This guide is intended to
-            provide background information along with step-by-step instructions on how to
-            navigate the MLP collection. The guide covers usage of features available in both the Explorer
-            and Image analysis Toolkit, as well as detailed info on using the Editor management tool.
+            The Mountain Legacy Project has the world's most extensive compilation of meticulously captured,
+            high-resolution historic mountain photographs, totaling over 120,000 images.
+            Additionally, the project possesses a rapidly expanding assortment of repeat images,
+            consisting of over 8,000 pairs of photographs.</p>
+        <p>To explore this remarkable collection, the
+            Project offers a user-friendly web-based tool known as the "Explorer."
+            This online platform allows visitors to navigate, search, and filter the vast array of
+            collection items based on surveyor metadata or the geographical location of survey Stations.
         </p>
 
         <h5>What is Repeat Photography?</h5>
@@ -48,41 +52,12 @@ const explorerHelp = (gotoPage) => {
             (RAW, TIFF and various field-useable images), location images, EXIF camera data, survey and MLP
             field notes and maps.
         </p>
-
-        <h5>Mountain Legacy Explorer (MLE)</h5>
-        <p>The Explorer is a web-based tool for exploring Mountain Legacy Project's
-            vast collection of historic survey photos, modern repeat images and metadata.
-            Visitors can navigate, search and filter collection items by surveyor metadata or
-            by geographical location of survey stations.</p>
-
-
-
-        <table className={'help'}>
-            <tbody>
-            <tr>
-                <th>Viewer</th>
-                <td>
-                    <p>Use the viewer to explore the MLP collection images and metadata in detail.
-                        Go to <Button icon={'help'} label={'Viewer'} onClick={() => {
-                            gotoPage(0, 1);
-                        }} /> for more information.
-                    </p>
-                </td>
-            </tr>
-            <tr>
-                <th>Navigator</th>
-                <td>
-                    <p>Use the navigator to explore the MLP collection from a bird's eye view.
-                        Go to <Button icon={'help'} label={'Navigation'} onClick={() => {
-                        gotoPage(0, 2);
-                    }} /> for more information.
-                    </p>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-
-
+        <h5>About this Guide</h5>
+        <p>
+            This guide covers usage of features available in both the Explorer, and the MLE Toolkit
+            image alignment tool, as well as documentation for the MLE Editor management tool. Click on the
+            tabs at the top to switch between tools, and the tabs to the left for tool topics.
+        </p>
     </>;
 
     /**
@@ -90,50 +65,54 @@ const explorerHelp = (gotoPage) => {
      */
 
     const viewerExplorerHelp = <>
-        <h4>Viewer</h4>
+        <h4>Exploring the View</h4>
 
-        <p>The viewer is the main right-side panel where files and metadata is loaded from the navigator and menus.
-            Any node in the MLP <Button icon={'help'} label={'Data Model'} onClick={() => {gotoPage(0, 3)}} /> can
-            have its metadata and attached files loaded in the viewer. For example,
-            survey data for surveyor <a href={"http://localhost:3000/surveyors/show/5"}>Morrison Parsons Bridgland</a> is
-            listed under the "Surveys" tab. Each item in the list can be expanded to show metadata for that item, as well as
-            any attached dependent items -- in this case, survey seasons. You can also click on the item label to go to
-            open the page for that item.</p>
+        <h5>Using the Viewer</h5>
 
-        <p>Search and filter results are also loaded in the viewer.</p>
+        <p>Use the right-side viewer panel to explore the MLP collection images and metadata in detail.
+            Search and filter results are also loaded in the viewer.</p>
+        <p>The viewer is where <Button icon={'help'} label={'Capture Images'} onClick={() => {gotoPage(0, 2)}} />
+            and <Button icon={'help'} label={'Metadata'} onClick={() => {gotoPage(0, 1)}} /> are
+            loaded for an indepth look at things. For example, navigate to surveyor
+            <a href={"http://localhost:3000/surveyors/show/5"} target={'_blank'}>Morrison Parsons Bridgland</a> to see
+            an extensive list of surveys undertaken in the last century. Each survey in the list can be expanded to
+            show metadata for that item, as well as any attached dependent items -- in this case, survey seasons.
+            You can also click on the item label to go to open the page for that item.</p>
 
         <h5>Viewer Tabs</h5>
+        <p>At the top of the page you will find a number of tabs for any given data item in the model.</p>
         <table className={'help'}>
             <tbody>
             <tr>
                 <th>Item Details</th>
                 <td>
-                    <p>The main metadata for this item.</p>
+                    <p>View the core metadata for the item on the current page.</p>
                 </td>
             </tr>
             <tr>
                 <th>Comparisons</th>
                 <td>
-                    <p>List of registered historic and modern image pairs.</p>
+                    <p>View comparisons registered historic and modern image pairs.</p>
                 </td>
             </tr>
             <tr>
                 <th>Metadata</th>
                 <td>
-                    <p>Attached metadata: e.g. participants, glass plate slides, historic map metadata.</p>
+                    <p>View attached metadata: e.g. visit participants, glass plate slides, or historic map metadata.</p>
                 </td>
             </tr>
             <tr>
                 <th>Files</th>
                 <td>
-                    <p>Attached metadata files: e.g. supplementary images, field note scans.</p>
+                    <p>View attached metadata files: e.g. supplementary images or field note scans.</p>
                 </td>
             </tr>
             <tr>
                 <th>Captures</th>
                 <td>
-                    <p>List of attached historic or modern repeat captures. Historic captures are sorted if attached to
-                        historic visits; modern captures are sorted if attached to locations.</p>
+                    <p>View the attached historic or modern repeat captures for a station. Historic Captures are
+                        sorted if attached to Historic Visits; Modern Captures are sorted if attached to locations.
+                        Navigate to <Button icon={'help'} label={'Captures'} onClick={() => {gotoPage(0, 2)}} /> for details.</p>
                 </td>
             </tr>
             </tbody>
@@ -148,31 +127,33 @@ const explorerHelp = (gotoPage) => {
 
     const modelExplorerHelp = <>
 
-        <h4>MLP Data Model</h4>
+        <h4>How Explorer is Organized</h4>
 
-        <h5>Model Hierarchy</h5>
+        <h5>MLP Data Model</h5>
+
+        <p>A data model for metadata provides a conceptual representation of the structure, relationships,
+            and attributes of metadata within a given context or domain. It defines how
+            metadata is organized, stored, and managed.</p>
 
         <p>
-            The MLP Library consists of thousands of captures and historic captures, and tens of thousands of associated
-            images. To organize this data set, an hierarchical schema has been developed to organize images by
-            surveyors, surveys, survey seasons, stations, visits, and locations.
-            An example of this hierarchy can be seen in <b>Figure 1</b> below. A comparatively small number of
-            of captures taken by MLP do not neatly fit into the surveyor model, and are instead grouped
-            according to projects.
+            To organize the MLP collection with its thousands of historic and repeat images, as well as its extensive
+            database of metadata, a data model has been developed that organizes images by surveyors, surveys,
+            survey seasons, stations, visits, and locations. As well, a alternative schema grouped around 'Projects' is
+            provided for captures taken by MLP field researchers that do not neatly fit into the surveyor model. </p>
+        <p>Each data item in this model is referred to as a <b>node</b> where each node represents a data object of
+            core metadata that has both attributes and relationships with other nodes. The relationships are also nested,
+            and nodes in the data model frequently contain other nodes. Surveyors have multiple Surveys, Surveys have multiple
+            Survey Seasons, Survey Seasons Station each contain an Historic Visit and multiple Modern Visits, and so on.
+            This nested hierarchical model is illustrated in <b>Figure 1</b>. A full list of nodes is shown below.
         </p>
-
-        <p>Each element in the hierarchy is defined as a <b>node</b>, and represents a data object of core metadata
-            that has both attributes and hierarchical relationships with other nodes. Nodes in the collection data model
-            can serve as containers for other nodes, or as terminal nodes. For example, a Station node is a
-            container for Visit nodes.</p>
 
         <Image
             url={dataModel}
-            caption={`Figure 1. The data object hierarchy. Example nodes are shown in the tree, while hierarchy 
+            caption={`Figure 1. Illustration of MLP data model. Example nodes are shown in the tree, while hierarchy 
             levels are defined to the left.`}
         />
 
-        <h5>Model Elements (Nodes)</h5>
+        <h5>Model Elements or Nodes</h5>
 
         <table className={'help'}>
             <tbody>
@@ -180,10 +161,12 @@ const explorerHelp = (gotoPage) => {
                 <th><Icon type={'projects'} /></th>
                 <th>Projects</th>
                 <td>
-                    <p>A project is a container for stations that do not fit into the surveyor model listed below. The
-                        Alberta Fire Lookout Towers, is an example, where Each lookout tower contains a set of historic
-                        photographs
-                        from that tower -- not associated with a survey -- which have been repeated.</p>
+                    <p>
+                        A project is a container for Stations that do not fit into the surveyor model listed below.
+                        The <a href={'https://explore.mountainlegacy.ca/projects/show/1'} target={'_blank'}>Alberta
+                            Fire Lookout Towers</a> project, for example, is organized by lookout tower, rather than
+                        survey, where each tower listing contain a set of historic photographs that have been repeated.
+                    </p>
                 </td>
             </tr>
             <tr>
@@ -197,17 +180,15 @@ const explorerHelp = (gotoPage) => {
                 <th><Icon type={'surveys'} /></th>
                 <th>Surveys</th>
                 <td>
-                    <p>A specific survey completed under a surveyor. A survey covers a large geographical region, and
-                        may span
-                        several years. Surveys by different surveyors may overlap in the regions they covered.</p>
+                    <p>A specific survey completed by a surveyor. A survey covers a large geographical region, and
+                        may span several years. Surveys by different surveyors may overlap in the regions they covered.</p>
                 </td>
             </tr>
             <tr>
                 <th><Icon type={'survey_seasons'} /></th>
                 <th>Survey Seasons</th>
                 <td>
-                    <p>A survey season is a container for all the stations completed in a certain year for a specific
-                        survey.</p>
+                    <p>A Survey Season includes all the Stations completed in a certain year for a specific survey.</p>
                 </td>
             </tr>
             <tr>
@@ -218,60 +199,52 @@ const explorerHelp = (gotoPage) => {
                         point in the
                         landscape where photographs were required to be taken. Upon arrival to that location, several
                         photographs
-                        would be taken, usually in as many directions as possible. In many circumstances, the camera
+                        would be taken, usually in as many directions as possible. In many cases, the camera
                         would have to be
-                        moved around in order gain the best vantage point for a particular cardinal direction. Thus,
-                        there were many sub
-                        locations within the general location of the station. Therefore, a station can be loosely
-                        defined as a broad
-                        geographic location where the distance between sub locations is within a reasonable walking
-                        distance. This
-                        is intentionally loosely defined, since the distinction between station and location has
-                        occasionally
-                        differed between different surveyors (MLP always groups the images into stations defined by the
-                        surveyor, if
-                        known).</p>
+                        moved around to find the best vantage point for a particular cardinal direction. Thus,
+                        there were many 'sub locations' within the general location of the Station. A Station is
+                        therefore loosely defined by a geographic location where the distance between
+                        sub locations is within a reasonable walking distance. This loose distinction
+                        between Station and location has occasionally differed between different surveyors
+                        (MLP always groups the images into Stations defined by the Surveyor, if known).</p>
                 </td>
             </tr>
             <tr>
                 <th><Icon type={'historic_visits'} /></th>
                 <th>Historic Visits</th>
                 <td>
-                    <p>A historic visit refers to the first visit to a station by a particular surveyor. It can be
-                        thought of as a container for historic captures. A station can have only one historic visit.</p>
+                    <p>A Historic Visit refers to the first visit to a Station by a particular surveyor. It can be
+                        thought of as a container for Historic Captures. A Station can have only one Historic Visit.</p>
                 </td>
             </tr>
             <tr>
                 <th><Icon type={'modern_visits'} /></th>
                 <th>Modern Visits</th>
                 <td>
-                    <p>A visit refers to a visit to the station with the specific purpose of repeating the historic
-                        captures from
-                        the historic visit. A visit is uniquely identified by the date at which it occurred. Multiple
-                        visits may occur
-                        for each station. The visit object is a container for all information related to that specific
-                        visit, such as
-                        field note data, captures, location images, and locations.</p>
+                    <p>A Modern Visit refers to a visit to the Station with the specific purpose of repeating the
+                        Historic Captures from the Historic Visit. A visit is uniquely identified by the visit date.
+                        Stations may have multiple visits, where each visit may have associated
+                        field note data, Modern Captures, locations, and location images.</p>
                 </td>
             </tr>
             <tr>
                 <th><Icon type={'locations'} /></th>
                 <th>Locations</th>
                 <td>
-                    <p>Where a station is a somewhat broad geographical location, a location (as an object in MEAT) is a
-                        sub
-                        location of the station. It is a specific place where a capture was taken. </p>
+                    <p>Though a Station is a somewhat geographical coordinate, a 'Location' is a clearly defined
+                        location proximate to its Station location, and a specific place where a modern
+                        capture was taken. </p>
                 </td>
             </tr>
             <tr>
                 <th><Icon type={'historic_captures'} /></th>
                 <th>Historic Captures</th>
-                <td>Contain multiple historic survey images and are typically added under Historic Visits.</td>
+                <td>Historic Captures include multiple historic survey images and are typically added under Historic Visits.</td>
             </tr>
             <tr>
                 <th><Icon type={'modern_captures'} /></th>
                 <th>Modern Captures</th>
-                <td>Contain multiple modern repeat images and are typically added under Modern Visits > Locations.</td>
+                <td>Modern Captures include multiple modern repeat images and are typically added under Modern Visits > Locations.</td>
             </tr>
             </tbody>
         </table>
@@ -286,7 +259,7 @@ const explorerHelp = (gotoPage) => {
                 <th><Icon type={'participant_groups'} /></th>
                 <th>Participants</th>
                 <td>
-                    <p>Participants in visiting groups can be attached to modern visits. There are three types of
+                    <p>Participants in visiting groups can be attached to Modern Visits. There are three types of
                         participant groups:</p>
                     <ol className={'list'}>
                         <li>Hiking Parties</li>
@@ -313,14 +286,14 @@ const explorerHelp = (gotoPage) => {
                 <th><Icon type={'historic_captures'} /></th>
                 <th>Cameras</th>
                 <td>
-                    <p>Camera details can be attached to historic and modern captures.</p>
+                    <p>Camera details can be attached to historic and Modern Captures.</p>
                 </td>
             </tr>
             <tr>
                 <th><Icon type={'historic_captures'} /></th>
                 <th>Lenses</th>
                 <td>
-                    <p>Lens details can be attached to historic and modern captures.</p>
+                    <p>Lens details can be attached to historic and Modern Captures.</p>
                 </td>
             </tr>
             </tbody>
@@ -356,7 +329,7 @@ const explorerHelp = (gotoPage) => {
                 <td>
                     <p>Field notes are often recorded at each visit in a field note book or field note form, then digitized using a
                         scanner. While these field notes will be transcribed and stored in the database via the visit object, the
-                        scanned copies are kept for historical reference. Field note files are associated with modern visits.</p>
+                        scanned copies are kept for historical reference. Field note files are associated with Modern Visits.</p>
                 </td>
             </tr>
             </tbody>
@@ -368,9 +341,9 @@ const explorerHelp = (gotoPage) => {
      */
 
     const captureExplorerHelp = <>
-        <h4>Historic and Modern Captures</h4>
+        <h4>What is a Capture?</h4>
 
-        <h5>What is a capture?</h5>
+        <h5>Historic and Modern Captures</h5>
         <p>
             The core artifact of the MLP collection is the capture, which corresponds to a landscape view
             that is unique in location, azimuth, date, and time. For example, given a tripod setup, with the
@@ -380,7 +353,7 @@ const explorerHelp = (gotoPage) => {
         </p>
         <p>The collection has two types of captures:</p>
         <ol>
-            <li><b>Historic Capture</b> A historic capture may be associated with information related to
+            <li><b>Historic Capture</b> A Historic Capture may be associated with information related to
                 where its glass plate negative is located.
             </li>
             <li><b>Modern (Repeat) Capture</b> The exposure settings of a capture are generally known.</li>
@@ -446,10 +419,10 @@ const explorerHelp = (gotoPage) => {
      */
 
     const navigatorExplorerHelp = <>
-        <h4>Using the Navigator</h4>
+        <h4>Navigating the Collection</h4>
         <p>
-            Use the navigator (located on the left-side panel) to search, filter and open up the vast MLP photographic library and
-            database. Click on the <Icon type={'expand'} /> icon to open or close the submenus.
+            Use the navigator (located on the left-side panel) to search, filter and open up the vast
+            MLP photographic library and database. Click on the <Icon type={'expand'} /> icon to open or close the submenus.
             Selecting or searching clickable items in the navigator loads
             metadata in the <b>Viewer</b> pane on the right.
         </p>
@@ -462,10 +435,10 @@ const explorerHelp = (gotoPage) => {
                 <th><Icon type={'map'} /></th>
                 <th>Map</th>
                 <td>
-                    <p>The map navigator marks the geographical locations of survey stations on
+                    <p>The map navigator marks the geographical locations of survey Stations on
                         a geographical map. Multiple Stations are clustered in markers that
                         show the cluster size.</p>
-                    <p>Click on the marker to view the list of stations in the
+                    <p>Click on the marker to view the list of Stations in the
                         cluster. Double click on the marker to also zoom and center the map on the cluster.</p>
                     <p>Pan by dragging the map; zoom by double clicking the map area, or use the zoom controls at top
                         left. You can also view different layers by clicking the layers icon at top right.</p>
@@ -478,7 +451,7 @@ const explorerHelp = (gotoPage) => {
                     <p>The list (or "hierarchical") navigator organizes the data by historical surveyor and
                         associated survey data.</p>
                     <p>Click on the menu labels to load data for an item in the viewer panel.</p>
-                    <p>Note that each historic and modern capture is labelled using its field note photo reference
+                    <p>Note that each historic and Modern Capture is labelled using its field note photo reference
                         identifier. When this identifier is empty, the filename of one of its captures images is used. </p>
                 </td>
             </tr>
@@ -494,7 +467,7 @@ const explorerHelp = (gotoPage) => {
                 <th><Icon type={'filter'} /></th>
                 <th>Filter</th>
                 <td>
-                    <p>Filter the map station markers by surveyor, survey, survey season and station
+                    <p>Filter the map Station markers by surveyor, survey, survey season and Station
                         status (see "Station/Capture Status" below).</p>
                 </td>
             </tr>
@@ -536,7 +509,7 @@ const explorerHelp = (gotoPage) => {
             </thead>
             <tbody>
             <tr>
-                <th className={'mastered'}><Icon type={'stations'} /></th>
+                <th className={'mastered'}><Icon type={'Stations'} /></th>
                 <th>
                     <p>Mastered Station</p>
                 </th>
@@ -545,7 +518,7 @@ const explorerHelp = (gotoPage) => {
                 </td>
             </tr>
             <tr>
-                <th className={'partial'}><Icon type={'stations'} /></th>
+                <th className={'partial'}><Icon type={'Stations'} /></th>
                 <th>
                     <p>Partially Mastered Station</p>
                 </th>
@@ -555,33 +528,33 @@ const explorerHelp = (gotoPage) => {
                 </td>
             </tr>
             <tr>
-                <th className={'repeated'}><Icon type={'stations'} /></th>
+                <th className={'repeated'}><Icon type={'Stations'} /></th>
                 <th>
                     <p>Repeated Station</p>
                 </th>
                 <td>
                     <p>Station contains repeat captures, but at least one of these captures need to be mastered
-                        with its historic capture counterpart.</p>
+                        with its Historic Capture counterpart.</p>
                 </td>
             </tr>
             <tr>
-                <th className={'located'}><Icon type={'stations'} /></th>
+                <th className={'located'}><Icon type={'Stations'} /></th>
                 <th>
                     <p>Located Station</p>
                 </th>
                 <td>
-                    <p>Station contains grouped historic captures and the location of the station has been estimated.
-                        Historic captures have not been repeated.</p>
+                    <p>Station contains grouped Historic Captures and the location of the Station has been estimated.
+                        Historic Captures have not been repeated.</p>
                 </td>
             </tr>
             <tr>
-                <th className={'grouped'}><Icon type={'stations'} /></th>
+                <th className={'grouped'}><Icon type={'Stations'} /></th>
                 <th>
                     <p>Grouped Station</p>
                 </th>
                 <td>
-                    <p>Station contains historic captures that have been grouped together as a single
-                        historic station, but the location of this station as not been estimated.</p>
+                    <p>Station contains Historic Captures that have been grouped together as a single
+                        historic Station, but the location of this Station as not been estimated.</p>
                 </td>
             </tr>
             </tbody>
@@ -603,7 +576,7 @@ const explorerHelp = (gotoPage) => {
                     <p>Mastered Capture</p>
                 </th>
                 <td>
-                    <p>Capture is sorted and has at least one image mastered with an historic/modern capture image.</p>
+                    <p>Capture is sorted and has at least one image mastered with an historic/Modern Capture image.</p>
                 </td>
             </tr>
             <tr>
@@ -622,7 +595,7 @@ const explorerHelp = (gotoPage) => {
                     <p>Repeated Capture</p>
                 </th>
                 <td>
-                    <p>Capture is sorted and has at least one image paired with an historic/modern capture image.</p>
+                    <p>Capture is sorted and has at least one image paired with an historic/Modern Capture image.</p>
                 </td>
             </tr>
             <tr>
@@ -631,8 +604,8 @@ const explorerHelp = (gotoPage) => {
                     <p>Sorted Capture</p>
                 </th>
                 <td>
-                    <p>Capture is attached to either an: (1) historic visit for historic captures, or (2)
-                    location for modern captures, but is not mastered.</p>
+                    <p>Capture is attached to either an: (1) Historic Visit for Historic Captures, or (2)
+                    location for Modern Captures, but is not mastered.</p>
                 </td>
             </tr>
             <tr>
@@ -641,8 +614,8 @@ const explorerHelp = (gotoPage) => {
                     <p>Unsorted Capture</p>
                 </th>
                 <td>
-                    <p>Capture is <b>not</b> attached to either an: (1) historic visit for historic captures, or (2)
-                        location for modern captures.</p>
+                    <p>Capture is <b>not</b> attached to either an: (1) Historic Visit for Historic Captures, or (2)
+                        location for Modern Captures.</p>
                 </td>
             </tr>
             <tr>
@@ -665,20 +638,20 @@ const explorerHelp = (gotoPage) => {
             data: explorerHelp,
         },
         {
-            label: 'Viewer',
-            data: viewerExplorerHelp,
-        },
-        {
-            label: 'Navigator',
-            data: navigatorExplorerHelp,
-        },
-        {
-            label: 'MLP Model',
+            label: 'How Explorer is Organized',
             data: modelExplorerHelp,
         },
         {
-            label: 'Capture Images',
+            label: 'Understanding Captures',
             data: captureExplorerHelp,
+        },
+        {
+            label: 'Navigating the Collection',
+            data: navigatorExplorerHelp,
+        },
+        {
+            label: 'Exploring the View',
+            data: viewerExplorerHelp,
         },
     ];
 }

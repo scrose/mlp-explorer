@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Common.Button
+ * MLE.Client.Components.Common.Button
  * File: footer.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

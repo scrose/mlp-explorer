@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Common.Logo
+ * MLE.Client.Components.Common.Logo
  * File: logo.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

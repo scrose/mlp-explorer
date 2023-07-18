@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Editors.Files
+ * MLE.Client.Components.Editors.Files
  * File: files.editor.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

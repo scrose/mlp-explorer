@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Providers.Data
+ * MLE.Client.Providers.Data
  * File: data.provider.client.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -128,7 +128,8 @@ function DataProvider(props) {
                 if (!res) return null;
                 const {response = {}} = res || {};
 
-                console.log('\n<<< Response >>>\n', res)
+                // DEBUG
+                // console.log('\n<<< Response >>>\n', res)
 
                 // destructure API data for settings
                 const {
@@ -168,8 +169,10 @@ function DataProvider(props) {
         router.get(`/${type}`)
             .then(res => {
                 if (!res) return null;
-                
-                console.log('\n<<< Options >>>\n', res);
+
+                // DEBUG
+                console.log('Load Global Options');
+                // console.log('\n<<< Options >>>\n', res);
 
                 if (res.error) return setError(res.error);
                 // destructure API data for options

@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Views.Visitor
+ * MLE.Client.Components.Views.Visitor
  * File: visitor.view.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Editors.Dependents
+ * MLE.Client.Components.Editors.Dependents
  * File: dependents.editor.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Common.Table
+ * MLE.Client.Components.Common.Table
  * File: editor.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

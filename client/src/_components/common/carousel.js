@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Common.Carousel
+ * MLE.Client.Components.Common.Carousel
  * File: carousel.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

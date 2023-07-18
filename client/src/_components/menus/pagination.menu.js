@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Menus.Pagination
+ * MLE.Client.Components.Menus.Pagination
  * File: pagination.menu.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

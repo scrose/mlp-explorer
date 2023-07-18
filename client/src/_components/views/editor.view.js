@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Views.Editor
+ * MLE.Client.Components.Views.Editor
  * File: editor.view.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

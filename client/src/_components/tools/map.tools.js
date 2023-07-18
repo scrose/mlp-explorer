@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Tools.Map
+ * MLE.Client.Components.Tools.Map
  * File: selector.tools.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Common.Icon
+ * MLE.Client.Components.Common.Icon
  * File: icon.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -24,6 +24,9 @@ import {
     faCalendarDay,
     faCameraRetro,
     faCaretRight,
+    faCaretLeft,
+    faCaretUp,
+    faCaretDown,
     faCheckCircle,
     faChevronCircleDown,
     faChevronCircleLeft,
@@ -192,6 +195,9 @@ library.add(
     faMapMarkedAlt,
     faListAlt,
     faCaretRight,
+    faCaretLeft,
+    faCaretUp,
+    faCaretDown,
     faEllipsisV,
     faPlusCircle,
     faMinusCircle,
@@ -295,6 +301,9 @@ const getIconClass = (iconType) => {
         tree: 'list-alt',
         close: 'times-circle',
         right: 'caret-right',
+        left: 'caret-left',
+        up: 'caret-up',
+        down: 'caret-down',
         tools: 'ellipsis-v',
         options: 'ellipsis-v',
         settings: 'cog',

@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Menus.Banner
+ * MLE.Client.Components.Menus.Banner
  * File: banner.menu.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

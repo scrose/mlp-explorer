@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Tools.Pagination
+ * MLE.Client.Components.Tools.Pagination
  * File: paginate.tools.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

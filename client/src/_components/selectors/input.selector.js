@@ -1,9 +1,18 @@
 /*!
- * MLP.Client.Components.Selectors.Input
+ * MLE.Client.Components.Selectors.Input
  * File: input.selector.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * Selects form input component.
+ *
+ * ---------
+ * Revisions
+
  */
 
 import React from 'react';
@@ -28,21 +37,19 @@ const noop = () => {
  * Form input component.
  *
  * <input type="hidden">
- * <input type="button">
- * <input type="checkbox">
- * <input type="date">
- * <input type="email">
- * <input type="file" [multiple]>
- * <input type="image">
- * <input type="month">
- * <input type="number">
- * <input type="password">
- * <input type="radio">
- * <input type="text">
- * <input type="range">
+ * <input type="text"> [normal | small]
  * <textarea>
- * <input type="url">
- * <select>
+ * <input type="checkbox">
+ * <input type="number"> [int | float]
+ * <DateTimeSelector> [year | date | datetime | time]
+ * <input type="email">
+ * <input type="password">
+ * <select> [select | multiselect]
+ * <input type="file"> [single | multiple]
+ * <input type="range">
+ * <dependentsEditor
+ * <attachedMetadataEditor>
+ * <comparisonEditor>
  */
 
 export const InputSelector = ({

@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Selectors.Static
+ * MLE.Client.Components.Selectors.Static
  * File: static.selector.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -14,7 +14,7 @@ import ServerError from '../error/server.error';
 import Loading from '../common/loading';
 import Image from '../common/image';
 import { useRouter } from '../../_providers/router.provider.client';
-import Iat from "../iat/iat";
+import Iat from "../toolkit/toolkit";
 import AdminView from "../views/admin.view";
 
 /**

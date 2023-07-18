@@ -1,7 +1,7 @@
 /*!
- * MLP.Client.Provider.App
+ * MLE.Client.Provider.App
  * File: app.provider.client.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
  */
@@ -13,7 +13,7 @@ import { UserProvider } from './user.provider.client';
 import { DataProvider } from './data.provider.client';
 import { NavProvider } from "./nav.provider.client";
 import { DialogProvider } from "./dialog.provider.client";
-import { IatProvider } from "./iat.provider.client";
+import { IatProvider } from "./toolkit.provider.client";
 import {getStaticView} from "../_services/schema.services.client";
 import {filterPath} from "../_utils/paths.utils.client";
 

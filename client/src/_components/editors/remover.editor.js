@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Editors.Remover
+ * MLE.Client.Components.Editors.Remover
  * File: remover.editor.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

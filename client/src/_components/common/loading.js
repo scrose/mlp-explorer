@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Common.Loading
+ * MLE.Client.Components.Common.Loading
  * File: loading.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

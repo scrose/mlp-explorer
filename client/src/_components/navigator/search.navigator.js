@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Navigator.Search
+ * MLE.Client.Components.Navigator.Search
  * File: search.navigator.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

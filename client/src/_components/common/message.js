@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Common.Message
+ * MLE.Client.Components.Common.Message
  * File: message.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -114,6 +114,14 @@ export const UserMessage = ({
     React.useEffect(() => {
         if (scrollTo && container.current) container.current.scrollIntoView();
     }, [container, scrollTo]);
+
+    /**
+     * Load initial input image data (if in query parameters)
+     */
+
+    React.useEffect(() => {
+        setToggle(true);
+    }, [message]);
 
     return toggle && !!msg && !!type &&
         <div ref={container} className={`msg ${type} ${className}`}>

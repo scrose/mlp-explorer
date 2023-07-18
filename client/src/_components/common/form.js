@@ -1,9 +1,25 @@
 /*!
- * MLP.Client.Components.Common.Form
+ * MLE.Client.Components.Common.Form
  * File: form.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * General form component configured to include fieldsets defined in the
+ * base schema (schema.js) and must correspond to fields defined in the
+ * initialization data (init).
+ *
+ * A callback is required to handle the data submission.
+ * Note about Form ID: do not use the FormID as a constantly changing key
+ * - see: https://stackoverflow.com/a/59287017
+ *
+ * ---------
+ * Revisions
+ *
+ *
  */
 
 import React from 'react';
@@ -23,13 +39,6 @@ const defaultError = {msg: getError(), type: 'error'};
 /**
  * Defines general form component.
  *
- * General form component configured to include fieldsets defined in the
- * base schema (schema.js) and must correspond to fields defined in the
- * initialization data (init).
- *
- * A callback is required to handle the data submission.
- * Note about Form ID: do not use the FormID as a constantly changing key
- * - see: https://stackoverflow.com/a/59287017
  *
  * @public
  * @param {String} model

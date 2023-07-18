@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Error.Unavailable
+ * MLE.Client.Components.Error.Unavailable
  * File: unavailable.error.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

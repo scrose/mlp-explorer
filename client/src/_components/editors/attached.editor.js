@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Editors.Attached
+ * MLE.Client.Components.Editors.Attached
  * File: attached.editor.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

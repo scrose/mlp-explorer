@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Selectors.File
+ * MLE.Client.Components.Selectors.File
  * File: file.selector.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

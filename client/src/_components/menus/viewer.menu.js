@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Menus.Viewer
+ * MLE.Client.Components.Menus.Viewer
  * File: viewer.menu.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -165,8 +165,8 @@ const ViewerPanelMenu = () => {
                         label={nav.offCanvas ? '' : 'Toolkit'}
                         title={`Image Analysis Toolkit`}
                         onClick={() => {
-                            // redirect to IAT in viewer/editor
-                            redirect('/iat');
+                            // redirect to MLE Toolkit in viewer/editor
+                            redirect('/toolkit');
                         }}
                     />
                 </li>

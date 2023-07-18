@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Common.Download
+ * MLE.Client.Components.Common.Download
  * File: download.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

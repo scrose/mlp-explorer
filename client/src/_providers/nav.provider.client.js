@@ -1,9 +1,15 @@
 /*!
- * MLP.Client.Providers.Navigation
+ * MLE.Client.Providers.Navigation
  * File: nav.provider.client.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * Description
+ * Navigation provider is a React Context used to store and share data for the navigator.
+ *
+ * Revisions
+ *
  */
 
 import * as React from 'react'
@@ -139,7 +145,8 @@ function NavProvider(props) {
                         const { data = {} } = response || {};
                         const { nodes={} } = data || {};
 
-                        console.log('\n<<< Nav [Map] >>>\n', res)
+                        // DEBUG
+                        // console.log('\n<<< Nav [Map] >>>\n', res)
 
                         // check if response data is empty (set error flag if true)
                         if ( Object.keys(nodes).length === 0 ) {
@@ -174,6 +181,7 @@ function NavProvider(props) {
                         // destructure map data
                         if (res.error) return setError(res.error);
 
+                        // DEBUG
                         // console.log('\n<<< Nav [KML] >>>\n', res)
 
                         // load node data to provider
@@ -208,13 +216,12 @@ function NavProvider(props) {
                 scrollToView: scrollToView,
                 scroll: _handleScroll,
                 toggle: navToggle,
+                setToggle: setNavToggle,
                 resize: resize,
-                setResize: setResize,
-                setToggle: setNavToggle
+                setResize: setResize
             }
         } {...props} />
     )
-
 }
 
 const useNav = () => React.useContext(NavContext);

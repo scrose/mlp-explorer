@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Views.Dashboard
+ * MLE.Client.Components.Views.Dashboard
  * File: dashboard.view.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

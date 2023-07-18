@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Content.Help.Editor
+ * MLE.Client.Content.Help.Editor
  * File: editor.help.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -23,7 +23,7 @@ import Icon from '../common/icon';
 const explorerHelp = (gotoPage) => {
 
     const editorStartHelp = <>
-        <h4>Getting Started</h4>
+        <h4>Editor: Getting Started</h4>
         <p>
             Accessible to <em>Authenticated Users</em>, the Mountain Legacy Explorer (MLE) Editor
             can be used to manage the digital assets and metadata of the MLP collection. Through the Editor, users can

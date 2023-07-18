@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Services.Schema
+ * MLE.Client.Services.Schema
  * File: schema.services.client.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
