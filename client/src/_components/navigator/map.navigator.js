@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Navigator.Map
+ * MLE.Client.Components.Navigator.Map
  * File: map.navigator.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -382,7 +382,7 @@ function MapNavigator({ filter, hidden }) {
             //     mapObj.current.addLayer(track);
             // }
 
-            // add layers to leaflet controls
+            // add layers to leaflet tools
             L.control.layers(baseLayers).addTo(mapObj.current);
             L.control.scale().addTo(mapObj.current);
 

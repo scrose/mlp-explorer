@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Views.Files
+ * MLE.Client.Components.Views.Files
  * File: files.view.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Common.Dialog
+ * MLE.Client.Components.Common.Dialog
  * File: dialog.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

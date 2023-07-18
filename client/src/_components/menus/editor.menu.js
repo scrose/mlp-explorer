@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Menus.Nodes
+ * MLE.Client.Components.Menus.Nodes
  * File: node.menu.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Navigator.Filter
+ * MLE.Client.Components.Navigator.Filter
  * File: filter.navigator.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -72,7 +72,7 @@ function FilterNavigator() {
     const filteredSurveys = filterOptions(surveys, surveyorID);
     const filteredSurveySeasons = filterOptions(survey_seasons, surveyID);
 
-    // data loaders
+    // data utils
     const _loader = async () => {return filterData}
 
     return <Form

@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Error.Server
+ * MLE.Client.Components.Error.Server
  * File: server.error.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

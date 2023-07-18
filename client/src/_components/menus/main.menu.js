@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Menus.Main
+ * MLE.Client.Components.Menus.Main
  * File: main.menu.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -17,7 +17,7 @@ const MenuItems = () => {
     return <ul>
         <li><a href={rootURL}>Dashboard</a></li>
         <li><a rel={"noreferrer"} target={'_blank'} href={getInfo().mlp_url}>MLP Website</a></li>
-        <li><a href={'/iat'}>Image Toolkit</a></li>
+        <li><a href={'/toolkit'}>Image Toolkit</a></li>
         <li><a href={"mailto:mntnlgcy@uvic.ca"}>Contact</a></li>
     </ul>
 }

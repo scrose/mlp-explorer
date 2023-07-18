@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Common.Slider
+ * MLE.Client.Components.Common.Slider
  * File: slider.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -10,7 +10,7 @@ import React from 'react';
 import { schema } from '../../schema';
 import Loading from './loading';
 import { UserMessage } from './message';
-import { scaleToFit } from '../iat/controls/transform.iat';
+import { scaleToFit } from '../toolkit/tools/scaler.toolkit';
 import Button from './button';
 
 /**
@@ -51,7 +51,7 @@ const Slider = ({ images = [], canvasWidth = 600, canvasHeight = 500 }) => {
     const img1Ref = React.useRef();
     const img2Ref = React.useRef();
 
-    // slider DOM reference: element controls display of overlay
+    // slider DOM reference: element tools display of overlay
     const sliderRef = React.useRef();
 
     // Image labels

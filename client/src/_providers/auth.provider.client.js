@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Providers.Authenticate
+ * MLE.Client.Providers.Authenticate
  * File: auth.providers.client.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

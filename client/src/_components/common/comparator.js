@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Common.Comparator
+ * MLE.Client.Components.Common.Comparator
  * File: comparator.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Views.Metadata
+ * MLE.Client.Components.Views.Metadata
  * File: metadata.view.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

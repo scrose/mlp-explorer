@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Selectors.Dialog
+ * MLE.Client.Components.Selectors.Dialog
  * File: dialog.selector.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -24,7 +24,7 @@ import Button from "../common/button";
 import {useDialog} from "../../_providers/dialog.provider.client";
 import {useData} from "../../_providers/data.provider.client";
 import {useNav} from "../../_providers/nav.provider.client";
-import {SelectorIat} from "../iat/loaders/selector.iat";
+import {LoaderTool} from "../toolkit/tools/loader.toolkit";
 import Accordion from "../common/accordion";
 
 /**
@@ -199,7 +199,7 @@ const DialogSelector = () => {
                 <Accordion label={`MLP Container Source/Target: ${label || 'unknown'}`} type={model} open={false}>
                     <MetadataView owner={owner} model={model} metadata={metadata} />
                 </Accordion>
-                <SelectorIat
+                <LoaderTool
                     id={id}
                     model={model}
                     callback={_handleDialogClose}

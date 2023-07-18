@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.CSS
+ * MLE.Client.CSS
  * File: index.css
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -203,7 +203,7 @@ Vertical Menu Styles
     opacity: 1 !important;
 }
 .v-menu.dropdown ul {
-    width: 250px;
+    width: 350px;
     border-radius: 10px;
     background-color: #2ea591 !important;
     color: #EEEEEE !important;
@@ -2213,6 +2213,14 @@ Messages
     background: #222222;
     color: #EEEEEE;
 }
+.dialog.confirm .content-box {
+    text-align: center;
+    height: 20vh;
+    left: 30%;
+    right: 30%;
+    top: 40%;
+    bottom: 40%;
+}
 .dialog.wide .content-box {
     height: 100%;
     left: 0;
@@ -2258,6 +2266,9 @@ Messages
     text-align: inherit;
     overflow: auto;
     background-color: inherit;
+}
+.dialog.confirm .dialog-body {
+    height: auto;
 }
 .dialog.wide .dialog-body {
     height: auto;
@@ -2310,7 +2321,7 @@ Messages
 }
 
 /*
-Image Editor (Canvas)
+MLE Toolkit
 */
 
 canvas {
@@ -2340,7 +2351,7 @@ canvas {
 }
 
 /*
-Define Canvas Layers of Panel (IAT)
+Define Canvas Layers of Panel (MLE Toolkit)
 */
 
 .canvas-placeholder {
@@ -2353,13 +2364,13 @@ Define Canvas Layers of Panel (IAT)
 .canvas-placeholder button {
     z-index: 50;
     text-align: center;
-    background-color: #282c34;
+    background-color: #008896;
     color: #FFFFFF;
 }
-.canvas-layer-control-default {
-    cursor: default;
-    z-index: 88880;
-}
+/*.canvas-layer-control-default {*/
+/*    cursor: default;*/
+/*    z-index: 88880;*/
+/*}*/
 .canvas-layer-control-pan {
     cursor: move;
     z-index: 88880;
@@ -2398,6 +2409,7 @@ Define Canvas Layers of Panel (IAT)
 .canvas-board .msg, .canvas-message {
     left:0;
     right:0;
+    top: 20%;
     margin-left: auto;
     margin-right: auto;
     position: absolute;
@@ -2413,7 +2425,7 @@ Define Canvas Layers of Panel (IAT)
     display: none;
 }
 .canvas-menu-bar {
-    background-color: #444444;
+    background-color: #000000;
     color: #FFFFFF;
 }
 .canvas-menu-bar li {
@@ -2421,6 +2433,9 @@ Define Canvas Layers of Panel (IAT)
 }
 .canvas-option-controls {
     font-size: small;
+}
+.canvas-menu-bar button {
+    width: 100%;
 }
 .canvas-option-controls button, .canvas-menu-bar button {
     min-width: 30px;
@@ -2457,8 +2472,8 @@ Define Canvas Layers of Panel (IAT)
 }
 .canvas-view-info .accordion-data.open {
     margin: 10px 0 0 -5px;
-    width: 45%;
-    z-index: 99999;
+    width: 700px;
+    z-index: 99990;
     position: absolute;
     background-color: #282c34;
     opacity: 0.8;
@@ -2493,10 +2508,13 @@ button.canvas-status {
     background-color: transparent;
 }
 .canvas-view-controls {
-    background-color: transparent;
+    background-color: inherit;
     color: #FFFFFF !important;
     padding: 5px;
     font-size: small;
+}
+.canvas-view-controls fieldset {
+    background-color: inherit;
 }
 .canvas-view-controls ul {
     justify-content: space-evenly;

@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Schema
+ * MLE.Client.Schema
  * File: schema.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -28,9 +28,9 @@ export const schema = {
             name: 'dashboard',
             label: ''
         },
-        '/iat': {
+        '/toolkit': {
             name: 'imageToolkit',
-            label: 'Image Analysis Toolkit'
+            label: 'MLE Toolkit'
         },
         '/admin': {
             name: 'admin',

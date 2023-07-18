@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Editors.Captures
+ * MLE.Client.Components.Editors.Captures
  * File: captures.editor.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

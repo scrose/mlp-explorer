@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Providers.User
+ * MLE.Client.Providers.User
  * File: user.provider.client.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

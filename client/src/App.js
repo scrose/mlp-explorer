@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.App
+ * MLE.Client.App
  * File: App.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -24,7 +24,8 @@ import {useWindowSize} from "./_utils/events.utils.client";
 import DialogSelector from "./_components/selectors/dialog.selector";
 import Loading from "./_components/common/loading";
 import {useAuth} from "./_providers/auth.provider.client";
-import {useIat} from "./_providers/iat.provider.client";
+import {useIat} from "./_providers/toolkit.provider.client";
+import Tooltip from "./_components/common/tooltip";
 
 /**
  * Core client application component.
@@ -55,9 +56,6 @@ export default function App() {
     let slideInit = 0;
 
     // Addresses: Can't perform a React state update on unmounted component.
-    // This is a no-op, but it indicates a memory leak in your
-    // application. To fix, cancel all subscriptions and
-    // asynchronous tasks in a useEffect cleanup function.
     const _isMounted = React.useRef(false);
 
     // window dimensions
@@ -148,6 +146,7 @@ export default function App() {
         ? <div className={"page"}>
             { auth.processing && <Loading overlay={true} /> }
             <DialogSelector/>
+            <Tooltip />
             <BannerMenu/>
             <ViewerMenu/>
             <div

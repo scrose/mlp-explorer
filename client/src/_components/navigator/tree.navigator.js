@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Navigator.Tree
+ * MLE.Client.Components.Navigator.Tree
  * File: tree.navigator.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Editors.Mover
+ * MLE.Client.Components.Editors.Mover
  * File: mover.editor.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

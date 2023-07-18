@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Views.Help
+ * MLE.Client.Components.Views.Help
  * File: help.view.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
@@ -8,7 +8,7 @@
 
 import React from 'react';
 import explorerHelpContent from '../content/explorer.help';
-import iatHelpContent from '../content/iat.help';
+import iatHelpContent from '../content/toolkit.help';
 import editorHelpContent from '../content/editor.help';
 import Button from '../common/button';
 
@@ -45,6 +45,7 @@ const HelpTabs = ({
         <div className={`tab ${tabOrientation} ${className}`}>
             <ul>
                 <li className={`tab-menu ${menuOrientation}`}>
+                    <div>
                     <ul>
                         {
                             items.map((item, id) => {
@@ -64,6 +65,7 @@ const HelpTabs = ({
                             })
                         }
                     </ul>
+                    </div>
                 </li>
                 <li className={`tab-data ${orientation}`}>
                     {
@@ -136,7 +138,7 @@ const HelpView = ({ section = 0, page = 0 }) => {
             />,
         },
         {
-            label: 'Image Analysis Toolkit (IAT)',
+            label: 'MLE Toolkit',
             data: <HelpTabs
                 orientation={'vertical'}
                 items={iatHelp}

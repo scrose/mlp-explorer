@@ -1,9 +1,21 @@
 /*!
- * MLP.Client.Components.Common.Fieldset
+ * MLE.Client.Components.Common.Fieldset
  * File: fieldset.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * General fieldset component configured to include inputs defined in the
+ * base schema (schema.js) and must correspond to fields defined in the
+ * initialization data (init).
+ *
+ * ---------
+ * Revisions
+ *
+ *
  */
 
 import React from 'react'
@@ -13,6 +25,8 @@ import { useData } from '../../_providers/data.provider.client';
 import Accordion from "./accordion";
 
 /**
+ * Fieldset Component
+ *
  * Build form fieldset element with inputs. 'Fields' are defined
  * as HTML components containing input elements plus form validation
  * and labels.

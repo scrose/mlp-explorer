@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Tools.Downloader
+ * MLE.Client.Components.Tools.Downloader
  * File: download.tools.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Components.Views.Admin
+ * MLE.Client.Components.Views.Admin
  * File: admin.view.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0

@@ -1,5 +1,5 @@
 /*!
- * MLP.Client.Helpers.Events
+ * MLE.Client.Helpers.Events
  * File: events.utils.client.js
  * Copyright(c) 2022 Runtime Software Development Inc.
  * Version 2.0
