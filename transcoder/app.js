@@ -8,6 +8,8 @@ import express from 'express';
 import Queue from 'bull';
 import { transcode } from '../src/services/images.services.js';
 // import heapdump from 'heapdump';
+import dotenv from 'dotenv';
+dotenv.config();
 
 /**
  * Create Transcoder application.
@@ -24,8 +26,8 @@ const app = express();
  * Get port from environment and store in Express
  */
 
-const host = process.env.TRANSCODER_HOST;
-const port = process.env.TRANSCODER_PORT;
+const host = process.env.REDIS_HOST || '127.0.0.1';
+const port = process.env.REDIS_PORT || 6379;
 app.set('port', port);
 
 app.get('/', (req, res) => {
