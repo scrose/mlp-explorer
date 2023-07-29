@@ -26,7 +26,7 @@ const app = express();
  * Get port from environment and store in Express
  */
 
-const host = process.env.REDIS_HOST || '127.0.0.1';
+const host = process.env.REDIS_HOST || 'http://localhost';
 const port = process.env.REDIS_PORT || 6379;
 app.set('port', port);
 
