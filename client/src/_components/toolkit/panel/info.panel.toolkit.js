@@ -54,10 +54,10 @@ const PanelInfo = ({ panel }) => {
                 <table>
                     <tbody>
                     <tr>
-                        <th style={{textAlign: 'right'}}>Cursor:</th>
+                        <th style={{textAlign: 'right'}}>Canvas:</th>
                         <td style={{width:'100px', whiteSpace: 'nowrap'}}>
                             ({panel.pointer.x}, {panel.pointer.y})</td>
-                        <th style={{textAlign: 'right'}}>Actual:</th>
+                        <th style={{textAlign: 'right'}}>Image:</th>
                         <td style={{width:'100px', whiteSpace: 'nowrap'}}>
                             ({actual.x}, {actual.y})</td>
                         <th style={{textAlign: 'right'}}>File:</th>

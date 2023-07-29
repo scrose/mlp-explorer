@@ -175,7 +175,7 @@ export const DialogToolkit = () => {
                 <MetadataView
                     metadata={metadata}
                     model={panel.properties.file_type}
-                    owner={owner}
+                    node={owner}
                 />
             </Dialog>
         },

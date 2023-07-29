@@ -154,7 +154,7 @@ export const DependentsEditor = ({owner}) => {
                                                     type={type}
                                                     label={`${getModelLabel(type)} ${getModelLabel(type) !== label ? label : ''}`}
                                                     menu={<EditorMenu
-                                                        visible={['show', 'edit', 'remove']}
+                                                        visible={['edit', 'remove']}
                                                         model={type}
                                                         id={id}
                                                         owner={owner}

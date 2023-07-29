@@ -47,7 +47,7 @@ const Carousel = ({
     const user = useUser();
 
     // destructure item data
-    const { id='', model='', url={}, label='', metadata={} } = selectedImage || {};
+    const { id='', model='', url={}, label='', metadata={}, node={} } = selectedImage || {};
 
     // create view link for selected image
     const isCapture = model === 'historic_captures' || model === 'modern_captures';
@@ -131,6 +131,7 @@ const Carousel = ({
                                         dialog.setCurrent({
                                             dialogID: 'show',
                                             id: id,
+                                            node: node,
                                             model: model,
                                             label: label,
                                             metadata: metadata
@@ -160,6 +161,7 @@ const Carousel = ({
                                 const {
                                     id='',
                                     model='',
+                                    node={},
                                     metadata={},
                                     url = null,
                                     owner={},
@@ -194,6 +196,7 @@ const Carousel = ({
                                                 size={'sm'}
                                                 model={model}
                                                 id={id}
+                                                node={node}
                                                 owner={owner}
                                                 metadata={metadata}
                                                 visible={['show', 'edit', 'remove', isCapture ? '' : 'download']}

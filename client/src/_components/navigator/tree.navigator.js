@@ -36,6 +36,7 @@ const TreeNode = ({data}) => {
     const {
         type='',
         id='',
+        node={},
         label='',
         hasDependents=false,
         status='',
@@ -323,6 +324,7 @@ const TreeNode = ({data}) => {
                                 : <EditorMenu
                                     size={'sm'}
                                     id={id}
+                                    node={node}
                                     model={type}
                                     label={label}
                                     metadata={metadata}
@@ -335,6 +337,7 @@ const TreeNode = ({data}) => {
                         size={'lg'}
                         className={'right-aligned node-menu'}
                         id={id}
+                        node={node}
                         model={type}
                         label={label}
                         metadata={metadata}
@@ -410,6 +413,7 @@ const TreeNodeList = ({items}) => {
                             type: type,
                             id: id,
                             label: label,
+                            node: node,
                             order: getNodeOrder(type || '') || 0,
                             hasDependents: hasDependents,
                             status: status,

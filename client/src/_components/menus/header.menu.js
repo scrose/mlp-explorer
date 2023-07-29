@@ -91,6 +91,7 @@ const HeaderMenu = () => {
                             id={api.id}
                             label={headingText}
                             model={api.model}
+                            node={api.node}
                             metadata={itemMetadata}
                             owner={api.owner}
                             files={api.files}

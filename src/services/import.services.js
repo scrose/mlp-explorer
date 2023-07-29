@@ -216,6 +216,7 @@ export const onFile = (filePromises, metadata, onError, fieldname, file, filenam
 
 export function onField(fields, name, val, fieldnameTruncated, valTruncated) {
 
+    // process any stringified array input data indexed with '[<index>]' values
     if (name.indexOf('[') > -1) {
 
         // Parse any stringified arrays

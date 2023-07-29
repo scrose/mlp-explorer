@@ -1,8 +1,17 @@
 /*!
  * MLP.API.Controllers.Model
  * File: model.controller.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * Controller for MLP node model data processing.
+ *
+ * ---------
+ * Revisions
  */
 
 /**
@@ -19,7 +28,7 @@ import * as importer from '../services/import.services.js';
 import * as metaserve from '../services/metadata.services.js';
 import {humanize, sanitize} from '../lib/data.utils.js';
 import {isRelatable} from '../services/schema.services.js';
-import {getComparisonsByCapture, updateComparisons} from "../services/comparisons.services.js";
+import {updateComparisons} from "../services/comparisons.services.js";
 import {prepare} from '../lib/api.utils.js';
 
 /**

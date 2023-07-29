@@ -1,9 +1,18 @@
 /*!
  * MLE.Client.Components.Toolkit.Cropper
  * File: cropper.toolkit.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * Crop tool to crop images in Image Toolkit panels.
+ *
+ * ---------
+ * Revisions
+ * - 26-07-2023   Added pointer parameter to pass pointer hook.
  */
 
 import React from 'react';
@@ -17,16 +26,17 @@ import {useIat} from "../../../_providers/toolkit.provider.client";
  *
  * @param properties
  * @param callback
+ * @param update
  * @return
  */
 
-const CropTool = ({ id, callback, update }) => {
+const CropTool = ({ id, callback, update, ptr=null, props=null }) => {
 
     const iat = useIat();
 
     // render dimensions
-    const pointer = iat[id].pointer;
-    const properties = iat[id].properties;
+    const pointer = id ? iat[id].pointer : ptr;
+    const properties = id ? iat[id].properties : props;
     const _imgW = properties.image_dims.w;
     const _imgH = properties.image_dims.h;
 
@@ -159,7 +169,7 @@ const CropTool = ({ id, callback, update }) => {
                             disabled={isEmptyCropBox}
                             className={'success'}
                             icon={'crop'}
-                            label={`Crop`}
+                            label={`Apply`}
                             onClick={callback}
                         />
                     </li>

@@ -1,9 +1,18 @@
 /*!
- * MLE.Client.Components.Menus.Nodes
- * File: node.menu.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * MLE.Client.Components.Menus.Editor
+ * File: editor.menu.js
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * Editor menu component.
+ *
+ * ---------
+ * Revisions
+ * - 22-07-2023 Include core node data as parameter.
  */
 
 import React from 'react';
@@ -28,6 +37,7 @@ import {useDialog} from "../../_providers/dialog.provider.client";
  * @param {String} label
  * @param compact
  * @param {Object} owner
+ * @param node
  * @param {Object} metadata
  * @param attached
  * @param files
@@ -44,6 +54,7 @@ const EditorMenu = ({
                                label = '',
                                compact=true,
                                owner = null,
+                               node = null,
                                metadata = null,
                                attached={},
                                files={},
@@ -78,6 +89,7 @@ const EditorMenu = ({
             label: label,
             metadata: metadata,
             owner: owner,
+            node: node,
             files: files,
             attached: attached,
             callback: callback,

@@ -1,9 +1,18 @@
 /*!
  * MLE.Client.Components.Selectors.Dialog
  * File: dialog.selector.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * Dialog selector component. Integrates with dialog provider.
+ *
+ * ---------
+ * Revisions
+ * - 22-07-2023 Include basic node data to include create and last modified dates.
  */
 
 import React from 'react';
@@ -52,11 +61,13 @@ const DialogSelector = () => {
             file = {},
             files = {},
             owner = null,
+            node={},
             metadata = null,
             attached = {},
             callback = ()=>{}
         } = data || {};
 
+        // generate unique key for dialog
         const _key = `dialog_${dialogID}_${model}_${id}_${index}`;
 
         // get model label
@@ -109,6 +120,7 @@ const DialogSelector = () => {
             >
                 <MetadataView
                     model={model}
+                    node={node}
                     metadata={metadata}
                     file={file}
                     attached={attached}
@@ -197,7 +209,7 @@ const DialogSelector = () => {
             </Dialog>,
             iat: <Dialog key={_key} title={`Transfer Image to/from Image Toolkit`} callback={_handleDialogClose}>
                 <Accordion label={`MLP Container Source/Target: ${label || 'unknown'}`} type={model} open={false}>
-                    <MetadataView owner={owner} model={model} metadata={metadata} />
+                    <MetadataView node={owner} model={model} metadata={metadata} />
                 </Accordion>
                 <LoaderTool
                     id={id}

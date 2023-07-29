@@ -1872,6 +1872,17 @@ label.checkbox .label-text {
     min-width: auto;
 
 }
+label.range {
+    display: flex;
+    margin: auto;
+    background-color: #333333;
+    align-items:center;
+    justify-content:center;
+}
+label.range .label-text {
+    min-width: 130px;
+    margin: auto;
+}
 label .prefix, label .suffix {
     font-weight: normal;
     padding: 10px;
@@ -1916,7 +1927,11 @@ input[type=checkbox] {
     width: auto;
     margin: 15px;
 }
-
+/* Style inputs with type="text", select elements and textareas */
+input[type=range] {
+    width: auto; /* auto width */
+    padding: 0;
+}
 /* Style inputs with type="text", select elements and textareas */
 input[type=date] {}
 
@@ -2371,7 +2386,7 @@ Define Canvas Layers of Panel (MLE Toolkit)
 /*    cursor: default;*/
 /*    z-index: 88880;*/
 /*}*/
-.canvas-layer-control-pan {
+.canvas-layer-control-pan, .canvas-layer-control-move {
     cursor: move;
     z-index: 88880;
 }

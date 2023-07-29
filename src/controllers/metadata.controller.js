@@ -18,7 +18,6 @@ import pool from '../services/db.services.js';
 import {humanize, sanitize} from '../lib/data.utils.js';
 import * as fserve from '../services/import.services.js';
 import {getParticipantGroupTypes} from "../services/schema.services.js";
-import {getGroupParticipants} from "../services/metadata.services.js";
 
 
 /**
@@ -77,11 +76,6 @@ export default function MetadataController(metadataType) {
     this.getOwnerId = function(req) {
         return req.params.hasOwnProperty('owner_id')
             ? parseInt(req.params['owner_id'])
-            : null;
-    };
-    this.getGroupType = function(req) {
-        return req.params.hasOwnProperty('group_type')
-            ? req.params['group_type']
             : null;
     };
 
@@ -255,8 +249,7 @@ export default function MetadataController(metadataType) {
             const selectData = await metaserve.select(sanitize(id, 'integer'), metadataModel, client);
 
             // check relation exists for file type and node type
-            if (!selectData)
-                return next(new Error('invalidRequest'));
+            if (!selectData) return next(new Error('invalidRequest'));
             // get owner node; check that node exists in database
             // and corresponds to requested owner type.
             const owner = await nserve.select(selectData.owner_id, client);
@@ -344,7 +337,7 @@ export default function MetadataController(metadataType) {
     };
 
     /**
-     * Show grouped metadata.
+     * Show participant metadata.
      *
      * @param req
      * @param res
@@ -352,7 +345,7 @@ export default function MetadataController(metadataType) {
      * @src public
      */
 
-    this.showGroup = async (req, res, next) => {
+    this.showParticipants = async (req, res, next) => {
 
         // NOTE: client undefined if connection fails.
         const client = await pool.connect();
@@ -361,33 +354,28 @@ export default function MetadataController(metadataType) {
 
             // get requested node ID
             // get owner ID & group type from parameters
-            const ownerID = this.getOwnerId(req);
-            const groupType = this.getGroupType(req);
+            const ownerID = this.getId(req);
 
             // get item metadata and filter through instance
             let metadata = await metaserve.selectByOwner(sanitize(ownerID, 'integer'), metadataType, client);
 
             // metadata record not found in database
-            if (!metadata || !ownerID || !groupType ) return next(new Error('notFound'));
+            if (!metadata || !ownerID ) return next(new Error('notFound'));
 
-            // retrieve participants for group (delete participant_id property for first pgrp record)
-            const participants = await metaserve.getGroupParticipants(ownerID, groupType, client);
+            // retrieve participants for all participant groups attached to owner
+            const pgroups = await metaserve.getParticipantGroups(ownerID, null, client);
 
             // map participant metadata to value/label pairs
             res.status(200).json(
                 prepare({
                     view: 'show',
-                    data: {metadata: {
-                        id: ownerID,
-                        group_type: groupType,
-                        [groupType]: participants.map(participant => {
-                            return {
-                                value: participant.id,
-                                label: participant.full_name,
-                            };
-                        })
-                    }},
-                    model: new Metadata(metadata)
+                    model: metadataModel,
+                    data: Object.keys(pgroups).reduce((o, key) => {
+                        o[key] = pgroups[key].map(p => {
+                            return {label: p.full_name, value: p.id }
+                        });
+                        return o;
+                    }, {})
                 }));
 
         } catch (err) {
@@ -407,15 +395,14 @@ export default function MetadataController(metadataType) {
      * @src public
      */
 
-    this.createGroup = async (req, res, next) => {
+    this.updateParticipants = async (req, res, next) => {
 
         const client = await pool.connect();
 
         try {
 
             // get owner ID from parameters
-            const ownerID = this.getOwnerId(req);
-            const idKey = 'participant_id';
+            const ownerID = this.getId(req) || this.getOwnerId(req);
 
             // get owner metadata record
             const owner = await nserve.select(sanitize(ownerID, 'integer'), client);
@@ -423,98 +410,36 @@ export default function MetadataController(metadataType) {
             // check owner exists
             if (!owner) return next(new Error('invalidRequest'));
 
-            // filter request through importer
+            // filter request through data importer
             const inputMetadata = await fserve.receive(req, owner.id, owner.type);
-            const {participants=[], group_type=''} = inputMetadata.data || {};
 
-            // validate group type
+            // process input request data for participant groups
+            // data: {
+            //     hiking_party: { '0': '<ID_0>', '1': '<ID_1>', ... },
+            //     field_notes_authors: { '0': '<ID_0>', '1': '<ID_1>', ... },
+            //     photographers: { '0': '<ID_0>', '1': '<ID_1>', ... },
+            //     owner_id: <OWNER_ID>
+            // }
+
+            // process each group type
+            let result;
             const groupTypes = await getParticipantGroupTypes(client);
-            if (!groupTypes.includes(group_type)) return next(new Error('invalidGroupType'));
-
-            // confirm group does not already exist
-            const group = await getGroupParticipants(ownerID, group_type, client);
-            if (Array.isArray(group) && group.length > 0) return next(new Error('invalidRequest'));
-
-            // Create participant group
-            // - creates new group for participants sent in request
-            // - adds participants to existing groups
-            let newParticipants = Object.keys(participants).map(key => {
-                const itemID = participants[key];
-                return {
-                    [idKey]: itemID,
-                    owner_id: ownerID,
-                    group_type: group_type
-                };
-            });
-            let data = await metaserve.updateGroup(newParticipants, metadataModel.name, owner.id, group_type);
-
-            // send create response
-            res.status(200).json(
-                prepare({
-                    view: 'show',
-                    model: metadataModel,
-                    data: data,
-                    message: {
-                        msg: `${metadataModel.label || humanize(metadataType)}: ${humanize(group_type)} created successfully!`,
-                        type: 'success'
-                    }
-                }));
-
-        } catch (err) {
-            console.error(err)
-            return next(err);
-        } finally {
-            await client.release(true);
-        }
-    };
-
-    /**
-     * Update grouped records.
-     *
-     * @param req
-     * @param res
-     * @param next
-     * @src public
-     */
-
-    this.updateGroup = async (req, res, next) => {
-
-        const client = await pool.connect();
-
-        try {
-            // get owner ID & group type from parameters
-            const ownerID = this.getOwnerId(req);
-            const groupType = this.getGroupType(req);
-            const idKey = 'participant_id';
-
-            // get owner metadata records
-            const owner = await nserve.select(sanitize(ownerID, 'integer'), client);
-            if (!owner) return next(new Error('invalidRequest'));
-
-            // validate group type
-            const groupTypes = await getParticipantGroupTypes(client);
-            if (!groupTypes.includes(groupType)) return next(new Error('invalidGroupType'));
-
-            // filter request data through importer
-            const inputMetadata = await fserve.receive(req, ownerID, owner.type);
-            if (!inputMetadata.data.hasOwnProperty(groupType)) return next(new Error('invalidRequest'));
-
-            // Filter participant IDs for requested participant group
-            // - creates new group for participants sent in request
-            // - adds participants to existing group
-            let newParticipants = Object.keys(inputMetadata.data[groupType]).map(key => {
-                const itemID = inputMetadata.data[groupType][key];
-                return {
-                    [idKey]: itemID,
-                    owner_id: ownerID,
-                    group_type: groupType
-                };
-            });
-
-            // console.log('Update Group', owner, groupType, inputMetadata, newParticipants)
-
-            // update group with participants for group
-            const result = await metaserve.updateGroup(newParticipants, metadataType, ownerID, groupType, idKey);
+            await Promise.all(groupTypes.map( async(groupType) => {
+                // Create new participant groups in request
+                // - creates new group for participants sent in request
+                // - OR adds participants to existing groups
+                let newParticipants;
+                if (inputMetadata.data.hasOwnProperty(groupType)) {
+                    newParticipants = Object.values(inputMetadata.data[groupType]).map(id => {
+                        return {
+                            participant_id: id,
+                            owner_id: ownerID,
+                            group_type: groupType
+                        };
+                    });
+                    result = await metaserve.updateGroup(newParticipants, metadataModel.name, owner.id, groupType);
+                }
+            }));
 
             // send create response
             res.status(200).json(
@@ -523,7 +448,7 @@ export default function MetadataController(metadataType) {
                     model: metadataModel,
                     data: result,
                     message: {
-                        msg: `${metadataModel.label || humanize(metadataType)}: ${humanize(groupType)} updated successfully!`,
+                        msg: `${metadataModel.label || humanize(metadataType)}: Updated successfully!`,
                         type: 'success'
                     }
                 }));
@@ -545,36 +470,38 @@ export default function MetadataController(metadataType) {
      * @src public
      */
 
-    this.removeGroup = async (req, res, next) => {
+    this.removeParticipants = async (req, res, next) => {
         const client = await pool.connect();
         try {
 
             // get owner ID & group type from parameters
-            const ownerID = this.getOwnerId(req);
-            const groupType = this.getGroupType(req);
+            const ownerID = this.getId(req);
 
             // check that owner exists
             if (!await metaserve.selectByOwner(sanitize(ownerID, 'integer'), metadataType, client))
                 return next(new Error('invalidRequest'));
 
-            // validate group type
+            // remove all participants in each group
+            let result;
             const groupTypes = await getParticipantGroupTypes(client);
-            if (!groupTypes.includes(groupType)) return next(new Error('invalidGroupType'));
+            await Promise.all(groupTypes.map( async(groupType) => {
+                await metaserve.updateGroup([], metadataModel.name, ownerID, groupType, 'participant_id');
+            }));
 
-            // remove all participants in group
-            await metaserve.updateGroup([], metadataModel.name, ownerID, groupType, 'participant_id');
+            // remove the groups
+            await Promise.all(groupTypes.map( async(groupType) => {
+                result = await metaserve.removeGroup(ownerID, metadataType, groupType, client);
+            }));
 
-            // remove the group
-            let data = await metaserve.removeGroup(ownerID, metadataType, groupType, client);
 
             // send response
             res.status(200).json(
                 prepare({
                     view: 'show',
                     model: metadataModel,
-                    data: data,
+                    data: result,
                     message: {
-                        msg: `${metadataModel.label || humanize(groupType)} group deleted successfully!`,
+                        msg: `Participant groups deleted successfully!`,
                         type: 'success'
                     }
                 }));

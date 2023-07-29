@@ -30,7 +30,6 @@ function MetadataRoutes(metadataType) {
     this.controller = new MetadataController(this.model);
 
     // define models that group metadata
-    const groupedModels = ['participant_groups'];
     const optionModels = ['cameras', 'lens', 'participants', 'participant_group_types', 'image_types'];
 
     // add controller routes
@@ -50,11 +49,9 @@ function MetadataRoutes(metadataType) {
             delete: null,
         },
         show: {
-            path: groupedModels.includes(this.model)
-                ? path.join('/', this.model, 'show', ':owner_id', ':group_type')
-                : path.join('/', this.model, 'show', ':' + this.key),
-            get: groupedModels.includes(this.model)
-                ? this.controller.showGroup
+            path: path.join('/', this.model, 'show', ':' + this.key),
+            get: this.model === 'participant_groups'
+                ? this.controller.showParticipants
                 : this.controller.show,
             put: null,
             post: null,
@@ -66,30 +63,26 @@ function MetadataRoutes(metadataType) {
                 : path.join('/', this.model, 'new',  ':owner_id'),
             get: null,
             put: null,
-            post: groupedModels.includes(this.model)
-                ? this.controller.createGroup
+            post: this.model === 'participant_groups'
+                ? this.controller.updateParticipants
                 : this.controller.create,
             delete: null
         },
         edit: {
-            path: groupedModels.includes(this.model)
-                ? path.join('/', this.model, 'edit', ':owner_id', ':group_type')
-                : path.join('/', this.model, 'edit', ':' + this.key),
+            path: path.join('/', this.model, 'edit', ':' + this.key),
             get: null,
             put: null,
-            post: groupedModels.includes(this.model)
-                ? this.controller.updateGroup
+            post: this.model === 'participant_groups'
+                ? this.controller.updateParticipants
                 : this.controller.update,
             delete: null,
         },
         remove: {
-            path: groupedModels.includes(this.model)
-                ? path.join('/', this.model, 'remove', ':owner_id', ':group_type')
-                : path.join('/', this.model, 'remove', ':' + this.key),
+            path: path.join('/', this.model, 'remove', ':' + this.key),
             get: null,
             put: null,
-            post: groupedModels.includes(this.model)
-                ? this.controller.removeGroup
+            post: this.model === 'participant_groups'
+                ? this.controller.removeParticipants
                 : this.controller.remove,
             delete: null,
         }

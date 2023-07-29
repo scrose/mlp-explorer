@@ -27,7 +27,7 @@ import {useState} from 'react';
 import {scalePoint} from "./scaler.toolkit";
 
 /**
- * Get local mouse position on canvas.
+ * Compute local mouse position on canvas.
  * Reference: https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas
  *
  * @public
@@ -38,13 +38,16 @@ import {scalePoint} from "./scaler.toolkit";
 export const getPos = (e, properties) => {
 
     // current canvas dimensions
+    // - base dimensions of canvas
+    // - bounds of DOM element
     const {base_dims, bounds} = properties;
 
     // compute scaling relationship bitmap vs. element for X,Y
     const eps = 0.000000001
-    const scaleX = (base_dims.w + eps) / (bounds.w + eps);
-    const scaleY = (base_dims.h + eps) / (bounds.h + eps);
+    const scaleX = (base_dims.w + eps) / (bounds.width + eps);
+    const scaleY = (base_dims.h + eps) / (bounds.height + eps);
 
+    // get DOM page scroll + mouse position + element offset readings
     const pageX = e.clientX +
         (document && document.scrollLeft || 0) -
         (document && document.clientLeft || 0);
@@ -90,6 +93,10 @@ export function usePointer(properties, options) {
     const [magnify, setMagnify] = useState(false);
     const [points, setPoints] = useState([]);
 
+    /**
+     * Set current pointer position coordinate
+     * */
+
     const set = (e) => {
         // compute current position of mouse
         const pos = getPos(e, properties);
@@ -100,12 +107,22 @@ export function usePointer(properties, options) {
         // set canvas pointer coordinate
         setCurrent(pos);
     };
+
+    /**
+     * Toggle magnifier
+     * */
+
     const magnifyOn = () => {
         setMagnify(true);
     };
     const magnifyOff = () => {
         setMagnify(false);
     };
+
+    /**
+     * Select pointer value (stores current cursor position coordinate)
+     * */
+
     const select = (e) => {
         const pos = getPos(e, properties);
         setSelected({
@@ -113,29 +130,62 @@ export function usePointer(properties, options) {
             y: pos.y,
         });
     };
+
+    /**
+     * Select pointer value (stores parameter coordinate)
+     * */
+
     const setSelect = (selected) => {
         setSelected(selected);
     };
+
+    /**
+     * Reset pointer selection rect
+     * */
+
     const resetSelectBox = () => {
         setSelectBox({x: 0, y: 0, w: 0, h: 0});
     };
+
+    /**
+     * Deselect pointer selected coordinate
+     * */
+
     const deselect = () => {
         setSelected(null);
         setIndex(-1);
     };
+
+    /**
+     * Reset pointer current canvas and actual coordinate
+     * */
+
     const reset = () => {
         setCurrent({x: 0, y: 0});
+        setActual({x: 0, y: 0})
     };
+
+    /**
+     * Select control point coordinates
+     * */
 
     // set control points state
     const setControlPoints = (controlPoints) => {
         setPoints(controlPoints);
     };
 
+    /**
+     * Clear selected control point coordinates
+     * */
+
     // clear control points state
     const clearPoints = () => {
         setPoints([]);
     };
+
+    /**
+     * Pointer provider exposed context values
+     * */
 
     return {
         x: current.x,

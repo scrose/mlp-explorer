@@ -23,7 +23,6 @@ import {useNav} from "../../_providers/nav.provider.client";
  * @param id
  * @param model
  * @param data
- * @param groupType
  * @param onCancel
  * @param callback
  * @public
@@ -32,12 +31,12 @@ import {useNav} from "../../_providers/nav.provider.client";
 const Remover = ({
                      id,
                      model,
-                     groupType='',
-                     owner={},
                      metadata={},
                      onCancel=()=>{},
                      callback=()=>{}
                  }) => {
+
+    console.log('%%%', metadata)
 
     const dialog = useDialog();
     const api = useData();
@@ -74,7 +73,7 @@ const Remover = ({
     const _handleSubmit = (e) => {
         if (!e) return;
         e.preventDefault();
-        router.remove(groupType && owner.hasOwnProperty('id') ? owner.id : id, model, groupType, _handleCompletion);
+        router.remove(id, model, _handleCompletion);
     }
 
     return <>{

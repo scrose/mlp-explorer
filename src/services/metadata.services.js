@@ -1,8 +1,18 @@
 /*!
  * MLP.API.Services.Metadata
  * File: metadata.services.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * Service module for MLP attached metadata and options data processing.
+ *
+ * ---------
+ * Revisions
+ * - 23-07-2023 Included created/updated dates for participant data.
  */
 
 'use strict';
@@ -101,13 +111,14 @@ export const getGroup = async function(ownerID, modelType, groupType, client ) {
  * @return {Promise} result
  */
 
-export const getGroupParticipants = async function(ownerID, groupType, client ) {
+export const getParticipantGroups = async function(ownerID, groupType, client ) {
     let { sql, data } = queries.metadata.getParticipantGroups(ownerID, groupType);
     let participantGroups = await client.query(sql, data);
     // group by participant group type
     participantGroups = groupBy(participantGroups.rows, 'group_type') || {};
     // return only model type names as list
-    return Object.keys(participantGroups).length > 0 ? participantGroups[groupType] : [];
+    if (groupType) return Object.keys(participantGroups).length > 0 ? participantGroups[groupType] : [];
+    else return participantGroups;
 };
 
 /**

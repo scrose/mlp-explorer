@@ -104,12 +104,7 @@ const PanelToolkit = ({id = null}) => {
         panel.update({
             ...props,
             render_dims: {x: 0, y: 0, w: renderDims.w, h: renderDims.h},
-            bounds: {
-                top: bounds.top,
-                left: bounds.left,
-                w: bounds.width,
-                h: bounds.height,
-            }
+            bounds: bounds
         });
     };
 
@@ -123,14 +118,7 @@ const PanelToolkit = ({id = null}) => {
     const _resetBounds = () => {
         const bounds = viewLayer.current.bounds();
         // update panel properties
-        panel.update({
-            bounds: {
-                top: bounds.top,
-                left: bounds.left,
-                w: bounds.width,
-                h: bounds.height,
-            }
-        });
+        panel.update({bounds: bounds});
         return bounds;
     }
 
@@ -210,6 +198,29 @@ const PanelToolkit = ({id = null}) => {
             panel.setStatus('error');
         } finally {}
     };
+
+    /**
+     * Update image data based on properties
+     *
+     * @private
+     */
+
+    const update = () => {
+        // compute scaled dimensions to fit view canvas
+        const dims = scaleToFit(
+            panel.properties.source_dims.w,
+            panel.properties.source_dims.h,
+            panel.properties.base_dims.w,
+            panel.properties.base_dims.h,
+        );
+        // store image in render layer
+        imageLayer.current.load(panel.image);
+        // render image in view layer
+        render(
+            {x: 0, y: 0, w: dims.w, h: dims.h},
+            {x: 0, y: 0, w: panel.properties.source_dims.w, h: panel.properties.source_dims.h}
+        );
+    }
 
     /**
      * convenience method for clearing the canvas overlay layer
@@ -689,12 +700,7 @@ const PanelToolkit = ({id = null}) => {
         // get current pointer position on view canvas
         const pos = getPos(e, {
             base_dims: properties.base_dims,
-            bounds: {
-                top: bounds.top,
-                left: bounds.left,
-                w: bounds.width,
-                h: bounds.height,
-            }
+            bounds: bounds
         }) || {};
         // create array for canvas points
         const pts = [];
@@ -966,6 +972,10 @@ const PanelToolkit = ({id = null}) => {
         if (panel.status === 'load') {
             load(panel.properties);
         }
+        if (panel.status === 'update') {
+            update();
+        }
+        return ()=> { panel.setStatus('loaded') }
     }, [panel.status]);
 
     /**
