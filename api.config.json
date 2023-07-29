@@ -18,7 +18,7 @@
       "error_file": "./logs/mle_transcoder_error.log",
       "out_file": "./logs/mle_transcoder_output.log",
       "time": true
-    },,
+    },
     {
       "name": "mle-api",
       "script": "server.js",
