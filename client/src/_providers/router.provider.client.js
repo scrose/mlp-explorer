@@ -187,12 +187,11 @@ function RouterProvider(props) {
      * @public
      * @param {String} id
      * @param {String} model
-     * @param {String} group
      * @param {Function} callback
      */
 
-    const remove = async (id, model, group='', callback) => {
-        const route = createNodeRoute(model, 'remove', id, group);
+    const remove = async (id, model, callback) => {
+        const route = createNodeRoute(model, 'remove', id);
 
         // reject null paths or when API is offline, error found
         if (!route || !online ) return null;

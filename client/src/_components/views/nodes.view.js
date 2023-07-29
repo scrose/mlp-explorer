@@ -15,7 +15,7 @@ import Carousel from "../common/carousel";
 import Comparator from "../common/comparator";
 import {getModelLabel} from "../../_services/schema.services.client";
 import Accordion from "../common/accordion";
-import MetadataView, {filterAttachedMetadata} from "./metadata.view";
+import MetadataView from "./metadata.view";
 import Tabs from "../common/tabs";
 import NodeSelector from "../selectors/node.selector";
 import Loading from "../common/loading";
@@ -173,9 +173,6 @@ const NodesView = ({model, data}) => {
     // collect any unsorted captures
     let unsorted = [];
 
-    // extract any attached (supplemental) metadata
-    const attachedMetadata = filterAttachedMetadata(attached, node, 'comparisons');
-
     // add sorted modern captures tabbed items
     if (dependentsGrouped.hasOwnProperty('modern_captures')) {
         // filter unsorted captures
@@ -192,6 +189,7 @@ const NodesView = ({model, data}) => {
                 data: <Carousel items={sorted.map(item => {
                     const {
                         id = '',
+                        node={},
                         owner = {},
                         refImage={},
                         type = '',
@@ -199,7 +197,15 @@ const NodesView = ({model, data}) => {
                         metadata = {}
                     } = api.destructure(item) || {};
                     const {url={}} = refImage || {};
-                    return { id: id, owner: owner, model: type, url: url, label: label, metadata: metadata }
+                    return {
+                        id: id,
+                        owner: owner,
+                        node: node,
+                        model: type,
+                        url: url,
+                        label: label,
+                        metadata: metadata
+                    }
                 })} />,
             });
         }
@@ -224,13 +230,22 @@ const NodesView = ({model, data}) => {
                     const {
                         id = '',
                         owner = {},
+                        node = {},
                         refImage={},
                         type = '',
                         label = '',
                         metadata = {}
                     } = api.destructure(item) || {};
                     const {url={}} = refImage || {};
-                    return { id: id, owner: owner, model: type, url: url, label: label, metadata: metadata }
+                    return {
+                        id: id,
+                        node: node,
+                        owner: owner,
+                        model: type,
+                        url: url,
+                        label: label,
+                        metadata: metadata
+                    }
                 })} />,
             });
         }
@@ -255,6 +270,7 @@ const NodesView = ({model, data}) => {
             data: <Carousel items={unsorted.map(item => {
                 const {
                     id = '',
+                    node = {},
                     owner = {},
                     refImage={},
                     type = '',
@@ -262,7 +278,15 @@ const NodesView = ({model, data}) => {
                     metadata = {}
                 } = api.destructure(item) || {};
                 const {url={}} = refImage || {};
-                return { id: id, owner: owner, model: type, url: url, label: label, metadata: metadata }
+                return {
+                    id: id,
+                    node: node,
+                    owner: owner,
+                    model: type,
+                    url: url,
+                    label: label,
+                    metadata: metadata
+                }
             })} />,
         });
     }
@@ -293,10 +317,8 @@ const NodesView = ({model, data}) => {
                             attached
                         } = api.destructure(item);
 
-                        // extract any attached (supplemental) metadata
-                        const attachedMetadata = filterAttachedMetadata(attached, node, 'comparisons');
-
                         // For multiple dependent nodes, enclose metadata in accordion
+                        // - include any attached (supplemental) metadata
                         return singleNode
                             ? <div key={`node_view_${type}_${id}_${index}`}>
                                 <NodeSelector model={type} data={item} />
@@ -306,7 +328,7 @@ const NodesView = ({model, data}) => {
                                     label={label}
                                     files={files}
                                     metadata={metadata}
-                                    attached={attachedMetadata}
+                                    attached={attached}
                                 />
                             </div>
                             : <Accordion
@@ -341,7 +363,7 @@ const NodesView = ({model, data}) => {
                 node={node}
                 model={model}
                 metadata={metadata}
-                attached={attachedMetadata}
+                attached={attached}
                 files={files}
             />
     });
@@ -359,8 +381,8 @@ const NodesView = ({model, data}) => {
                 key={prefTabKey}
                 metadata={metadata}
                 model={model}
-                owner={node}
-                attached={attachedMetadata}
+                node={node}
+                attached={attached}
                 files={files}
             />
         }

@@ -76,7 +76,7 @@ const PaginationTools = ({data}) => {
                             id={node.id}
                             label={`${getModelLabel(node.type)}: ${label}`}
                         >
-                            <MetadataView model={node.type} metadata={metadata} />
+                            <MetadataView node={node} model={node.type} metadata={metadata} />
                         </Accordion>
                     </li>
         });

@@ -186,11 +186,11 @@ export const sanitize = (
         },
         datetime: ({ value }) => {
             const date = new Date(value);
-            return value ? date.toLocaleString('default', {timeZone: 'UTC', timeZoneName: 'short'}) : '-';
+            return value ? date.toLocaleString('default', {timeZone: 'America/Vancouver', timeZoneName: 'short'}) : '-';
         },
         timestamp: ({ value }) => {
             const date = new Date(value);
-            return `${date.toLocaleString()}`;
+            return `${date.toLocaleString('default', {timeZone: 'America/Vancouver', timeZoneName: 'short'})}`;
         },
         text: ({ value }) => {
             return value ? String(value) : '-';

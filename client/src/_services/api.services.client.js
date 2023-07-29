@@ -114,9 +114,9 @@ export const upload = async (route, formData, callback=()=>{}, online=true) => {
     if (!route || !online ) return null;
 
     // DEBUG: Display the key/value pairs of form data
-    // for(var pair of formData.entries()) {
-    //     console.log(pair[0]+ ', '+ pair[1]);
-    // }
+    for(let pair of formData.entries()) {
+        console.log(pair[0]+ ', '+ pair[1]);
+    }
 
     try {
 
@@ -215,11 +215,6 @@ export const download = async (route, callback=()=>{}, filename, online=true, sa
     // reject null paths or when API is offline
     if (!route || !online ) return null;
 
-    // DEBUG: Display the key/value pairs of form data
-    // for(var pair of formData.entries()) {
-    //     console.log(pair[0]+ ', '+ pair[1]);
-    // }
-
     try {
 
         let xhr = new XMLHttpRequest();
@@ -256,7 +251,7 @@ export const download = async (route, callback=()=>{}, filename, online=true, sa
 
         // end of download
         xhr.onloadend = function(e) {
-            return callback();
+            return callback(e);
         };
 
         // error in sending network request

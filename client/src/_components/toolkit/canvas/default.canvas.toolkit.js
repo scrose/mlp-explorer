@@ -126,7 +126,13 @@ const Canvas = forwardRef(function Canvas(props, ref) {
                 return {w: canvasRef.current.width, h: canvasRef.current.height};
             },
             bounds: () => {
-                return canvasRef.current.getBoundingClientRect();
+                const rect = canvasRef.current.getBoundingClientRect();
+                return {
+                    top: rect.top,
+                    left: rect.left,
+                    width: rect.width,
+                    height: rect.height
+                }
             },
             data: () => {
                 return canvasRef.current.toDataURL('image/jpeg', 1.0);

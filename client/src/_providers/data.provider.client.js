@@ -1,9 +1,19 @@
 /*!
  * MLE.Client.Providers.Data
  * File: data.provider.client.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * API data context provider. Auto-loads and filters request data from API
+ * to be consumed by components.
+ *
+ * ---------
+ * Revisions
+ * - 22-07-2023 Include core node data in context value.
  */
 
 import * as React from 'react'
@@ -171,7 +181,6 @@ function DataProvider(props) {
                 if (!res) return null;
 
                 // DEBUG
-                console.log('Load Global Options');
                 // console.log('\n<<< Options >>>\n', res);
 
                 if (res.error) return setError(res.error);
@@ -181,6 +190,7 @@ function DataProvider(props) {
                 // update states with response data
                 if (message.type === 'error') setSessionMsg(message);
                 setOptions(data);
+                console.log('Loaded Global Options');
             })
             .catch(err => console.error(err));
     }, [router, setOptions, setError]);
@@ -234,6 +244,7 @@ function DataProvider(props) {
     const {
         id,
         type,
+        node,
         label,
         metadata,
         location,
@@ -273,6 +284,7 @@ function DataProvider(props) {
                 label,
                 type,
                 id,
+                node,
                 owner,
                 status,
                 metadata,

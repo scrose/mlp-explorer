@@ -145,6 +145,7 @@ const CaptureView = ({model, data, fileType}) => {
                 // get node metadata
                 const {
                     id = '',
+                    node={},
                     file={},
                     owner = {},
                     type = '',
@@ -157,7 +158,15 @@ const CaptureView = ({model, data, fileType}) => {
                     o[key] = file[key];
                     return o;
                 }, metadata);
-                return { id: id, owner: owner, model: type, url: url, label: label, metadata: updatedMetadata }
+                return {
+                    id: id,
+                    owner: owner,
+                    model: type,
+                    node: node,
+                    url: url,
+                    label: label,
+                    metadata: updatedMetadata
+                }
             })} />,
         },
         {

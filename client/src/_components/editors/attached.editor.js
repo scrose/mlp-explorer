@@ -1,9 +1,18 @@
 /*!
  * MLE.Client.Components.Editors.Attached
  * File: attached.editor.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * Editor component for node attached metadata.
+ *
+ * ---------
+ * Revisions
+ * - 23-07-2023 Refactor out participant groups from attached metadata as new editor component.
  */
 
 import React from 'react';
@@ -14,9 +23,10 @@ import {getModelLabel} from "../../_services/schema.services.client";
 import {createNodeRoute} from "../../_utils/paths.utils.client";
 import Accordion from "../common/accordion";
 import EditorMenu from "../menus/editor.menu";
-import MetadataView, {filterAttachedMetadata} from "../views/metadata.view";
+import MetadataView from "../views/metadata.view";
 import Loading from "../common/loading";
 import {useUser} from "../../_providers/user.provider.client";
+import {ParticipantsView} from "../views/participants.view";
 
 // generate unique ID value for selector inputs
 const keyID = genID();
@@ -49,11 +59,11 @@ export const AttachedMetadataEditor = ({owner}) => {
 
     React.useEffect(() => {
         _isMounted.current = true;
-        const {type = '', id = '', groupType=''} = owner || {};
+        const {type = '', id = ''} = owner || {};
 
         // request captures for comparison
         if (id && !error && owner) {
-            router.get(createNodeRoute(type, 'show', id, groupType))
+            router.get(createNodeRoute(type, 'show', id))
                 .then(res => {
                     if (_isMounted.current) {
                         if (!res || res.error) {
@@ -66,12 +76,10 @@ export const AttachedMetadataEditor = ({owner}) => {
                         // get capture data (if available)
                         const {response = {}} = res || {};
                         const {data = {}} = response || {};
-                        const {attached = {}, node={}} = data || {};
+                        const {attached = {}} = data || {};
 
                         // set attached metadata
-                        // - omit comparisons from attached metadata
-                        // - individuate participant groups as separate attached item
-                        setCurrentAttached(filterAttachedMetadata(attached, node, 'comparisons'));
+                        setCurrentAttached(attached);
                         setLoaded(true);
                     }
                 })
@@ -89,40 +97,59 @@ export const AttachedMetadataEditor = ({owner}) => {
         {
             user && loaded
                 ? Object.keys(currentAttached || {}).map(attachedModel => {
-                return Array.isArray(currentAttached[attachedModel]) && currentAttached[attachedModel].length > 0 &&
-                    <Accordion
-                        key={`attached_${keyID}_${attachedModel}`}
-                        type={attachedModel}
-                        label={`${getModelLabel(attachedModel, 'label')}`}
-                        className={attachedModel}
-                        menu={<EditorMenu
-                            visible={['new']}
-                            label={getModelLabel(attachedModel, 'label')}
-                            model={attachedModel}
+                    // Participants Editor component
+                    if (attachedModel === 'participant_groups' && Object.keys(currentAttached[attachedModel]).length > 0) {
+                        return <ParticipantsView
+                            key={`attached_${keyID}_${attachedModel}`}
                             owner={owner}
-                        />}
-                    >
-                        <div className={`${attachedModel}`}>
-                            {
-                                currentAttached[attachedModel].map((attachedMD, index) => {
-                                    const {model='', label = '', data = {}} = attachedMD || {};
-                                    const {id = ''} = data || {};
-                                    return <div key={`${keyID}_attached_metadata_${model}_${index}`} className={'h-menu'}>
-                                        <EditorMenu
-                                            className={'right-aligned'}
-                                            visible={['edit', 'show', 'remove']}
-                                            label={getModelLabel(model, 'label')}
-                                            model={attachedModel}
-                                            id={id}
-                                            owner={owner}
-                                            metadata={data}
-                                        />
-                                        <MetadataView model={attachedModel} label={label} owner={owner} metadata={data} />
-                                    </div>
-                                })
-                            }
-                        </div>
-                    </Accordion>
+                            metadata={currentAttached[attachedModel]}
+                        />
+                    }
+                    // Comparisons Editor component
+                    else if (attachedModel === 'comparisons') {
+                        return null;
+                    }
+                    // Attached Metadata Editor component
+                    else if (Array.isArray(currentAttached[attachedModel]) && currentAttached[attachedModel].length > 0) {
+                        return <Accordion
+                            key={`attached_${keyID}_${attachedModel}`}
+                            type={attachedModel}
+                            label={`${getModelLabel(attachedModel, 'label')}`}
+                            className={attachedModel}
+                            menu={<EditorMenu
+                                visible={['new']}
+                                label={getModelLabel(attachedModel, 'label')}
+                                model={attachedModel}
+                                owner={owner}
+                            />}
+                        >
+                            <div className={`${attachedModel}`}>
+                                {
+                                    currentAttached[attachedModel].map((attachedItem, index) => {
+                                        const {id ='', model='', label = '', data = {}} = attachedItem || {};
+                                        const attachedID = data.hasOwnProperty('id') ? data.id : id;
+                                        return <div key={`${keyID}_attached_metadata_${model}_${index}`} className={'h-menu'}>
+                                            <EditorMenu
+                                                className={'right-aligned'}
+                                                visible={['edit', 'remove']}
+                                                label={getModelLabel(model, 'label')}
+                                                model={attachedModel}
+                                                id={attachedID}
+                                                owner={owner}
+                                                metadata={data}
+                                            />
+                                            <MetadataView
+                                                model={attachedModel}
+                                                label={label}
+                                                node={attachedItem}
+                                                metadata={data}
+                                            />
+                                        </div>
+                                    })
+                                }
+                            </div>
+                        </Accordion>
+                    }
             }) : <Loading label={'Loading Attached Metadata...'} />
         }
     </>;

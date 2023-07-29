@@ -421,8 +421,8 @@ export function participantGroupTypes() {
 
 /**
  * Query: Get participant metadata for given node.
- * Model options include 'historic_captures' and
- * 'modern_captures'.
+ * - visit participants are only owned by modern visits.
+ * - participants are grouped by participant group types defined in 'participant_groups' table
  *
  * @param {String} ownerID
  * @param {String} groupType
@@ -437,7 +437,11 @@ export function getParticipantGroups(ownerID, groupType = null) {
                 participant_groups.group_type,
                 p.last_name,
                 p.given_names,
-                p.id
+                p.id,
+                p.created_at,
+                p.updated_at,
+                participant_groups.created_at as pg_created_at,
+                participant_groups.updated_at as pg_updated_at
             FROM participant_groups
             INNER JOIN participants p ON participant_groups.participant_id = p.id
             WHERE participant_groups.owner_id = $1::integer
@@ -447,7 +451,9 @@ export function getParticipantGroups(ownerID, groupType = null) {
                      participant_groups.group_type,
                      p.last_name, 
                      p.given_names, 
-                     p.id;`;
+                     p.id,
+                     p.created_at,
+                     p.updated_at;`;
     return {
         sql: sql,
         data: groupType ? [ownerID, groupType] : [ownerID],

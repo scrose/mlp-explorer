@@ -1661,6 +1661,22 @@ export const schema = {
                     }
                 }]
         },
+        statuses: {
+            attributes: {
+                label: 'Stations Statuses',
+                singular: 'Station Status',
+            },
+            fieldsets: [
+                {
+                    name: {
+                        label: 'Status Name',
+                        validate: []
+                    },
+                    label: {
+                        label: 'Station Status Label'
+                    }
+                }]
+        },
         image_states: {
             attributes: {
                 label: 'Image States',
@@ -1848,55 +1864,22 @@ export const schema = {
             },
             fieldsets: [
                 {
-                    legend: 'Add New Participant Group',
-                    restrict: ['new'],
-                    group_type: {
-                        render: 'select',
-                        label: 'Group Type',
-                        reference: 'participant_group_types',
-                        validate: ['isRequired']
-                    },
-                    participants: {
-                        label: 'Participants',
-                        render: 'multiselect',
-                        reference: 'participants',
-                        validate: ['isMultiSelected']
-                    }
-                },
-                {
-                    legend: 'Hiking Group',
-                    restrict: ['show', 'edit'],
+                    legend: 'Participant Groups',
+                    restrict: ['show', 'new', 'edit'],
                     hiking_party: {
-                        label: 'Participants',
+                        label: 'Hiking Groups',
                         render: 'multiselect',
                         reference: 'participants'
                     },
-                    group_type: {
-                        render: 'hidden'
-                    }
-                },
-                {
-                    legend: 'Field Notes Authors',
-                    restrict: ['show', 'edit'],
                     field_notes_authors: {
-                        label: 'Participants',
+                        label: 'Field Notes Authors',
                         render: 'multiselect',
                         reference: 'participants'
                     },
-                    group_type: {
-                        render: 'hidden'
-                    }
-                },
-                {
-                    legend: 'Photographers',
-                    restrict: ['show', 'edit'],
                     photographers: {
-                        label: 'Participants',
+                        label: 'Photographers',
                         render: 'multiselect',
                         reference: 'participants'
-                    },
-                    group_type: {
-                        render: 'hidden'
                     }
                 }]
         },

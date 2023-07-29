@@ -509,7 +509,7 @@ const explorerHelp = (gotoPage) => {
             </thead>
             <tbody>
             <tr>
-                <th className={'mastered'}><Icon type={'Stations'} /></th>
+                <th className={'mastered'}><Icon type={'stations'} /></th>
                 <th>
                     <p>Mastered Station</p>
                 </th>
@@ -518,7 +518,7 @@ const explorerHelp = (gotoPage) => {
                 </td>
             </tr>
             <tr>
-                <th className={'partial'}><Icon type={'Stations'} /></th>
+                <th className={'partial'}><Icon type={'stations'} /></th>
                 <th>
                     <p>Partially Mastered Station</p>
                 </th>
@@ -528,7 +528,7 @@ const explorerHelp = (gotoPage) => {
                 </td>
             </tr>
             <tr>
-                <th className={'repeated'}><Icon type={'Stations'} /></th>
+                <th className={'repeated'}><Icon type={'stations'} /></th>
                 <th>
                     <p>Repeated Station</p>
                 </th>
@@ -538,7 +538,7 @@ const explorerHelp = (gotoPage) => {
                 </td>
             </tr>
             <tr>
-                <th className={'located'}><Icon type={'Stations'} /></th>
+                <th className={'located'}><Icon type={'stations'} /></th>
                 <th>
                     <p>Located Station</p>
                 </th>
@@ -548,7 +548,7 @@ const explorerHelp = (gotoPage) => {
                 </td>
             </tr>
             <tr>
-                <th className={'grouped'}><Icon type={'Stations'} /></th>
+                <th className={'grouped'}><Icon type={'stations'} /></th>
                 <th>
                     <p>Grouped Station</p>
                 </th>
