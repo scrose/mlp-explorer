@@ -1,25 +1,30 @@
 /*!
  * MLP.API.Services.Images
  * File: images.services.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+* Copyright(c) 2023 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * Image processing module.
+ *
+ * ---------
+ * Revisions
+ * - 29-07-2023   Refactored out Redis connection as separate queue service.
  */
 
 'use strict';
 
 import * as stream from 'stream';
-import {mkdir, stat} from 'fs/promises';
+import {mkdir} from 'fs/promises';
 import fs from 'fs';
 import {ExifTool} from 'exiftool-vendored';
 import sharp from 'sharp';
 import path from 'path';
 import {genUUID, sanitize} from '../lib/data.utils.js';
-import Queue from 'bull';
-import redis from 'redis';
-import { deleteFiles, insertFile } from './files.services.js';
 import * as util from "util";
-import pool from "./db.services.js";
-import fetch from "node-fetch";
 // import Jimp from 'jimp';
 // import dcraw from 'dcraw';
 
@@ -31,142 +36,9 @@ const imageSizes = {
     full: 1500,
 };
 
-/**
- * Test transcoder connection
- * @private
- */
-
-export const transcoderReady = () => {
-    return fetch(`${process.env.TRANSCODER_HOST}:${process.env.TRANSCODER_PORT}`)
-        .then(() => { return true })
-        .catch(err => {
-            console.error('Transcoder error:', err);
-            return false;
-        });
-}
 
 /**
- * Connect to Redis message broker
- * - allows files to be queued for transcoder
- * @private
- */
-
-let queue = new Queue('transcode', {
-    redis: {
-        host: process.env.REDIS_HOST,
-        port: process.env.REDIS_PORT,
-    },
-});
-
-// test Redis connection
-const redisConnect = redis.createClient({
-    redis: {
-        host: process.env.REDIS_HOST,
-        port: process.env.REDIS_PORT,
-    },
-});
-
-// handle Redis connection error
-redisConnect.on('error', error => {
-    console.error('ERROR initialising Redis connection', error.message);
-});
-
-// test Redis connection.
-redisConnect.on('connect', async () => {
-    console.log(
-        `Connected to Redis: ${redisConnect.address}`,
-    );
-    console.log(`Transcoder: ${await transcoderReady() ? 'Ready' : 'Not Ready'}`);
-});
-
-
-/**
- * Transcode image file.
- *
- * @public
- * @return {Promise} result
- * @param data
- * @param callback
- */
-
-export const transcode = async (data, callback) => {
-
-    // extract queued data
-    const {
-        src = '',
-        // filename = '',
-        metadata = {},
-        versions = {},
-        owner = {},
-        imageState = '',
-        options = {},
-    } = data || {};
-    let isRAW = false;
-    let copySrc = src;
-
-    // NOTE: client undefined if connection fails.
-    const client = await pool.connect();
-
-    try {
-
-        // read temporary image into buffer memory
-        // record buffer size as file size
-        //let buffer = await readFile(src);
-        await stat(src).then(stats => {
-            metadata.file.file_size = stats.size;
-        });
-
-        //
-        // // convert RAW image to tiff
-        // // Reference: https://github.com/zfedoran/dcraw.js/
-        // let bufferRaw = dcraw(buffer, {
-        //     useEmbeddedColorMatrix: true,
-        //     exportAsTiff: true,
-        //     useExportMode: true,
-        // });
-        //
-        // // create temporary file for upload (if format is supported)
-        // if (bufferRaw) {
-        //     const tmpName = Math.random().toString(16).substring(2) + '-' + filename;
-        //     copySrc = path.join(process.env.TMP_DIR, path.basename(tmpName));
-        //     await writeFile(copySrc, bufferRaw);
-        //     isRAW = true;
-        // }
-        // delete buffer
-        // buffer = null;
-        // bufferRaw = null;
-
-        // get image metadata
-        await getImageInfo(copySrc, metadata, options, isRAW);
-
-        // add file record to database
-        await insertFile(metadata, owner, imageState, callback, client);
-
-        // copy image versions to data storage
-        await copyImageTo(src, versions.raw);
-        await copyImageTo(copySrc, versions.medium);
-        await copyImageTo(copySrc, versions.thumb);
-        await copyImageTo(copySrc, versions.full);
-
-        // delete temporary files
-        src === copySrc
-            ? await deleteFiles([src])
-            : await deleteFiles( [src, copySrc])
-
-        return {
-            raw: isRAW,
-            src: copySrc,
-            metadata: metadata,
-        };
-    } catch (err) {
-        callback(err);
-    } finally {
-        await client.release(true);
-    }
-};
-
-/**
- * Save transcoded raw image file and resampled versions.
+ * Save processed raw image file and resampled versions.
  *
  * @public
  * @return {Promise} result
@@ -175,9 +47,10 @@ export const transcode = async (data, callback) => {
  * @param owner
  * @param imageState
  * @param options
+ * @param queue
  */
 
-export const saveImage = async (filename, metadata, owner, imageState, options) => {
+export const saveImage = async (filename, metadata, owner, imageState, options, queue) => {
 
     // generate unique filename ID token
     const imgToken = genUUID();

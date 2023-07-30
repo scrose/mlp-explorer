@@ -1,8 +1,8 @@
 {
   "apps": [
     {
-      "name": "mle-transcoder",
-      "script": "./transcoder/app.js",
+      "name": "mle-queue",
+      "script": "./queue/app.js",
       "node_args": ["--inspect", "--expose-gc"],
       "max_memory_restart": "4096M",
       "watch": true,
@@ -15,8 +15,8 @@
         "DYLD_INSERT_LIBRARIES": "/usr/local/Cellar/jemalloc/5.2.1_1/lib/libjemalloc.dylib"
       },
       "log_date_format": "YYYY-MM-DD HH:mm Z",
-      "error_file": "./logs/mle_transcoder_error.log",
-      "out_file": "./logs/mle_transcoder_output.log",
+      "error_file": "./logs/mle_queue_error.log",
+      "out_file": "./logs/mle_queue_output.log",
       "time": true
     },
     {
