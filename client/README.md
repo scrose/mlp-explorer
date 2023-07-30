@@ -25,11 +25,11 @@ metadata, as well as align and master historic and repeat digital photographs.
 
 ## Services
 
-The project consists of three microservices:
+The MLE web application deploys the following:
 
 1. MLE Explorer Client (ReactJS)
 2. MLE API (NodeJS)
-3. MLE Image Transcoder (NodeJS)
+3. MLE Image Queue (NodeJS)
 
 This project was bootstrapped with 
 [Create React App](https://github.com/facebook/create-react-index).

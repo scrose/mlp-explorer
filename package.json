@@ -19,8 +19,8 @@
     "logspm2": "pm2 logs",
     "startdebug": "nodemon --trace-warnings --inspect --trace_gc ./server.js",
     "startdev": "nodemon --trace-warnings ./server.js",
-    "transcoder": "node ./transcoder/app.js",
-    "transcoderdebug": "node --trace-warnings --inspect ./transcoder/app.js",
+    "queue": "node ./queue/app.js",
+    "queue-debug": "node --trace-warnings --inspect ./queue/app.js",
     "client": "cd client && npm start"
   },
   "dependencies": {

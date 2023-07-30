@@ -24,6 +24,7 @@ import * as nserve from "./nodes.services.js";
 import AdmZip from 'adm-zip';
 import archiver from 'archiver';
 import {Readable} from "stream";
+import queue from './queue.services.js';
 
 /**
  * Maximum file size (non-images) = 1GB
@@ -645,17 +646,17 @@ export const saveFile = async (
         historic_images: async () => {
             // check for supported MIME types
             if (!allowedImageMIME(mimetype)) throw new Error('invalidMIMEType');
-            await saveImage(filename, fileData, owner, imageState || 'no_state', options);
+            await saveImage(filename, fileData, owner, imageState || 'no_state', options, queue);
         },
         modern_images: async () => {
             // check for supported MIME types
             if (!allowedImageMIME(mimetype)) throw new Error('invalidMIMEType');
-            await saveImage(filename, fileData, owner, imageState || 'no_state', options);
+            await saveImage(filename, fileData, owner, imageState || 'no_state', options, queue);
         },
         supplemental_images: async () => {
             // check for supported MIME types
             if (!allowedImageMIME(mimetype)) throw new Error('invalidMIMEType');
-            await saveImage(filename, fileData, owner, 'supplemental_images', options);
+            await saveImage(filename, fileData, owner, 'supplemental_images', options, queue);
         },
         default: async (client) => {
             // check for supported MIME types
