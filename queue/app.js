@@ -69,9 +69,6 @@ try {
         },
     });
 
-    // Removes everything but only if there are no active jobs
-    await queue.obliterate();
-
     queue.process(async (job) => {
 
         const {src = ''} = job.data || {};
