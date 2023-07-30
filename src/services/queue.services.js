@@ -43,7 +43,7 @@ export const ready = () => {
     return fetch(`${process.env.QUEUE_HOST}:${process.env.QUEUE_PORT}`)
         .then(() => { return true })
         .catch(err => {
-            console.error('Queue Error:', err);
+            console.error('Queue API Error:', err);
             return false;
         });
 }
