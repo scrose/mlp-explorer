@@ -79,7 +79,7 @@ redisConnect.on('connect', async () => {
     console.log(
         `Connected to Redis: ${redisConnect.address}`,
     );
-    console.log(`Queue API: ${await ready() ? 'Ready' : 'Not Ready'}`);
+    // console.log(`Queue API: ${await ready() ? 'Ready' : 'Not Ready'}`);
 });
 
 export default queue;
