@@ -30,7 +30,7 @@ const MenuItems = () => {
 
 const MainMenu = () => {
     const nav = useNav();
-    return nav.offCanvas
+    return nav.compact
         ? <nav className={'main'}>
             <Accordion label={'Menu'}>
                 <div style={{padding: '5px'}} className={'v-menu'}>

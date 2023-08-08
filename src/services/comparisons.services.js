@@ -133,30 +133,28 @@ export const upsertComparison = async (
         });
 };
 
-// /**
-//  * Delete comparison.
-//  *
-//  * @public
-//  * @param capture1ID
-//  * @param capture2ID
-//  * @param client
-//  * @return {Promise} result
-//  */
-//
-// export const deleteComparison = async (
-//     capture1ID,
-//     capture2ID=null,
-//     client
-// ) => {
-//
-//     if (!capture1ID || !capture2ID) return [];
-//
-//     let { sql, data } = cmpqueries.deleteComparison(capture1ID, capture2ID);
-//     return await client.query(sql, data)
-//         .then(res => {
-//             return res.hasOwnProperty('rows') && res.rows.length > 0 ? res.rows : [];
-//         });
-// };
+/**
+ * Delete comparison by ID.
+ *
+ * @public
+ * @param id
+ * @param client
+ * @return {Promise} result
+ */
+
+export const deleteComparison = async (
+    id=null,
+    client
+) => {
+
+    if (!capture1ID || !capture2ID) return [];
+
+    let { sql, data } = cmpqueries.deleteComparison(id);
+    return await client.query(sql, data)
+        .then(res => {
+            return res.hasOwnProperty('rows') && res.rows.length > 0 ? res.rows : [];
+        });
+};
 
 /**
  * Delete comparison.

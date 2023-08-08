@@ -27,6 +27,7 @@ import {initPanel} from "../panel/init.panel.toolkit";
 import {useDialog} from "../../../_providers/dialog.provider.client";
 import {useNav} from "../../../_providers/nav.provider.client";
 import {getTooltip} from "../../content/toolkit.help";
+import {useUser} from "../../../_providers/user.provider.client";
 
 /**
  * Image selector widget. Used to select a local image file to load into the panel.
@@ -42,6 +43,7 @@ export const ImageOpener = ({id=null, callback = ()=>{}, cancel=()=>{}}) => {
     const iat = useIat();
     const dialog = useDialog();
     const nav = useNav();
+    const user = useUser();
     const panel = iat && id ? iat[id] : {};
 
     const [selectedImage, setSelectedImage] = React.useState(null);
@@ -116,6 +118,9 @@ export const ImageOpener = ({id=null, callback = ()=>{}, cancel=()=>{}}) => {
         }
 
         <Accordion className={'centered'} label={'Open MLP Library Image File'} type={'image'}>
+            {
+                !user && <p>Note that a low-resolution version of the selected image will be loaded.</p>
+            }
             <Button
                 icon={'tree'}
                 className={'success'}

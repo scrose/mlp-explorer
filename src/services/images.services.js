@@ -17,16 +17,9 @@
 
 'use strict';
 
-import * as stream from 'stream';
 import {mkdir} from 'fs/promises';
-import fs from 'fs';
-import {ExifTool} from 'exiftool-vendored';
-import sharp from 'sharp';
 import path from 'path';
-import {genUUID, sanitize} from '../lib/data.utils.js';
-import * as util from "util";
-// import Jimp from 'jimp';
-// import dcraw from 'dcraw';
+import {genUUID} from '../lib/data.utils.js';
 
 /* Available image version sizes */
 
@@ -118,77 +111,6 @@ export const saveImage = async (filename, metadata, owner, imageState, options, 
 
 
 /**
- * Extract image file metadata.
- *
- * @src public
- * @param src
- * @param fileData
- * @param options
- * @param isRAW
- */
-
-export const getImageInfo = async (
-    src,
-    fileData,
-    options,
-    isRAW
-) => {
-
-    // extract exif metadata using ExifTool (vendored)
-    const exiftool = new ExifTool({ taskTimeoutMillis: 5000 });
-    const exifTags = await exiftool.read(src);
-
-    const {
-        FileType = '',
-        MIMEType = '',
-        ImageWidth = 0,
-        ImageHeight = 0,
-        BitDepth='',
-        ColorSpaceData='',
-        Model = '',
-        ProfileDateTime = '',
-        ExposureTime = '',
-        Fnumber = '',
-        ISO = '',
-        FocalLength = '',
-        GPSLatitude = '',
-        GPSLongitude = '',
-        GPSAltitude = '',
-    } = exifTags || {};
-
-    // copy EXIF metadata
-    if (
-        ProfileDateTime
-        && (fileData.file.file_type === 'modern_images' || fileData.file.file_type === 'historic_images')
-    ) {
-        fileData.data.capture_datetime = ProfileDateTime.toDate();
-    }
-    // fileData.file.file_size = info.size;
-    fileData.file.mimetype = MIMEType;
-    fileData.data.format = isRAW ? 'raw' : FileType;
-    fileData.data.x_dim = ImageWidth;
-    fileData.data.y_dim = ImageHeight;
-    fileData.data.channels = ColorSpaceData === 'RGB' ? 3 : 1;
-    fileData.data.density = sanitize(BitDepth, 'integer');
-    // fileData.data.space = info.space;
-    fileData.data.shutter_speed = sanitize(ExposureTime, 'float');
-    fileData.data.f_stop = sanitize(Fnumber, 'float');
-    fileData.data.iso = sanitize(ISO, 'integer');
-    fileData.data.focal_length = sanitize(FocalLength, 'integer');
-    fileData.data.lat = sanitize(GPSLatitude, 'float');
-    fileData.data.lng = sanitize(GPSLongitude, 'float');
-    fileData.data.elev = sanitize(GPSAltitude, 'float');
-
-    // include camera model (if available)
-    const camera = options.cameras
-        .find(camera => camera.label === Model);
-    if (camera) fileData.data.cameras_id = camera.value;
-
-    await exiftool.end();
-
-};
-
-/**
  * Create file source URLs for resampled images from file data.
  *
  * @public
@@ -227,47 +149,3 @@ export const getImageURL = (type = '', data = {}) => {
     // Handle file types
     return fileHandlers.hasOwnProperty(type) ? fileHandlers[type]() : null;
 };
-
-
-/**
- * Copy image files to library. Applies file conversion if requested, otherwise
- * skips conversion on raw files. Images are resized (if requested).
- *
- * @return {Object} output file data
- * @src public
- * @param src
- * @param output
- */
-
-export const copyImageTo = async (src, output) => {
-
-    // Disable Sharp cache
-    sharp.cache(false);
-    sharp.concurrency(1);
-
-    // Create pipeline for saving and resizing the image, converting to JPEG
-    // and use pipe to read from bucket read stream
-
-    // const image = new Jimp(src, function (err, image) {
-    //     const w = image.bitmap.width; //  width of the image
-    //     const h = image.bitmap.height; // height of the image
-    //     console.log(Jimp)
-    // });
-
-    const pipeline = util.promisify(stream.pipeline);
-
-    async function run() {
-        await pipeline(
-            fs.createReadStream(src),
-            output.format !== 'raw'
-                ? sharp().resize({ width: output.size }).jpeg({ quality: 80 })
-                : new stream.PassThrough(),
-            fs.createWriteStream(output.path)
-        );
-    }
-
-    await run().catch(console.error);
-    console.log(`Raw image ${src} saved to ${output.path}.`)
-
-};
-

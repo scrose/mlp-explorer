@@ -35,22 +35,16 @@ export function upsertComparison(
 }
 
 /**
- * Query: Delete comparison for given capture pair IDs.
+ * Query: Delete comparison by ID.
  *
  * @return {Object} query binding
  */
 
-export function deleteComparison(
-    historicCaptureID,
-    modernCaptureID
-) {
-    let sql = `DELETE FROM comparison_indices 
-                WHERE historic_captures = $1::integer 
-                    AND modern_captures = $2::integer
-                RETURNING *;`;
+export function deleteComparison(id) {
+    let sql = `DELETE FROM comparison_indices WHERE id RETURNING *;`;
     return {
         sql: sql,
-        data: [historicCaptureID, modernCaptureID],
+        data: [id],
     };
 }
 
