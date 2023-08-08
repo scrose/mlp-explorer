@@ -26,7 +26,7 @@ Page Layout (Global)
 }
 *::-webkit-scrollbar-thumb {
     background-color: #00C3AB;
-    border-radius: 20px;
+    border-radius: 0;
     border: 3px solid #00C3AB;
 }
 html {
@@ -34,6 +34,8 @@ html {
     margin:0;
     padding:0;
     background-color: #222222;
+    overflow-y: hidden;
+    overflow-x: hidden;
 }
 body {
     margin: 0;
@@ -49,18 +51,7 @@ body {
 div#root {
     height: 100%;
 }
-.page-content {
-    height: 100%;
-    margin:0;
-    padding:0;
-}
-div.main {
-    display: flex;
-    flex-grow: 1;
-    flex-wrap: nowrap;
-    background-color: #111111 !important;
-    border-top: 1px solid #222222;
-}
+
 
 /*
 DOM Elements (Global)
@@ -320,7 +311,7 @@ Page Banner
 
 header {
     position: relative;
-    z-index: 9999 !important;
+    z-index: 99990 !important;
     clear: both;
 }
 header .banner {
@@ -400,9 +391,6 @@ nav.main .accordion-data.open {
 Viewer/Editor Panels
 */
 
-#viewer-panel {
-    position: relative;
-}
 .viewer, .editor {
     width: auto;
 }
@@ -411,9 +399,9 @@ Viewer/Editor Panels
     clear: both;
 }
 .view {
-    height: 78vh;
+    height: 70vh;
     overflow: auto;
-    padding: 5px;
+    padding: 4px;
     margin: 0;
 }
 .view .view-panel-group li {
@@ -555,11 +543,7 @@ ul.user-menu li {
 .navigator {
     overflow: auto;
 }
-.off-canvas {
-    position: absolute;
-    top: 140px;
-    z-index: 999999;
-}
+
 button.nav-toggle {
     margin-left: 8px;
     margin-right: 8px;
@@ -1234,15 +1218,13 @@ nav.breadcrumb ul li a:hover {
     background-color: transparent;
 }
 .slider-button, .resizer {
-
+    flex: 0 0 auto;
     z-index: 9999 !important;
-    position: absolute;
-    display: inline-block;
-    vertical-align: middle;
-    cursor: ew-resize !important;
-    width: 40px !important;
-    height: 40px !important;
+    cursor: col-resize !important;
+    height: 60px !important;
     margin-top: 10px;
+    width: 20px;
+    padding: 0;
 }
 .slider-button.hidden {
     display: none;

@@ -167,7 +167,6 @@ export const DialogToolkit = () => {
                 y_dim: panel.properties.source_dims.h,
                 image_state: panel.properties.image_state
             }
-            console.log(id, panel)
             return <Dialog
                 key={`panel_info_dialog_capture`}
                 title={`Image Info: ${panel.properties.filename}`}

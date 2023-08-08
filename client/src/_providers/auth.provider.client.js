@@ -94,6 +94,7 @@ function AuthProvider(props) {
                     user.isAdmin = role[0] === 'administrator' || role[0] === 'super_administrator';
                 }
 
+                // set user data
                 if (_isMounted.current) {
                     setData(user);
                 }

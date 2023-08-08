@@ -35,6 +35,7 @@ import {useData} from "../../_providers/data.provider.client";
 import {useNav} from "../../_providers/nav.provider.client";
 import {LoaderTool} from "../toolkit/tools/loader.toolkit";
 import Accordion from "../common/accordion";
+import Image from "../common/image";
 
 /**
  * Dialog view for selecting forms/content to display in dialog popup components.
@@ -64,6 +65,8 @@ const DialogSelector = () => {
             node={},
             metadata = null,
             attached = {},
+            url = '',
+            scale = 'medium',
             callback = ()=>{}
         } = data || {};
 
@@ -318,6 +321,17 @@ const DialogSelector = () => {
                         error ? _handleCallback() : redirect(createNodeRoute(model, 'show', id));
                     }}
                 />
+            </Dialog>,
+            image: <Dialog className={'wide'} key={_key} title={`Image: ${label}`} callback={_handleDialogClose}>
+                <Image url={url} title={label} scale={scale} />
+                <div className={'centred'}>
+                    <Button
+                        className={'cancel'}
+                        icon={'cancel'}
+                        label={'Close Panel'}
+                        onClick={_handleCancel}
+                    />
+                </div>
             </Dialog>,
         };
 

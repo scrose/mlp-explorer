@@ -1,7 +1,7 @@
 /*!
  * MLE.Client.Providers.Navigation
  * File: nav.provider.client.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
  *
@@ -16,6 +16,7 @@ import * as React from 'react'
 import { useRouter } from './router.provider.client';
 import {getNavView} from "../_services/session.services.client";
 import kmlData from '../_components/kml/example-2.kml';
+import {useWindowSize} from "../_utils/events.utils.client";
 
 /**
  * Global navigation data provider.
@@ -45,14 +46,15 @@ function NavProvider(props) {
     const [filterData, setFilterData] = React.useState({});
     const [selectedNode, setSelectedNode] = React.useState({});
     const [scrollToView, setScrollToView] = React.useState(false);
+    const [compact, setCompact] = React.useState(false);
 
     // IAT data states
     const [iatSettings, setIATSettings] = React.useState(null);
 
     // initialize navigation view settings
     const [navView, setNavView] = React.useState(getNavView() || 'map');
-    const [navToggle, setNavToggle] = React.useState(false);
-    const [navOffCanvas, setNavOffCanvas] = React.useState(false);
+    const [navToggle, setNavToggle] = React.useState(true);
+    const [navExpand, setNavExpand] = React.useState(false);
 
     // navigator resize signal
     const [resize, setResize] = React.useState(false);
@@ -211,14 +213,16 @@ function NavProvider(props) {
                 hasFilter: Object.keys(filterData).length > 0,
                 mode: navView,
                 setMode: setNavView,
-                offCanvas: navOffCanvas,
-                setOffCanvas: setNavOffCanvas,
+                expand: navExpand,
+                setExpand: setNavExpand,
                 scrollToView: scrollToView,
                 scroll: _handleScroll,
                 toggle: navToggle,
                 setToggle: setNavToggle,
                 resize: resize,
-                setResize: setResize
+                setResize: setResize,
+                compact,
+                setCompact
             }
         } {...props} />
     )

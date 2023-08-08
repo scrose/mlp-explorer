@@ -51,7 +51,7 @@ const LoginMenu = () => {
             ? <div>User {user.email} is signed in.</div>
             :
             <nav className={'main'}>
-                <Accordion type={'user'} label={!nav.offCanvas ? 'Sign In' : ''} hideOnClick={true}>
+                <Accordion type={'user'} label={!nav.compact ? 'Sign In' : ''} hideOnClick={true}>
                     <div className={'user-menu'}>
                         <UserMessage
                             message={message}

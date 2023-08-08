@@ -806,6 +806,9 @@ const PanelToolkit = ({id = null}) => {
             // destructure loaded data
             const {data = null, props = null, error = null} = response || {};
 
+            // return if properties are empty
+            if (!props) return;
+
             if (error) {
                 console.error(error);
                 panel.setStatus('empty');
@@ -884,6 +887,8 @@ const PanelToolkit = ({id = null}) => {
                 panel.properties.base_dims.w,
                 panel.properties.base_dims.h,
             );
+            // ignore if no source data found
+            if (!panel.source) return;
             // store image in render layer
             imageLayer.current.load(panel.source);
             // render image in view layer
@@ -947,10 +952,6 @@ const PanelToolkit = ({id = null}) => {
                 {x: 0, y: 0, w: scaledDims.w, h: scaledDims.h},
                 {x: 0, y: 0, w: result.data.width, h: result.data.height}
             );
-            // render(
-            //     panel.properties.render_dims,
-            //     {x: 0, y: 0, w: result.width, h: result.height}
-            // );
             panel.setStatus('loaded');
             setAligned(true);
         }
@@ -970,12 +971,15 @@ const PanelToolkit = ({id = null}) => {
 
     useEffect(()=>{
         if (panel.status === 'load') {
+            console.log(panel)
             load(panel.properties);
         }
         if (panel.status === 'update') {
             update();
         }
-        return ()=> { panel.setStatus('loaded') }
+        return ()=> {
+            if (panel.status === 'empty' || panel.status === 'update')  panel.setStatus('loaded')
+        }
     }, [panel.status]);
 
     /**

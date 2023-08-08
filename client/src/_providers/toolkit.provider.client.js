@@ -204,6 +204,7 @@ export const IatProvider = (props) => {
                         setSource1(null);
                         setImg1Data(null);
                         setRendered1Data(null);
+                        setSignal1('empty');
                     },
                     source: source1,
                     setSource: setSource1,
@@ -230,9 +231,10 @@ export const IatProvider = (props) => {
                     },
                     reset: () => {
                         setPanel2Metadata(initPanel(panel2ID, panel2Label));
-                        setSource1(null);
-                        setImg1Data(null);
-                        setRendered1Data(null);
+                        setSource2(null);
+                        setImg2Data(null);
+                        setRendered2Data(null);
+                        setSignal2('empty');
                     },
                     source: source2,
                     setSource: setSource2,

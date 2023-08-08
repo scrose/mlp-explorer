@@ -1,9 +1,16 @@
 /*!
  * MLE.Client.Components.Views.Dashboard
  * File: dashboard.view.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * Description
+ * Viewer dashboard component for MLE frontpage.
+ *
+ * Revisions
+ * - 06-09-2023 Move image expand dialog to dialog selector.
+ *
  */
 
 import React from 'react'
@@ -96,29 +103,27 @@ const DashboardView = () => {
     }, [error, router, images, loaded]);
 
     return <>
-        <div className={'heading h-menu'}>
-            <ul>
-                <li>
-                    <div className={'logo'}><MLPLogo colour={'#EEEEEE'} /></div>
-                </li>
-                <li><h1>{schema.app.title}</h1></li>
-            </ul>
-        </div>
-        <div style={{paddingTop: '20px'}}>
-            {!error && <Slideshow
-                fit={'cover'}
-                fixedHeight={false}
-                items={images}
-                thumbnails={false}
-                slideshow={true}
-                autoslide={8000}
-            />
+        {!error && <Slideshow
+            fit={'cover'}
+            fixedHeight={false}
+            items={images}
+            thumbnails={false}
+            slideshow={true}
+            autoslide={8000}
+        />
             }
-            <div className={'dashboard'}>
-                { error && <UserMessage message={{msg: 'A server error has occurred.', type: 'error'}} /> }
-                <div className={'view-panel'}>
-                    { viewerWelcome }
-                </div>
+        <div className={'dashboard'}>
+            <div className={'heading h-menu'}>
+                <ul>
+                    <li>
+                        <div className={'logo'}><MLPLogo colour={'#EEEEEE'} /></div>
+                    </li>
+                    <li><h1>{schema.app.title}</h1></li>
+                </ul>
+            </div>
+            { error && <UserMessage message={{msg: 'A server error has occurred.', type: 'error'}} /> }
+            <div className={'view-panel'}>
+                { viewerWelcome }
             </div>
         </div>
     </>;

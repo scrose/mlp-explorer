@@ -28,7 +28,7 @@ const LogoutMenu = () => {
 
     return (
         <nav className={'main'}>
-            <Accordion type={'user'} label={ !nav.offCanvas ? user.email : ''} hideOnClick={true}>
+            <Accordion type={'user'} label={ !nav.compact ? user.email : ''} hideOnClick={true}>
                 <ul className={'user-menu'}>
                         <li><b>{user.email} ({user.label})</b></li>
                         <li><Button

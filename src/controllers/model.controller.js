@@ -28,7 +28,7 @@ import * as importer from '../services/import.services.js';
 import * as metaserve from '../services/metadata.services.js';
 import {humanize, sanitize} from '../lib/data.utils.js';
 import {isRelatable} from '../services/schema.services.js';
-import {updateComparisons} from "../services/comparisons.services.js";
+import {deleteComparisons, getComparisonsMetadata, updateComparisons} from "../services/comparisons.services.js";
 import {prepare} from '../lib/api.utils.js';
 
 /**
@@ -386,12 +386,17 @@ export default function ModelController(nodeType) {
             const ownerData = await nserve.select(owner_id, client);
 
             // item record and/or node/owner not found in database
-            const {type='', status=''} = itemData || {};
+            const {type='', status='', node} = itemData || {};
             if (!ownerData || !itemData || nodeType !== type) return next(new Error('notFound'));
 
-            // is the move allowed? (i.e. check if owner and node are relatable or is not repeated)
+            // is the move allowed? (i.e. check if owner and node are relatable or not repeated)
+            // - confirm nodes can be put into requested relation (e.g., modern capture in location)
+            // - confirm capture does not have comparisons.
+            const comparisons = await getComparisonsMetadata(node, client);
             const isMoveable = await isRelatable(id, owner_id, client);
-            if (!isMoveable || (status !== 'unsorted' && status !== 'sorted')) {
+            if (Array.isArray(comparisons) && comparisons.length > 0)
+                return next(new Error('restrictedByComparisons'));
+            if (!isMoveable || (status !== 'unsorted' && status !== 'sorted' && status !== 'missing')) {
                 return next(new Error('invalidMove'));
             }
 
@@ -443,7 +448,7 @@ export default function ModelController(nodeType) {
             let itemData = await nserve.get(id, nodeType, client);
 
             // item record and/or node/owner not found in database
-            const {type=''} = itemData || {};
+            const {type='', node} = itemData || {};
             if (!itemData || nodeType !== type) return next(new Error('notFound'));
 
             // check if node is valid (exists)
@@ -452,6 +457,12 @@ export default function ModelController(nodeType) {
             // force user to delete dependent nodes separately
             // - use error code 23503 from FK violation
             if (itemData.hasDependents) return next(new Error('23503'));
+
+            // delete any capture comparisons if they exist
+            const comparisons = await getComparisonsMetadata(node, client);
+            if (Array.isArray(comparisons) && comparisons.length > 0) {
+                await deleteComparisons(node, client);
+            }
 
             // get path of owner node in hierarchy (if exists)
             const item = new Model(itemData.metadata);

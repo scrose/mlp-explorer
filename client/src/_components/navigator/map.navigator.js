@@ -1,9 +1,15 @@
 /*!
  * MLE.Client.Components.Navigator.Map
  * File: map.navigator.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * Description
+ * Map-based navigation component. Integrates Leaflet map library.
+ *
+ * Revisions
+ *
  */
 
 import React from 'react';
@@ -333,7 +339,7 @@ function MapNavigator({ filter, hidden }) {
             _isMounted.current = false;
             nav.setResize(false);
         }
-    }, [nav, winWidth, winHeight]);
+    }, [nav.resize, winWidth, winHeight]);
 
 
     /**

@@ -17,15 +17,15 @@
 
 'use strict';
 
-import pool from "./db.services.js";
-import {deleteFiles, insertFile} from "./files.services.js";
+import pool from "../src/services/db.services.js";
+import {deleteFiles, insertFile} from "../src/services/files.services.js";
 import * as stream from 'stream';
 import {mkdir, stat} from 'fs/promises';
 import fs from 'fs';
 import {ExifTool} from 'exiftool-vendored';
 import sharp from 'sharp';
 import path from 'path';
-import {genUUID, sanitize} from './data.utils.js';
+import {genUUID, sanitize} from '../src/lib/data.utils.js';
 import * as util from "util";
 
 // import Jimp from 'jimp';
@@ -190,47 +190,6 @@ export const getImageInfo = async (
     await exiftool.end();
 
 };
-
-/**
- * Create file source URLs for resampled images from file data.
- *
- * @public
- * @param {String} type
- * @param {Object} data
- * @return {Promise} result
- */
-
-export const getImageURL = (type = '', data = {}) => {
-
-    const { secure_token = '' } = data || {};
-    const rootURI =`${process.env.API_HOST}/uploads/`;
-
-    // generate resampled image URLs
-    const imgSrc = (token) => {
-        return Object.keys(imageSizes).reduce((o, key) => {
-            o[key] = new URL(`${key}_${token}.jpeg`, rootURI);
-            return o;
-        }, {});
-    };
-
-    // handle image source URLs
-    // - images use scaled versions of raw files
-    const fileHandlers = {
-        historic_images: () => {
-            return imgSrc(secure_token);
-        },
-        modern_images: () => {
-            return imgSrc(secure_token);
-        },
-        supplemental_images: () => {
-            return imgSrc(secure_token);
-        },
-    };
-
-    // Handle file types
-    return fileHandlers.hasOwnProperty(type) ? fileHandlers[type]() : null;
-};
-
 
 /**
  * Copy image files to library. Applies file conversion if requested, otherwise

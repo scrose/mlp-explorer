@@ -9,9 +9,9 @@
 import React from 'react';
 import Button from './button';
 import Image from './image';
-import Dialog from './dialog';
 import {useRouter} from "../../_providers/router.provider.client";
 import {genID} from "../../_utils/data.utils.client";
+import {useDialog} from "../../_providers/dialog.provider.client";
 
 /**
  * Image slideshow component.
@@ -36,10 +36,10 @@ const Slideshow = ({
                    }) => {
 
     const router = useRouter();
+    const dialog = useDialog();
 
     // selected slide states
     const [selectedIndex, setSelectedIndex] = React.useState(0);
-    const [expandImage, setExpandImage] = React.useState(false);
     const [captionToggle, setCaptionToggle] = React.useState(true);
     const selectedSlide = React.useRef();
     const selectedImage = items[selectedIndex];
@@ -65,12 +65,14 @@ const Slideshow = ({
         return link ? router.update(link) : null;
     }
 
-    // image enlarged view
-    const _handleExpandOpen = () => {
-        setExpandImage(true);
-    }
-    const _handleExpandClose = () => {
-        setExpandImage(false);
+    // show slide image in enlarged view
+    const _handleExpandImage = () => {
+        dialog.setCurrent({
+            dialogID: 'image',
+            url: url,
+            label: title || label,
+            scale: 'medium'
+        });
     }
 
     // auto-increment slideshow
@@ -122,7 +124,7 @@ const Slideshow = ({
                     {
                         expandable &&
                         <div className={'expand-image'}>
-                            <Button icon={'enlarge'} onClick={_handleExpandOpen}/>
+                            <Button icon={'enlarge'} onClick={_handleExpandImage}/>
                         </div>
                     }
                 </div>
@@ -156,17 +158,6 @@ const Slideshow = ({
                     <Button icon={'next'} className={'next'} onClick={_nextSlide} />
                 </li>
             </ul>
-            {
-                expandImage &&
-                <Dialog className={'wide'} title={title || `Slide ${selectedIndex}`} callback={_handleExpandClose}>
-                    <Image
-                        key={`slide_${selectedIndex}`}
-                        url={url}
-                        title={label}
-                        scale={'medium'}
-                    />
-                </Dialog>
-            }
         </div>
     </div>
 };

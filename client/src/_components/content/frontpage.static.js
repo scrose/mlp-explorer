@@ -16,7 +16,6 @@ import React from 'react';
  */
 
 export const viewerWelcome = <>
-    <h4>The Mountain Legacy Project</h4>
     <p>
         The Mountain Legacy Project (MLP) explores changes in Canada’s mountain
         landscapes through the world’s largest collection of systematic

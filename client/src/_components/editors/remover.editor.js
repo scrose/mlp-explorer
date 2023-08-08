@@ -36,8 +36,6 @@ const Remover = ({
                      callback=()=>{}
                  }) => {
 
-    console.log('%%%', metadata)
-
     const dialog = useDialog();
     const api = useData();
     const nav = useNav();

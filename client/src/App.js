@@ -1,16 +1,25 @@
 /*!
  * MLE.Client.App
  * File: App.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * Core app component. Includes interactive grid for adjusting navigator
+ * and viewer panel resizing.
+ *
+ * ---------
+ * Revisions
+ * - 06-08-2023   Major upgrade to convert layout to interactive grid.
  */
 
 import React from 'react';
 import { useUser } from './_providers/user.provider.client';
 import { useRouter } from './_providers/router.provider.client';
 import UnavailableError from './_components/error/unavailable.error';
-import { getPref, setPref} from "./_services/session.services.client";
 import BannerMenu from "./_components/menus/banner.menu";
 import BoundaryError from "./_components/error/boundary.error";
 import Navigator from "./_components/navigator/navigator";
@@ -18,14 +27,14 @@ import VisitorView from "./_components/views/visitor.view";
 import EditorView from "./_components/views/editor.view";
 import ViewerMenu from "./_components/menus/viewer.menu";
 import BreadcrumbMenu from "./_components/menus/breadcrumb.menu";
-import Button from "./_components/common/button";
 import {useNav} from "./_providers/nav.provider.client";
 import {useWindowSize} from "./_utils/events.utils.client";
 import DialogSelector from "./_components/selectors/dialog.selector";
 import Loading from "./_components/common/loading";
 import {useAuth} from "./_providers/auth.provider.client";
-import {useIat} from "./_providers/toolkit.provider.client";
 import Tooltip from "./_components/common/tooltip";
+import styles from '../src/_components/styles/layout.module.css';
+
 
 /**
  * Core client application component.
@@ -39,21 +48,20 @@ export default function App() {
     const user = useUser();
     const nav = useNav();
     const auth = useAuth();
-    const iat = useIat();
 
     // create reference to navigator panels and resize slider
     const mainRef = React.useRef();
-    const panel2Ref = React.useRef();
-    const panel1Ref = React.useRef();
+    const viewPanelRef = React.useRef();
+    const navPanelRef = React.useRef();
     const sliderRef = React.useRef();
 
     // create reference to panel resizer
     let sliding = false;
-    const minWidth = 400;
-    const maxWidth = 700;
-    const thresholdWidth = 1000;
-    const sliderVerticalOffset = 52;
+    const minNavPanelWidth = 400;
+    const maxNavPanelWidth = 1200;
     let slideInit = 0;
+    const rightOffest = 20;
+    const winWidthThreshold = 800;
 
     // Addresses: Can't perform a React state update on unmounted component.
     const _isMounted = React.useRef(false);
@@ -68,78 +76,67 @@ export default function App() {
         if (
             _isMounted.current
             && sliderRef.current
-            && panel1Ref.current
-            && panel2Ref.current
+            && navPanelRef.current
+            && viewPanelRef.current
         ) {
-            if (winWidth > thresholdWidth) {
-                /* Initialize full-sized panel layout */
-                const navWidth = getPref('navWidth') || minWidth;
-                sliderRef.current.style.top = sliderVerticalOffset + 'px';
-                sliderRef.current.style.left = (navWidth - sliderRef.current.offsetWidth / 2) + 'px';
-                panel1Ref.current.style.width = navWidth + 'px';
-                panel2Ref.current.style.width = nav.toggle ? (winWidth - navWidth) + 'px' : winWidth + 'px';
-                // reset navigator toggle
-                if (nav.offCanvas) {
-                    nav.setToggle(true);
-                    setPref('navToggle', true);
-                }
-                nav.setOffCanvas(false);
-            }
-            else if (iat && Object.keys(iat).length > 0) {
-                // set navigation to off-canvas is IAT mode
-                if (nav.offCanvas) {
-                    nav.setToggle(true);
-                    setPref('navToggle', true);
-                }
-                nav.setOffCanvas(false);
-            }
-            else {
-                /* Initialize compact panel layout */
-                if (!nav.offCanvas) {
-                    nav.setToggle(false);
-                    setPref('navToggle', false);
-                }
-                nav.setOffCanvas(true);
-                panel1Ref.current.style.width = minWidth + 'px';
-                panel2Ref.current.style.width = winWidth + 'px';
-            }
-        }
+            /* Compute navigator panel resize */
+            const navPanelWidth = nav.toggle ? Math.max(
+                Math.min( navPanelRef.current.clientWidth, maxNavPanelWidth), minNavPanelWidth
+            ) : 0;
 
+            /* Resize panel grid */
+            const cols = [
+                navPanelWidth,
+                sliderRef.current.offsetWidth,
+                mainRef.current.clientWidth - navPanelWidth - rightOffest
+            ];
+
+            // check if at compact (responsive) breakpoint
+            nav.setCompact(winWidth < winWidthThreshold);
+
+            // set new column widths
+            mainRef.current.style.gridTemplateColumns = cols.map(c => c.toString() + "px").join(" ");
+        }
         return () => {_isMounted.current = false;}
-    }, [nav, iat, winWidth, winHeight]);
+    }, [nav.toggle, winWidth, winHeight]);
 
     /* Initialize panel resize */
     function _resizeStart(e) {
+        /* if slider is no longer engaged, exit this function: */
+        if (sliding) return false;
         sliding = true;
         slideInit = e.pageX;
+        nav.setToggle(true);
     }
 
     /* Position the slider and resize panel */
     function _resizeEnd() {
+        /* if slider is no longer engaged, exit this function: */
+        if (!sliding) return false;
         sliding = false;
         nav.setResize(true);
-        setPref('navWidth', panel1Ref.current.offsetWidth);
-        setPref('viewWidth', panel2Ref.current.offsetWidth);
     }
 
     /* Position the slider and resize panel */
     function _resize(e) {
-        /* If the slider is no longer clicked, exit this function: */
+        /* if slider is no longer engaged, exit this function: */
         if (!sliding) return false;
 
-        /* Compute amount to resize */
-        const mainRect = mainRef.current.getBoundingClientRect();
-        const panel1Rect = panel1Ref.current.getBoundingClientRect();
-        const panelWidth = Math.max( Math.min( panel1Rect.width - ( slideInit - e.pageX ), maxWidth), minWidth );
+        /* Compute navigator panel resize */
+        const navPanelWidth = Math.max(Math.min( e.clientX, maxNavPanelWidth), minNavPanelWidth);
 
-        /* Resize panels */
-        panel1Ref.current.style.width = `${ panelWidth }px`;
-        panel2Ref.current.style.width = mainRect.width - panelWidth + 'px';
-        /* Set new position of slider */
-        sliderRef.current.style.left = `${ panelWidth - sliderRef.current.offsetWidth / 2 }px`;
+        /* Resize panel grid */
+        const cols = [
+            navPanelWidth,
+            sliderRef.current.offsetWidth,
+            mainRef.current.clientWidth - navPanelWidth - rightOffest
+        ];
 
-        /* Set new slider init */
-        slideInit = e.pageX;
+        // set new column widths
+        mainRef.current.style.gridTemplateColumns = cols.map(c => c.toString() + "px").join(" ");
+
+        // e.preventDefault();
+
     }
 
     return router.online
@@ -149,39 +146,30 @@ export default function App() {
             <Tooltip />
             <BannerMenu/>
             <ViewerMenu/>
-            <div
-                style={{
-                    display: nav.toggle && !nav.offCanvas ? 'block' : 'none',
-                }}
-                className={`resizer`}
-                ref={sliderRef}
-                onMouseDown={_resizeStart}
-                onMouseUp={_resizeEnd}
-                onMouseLeave={_resizeEnd}
-                onMouseMove={_resize}
-                onTouchStart={_resizeStart}
-                onTouchEnd={_resizeEnd}
-                onTouchMove={_resize}
-            ><Button icon={'arrows'} size={'2x'} title={'Resize Navigation Panel'} />
-            </div>
             <BreadcrumbMenu/>
             <main>
-                <div className={'main'} ref={mainRef}>
+                <div
+                    className={styles.main}
+                    ref={mainRef}
+                    onMouseUp={_resizeEnd}
+                    onMouseMove={_resize}
+                    onTouchEnd={_resizeEnd}
+                    onTouchMove={_resize}
+                >
                     <BoundaryError>
-                        <div
-                            ref={panel1Ref}
-                            id={'navigator-panel'}
-                            style={{ display: nav.toggle ? 'block' : 'none'}}
-                            className={nav.offCanvas ? 'off-canvas' : ''}
-                        >
+                        <div ref={navPanelRef} className={styles.navigator}>
                             <Navigator />
                         </div>
                     </BoundaryError>
+                    <div
+                        className={styles.dragbar}
+                        ref={sliderRef}
+                        onMouseDown={_resizeStart}
+                        onTouchStart={_resizeStart}
+                    >
+                    </div>
                     <BoundaryError>
-                        <div
-                            ref={panel2Ref}
-                            id={'viewer-panel'}
-                        >
+                        <div ref={viewPanelRef} className={styles.viewer}>
                             {
                                 user ? <EditorView/> : <VisitorView/>
                             }

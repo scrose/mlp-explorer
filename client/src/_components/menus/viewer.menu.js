@@ -37,7 +37,6 @@ export const NavigatorMenu = () => {
     const setMode = (navView) => {
         // toggle navigator visibility
         nav.setToggle(true);
-        setPref('navToggle', true);
         // set navigator view
         nav.setMode(navView);
         nav.setResize(true);
@@ -65,7 +64,7 @@ export const NavigatorMenu = () => {
                         <li>
                             <Button
                                 icon={'tree'}
-                                label={!nav.offCanvas ? 'List' : ''}
+                                label={!nav.compact && 'List'}
                                 title={`View navigation tree.`}
                                 onClick={() => {
                                     setMode('tree')
@@ -76,7 +75,7 @@ export const NavigatorMenu = () => {
                         <li>
                             <Button
                                 icon={'map'}
-                                label={!nav.offCanvas ? 'Map' : ''}
+                                label={!nav.compact &&'Map'}
                                 title={`View navigation map.`}
                                 onClick={() => setMode('map')}
                             />
@@ -84,7 +83,7 @@ export const NavigatorMenu = () => {
                         <li>
                             <Button
                                 icon={'filter'}
-                                label={!nav.offCanvas ? 'Filter' : ''}
+                                label={!nav.compact &&'Filter'}
                                 title={`Filter map stations.`}
                                 className={nav.hasFilter ? 'active' : ''}
                                 onClick={() => dialog.setCurrent({dialogID: 'filter'})}
@@ -93,7 +92,7 @@ export const NavigatorMenu = () => {
                         <li>
                             <Button
                                 icon={'search'}
-                                label={!nav.offCanvas ? 'Search' : ''}
+                                label={!nav.compact &&'Search'}
                                 title={`Full-text search of metadata.`}
                                 onClick={() => setMode('search')}
                             />
@@ -137,8 +136,8 @@ const ViewerPanelMenu = () => {
                 {
                     isAdmin && <li className={user ? 'push' : ''}>
                         <Dropdown
-                            compact={nav.offCanvas}
-                            label={'New'}
+                            compact={nav.compact}
+                            label={!nav.compact ? 'New' : ''}
                             items={[{
                                 icon: 'surveyors',
                                 type: 'surveyors',
@@ -155,14 +154,14 @@ const ViewerPanelMenu = () => {
                 <li className={'push'}>
                     <Button
                         icon={'sync'}
-                        label={nav.offCanvas ? '' : 'Refresh'}
+                        label={!nav.compact && 'Refresh'}
                         onClick={_handleRefresh}
                     />
                 </li>
                 <li className={user ? '' : 'push'} key={`${menuID}_menuitem_iat`}>
                     <Button
                         icon={'iat'}
-                        label={nav.offCanvas ? '' : 'Toolkit'}
+                        label={!nav.compact && 'Toolkit'}
                         title={`Image Analysis Toolkit`}
                         onClick={() => {
                             // redirect to MLE Toolkit in viewer/editor
@@ -173,7 +172,7 @@ const ViewerPanelMenu = () => {
                 <li key={`${menuID}_menuitem_export`}>
                     <Button
                         icon={'export'}
-                        label={nav.offCanvas ? '': 'Export'}
+                        label={!nav.compact && 'Export'}
                         title={`View data export options.`}
                         onClick={() => {
                             dialog.setCurrent({dialogID: 'exporter'});
@@ -183,7 +182,7 @@ const ViewerPanelMenu = () => {
                 <li key={`${menuID}_menuitem_help`}>
                     <Button
                         icon={'help'}
-                        label={nav.offCanvas ? '' : 'Help'}
+                        label={!nav.compact && 'Help'}
                         title={`View the help pages.`}
                         onClick={() => {
                             dialog.setCurrent({dialogID: 'help'});
@@ -195,7 +194,7 @@ const ViewerPanelMenu = () => {
                     <li key={`${menuID}_menuitem_options`}>
                         <Button
                             icon={'options'}
-                            label={nav.offCanvas ? '': 'Options'}
+                            label={!nav.compact && 'Options'}
                             title={`Edit metadata options.`}
                             onClick={() => dialog.setCurrent({dialogID: 'options'})}
                         />

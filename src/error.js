@@ -162,6 +162,12 @@ export const errors = {
         status: 422,
         type: 'error'
     },
+    restrictedByComparisons: {
+        hint: 'Captures can only be moved if no comparisons exist.',
+        msg: 'Deselect any comparisons before moving this capture to a new owner.',
+        status: 422,
+        type: 'error'
+    },
     invalidComparison: {
         hint: 'The requested capture is not sorted and therefore cannot be compared.',
         msg: 'This capture is not sorted. Only sorted captures can be compared (see documentation).',

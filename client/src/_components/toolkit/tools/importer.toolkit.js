@@ -1,7 +1,7 @@
 /*!
- * MLE.Client.Components.Toolkit.Loader
- * File: loader.toolkit.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * MLE.Client.Components.Toolkit.Importer
+ * File: importer.toolkit.js
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
  */
@@ -142,6 +142,9 @@ export const ImporterToolkit = ({ id = null, callback = () => {}, cancel = () =>
     }
 
     return <>
+        {
+            !user && <p>Note that a low-resolution version of the selected image will be loaded.</p>
+        }
         <InputSelector
             id={'panel-selector'}
             type={'select'}

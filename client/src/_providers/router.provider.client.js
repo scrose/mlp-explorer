@@ -77,7 +77,7 @@ function RouterProvider(props) {
     const handleResponse = (res) => {
 
         // No response: API is unavailable
-        if (!res) return setOnline(false);
+        //if (!res) return setOnline(false);
 
         // return response (and error)
         const { response={} } = res || {};
