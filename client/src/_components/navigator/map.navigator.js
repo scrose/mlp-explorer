@@ -460,7 +460,7 @@ function MapNavigator({ filter, hidden }) {
                     height: (winHeight - heightOffset) + 'px'
                 }}
             />
-            <div className={'map-menu'}>
+            {nav.toggle && <div className={'map-menu'}>
                 <Button
                     icon={'sync'}
                     size={'lg'}
@@ -469,11 +469,11 @@ function MapNavigator({ filter, hidden }) {
                 <Button
                     icon={'stations'}
                     size={'lg'}
-                    label={ clustered ? 'cluster on' : 'cluster off'}
-                    className={ clustered ? 'activated' : ''}
+                    label={clustered ? 'cluster on' : 'cluster off'}
+                    className={clustered ? 'activated' : ''}
                     onClick={_handleCluster}
                 />
-            </div>
+            </div>}
         </div>
     );
 }
