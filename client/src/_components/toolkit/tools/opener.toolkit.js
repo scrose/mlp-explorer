@@ -128,6 +128,7 @@ export const ImageOpener = ({id=null, callback = ()=>{}, cancel=()=>{}}) => {
                 title={'Opens tree navigator panel. Select a capture image from the right-hand menu.'}
                 onClick={() => {
                     nav.setToggle(true);
+                    nav.setMode('tree');
                     dialog.setTooltip({
                         message: getTooltip('loadMLPImage'),
                         position: {x: 300, y: 300},
