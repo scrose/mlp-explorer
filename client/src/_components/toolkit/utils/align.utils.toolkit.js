@@ -126,7 +126,9 @@ export const alignImages = (cv = null, srcPanel, dstPanel, canvas, targetImage, 
     const controlPoints2 = [...dstPanel.pointer.points];
 
     // check control points preconditions
-    if (!controlPoints1 || controlPoints1.length < options.controlPtMax || !controlPoints2 || controlPoints2.length < options.controlPtMax) {
+    if (!controlPoints1
+        || controlPoints1.length < options.controlPtMax
+        || !controlPoints2 || controlPoints2.length < options.controlPtMax) {
         return {data: null, error: {msg: getError('missingControlPoints', 'canvas'), type: 'error'}};
     }
 
@@ -141,7 +143,6 @@ export const alignImages = (cv = null, srcPanel, dstPanel, canvas, targetImage, 
         let initDstImage = cv.matFromImageData(targetImage);
         let dstImage = new cv.Mat();
         let dsize = new cv.Size(initDstImage.cols, initDstImage.rows);
-        // let ssize = new cv.Size(srcW, srcH);
 
         // DEBUG
         // console.log('Source Image:', imgSrc, ssize)
@@ -151,8 +152,7 @@ export const alignImages = (cv = null, srcPanel, dstPanel, canvas, targetImage, 
         // (data32F[2], data32F[3]) is the second point
         // (data32F[4], data32F[5]) is the third point
         // (data32F[6], data32F[7]) is the fourth point
-        let dstTri = new cv.Mat(controlPoints1.length, 1, cv.CV_32FC2);
-        dstTri.data32F.set([
+        let dstTri = new cv.matFromArray(controlPoints1.length, 1, cv.CV_32FC2, [
             controlPoints1[0].x,
             controlPoints1[0].y,
             controlPoints1[1].x,
@@ -162,8 +162,8 @@ export const alignImages = (cv = null, srcPanel, dstPanel, canvas, targetImage, 
             controlPoints1[3].x,
             controlPoints1[3].y
         ]);
-        let srcTri = new cv.Mat(controlPoints2.length, 1, cv.CV_32FC2);
-        srcTri.data32F.set([
+
+        let srcTri = new cv.matFromArray(controlPoints2.length, 1, cv.CV_32FC2, [
             controlPoints2[0].x,
             controlPoints2[0].y,
             controlPoints2[1].x,
@@ -174,14 +174,17 @@ export const alignImages = (cv = null, srcPanel, dstPanel, canvas, targetImage, 
             controlPoints2[3].y
         ]);
 
+        console.log(initDstImage.rows, initDstImage.cols, controlPoints1, controlPoints2, dsize)
+
         // Find the homography matrix.
-        const homography = cv.findHomography(srcTri, dstTri, cv.RANSAC);
+        // const homography = cv.findHomography(srcTri, dstTri, cv.RANSAC);
+        const M = cv.getPerspectiveTransform(srcTri, dstTri);
 
         // DEBUG
         // console.log('Homgraphy:', homography)
 
         // Apply homography to image
-        cv.warpPerspective(initDstImage, dstImage, homography, dsize);
+        cv.warpPerspective(initDstImage, dstImage, M, dsize);
 
         // DEBUG
         // console.log('Warping:', homography, initDstImage, dstImage, dsize)

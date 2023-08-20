@@ -150,7 +150,7 @@ export const DialogToolkit = () => {
                 title={`Image Comparator`}
                 callback={()=>{iat.setDialog(null)}}
             >
-                <ComparatorTool />
+                <ComparatorTool callback={()=>{iat.setDialog(null)}} />
             </Dialog>;
         },
         capture: (id) => {

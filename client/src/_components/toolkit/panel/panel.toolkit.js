@@ -116,10 +116,12 @@ const PanelToolkit = ({id = null}) => {
      */
 
     const _resetBounds = () => {
-        const bounds = viewLayer.current.bounds();
-        // update panel properties
-        panel.update({bounds: bounds});
-        return bounds;
+        if (viewLayer.current) {
+            const bounds = viewLayer.current.bounds();
+            // update panel properties
+            panel.update({bounds: bounds});
+            return bounds;
+        }
     }
 
 
@@ -229,6 +231,7 @@ const PanelToolkit = ({id = null}) => {
     const clear = () => {
         // clear canvas of graphics / markup
         overlayLayer1.current.clear();
+        overlayLayer2.current.clear();
         // clear control points
         panel.pointer.clearPoints();
     }
@@ -244,7 +247,6 @@ const PanelToolkit = ({id = null}) => {
         panel.reset();
         // clear canvases
         imageLayer.current.clear();
-        overlayLayer2.current.clear();
         viewLayer.current.clear();
         magnifiedLayer.current.clear();
         panel.setStatus('empty');
@@ -690,7 +692,7 @@ const PanelToolkit = ({id = null}) => {
 
 
     /**
-     * convenience method for zooming out of view
+     * set a control point on the overlay canvas
      * */
 
     const setControlPoint = (e, properties, pointer) => {
@@ -702,7 +704,7 @@ const PanelToolkit = ({id = null}) => {
             base_dims: properties.base_dims,
             bounds: bounds
         }) || {};
-        // create array for canvas points
+        // create array for updated rendered points on canvas
         const pts = [];
         // calculate actual image pixel location
         const actual = scalePoint(pos, properties.image_dims, properties.render_dims);
@@ -711,6 +713,9 @@ const PanelToolkit = ({id = null}) => {
 
         // get current set control points
         let controlPoints = [...pointer.points];
+
+        // check if pointer is outside of image
+        if (actual.x > properties.image_dims.w || actual.y > properties.image_dims.h) return;
 
         // check if mouse cursor within defined radius to existing control point
         let selected = false;
@@ -738,8 +743,12 @@ const PanelToolkit = ({id = null}) => {
         else {
             // DEBUG
             // console.log('Draw tools:', pts, controlPoints, pos, actual, panel.properties.render_dims, panel.properties.image_dims, bounds)
+            // add current point to rendered points
+            pts.push(pos);
+            // add scaled control point
             controlPoints.push(actual);
             pointer.setPoints(controlPoints);
+            // render point to canvas
             overlayLayer1.current.drawControlPoints(pts);
         }
     }
@@ -771,27 +780,41 @@ const PanelToolkit = ({id = null}) => {
         const ctrlPt = pointer.points[pointer.index];
         if (!ctrlPt) return;
 
-        // scale point to view dimensions
-        const pt = scalePoint(ctrlPt, properties.render_dims, properties.image_dims);
+        // check if pointer is outside of image
+        if (pointer.x > properties.render_dims.w || pointer.y > properties.render_dims.h) return;
 
-        // compute distance traveled
-        const _x = pt.x + pointer.x - pointer.selected.x;
-        const _y = pt.y + pointer.y - pointer.selected.y;
+        // compute new coordinates using distance travelled
+        const _x = pointer.x + (pointer.x - pointer.selected.x);
+        const _y = pointer.y + (pointer.y - pointer.selected.y);
 
         // update the pointer selected point
-        pointer.setSelect({x: _x, y: _y});
+        pointer.setSelect({ x: pointer.x, y: pointer.y });
+
+        // compute up scale
+        const scaleUp = getScale(properties.image_dims, properties.render_dims);
 
         // update panel control point position
         const controlPoints = [...pointer.points];
-        controlPoints[pointer.index] = scalePoint({
-            x: _x,
-            y: _y
-        }, panel.properties.image_dims, panel.properties.render_dims);
+        controlPoints[pointer.index] = { x: Math.round(scaleUp.x * _x), y: Math.round(scaleUp.y * _y) };
         pointer.setPoints(controlPoints);
+
         // redraw points on overlay canvas
-        overlayLayer1.current.clear();
-        overlayLayer1.current.drawControlPoints(controlPoints);
+        overlayLayer1.current.drawControlPoints(controlPoints.map(ctrlPt => {
+            // scale control point to render view
+            return scalePoint(ctrlPt, properties.render_dims, properties.image_dims);
+        }));
     };
+
+    /**
+     * Adjust control point poisition
+     * @param pts
+     */
+
+    const adjustControlPoint = (pts) => {
+        // redraw points on overlay canvas
+        overlayLayer1.current.drawControlPoints(pts);
+        _resetBounds();
+    }
 
     /**
      * Load image data to canvas
@@ -971,7 +994,6 @@ const PanelToolkit = ({id = null}) => {
 
     useEffect(()=>{
         if (panel.status === 'load') {
-            console.log(panel)
             load(panel.properties);
         }
         if (panel.status === 'update') {
@@ -1004,20 +1026,20 @@ const PanelToolkit = ({id = null}) => {
      * @private
      */
 
-    useEffect(()=>{
-        const pts = [];
-        panel.pointer.points.forEach((ctrlPt) => {
-            // scale control point to render view
-            const pt = scalePoint(ctrlPt, panel.properties.render_dims, panel.properties.image_dims);
-            // DEBUG
-            // console.log('update control point:', ctrlPt, pt, panel.properties.render_dims, panel.properties.image_dims)
-            // add scaled point to array
-            pts.push(pt);
-        });
-        // redraw points on overlay canvas
-        overlayLayer1.current.drawControlPoints(pts);
-        _resetBounds();
-    }, [panel.pointer.points]);
+    // useEffect(()=>{
+    //     const pts = [];
+    //     panel.pointer.points.forEach((ctrlPt) => {
+    //         // scale control point to render view
+    //         const pt = scalePoint(ctrlPt, panel.properties.render_dims, panel.properties.image_dims);
+    //         // DEBUG
+    //         // console.log('update control point:', ctrlPt, pt, panel.properties.render_dims, panel.properties.image_dims)
+    //         // add scaled point to array
+    //         pts.push(pt);
+    //     });
+    //     // redraw points on overlay canvas
+    //     overlayLayer1.current.drawControlPoints(pts);
+    //     _resetBounds();
+    // }, [panel.pointer.points]);
 
     /**
      * Overlay control points from other panel
@@ -1189,7 +1211,7 @@ const PanelToolkit = ({id = null}) => {
             />
             {
                 iat.mode === 'select' &&
-                <Register id={id} callback={align} aligned={aligned} />
+                <Register id={id} callback={align} aligned={aligned} update={adjustControlPoint} clear={clear} />
             }
             {
                 iat.mode === 'crop' && panel.image && panel.status === 'loaded' &&
