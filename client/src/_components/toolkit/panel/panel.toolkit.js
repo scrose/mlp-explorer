@@ -998,9 +998,10 @@ const PanelToolkit = ({id = null}) => {
         }
         if (panel.status === 'update') {
             update();
+            panel.setStatus('loaded');
         }
         return ()=> {
-            if (panel.status === 'empty' || panel.status === 'update')  panel.setStatus('loaded')
+            if (panel.status === 'empty' || panel.status === 'update') panel.setStatus('loaded')
         }
     }, [panel.status]);
 
