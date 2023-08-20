@@ -12,6 +12,7 @@ import Badge from '../../common/badge';
 import {useIat} from "../../../_providers/toolkit.provider.client";
 import InputSelector from "../../selectors/input.selector";
 import {correlation} from "../utils/align.utils.toolkit";
+import {scalePoint} from "./scaler.toolkit";
 
 /**
  * Show selected control points for image alignment/registration. Allows for editing and deletion of points.
@@ -19,10 +20,12 @@ import {correlation} from "../utils/align.utils.toolkit";
  * @param id
  * @param aligned
  * @param callback
+ * @param update
+ * @param clear
  * @public
  */
 
-const Register = ({ id, aligned, callback }) => {
+const Register = ({ id, aligned, callback, update, clear }) => {
 
     const iat = useIat();
     const pointer = iat[id].pointer;
@@ -57,6 +60,11 @@ const Register = ({ id, aligned, callback }) => {
         controlPoints[selectedIndex] = {x: _x, y: _y};
         pointer.setPoints(controlPoints);
 
+        // update render view
+        update(controlPoints.map(ctrlPt => {
+            // scale control point to render view
+            return scalePoint(ctrlPt, properties.render_dims, properties.image_dims);
+        }));
     }
 
     /**
@@ -88,6 +96,22 @@ const Register = ({ id, aligned, callback }) => {
             ...props,
             overlay: !props.overlay
         }));
+    }
+
+    /**
+     * Delete all control points
+     *
+     * @private
+     */
+
+    const _handleDeleteAll = () => {
+        pointer.setPoints([]);
+        setSelectedIndex(null);
+        iat[id].setProperties(props => ({
+            ...props,
+            overlay: false
+        }));
+        clear();
     }
 
     /**
@@ -176,6 +200,14 @@ const Register = ({ id, aligned, callback }) => {
                             icon={'crosshairs'}
                             label={'Overlay'}
                             title={`Display control points from opposite panel.`}
+                        />
+                    </li>
+                    <li>
+                        <Button
+                            onClick={_handleDeleteAll}
+                            icon={'delete'}
+                            label={'Clear'}
+                            title={`Delete all control points`}
                         />
                     </li>
                     <li>

@@ -33,10 +33,14 @@ import Overlay from "../canvas/overlay.canvas.toolkit";
  * Comparator component for comparing and overlaying MLE Toolkit panel images
  *
  * @public
+ * @param callback
  * @return {JSX.Element}
  */
 
-export const ComparatorTool = () => {
+export const ComparatorTool = ({
+                                   callback = () => {
+                                   }
+                               }) => {
 
     const iat = useIat();
 
@@ -46,7 +50,7 @@ export const ComparatorTool = () => {
     const [mode, setMode] = useState('move');
 
     // define comparator canvas dimensions
-    const comparatorDims = { w: 1200, h: 1200 }
+    const comparatorDims = { w: 1000, h: 800 }
 
     // define canvas layers
     const controlLayer = useRef(null);
@@ -111,8 +115,8 @@ export const ComparatorTool = () => {
 
         // compute scaled dimensions to fit view canvas
         const viewDims2 = {
-            w: Math.round(scale.x * iat.panel1.properties.image_dims.w),
-            h: Math.round(scale.y * iat.panel1.properties.image_dims.h)
+            w: Math.round(scale.x * iat.panel2.properties.image_dims.w),
+            h: Math.round(scale.y * iat.panel2.properties.image_dims.h)
         };
 
         // draw bottom layer views
@@ -707,6 +711,13 @@ export const ComparatorTool = () => {
         <div className={'h-menu'}>
             <ul>
                 <li>
+                    <Badge
+                        icon={'images'}
+                        className={'historic_captures'}
+                        label={'Comparator Tool'}
+                    />
+                </li>
+                <li>
                     <Button
                         id={'layer_swap'}
                         icon={'images'}
@@ -778,6 +789,15 @@ export const ComparatorTool = () => {
                         className={status === 'loaded' ? 'info' : 'warning'}
                         label={status.toUpperCase()}
                         icon={'image'}
+                    />
+                </li>
+                <li>
+                    <Button
+                        id={'close_comparator'}
+                        icon={'close'}
+                        label={`Close`}
+                        title={'Close comparator'}
+                        onClick={callback}
                     />
                 </li>
             </ul>

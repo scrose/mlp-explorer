@@ -78,7 +78,6 @@ const Overlay = forwardRef(function Canvas(props, ref) {
                 // clear canvas
                 context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
-
                 // draw separate control points for panel
                 (points || []).forEach((pt, index) => {
                     _drawControlPoint(context, pt.x, pt.y, index, colour);
