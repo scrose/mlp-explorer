@@ -81,7 +81,13 @@ const Register = ({ id, aligned, callback, update, clear }) => {
 
         // delete panel control point from array
         pointer.setPoints(pointer.points.filter((item, index) => index !== selectedIndex));
-        setSelectedIndex(null)
+        setSelectedIndex(null);
+
+        // update render view
+        update(pointer.points.filter((item, index) => index !== selectedIndex).map(ctrlPt => {
+            // scale control point to render view
+            return scalePoint(ctrlPt, properties.render_dims, properties.image_dims);
+        }));
 
     }
 
