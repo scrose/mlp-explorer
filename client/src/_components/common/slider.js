@@ -32,7 +32,10 @@ import {useWindowSize} from "../../_utils/events.utils.client";
  * @return
  */
 
-const Slider = ({ images = [], canvasWidth = 600, canvasHeight = 500 }) => {
+const Slider = ({ images = []}) => {
+
+    const canvasWidth = 800;
+    const canvasHeight = 600;
 
     // window dimensions
     const [winWidth, winHeight] = useWindowSize();
