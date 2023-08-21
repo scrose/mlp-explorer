@@ -1,15 +1,16 @@
 /* Image Slider */
 
+.slider {
+    min-height: 500px;
+    width: auto;
+    background-color: transparent;
+}
 .container {
     position: relative;
     display: block;
     background-color: transparent;
     margin: auto;
     height: auto; /*should be the same height as the images*/
-}
-.slider {
-    width: auto;
-    background-color: transparent;
 }
 .slider figure {
     margin: 0;
