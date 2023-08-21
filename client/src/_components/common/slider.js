@@ -23,6 +23,7 @@ import {scaleToFit} from '../toolkit/tools/scaler.toolkit';
 import InputSelector from "../selectors/input.selector";
 import Canvas from "../toolkit/canvas/default.canvas.toolkit";
 import styles from '../styles/slider.module.css';
+import {useWindowSize} from "../../_utils/events.utils.client";
 
 /**
  * Image slider component.
@@ -33,6 +34,9 @@ import styles from '../styles/slider.module.css';
 
 const Slider = ({ images = [], canvasWidth = 600, canvasHeight = 500 }) => {
 
+    // window dimensions
+    const [winWidth, winHeight] = useWindowSize();
+
     // input image data
     const [image1, image2] = images || [];
 
@@ -40,7 +44,6 @@ const Slider = ({ images = [], canvasWidth = 600, canvasHeight = 500 }) => {
     const _isMounted = React.useRef(false);
 
     // image data layers
-    const containerRef = useRef();
     const renderLayer1 = useRef(null);
     const renderLayer2 = useRef(null);
     const imageLayer1 = useRef(null);
@@ -167,6 +170,12 @@ const Slider = ({ images = [], canvasWidth = 600, canvasHeight = 500 }) => {
 
     }, []);
 
+    useLayoutEffect(()=>{
+        load();
+        return ()=>{_isMounted.current = true;}
+
+    }, [winWidth, winHeight]);
+
     /* Initialize panel resize */
     function _resizeStart(e) {
         /* if slider is no longer engaged, exit this function: */
@@ -201,6 +210,7 @@ const Slider = ({ images = [], canvasWidth = 600, canvasHeight = 500 }) => {
             source: {x: 0, y: 0, w: _imageWidth, h: imageLayer1.current.height}
         });
 
+        // set slide width
         slideWidth = _viewWidth;
 
     }
