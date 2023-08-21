@@ -174,8 +174,6 @@ export const alignImages = (cv = null, srcPanel, dstPanel, canvas, targetImage, 
             controlPoints2[3].y
         ]);
 
-        console.log(initDstImage.rows, initDstImage.cols, controlPoints1, controlPoints2, dsize)
-
         // Find the homography matrix.
         // const homography = cv.findHomography(srcTri, dstTri, cv.RANSAC);
         const M = cv.getPerspectiveTransform(srcTri, dstTri);

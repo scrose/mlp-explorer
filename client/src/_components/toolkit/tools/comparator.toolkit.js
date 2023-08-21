@@ -706,7 +706,6 @@ export const ComparatorTool = ({
         overlayLayer.current.drawBoundingBox(0, 0, 0, 0);
     }, [mode]);
 
-
     return <>
         <div className={'h-menu'}>
             <ul>
