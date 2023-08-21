@@ -1125,7 +1125,7 @@ nav.breadcrumb ul li a:hover {
 .comparator .thumbnails.h-menu ul li, .carousel .thumbnails.h-menu ul li {
     width: auto;
 }
-/* Slider dots indicators */
+/* Carousel dots indicators */
 .dots {
     margin: auto !important;
     text-align: center;
@@ -1172,90 +1172,6 @@ nav.breadcrumb ul li a:hover {
 @keyframes fade {
     from {opacity: 0}
     to {opacity: 1}
-}
-
-/* Image Slider */
-
-.slider {
-    width: auto;
-    background-color: transparent;
-}
-.slider figure {
-    margin: 0;
-    padding: 0;
-}
-.slider figcaption {
-    text-align: right;
-    background-color: inherit;
-    overflow: hidden;
-}
-.slider-container {
-    position: relative;
-    display: block;
-    background-color: transparent;
-    border: 2px dotted #444444 !important;
-    margin: auto;
-    height: auto; /*should be the same height as the images*/
-}
-.slider-img {
-    overflow: hidden;
-    background-color: transparent;
-}
-.slider-img img {
-    display: block !important;
-    vertical-align: middle;
-    margin: 0;
-    padding: 0;
-    max-width: none;
-    max-height: none;
-}
-.slider-img.overlay{
-    position: absolute;
-    left:0;
-    top:0;
-    z-index: 999;
-    border-right: 2px solid white;
-    background-color: transparent;
-}
-.slider-button, .resizer {
-    flex: 0 0 auto;
-    z-index: 9999 !important;
-    cursor: col-resize !important;
-    height: 60px !important;
-    margin-top: 10px;
-    width: 20px;
-    padding: 0;
-}
-.slider-button.hidden {
-    display: none;
-}
-/*.slider-button:hover, .resizer:hover {*/
-/*    margin: 0 !important;*/
-/*    color: #FFFFFF;*/
-/*    background-color: #00C6BB;*/
-/*    opacity: 0.6;*/
-/*    border-radius: 30px;*/
-/*}*/
-.slider-button button, .resizer button {
-    margin: 0 !important;
-    cursor: ew-resize !important;
-    color: #FFFFFF;
-    background-color: #2ea591;
-    opacity: 1.0;
-    width: 40px;
-    height: 40px;
-}
-.slider-button button:hover, .resizer button:hover {
-    color: #FFFFFF;
-    background-color: #2ea591;
-}
-
-.slider-button .spinner {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
 }
 
 /* Station Status */

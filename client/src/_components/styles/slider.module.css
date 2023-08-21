@@ -1,0 +1,40 @@
+/* Image Slider */
+
+.container {
+    position: relative;
+    display: block;
+    background-color: transparent;
+    margin: auto;
+    height: auto; /*should be the same height as the images*/
+}
+.slider {
+    width: auto;
+    background-color: transparent;
+}
+.slider figure {
+    margin: 0;
+    padding: 0;
+}
+.slider figcaption {
+    text-align: right;
+    background-color: inherit;
+    overflow: hidden;
+}
+
+.overlay {
+    margin: auto;
+    position: absolute;
+    z-index: 30;
+    background-color: transparent;
+    cursor: col-resize;
+}
+.image1 {
+    margin: auto;
+    position: absolute;
+    z-index: 20;
+}
+.image2 {
+    margin: auto;
+    position: absolute;
+    z-index: 10;
+}
