@@ -139,7 +139,7 @@ function DataProvider(props) {
                 const {response = {}} = res || {};
 
                 // DEBUG
-                // console.log('\n<<< Response >>>\n', res)
+                console.log('\n<<< Response >>>\n', res)
 
                 // destructure API data for settings
                 const {
