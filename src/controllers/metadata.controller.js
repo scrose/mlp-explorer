@@ -1,10 +1,19 @@
 /*!
  * MLP.API.Controllers.Metadata
  * File: metadata.controller.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * Controller for MLP model nodes.
+ *
+ * ---------
+ * Revisions
+ * - 25-08-2023   Streamline participant group upsert/deletion controller and services.
  */
-
 /**
  * Module dependencies.
  * @private
@@ -422,7 +431,7 @@ export default function MetadataController(metadataType) {
             // }
 
             // process each group type
-            let result;
+            const result = [];
             const groupTypes = await getParticipantGroupTypes(client);
             await Promise.all(groupTypes.map( async(groupType) => {
                 // Create new participant groups in request
@@ -437,7 +446,14 @@ export default function MetadataController(metadataType) {
                             group_type: groupType
                         };
                     });
-                    result = await metaserve.updateGroup(newParticipants, metadataModel.name, owner.id, groupType);
+                    result.push(await metaserve.updateGroup(newParticipants, metadataModel.name, owner.id, groupType));
+                }
+                // delete the group if no participants are in request
+                else {
+                    // remove all participants in each group
+                    await metaserve.updateGroup([], metadataModel.name, owner.id, groupType, 'participant_id');
+                    // remove the group
+                    result.push(await metaserve.removeGroup(owner.id, metadataType, groupType, client));
                 }
             }));
 
