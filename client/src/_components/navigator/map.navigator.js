@@ -5,11 +5,15 @@
  * Version 2.0
  * MIT Licensed
  *
+ * ----------
  * Description
- * Map-based navigation component. Integrates Leaflet map library.
  *
+ * Map navigator component. Leaflet-based interactive map. Use third-party tile layer
+ * See: https://leaflet-extras.github.io/leaflet-providers/preview/
+ *
+ * ---------
  * Revisions
- *
+ * - 16-09-2023   Converted log/lat display to DMS.
  */
 
 import React from 'react';
@@ -25,6 +29,7 @@ import {useNav} from "../../_providers/nav.provider.client";
 import { getMarker, baseLayers } from "../tools/map.tools";
 import Button from "../common/button";
 import 'leaflet-kml/L.KML.js';
+import {convertCoordDMS} from "../../_utils/data.utils.client";
 
 /**
  * Page height offset
@@ -267,11 +272,12 @@ function MapNavigator({ filter, hidden }) {
                         this.bindTooltip(`${
                             n <= 15 
                                 ? cluster.stations.map(station => {
-                                    return `<strong>${station.name}</strong> [${station.lat.toFixed(3)}, ${station.lng.toFixed(3)}]`
+                                    // convert DMS to degrees / minutes / seconds
+                                    return `<strong>${station.name}</strong> [${convertCoordDMS(station.lat)}, ${convertCoordDMS(station.lng)}]`
                                     }).join('<br>') 
                                 : `<strong>Cluster (n = ${n})</strong><br />
-                                    Lat: ${centroid[0].toFixed(3)}<br />
-                                    Lng: ${centroid[1].toFixed(3)}`
+                                    Lat: ${convertCoordDMS(centroid[0])}<br />
+                                    Lng: ${convertCoordDMS(centroid[1])}`
                         }`).openTooltip();
                     })
                     .on('mouseout', function () {

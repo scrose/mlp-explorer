@@ -158,10 +158,10 @@ const EditorMenu = ({
                 ( ( id && isCaptureType(model) ) || visible.includes('iat')) &&
                 <li key={`${menuID}_node_menuitem_iat`}>
                     <Button
-                        label={compact ? '' : 'Use IAT'}
+                        label={compact ? '' : 'Align Image'}
                         size={size}
                         icon={'iat'}
-                        title={`Use Image Analysis Toolkit dialog.`}
+                        title={`Use Image Aligner dialog.`}
                         onClick={() => { _handleDialog('iat') }}
                     />
                 </li>

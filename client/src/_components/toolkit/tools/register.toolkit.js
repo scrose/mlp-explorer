@@ -1,9 +1,33 @@
 /*!
  * MLE.Client.Components.Toolkit.Register
  * File: register.toolkit.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * Toolkit panel component is the main container for the canvas stack and integrates referenced DOM
+ * elements with panel state changes and user mouse and key events. The toolkit makes extensive
+ * use of the Canvas API for image rendering and markup. Image transformations use the OpenCV.js
+ * JavaScript libraries.
+ *
+ * Each panel uses the following canvas layers (from top):
+ * 1. Control canvas to handle user events
+ * 2. [hidden] Magnifier canvas
+ * 3. Overlay canvas A to overlay graphics on image layer
+ * 4. Overlay canvas B to overlay graphics on image layer
+ * 5. View canvas to show image visible (rendered) in browser
+ * 6. [hidden] Magnified image canvas
+ * 7. [hidden] Image canvas to store full-sized image and transformed image data
+ * 8. Base or Grid canvas to set absolute size of panel view and background grid
+ *
+ * ---------
+ * Revisions
+ * - 09-07-2023   Major upgrade to Toolkit incl. UI and workflow improvements and OpenCV integration
+ * - 07-10-2023   Update control point values on image pan and/or scale
+ * - 08-10-2023   Added offset value in control point coordinate value during panning
  */
 
 import Button from '../../common/button';
@@ -59,6 +83,8 @@ const Register = ({ id, aligned, callback, update, clear }) => {
         const controlPoints = [...pointer.points];
         controlPoints[selectedIndex] = {x: _x, y: _y};
         pointer.setPoints(controlPoints);
+
+        // get offset
 
         // update render view
         update(controlPoints.map(ctrlPt => {

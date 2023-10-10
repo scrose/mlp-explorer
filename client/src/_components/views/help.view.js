@@ -138,7 +138,7 @@ const HelpView = ({ section = 0, page = 0 }) => {
             />,
         },
         {
-            label: 'MLE Toolkit',
+            label: 'Image Alignment Tool',
             data: <HelpTabs
                 orientation={'vertical'}
                 items={iatHelp}

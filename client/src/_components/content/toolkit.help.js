@@ -20,7 +20,7 @@ import Icon from '../common/icon';
 import Button from '../common/button';
 
 /**
- * MLE Toolkit tooltip selector
+ * Image Alignment Tool tooltip selector
  *
  * @public
  */
@@ -30,14 +30,14 @@ export const getTooltip = (key) => {
 }
 
 /**
- * MLE Toolkit instructions
+ * Image Alignment Tool instructions
  *
  * @public
  */
 
 const tooltips = {
     loadMLPImage: <div>
-        <p>To load an image from the MLP Library to the MLE Toolkit:</p>
+        <p>To load an image from the MLP Library to the Image Alignment Tool:</p>
         <ol className={'list'}>
             <li>Locate the capture image in the navigator tree</li>
             <li>Click the <Icon type={'iat'}/> icon to open the Toolkit loader dialog</li>
@@ -47,7 +47,7 @@ const tooltips = {
         </ol>
     </div>,
     loadLocalImage: <div>
-        <div>To load an image from a local directory to the MLE Toolkit:</div>
+        <div>To load an image from a local directory to the Image Alignment Tool:</div>
         <ol className={'list'}>
             <li>Click the <Icon type={'load'} /> open file button in the panel controls, or
                 click 'Click to load' button on the centre of the panel.
@@ -58,7 +58,7 @@ const tooltips = {
         </ol>
     </div>,
     uploadMLPImage: <div>
-        <p>To upload an image to the MLP Library from the MLE Toolkit:</p>
+        <p>To upload an image to the MLP Library from the Image Alignment Tool:</p>
         <ol className={'list'}>
             <li>Locate the capture image in the navigator tree</li>
             <li>Click the <Icon type={'iat'}/> icon to open the Toolkit Loader tool</li>
@@ -102,16 +102,17 @@ const tooltips = {
         </ol>
     </div>,
     alignImages: <div>
-        <p>To select register two images in the MLE Toolkit:</p>
+        <p>To align and master two images in the Image Alignment Tool:</p>
         <ol className={'list'}>
             <li>Load images into the left and right panels</li>
             <li>Correct differences in image size by resizing an image such that the largest height/width
                 matches that of the opposite image. Use the Resizer tool 'Match' function to match the height or width of
                 the corresponding image.</li>
-            <li>If the two images are of different shapes, correct this by cropping the images
-                to a matching shape which shows the most landscape detail. Use the crop tool 'Match' function to overlay a region of interest
-                of the same dimensions as those of the corresponding image.</li>
-            <li>Select <Icon type={'crosshairs'} /> <b>Register</b> mode from the MLE Toolkit menu.</li>
+            <li>Click the <Icon type={'crosshairs'} /> <b>Align</b> button from the centre menu OR hit
+                the <code>shift</code> key to switch to control point selection.
+                The mouse cursor will appear as a crosshair. Click on a visual feature in the image to select each point.
+                Four corresponding control points selected from each image are required for alignment.
+            </li>
             <li>Identify four corresponding features in the image. Use these guidelines for selection: (1) The control
                 points should be pixels that you can identify in both images that haven’t varied over time. (2) The
                 control points need to be spread in a box shape around the image; (3) Select points that reduce
@@ -119,21 +120,27 @@ const tooltips = {
                 to select more precise control points.
             </li>
             <li>Selected control points will appear on the image as cross-shaped markers numbered in the order they were created.
-                The coordinates of control points are shown in the Register tool below the canvas. Click
+                The coordinates of control points are shown in the Align tool below the canvas. Click
                 "Overlay" to view both sets of control points on the same image.</li>
             <li>You can adjust the coordinates or delete control point by clicking the marker icon in the Control
                 Points tool.</li>
             <li>Once four control point pairs have been selected, from the panel of the 'target' image to be transformed,
-                click the green "Align" button on the Register tool. The image will be transformed
+                click the green "Align" button on the Align tool. The image will be transformed
                 using perspective transformation
                 (See <a target={'_blank'} href={'https://docs.opencv.org/4.x/da/d54/group__imgproc__transform.html'}>OpenCV documentation</a>).
             </li>
+            <li>To validate the alignment, click the <Icon type={'images'} /> <b>Compare</b> button in the centre menu to
+                load the images into the <b>Compare Tool</b>. The images will appear superimposed. Use the opacity slider to compare
+                alignment of the selected features. If the two images are of different shapes, you can crop both images to the
+                same size in the Compare Tool (follow the same instructions as for panel cropping). Once a crop has been applied,
+                click "Save" to replace the panel images with the cropped versions.
+                .</li>
         </ol>
     </div>
 }
 
 /**
- * MLE Toolkit "Getting Started" help page.
+ * Image Alignment Tool "Getting Started" help page.
  *
  * @public
  */
@@ -142,9 +149,9 @@ const toolkitHelp = (gotoPage) => {
 
 
     const gettingStarted = <>
-        <h4>Toolkit: Getting Started</h4>
+        <h4>Image Alignment Tool: Getting Started</h4>
         <p>
-            The MLE Toolkit is a basic image viewer, editor and alignment tool that allows you to work directly
+            The Image Alignment Tool is a basic image viewer, editor and alignment tool that allows you to work directly
             with the images from the Mountain Legacy collection, or with other images loaded from your computer.
         </p>
 
@@ -156,7 +163,7 @@ const toolkitHelp = (gotoPage) => {
         </ol>
 
         <h5>Image Panels</h5>
-        <p>MLE Toolkit has left and right image panels each with a canvas where the image is displayed, and a
+        <p>Image Alignment Tool has left and right image panels each with a canvas where the image is displayed, and a
             control menu with different image operations. Panels have multiple canvases
             or layers that allow you to view and interact with images:
         </p>
@@ -199,7 +206,7 @@ const toolkitHelp = (gotoPage) => {
     </>;
 
     /**
-     * MLE Toolkit "Basic Features" help page.
+     * Image Alignment Tool "Basic Features" help page.
      *
      * @public
      */
@@ -228,7 +235,7 @@ const toolkitHelp = (gotoPage) => {
 
 
     /**
-     * MLE Toolkit "Panel Info" help page.
+     * Image Alignment Tool "Panel Info" help page.
      *
      * @public
      */
@@ -326,7 +333,7 @@ const toolkitHelp = (gotoPage) => {
 
 
     /**
-     * MLE Toolkit "Panel Controls" help page.
+     * Image Alignment Tool "Panel Controls" help page.
      *
      * @public
      */
@@ -430,13 +437,13 @@ const toolkitHelp = (gotoPage) => {
     </>
 
     /**
-     * MLE Toolkit "Modes" help page.
+     * Image Alignment Tool "Modes" help page.
      *
      * @public
      */
 
     const toolkitModes = <>
-        <h4>MLE Toolkit Modes</h4>
+        <h4>Image Alignment Tool Modes</h4>
         <p>Toolkit operations are available in four modes:</p>
 
         <table className={'help'}>
@@ -460,7 +467,7 @@ const toolkitHelp = (gotoPage) => {
             </tr>
             <tr>
                 <th><Icon type={'crosshairs'} /></th>
-                <th>Register</th>
+                <th>Align</th>
                 <td>
                     <p>Use this mode to set control points on the image that can be used to align one image with another.
                         Clicking on the image places a control point marker on the image. You can adjust the position of
@@ -482,7 +489,7 @@ const toolkitHelp = (gotoPage) => {
     </>
 
     /**
-     * MLE Toolkit "Image Alignment" help page.
+     * Image Alignment Tool "Image Alignment" help page.
      *
      * @public
      */
@@ -502,7 +509,7 @@ const toolkitHelp = (gotoPage) => {
             changes over time.
         </p>
         <p>
-            Images can be registered in the MLE Toolkit using the 'Control Point' tool to select coordinates for
+            Images can be aligned and mastered in the Image Alignment Tool using the 'Control Point' tool to select coordinates for
             four matching features found in both images. These four paired features are marked in the images as
             'control points' (coordinates on the image) that are used to estimate the transformation parameters
             used to align the images.
@@ -515,7 +522,7 @@ const toolkitHelp = (gotoPage) => {
 
     const masteredImages = <>
         <h4>Image Mastering in MLE</h4>
-        <p>For registered images classified as 'mastered' to be uploaded to the MLP library, they must meet the following preconditions:</p>
+        <p>For aligned and registered images classified as 'mastered' to be uploaded to the MLP library, they must meet the following preconditions:</p>
         <ol className={'list'}>
             <li><b>Capture images are aligned</b> Both capture image must be aligned Follow the instructions
                 in <Button icon={'help'} label={'Image Registration'} onClick={() => {gotoPage(2, 2)}} /> to

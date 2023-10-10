@@ -8,7 +8,7 @@
  * ----------
  * Description
  *
- * Canvas component for MLE Toolkit. Allows for state-controlled interactions using Canvas API.
+ * Canvas component for Image Alignment Tool. Allows for state-controlled interactions using Canvas API.
  *
  * ---------
  * Revisions
@@ -103,12 +103,12 @@ const Canvas = forwardRef(function Canvas(props, ref) {
                 // draw source image to canvas
                 context.drawImage(
                     image,
-                    source && source.x || view && view.x || 0,
-                    source && source.y || view && view.y || 0,
+                    source && source.x || 0,
+                    source && source.y || 0,
                     source && source.w || image.width,
                     source && source.h || image.height,
-                    view && view.x,
-                    view && view.y,
+                    view && view.x || 0,
+                    view && view.y || 0,
                     view && view.w,
                     view && view.h
                 );

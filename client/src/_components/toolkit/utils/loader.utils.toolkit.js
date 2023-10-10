@@ -8,7 +8,7 @@
  * ----------
  * Description
  *
- * MLE Toolkit image loader utilities. Loads image data from local file, MLE API library download
+ * Image Alignment Tool image loader utilities. Loads image data from local file, MLE API library download
  * or from a URL.
  *
  * ---------

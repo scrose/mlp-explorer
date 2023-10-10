@@ -54,7 +54,7 @@ const explorerHelp = (gotoPage) => {
         </p>
         <h5>About this Guide</h5>
         <p>
-            This guide covers usage of features available in both the Explorer, and the MLE Toolkit
+            This guide covers usage of features available in both the Explorer, and the Image Alignment Tool
             image alignment tool, as well as documentation for the MLE Editor management tool. Click on the
             tabs at the top to switch between tools, and the tabs to the left for tool topics.
         </p>

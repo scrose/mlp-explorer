@@ -99,7 +99,7 @@ import {
     faFileArchive,
     faExternalLinkSquareAlt,
     faExclamationTriangle,
-    faArrowAltCircleRight,
+    faArrowAltCircleRight, faLock,
 
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -232,7 +232,8 @@ library.add(
     faArrowsAlt,
     faExternalLinkSquareAlt,
     faExclamationTriangle,
-    faArrowAltCircleRight
+    faArrowAltCircleRight,
+    faLock,
 );
 
 
@@ -287,6 +288,7 @@ const getIconClass = (iconType) => {
         erase: 'eraser',
         swap: 'exchange-alt',
         save: 'save',
+        lock: 'lock',
         zoomIn: 'search-plus',
         zoomOut: 'search-minus',
         slide: 'grip-lines-vertical',
@@ -350,7 +352,7 @@ const getIconClass = (iconType) => {
         photographers: 'users',
         field_notes_authors: 'users',
         comparisons: 'images',
-        iat: 'tools',
+        iat: 'images',
         jpg: 'file-image',
         jpeg: 'file-image',
         png: 'file-image',

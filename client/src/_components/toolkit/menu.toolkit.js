@@ -36,7 +36,7 @@ export const MenuToolkit = () => {
     return <div className={'canvas-menu-bar'}>
         <div className={'v-menu'}>
                 <ul>
-                    <li><Badge label={'Image Toolkit'} icon={'iat'} /></li>
+                    <li><Badge label={'Edit Mode'} icon={'iat'} /></li>
                     <li>
                         <Button
                             disabled={!imageLoaded}
@@ -53,23 +53,9 @@ export const MenuToolkit = () => {
                     </li>
                     <li>
                         <Button
-                            disabled={!imageLoaded}
-                            title={'Select Crop Mode'}
-                            label={'Crop'}
-                            className={iat.mode === 'crop' ? 'active' : ''}
-                            icon={'crop'}
-                            onClick={() => {
-                                // clear messages
-                                iat.setMessage(null);
-                                iat.setMode('crop');
-                            }}
-                        />
-                    </li>
-                    <li>
-                        <Button
                             disabled={!imagesLoaded}
-                            title={'Select Image Registration Mode'}
-                            label={'Register'}
+                            title={'Select Image Alignment Mode'}
+                            label={'Align'}
                             className={iat.mode === 'select' ? 'active' : ''}
                             icon={'crosshairs'}
                             onClick={() => {
@@ -91,6 +77,20 @@ export const MenuToolkit = () => {
                                     label: 'Compare Panel Images',
                                     callback: console.error,
                                 });
+                            }}
+                        />
+                    </li>
+                    <li>
+                        <Button
+                            disabled={!imageLoaded}
+                            title={'Select Crop Mode'}
+                            label={'Crop'}
+                            className={iat.mode === 'crop' ? 'active' : ''}
+                            icon={'crop'}
+                            onClick={() => {
+                                // clear messages
+                                iat.setMessage(null);
+                                iat.setMode('crop');
                             }}
                         />
                     </li>

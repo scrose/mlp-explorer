@@ -30,7 +30,7 @@ export const schema = {
         },
         '/toolkit': {
             name: 'imageToolkit',
-            label: 'MLE Toolkit'
+            label: 'Image Alignment Tool'
         },
         '/admin': {
             name: 'admin',
@@ -603,25 +603,25 @@ export const schema = {
                         label: 'Weather Description',
                         render: 'textarea'
                     },
+                    weather_ws: {
+                        label: 'Wind Speed',
+                        render: 'float',
+                        suffix: 'km/h'
+                    },
                     weather_temp: {
                         label: 'Temperature',
                         render: 'float',
                         min: -273,
                         suffix: '°C'
                     },
-                    weather_ws: {
-                        label: 'Wind Speed',
-                        render: 'float',
-                        suffix: 'km/h'
+                    weather_pressure: {
+                        label: 'Barometric Pressure',
+                        suffix: 'kPa',
+                        render: 'float'
                     },
                     weather_gs: {
                         label: 'Gust Speed',
                         suffix: 'km/h',
-                        render: 'float'
-                    },
-                    weather_pressure: {
-                        label: 'Barometric Pressure',
-                        suffix: 'kPa',
                         render: 'float'
                     },
                     weather_rh: {

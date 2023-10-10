@@ -13,6 +13,7 @@
  * ---------
  * Revisions
  * - 09-07-2023   Updated instructions for upgraded Toolkit workflows and features.
+ * - 25-08-2023   Include magnification scale
  */
 
 import { getModelLabel } from '../../../_services/schema.services.client';
@@ -44,6 +45,8 @@ const PanelInfo = ({ panel }) => {
 
     // compute actual cursor position in image
     const actual = scalePoint(panel.pointer, panel.properties.image_dims, panel.properties.render_dims);
+    // compute magnification of rendered image
+    const magScale = getScale(panel.properties.magnified_dims, panel.properties.render_dims)
 
     return <div id={`canvas-view-${panel.properties.id}-info`} className={'canvas-view-info'}>
         <Accordion
@@ -114,16 +117,25 @@ const PanelInfo = ({ panel }) => {
                     <td colSpan={3}>{sanitize(panel.properties.file_size, 'filesize')}</td>
                 </tr>
                 <tr>
-                    <th>Cursor:</th>
+                    <th>Canvas Cursor:</th>
                     <td>({panel.pointer.x}, {panel.pointer.y})</td>
-                    <th>Actual:</th>
+                    <th>Image Cursor:</th>
                     <td>({actual.x}, {actual.y})</td>
                 </tr>
                 <tr>
                     <th>Scale:</th>
                     <td>1:{scale.x.toFixed(2)}</td>
-                    <th>Offset:</th>
+                    <th>Magnification:</th>
+                    <td>{magScale.x.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <th>Canvas Offset:</th>
                     <td>({panel.properties.render_dims.x}, {panel.properties.render_dims.y})</td>
+                    <th>Image Offset:</th>
+                    <td>(
+                        {Math.round(scale.x * panel.properties.render_dims.x)},
+                        {Math.round(scale.y * panel.properties.render_dims.y)}
+                        )</td>
                 </tr>
                 <tr>
                     <th>Rendered</th>

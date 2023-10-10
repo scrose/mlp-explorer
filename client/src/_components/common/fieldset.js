@@ -8,9 +8,9 @@
  * ----------
  * Description
  *
- * General fieldset component configured to include inputs defined in the
- * base schema (schema.js) and must correspond to fields defined in the
- * initialization data (init).
+ * General fieldset component configured to include input fields defined in the
+ * base schema (schema.js) and initialized using field data data passed
+ * from the form component.
  *
  * ---------
  * Revisions

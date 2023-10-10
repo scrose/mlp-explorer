@@ -161,10 +161,10 @@ const ViewerPanelMenu = () => {
                 <li className={user ? '' : 'push'} key={`${menuID}_menuitem_iat`}>
                     <Button
                         icon={'iat'}
-                        label={!nav.compact && 'Toolkit'}
-                        title={`Image Analysis Toolkit`}
+                        label={!nav.compact && 'Aligner'}
+                        title={`Image Alignment Toolkit`}
                         onClick={() => {
-                            // redirect to MLE Toolkit in viewer/editor
+                            // redirect to Image Alignment Tool in viewer/editor
                             redirect('/toolkit');
                         }}
                     />
