@@ -61,7 +61,7 @@ export function humanize(str) {
 }
 
 /**
- * Converts coordinate from decimal degrees to DMS format?
+ * Converts coordinate from decimal degrees to DMS format
  *
  * @return {String} capitalized string
  * @public
@@ -76,6 +76,20 @@ export function convertCoordDMS(coord) {
     const seconds = Math.floor((minutesNotTruncated - minutes) * 60);
 
     return (degrees + '\u00B0' + minutes + '\u2032' + seconds + '\u2033');
+}
+
+/**
+ * Converts lat/lng coordinate from DMS format to decimal degrees
+ *
+ * @return {number} decimal latitude / longitude
+ * @public
+ * @param degrees
+ * @param minutes
+ * @param seconds
+ */
+
+export function convertCoordDeg(degrees, minutes, seconds) {
+    return (parseFloat(degrees) + parseFloat(minutes) / 60 + parseFloat(seconds) / 3600)
 }
 
 /**
@@ -106,9 +120,9 @@ export const mapToObj = (map) => {
  *
  * i.e. topLevel[sub] => [topLevel, sub]
  *
- * @param  {String} string: Stringify representation of a formData Object
  * @return {Array}
  *
+ * @param string
  */
 
 export const extractFieldIndex = (string) => {

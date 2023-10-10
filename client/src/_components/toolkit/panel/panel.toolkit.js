@@ -26,14 +26,15 @@
  * ---------
  * Revisions
  * - 09-07-2023   Major upgrade to Toolkit incl. UI and workflow improvements and OpenCV integration
+ * - 07-10-2023   Update control point values on image pan and/or scale
  */
 
-import React, {memo, useEffect, useRef, useState} from 'react';
+import {memo, useEffect, useRef, useState} from 'react';
 import saveAs from 'file-saver';
 import PanelMenu from './menu.panel.toolkit';
 import PanelInfo from './info.panel.toolkit';
 import Register from '../tools/register.toolkit';
-import MagnifierTool from '../tools/magnifier.toolkit';
+import MagnifierTool from '../canvas/magnifier.canvas.toolkit';
 import baseGrid from '../../svg/grid.svg';
 import CropTool, {cropImage} from '../tools/cropper.toolkit';
 import {useIat} from "../../../_providers/toolkit.provider.client";
@@ -137,18 +138,11 @@ const PanelToolkit = ({id = null}) => {
         const imgH = imageDims ? imageDims.h : panel.properties.image_dims.h;
         const magDims = scaleToFit(imgW, imgH, iat.options.maxMagnifiedWidth, iat.options.maxMagnifiedHeight);
 
-        // compute up scale
-        const scaleUp = getScale({w: imgW, h: imgH}, magDims);
-
-        // compute magnified offset
-        const _x = Math.round(scaleUp.x * panel.properties.render_dims.x);
-        const _y = Math.round(scaleUp.y * panel.properties.render_dims.y);
-
-        // DEBUG
-        // console.log(scaleUp, _x, _y, imgH, imgW, magDims)
-
         // store scaled image in magnified layer
-        magnifiedLayer.current.draw(imageLayer.current.canvas(), {view: {x: _x, y: _y, w: magDims.w, h: magDims.h}, source: imageDims});
+        magnifiedLayer.current.draw(
+            imageLayer.current.canvas(),
+            {view: {x: 0, y: 0, w: magDims.w, h: magDims.h}, source: imageDims}
+        );
         panel.update({magnified_dims: magDims});
     }
 
@@ -160,7 +154,7 @@ const PanelToolkit = ({id = null}) => {
      * @param imageDims
      */
 
-    const render = (viewDims, imageDims) => {
+    const _renderImage = (viewDims, imageDims) => {
         try {
             viewLayer.current.draw(imageLayer.current.canvas(), {view: viewDims, source: imageDims});
             // store image data
@@ -183,7 +177,7 @@ const PanelToolkit = ({id = null}) => {
      * @private
      */
 
-    const save = () => {
+    const _syncImages = () => {
         try {
             // store image data as source
             panel.setSource(imageLayer.current.getImageData());
@@ -207,7 +201,7 @@ const PanelToolkit = ({id = null}) => {
      * @private
      */
 
-    const update = () => {
+    const _updateImage = () => {
         // compute scaled dimensions to fit view canvas
         const dims = scaleToFit(
             panel.properties.source_dims.w,
@@ -218,7 +212,7 @@ const PanelToolkit = ({id = null}) => {
         // store image in render layer
         imageLayer.current.load(panel.image);
         // render image in view layer
-        render(
+        _renderImage(
             {x: 0, y: 0, w: dims.w, h: dims.h},
             {x: 0, y: 0, w: panel.properties.source_dims.w, h: panel.properties.source_dims.h}
         );
@@ -228,7 +222,7 @@ const PanelToolkit = ({id = null}) => {
      * convenience method for clearing the canvas overlay layer
      * */
 
-    const clear = () => {
+    const _clearOverlay = () => {
         // clear canvas of graphics / markup
         overlayLayer1.current.clear();
         overlayLayer2.current.clear();
@@ -240,9 +234,9 @@ const PanelToolkit = ({id = null}) => {
      * convenience method for resetting the image data and metadata from the panel
      * */
 
-    const remove = () => {
+    const _removeImage = () => {
         // clear canvas of graphics / markup
-        clear();
+        _clearOverlay();
         // clear panel metadata
         panel.reset();
         // clear canvases
@@ -254,72 +248,86 @@ const PanelToolkit = ({id = null}) => {
 
     /**
      * fit image in canvas view.
+     * - resets pan offset to zero
      * */
 
-    const fit = () => {
-        clear();
+    const _fitView = () => {
         // compute scaled dimensions
-        const dims = scaleToFit(
+        const viewDims = scaleToFit(
             panel.properties.image_dims.w,
             panel.properties.image_dims.h,
             panel.properties.base_dims.w,
             panel.properties.base_dims.h,
         );
-        render(
-            { x: 0, y: 0, w: dims.w, h: dims.h },
+        _renderImage(
+            { x: 0, y: 0, w: viewDims.w, h: viewDims.h },
             { x: 0, y: 0, w: panel.properties.image_dims.w, h: panel.properties.image_dims.h }
         );
+        // redraw control points to overlay canvas
+        overlayLayer1.current.drawControlPoints(panel.pointer.points.map(ctrlPt => {
+            // scale control point to render view
+            return scalePoint(ctrlPt, { x: 0, y: 0, w: viewDims.w, h: viewDims.h }, panel.properties.image_dims);
+        }));
     }
 
     /**
      * expand image to full size in canvas view.
+     * - resets pan offset to zero
      * */
 
-    const expand = () => {
-        clear();
-        render(
-            { x: 0, y: 0, w: panel.properties.image_dims.w, h: panel.properties.image_dims.h },
+    const _fullView = () => {
+        const viewDims = { x: 0, y: 0, w: panel.properties.image_dims.w, h: panel.properties.image_dims.h };
+        // enlarge image to full size
+        _renderImage(
+            viewDims,
             { x: 0, y: 0, w: panel.properties.image_dims.w, h: panel.properties.image_dims.h }
         );
+        // redraw control points to overlay canvas
+        overlayLayer1.current.drawControlPoints(panel.pointer.points.map(ctrlPt => {
+            // scale control point to render view
+            return scalePoint(ctrlPt, viewDims, panel.properties.image_dims);
+        }));
+    }
+
+    /**
+     * method for zooming into/out of view
+     * */
+
+    const _zoomView = (zoomValue) => {
+        const viewDims = {
+            x: Math.round(panel.properties.render_dims.x * zoomValue),
+            y: Math.round(panel.properties.render_dims.y * zoomValue),
+            w: Math.round(panel.properties.render_dims.w * zoomValue),
+            h: Math.round(panel.properties.render_dims.h * zoomValue)
+        };
+        // zoom in/out rendered view
+        _renderImage(viewDims, { x: 0, y: 0, w: panel.properties.image_dims.w, h: panel.properties.image_dims.h });
+        // redraw control points to overlay canvas
+        overlayLayer1.current.drawControlPoints(panel.pointer.points.map(ctrlPt => {
+            // scale control point to render view (include offset)
+            const pt = scalePoint(ctrlPt, viewDims, panel.properties.image_dims);
+            return {x: viewDims.x + pt.x, y: viewDims.y + pt.y};
+        }));
     }
 
     /**
      * convenience method for zooming into view
      * */
 
-    const zoomIn = () => {
-        clear();
-        render({
-                x: Math.round(panel.properties.render_dims.x * 1.1),
-                y: Math.round(panel.properties.render_dims.y * 1.1),
-                w: Math.round(panel.properties.render_dims.w * 1.1),
-                h: Math.round(panel.properties.render_dims.h * 1.1)
-            },
-            { x: 0, y: 0, w: panel.properties.image_dims.w, h: panel.properties.image_dims.h }
-        );
-    }
+    const _zoomIn = () => { _zoomView(1.25) }
 
     /**
      * convenience method for zooming out of view
      * */
 
-    const zoomOut = () => {
-        clear();
-        render({
-                x: Math.round(panel.properties.render_dims.x / 1.1),
-                y: Math.round(panel.properties.render_dims.y / 1.1),
-                w: Math.round(panel.properties.render_dims.w / 1.1),
-                h: Math.round(panel.properties.render_dims.h / 1.1)
-            },
-            { x: 0, y: 0, w: panel.properties.image_dims.w, h: panel.properties.image_dims.h });
-    }
+    const _zoomOut = () => { _zoomView(0.8) }
 
     /**
      * convenience method for resizing dimensions of image
      * */
 
-    const resize = ({base_dims, image_dims}) => {
-        clear();
+    const _resizeImage = ({base_dims, image_dims}) => {
+        _clearOverlay();
 
         // scale image
         // destructure CV image processor
@@ -367,16 +375,14 @@ const PanelToolkit = ({id = null}) => {
      * Handle start of panning.
      */
 
-    const panStart = () => {
-
-    };
+    const _startPanImage = () => {};
 
     /**
      * Pan over image
      * - set pointer to position (x, y) of cursor
      */
 
-    const pan = (e, properties, pointer) => {
+    const _panImage = (e, properties, pointer) => {
         try {
             // check that mouse start position was selected
             if (!pointer.selected) return;
@@ -387,19 +393,22 @@ const PanelToolkit = ({id = null}) => {
             const _x = properties.render_dims.x + pointer.x - pointer.selected.x;
             const _y = properties.render_dims.y + pointer.y - pointer.selected.y;
 
-            const viewDims = {
-                x: _x,
-                y: _y,
-                w: properties.render_dims.w,
-                h: properties.render_dims.h
-            }
+            // set new view coordinates
+            const viewDims = {x: _x, y: _y, w: properties.render_dims.w, h: properties.render_dims.h};
+            const sourceDims = {x: 0, y: 0, w: properties.image_dims.w, h: properties.image_dims.h};
 
             // reset pointer selected coordinate
             pointer.setSelect({ x: pointer.x, y: pointer.y });
-            // render panned image
-            viewLayer.current.draw(imageLayer.current.canvas(), {view: viewDims, source: properties.image_dims});
+            // render panned image at new offset
+            viewLayer.current.draw(imageLayer.current.canvas(), {view: viewDims, source: sourceDims});
             // update panel state
             panel.setProperties(prevState => ({...prevState, render_dims: viewDims }));
+            // redraw control points to overlay 1 canvas
+            overlayLayer1.current.drawControlPoints(pointer.points.map(ctrlPt => {
+                const pt = scalePoint(ctrlPt, viewDims, properties.image_dims);
+                // offset scaled point by view offset
+                return {x: pt.x + viewDims.x, y: pt.y + viewDims.y};
+            }));
 
         } catch (err) {
             console.error(err);
@@ -412,34 +421,7 @@ const PanelToolkit = ({id = null}) => {
      * - reset pointer to (0, 0)
      */
 
-    const panEnd = (e, properties) => {
-        try {
-            // compute scaled image dimensions of full magnified image
-            const imgW = properties.image_dims.w;
-            const imgH = properties.image_dims.h;
-            const magDims = scaleToFit(imgW, imgH, iat.options.maxMagnifiedWidth, iat.options.maxMagnifiedHeight);
-
-            // compute up scale
-            const scaleUp = getScale({w: imgW, h: imgH}, magDims);
-
-            // compute magnified offset
-            const _x = Math.round(scaleUp.x * properties.render_dims.x);
-            const _y = Math.round(scaleUp.y * properties.render_dims.y);
-
-            // DEBUG
-            // console.log(scaleUp, _x, _y, imgH, imgW, magDims)
-
-            // store scaled image in magnified layer
-            magnifiedLayer.current.draw(imageLayer.current.canvas(), {
-                view: {x: _x, y: _y, w: magDims.w, h: magDims.h},
-                source: properties.image_dims
-            });
-            panel.update({magnified_dims: magDims});
-        } catch (err) {
-            console.error(err);
-            panel.setStatus('error');
-        } finally {}
-    };
+    const _endPanImage = () => {};
 
     /**
      * Crop image by pointer selected dimensions.
@@ -447,7 +429,7 @@ const PanelToolkit = ({id = null}) => {
      *   of the selected crop box to draw to the render canvas.
      */
 
-    const crop = () => {
+    const _applyCropBox = () => {
         try {
             iat[id].setStatus('loading');
             // destructure CV image processor
@@ -470,8 +452,8 @@ const PanelToolkit = ({id = null}) => {
             );
 
             // render image in view layer
-            clear();
-            render(
+            _clearOverlay();
+            _renderImage(
                 {x: 0, y: 0, w: scaledDims.w, h: scaledDims.h},
                 {x: 0, y: 0, w: panel.pointer.selectBox.w, h: panel.pointer.selectBox.h}
             );
@@ -512,7 +494,7 @@ const PanelToolkit = ({id = null}) => {
      * @param pointer
      */
 
-    const cropMove = (e, properties, pointer) => {
+    const _moveCropBox = (e, properties, pointer) => {
 
         // check that mouse start position was selected
         if (!pointer.selected) return;
@@ -557,7 +539,7 @@ const PanelToolkit = ({id = null}) => {
      * @param pointer
      */
 
-    const cropStart = (e, properties, pointer) => {
+    const _startCropBox = (e, properties, pointer) => {
         // scale point coordinate
         const scaledPt = scalePoint(pointer, properties.image_dims, properties.render_dims);
         // determine if pointer coordinate is inside crop box
@@ -569,10 +551,10 @@ const PanelToolkit = ({id = null}) => {
         // if inside box, operation is to move the existing crop box
         if (inRange) {
             panel.setMethods({
-                onMouseDown: cropStart,
-                onMouseUp: cropEnd,
-                onMouseMove: cropMove,
-                onMouseOut: cropEnd
+                onMouseDown: _startCropBox,
+                onMouseUp: _endCropBox,
+                onMouseMove: _moveCropBox,
+                onMouseOut: _endCropBox
             });
         }
         // otherwise start new crop box
@@ -594,13 +576,13 @@ const PanelToolkit = ({id = null}) => {
      * convenience method for ending crop box selection
      * */
 
-    const cropEnd = (e, properties, pointer) => {
+    const _endCropBox = (e, properties, pointer) => {
         // reset selection box if no image in panel
         if (!panel.image
             || panel.status !== 'loaded'
             || pointer.selectBox.w === 0
             || pointer.selectBox.h === 0) {
-            clear();
+            _clearOverlay();
             pointer.resetSelectBox();
         }
         else {
@@ -637,10 +619,10 @@ const PanelToolkit = ({id = null}) => {
 
         // reset crop methods
         panel.setMethods({
-            onMouseDown: cropStart,
-            onMouseUp: cropEnd,
-            onMouseMove: cropBound,
-            onMouseOut: cropEnd
+            onMouseDown: _startCropBox,
+            onMouseUp: _endCropBox,
+            onMouseMove: _selectCropBox,
+            onMouseOut: _endCropBox
         });
     }
 
@@ -651,7 +633,7 @@ const PanelToolkit = ({id = null}) => {
      * @param pointer
      */
 
-    const cropBound = (e, properties, pointer) => {
+    const _selectCropBox = (e, properties, pointer) => {
         // check that mouse start position was selected
         if (!pointer.selected) return;
 
@@ -686,7 +668,7 @@ const PanelToolkit = ({id = null}) => {
      * @param h
      */
 
-    const cropAdjust = (x, y, w, h) => {
+    const _updateCropBox = (x, y, w, h) => {
         overlayLayer1.current.drawBoundingBox(x, y, w, h);
     }
 
@@ -695,37 +677,49 @@ const PanelToolkit = ({id = null}) => {
      * set a control point on the overlay canvas
      * */
 
-    const setControlPoint = (e, properties, pointer) => {
+    const _selectControlPoint = (e, properties, pointer) => {
         // realign bounds to current canvas view
         // - ensures accurate mouse position
         const bounds = _resetBounds();
+        // get control point options
+        const {ptrRadius, controlPtMax} = iat.options || {};
         // get current pointer position on view canvas
         const pos = getPos(e, {
             base_dims: properties.base_dims,
             bounds: bounds
         }) || {};
-        // create array for updated rendered points on canvas
-        const pts = [];
-        // calculate actual image pixel location
-        const actual = scalePoint(pos, properties.image_dims, properties.render_dims);
-        // get control point options
-        const {ptrRadius, controlPtMax} = iat.options || {};
-
         // get current set control points
         let controlPoints = [...pointer.points];
+        // create array for updated rendered points on canvas
+        const pts = [];
+        // get current rendered image offset value
+        const offset = {
+            x: Math.round(properties.render_dims.x),
+            y: Math.round(properties.render_dims.y)
+        };
 
         // check if pointer is outside of image
-        if (actual.x > properties.image_dims.w || actual.y > properties.image_dims.h) return;
+        if (pos.x > properties.render_dims.w + offset.x || pos.y > properties.render_dims.h + offset.y) return;
+        if (pos.x < offset.x || pos.y < offset.y) return;
+
+        // calculate actual image pixel location from view coordinate
+        // - adjust for image offset
+        const scaleUp = getScale(properties.image_dims, properties.render_dims);
+        const actual = {
+            x: Math.round(scaleUp.x * (pos.x - offset.x)),
+            y: Math.round(scaleUp.y * (pos.y - offset.y))
+        };
 
         // check if mouse cursor within defined radius to existing control point
         let selected = false;
         controlPoints.forEach((ctrlPt, index) => {
             // scale control point to render view
             const pt = scalePoint(ctrlPt, properties.render_dims, properties.image_dims);
-            // add scaled point to array
-            pts.push(pt);
-            if (inRange(pos.x, pos.y, pt.x, pt.y, ptrRadius)) {
-                // set pointer control point index
+            // add rendered control point with offset to array
+            pts.push({x: pt.x + offset.x, y: pt.y + offset.y});
+            // check if mouse position in range of control point
+            if (inRange(pos.x, pos.y, pt.x + offset.x, pt.y + offset.y, ptrRadius)) {
+                // set selected pointer control point index
                 selected = true;
                 pointer.setIndex(index);
             }
@@ -748,7 +742,7 @@ const PanelToolkit = ({id = null}) => {
             // add scaled control point
             controlPoints.push(actual);
             pointer.setPoints(controlPoints);
-            // render point to canvas
+            // redraw control points to overlay canvas
             overlayLayer1.current.drawControlPoints(pts);
         }
     }
@@ -760,7 +754,7 @@ const PanelToolkit = ({id = null}) => {
      * @return {Object}
      */
 
-    const deselectControlPoint = () => {
+    const _deselectControlPoint = () => {
         panel.pointer.setIndex(-1);
     };
 
@@ -771,7 +765,7 @@ const PanelToolkit = ({id = null}) => {
      * @public
      */
 
-    const moveControlPoint = (e, properties, pointer) => {
+    const _moveControlPoint = (e, properties, pointer) => {
 
         // proceed if mouse is down (selected point)
         if (!pointer.selected || pointer.index < 0) return;
@@ -780,8 +774,15 @@ const PanelToolkit = ({id = null}) => {
         const ctrlPt = pointer.points[pointer.index];
         if (!ctrlPt) return;
 
+        // get current rendered offset value
+        const offset = {
+            x: Math.round(properties.render_dims.x),
+            y: Math.round(properties.render_dims.y)
+        };
+
         // check if pointer is outside of image
-        if (pointer.x > properties.render_dims.w || pointer.y > properties.render_dims.h) return;
+        if (pointer.x > properties.render_dims.w + offset.x || pointer.y > properties.render_dims.h + offset.y) return;
+        if (pointer.x < offset.x || pointer.y < offset.y) return;
 
         // compute new coordinates using distance travelled
         const _x = pointer.x + (pointer.x - pointer.selected.x);
@@ -795,32 +796,48 @@ const PanelToolkit = ({id = null}) => {
 
         // update panel control point position
         const controlPoints = [...pointer.points];
-        controlPoints[pointer.index] = { x: Math.round(scaleUp.x * _x), y: Math.round(scaleUp.y * _y) };
+        // update control point coordinate to account for (1) moved position; (2) offset value
+        controlPoints[pointer.index] = {
+            x: Math.round(scaleUp.x * (_x - offset.x)),
+            y: Math.round(scaleUp.y * (_y - offset.y))
+        };
         pointer.setPoints(controlPoints);
 
-        // redraw points on overlay canvas
+        // redraw control points to overlay canvas
         overlayLayer1.current.drawControlPoints(controlPoints.map(ctrlPt => {
-            // scale control point to render view
-            return scalePoint(ctrlPt, properties.render_dims, properties.image_dims);
+            // scale control point to rendered view
+            const pt = scalePoint(ctrlPt, properties.render_dims, properties.image_dims);
+            // offset control points in rendered view
+            return {x: offset.x + pt.x, y: offset.y + pt.y};
         }));
+
     };
 
     /**
-     * Adjust control point poisition
+     * Adjust control point position (x-y coordinate)
      * @param pts
      */
 
-    const adjustControlPoint = (pts) => {
-        // redraw points on overlay canvas
-        overlayLayer1.current.drawControlPoints(pts);
+    const _updateControlPoint = (pts) => {
+        // get current rendered offset value
+        const offset = {
+            x: Math.round(panel.properties.render_dims.x),
+            y: Math.round(panel.properties.render_dims.y)
+        };
+        // redraw control points to overlay canvas
+        overlayLayer1.current.drawControlPoints(pts.map(ctrlPt => {
+            // offset control points in rendered view
+            return {x: offset.x + ctrlPt.x, y: offset.y + ctrlPt.y};
+        }));
         _resetBounds();
     }
+
 
     /**
      * Load image data to canvas
      * */
 
-    const load = (props) => {
+    const _loadImage = (props) => {
 
         panel.setStatus('loading');
 
@@ -854,7 +871,7 @@ const PanelToolkit = ({id = null}) => {
             // store image in render layer
             imageLayer.current.load(data);
             // render image in view layer
-            render(
+            _renderImage(
                 {x: 0, y: 0, w: dims.w, h: dims.h},
                 {x: 0, y: 0, w: props.source_dims.w, h: props.source_dims.h}
             );
@@ -875,7 +892,7 @@ const PanelToolkit = ({id = null}) => {
      * @private
      */
 
-    const download = async ({ext, quality, type}) => {
+    const _downloadImage = async ({ext, quality, type}) => {
         try {
             panel.setStatus('downloading');
             // create unique filename
@@ -898,13 +915,13 @@ const PanelToolkit = ({id = null}) => {
      * @private
      */
 
-    const reset = () => {
+    const _resetImage = () => {
         try {
             panel.setImage(panel.source);
             panel.pointer.resetSelectBox();
             // redraw image data to canvas
             // compute scaled dimensions to fit view canvas
-            const dims = scaleToFit(
+            const viewDims = scaleToFit(
                 panel.properties.source_dims.w,
                 panel.properties.source_dims.h,
                 panel.properties.base_dims.w,
@@ -915,8 +932,8 @@ const PanelToolkit = ({id = null}) => {
             // store image in render layer
             imageLayer.current.load(panel.source);
             // render image in view layer
-            render(
-                {x: 0, y: 0, w: dims.w, h: dims.h},
+            _renderImage(
+                {x: 0, y: 0, w: viewDims.w, h: viewDims.h},
                 {x: 0, y: 0, w: panel.properties.source_dims.w, h: panel.properties.source_dims.h});
             // update panel properties
             panel.update({
@@ -926,12 +943,17 @@ const PanelToolkit = ({id = null}) => {
                     w: panel.properties.source_dims.w,
                     h: panel.properties.source_dims.h,
                 },
-                render_dims: {x: 0, y: 0, w: dims.w, h: dims.h},
+                render_dims: {x: 0, y: 0, w: viewDims.w, h: viewDims.h},
             });
             // set panel status
             iat.setMessage({msg: 'Loaded image reset to source image.', type: 'success'});
             panel.setStatus('loaded');
             setAligned(false);
+            // redraw control points to overlay canvas
+            overlayLayer1.current.drawControlPoints(panel.pointer.points.map(ctrlPt => {
+                // scale control point to render view
+                return scalePoint(ctrlPt, viewDims, panel.properties.image_dims);
+            }));
         } catch (err) {
             console.error(err);
             panel.setStatus('error');
@@ -939,13 +961,13 @@ const PanelToolkit = ({id = null}) => {
     };
 
     /**
-     * Align images
-     * - redraws right panel as target image
+     * Align target image to source image using selected control points
+     * - target image panel is selected by user
      *
      * @private
      */
 
-    const align = () => {
+    const _alignImage = () => {
         try {
             iat[id].setStatus('loading');
             // destructure CV image processor
@@ -971,7 +993,7 @@ const PanelToolkit = ({id = null}) => {
             );
 
             // render transformed image data to canvas
-            render(
+            _renderImage(
                 {x: 0, y: 0, w: scaledDims.w, h: scaledDims.h},
                 {x: 0, y: 0, w: result.data.width, h: result.data.height}
             );
@@ -994,10 +1016,10 @@ const PanelToolkit = ({id = null}) => {
 
     useEffect(()=>{
         if (panel.status === 'load') {
-            load(panel.properties);
+            _loadImage(panel.properties);
         }
         if (panel.status === 'update') {
-            update();
+            _updateImage();
             panel.setStatus('loaded');
         }
         return ()=> {
@@ -1011,7 +1033,7 @@ const PanelToolkit = ({id = null}) => {
      * @private
      */
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (panel.pointer.magnify) {
             _resetBounds();
             magnifierLayer.current.magnify(magnifiedLayer.current.canvas(), panel);
@@ -1022,28 +1044,7 @@ const PanelToolkit = ({id = null}) => {
     }, [panel.pointer.x, panel.pointer.y, panel.pointer.magnify]);
 
     /**
-     * Update control point positions
-     *
-     * @private
-     */
-
-    // useEffect(()=>{
-    //     const pts = [];
-    //     panel.pointer.points.forEach((ctrlPt) => {
-    //         // scale control point to render view
-    //         const pt = scalePoint(ctrlPt, panel.properties.render_dims, panel.properties.image_dims);
-    //         // DEBUG
-    //         // console.log('update control point:', ctrlPt, pt, panel.properties.render_dims, panel.properties.image_dims)
-    //         // add scaled point to array
-    //         pts.push(pt);
-    //     });
-    //     // redraw points on overlay canvas
-    //     overlayLayer1.current.drawControlPoints(pts);
-    //     _resetBounds();
-    // }, [panel.pointer.points]);
-
-    /**
-     * Overlay control points from other panel
+     * Superimpose control points from other panel on overlay panel
      *
      * @private
      */
@@ -1091,27 +1092,26 @@ const PanelToolkit = ({id = null}) => {
         // load panel methods of IAT mode
         if (iat.mode === 'pan')
             panel.setMethods({
-                onMouseDown: panStart,
-                onMouseUp: panEnd,
-                onMouseMove: pan,
-                onMouseOut: panEnd
+                onMouseDown: _startPanImage,
+                onMouseUp: _endPanImage,
+                onMouseMove: _panImage,
+                onMouseOut: _endPanImage
             });
         else if (iat.mode === 'select') {
-            if (panel.image) reset();
             panel.setMethods({
-                onMouseDown: setControlPoint,
-                onMouseUp: deselectControlPoint,
-                onMouseMove: moveControlPoint,
-                onMouseOut: deselectControlPoint
+                onMouseDown: _selectControlPoint,
+                onMouseUp: _deselectControlPoint,
+                onMouseMove: _moveControlPoint,
+                onMouseOut: _deselectControlPoint
             });
         }
         else if (iat.mode === 'crop') {
-            if (panel.image) reset();
+            if (panel.image) _resetImage();
             panel.setMethods({
-                onMouseDown: cropStart,
-                onMouseUp: cropEnd,
-                onMouseMove: cropBound,
-                onMouseOut: cropEnd
+                onMouseDown: _startCropBox,
+                onMouseUp: _endCropBox,
+                onMouseMove: _selectCropBox,
+                onMouseOut: _endCropBox
             });
         }
     }, [iat.mode]);
@@ -1124,18 +1124,18 @@ const PanelToolkit = ({id = null}) => {
         <PanelMenu
             id={id}
             methods={{
-                load,
-                saveAs: download,
-                saveState: save,
-                redraw: render,
-                clear,
-                fit,
-                expand,
-                resize,
-                zoomOut,
-                zoomIn,
-                reset,
-                remove
+                load: _loadImage,
+                saveAs: _downloadImage,
+                saveState: _syncImages,
+                redraw: _renderImage,
+                clear: _clearOverlay,
+                fit: _fitView,
+                expand: _fullView,
+                resize: _resizeImage,
+                zoomOut: _zoomOut,
+                zoomIn: _zoomIn,
+                reset: _resetImage,
+                remove: _removeImage
             }}
         />
         <PanelInfo panel={panel} />
@@ -1144,7 +1144,7 @@ const PanelToolkit = ({id = null}) => {
             <UserMessage message={{ msg: 'An error has occurred!', type: 'error' }} />
         }
         <div className={'canvas-layers'}>
-            <LoadButton id={id} loader={load} />
+            <LoadButton id={id} loader={_loadImage} />
             <Canvas
                 ref={controlLayer}
                 id={`${id}_control_layer`}
@@ -1210,13 +1210,10 @@ const PanelToolkit = ({id = null}) => {
                 width={panel.properties.base_dims.w}
                 height={panel.properties.base_dims.h}
             />
-            {
-                iat.mode === 'select' &&
-                <Register id={id} callback={align} aligned={aligned} update={adjustControlPoint} clear={clear} />
-            }
+            <Register id={id} callback={_alignImage} aligned={aligned} update={_updateControlPoint} clear={_clearOverlay} />
             {
                 iat.mode === 'crop' && panel.image && panel.status === 'loaded' &&
-                <CropTool id={id} callback={crop} update={cropAdjust} />
+                <CropTool id={id} callback={_applyCropBox} update={_updateCropBox} />
             }
         </div>
     </div>;

@@ -12,12 +12,13 @@
  *
  * ---------
  * Revisions
-
+ * - 16-09-2023   Converted coordinate input to new component.
+ *
  */
 
 import React from 'react';
 import 'flatpickr/dist/themes/material_green.css';
-import {convertCoordDMS, sorter} from '../../_utils/data.utils.client';
+import {sorter} from '../../_utils/data.utils.client';
 import Icon from '../common/icon';
 import Message, {UserMessage} from '../common/message';
 import MultiSelect from '../common/multiselect';
@@ -25,6 +26,7 @@ import DateTimeSelector from './datetime.selector';
 import {AttachedMetadataEditor} from "../editors/attached.editor";
 import {DependentsEditor} from "../editors/dependents.editor";
 import {ComparisonEditor} from "../editors/comparison.editor";
+import Coord from "../common/coord";
 
 /**
  * No operation.
@@ -226,21 +228,18 @@ export const InputSelector = ({
         },
 
         coord: () => {
-            return <>
-                <input
-                    readOnly={readonly}
-                    type={'number'}
-                    step={'any'}
-                    min={name === 'lat' ? -85 : -180}
-                    max={name === 'lat' ? 85 : 180}
-                    id={id}
-                    name={name}
-                    value={value || ''}
-                    required={required}
-                    onChange={onChange}
-                    aria-label={ariaLabel}/>
-                <span>{convertCoordDMS(value || '')}</span>
-            </>;
+            return <Coord
+                id={id}
+                value={value}
+                readOnly={readonly}
+                name={name}
+                selected={value || ''}
+                label={label}
+                required={required}
+                disabled={disabled}
+                options={options}
+                onChange={onChange}
+            />;
         },
 
         date: () => {

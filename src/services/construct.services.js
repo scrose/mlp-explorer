@@ -61,10 +61,10 @@ export const create = async (modelType) => {
 
             id: {
                 get: () => {
-                    return this.attributes[schema.idKey].value;
+                    return schema.idKey && this.attributes[schema.idKey].value || '';
                 },
                 set: (id) => {
-                    this.attributes[schema.idKey].value = id;
+                    this.attributes[schema.idKey || 'unknown'].value = id;
                 }
             },
 

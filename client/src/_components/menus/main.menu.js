@@ -17,7 +17,7 @@ const MenuItems = () => {
     return <ul>
         <li><a href={rootURL}>Dashboard</a></li>
         <li><a rel={"noreferrer"} target={'_blank'} href={getInfo().mlp_url}>MLP Website</a></li>
-        <li><a href={'/toolkit'}>Image Toolkit</a></li>
+        <li><a href={'/toolkit'}>Image Alignment Tool</a></li>
         <li><a href={"mailto:mntnlgcy@uvic.ca"}>Contact</a></li>
     </ul>
 }

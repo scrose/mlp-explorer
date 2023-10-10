@@ -83,9 +83,9 @@ const PanelMenu = ({id = null, methods=null}) => {
                         }}
                     /></li>
                     <li><Button
-                        icon={'save'}
+                        icon={'sync'}
                         disabled={disabled}
-                        title={'Save current image state.'}
+                        title={'Sync current image state.'}
                         onClick={methods.saveState}
                     /></li>
                     <li><Button

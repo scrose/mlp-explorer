@@ -90,6 +90,10 @@ export const useController = (id) => {
     const _handleOnKeyDown = (e) => {
         const {keyCode = ''} = e || {};
         const _methods = {
+            // disable control point selection
+            16: () => {
+                iat.setMode('select');
+            },
             // enable magnifier
             32: () => {
                 iat.panel1.pointer.magnifyOn();
@@ -116,6 +120,10 @@ export const useController = (id) => {
         e.preventDefault();
         const {keyCode = ''} = e || [];
         const _methods = {
+            // disable control point selection
+            16: () => {
+                iat.setMode('pan');
+            },
             // disable magnifier
             32: () => {
                 iat.panel1.pointer.magnifyOff();

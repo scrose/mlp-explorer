@@ -329,6 +329,7 @@ const TreeNode = ({data}) => {
                                     label={label}
                                     metadata={metadata}
                                     owner={owner}
+                                    visible={['show', 'edit', 'new']}
                                 />}
                     </li>
                 </ul>
@@ -342,6 +343,7 @@ const TreeNode = ({data}) => {
                         label={label}
                         metadata={metadata}
                         owner={owner}
+                        visible={['show', 'edit', 'new']}
                     />
                 }
             </div>

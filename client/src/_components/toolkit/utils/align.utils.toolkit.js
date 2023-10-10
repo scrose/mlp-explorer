@@ -230,7 +230,7 @@ export const alignImages = (cv = null, srcPanel, dstPanel, canvas, targetImage, 
  * ----------
  * Description
  *
- * MLE Toolkit image alignment utilities. Alternative functions to OpenCV.
+ * Image Alignment Tool image alignment utilities. Alternative functions to OpenCV.
  *
  * ---------
  * Revisions

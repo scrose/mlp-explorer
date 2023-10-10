@@ -8,7 +8,7 @@
  * ----------
  * Description
  *
- * Dialog to compare panel images loaded in MLE Toolkit.
+ * Dialog to compare panel images loaded in Image Alignment Tool.
  *
  * ---------
  * Revisions
@@ -30,7 +30,7 @@ import Badge from "../../common/badge";
 import Overlay from "../canvas/overlay.canvas.toolkit";
 
 /**
- * Comparator component for comparing and overlaying MLE Toolkit panel images
+ * Comparator component for comparing and overlaying Image Alignment Tool panel images
  *
  * @public
  * @param callback
