@@ -340,6 +340,7 @@ const NodesView = ({model, data}) => {
                                     <EditorMenu
                                         model={type}
                                         id={id}
+                                        node={node}
                                         metadata={metadata}
                                         visible={['show', 'redirect']}
                                     />

@@ -156,6 +156,7 @@ export const DependentsEditor = ({owner}) => {
                                                     menu={<EditorMenu
                                                         visible={['edit', 'remove']}
                                                         model={type}
+                                                        node={node}
                                                         id={id}
                                                         owner={owner}
                                                         metadata={metadata}

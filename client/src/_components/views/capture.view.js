@@ -92,6 +92,7 @@ export const CaptureImagesTable = ({type, owner, files=[], callback=()=>{}}) => 
         row.menu = <EditorMenu
             className={'right-aligned'}
             id={id}
+            node={file}
             model={type}
             owner={owner}
             label={label}

@@ -124,7 +124,7 @@ export const MenuToolkit = () => {
                             });
                         }}
                     /></li>
-                    <li style={{width: '140px'}}><Badge label={'Shortcuts'} icon={'toolbox'} /></li>
+                    <li style={{width: '140px'}}><Badge label={'Shortcuts'} /></li>
                     <li style={{width: '140px'}}>Use <code>shift</code> key to switch to alignment mode</li>
                     <li style={{width: '140px'}}>Use <code>ctrl</code> key to magnify image</li>
                 </ul>

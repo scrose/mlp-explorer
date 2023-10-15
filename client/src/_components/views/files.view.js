@@ -80,6 +80,7 @@ export const
                     className={'right-aligned'}
                     id={id}
                     model={file_type}
+                    node={file}
                     owner={owner}
                     label={label}
                     metadata={metadata}
