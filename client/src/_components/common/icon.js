@@ -307,6 +307,7 @@ const getIconClass = (iconType) => {
         up: 'caret-up',
         down: 'caret-down',
         tools: 'ellipsis-v',
+        toolbox: 'tools',
         options: 'ellipsis-v',
         settings: 'cog',
         expand: 'plus-circle',

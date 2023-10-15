@@ -36,7 +36,7 @@ export const MenuToolkit = () => {
     return <div className={'canvas-menu-bar'}>
         <div className={'v-menu'}>
                 <ul>
-                    <li><Badge label={'Edit Mode'} icon={'iat'} /></li>
+                    <li style={{width: '140px'}}><Badge label={'Image Tools'} icon={'toolbox'} /></li>
                     <li>
                         <Button
                             disabled={!imageLoaded}

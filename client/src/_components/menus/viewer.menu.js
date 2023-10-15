@@ -161,7 +161,7 @@ const ViewerPanelMenu = () => {
                 <li className={user ? '' : 'push'} key={`${menuID}_menuitem_iat`}>
                     <Button
                         icon={'iat'}
-                        label={!nav.compact && 'Aligner'}
+                        label={!nav.compact && 'Image Alignment Tool'}
                         title={`Image Alignment Toolkit`}
                         onClick={() => {
                             // redirect to Image Alignment Tool in viewer/editor
