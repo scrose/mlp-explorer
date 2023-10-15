@@ -254,4 +254,4 @@ const EditorMenu = ({
     </div>;
 };
 
-export default React.memo(EditorMenu);
+export default EditorMenu;

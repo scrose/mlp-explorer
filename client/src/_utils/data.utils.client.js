@@ -226,8 +226,8 @@ export const sanitize = (
         coord: ({ value }) => {
             return value
                 ? <span className={'coord'}>
-                    { parseFloat(value).toFixed(3) }
-                    &#160;&#160;<span>({convertCoordDMS(value)})</span>
+                    {convertCoordDMS(value)}
+                    &#160;&#160;<span>({ parseFloat(value).toFixed(3) })</span>
                   </span>
                 : '-';
         },

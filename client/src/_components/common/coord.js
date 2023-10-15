@@ -72,7 +72,7 @@ const Coord = ({ id, name, value, required, onChange, readOnly, ariaLabel }) => 
     const _updateMinutes = (e) => {
         const { target={} } = e || {};
         const { value='' } = target || {};
-        setDMS({degrees: dms.degrees, minutes: value, seconds: dms.degrees});
+        setDMS({degrees: dms.degrees, minutes: value, seconds: dms.seconds});
         // convert DMS -> decimal
         onChange({
             target: {

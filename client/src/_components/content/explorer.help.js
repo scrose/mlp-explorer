@@ -1,9 +1,18 @@
 /*!
  * MLE.Client.Content.Help.Explorer
  * File: explorer.help.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * Help pages for Explorer.
+ *
+ * ---------
+ * Revisions
+ * - 10-15-2023   Update download completion process.
  */
 
 import React from 'react';
@@ -491,8 +500,40 @@ const explorerHelp = (gotoPage) => {
 
         <h5>View Menu</h5>
 
-        <p>The view menu is just below the cookie crumb trail, and provides some additional
-            options such as metadata <b>Export</b> and <b>Help</b> pages.</p>
+        <p>The view menu is just below the cookie crumb trail, and provides additional options.</p>
+
+        <table className={'help'}>
+            <tbody>
+            <tr>
+                <th><Icon type={'sync'} /></th>
+                <th>Refresh</th>
+                <td>
+                    <p>Refresh the view data.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'iat'} /></th>
+                <th>Image Alignment Tool</th>
+                <td>
+                    <p>Navigate to the <Button icon={'iat'} label={'Image Alignment Tools'} onClick={() => {gotoPage(2, 0)}} /></p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'export'} /></th>
+                <th>Export</th>
+                <td>
+                    <p>Export full capture metadata to various file formats (e.g., JSON, CSV).</p>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'help'} /></th>
+                <th>Help</th>
+                <td>
+                    <p>Open the Help pages.</p>
+                </td>
+            </tr>
+            </tbody>
+        </table>
 
         <h5>Item Status</h5>
         <p>Icons used in the navigator tree are colour-coded to indicate the status of the metadata or images

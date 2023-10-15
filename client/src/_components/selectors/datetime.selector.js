@@ -12,6 +12,7 @@ import Flatpickr from 'react-flatpickr';
 /**
  * Build datepicker widget using Flatpickr module.
  * - Reference: https://github.com/haoxins/react-flatpickr
+ * - Demos and documentation: https://flatpickr.js.org
  *
  * @public
  * @param value

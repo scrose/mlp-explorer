@@ -116,8 +116,8 @@ const tooltips = {
             <li>Identify four corresponding features in the image. Use these guidelines for selection: (1) The control
                 points should be pixels that you can identify in both images that haven’t varied over time. (2) The
                 control points need to be spread in a box shape around the image; (3) Select points that reduce
-                the collinearity coefficient as close to zero as possible. (4) Use the region magnifier by pressing the spacebar
-                to select more precise control points.
+                the collinearity coefficient as close to zero as possible. (4) To select more precise control points,
+                use pan and zoom into the region of interest, or use the image magnifier by holding down the <code>ctrl</code> key .
             </li>
             <li>Selected control points will appear on the image as cross-shaped markers numbered in the order they were created.
                 The coordinates of control points are shown in the Align tool below the canvas. Click
@@ -267,13 +267,13 @@ const toolkitHelp = (gotoPage) => {
                 </td>
             </tr>
             <tr>
-                <th>Cursor</th>
+                <th>Canvas Cursor</th>
                 <td>
                     <p>The mouse position (x,y) on the view canvas.</p>
                 </td>
             </tr>
             <tr>
-                <th>Actual</th>
+                <th>Image Cursor</th>
                 <td>
                     <p>The actual mouse pixel position (X,Y) on the image.</p>
                 </td>
@@ -286,9 +286,21 @@ const toolkitHelp = (gotoPage) => {
                 </td>
             </tr>
             <tr>
-                <th>Offset</th>
+                <th>Magnification</th>
                 <td>
-                    <p>Position offset (x,y) of the image from the top left corner of the view canvas.</p>
+                    <p>Factor by which the rendered image is magnified when the magnification tool is enabled.</p>
+                </td>
+            </tr>
+            <tr>
+                <th>Canvas Offset</th>
+                <td>
+                    <p>Position offset (x,y) of the rendered image from the top left corner of the view canvas.</p>
+                </td>
+            </tr>
+            <tr>
+                <th>Image Offset</th>
+                <td>
+                    <p>Position offset (x,y) of the full-sized image from the top left corner of the view canvas.</p>
                 </td>
             </tr>
             <tr>
