@@ -1,7 +1,7 @@
 /*!
  * MLE.Client.Schema
  * File: schema.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
  */
@@ -21,7 +21,7 @@ export const schema = {
         title: "Capturing change in Canada's mountains",
         url: "https://explore.mountainlegacy.ca",
         mlp_url: 'https://mountainlegacy.ca',
-        version: "1.4.0"
+        version: "2.0.0"
     },
     routes: {
         '/': {

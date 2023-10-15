@@ -1,11 +1,19 @@
 /*!
  * MLE.Client.Services.API
  * File: api.services.client.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
  *
+ * ----------
+ * Description
+ *
+ * Fetch wrapper used to abstract API service layer in components.
  * Reference: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+ *
+ * ---------
+ * Revisions
+ * - 10-15-2023   Updated download function to send 'null' error on load end.
  */
 
 import {createAPIURL} from '../_utils/paths.utils.client';
@@ -251,7 +259,7 @@ export const download = async (route, callback=()=>{}, filename, online=true, sa
 
         // end of download
         xhr.onloadend = function(e) {
-            return callback(e);
+            return callback(null, e);
         };
 
         // error in sending network request

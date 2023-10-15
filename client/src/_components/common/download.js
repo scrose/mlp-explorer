@@ -70,13 +70,13 @@ const Download = ({
         if (e) {
             // get loaded/total bytes data from XHR progress event
             // - converted to MB
-            const { loaded = 0, total = 0 } = e || {};
+            const { loaded = 0, total = 0, type='' } = e || {};
 
             const completedBytes = (loaded / 1000000).toFixed(2);
             const totalBytes = (total / 1000000).toFixed(2);
             const percent = (100 * (completedBytes / totalBytes)).toFixed(0);
             const notProgressive = total === 0;
-            const done = (total > 0 && loaded > 0 && total === loaded);
+            const done = (total > 0 && loaded > 0 && total === loaded) || type === 'loadend';
 
             // update progress state
             if (!notProgressive) setMessage({msg: `${percent}%`, type: 'info'});

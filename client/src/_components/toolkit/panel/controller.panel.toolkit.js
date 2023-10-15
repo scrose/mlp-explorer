@@ -95,7 +95,7 @@ export const useController = (id) => {
                 iat.setMode('select');
             },
             // enable magnifier
-            32: () => {
+            17: () => {
                 iat.panel1.pointer.magnifyOn();
                 iat.panel2.pointer.magnifyOn();
             }
@@ -117,7 +117,6 @@ export const useController = (id) => {
      */
 
     const _handleOnKeyUp = (e) => {
-        e.preventDefault();
         const {keyCode = ''} = e || [];
         const _methods = {
             // disable control point selection
@@ -125,12 +124,16 @@ export const useController = (id) => {
                 iat.setMode('pan');
             },
             // disable magnifier
-            32: () => {
+            17: () => {
                 iat.panel1.pointer.magnifyOff();
                 iat.panel2.pointer.magnifyOff();
             }
         };
-        return _methods.hasOwnProperty(keyCode) ? _methods[keyCode]() : null;
+        // suppress other keyboard press methods if method is defined
+        if (_methods.hasOwnProperty(keyCode)) {
+            e.preventDefault();
+            _methods[keyCode]();
+        }
     };
 
     return {
