@@ -499,7 +499,7 @@ export default function FilesController(modelType) {
         const client = await pool.connect();
 
         try {
-            await fserve.bulkDownload(req, res, next, 'full', client);
+            await fserve.bulkDownload(req, res, next, 'medium', client);
         } catch (err) {
             return next(err);
         } finally {
