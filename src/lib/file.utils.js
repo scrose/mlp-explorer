@@ -86,10 +86,12 @@ export const imageMIMETypes = {
     'NEF': 'image/x-nikon-nef',
     'ORF': 'image/x-olympus-orf',
     'PEF': 'image/x-pentax-pef',
-    'RAF': 'image/x-fuji-raf',
+    'RAF': 'image/raf',
+    'RAF2': 'image/x-fuji-raf',
     'RAW': 'image/x-panasonic-raw',
     'SR2': 'image/x-sony-sr2',
     'SRF': 'image/x-sony-srf',
+    'WEBP': 'image/webp',
     'X3F': 'image/x-sigma-x3f',
     'stream': 'application/octet-stream'
 };
