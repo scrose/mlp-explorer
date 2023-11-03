@@ -19,7 +19,7 @@
 
 import pool from "../src/services/db.services.js";
 import {deleteFiles, insertFile} from "../src/services/files.services.js";
-import * as stream from 'stream';
+import * as stream from "stream";
 import {mkdir, stat} from 'fs/promises';
 import fs from 'fs';
 import {ExifTool} from 'exiftool-vendored';

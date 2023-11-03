@@ -23,7 +23,6 @@ const AdminView = () => {
     // load log files
     useEffect(() => {
         const {roles} = user || {};
-        console.log(roles)
     }, [user]);
 
 

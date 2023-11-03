@@ -1,7 +1,7 @@
 /*!
  * MLE.Client.Components.Menus.Header
  * File: header.menu.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
  */

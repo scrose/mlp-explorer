@@ -8,7 +8,7 @@
  * ----------
  * Description
  *
- * Image Alignment Tool image loader utilities. Loads image data from local file, MLE API library download
+ * Alignment Tool image loader utilities. Loads image data from local file, MLE API library download
  * or from a URL.
  *
  * ---------

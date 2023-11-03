@@ -52,6 +52,7 @@ export const toSnake = (str) => {
  */
 
 export function humanize(str) {
+    if (!str || str === '') return '';
     str = toSnake(str);
     let i, frags = str.split('_');
     for (i = 0; i < frags.length; i++) {

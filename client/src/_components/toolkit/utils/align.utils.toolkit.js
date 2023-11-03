@@ -139,7 +139,7 @@ export const alignImages = (cv = null, srcPanel, dstPanel, canvas, targetImage, 
 
     // use OpenCV library for image transformations
     if (cv) {
-        console.log('Applying OpenCV perspective transformation');
+        console.log('Applying OpenCV perspective transformation...');
         let initDstImage = cv.matFromImageData(targetImage);
         let dstImage = new cv.Mat();
         let dsize = new cv.Size(initDstImage.cols, initDstImage.rows);
@@ -230,7 +230,7 @@ export const alignImages = (cv = null, srcPanel, dstPanel, canvas, targetImage, 
  * ----------
  * Description
  *
- * Image Alignment Tool image alignment utilities. Alternative functions to OpenCV.
+ * Alignment Tool image alignment utilities. Alternative functions to OpenCV.
  *
  * ---------
  * Revisions

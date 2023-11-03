@@ -8,7 +8,7 @@
  * ----------
  * Description
  *
- * Image Alignment Tool image alignment utilities. Alternative functions to OpenCV.
+ * Alignment Tool image alignment utilities. Alternative functions to OpenCV.
  *
  * ----------
  * References

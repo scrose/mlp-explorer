@@ -10,6 +10,7 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
+    faPaperclip,
     faLocationArrow,
     faChartBar,
     faGripVertical,
@@ -234,6 +235,7 @@ library.add(
     faExclamationTriangle,
     faArrowAltCircleRight,
     faLock,
+    faPaperclip
 );
 
 
@@ -275,9 +277,10 @@ const getIconClass = (iconType) => {
         delete: 'trash-alt',
         import: 'file-import',
         export: 'file-export',
+        attach: 'paperclip',
         scroll: 'location-arrow',
         externalLink: 'external-link-square-alt',
-        align: 'images',
+        align: 'crosshairs',
         overlay: 'columns',
         filter: 'filter',
         filterNavigation: 'filter',
@@ -324,7 +327,7 @@ const getIconClass = (iconType) => {
         vopen: 'chevron-circle-down',
         vclose: 'chevron-circle-right',
         upload: 'upload',
-        download: 'download',
+        download: 'file-download',
         bulk_download: 'download',
         image: 'image',
         images: 'images',
@@ -353,7 +356,7 @@ const getIconClass = (iconType) => {
         photographers: 'users',
         field_notes_authors: 'users',
         comparisons: 'images',
-        iat: 'images',
+        iat: 'crosshairs',
         jpg: 'file-image',
         jpeg: 'file-image',
         png: 'file-image',

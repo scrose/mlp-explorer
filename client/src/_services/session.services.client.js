@@ -1,9 +1,21 @@
 /*!
  * MLE.Client.Services.Session
  * File: session.services.client.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * Local session storage service module handles client storage variables:
+ * - Current nodes in navigation path
+ * - Current session view preferences
+ * - User-selected download IDs
+ *
+ * ---------
+ * Revisions
+ * - 10-21-2023   Added user-selected downloads session storage.
  */
 
 /**
@@ -59,9 +71,9 @@ export const removeNode = (node) => {
  * @public
  */
 
-export const clearNodes = () => {
-    sessionStorage.setItem('nodes', JSON.stringify([]));
-}
+// export const clearNodes = () => {
+//     sessionStorage.setItem('nodes', JSON.stringify([]));
+// }
 
 /**
  * Retrieve messages from session storage.
@@ -164,4 +176,62 @@ export const setPref = (name, value) => {
 
 export const clearPrefs = () => {
     sessionStorage.setItem('prefs', JSON.stringify([]));
+}
+
+/**
+ * Get list of downloads selected by user.
+ *
+ * @public
+ */
+
+export const getDownloads = () => {
+    const downloads = sessionStorage.getItem('downloads') || ''
+    return downloads ? JSON.parse(downloads) : '';
+}
+
+/**
+ * Add download selection to data session storage.
+ *
+ * @public
+ * @param {integer} id
+ */
+
+export const addDownload = (id) => {
+    const downloads = (getDownloads() || []).filter(d => d !== id);
+    downloads.push(id);
+    sessionStorage.setItem('downloads', JSON.stringify(downloads));
+}
+
+/**
+ * Remove download selection from session storage.
+ *
+ * @public
+ * @param {int} id
+ */
+
+export const removeDownload = (id) => {
+    let downloads = getDownloads();
+    sessionStorage.setItem('downloads', JSON.stringify(
+        downloads.filter(d => d !== id))
+    );
+}
+
+/**
+ * Clear all downloads from session storage.
+ *
+ * @public
+ */
+
+export const clearDownloads = () => {
+    sessionStorage.setItem('downloads', null);
+}
+
+/**
+ * Check if download attached to downloads in session storage.
+ *
+ * @public
+ */
+
+export const checkDownload = (id) => {
+    return (getDownloads() || []).includes(id);
 }

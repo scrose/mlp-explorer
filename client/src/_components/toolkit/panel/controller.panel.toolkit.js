@@ -90,12 +90,12 @@ export const useController = (id) => {
     const _handleOnKeyDown = (e) => {
         const {keyCode = ''} = e || {};
         const _methods = {
-            // disable control point selection
-            16: () => {
+            // disable control point selection (uses [ALT] key)
+            18: () => {
                 iat.setMode('select');
             },
-            // enable magnifier
-            17: () => {
+            // enable magnifier (uses [SHIFT] key)
+            16: () => {
                 iat.panel1.pointer.magnifyOn();
                 iat.panel2.pointer.magnifyOn();
             }
@@ -119,12 +119,12 @@ export const useController = (id) => {
     const _handleOnKeyUp = (e) => {
         const {keyCode = ''} = e || [];
         const _methods = {
-            // disable control point selection
-            16: () => {
+            // disable control point selection (uses [ALT] key)
+            18: () => {
                 iat.setMode('pan');
             },
-            // disable magnifier
-            17: () => {
+            // disable magnifier (uses [SHIFT] key)
+            16: () => {
                 iat.panel1.pointer.magnifyOff();
                 iat.panel2.pointer.magnifyOff();
             }

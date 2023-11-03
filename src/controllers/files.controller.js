@@ -21,6 +21,7 @@ import { sanitize } from '../lib/data.utils.js';
 import * as importer from '../services/import.services.js';
 import { humanize } from '../lib/data.utils.js';
 import {getFilePath} from "../services/files.services.js";
+import {getImageURL} from "../services/images.services.js";
 
 /**
  * Export controller constructor.
@@ -145,6 +146,15 @@ export default function FilesController(modelType) {
             const owner = await nserve.select(owner_id, client);
             let files = await fserve.selectAllByOwner(owner_id) || [];
 
+            // check if files are present in request data
+            if (
+                Array.isArray(files.historic_images) && files.historic_images.length === 0
+                && Array.isArray(files.modern_images) && files.modern_images.length === 0
+                && Array.isArray(files.unsorted_images) && files.unsorted_images.length === 0
+            ) {
+                return next(new Error('noFiles'));
+            }
+
             // send response
             res.status(200).json(
                 prepare({
@@ -176,10 +186,13 @@ export default function FilesController(modelType) {
 
     this.filter = async (req, res, next) => {
 
+        // NOTE: client undefined if connection fails.
+        const client = await pool.connect();
+
         try {
 
             // get query parameters
-            const { ids='', offset=0, limit=10 } = req.query || {};
+            const { ids=''} = req.query || {};
 
             // sanitize + convert query string to node id array
             const fileIDs = ids
@@ -189,7 +202,15 @@ export default function FilesController(modelType) {
                 });
 
             // get filtered results
-            const resultData = await fserve.filterFilesByID(fileIDs, offset, limit);
+            const resultData = await Promise.all((
+                fileIDs || []).map(async (id) => {
+                    const {file_type} = await fserve.select(id, client);
+                    const {results} = await fserve.filterFilesByID([id], file_type, 0, 100);
+                    const rs = results[0];
+                    // include image urls
+                    rs.url = getImageURL(file_type, rs);
+                    return rs;
+            }))
 
             res.status(200).json(
                 prepare({
@@ -198,7 +219,10 @@ export default function FilesController(modelType) {
                 }));
 
         } catch (err) {
+            console.error(err)
             return next(err);
+        } finally {
+            await client.release(true);
         }
     };
 
@@ -435,14 +459,14 @@ export default function FilesController(modelType) {
         try {
 
             // get requested file ID
-            const fileID = this.getId(req);
+            const {id} = req.params || {};
 
             // get owner node; check that node exists in database
             // and corresponds to requested owner type.
-            const fileData = await fserve.get(fileID, client);
-            const { file={}, metadata={} } = fileData || {};
-            const { file_type='', filename='', mime_type='' } = file || {};
-            const filePath = getFilePath(file_type, file, metadata);
+            const fileData = await fserve.get(id, client);
+            const { file={} } = fileData || {};
+            const { filename='', mime_type='' } = file || {};
+            const filePath = getFilePath(file);
 
             // file does not exist
             if (!file) return next(new Error('invalidRequest'));
@@ -461,7 +485,8 @@ export default function FilesController(modelType) {
 
 
     /**
-     * Bulk download files (for unauthenticated downloads).
+     * Bulk download files (compressed folder downloads).
+     * - File IDs are passed in query string by file type
      *
      * @param req
      * @param res
@@ -474,24 +499,7 @@ export default function FilesController(modelType) {
         const client = await pool.connect();
 
         try {
-
-            // get requested file ID
-            const fileID = this.getId(req);
-
-            // get owner node; check that node exists in database
-            // and corresponds to requested owner type.
-            const fileData = await fserve.get(fileID, client);
-            const { file={}, metadata={} } = fileData || {};
-            const { file_type='' } = file || {};
-
-            // file does not exist
-            if (!file) return next(new Error('invalidRequest'));
-
-            const buffer = await fserve.compress( {[file_type]: [file]}, file_type, metadata);
-
-            // push buffer to download stream
-            fserve.streamDownload(res, buffer);
-
+            await fserve.bulkDownload(req, res, next, 'full', client);
         } catch (err) {
             return next(err);
         } finally {
@@ -500,8 +508,8 @@ export default function FilesController(modelType) {
     };
 
     /**
-     * Download single/bulk raw files (compressed folder downloads).
-     * - File IDs are passed in query string by capture image type
+     * Bulk download raw files (compressed folder downloads).
+     * - File IDs are passed in query string by file type
      *
      * @param req
      * @param res
@@ -514,99 +522,7 @@ export default function FilesController(modelType) {
         const client = await pool.connect();
 
         try {
-
-            // get query parameters
-            const {
-                file_id='',
-                id='',
-                historic_images='',
-                modern_images='',
-                metadata_files='',
-                supplemental_images='',
-                unsorted_images=''
-            } = req.query || {};
-
-            if (
-                !file_id &&
-                !id &&
-                !historic_images &&
-                !modern_images &&
-                !metadata_files &&
-                !supplemental_images &&
-                !unsorted_images)
-                return next(new Error('invalidRequest'));
-
-            // stream single raw image file without compression
-            if (file_id) {
-                // get owner node; check that node exists in database
-                // and corresponds to requested owner type.
-                const fileData = await fserve.get(sanitize(file_id, 'integer'), client);
-                const { file={}, metadata={} } = fileData || {};
-                const { filename='', mime_type='' } = file || {};
-                const filePath = getFilePath('raw', file, metadata);
-
-                // file does not exist
-                if (!file) return next(new Error('invalidRequest'));
-
-                res.setHeader('Content-disposition', 'attachment; filename=' + filename);
-                res.setHeader('Content-type', mime_type);
-
-                return await fserve.download(res, filePath);
-            }
-
-            // sanitize single file ID
-            const singleFileId = sanitize(id);
-
-            // sanitize + convert query string to node id array
-            const historicFileIDs = historic_images
-                .split(' ')
-                .map(id => {
-                    return sanitize(id, 'integer');
-                });
-
-            const modernFileIDs = modern_images
-                .split(' ')
-                .map(id => {
-                    return sanitize(id, 'integer');
-                });
-
-            const unsortedFileIDs = unsorted_images
-                .split(' ')
-                .map(id => {
-                    return sanitize(id, 'integer');
-                });
-
-            const metadataFileIDs = metadata_files
-                .split(' ')
-                .map(id => {
-                    return sanitize(id, 'integer');
-                });
-
-            const supplementalFileIDs = supplemental_images
-                .split(' ')
-                .map(id => {
-                    return sanitize(id, 'integer');
-                });
-
-            // get filtered files by ID
-            const singleFile = await fserve.select(singleFileId, client);
-            const historicFiles = await fserve.filterFilesByID(historicFileIDs, 0, 100);
-            const modernFiles = await fserve.filterFilesByID(modernFileIDs, 0, 100);
-            const metadataFiles = await fserve.filterFilesByID(metadataFileIDs, 0, 100);
-            const supplementalFiles = await fserve.filterFilesByID(supplementalFileIDs, 0, 100);
-            const unsortedFiles = await fserve.filterFilesByID(unsortedFileIDs, 0, 100);
-
-            // stream archive data for either single raw file or compressed image folder
-            return singleFile
-                ? await fserve.streamArchive(res, {file: [singleFile]}, 'raw')
-                : await fserve.streamArchive(res, {
-                    'historic_images': historicFiles.results,
-                    'modern_images': modernFiles.results,
-                    'unsorted_images': unsortedFiles.results,
-                    'metadata_files': metadataFiles.results,
-                    'supplemental_files': supplementalFiles.results,
-                }, 'raw');
-
+            await fserve.bulkDownload(req, res, next, 'raw');
         } catch (err) {
             return next(err);
         } finally {

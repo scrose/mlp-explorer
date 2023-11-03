@@ -8,7 +8,7 @@
  * ----------
  * Description
  *
- * Canvas component for Image Alignment Tool. Allows for state-controlled interactions using Canvas API.
+ * Canvas component for Alignment Tool. Allows for state-controlled interactions using Canvas API.
  *
  * ---------
  * Revisions

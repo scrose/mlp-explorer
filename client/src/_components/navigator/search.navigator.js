@@ -1,9 +1,19 @@
 /*!
  * MLE.Client.Components.Navigator.Search
  * File: search.navigator.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * General full-text search component. Returns search results in the Navigator panel grouped
+ * by semantic node (Survey, Station, Capture, etc.)
+ *
+ * ---------
+ * Revisions
+ * - 21-10-2023     Added search field input focus on mount of component.
  */
 
 import React from 'react'
@@ -36,6 +46,9 @@ const SearchNavigator = ({limit=5, offset=0, hidden=true}) => {
 
     const router = useRouter();
 
+    // search field reference
+    const searchRef = React.useRef(null);
+
     // create search data state
     const [loading, setLoading] = React.useState(false);
     const [searchQuery, setSearchQuery] = React.useState('');
@@ -48,6 +61,12 @@ const SearchNavigator = ({limit=5, offset=0, hidden=true}) => {
 
     // window dimensions
     const [, winHeight] = useWindowSize();
+
+    // input focus on search field
+    React.useEffect(() => {
+        if (!hidden) searchRef.current.focus();
+        return () => {};
+    }, [hidden]);
 
     // update query string value
     const updateQuery = (e) => {
@@ -174,9 +193,10 @@ const SearchNavigator = ({limit=5, offset=0, hidden=true}) => {
                 className={'search-query'}
                 type={'search'}
                 id={'searchbar'}
+                ref={searchRef}
                 name={'q'}
                 aria-label={'Search the site content.'}
-                placeholder={'Search..'}
+                placeholder={'Enter search terms'}
                 onChange={updateQuery}
                 onKeyPress={(e) => {
                     if (e.key === 'Enter' || e.keyCode === 13) {

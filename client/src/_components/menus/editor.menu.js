@@ -13,6 +13,7 @@
  * ---------
  * Revisions
  * - 22-07-2023 Include core node data as parameter.
+ * - 21-10-2023 Add option to attach capture image for selective download
  */
 
 import React from 'react';
@@ -24,6 +25,8 @@ import {genID} from "../../_utils/data.utils.client";
 import {createNodeRoute, redirect} from "../../_utils/paths.utils.client";
 import Download from "../common/download";
 import {useDialog} from "../../_providers/dialog.provider.client";
+import {useNav} from "../../_providers/nav.provider.client";
+import styles from '../styles/menu.module.css';
 
 /**
  * [Inline and Standalone] General node menu component for selecting view/edit options.
@@ -59,12 +62,15 @@ const EditorMenu = ({
                                attached={},
                                files={},
                                size= 'lg',
-                               visible=['show', 'edit', 'remove', 'new'],
+                               visible=['show', 'edit', 'remove', 'new', 'attach', 'download'],
                                callback=()=>{},
                                className=''
                            }) => {
     // dialog provider
     const dialog = useDialog();
+
+    // nav provider
+    const nav = useNav();
 
     // get user role
     const user = useUser();
@@ -125,6 +131,8 @@ const EditorMenu = ({
         ])
         .filter(item => !!item);
 
+    if (String(id) === '81234') console.log('>>>', id, metadata, visible)
+
     return <div className={`h-menu ${className}`}>
         <ul>
             {
@@ -158,17 +166,31 @@ const EditorMenu = ({
                 ( ( id && isCaptureType(model) ) || visible.includes('iat')) &&
                 <li key={`${menuID}_node_menuitem_iat`}>
                     <Button
-                        label={compact ? '' : 'Align Image'}
+                        label={!compact && 'Align Tool'}
                         size={size}
                         icon={'iat'}
-                        title={`Use Image Aligner dialog.`}
+                        title={`Open capture image in Alignment Tool.`}
                         onClick={() => { _handleDialog('iat') }}
                     />
                 </li>
             }
             {
+                ( id && isImageType(model) && visible.includes('attach') ) &&
+                <li key={`${menuID}_menuitem_attach`}>
+                    <Button
+                        icon={'attach'}
+                        label={!compact && 'Attach'}
+                        title={`Attach image to selected downloads.`}
+                        className={(nav.downloads || []).includes(id) ? styles.active : ''}
+                        onClick={() => {
+                            nav.addDownload(id);
+                        }}
+                    />
+                </li>
+            }
+            {
                 // Download bulk images for station
-                isEditor && id && model === 'stations' &&
+                id && model === 'stations' &&  visible.includes('download') &&
                 <li key={`${menuID}_node_menuitem_download_bulk`}>
                     <Button
                         label={compact ? '' : 'Bulk Download'}
@@ -211,7 +233,7 @@ const EditorMenu = ({
             }
             {
                 // Download raw media file
-                isEditor && id && (isImageType(model) || visible.includes('download')) &&
+                isEditor && id && isImageType(model) && visible.includes('download') &&
                 <li key={`${menuID}_node_menuitem_download_raw_file`}>
                     <Download
                         label={compact ? '' : 'Download'}
@@ -225,14 +247,14 @@ const EditorMenu = ({
             }
             {
                 // Download public media file
-                !isEditor && id && (isImageType(model) || visible.includes('download')) &&
+                !isEditor && id && isImageType(model) && visible.includes('download') &&
                 <li key={`${menuID}_node_menuitem_download_file`}>
                     <Download
                         label={compact ? '' : 'Download'}
                         size={size}
                         filename={`${filename}.zip`}
                         format={'zip'}
-                        route={`/files/download/bulk/${id}`}
+                        route={`/files/download/bulk?${model}=${id}`}
                         callback={callback}
                     />
                 </li>

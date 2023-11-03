@@ -14,9 +14,15 @@
 
 import * as React from 'react'
 import { useRouter } from './router.provider.client';
-import {getNavView} from "../_services/session.services.client";
+import {
+    getDownloads,
+    addDownload,
+    checkDownload,
+    clearDownloads,
+    getNavView,
+    removeDownload
+} from "../_services/session.services.client";
 import kmlData from '../_components/kml/example-2.kml';
-import {useWindowSize} from "../_utils/events.utils.client";
 
 /**
  * Global navigation data provider.
@@ -51,6 +57,9 @@ function NavProvider(props) {
     // IAT data states
     const [iatSettings, setIATSettings] = React.useState(null);
 
+    // Attached downloads
+    const [downloadData, setDownloadData] = React.useState(null);
+
     // initialize navigation view settings
     const [navView, setNavView] = React.useState(getNavView() || 'map');
     const [navToggle, setNavToggle] = React.useState(true);
@@ -79,6 +88,33 @@ function NavProvider(props) {
         setScrollToView(toggle);
     }
 
+    // toggle selected download
+    const _toggleAttachedDownload = (id) => {
+        checkDownload(id) ? removeDownload(id) : addDownload(id);
+        setDownloadData(getDownloads());
+    }
+
+    // clear all attached downloads
+    const _clearAttachedDownloads = () => {
+        clearDownloads();
+        setDownloadData(null);
+    }
+
+    // clear all attached downloads
+    const _checkAttachedDownload = (id) => {
+        return checkDownload(id);
+    }
+
+    /**
+     * Update download selection state.
+     *
+     * @public
+     */
+
+    React.useEffect(() => {
+        setDownloadData(getDownloads());
+    }, []);
+
     /**
      * Load API global node tree data.
      * - uses current Window location path as default endpoint.
@@ -94,7 +130,7 @@ function NavProvider(props) {
         // - navigator route is defined
         // - node data not yet loaded
         if (!error && (!nodeData || Object.keys(nodeData).length === 0)) {
-            console.log('Load Nav Tree')
+            console.log('Load Nav Tree...')
             // load API data
             router.get('/nodes/tree')
                 .then(res => {
@@ -134,7 +170,7 @@ function NavProvider(props) {
         // - navigator route is defined
         // - node data not yet loaded
         if (!error && (!mapData || Object.keys(mapData).length === 0)) {
-            console.log('Load Nav Map')
+            console.log('Loading Nav Map...')
             // load API data
             router.get('/nodes/map')
                 .then(res => {
@@ -222,7 +258,11 @@ function NavProvider(props) {
                 resize: resize,
                 setResize: setResize,
                 compact,
-                setCompact
+                setCompact,
+                downloads: downloadData,
+                addDownload: _toggleAttachedDownload,
+                checkDownload: _checkAttachedDownload,
+                clearDownloads: _clearAttachedDownloads
             }
         } {...props} />
     )
