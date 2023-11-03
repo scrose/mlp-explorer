@@ -59,6 +59,18 @@ const ViewerPanelMenu = () => {
         <div className={'h-menu'}>
             <ul>
                 {
+                    (nav.downloads || []).length > 0 &&
+                    <li key={`${menuID}_menuitem_attached_downloads`}>
+                        <Button
+                            icon={'download'}
+                            label={!nav.compact && 'Download Package'}
+                            className={styles.active}
+                            title={`Bulk download selected files.`}
+                            onClick={() => {dialog.setCurrent({dialogID: 'bulk_download_selections'})}}
+                        />
+                    </li>
+                }
+                {
                     isAdmin && <li className={user ? 'push' : ''}>
                         <Dropdown
                             compact={nav.compact}
@@ -74,18 +86,6 @@ const ViewerPanelMenu = () => {
                                 label: `Add new ${getModelLabel('projects')}`,
                                 callback: () => {dialog.setCurrent({dialogID: 'new_project'})}
                             }]} />
-                    </li>
-                }
-                {
-                    (nav.downloads || []).length > 0 &&
-                    <li key={`${menuID}_menuitem_attached_downloads`}>
-                        <Button
-                            icon={'download'}
-                            label={!nav.compact && 'Download Package'}
-                            className={styles.active}
-                            title={`Bulk download selected files.`}
-                            onClick={() => {dialog.setCurrent({dialogID: 'bulk_download_selections'})}}
-                        />
                     </li>
                 }
                 <li className={'push'}>

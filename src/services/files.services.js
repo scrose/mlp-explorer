@@ -1046,6 +1046,7 @@ export const streamDownload = (res, buffer) => {
  * @param res
  * @param next
  * @param version
+ * @param client
  */
 
 export const bulkDownload = async (req, res, next, version, client) => {

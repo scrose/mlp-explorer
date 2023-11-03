@@ -45,12 +45,14 @@ export default function FilesController(modelType) {
 
     this.init = async () => {
         try {
+            // ignore if no model type provided
+            if (!modelType) return;
             // generate model constructor
             Model = await db.model.create(modelType);
             model = new Model();
             mserve = new ModelServices(new Model());
         } catch (err) {
-            console.error(err)
+            console.error(err);
         }
     };
 
@@ -522,7 +524,7 @@ export default function FilesController(modelType) {
         const client = await pool.connect();
 
         try {
-            await fserve.bulkDownload(req, res, next, 'raw');
+            await fserve.bulkDownload(req, res, next, 'raw', client);
         } catch (err) {
             return next(err);
         } finally {

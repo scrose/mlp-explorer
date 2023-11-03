@@ -259,7 +259,7 @@ const Downloader = ({id}) => {
      */
     const _handleCallback = (err) => {
         if (!id) nav.clearDownloads();
-        err ? setMessage(err) : dialog.cancel();
+        // err ? setMessage(err) : dialog.cancel();
     }
 
     /**
