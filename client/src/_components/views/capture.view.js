@@ -98,7 +98,7 @@ export const CaptureImagesTable = ({type, owner, files=[], callback=()=>{}}) => 
             label={label}
             metadata={metadata}
             callback={callback}
-            visible={['show', 'iat', 'edit', 'remove']}
+            visible={['show', 'attach', 'iat', 'edit', 'remove']}
         />;
         return row;
     });

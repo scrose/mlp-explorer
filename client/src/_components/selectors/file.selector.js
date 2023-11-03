@@ -8,38 +8,39 @@
 
 import React from 'react';
 import Image from '../common/image';
-import Download from '../common/download';
 import {redirect} from "../../_utils/paths.utils.client";
 import {createNodeRoute} from "../../_utils/paths.utils.client";
-import {useUser} from "../../_providers/user.provider.client";
 import {useDialog} from "../../_providers/dialog.provider.client";
+import Download from "../common/download";
 
 /**
  * Render general file component.
  *
  * @public
  * @param {Object} data
- * @param {String} callback
  * @param {String} scale
  * @return {JSX.Element}
  */
 
-const FileSelector = ({ data, callback=()=>{}, scale='thumb' }) => {
+const FileSelector = ({ data, scale='thumb' }) => {
 
-    const user = useUser();
     const dialog = useDialog();
 
     // destructure file data
     const {label='', file={}, url={}, metadata={} } = data || {};
-    const {id='', file_type='', filename='', file_size='', mimetype='' } = file || {};
+    const {id='', owner_id='', file_type='', filename='', file_size='', mimetype='' } = file || {};
     let itemMetadata = metadata
     // include file metadata in details
     itemMetadata.filename = filename;
     itemMetadata.file_size = file_size;
     itemMetadata.mimetype = mimetype;
 
-    // handle dialog view
-    // - sets image metadata in provider to load in dialog view
+    /**
+     * handle dialog view
+     * - sets image metadata in provider to load in dialog view
+     *
+     * @param {Event} e
+    */
     const _handleDialog = (e) => {
         e.stopPropagation();
 
@@ -55,6 +56,14 @@ const FileSelector = ({ data, callback=()=>{}, scale='thumb' }) => {
              })
             : redirect(createNodeRoute(file_type, 'show', id));
     }
+
+    /**
+     * handle download response
+     * - sets image metadata in provider to load in dialog view
+     *
+     * @param {Event} e
+     */
+    const _handleDownload = () => {}
 
     // file components indexed by render type
     // - historic images link to their corresponding historic captures
@@ -84,12 +93,12 @@ const FileSelector = ({ data, callback=()=>{}, scale='thumb' }) => {
             onClick={_handleDialog}
         />,
         default: () => <Download
-            filename={`${filename}.zip`}
-            label={label}
+            filename={`${filename}`}
+            label={''}
             type={file_type}
             format={'zip'}
-            route={user ? `/files/download/raw?${file_type}=${id}` : `/files/download/${id}`}
-            callback={callback}
+            route={`/files/download/${id}`}
+            callback={_handleDownload}
         />
     }
 
@@ -101,12 +110,7 @@ const FileSelector = ({ data, callback=()=>{}, scale='thumb' }) => {
                     ? renders.hasOwnProperty(file_type)
                         ? renders[file_type]()
                         : renders.default()
-                    : <Image
-                        scale={'thumb'}
-                        title={'No File'}
-                        caption={'No File'}
-                        onClick={_handleDialog}
-                    />}
+                    : <Image scale={'thumb'} title={'No File'} caption={'No File'} onClick={_handleDialog} />}
         </div>
     )
 }

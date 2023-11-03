@@ -63,8 +63,7 @@ const explorerHelp = (gotoPage) => {
         </p>
         <h5>About this Guide</h5>
         <p>
-            This guide covers usage of features available in both the Explorer, and the Image Alignment Tool
-            image alignment tool, as well as documentation for the MLE Editor management tool. Click on the
+            This guide covers usage of features available in both the Explorer, and the Alignment Tool as well as documentation for the MLE Editor management tool. Click on the
             tabs at the top to switch between tools, and the tabs to the left for tool topics.
         </p>
     </>;
@@ -83,7 +82,7 @@ const explorerHelp = (gotoPage) => {
         <p>The viewer is where <Button icon={'help'} label={'Capture Images'} onClick={() => {gotoPage(0, 2)}} />
             and <Button icon={'help'} label={'Metadata'} onClick={() => {gotoPage(0, 1)}} /> are
             loaded for an indepth look at things. For example, navigate to surveyor
-            <a href={"http://localhost:3000/surveyors/show/5"} target={'_blank'}>Morrison Parsons Bridgland</a> to see
+            <a href={"http://localhost:3000/surveyors/show/5"} target={'_blank'} rel={"noreferrer"}>Morrison Parsons Bridgland</a> to see
             an extensive list of surveys undertaken in the last century. Each survey in the list can be expanded to
             show metadata for that item, as well as any attached dependent items -- in this case, survey seasons.
             You can also click on the item label to go to open the page for that item.</p>
@@ -172,7 +171,7 @@ const explorerHelp = (gotoPage) => {
                 <td>
                     <p>
                         A project is a container for Stations that do not fit into the surveyor model listed below.
-                        The <a href={'https://explore.mountainlegacy.ca/projects/show/1'} target={'_blank'}>Alberta
+                        The <a href={'https://explore.mountainlegacy.ca/projects/show/1'} target={'_blank'} rel={"noreferrer"}>Alberta
                             Fire Lookout Towers</a> project, for example, is organized by lookout tower, rather than
                         survey, where each tower listing contain a set of historic photographs that have been repeated.
                     </p>
@@ -505,6 +504,13 @@ const explorerHelp = (gotoPage) => {
         <table className={'help'}>
             <tbody>
             <tr>
+                <th><Icon type={'download'} /></th>
+                <th className={'active'}>Download Package</th>
+                <td>
+                    <p>Download images selected as 'attached' files.</p>
+                </td>
+            </tr>
+            <tr>
                 <th><Icon type={'sync'} /></th>
                 <th>Refresh</th>
                 <td>
@@ -513,9 +519,9 @@ const explorerHelp = (gotoPage) => {
             </tr>
             <tr>
                 <th><Icon type={'iat'} /></th>
-                <th>Image Alignment Tool</th>
+                <th>Alignment Tool</th>
                 <td>
-                    <p>Navigate to the <Button icon={'iat'} label={'Image Alignment Tools'} onClick={() => {gotoPage(2, 0)}} /></p>
+                    <p>Navigate to the <Button icon={'iat'} label={'Alignment Tool'} onClick={() => {gotoPage(2, 0)}} /></p>
                 </td>
             </tr>
             <tr>

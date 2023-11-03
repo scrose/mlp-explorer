@@ -1,7 +1,7 @@
 /*!
  * MLP.API.Utilities.Files
  * File: files.utils.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * MIT Licensed
  */
 
@@ -73,6 +73,7 @@ export const imageMIMETypes = {
     'tif': 'image/tiff',
     'tiff': 'image/tiff',
     'x-png': 'image/png',
+    '3FR': 'image/x-hasselblad-3fr',
     'ARW': 'image/x-sony-arw',
     'CR2': 'image/x-canon-cr2',
     'CRW': 'image/x-canon-crw',

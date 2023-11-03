@@ -288,6 +288,14 @@ const DialogSelector = () => {
             >
                 <Downloader id={id} />
             </Dialog>,
+            bulk_download_selections: <Dialog
+                key={_key}
+                title={`Bulk Download Selected Images`}
+                callback={_handleDialogClose}
+                className={index > 0 ? 'hidden' : ''}
+            >
+                <Downloader />
+            </Dialog>,
             new_surveyor: <Dialog
                 key={_key}
                 title={'Add New Surveyor'}

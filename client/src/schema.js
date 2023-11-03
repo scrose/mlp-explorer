@@ -30,7 +30,7 @@ export const schema = {
         },
         '/toolkit': {
             name: 'imageToolkit',
-            label: 'Image Alignment Tool'
+            label: 'Alignment Tool'
         },
         '/admin': {
             name: 'admin',

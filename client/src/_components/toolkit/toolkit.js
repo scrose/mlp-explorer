@@ -8,7 +8,7 @@
  * ----------
  * Description
  *
- * Main Image Alignment Tool component. The toolkit makes extensive use of the Canvas API
+ * Main Alignment Tool component. The toolkit makes extensive use of the Canvas API
  * for image rendering and markup. Image transformations use the OpenCV.js
  * JavaScript libraries.
  *

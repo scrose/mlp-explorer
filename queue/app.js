@@ -87,7 +87,7 @@ try {
             .catch(console.error)
             .finally(() => {
                 console.log('Garbage Collection ...')
-                // force garbage collection
+                // force garbage collection to prevent heap memory leaks
                 if (typeof global.gc != "undefined") {
                     const gcRes = global.gc();
                     console.log('\t- [Node] Force GC:', gcRes);

@@ -15,9 +15,9 @@ import {useUser} from "../../../_providers/user.provider.client";
 /**
  * Image selector widget. Used to select an image
  * - from the MLP library via the API to load into IAT
- * - from IAT canvase to upload to MLP library
+ * - from IAT canvas to upload to MLP library
  *
- *  * - Input columns (cols) must be object of form:
+ *  Input columns (cols) must be object of form:
  *   [...{name: <column name>, label: <column label>}]
  * - Input rows (rows) must be object of form:
  *   [...{[name]: {...[column name]: <row data>}]

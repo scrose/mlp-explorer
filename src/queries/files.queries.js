@@ -46,15 +46,24 @@ export function getFilesByType(fileType, limit=10) {
 /**
  * Generate query: Retrieve files by id array.
  *
+ * @param ids
+ * @param file_type
+ * @param offset
+ * @param limit
  * @return {Function} query function
  * @public
  */
 
-export function filterByIDArray(ids, offset, limit) {
+export function filterByIDArray(ids, file_type, offset, limit) {
+
+    // get metadata for given file type
+    const fileTypeTbl = `INNER JOIN ${file_type} ON id = ${file_type}.files_id`;
+
     const sql = `SELECT 
             *, 
             (SELECT COUNT(*) FROM files WHERE id = ANY($1)) as total
             FROM files 
+            ${file_type ? fileTypeTbl : ''}
             WHERE id = ANY($1)
             OFFSET ${offset}
             LIMIT ${limit}`;

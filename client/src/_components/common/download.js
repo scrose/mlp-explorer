@@ -107,6 +107,7 @@ const Download = ({
                 router.online,
                 save
             ).catch(_handleError);
+            callback();
         }
         catch (err) {
             _handleError(err)
@@ -130,9 +131,7 @@ const Download = ({
             title={
                 message && message.hasOwnProperty('msg')
                     ? message.msg
-                    : `Download ${route.indexOf('raw') > 0 
-                        ? 'Original (Raw) Version:' 
-                        : 'Scaled Version:'} ${filename || `file_${id}.${format}`}.`
+                    : `Download ${filename || `file_${id}.${format}`}.`
             }
             onClick={_handleDownload}>
         </Button>

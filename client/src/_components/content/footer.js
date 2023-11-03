@@ -8,7 +8,7 @@
 
 import React from 'react';
 import {getInfo} from "../../_services/schema.services.client";
-import {MLPLogo} from "./logo";
+import {MLPLogo} from "../common/logo";
 
 /**
  * Render .page footer

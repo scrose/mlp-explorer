@@ -58,13 +58,14 @@ export const select = async function(id, client ) {
  * Get list of requested files by IDs.
  *
  * @public
- * @params {Array} filesID
- * @params {int} offset
- * @params {int} limit
  * @return {Promise} result
+ * @param fileIDs
+ * @param file_type
+ * @param offset
+ * @param limit
  */
 
-export const filterFilesByID = async (fileIDs, offset, limit) => {
+export const filterFilesByID = async (fileIDs, file_type, offset, limit) => {
 
     if (!fileIDs) return null;
 
@@ -76,7 +77,7 @@ export const filterFilesByID = async (fileIDs, offset, limit) => {
         await client.query('BEGIN');
 
         // get filtered nodes
-        let { sql, data } = queries.files.filterByIDArray(fileIDs, offset, limit);
+        let { sql, data } = queries.files.filterByIDArray(fileIDs, file_type, offset, limit);
         let files = await client.query(sql, data)
             .then(res => {
                 return res.rows
@@ -168,20 +169,24 @@ export const get = async (id, client ) => {
     // get associated file metadata
     const metadata = await selectByFile(file, client) || {};
     const { type = '', secure_token = '' } = metadata || {};
-    const { file_type = '', filename = '', owner_id=0 } = file || {};
+    const { file_type = '', filename = '', owner_id=0, file_size=0 } = file || {};
     const owner = await nserve.select(owner_id, client) || {};
+    const label = await getFileLabel(file, client);
 
     // include alternate extracted filename (omit the security token)
     return {
+        id: id,
         file: file,
         owner: owner,
-        label: await getFileLabel(file, client),
+        file_type: file_type,
+        file_size: file_size,
+        label: label,
         filename: (filename || '').replace(`_${secure_token}`, ''),
         metadata: metadata,
         metadata_type: await metaserve.selectByName('metadata_file_types', type, client),
         url: getImageURL(file_type, metadata),
         status: await metaserve.getStatus(owner, client),
-    };
+    }
 
 };
 
@@ -276,7 +281,15 @@ export const selectAllByOwner = async (id) => {
                 row.url = getImageURL('modern_images', row);
                 return row
             });
-        }
+        },
+        // supplemental_images: async () => {
+        //     const {sql, data} = queries.files.getUnsortedImageFilesByStationID(id);
+        //     const {rows = []} = await client.query(sql, data);
+        //     return rows.map(row => {
+        //         row.url = getImageURL('modern_images', row);
+        //         return row
+        //     });
+        // }
     }
 
     try {
@@ -526,12 +539,11 @@ export const download = async (res, src) => {
  *
  * @param {Object} files
  * @param {String} version
- * @param {Object} metadata
  * @return Response data
  * @public
  */
 
-export const compress = async (files={}, version, metadata={}) => {
+export const compress = async (files={}, version) => {
 
     // creating new archive (ADM-ZIP)
     let zip = new AdmZip();
@@ -542,7 +554,7 @@ export const compress = async (files={}, version, metadata={}) => {
             await Promise.all(
                 files[fileType].map(async (file) => {
                     // get file path for given version type
-                    const filePath = getFilePath(version, file, metadata);
+                    const filePath = getFilePath(file, version);
                     // places file in a subfolder labelled by image/file type
                     // - only include files that exist
                     if (fs.existsSync(filePath)) zip.addLocalFile(filePath, fileType);
@@ -561,40 +573,44 @@ export const compress = async (files={}, version, metadata={}) => {
  * from file data.
  *
  * @public
- * @param {String} version
  * @param file
- * @param metadata
+ * @param version
  * @return {String} result
  */
 
-export const getFilePath = (version, file, metadata = {}) => {
+export const getFilePath = (file, version='medium' ) => {
 
-    const { fs_path = '' } = file || {};
-    const { secure_token = '' } = metadata || {};
-    const rootURI = process.env.LOWRES_PATH;
-    const imgPrefix = 'medium';
+    const { fs_path = '', secure_token = '', file_type='' } = file || {};
+    const lowResPath = process.env.LOWRES_PATH;
+    const defaultPath = process.env.UPLOAD_DIR;
 
     // handle image source URLs differently than metadata files
     // - images use scaled versions of raw files
     // - metadata uses PDF downloads
     const fileHandlers = {
         historic_images: () => {
-            return path.join(rootURI, `${imgPrefix}_${secure_token}.jpeg`);
+            return version === 'raw'
+                ? path.join(path.join(defaultPath, fs_path))
+                : path.join(lowResPath, `${version}_${secure_token}.jpeg`);
         },
         modern_images: () => {
-            return path.join(rootURI, `${imgPrefix}_${secure_token}.jpeg`);
+            return version === 'raw'
+                ? path.join(path.join(defaultPath, fs_path))
+                : path.join(lowResPath, `${version}_${secure_token}.jpeg`);
         },
         supplemental_images: () => {
-            return path.join(rootURI, `${imgPrefix}_${secure_token}.jpeg`);
+            return version === 'raw'
+                ? path.join(path.join(defaultPath, fs_path))
+                : path.join(lowResPath, `${version}_${secure_token}.jpeg`);
         },
         default: () => {
-            return path.join(path.join(process.env.UPLOAD_DIR, fs_path));
+            return path.join(path.join(defaultPath, fs_path));
         },
     };
 
     // Handle file types
-    return fileHandlers.hasOwnProperty(version)
-        ? fileHandlers[version]()
+    return fileHandlers.hasOwnProperty(file_type)
+        ? fileHandlers[file_type]()
         : fileHandlers.default();
 };
 
@@ -964,7 +980,7 @@ export const streamArchive = async (res, files={}, version, metadata={}) => {
     });
 
     // pipe data to response
-    archive.pipe(res)
+    archive.pipe(res);
 
     // add requested files to archive; separate different file types in folders
     await Promise.all(
@@ -972,7 +988,7 @@ export const streamArchive = async (res, files={}, version, metadata={}) => {
             await Promise.all(
                 files[fileType].map(async (file, index) => {
                     // get file path for given version type
-                    const filePath = getFilePath(version, file, metadata);
+                    const filePath = getFilePath(file, version);
                     const {filename=``} = file || {};
                     // places file in a subfolder labelled by image/file type
                     // - only include files that exist
@@ -1022,4 +1038,111 @@ export const streamDownload = (res, buffer) => {
     rs.push(null);
 }
 
+/**
+ * Bulk download files
+ *
+ * @public
+ * @param req
+ * @param res
+ * @param next
+ * @param version
+ */
+
+export const bulkDownload = async (req, res, next, version, client) => {
+
+    const offset = 0;
+    const limit = 100;
+
+    // extract query parameters
+    const {
+        file_id='',
+        id='',
+        historic_images='',
+        modern_images='',
+        metadata_files='',
+        supplemental_images='',
+        unsorted_images=''
+    } = req.query || {};
+
+    if (
+        !file_id &&
+        !id &&
+        !historic_images &&
+        !modern_images &&
+        !metadata_files &&
+        !supplemental_images &&
+        !unsorted_images)
+        return next(new Error('invalidRequest'));
+
+    // stream single image file without compression
+    if (file_id) {
+        // get owner node; check that node exists in database
+        // and corresponds to requested owner type.
+        const fileData = await get(sanitize(file_id, 'integer'), client);
+        const { file={}, metadata={} } = fileData || {};
+        const { filename='', mime_type='' } = file || {};
+        const filePath = getFilePath(file, version);
+
+        // file does not exist
+        if (!file) return next(new Error('invalidRequest'));
+
+        res.setHeader('Content-disposition', 'attachment; filename=' + filename);
+        res.setHeader('Content-type', mime_type);
+
+        return await download(res, filePath);
+    }
+
+    // sanitize single file ID
+    const singleFileId = sanitize(id, 'integer');
+
+    // sanitize + convert query string to node id array
+    const historicFileIDs = historic_images
+        .split(' ')
+        .map(id => {
+            return sanitize(id, 'integer');
+        });
+
+    const modernFileIDs = modern_images
+        .split(' ')
+        .map(id => {
+            return sanitize(id, 'integer');
+        });
+
+    const unsortedFileIDs = unsorted_images
+        .split(' ')
+        .map(id => {
+            return sanitize(id, 'integer');
+        });
+
+    const metadataFileIDs = metadata_files
+        .split(' ')
+        .map(id => {
+            return sanitize(id, 'integer');
+        });
+
+    const supplementalFileIDs = supplemental_images
+        .split(' ')
+        .map(id => {
+            return sanitize(id, 'integer');
+        });
+
+    // get filtered files by ID
+    const singleFile = await select(singleFileId, client);
+    const historicFiles = await filterFilesByID(historicFileIDs, 'historic_images', offset, limit);
+    const modernFiles = await filterFilesByID(modernFileIDs, 'modern_images', offset, limit);
+    const metadataFiles = await filterFilesByID(metadataFileIDs, 'metadata_files', offset, limit);
+    const supplementalFiles = await filterFilesByID(supplementalFileIDs, 'supplemental_images', offset, limit);
+    const unsortedFiles = await filterFilesByID(unsortedFileIDs, null, offset, limit);
+
+    // stream archive data for either single file or compressed image folder
+    return singleFile
+        ? await streamArchive(res, {file: [singleFile]}, version)
+        : await streamArchive(res, {
+            'historic_images': historicFiles.results,
+            'modern_images': modernFiles.results,
+            'unsorted_images': unsortedFiles.results,
+            'metadata_files': metadataFiles.results,
+            'supplemental_files': supplementalFiles.results,
+        }, version);
+}
 

@@ -98,9 +98,9 @@ const PanelInfo = ({ panel }) => {
                                     })}}
                                 /><a href={
                                     createNodeRoute(panel.properties.owner_type, 'show', panel.properties.owner_id)
-                                }
-                                     target={'_blank'}
+                                } target={'_blank'}
                                     title={'Open capture information in new window.'}
+                                     rel={"noreferrer"}
                                 ><Icon type={'externalLink'} /></a></li>
                             }
                         </ul>

@@ -1,7 +1,7 @@
 /*!
  * MLE.Client.Components.Menus.Main
  * File: main.menu.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
  */
@@ -16,9 +16,9 @@ const MenuItems = () => {
     const rootURL = getRoot();
     return <ul>
         <li><a href={rootURL}>Dashboard</a></li>
-        <li><a rel={"noreferrer"} target={'_blank'} href={getInfo().mlp_url}>MLP Website</a></li>
-        <li><a href={'/toolkit'}>Image Alignment Tool</a></li>
-        <li><a href={"mailto:mntnlgcy@uvic.ca"}>Contact</a></li>
+        <li><a rel={"noreferrer"} target={'_blank'} href={getInfo().mlp_url} title={'Navigate to main MLP website'}>MLP Website</a></li>
+        <li><a href={'/toolkit'} title={'Open Alignment Tool'}>Alignment Tool</a></li>
+        <li><a href={"mailto:mntnlgcy@uvic.ca"} title={'Open email client'}>Contact</a></li>
     </ul>
 }
 

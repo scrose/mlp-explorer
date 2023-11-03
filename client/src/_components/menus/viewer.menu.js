@@ -1,9 +1,17 @@
 /*!
  * MLE.Client.Components.Menus.Viewer
  * File: viewer.menu.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *  * ----------
+ * Description
+ *
+ * Viewer menu component
+ *
+ * ---------
+ * Revisions
+ * - 22-07-2023 Added new download selection button.
  */
 
 import React from 'react';
@@ -15,94 +23,10 @@ import Button from "../common/button";
 import {redirect} from "../../_utils/paths.utils.client";
 import Dropdown from "../common/dropdown";
 import {genID} from "../../_utils/data.utils.client";
-import {setNavView, setPref} from "../../_services/session.services.client";
 import {useDialog} from "../../_providers/dialog.provider.client";
+import styles from '../styles/menu.module.css';
+import {NavigatorMenu} from "./navigator.menu";
 
-/**
- * Navigator menu component.
- *
- * View options for the navigator component.
- *
- * @public
- * @return {JSX.Element}
- */
-
-export const NavigatorMenu = () => {
-
-    const nav = useNav();
-    const dialog = useDialog();
-
-    // Sets the current navigation mode (tree/map/search/etc)
-    // - set in state and user session storage
-    const setMode = (navView) => {
-        // toggle navigator visibility
-        nav.setToggle(true);
-        // set navigator view
-        nav.setMode(navView);
-        nav.setResize(true);
-        setNavView(navView);
-    }
-
-    return (
-        <>
-            <div className={'viewer-menu'}>
-                <div className={'h-menu'}>
-                    <ul>
-                        <li>
-                            <Button
-                                className={'nav-toggle'}
-                                disabled={nav.mode === 'iat'}
-                                icon={nav.toggle ? 'hopenleft' : 'hcloseleft'}
-                                title={nav.toggle ? 'Minimize navigator.' : 'Maximize navigator'}
-                                onClick={() => {
-                                    setPref('navToggle', !nav.toggle);
-                                    nav.setToggle(!nav.toggle);
-                                    nav.setResize(true);
-                                }}
-                            />
-                        </li>
-                        <li>
-                            <Button
-                                icon={'tree'}
-                                label={!nav.compact && 'List'}
-                                title={`View navigation tree.`}
-                                onClick={() => {
-                                    setMode('tree')
-                                    nav.scroll(true);
-                                }}
-                            />
-                        </li>
-                        <li>
-                            <Button
-                                icon={'map'}
-                                label={!nav.compact &&'Map'}
-                                title={`View navigation map.`}
-                                onClick={() => setMode('map')}
-                            />
-                        </li>
-                        <li>
-                            <Button
-                                icon={'filter'}
-                                label={!nav.compact &&'Filter'}
-                                title={`Filter map stations.`}
-                                className={nav.hasFilter ? 'active' : ''}
-                                onClick={() => dialog.setCurrent({dialogID: 'filter'})}
-                            />
-                        </li>
-                        <li>
-                            <Button
-                                icon={'search'}
-                                label={!nav.compact &&'Search'}
-                                title={`Full-text search of metadata.`}
-                                onClick={() => setMode('search')}
-                            />
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </>
-    )
-}
 
 /**
  *
@@ -117,6 +41,7 @@ const ViewerPanelMenu = () => {
     const nav = useNav();
     const dialog = useDialog();
     const api = useData();
+
 
     // get roles
     const {isAdmin=false} = user || {};
@@ -151,6 +76,18 @@ const ViewerPanelMenu = () => {
                             }]} />
                     </li>
                 }
+                {
+                    (nav.downloads || []).length > 0 &&
+                    <li key={`${menuID}_menuitem_attached_downloads`}>
+                        <Button
+                            icon={'download'}
+                            label={!nav.compact && 'Download Package'}
+                            className={styles.active}
+                            title={`Bulk download selected files.`}
+                            onClick={() => {dialog.setCurrent({dialogID: 'bulk_download_selections'})}}
+                        />
+                    </li>
+                }
                 <li className={'push'}>
                     <Button
                         icon={'sync'}
@@ -161,10 +98,10 @@ const ViewerPanelMenu = () => {
                 <li className={user ? '' : 'push'} key={`${menuID}_menuitem_iat`}>
                     <Button
                         icon={'iat'}
-                        label={!nav.compact && 'Image Alignment Tool'}
-                        title={`Image Alignment Toolkit`}
+                        label={!nav.compact && 'Alignment Tool'}
+                        title={`Go to Alignment Tool.`}
                         onClick={() => {
-                            // redirect to Image Alignment Tool in viewer/editor
+                            // redirect to Alignment Tool in viewer/editor
                             redirect('/toolkit');
                         }}
                     />

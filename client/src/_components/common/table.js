@@ -46,17 +46,18 @@ const TableHeader = ({ tableID, cols }) => {
  */
 
 const TableBody = ({tableID, rows, cols}) => {
+    const noop = ()=>{};
     return <tbody>{
             rows.map((row, index) => {
                 return (
-                    <tr key={`${tableID}_row_${index}`}>
+                    <tr key={`${tableID}_row_${index}`} onClick={row.onClick || noop}>
                         {
                             cols
                                 .filter(col => row.hasOwnProperty(col.name))
                                 .map(col =>
                                     <td
                                         key={`td_${index}_${col.name}`}
-                                        className={col.className}>
+                                        className={row.className}>
                                         {row[col.name]}
                                     </td>
                                 )
