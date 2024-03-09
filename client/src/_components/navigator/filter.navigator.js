@@ -1,9 +1,18 @@
 /*!
  * MLE.Client.Components.Navigator.Filter
  * File: filter.navigator.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * Filter navigator component. Sets filtered stations to appear on map tool.
+ *
+ * ---------
+ * Revisions
+
  */
 
 import React from 'react';
@@ -88,7 +97,7 @@ function FilterNavigator() {
         loader={_loader}
         schema={genSchema({ view:'filterNavigation', model:'stations'})}
         onReset={()=>{
-            setFilterData({})
+            setFilterData({});
         }}
         onCancel={() => {dialog.cancel()}}
         onChange={onChange}

@@ -13,7 +13,7 @@
  *
  * ---------
  * Revisions
- * - 16-09-2023   Converted log/lat display to DMS.
+
  */
 
 import React from 'react';
@@ -26,10 +26,23 @@ import {debounce, useWindowSize} from '../../_utils/events.utils.client';
 import Loading from "../common/loading";
 import {getPref, setPref} from "../../_services/session.services.client";
 import {useNav} from "../../_providers/nav.provider.client";
-import { getMarker, baseLayers } from "../tools/map.tools";
+import {getMarker, getBaseLayers, setFeaturePopup} from "../tools/map.tools";
 import Button from "../common/button";
 import 'leaflet-kml/L.KML.js';
 import {convertCoordDMS} from "../../_utils/data.utils.client";
+import {useDialog} from "../../_providers/dialog.provider.client";
+
+
+// change default marker icon
+delete L.Icon.Default.prototype._getIconUrl;
+const iconSVG = getMarker(1);
+
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'data:image/svg+xml;base64,' + btoa(iconSVG),
+    iconUrl: 'data:image/svg+xml;base64,' + btoa(iconSVG),
+    shadowUrl: null,
+    shadowSize:  [0, 0]
+});
 
 /**
  * Page height offset
@@ -62,6 +75,7 @@ function MapNavigator({ filter, hidden }) {
     const router = useRouter();
     const api = useData();
     const nav = useNav();
+    const dialog = useDialog();
 
     // mounted component flag
     const _isMounted = React.useRef(false);
@@ -79,19 +93,22 @@ function MapNavigator({ filter, hidden }) {
     const [center, setCenter] = React.useState([lat, lng]);
     const [zoom, setZoom] = React.useState(4);
     const [clustered, setClustered] = React.useState(true);
+    const [showMarkers, setShowMarkers] = React.useState(true);
     const [stale, setStale] = React.useState(true);
 
     // window dimensions
     const [winWidth, winHeight] = useWindowSize();
 
-    // leaflet map object
+    // leaflet map objects (references)
     const mapPane = React.useRef(null);
     const mapObj = React.useRef(null);
-    const layerGrp = React.useRef(null);
+    const stationMarkers = React.useRef(null);
+    const mapFeatures = React.useRef(null);
 
-    // refresh navigator data
+    // refresh map tiles and  data
     const _handleRefresh = () => {
-        nav.refresh();
+        const baseLayers = getBaseLayers(L);
+        baseLayers[selectedBaseLayer].addTo(mapObj.current);
         setStale(true);
     };
 
@@ -100,19 +117,40 @@ function MapNavigator({ filter, hidden }) {
         setClustered(!clustered)
     };
 
+    // toggle markers display
+    const _handleMarkers = () => {
+        setShowMarkers(!showMarkers)
+    };
+
+    // select map features overlay
+    const _handleMapFeatures = () => {
+        dialog.setCurrent({
+            dialogID: 'map_features',
+            callback: (data) => {
+                nav.setOverlay(data)
+                dialog.cancel();
+            }
+        });
+    };
+
     // request station(s) view in selected cluster
     // - if single station, go to that station info page
     // - for multiple station, go to filter page for ids
-    const loadView = React.useCallback((ids = []) => {
+    const loadStations = React.useCallback((ids = []) => {
         ids.length === 1
             ? router.update(createNodeRoute('stations', 'show', ids[0]))
             : router.update(createRoute('/filter', { ids: ids }));
     }, [router]);
 
+    // show metadata for item in view panel
+    const loadViewPane = React.useCallback((id, model) => {
+        router.update(createNodeRoute(model, 'show', id));
+    }, [router]);
+
     // cluster station locations for n > 1
     const getClusterMarkers = React.useCallback((currentIDs) => {
 
-        if (!currentIDs) return;
+        if (!currentIDs || !showMarkers) return;
 
         // apply user-defined filter
         const _applyFilter = (station) => {
@@ -254,7 +292,7 @@ function MapNavigator({ filter, hidden }) {
                     .on('click', () => {
                         // clicking on marker loads filter results in data pane
                         debounce(() => {
-                            loadView(
+                            loadStations(
                                 cluster.stations.map(station => {return station.nodes_id})
                             );
                             // recenter map
@@ -270,11 +308,11 @@ function MapNavigator({ filter, hidden }) {
                     .on('mouseover', function () {
                         // show station name and location on clusters where n < 15
                         this.bindTooltip(`${
-                            n <= 15 
+                            n <= 15
                                 ? cluster.stations.map(station => {
                                     // convert DMS to degrees / minutes / seconds
                                     return `<strong>${station.name}</strong> [${convertCoordDMS(station.lat)}, ${convertCoordDMS(station.lng)}]`
-                                    }).join('<br>') 
+                                }).join('<br>')
                                 : `<strong>Cluster (n = ${n})</strong><br />
                                     Lat: ${convertCoordDMS(centroid[0])}<br />
                                     Lng: ${convertCoordDMS(centroid[1])}`
@@ -289,7 +327,7 @@ function MapNavigator({ filter, hidden }) {
             }, o);
             return o;
         }, []);
-    }, [nav, mapObj, loadView, zoom, clustered]);
+    }, [nav, mapObj, loadStations, zoom, clustered, showMarkers]);
 
     /**
      * Reset map view to new center coordinate and zoom level.
@@ -301,7 +339,7 @@ function MapNavigator({ filter, hidden }) {
      */
 
     const reset = React.useCallback((coord, zoomLevel) => {
-        if (coord && zoomLevel && layerGrp.current) {
+        if (coord && zoomLevel && stationMarkers.current) {
             setCenter(coord);
             setZoom(zoomLevel);
         }
@@ -310,12 +348,60 @@ function MapNavigator({ filter, hidden }) {
     // assign selected nodes on map
     React.useEffect(() => {
         _isMounted.current = true;
-        if (_isMounted.current && mapObj.current && layerGrp.current) {
-            layerGrp.current.clearLayers();
-            layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
+        if (_isMounted.current && mapObj.current && stationMarkers.current) {
+            stationMarkers.current.clearLayers();
+            stationMarkers.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
         }
         return () => {_isMounted.current = false;}
-    }, [getClusterMarkers, currentFilter, filter, zoom, center])
+    }, [getClusterMarkers, currentFilter, filter, showMarkers, zoom, center])
+
+    // assign selected nodes on map
+    React.useEffect(() => {
+
+        const geojsonMarkerOptions = {
+            radius: 8,
+            fillColor: "skyblue",
+            color: "#FFF",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.5
+        };
+
+        _isMounted.current = true;
+
+        if (_isMounted.current && mapObj.current && mapFeatures.current) {
+            // clear current map features
+            mapFeatures.current.clearLayers();
+            // include selected map features as layers added to group (geoJSON)
+            if (Array.isArray(nav.overlay) && nav.overlay.length > 0) {
+                nav.overlay.forEach(({id, geoJSON, selected}) => {
+                    let selectedLayer;
+                    const featureLayer = L.geoJSON(geoJSON, {
+                        onEachFeature: (feature, layer)=>{
+                            selectedLayer = layer;
+                            setFeaturePopup(id, feature, layer, loadViewPane);
+                        },
+                        pointToLayer: function (feature, latlng) {
+                            return L.circleMarker(latlng, geojsonMarkerOptions);
+                        }
+                    });
+                    mapFeatures.current.addLayer(featureLayer);
+                    // show pop-up of selected feature
+                    if (!!selected) {
+                        selectedLayer.openPopup();
+                        const bounds = featureLayer.getBounds();
+                        mapObj.current.fitBounds(bounds);
+                    }
+                });
+                // For multiple selected map features: adjust map bounds to show group
+                if (nav.overlay.length > 1) {
+                    const bounds = mapFeatures.current.getBounds();
+                    mapObj.current.fitBounds(bounds);
+                }
+            }
+        }
+        return () => {_isMounted.current = false;}
+    }, [nav.overlay, loadViewPane])
 
     // API data change detected: recenter map to selected coordinate (if available)
     // - if on station info page, center and zoom to location on the map
@@ -333,7 +419,7 @@ function MapNavigator({ filter, hidden }) {
             }
         }
         return () => {_isMounted.current = false;}
-    }, [api, setClustered])
+    }, [api.location, setClustered])
 
     // Redraw map if container was resized.
     React.useEffect(() => {
@@ -372,6 +458,9 @@ function MapNavigator({ filter, hidden }) {
                 ? center
                 : [center.lat || '', center.lng || ''];
 
+            // retrieve base tile layers
+            const baseLayers = getBaseLayers(L);
+
             // initialize map with DOM container and initial coordinates
             mapObj.current = L.map(domNode, {
                 center: [lat, lng],
@@ -385,14 +474,11 @@ function MapNavigator({ filter, hidden }) {
             // reset saved map centre coordinate / zoom level
             reset(center, zoom);
 
-            // add marker layer to map
-            layerGrp.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
+            // add station marker layer group to map
+            stationMarkers.current = L.layerGroup(getClusterMarkers(currentFilter)).addTo(mapObj.current);
 
-            // Include any kml overlay
-            // if (nav.overlay) {
-            //     const track = new L.KML(nav.overlay);
-            //     mapObj.current.addLayer(track);
-            // }
+            // add map features layer group to map
+            mapFeatures.current = new L.FeatureGroup().addTo(mapObj.current);
 
             // add layers to leaflet tools
             L.control.layers(baseLayers).addTo(mapObj.current);
@@ -422,7 +508,7 @@ function MapNavigator({ filter, hidden }) {
         }
 
     }, [
-        api,
+        api.loaded,
         nav,
         currentFilter,
         center,
@@ -467,17 +553,33 @@ function MapNavigator({ filter, hidden }) {
                 }}
             />
             {nav.toggle && <div className={'map-menu'}>
-                <Button
-                    icon={'sync'}
-                    size={'lg'}
-                    onClick={_handleRefresh}
-                />
+                {/*<Button*/}
+                {/*    icon={'sync'}*/}
+                {/*    size={'lg'}*/}
+                {/*    onClick={_handleRefresh}*/}
+                {/*/>*/}
                 <Button
                     icon={'stations'}
                     size={'lg'}
-                    label={clustered ? 'cluster on' : 'cluster off'}
-                    className={clustered ? 'activated' : ''}
-                    onClick={_handleCluster}
+                    label={'Stations'}
+                    className={showMarkers ? 'activated' : ''}
+                    onClick={_handleMarkers}
+                />
+                {
+                    showMarkers && <Button
+                        icon={'clustered'}
+                        size={'lg'}
+                        label={'Cluster'}
+                        className={clustered ? 'activated' : ''}
+                        onClick={_handleCluster}
+                    />
+                }
+                <Button
+                    icon={'boundaries'}
+                    size={'lg'}
+                    label={'Features'}
+                    className={(nav.overlay || []).length > 0 ? 'activated' : ''}
+                    onClick={_handleMapFeatures}
                 />
             </div>}
         </div>

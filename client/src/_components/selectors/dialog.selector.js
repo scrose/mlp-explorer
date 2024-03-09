@@ -12,7 +12,8 @@
  *
  * ---------
  * Revisions
- * - 22-07-2023 Include basic node data to include create and last modified dates.
+ * - 22-07-2023    Include basic node data to include create and last modified dates.
+ * - 23-12-2023    Added new Map Object dialog for KMZ data files
  */
 
 import React from 'react';
@@ -33,9 +34,11 @@ import Button from "../common/button";
 import {useDialog} from "../../_providers/dialog.provider.client";
 import {useData} from "../../_providers/data.provider.client";
 import {useNav} from "../../_providers/nav.provider.client";
-import {LoaderTool} from "../toolkit/tools/loader.toolkit";
+import {LoaderTool} from "../alignment/tools/loader.alignment";
 import Accordion from "../common/accordion";
 import Image from "../common/image";
+import MapSelector from "./map.selector";
+import {MapEditor} from "../editors/map.editor";
 
 /**
  * Dialog view for selecting forms/content to display in dialog popup components.
@@ -80,8 +83,8 @@ const DialogSelector = () => {
         const {group_type = '' } = metadata || {};
 
         // handle callback and data refresh
-        const _handleCallback = () => {
-            if (callback) callback();
+        const _handleCallback = (data) => {
+            if (callback) callback(data);
             dialog.clear();
         }
 
@@ -207,6 +210,9 @@ const DialogSelector = () => {
             filter: <Dialog key={_key} title={`Filter Map Stations`} callback={_handleDialogClose}>
                 <FilterNavigator/>
             </Dialog>,
+            map_features: <Dialog key={_key} title={`View Map Features`} callback={_handleDialogClose}>
+                <MapSelector callback={_handleCallback} />
+            </Dialog>,
             move: <Dialog key={_key} title={`Move Item to New Container (Owner)`} callback={_handleDialogClose}>
                 <Mover callback={_handleCallback} />
             </Dialog>,
@@ -308,6 +314,7 @@ const DialogSelector = () => {
                     route={createNodeRoute('surveyors', 'new')}
                     schema={genSchema({view: 'new', model: 'surveyors', user: user})}
                     onRefresh={_handleRefresh}
+                    onCancel={_handleCancel}
                     callback={(error, model, id) => {
                         error ? _handleCallback() : redirect(createNodeRoute(model, 'show', id));
                     }}
@@ -325,9 +332,44 @@ const DialogSelector = () => {
                     route={createNodeRoute('projects', 'new')}
                     schema={genSchema({view: 'new', model: 'projects', user: user})}
                     onRefresh={_handleRefresh}
+                    onCancel={_handleCancel}
                     callback={(error, model, id) => {
                         error ? _handleCallback() : redirect(createNodeRoute(model, 'show', id));
                     }}
+                />
+            </Dialog>,
+            new_map_object: <Dialog
+                key={_key}
+                title={'Upload New Map Data File'}
+                callback={_handleDialogClose}
+                className={index > 0 ? 'hidden' : ''}
+            >
+                <Editor
+                    view={'new'}
+                    model={'map_objects'}
+                    route={createNodeRoute('map_objects', 'new')}
+                    schema={genSchema({view: 'new', model: 'map_objects', user: user})}
+                    onRefresh={_handleRefresh}
+                    onCancel={_handleCancel}
+                    callback={(error, model, id) => {
+                        error ? _handleCallback() : redirect(createNodeRoute(model, 'show', id));
+                    }}
+                />
+            </Dialog>,
+            extract_map_features: <Dialog
+                key={_key}
+                title={`Extract Map Features from File`}
+                callback={_handleDialogClose}
+                className={index > 0 ? 'hidden' : ''}
+            >
+                <p>
+                    Use this form to extract map features from a KMZ file.
+                </p>
+                <MapEditor
+                    id={id}
+                    onRefresh={_handleRefresh}
+                    onCancel={_handleCancel}
+                    callback={_handleCallback}
                 />
             </Dialog>,
             image: <Dialog className={'wide'} key={_key} title={`Image: ${label}`} callback={_handleDialogClose}>
@@ -340,7 +382,7 @@ const DialogSelector = () => {
                         onClick={_handleCancel}
                     />
                 </div>
-            </Dialog>,
+            </Dialog>
         };
 
         // create add new dependents dialog popups for requested model

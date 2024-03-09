@@ -61,8 +61,7 @@ export const AttachedMetadataEditor = ({owner}) => {
         _isMounted.current = true;
         const {type = '', id = ''} = owner || {};
 
-        // request captures for comparison
-        if (id && !error && owner) {
+        if (id && !error && !loaded && owner) {
             router.get(createNodeRoute(type, 'show', id))
                 .then(res => {
                     if (_isMounted.current) {

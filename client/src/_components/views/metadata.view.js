@@ -22,6 +22,8 @@ import {useData} from '../../_providers/data.provider.client';
 import {useUser} from '../../_providers/user.provider.client';
 import FilesView from "./files.view";
 import {AttachedMetadataView} from "./attached.view";
+import Button from "../common/button";
+import {useNav} from "../../_providers/nav.provider.client";
 
 // generate random key
 const keyID = genID();
@@ -50,6 +52,7 @@ const MetadataView = ({
 
     const api = useData();
     const user = useUser();
+    const nav = useNav();
 
     // generate the model schema
     const { fieldsets = [] } = genSchema({
@@ -80,10 +83,26 @@ const MetadataView = ({
                             ? node[fieldKey]
                             : '';
 
-                // select options for value (if available)
+                // select option label for display (if found for given value)
                 if (render === 'select' && api.options.hasOwnProperty(reference)) {
-                    const selected = api.options[reference].find(opt => opt.value === value);
+                    const selected = api.options[reference].find(opt => String(opt.value) === String(value))
                     value = selected ? selected.label : value;
+                }
+
+                // select option label for display (if found for given value)
+                if (render === 'mapFeature' && value) {
+                    const {map_features_id} = metadata || {};
+                    return {
+                        value: <Button
+                                    icon={'map'}
+                                    className={'submit'}
+                                    name={'map_view'}
+                                    label={'View on Map'}
+                                    title={'View on Map'}
+                                    onClick={() => nav.addToOverlay([map_features_id])}
+                                 />,
+                        label: 'Map Feature'
+                    }
                 }
 
                 // multiselect list of values (if available)
@@ -94,7 +113,7 @@ const MetadataView = ({
                                 metadata[fieldKey].data.map((item, index) => {
                                     const { label = '', created_at='', updated_at='' } = item || {};
                                     return <li
-                                        key={`${keyID}_${model}_${index}`}
+                                        key={`${keyID}_metadata_${genID()}_${model}_${index}`}
                                         title={`Created: ${sanitize(created_at, 'timestamp')}
                                         Last Modified: ${sanitize(updated_at, 'timestamp')}`}
                                     >{sanitize(label)}</li>;

@@ -16,8 +16,7 @@ import Dialog from "../common/dialog";
 import {UserMessage} from "../common/message";
 import Button from "../common/button";
 import Badge from "../common/badge";
-import {createNodeRoute, redirect} from "../../_utils/paths.utils.client";
-import {useUser} from "../../_providers/user.provider.client";
+import {createNodeRoute} from "../../_utils/paths.utils.client";
 import {useDialog} from "../../_providers/dialog.provider.client";
 
 /**
@@ -57,17 +56,14 @@ const Editor = ({
                     callback=()=>{}
                 }) => {
 
-    const user = useUser();
     const router = useRouter();
     const api = useData();
-
+    
     const [progress, setProgress] = React.useState({});
     const [response, setResponse] = React.useState({});
     const [messages, setMessages] = React.useState({});
     const [error, setError] = React.useState(false);
     const [xhr, setXHR] = React.useState(null);
-
-    const _isMounted = React.useRef(false);
 
     // determine if confirmation is required for form submission
     // - 'edit' views update but without closing the dialog
@@ -97,16 +93,6 @@ const Editor = ({
         }
         return {};
     }
-
-
-    // redirect if user is not authenticated
-    React.useEffect(() => {
-        _isMounted.current = true;
-        if (!user && _isMounted.current) {redirect('/')}
-        return () => {
-            _isMounted.current = false;
-        };
-    }, [user]);
 
     /**
      * Handle processing error

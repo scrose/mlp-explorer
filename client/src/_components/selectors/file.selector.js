@@ -28,7 +28,7 @@ const FileSelector = ({ data, scale='thumb' }) => {
 
     // destructure file data
     const {label='', file={}, url={}, metadata={} } = data || {};
-    const {id='', owner_id='', file_type='', filename='', file_size='', mimetype='' } = file || {};
+    const {id='', file_type='', filename='', file_size='', mimetype='' } = file || {};
     let itemMetadata = metadata
     // include file metadata in details
     itemMetadata.filename = filename;
@@ -61,7 +61,6 @@ const FileSelector = ({ data, scale='thumb' }) => {
      * handle download response
      * - sets image metadata in provider to load in dialog view
      *
-     * @param {Event} e
      */
     const _handleDownload = () => {}
 

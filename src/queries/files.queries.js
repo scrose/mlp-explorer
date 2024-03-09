@@ -233,10 +233,76 @@ export function selectByOwner(owner_id) {
     return {
         sql: `SELECT *
                  FROM files
-                 WHERE owner_id = $1::integer`,
+                 WHERE owner_id = $1::integer
+                 ORDER BY updated_at DESC`,
         data: [owner_id],
     };
 }
+
+/**
+ * Generate query: Retrieve file and metadata for requested map objects
+ *
+ * @param {integer} id
+ * @return {Object} query
+ * @public
+ */
+
+export function getMapObjectFilesById(id) {
+
+    // convert id array to SQL array string
+    // const idArray =  ids.map((_, index) => {return `$${++index}::integer`}).join(', ');
+    return {
+        sql: `SELECT map_objects.nodes_id as nodes_id, 
+                    map_objects.name as name,
+                    map_objects.type as map_objects_type,
+                    map_objects.description as description,
+                    files.fs_path as fs_path
+                    FROM map_objects
+                    INNER JOIN nodes ON nodes.id = map_objects.nodes_id
+                    INNER JOIN metadata_files ON metadata_files.owner_id = map_objects.nodes_id
+                    INNER JOIN files ON files.id = metadata_files.files_id
+                    WHERE metadata_files.type = 'geographic_data' AND map_objects.nodes_id = $1::integer
+                    GROUP BY map_objects.nodes_id,
+                    map_objects.name,
+                    map_objects.type,
+                    map_objects.description,
+                    files.fs_path;`,
+        data: [id],
+    };
+}
+
+/**
+ * Generate query: Retrieve file and metadata for requested map objects
+ *
+ * @param {Array} ids
+ * @return {Object} query
+ * @public
+ */
+
+export function getMapObjectAttachedMetadata(ids) {
+
+    // convert id array to SQL array string
+    const idArray =  ids.map((_, index) => {return `$${++index}::integer`}).join(', ');
+    return {
+        sql: `SELECT map_objects.nodes_id as nodes_id, 
+                    map_objects.name as name,
+                    map_objects.type as map_objects_type,
+                    map_objects.description as description,
+                    files.fs_path as fs_path
+                    FROM map_objects
+                    INNER JOIN nodes ON nodes.id = map_objects.nodes_id
+                    INNER JOIN metadata_files ON metadata_files.owner_id = map_objects.nodes_id
+                    INNER JOIN files ON files.id = metadata_files.files_id
+                    WHERE metadata_files.type = 'geographic_data' AND map_objects.nodes_id IN (${idArray})
+                    GROUP BY map_objects.nodes_id,
+                    map_objects.name,
+                    map_objects.type,
+                    map_objects.description,
+                    files.fs_path;`,
+        data: ids,
+    };
+}
+
 
 /**
  * Generate query: Insert file entry for given item
@@ -262,6 +328,25 @@ export function insert(file) {
 export function update(file) {
     const fn = defaults.update(file);
     return fn(file);
+}
+
+/**
+ * Pseudo-touch query: Update file node last modified date.
+ *
+ * @return {Object} query
+ * @public
+ * @param file
+ */
+
+export function touch(file) {
+    return {
+        sql: `UPDATE files
+                SET updated_at = NOW() 
+                WHERE id = $1::integer
+                RETURNING *;
+              `,
+        data: [file.id],
+    };
 }
 
 /**

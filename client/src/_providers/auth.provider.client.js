@@ -73,6 +73,30 @@ function AuthProvider(props) {
     }
 
     /**
+     * User login request.
+     *
+     * @public
+     *
+     */
+
+    const authorize = async () => {
+        // request new token
+        router.post('/refresh', null, true)
+            .then(res => {
+                const { response={} } = res || {};
+                const { user = null } = response || {};
+
+                // include role nesting
+                if (user && user.hasOwnProperty('role')) {
+                    const {role = ['']} = user || {};
+                    user.isEditor = role[0] === 'editor' || role[0] === 'administrator' || role[0] === 'super_administrator';
+                    user.isAdmin = role[0] === 'administrator' || role[0] === 'super_administrator';
+                }
+                return user;
+            });
+    }
+
+    /**
      * Post-Render: Refresh access token with API.
      *
      * @public
@@ -116,7 +140,8 @@ function AuthProvider(props) {
             data,
             processing,
             login,
-            logout
+            logout,
+            authorize
         }} {...props} />
     )
 

@@ -36,8 +36,7 @@ export const
             {name: 'mime_type', label: 'Format'},
             {name: 'details', label: 'Details'},
             {name: 'file_size', label: 'File Size'},
-            {name: 'updated_at', label: 'Updated'},
-            {name: 'created_at', label: 'Created'},
+            {name: 'created_at', label: 'Uploaded'},
             {name: 'menu', label: ''},
         ];
 
@@ -69,7 +68,7 @@ export const
             // return files row
             return {
                 download: <FileSelector data={fileData} scale={'medium'} />,
-                filename: String(filename).substring(0, 12) || 'n/a',
+                filename: <span title={filename}>{String(filename).substring(0, 12) || 'n/a'}</span>,
                 mime_type: mimetype || ext,
                 details: metadata_type && metadata_type.hasOwnProperty('label')
                     ? metadata_type.label

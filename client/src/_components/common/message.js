@@ -24,7 +24,7 @@ import Icon from './icon';
 
 const Message = ({
                      closeable=true,
-                     message='',
+                     message=null,
                      icon='info',
                      timeout=false,
                      className='',

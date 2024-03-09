@@ -11,15 +11,16 @@
 
 import express from 'express';
 import * as schema from '../services/schema.services.js';
-import * as auth from '../services/auth.services.js'
-import main from './main.routes.js'
-import users from './users.routes.js'
-import nodes from './nodes.routes.js'
-import models from './model.routes.js'
-import metadata from './metadata.routes.js'
-import files from './files.routes.js'
-import master from './comparison.routes.js'
-import other from './other.routes.js'
+import * as auth from '../services/auth.services.js';
+import main from './main.routes.js';
+import users from './users.routes.js';
+import nodes from './nodes.routes.js';
+import models from './model.routes.js';
+import metadata from './metadata.routes.js';
+import files from './files.routes.js';
+import master from './comparison.routes.js';
+import other from './other.routes.js';
+import maps from './maps.routes.js';
 import pool from "../services/db.services.js";
 
 /**
@@ -135,6 +136,9 @@ async function initRouter() {
 
         // initialize other routes
         await initRoutes(other, baseRouter)
+
+        // initialize map routes
+        await initRoutes(maps, baseRouter)
 
         // initialize model routes
         const modelsRoutes = await models(client);

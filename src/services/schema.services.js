@@ -1,8 +1,15 @@
 /*!
  * MLP.API.Services.Schema
  * File: schema.services.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
+ *
+ * Description
+ * Schema services are helper utilities to construct models using the MLP schema.
+ *
+ * Revisions
+ * - 31-12-2023   Added map objects as root
  */
 
 'use strict';
@@ -102,13 +109,14 @@ export const create = async (constructorType) => {
                 writable: false
             },
             rootNodeTypes: {
-                value: ['projects', 'surveyors'],
+                value: ['projects', 'surveyors', 'map_objects'],
                 writable: false
             },
             fsRoot: {
                 value: {
                     projects: 'Organized_by_Projects',
-                    surveyors: 'Organized_by_Surveyor'
+                    surveyors: 'Organized_by_Surveyor',
+                    map_objects: 'Map_Objects'
                 },
                 writable: false
             },
@@ -298,6 +306,8 @@ export function genLabel(model, attributes = null) {
         modern_captures: ['fn_photo_reference'],
         glass_plate_listings: ['container', 'plates'],
         maps: ['nts_map'],
+        map_objects: ['name'],
+        map_features: ['name']
     };
 
     return labelByModel.hasOwnProperty(model)

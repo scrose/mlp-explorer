@@ -8,31 +8,7 @@
 
 import React from 'react';
 import Loading from './loading';
-
-/**
- * Render table header.
- *
- * @public
- * @param tableID
- * @param { rows }
- * @return {JSX.Element}
- */
-
-const TableHeader = ({ tableID, cols }) => {
-    return  <thead>
-                <tr>
-                    {
-                        cols.map((col, index) =>
-                            <th
-                                key={`${tableID}_col_${index}`}
-                                className={col.className}
-                            >
-                                {col.label}
-                            </th>)
-                    }
-                </tr>
-            </thead>
-}
+import Icon from "./icon";
 
 /**
  * Render table body. Filters item values not defined in
@@ -48,23 +24,23 @@ const TableHeader = ({ tableID, cols }) => {
 const TableBody = ({tableID, rows, cols}) => {
     const noop = ()=>{};
     return <tbody>{
-            rows.map((row, index) => {
-                return (
-                    <tr key={`${tableID}_row_${index}`} onClick={row.onClick || noop}>
-                        {
-                            cols
-                                .filter(col => row.hasOwnProperty(col.name))
-                                .map(col =>
-                                    <td
-                                        key={`td_${index}_${col.name}`}
-                                        className={row.className}>
-                                        {row[col.name]}
-                                    </td>
-                                )
-                        }
-                    </tr>
-                );
-            })
+        rows.map((row, index) => {
+            return (
+                <tr key={`${tableID}_row_${index}`} onClick={row.onClick || noop}>
+                    {
+                        cols
+                            .filter(col => row.hasOwnProperty(col.name))
+                            .map(col =>
+                                <td
+                                    key={`td_${index}_${col.name}`}
+                                    className={row.className}>
+                                    {row[col.name]}
+                                </td>
+                            )
+                    }
+                </tr>
+            );
+        })
     }</tbody>
 }
 
@@ -87,15 +63,62 @@ const Table = ({ rows, cols, className=''}) => {
     // generate unique ID value for table
     const tableID = Math.random().toString(16).substring(2);
 
+    // determine default sort field
+    const defaultSort = cols.filter(({defaultSort}) => !!defaultSort).map(({name}) => name).join();
+    const [sortBy, setSortBy] = React.useState(defaultSort);
+    const [order, setOrder] = React.useState(1);
+
+    function _selectSort(col) {
+        console.log(col)
+        setSortBy(col);
+        setOrder(-order);
+    }
+
+    function _compareFn(a, b) {
+        // ensure field value can be sorted by selected column name
+        if (!a.hasOwnProperty(sortBy) || !a.hasOwnProperty(sortBy)) return 0;
+        const nameA = String(a[sortBy]).toLowerCase(); // ignore upper and lowercase
+        const nameB = String(b[sortBy]).toLowerCase(); // ignore upper and lowercase
+        if (nameA < nameB) {
+            return -order;
+        }
+        if (nameA > nameB) {
+            return order;
+        }
+
+        // names must be equal
+        return 0;
+    }
+
     // ensure data has been retrieved
     return Array.isArray(rows) && Array.isArray(cols)
         ?
-            <table className={className}>
-                <TableHeader tableID={tableID} cols={cols} />
-                <TableBody tableID={tableID} rows={rows} cols={cols} />
-            </table>
+        <table className={className}>
+            <thead>
+            <tr>
+                {
+                    cols.map((col, index) =>
+                        <th
+                            key={`${tableID}_col_${index}`}
+                            className={col.className}
+                            onClick={() => {_selectSort(col.name)}}
+                        >
+                            <div className={'h-menu'} style={{cursor: 'pointer'}}>
+                                <ul>
+                                    <li>{col.label}</li>
+                                    <li className={'push'} style={{visibility: `${col.name === sortBy ? 'visible' : 'hidden'}`}}>
+                                        <Icon type={order === 1 ? 'up' : 'down'}/>
+                                    </li>
+                                </ul>
+                            </div>
+                        </th>)
+                }
+            </tr>
+            </thead>
+            <TableBody tableID={tableID} rows={rows.sort(_compareFn)} cols={cols} />
+        </table>
         :
-            <Loading/>
+        <Loading/>
 }
 
 export default Table

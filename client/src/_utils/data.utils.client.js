@@ -6,17 +6,6 @@
  * MIT Licensed
  */
 
-export const genHash = function(str) {
-    let hash = 0, i, chr;
-    if (str.length === 0) return hash;
-    for (i = 0; i < str.length; i++) {
-        chr   = str.charCodeAt(i);
-        hash  = ((hash << 5) - hash) + chr;
-        hash |= 0; // Convert to 32bit integer
-    }
-    return hash * hash;
-};
-
 /**
  * Capitalize first letter of string.
  *
@@ -152,7 +141,7 @@ export function groupBy(arr, key) {
 }
 
 /**
- * Natural sort items by alpha-numerical values in label strings.
+ * Natural sort items by alphanumerical values in label strings.
  *
  * @param {Object} a
  * @param {Object} b
@@ -178,7 +167,7 @@ export function sorter(a, b) {
  * @param value
  * @param render
  * @param href
- * @param title
+ * @param label
  * @param prefix
  * @param suffix
  */
@@ -187,7 +176,7 @@ export const sanitize = (
     value,
     render='',
     href='',
-    title='',
+    label='',
     prefix='',
     suffix=''
 ) => {
@@ -254,6 +243,12 @@ export const sanitize = (
         imgsize: ({ value }) => {
             return value != null ? parseInt(value) + ' px' : '-';
         },
+        reference: ({ value, href }) => {
+            return value != null && href != null ? 'Node Reference' : '-';
+        },
+        json: ({ value }) => {
+            return value != null ? <pre aria-label="JSON Object">{JSON.stringify(value, null, 2)}</pre> : '';
+        },
         default: ({ value }) => {
             return value != null ? String(value) : '-';
         }
@@ -261,7 +256,7 @@ export const sanitize = (
 
     // render data component
     return render && _dataElements.hasOwnProperty(render)
-        ? _dataElements[render]({ value, href, title })
+        ? _dataElements[render]({ value, href, label })
         : _dataElements.default({ value });
 }
 
@@ -290,3 +285,4 @@ export const getRootNode = (path=null) => {
 export const genID = () => {
     return Math.random().toString(16).substring(2);
 }
+

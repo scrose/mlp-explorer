@@ -30,7 +30,15 @@ function MetadataRoutes(metadataType) {
     this.controller = new MetadataController(this.model);
 
     // define models that group metadata
-    const optionModels = ['cameras', 'lens', 'participants', 'participant_group_types', 'image_types'];
+    const optionModels = [
+        'cameras',
+        'lens',
+        'participants',
+        'participant_group_types',
+        'image_types',
+        'map_object_types',
+        'metadata_file_types'
+    ];
 
     // add controller routes
     this.routes = {
@@ -85,7 +93,7 @@ function MetadataRoutes(metadataType) {
                 ? this.controller.removeParticipants
                 : this.controller.remove,
             delete: null,
-        }
+        },
     }
 }
 

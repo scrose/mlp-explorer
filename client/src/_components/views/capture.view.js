@@ -18,6 +18,7 @@ import { useData } from '../../_providers/data.provider.client';
 import Tabs from '../common/tabs';
 import Comparator from "../common/comparator";
 import EditorMenu from "../menus/editor.menu";
+import Badge from "../common/badge";
 
 /**
  * View available versions of capture images.
@@ -28,12 +29,12 @@ import EditorMenu from "../menus/editor.menu";
  * @param {String} type
  * @param {Object} owner
  * @param {Array} files
+ * @param {Object} refImage
  * @param callback
- * @param menu
  * @return {JSX.Element}
  */
 
-export const CaptureImagesTable = ({type, owner, files=[], callback=()=>{}}) => {
+export const CaptureImagesTable = ({type, owner, files=[], refImage=null, callback=()=>{}}) => {
 
     const router = useRouter();
     const api = useData();
@@ -45,11 +46,11 @@ export const CaptureImagesTable = ({type, owner, files=[], callback=()=>{}}) => 
         { name: 'width', label: 'Width'},
         { name: 'height', label: 'Height'},
         { name: 'file_size', label: 'File Size'},
-        { name: 'uploaded', label: 'Uploaded'},
+        { name: 'uploaded', label: 'Uploaded/Updated'},
     ];
 
     // include editor menu for logged-in users
-    cols.push({ name: 'menu', label: '' })
+    cols.push({ name: 'menu', label: '' });
 
     // prepare capture image data rows
     const rows = files.map(fileData => {
@@ -61,6 +62,9 @@ export const CaptureImagesTable = ({type, owner, files=[], callback=()=>{}}) => 
         // select image state label for value (if available)
         const imageState = image_states
             .find(opt => opt.value === metadata.image_state) || { label: metadata.image_state };
+
+        // mark referenced master image
+        const isReferencedMaster = refImage ? id === refImage.file.id || '' : false;
 
         // create table row data
         const row = {
@@ -76,12 +80,16 @@ export const CaptureImagesTable = ({type, owner, files=[], callback=()=>{}}) => 
             details: <>
                 <div>{(metadata.mimetype || getExtension(filename)).toUpperCase()}</div>
                 <div>{imageState && imageState.hasOwnProperty('label') ? imageState.label : 'n/a'}</div>
+                { isReferencedMaster && <Badge className={'modern_captures'} label={'Compared'} /> }
             </>,
             width: sanitize(metadata.x_dim, 'imgsize'),
             height: sanitize(metadata.y_dim, 'imgsize'),
-            uploaded: sanitize(file.created_at, 'datetime'),
+            uploaded: <>
+                <div>{sanitize(file.created_at, 'datetime')}</div>
+                <div>{sanitize(file.updated_at, 'datetime')}</div>
+            </>,
             file_size: sanitize(file.file_size, 'filesize')
-    };
+        };
 
         // include select file metadata
         metadata.filename = file.filename;
@@ -128,6 +136,7 @@ const CaptureView = ({model, data, fileType}) => {
         files={},
         metadata={},
         node={},
+        refImage = {},
         attached={} } = api.destructure(data);
 
     // get capture status
@@ -182,6 +191,7 @@ const CaptureView = ({model, data, fileType}) => {
                 type={fileType}
                 owner={{ id: id, type: model, sorted: status !== 'unsorted' }}
                 files={captureImages}
+                refImage={refImage}
             />,
         },
         {

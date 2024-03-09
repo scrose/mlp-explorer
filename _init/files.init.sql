@@ -500,7 +500,8 @@ create TABLE "public"."metadata_file_types"
 
 insert into "public"."metadata_file_types" (name, label)
 values ('ancillary', 'Ancillary Metadata'),
-       ('field_notes', 'Field Notes');
+       ('field_notes', 'Field Notes'),
+       ('geographic_data', 'Geographic Map Data');
 
 -- -------------------------------------------------------------
 --    Metadata Files

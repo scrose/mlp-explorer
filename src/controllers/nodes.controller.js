@@ -1,8 +1,21 @@
 /*!
  * MLP.API.Controllers.Nodes
  * File: nodes.controller.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
+ *
+ * Description
+ * Node route controller. Responsible for control of data transmission between aggregate node data and API response.
+ * Maps user action into model updates.
+ * - Show: Returns node data by ID
+ * - Map: Returns node data for map navigator component
+ * - Tree: Returns node data for tree navigator component
+ * - Exporter: Exports node data to different formats
+ * - Search: Returns search results for full-text queries
+ *
+ * Revisions
+ * - 31-12-2023   Added map objects to navigation tree data
  */
 
 import {prepare} from '../lib/api.utils.js';
@@ -76,7 +89,8 @@ export const tree = async (req, res, next) => {
                 data: {
                     nodes: {
                         surveyors: await nserve.getTree('surveyors'),
-                        projects: await nserve.getTree('projects')
+                        projects: await nserve.getTree('projects'),
+                        map_objects: await nserve.getTree('map_objects')
                     },
                     stats: {
                         summary: await statserve.summary()

@@ -23,7 +23,7 @@ import * as exporter from './export.queries.js';
 import * as users from './users.queries.js';
 import * as stats from './stats.queries.js';
 import * as other from './other.queries.js';
-
+import * as maps from './maps.queries.js';
 
 /**
  * Index of module exports.
@@ -41,5 +41,6 @@ export default {
     export: exporter,
     users: users,
     stats: stats,
-    other: other
+    other: other,
+    maps: maps
 };

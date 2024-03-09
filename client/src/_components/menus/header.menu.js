@@ -60,6 +60,7 @@ const HeaderMenu = () => {
     // generate heading text
     const headingText = genHeading();
 
+
     // expand node metadata to pass to menu
     const { file_size=0, mimetype='', filename='' } = api.file || {};
     let itemMetadata = api.metadata || {};

@@ -14,7 +14,6 @@ import { useRouter } from '../../_providers/router.provider.client';
 import HeaderMenu from '../menus/header.menu';
 import {useWindowSize} from "../../_utils/events.utils.client";
 import Footer from "../content/footer";
-import AdminView from "./admin.view";
 
 /**
  * Render editor panel component (authenticated users).

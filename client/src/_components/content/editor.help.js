@@ -125,8 +125,7 @@ const explorerHelp = (gotoPage) => {
             </tbody>
         </table>
         <p><small>* All users have access to high-resolution versions of the images and metadata files. However, only
-            authenticated users
-            have access to the original image uploads.</small></p>
+            authenticated users have access to the original image uploads.</small></p>
     </>;
 
     /**
@@ -582,6 +581,24 @@ const explorerHelp = (gotoPage) => {
         </table>
     </>;
 
+    const masteredImages = <>
+        <h4>Mastered Captures</h4>
+        <p>Historic and modern capture images must be classified as <b>Mastered</b> (the selected image state) to be used
+            in image comparison pairs. Since captures contain multiple images versions - including multiple mastered images -
+            the <b>particular image used in historic and modern comparisons is the last updated mastered image</b>.
+        To select an image as the selected mastered image, open the editor dialog for that image and click update.</p>
+            <p>Mastered images must also meet the following preconditions:</p>
+        <ol className={'list'}>
+            <li><b>Capture images must be aligned</b> Both capture image must be properly aligned and registered using
+                an image editing software application or other tool. Explorer has a built-in Alignment tool that allows users
+                to align two images using homographic transformations. Refer to instructions
+                in the <Button icon={'help'} label={'Alignment Tool'} onClick={() => {gotoPage(2, 0)}} /> tab for details.</li>
+            <li><b>Capture images must be sorted</b> The historic and modern capture images must be attached to a
+                historic visit and location (modern visit) respectively, which are associated
+                with a common station node.
+            </li>
+        </ol></>;
+
     // index of editor help content
     return [
         {
@@ -595,6 +612,10 @@ const explorerHelp = (gotoPage) => {
         {
             label: 'Handling Images',
             data: editorImagesHelp,
+        },
+        {
+            label: 'Mastered Captures',
+            data: masteredImages,
         },
         {
             label: 'Metadata Files',

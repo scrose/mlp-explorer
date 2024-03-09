@@ -148,12 +148,14 @@ export function getComparisonsByStationID(id) {
                                 ON hv_id = historic_captures.owner_id
             GROUP BY historic_captures.nodes_id
         )
-        SELECT comparison_indices.modern_captures,
+        SELECT comparison_indices.id,
+               comparison_indices.modern_captures,
                comparison_indices.historic_captures
         FROM comparison_indices
                  INNER JOIN hc
                             ON hc.nodes_id = comparison_indices.historic_captures
         GROUP BY hc.nodes_id,
+                 comparison_indices.id,
                  comparison_indices.modern_captures,
                  comparison_indices.historic_captures;
     `;
@@ -176,7 +178,8 @@ export function getComparisonsByLocationID(id) {
             SELECT *
             FROM modern_captures
             WHERE modern_captures.owner_id = $1::integer)
-        SELECT comparison_indices.modern_captures, 
+        SELECT comparison_indices.id,
+               comparison_indices.modern_captures, 
                comparison_indices.historic_captures
         FROM comparison_indices
                  INNER JOIN mc
@@ -205,7 +208,8 @@ export function getComparisonsByHistoricVisitID(id) {
             SELECT *
             FROM historic_captures
             WHERE historic_captures.owner_id = $1::integer)
-        SELECT comparison_indices.modern_captures,
+        SELECT comparison_indices.id,
+               comparison_indices.modern_captures,
                comparison_indices.historic_captures
         FROM comparison_indices
                  INNER JOIN hc
@@ -239,7 +243,8 @@ export function getComparisonsByModernVisitID(id) {
                 WHERE locations.owner_id = $1::integer) as locs
                                 ON locs.nodes_id = modern_captures.owner_id
         )
-        SELECT comparison_indices.modern_captures, 
+        SELECT comparison_indices.id,
+               comparison_indices.modern_captures, 
                comparison_indices.historic_captures
         FROM comparison_indices
                  INNER JOIN mc

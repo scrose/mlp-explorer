@@ -9,8 +9,8 @@
 
 import path from 'path';
 import fs from 'fs';
-import { Buffer } from 'node:buffer';
-import {copyFile, mkdir, unlink, rename} from 'fs/promises';
+import {Buffer} from 'node:buffer';
+import {copyFile, mkdir, rename, unlink} from 'fs/promises';
 import pool from './db.services.js';
 import queries from '../queries/index.queries.js';
 import {sanitize} from '../lib/data.utils.js';
@@ -350,6 +350,48 @@ export const selectByFile = async (file, client ) => {
 };
 
 /**
+ * Recursively list files in a directory.
+ *
+ * @public
+ * @param localPath
+ * @param done
+ * @return {Array} files
+ */
+
+export const listFiles = (localPath, done=()=>{}) => {
+    // get root directories
+    const lowResPath = process.env.LOWRES_PATH;
+    const defaultPath = process.env.UPLOAD_DIR;
+    //joining path of local directory to root path
+    const dir = path.join(defaultPath, localPath);
+
+    let results = [];
+    fs.readdir(dir, function(err, list) {
+        if (err) return done(err);
+        let i = 0;
+        (function next() {
+            let file = list[i++];
+            if (!file) return done(null, results);
+            file = path.resolve(dir, file);
+            fs.stat(file, function(err, stat) {
+                console.log(stat)
+                if (stat && stat.isDirectory()) {
+                    listFiles(file, function(err, res) {
+                        results = results.concat(res);
+                        next();
+                    });
+                } else {
+                    results.push(file);
+                    next();
+                }
+            });
+        })();
+    });
+};
+
+
+
+/**
  * Insert file(s) and file metadata.
  * - import data structure:
  *  {
@@ -490,17 +532,32 @@ export const insert = async (importData, model, fileOwner = null) => {
 
 export const update = async (file, metadata, client) => {
 
-    // update files record
-    const fileQuery = queries.files.update(file);
-    await client.query(fileQuery.sql, fileQuery.data);
+    try {
+        // start transaction
+        await client.query('BEGIN');
 
-    // update metadata record
-    const metadataQuery = queries.files.update(metadata);
-    let response = await client.query(metadataQuery.sql, metadataQuery.data);
+        // touch file node record
+        const fileNodeQuery = queries.files.touch(file);
+        await client.query(fileNodeQuery.sql, fileNodeQuery.data);
 
-    return response.hasOwnProperty('rows') && response.rows.length > 0
-        ? response.rows[0]
-        : null;
+        // update files record
+        const fileQuery = queries.files.update(file);
+        await client.query(fileQuery.sql, fileQuery.data);
+
+        // update metadata record
+        const metadataQuery = queries.files.update(metadata);
+        let response = await client.query(metadataQuery.sql, metadataQuery.data);
+
+        await client.query('COMMIT');
+
+        return response.hasOwnProperty('rows') && response.rows.length > 0
+            ? response.rows[0]
+            : null;
+
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    }
 
 };
 
@@ -567,7 +624,6 @@ export const compress = async (files={}, version) => {
     return zip.toBuffer();
 };
 
-
 /**
  * Build file source path for resampled images and metadata files
  * from file data.
@@ -581,6 +637,7 @@ export const compress = async (files={}, version) => {
 export const getFilePath = (file, version='medium' ) => {
 
     const { fs_path = '', secure_token = '', file_type='' } = file || {};
+    console.log(file, '****')
     const lowResPath = process.env.LOWRES_PATH;
     const defaultPath = process.env.UPLOAD_DIR;
 
@@ -1080,7 +1137,7 @@ export const bulkDownload = async (req, res, next, version, client) => {
         // get owner node; check that node exists in database
         // and corresponds to requested owner type.
         const fileData = await get(sanitize(file_id, 'integer'), client);
-        const { file={}, metadata={} } = fileData || {};
+        const { file={} } = fileData || {};
         const { filename='', mime_type='' } = file || {};
         const filePath = getFilePath(file, version);
 

@@ -110,6 +110,12 @@ VALUES  ('show', 'visitor', now(), now()),
         ('map', 'administrator', now(), now()),
         ('map', 'super_administrator', now(), now()),
 
+        ('overlay', 'visitor', now(), now()),
+        ('overlay', 'registered', now(), now()),
+        ('overlay', 'editor', now(), now()),
+        ('overlay', 'administrator', now(), now()),
+        ('overlay', 'super_administrator', now(), now()),
+
         ('download', 'visitor', now(), now()),
         ('download', 'editor', now(), now()),
         ('download', 'administrator', now(), now()),

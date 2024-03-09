@@ -38,45 +38,39 @@ const keyID = genID();
 export const AttachedMetadataView = ({owner, attached}) => {
 
     // iterate over attached data types
-    return Object.keys(attached || {}).map(attachedModel => {
-        // Participants component
-        if (attachedModel === 'participant_groups' && Object.keys(attached[attachedModel]).length > 0) {
-            return <ParticipantsView
-                key={`attached_${keyID}_${attachedModel}`}
-                owner={owner}
-                metadata={attached[attachedModel]}
-                editor={false}
-            />
+    return Object.keys(attached || {}).map((attachedModel, idx_attached) => {
+            return <div key={`${keyID}_attached_${attachedModel}_${idx_attached}`}>
+                {
+                    // participant node attachments
+                    attachedModel === 'participant_groups' && Object.keys(attached[attachedModel]).length > 0 &&
+                     <ParticipantsView owner={owner} metadata={attached[attachedModel]} editor={false }/>
+                }
+                {
+                    // other node attachments
+                    attachedModel !== 'comparisons' && Array.isArray(attached[attachedModel]) && attached[attachedModel].length > 0 &&
+                    <Accordion
+                        type={attachedModel}
+                        label={`${getModelLabel(attachedModel, 'label')}`}
+                        className={attachedModel}
+                        open={true}
+                    >
+                        <div className={attachedModel}>
+                            {
+                                attached[attachedModel].map((attachedItem, index) => {
+                                    const {label = '', data = {}} = attachedItem || {};
+                                    return <MetadataView
+                                            key={`${keyID}_attached_${attachedModel}_${index}`}
+                                            model={attachedModel}
+                                            node={attachedItem}
+                                            owner={owner}
+                                            label={label}
+                                            metadata={data}
+                                        />
+                                })
+                            }
+                        </div>
+                    </Accordion>
+                }
+            </div>
         }
-        // Comparisons Editor component
-        else if (attachedModel === 'comparisons') {
-            return null;
-        }
-        // Attached Metadata Editor component
-        else if (Array.isArray(attached[attachedModel]) && attached[attachedModel].length > 0) {
-            return <Accordion
-                key={`${keyID}_${attachedModel}`}
-                type={attachedModel}
-                label={`${getModelLabel(attachedModel, 'label')}`}
-                className={attachedModel}
-                open={true}
-            >
-                <div className={`${attachedModel}`}>
-                    {
-                        attached[attachedModel].map((attachedItem, index) => {
-                            const {label = '', data = {}} = attachedItem || {};
-                            return <MetadataView
-                                key={`${keyID}_attached_${attachedModel}_${index}`}
-                                model={attachedModel}
-                                node={attachedItem}
-                                owner={owner}
-                                label={label}
-                                metadata={data}
-                            />
-                        })
-                    }
-                </div>
-            </Accordion>
-        }
-    });
-};
+    )};

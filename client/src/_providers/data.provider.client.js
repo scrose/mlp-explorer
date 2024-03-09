@@ -139,7 +139,7 @@ function DataProvider(props) {
                 const {response = {}} = res || {};
 
                 // DEBUG
-                console.log('\n<<< Response >>>\n', res)
+                console.log('\n<<< API Data Check >>>\n', res)
 
                 // destructure API data for settings
                 const {
@@ -190,7 +190,8 @@ function DataProvider(props) {
                 // update states with response data
                 if (message.type === 'error') setSessionMsg(message);
                 setOptions(data);
-                console.log('Loaded Global Options');
+                // DEBUG
+                console.log('<<< Loaded Global Options >>>', data);
             })
             .catch(err => console.error(err));
     }, [router, setOptions, setError]);
