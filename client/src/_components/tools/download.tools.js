@@ -179,8 +179,7 @@ const Downloader = ({id}) => {
                     size: sanitize(file_size, 'filesize') || 'n/a',
                     details: <div>
                         <div>{humanize(image_type || image_state)} Image</div>
-                        <div>Updated: {sanitize(updated_at, 'datetime')}</div>
-                        <div>Created: {sanitize(created_at, 'datetime')}</div>
+                        <div>Uploaded: {sanitize(created_at, 'datetime')}</div>
                     </div>
                 }
             });

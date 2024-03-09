@@ -4,13 +4,55 @@
  * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * MLP data model schema
+ * Description: This is a configuration document for defining rendering, labelling, routing,
+ * input validation, node/file relations and other settings for the client-side web application.
+ *
+ * Schema Structure
+ * - app: Global settings
+ * - routes: list of static router endpoints
+        <ROUTEURI>: {
+            name: <ROUTENAME>,
+            label: <Route label>
+        }
+ * - errors
+ * - messages
+ * - views
+ * - captures
+ * - imageTypes: defined image data model types
+ * - excluded: file types to be excluded from
+ * - models:
+ *      <MODELNAME>: {
+            attributes: {
+                order: <Order of appearances in lists - Not Used>,
+                label: <Model label (plural)>,
+                singular: <Model label (singular)>
+            },
+            fieldsets: [
+                {
+                    legend: <fieldset legend text>,
+                    restrict: [<list of applicable views>],
+                    users: [<list of authorized user roles>],
+                    <FIELDNAME>: {
+                        label: <field label>,
+                        render: <field format>,
+                        validate: [<list of validation checks>]
+                    },
+ * ...
+                },
+ *
+ * ---------
+ * Revisions
+ * - 02-12-2023   Include KMZ metadata files for surveys and survey seasons
+ * - 23-12-2023   Added new 'map_objects' file type with schema.
  */
 
 /**
- * MLP Application Schema
- * Description: This is a configuration document for defining rendering,
- *              labelling, routing, input validation, node/file relations
- *              and other settings for the client-side web application.
+ *
  * @private
  */
 
@@ -71,6 +113,7 @@ export const schema = {
             isEmail: 'Not a valid email address.',
             isPassword: 'Passwords must have a minimum eight and maximum 20 characters, at least one uppercase letter, one lowercase letter, one number and one special character',
             isValidForm: 'Form not valid.',
+            isJSON: 'Not valid JSON',
             isRepeatPassword: 'Passwords do not match.'
         },
         authentication: {
@@ -151,6 +194,12 @@ export const schema = {
             submit: 'Filter',
             render: 'form'
         },
+        filterBoundaries: {
+            label: 'Filter Survey Boundaries',
+            legend: 'Filter',
+            submit: 'Filter',
+            render: 'form'
+        },
         filter: {
             label: 'Filter',
             legend: 'Filter',
@@ -168,7 +217,14 @@ export const schema = {
             legend: 'Download',
             submit: 'Download',
             render: 'download'
-        }
+        },
+        extract: {
+            label: 'Extract Map Features',
+            legend: 'Extract Map Features',
+            submit: 'Extract',
+            method: 'POST',
+            render: 'import'
+        },
     },
     captures: {
         types: ['historic_captures', 'modern_captures'],
@@ -197,6 +253,101 @@ export const schema = {
                 }
             ]
         },
+        map_objects: {
+            attributes: {
+                order: 30,
+                label: "Map Feature Groups",
+                singular: "Map Feature Group",
+                dependents: [
+                    'map_features',
+                    'metadata_files'
+                ],
+                files: [
+                    'metadata_files'
+                ]
+            },
+            fieldsets: [
+                {
+                    restrict: ['edit', 'delete'],
+                    nodes_id: {
+                        render: 'hidden',
+                    }
+                },
+                {
+                    legend: 'Map Object Details',
+                    name: {
+                        label: 'Name'
+                    },
+                    type: {
+                        render: 'select',
+                        reference: 'map_object_types',
+                        label: 'Map Object Type'
+                    },
+                    description: {
+                        label: 'Description'
+                    }
+                },
+                {
+                    legend: 'Dependent Nodes',
+                    render: 'component',
+                    restrict: ['edit'],
+                    dependents: {
+                        label: 'Edit Dependents Metadata/Files',
+                        render: 'dependentsEditor',
+                        reference: 'node',
+                    }
+                }
+            ]
+        },
+        map_features: {
+            attributes: {
+                order: 30,
+                label: "Map Features",
+                singular: "Map Feature"
+            },
+            fieldsets: [
+                {
+                    restrict: ['edit', 'delete'],
+                    nodes_id: {
+                        render: 'hidden',
+                    },
+                    owner_id: {
+                        render: 'hidden',
+                    }
+                },
+                {
+                    legend: 'Extract Map Features',
+                    restrict: ['extract'],
+                    users: ['administrator', 'super_administrator'],
+                    kmz_file: {
+                        label: 'KMZ Metadata File',
+                        render: 'file',
+                        multiple: false,
+                        validate: ['filesSelected']
+                    }
+                },
+                {
+                    legend: 'Map Feature Details',
+                    restrict: ['show', 'new', 'edit'],
+                    name: {
+                        label: 'Name'
+                    },
+                    type: {
+                        render: 'select',
+                        reference: 'map_feature_types',
+                        label: 'Map Feature Type'
+                    },
+                    description: {
+                        label: 'Description'
+                    },
+                    geometry: {
+                        label: 'Geometry (GeoJSON)',
+                        render: 'json',
+                        validate: ['isJSON']
+                    }
+                }
+            ]
+        },
         projects: {
             attributes: {
                 order: 1,
@@ -219,7 +370,8 @@ export const schema = {
                 {
                     legend: 'Project Details',
                     name: {
-                        label: 'Name'
+                        label: 'Name',
+                        validate: ['isRequired'],
                     },
                     description: {
                         label: 'Description'
@@ -258,7 +410,8 @@ export const schema = {
                         label: 'Given Names'
                     },
                     last_name: {
-                        label: 'Last Name'
+                        label: 'Last Name',
+                        validate: ['isRequired']
                     },
                     short_name: {
                         label: 'Short Name'
@@ -277,10 +430,12 @@ export const schema = {
                     'survey_seasons',
                     'historic_captures',
                     'modern_captures',
-                    'supplemental_images'
+                    'supplemental_images',
+                    'metadata_files'
                 ],
                 files: [
-                    'supplemental_images'
+                    'supplemental_images',
+                    'metadata_files'
                 ]
             },
             fieldsets: [
@@ -323,15 +478,17 @@ export const schema = {
                 label: "Survey Seasons",
                 singular: "Survey Season",
                 dependents: [
-                    'stations',
-                    'historic_captures',
-                    'modern_captures',
                     'glass_plate_listings',
                     'maps',
-                    'supplemental_images'
+                    'supplemental_images',
+                    'metadata_files',
+                    'stations',
+                    'historic_captures',
+                    'modern_captures'
                 ],
                 files: [
-                    'supplemental_images'
+                    'supplemental_images',
+                    'metadata_files'
                 ]
             },
             fieldsets: [
@@ -1777,7 +1934,11 @@ export const schema = {
                         label: 'Historic Map'
                     },
                     links: {
-                        label: 'Links'
+                        label: 'Links to Maps'
+                    },
+                    map_features_id: {
+                        render: 'mapFeature',
+                        label: 'Map Features'
                     }
                 }]
         },
@@ -1826,6 +1987,42 @@ export const schema = {
             fieldsets: [
                 {
                     legend: 'Metadata File Type Settings',
+                    users: ['administrator', 'super_administrator'],
+                    name: {
+                        label: 'Name',
+                        validate: ['isRequired']
+                    },
+                    label: {
+                        label: 'Label'
+                    },
+                }]
+        },
+        map_object_types: {
+            attributes: {
+                label: 'Map Object Types',
+                singular: 'Map Object Type'
+            },
+            fieldsets: [
+                {
+                    legend: 'Map Object Type Settings',
+                    users: ['administrator', 'super_administrator'],
+                    name: {
+                        label: 'Name',
+                        validate: ['isRequired']
+                    },
+                    label: {
+                        label: 'Label'
+                    },
+                }]
+        },
+        map_feature_types: {
+            attributes: {
+                label: 'Map Feature Types',
+                singular: 'Map Feature Type'
+            },
+            fieldsets: [
+                {
+                    legend: 'Map Feature Type Settings',
                     users: ['administrator', 'super_administrator'],
                     name: {
                         label: 'Name',

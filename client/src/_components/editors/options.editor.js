@@ -33,7 +33,7 @@ const OptionsEditor = ({type='options', onCancel=()=>{}}) => {
     const [options, setOptions] = React.useState({});
     const [selectedIDs, setSelectedIDs] = React.useState({});
     const [optionData, setOptionData] = React.useState({});
-    const excludedOpts = ['image_states', 'surveyors', 'surveys', 'survey_seasons'];
+    const excludedOpts = ['image_states', 'surveyors', 'surveys', 'survey_seasons', 'statuses', 'map_objects'];
     const [loaded, setLoaded] = React.useState(false);
 
     // generate unique ID value for form inputs

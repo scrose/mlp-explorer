@@ -124,6 +124,29 @@ const _inputValidations =
         },
 
         /**
+         * Validate JSON value.
+         * Reference: https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string
+         * Retrieved: 06-01-2024
+         */
+
+        isJSON: (value) => {
+            try {
+                const o = JSON.parse(value);
+
+                // Handle non-exception-throwing cases:
+                // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
+                // but... JSON.parse(null) returns null, and typeof null === "object",
+                // so we must check for that, too. Thankfully, null is falsey, so this suffices:
+                if (o && typeof o === "object") {
+                    return o;
+                }
+            }
+            catch (e) { }
+
+            return false;
+        },
+
+        /**
          * Validate email address.
          */
 

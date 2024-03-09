@@ -18,7 +18,6 @@
 
 import React from 'react';
 import 'flatpickr/dist/themes/material_green.css';
-import {sorter} from '../../_utils/data.utils.client';
 import Icon from '../common/icon';
 import Message, {UserMessage} from '../common/message';
 import MultiSelect from '../common/multiselect';
@@ -27,6 +26,8 @@ import {AttachedMetadataEditor} from "../editors/attached.editor";
 import {DependentsEditor} from "../editors/dependents.editor";
 import {ComparisonEditor} from "../editors/comparison.editor";
 import Coord from "../common/coord";
+import SingleSelect from "../common/singleselect";
+import MapSelector from "./map.selector";
 
 /**
  * No operation.
@@ -85,7 +86,14 @@ export const InputSelector = ({
     const [highlight, setHighlight] = React.useState(false);
 
     // define label-less inputs
-    const noLabel = [ 'hidden', 'file', 'dependentEditor', 'compareSelector', 'attachedMetadataEditor'];
+    const noLabel = [
+        'hidden',
+        'file',
+        'dependentEditor',
+        'compareSelector',
+        'attachedMetadataEditor',
+        'generateMapFeatures'
+    ];
 
     // append unique ID value for input
     id = `${name}_${id}`;
@@ -145,6 +153,20 @@ export const InputSelector = ({
                 value={value || ''}
                 required={required}
                 onChange={onChange}
+                aria-label={ariaLabel}
+            />;
+        },
+
+        json: () => {
+            return <textarea
+                id={id}
+                name={name}
+                readOnly={readonly}
+                value={typeof value === 'string' ? value : JSON.stringify(value, undefined, 4) || ''}
+                required={required}
+                onChange={(e)=>{
+                    onChange(e);
+                }}
                 aria-label={ariaLabel}
             />;
         },
@@ -301,37 +323,33 @@ export const InputSelector = ({
         },
 
         select: () => {
-            // prepare options data for select input
-            const opts = options
-                .sort(sorter)
-                .map((opt, index) => {
-                    const {value = '', label = ''} = opt || {};
-                    return <option
-                        key={`${id}_${name}_${value}_${index}`}
-                        id={`${id}_${name}_${value}`}
-                        name={`${name}_${value}`}
-                        value={value || ''}>{label}</option>;
-                });
-
-            return <select
+            return <SingleSelect
                 id={id}
+                readOnly={readonly}
                 name={name}
-                disabled={disabled || options.length === 0}
+                value={value || ''}
+                label={label}
+                required={required}
+                disabled={disabled}
+                options={options}
                 onChange={onChange}
                 onSelect={onSelect}
+            />;
+        },
+
+        reference: () => {
+            return <SingleSelect
+                id={id}
+                readOnly={readonly}
+                name={name}
                 value={value || ''}
+                label={label}
                 required={required}
-            >
-                <option
-                    key={`default_${id}_${name}`}
-                    id={`default_${id}_${name}`}
-                    name={`default_${id}_${name}`}
-                    value={''}
-                >
-                    {label} ...
-                </option>
-                {opts}
-            </select>;
+                disabled={disabled}
+                options={options}
+                onChange={onChange}
+                onSelect={onSelect}
+            />
         },
 
         multiselect: () => {
@@ -383,6 +401,10 @@ export const InputSelector = ({
                 options={options}
                 onSelect={onMultiselect}
             />;
+        },
+
+        mapFeature: () => {
+            return <MapSelector callback={onChange} single={true} value={value || ''} />;
         },
 
         file: () => {

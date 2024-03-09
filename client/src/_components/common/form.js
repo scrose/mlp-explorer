@@ -18,7 +18,7 @@
  *
  * ---------
  * Revisions
- *
+ * - 30-11-2023   Fixed form reset to nullify form data in-component
  *
  */
 
@@ -35,6 +35,9 @@ import {getError} from "../../_services/schema.services.client";
 
 // default form error
 const defaultError = {msg: getError(), type: 'error'};
+
+// default noop
+const noop = async ()=>{};
 
 /**
  * Defines general form component.
@@ -57,12 +60,12 @@ const defaultError = {msg: getError(), type: 'error'};
 const Form = ({
                   model,
                   schema,
-                  loader = null,
+                  loader = noop,
                   callback,
                   messages={},
                   onChange = () => {},
                   onCancel = () => {},
-                  onReset = null,
+                  onReset = () => {},
                   opts = null,
                   allowEmpty = false,
                   disabledInputs = {},
@@ -75,15 +78,15 @@ const Form = ({
 
     // generate unique ID value for form inputs
     const formID = `_form_${model}_${view}_`;
-    const _isMounted = React.useRef(false);
 
     // initialize state for input parameters
     // const [data, setData] = React.useState({});
     const [data, setData] = React.useState({});
     const [loaded, setLoaded] = React.useState(false);
+    const [loading, setLoading] = React.useState(true);
     const [fieldsetSchema, setFieldsetSchema] = React.useState([]);
     const [modified, setModified] = React.useState(false);
-    const [isDisabled, setDisabled] = React.useState(false);
+    const [isDisabled, setDisabled] = React.useState(true);
 
     // create input error states / message state
     const [errors, setErrors] = React.useState({});
@@ -94,57 +97,42 @@ const Form = ({
     // initialize fieldset schema on navigation change
     // - set fieldset schema to initial schema if not modified in form editor
     React.useEffect(() => {
-        _isMounted.current = true;
-        if (_isMounted.current) {
-            setLoaded(false);
-            if (fieldsets.length !== 0) {
-                // ensure fieldsets are initialized
-                setFieldsetSchema(fieldsets);
-            }
+        // setLoaded(false);
+        if (fieldsets.length !== 0) {
+            // ensure fieldsets are initialized
+            setFieldsetSchema(fieldsets);
         }
-        return () => {
-            _isMounted.current = false;
-        };
     }, [fieldsets, nav]);
 
     // initialize fieldset schema
     // - set fieldset schema to initial schema if not modified in form editor
     React.useEffect(() => {
-        _isMounted.current = true;
-        if (_isMounted.current && !modified && fieldsets.length !== 0) {
+        if (!modified && fieldsets.length !== 0 && !loading) {
             // ensure fieldsets are initialized
             setFieldsetSchema(fieldsets);
         }
-        return () => {
-            _isMounted.current = false;
-        };
-    }, [fieldsets, modified]);
+    }, [fieldsets, modified, loading]);
+
+
+    const _loadFormData = () => {
+        // load form data
+        loader()
+            .then(data => {
+                // set metadata in external state
+                setData(data);
+                setLoaded(true);
+            })
+            .catch(err => {
+                console.error(err);
+                setMessage(data => ({ ...data, '0': defaultError}));
+            })
+            .finally(() => {setLoading(false)});
+        setLoading(false);
+        setDisabled(false);
+    }
 
     // update form data on dialog change
-    React.useEffect( () => {
-        _isMounted.current = true;
-        if (_isMounted.current && !loaded && loader) {
-                loader()
-                    .then(data => {
-                        if (_isMounted.current) {
-                            // set metadata in external state
-                            // console.log('Loader:', data)
-                            setData(data);
-                            setLoaded(true);
-                        }
-                    })
-                    .catch(err => {
-                        if (_isMounted.current) {
-                            console.error(err);
-                            setMessage(data => ({ ...data, '0': defaultError}));
-                        }
-                    });
-        }
-        else if (_isMounted.current) setLoaded(true);
-        return () => {
-            _isMounted.current = false;
-        };
-    }, [loader, loaded]);
+    React.useEffect( _loadFormData, []);
 
     // update form data state
     const _handleChange = (name, value) => {
@@ -156,6 +144,12 @@ const Form = ({
     const _handleCancel = () => {
         setData(null);
         onCancel();
+    }
+
+    // handle form reset
+    const _handleReset = () => {
+        setData({});
+        onReset();
     }
 
     /**
@@ -298,6 +292,7 @@ const Form = ({
             return callback(formData)
                 .finally(() => {
                     setDisabled(false);
+                    _loadFormData();
                 });
         } catch (err) {
             console.error(callback, err);
@@ -467,7 +462,7 @@ const Form = ({
                             disabled={isDisabled}
                             onSubmit={submit}
                             onCancel={_handleCancel}
-                            onReset={onReset}
+                            onReset={_handleReset}
                         />
                     </form>
                     {

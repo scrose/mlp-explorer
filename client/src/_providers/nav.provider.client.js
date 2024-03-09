@@ -9,7 +9,7 @@
  * Navigation provider is a React Context used to store and share data for the navigator.
  *
  * Revisions
- *
+ * - 30-11-2023   Add map features overlay filter data to map navigation provider
  */
 
 import * as React from 'react'
@@ -22,7 +22,6 @@ import {
     getNavView,
     removeDownload
 } from "../_services/session.services.client";
-import kmlData from '../_components/kml/example-2.kml';
 
 /**
  * Global navigation data provider.
@@ -47,9 +46,14 @@ function NavProvider(props) {
     // tree and map data states
     const [nodeData, setNodeData] = React.useState({});
     const [statsData, setStatsData] = React.useState([]);
+    // map data
     const [mapData, setMapData] = React.useState({});
-    const [mapOverlayData, setMapOverlayData] = React.useState(null);
+    // filter data for map station pins
     const [filterData, setFilterData] = React.useState({});
+    // data for map boundary overlays
+    const [mapOverlayData, setMapOverlayData] = React.useState(null);
+    // filter data for map station pins
+    // const [filterOverlayData, setFilterOverlayData] = React.useState({});
     const [selectedNode, setSelectedNode] = React.useState({});
     const [scrollToView, setScrollToView] = React.useState(false);
     const [compact, setCompact] = React.useState(false);
@@ -105,6 +109,59 @@ function NavProvider(props) {
         return checkDownload(id);
     }
 
+    // set features to map overlay (map feature node IDs)
+    const _setMapOverlay = (data) => {
+        setMapOverlayData(data);
+    }
+
+    // add a feature to map overlay (map feature node IDs)
+    const _addToMapOverlay = (ids) => {
+
+        // check if map feature already added
+        if ((mapOverlayData || []).some(feature => ids.includes(feature.id))) {
+            setMapOverlayData((mapOverlayData || []).concat([]));
+        }
+
+        // get filtered map features
+        const _filterFeatures = (data) => {
+            return (data || []).map((data) => {
+                const {nodes_id, owner_id, name, description, type, geometry, map_object_name, dependents} = data || {};
+                return {
+                    id: nodes_id,
+                    selected: (ids || []).length === 1,
+                    geoJSON: geometry.map(featureGeometry => {
+                        return {
+                            type: 'Feature',
+                            geometry: featureGeometry,
+                            properties: {
+                                name: name,
+                                description: description,
+                                type: type,
+                                owner: map_object_name,
+                                owner_id: owner_id,
+                                dependents: dependents
+                            }
+                        };
+                    })
+                };
+            });
+        }
+
+        // API call to retrieve map features data
+        router.get('/map/features?ids=' + ids.join('+'))
+            .then(res => {
+                // update state with response data
+                if (_isMounted.current) {
+                    if (res.error) return setError(res.error);
+                    const { response = {} } = res || {};
+                    const { data = {} } = response || {};
+                    const filteredFeatures = _filterFeatures(data);
+                    setMapOverlayData(filteredFeatures);
+                }
+            })
+            .catch(console.error);
+    }
+
     /**
      * Update download selection state.
      *
@@ -117,7 +174,6 @@ function NavProvider(props) {
 
     /**
      * Load API global node tree data.
-     * - uses current Window location path as default endpoint.
      *
      * @public
      */
@@ -130,7 +186,7 @@ function NavProvider(props) {
         // - navigator route is defined
         // - node data not yet loaded
         if (!error && (!nodeData || Object.keys(nodeData).length === 0)) {
-            console.log('Load Nav Tree...')
+            console.log('Loading Nav Tree...')
             // load API data
             router.get('/nodes/tree')
                 .then(res => {
@@ -144,7 +200,7 @@ function NavProvider(props) {
                         const { nodes={}, stats=[] } = data || {};
 
                         // [DEBUG]
-                        // console.log('\n<<< Nav [Tree] >>>\n', res)
+                        console.log('\n<<< Nav [Tree] >>>\n', res)
 
                         // check if response data is empty (set error flag if true)
                         if ( Object.keys(nodes).length === 0 ) {
@@ -161,7 +217,12 @@ function NavProvider(props) {
         return () => {_isMounted.current = false;};
     }, [router, nodeData, setNodeData, error, setError]);
 
-    // API call to retrieve map data
+    /**
+     * Load API global station pin map data.
+     *
+     * @public
+     */
+
     React.useEffect(() => {
         _isMounted.current = true;
 
@@ -200,37 +261,6 @@ function NavProvider(props) {
         return () => {_isMounted.current = false;};
     }, [router, mapData, setMapData, error, setError]);
 
-    // API call to retrieve map KML data
-    React.useEffect(() => {
-        _isMounted.current = true;
-        // proceed if:
-        // - no error found (e.g. empty response)
-        // - navigator route is defined
-        // - KML overlay data not yet loaded
-
-        if (!error && (!mapOverlayData && kmlData)) {
-
-            // load KML map overlay data
-            router.getXML(kmlData)
-                .then(res => {
-
-                    if (_isMounted.current) {
-
-                        // destructure map data
-                        if (res.error) return setError(res.error);
-
-                        // DEBUG
-                        // console.log('\n<<< Nav [KML] >>>\n', res)
-
-                        // load node data to provider
-                        setMapOverlayData(res);
-                    }
-                })
-                .catch(err => console.error(err));
-        }
-        return () => {_isMounted.current = false;};
-    }, [router, mapOverlayData, setMapOverlayData, error, setError]);
-
     return (
         <NavContext.Provider value={
             {
@@ -245,6 +275,8 @@ function NavProvider(props) {
                 setSelected: setSelectedNode,
                 filter: filterData,
                 overlay: mapOverlayData,
+                setOverlay: _setMapOverlay,
+                addToOverlay: _addToMapOverlay,
                 setFilter: setFilterData,
                 hasFilter: Object.keys(filterData).length > 0,
                 mode: navView,

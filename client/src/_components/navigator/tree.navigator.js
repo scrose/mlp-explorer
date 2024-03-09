@@ -1,9 +1,17 @@
 /*!
  * MLE.Client.Components.Navigator.Tree
  * File: tree.navigator.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * Tree (list) navigator component. Expandable node tree menu.
+ *
+ * ---------
+ * Revisions
  */
 
 import React from 'react'

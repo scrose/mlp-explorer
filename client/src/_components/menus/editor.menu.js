@@ -21,7 +21,7 @@ import {getDependentTypes, getModelLabel, isImageType, isCaptureType} from '../.
 import Button from '../common/button';
 import Dropdown from "../common/dropdown";
 import {useUser} from "../../_providers/user.provider.client";
-import {genID} from "../../_utils/data.utils.client";
+import {genID, sanitize} from "../../_utils/data.utils.client";
 import {createNodeRoute, redirect} from "../../_utils/paths.utils.client";
 import Download from "../common/download";
 import {useDialog} from "../../_providers/dialog.provider.client";
@@ -62,10 +62,21 @@ const EditorMenu = ({
                                attached={},
                                files={},
                                size= 'lg',
-                               visible=['show', 'edit', 'remove', 'new', 'attach', 'download'],
+                               visible=[
+                                   'show',
+                                   'edit',
+                                   'remove',
+                                   'new',
+                                   'attach',
+                                   'download',
+                                   'extract_map_features',
+                                   'view_map_features'
+                               ],
                                callback=()=>{},
                                className=''
                            }) => {
+
+
     // dialog provider
     const dialog = useDialog();
 
@@ -130,8 +141,6 @@ const EditorMenu = ({
                 } : ''
         ])
         .filter(item => !!item);
-
-    if (String(id) === '81234') console.log('>>>', id, metadata, visible)
 
     return <div className={`h-menu ${className}`}>
         <ul>
@@ -256,6 +265,36 @@ const EditorMenu = ({
                         format={'zip'}
                         route={`/files/download/bulk?${model}=${id}`}
                         callback={callback}
+                    />
+                </li>
+            }
+            {
+                // Extract map features from uploaded KMZ file
+                isAdmin && model === 'map_objects' && id && visible.includes('extract_map_features') &&
+                <li key={`${menuID}_node_menuitem_extract_map`}>
+                    <Button
+                        label={!compact && 'Extract Map'}
+                        size={size}
+                        icon={'import'}
+                        title={`Extract map features from KMZ file.`}
+                        onClick={() => { _handleDialog('extract_map_features') }}
+                    />
+                </li>
+            }
+            {
+                // View map features for node
+                model === 'survey_seasons' && id && visible.includes('view_map_features')
+                && (attached || {}).maps?.some(map => map.data.map_features_id) &&
+                <li key={`${menuID}_node_menuitem_view_map_features`}>
+                    <Button
+                        icon={'map'}
+                        name={'map_view'}
+                        label={!compact && 'View Maps'}
+                        title={'View linked maps on navigator.'}
+                        onClick={() => nav.addToOverlay(
+                            (attached || {}).maps
+                                .map(({data}) => data.map_features_id) || {}
+                        )}
                     />
                 </li>
             }

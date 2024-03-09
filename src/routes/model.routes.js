@@ -39,7 +39,7 @@ function ModelRoutes(modelType) {
             delete: null,
         },
         create: {
-            path: this.model === 'surveyors' || this.model === 'projects'
+            path: this.model === 'surveyors' || this.model === 'projects' || this.model === 'map_objects'
                     ? path.join('/', this.model, 'new')
                     : path.join('/', this.model, 'new', ':owner_id'),
             get: this.controller.add,

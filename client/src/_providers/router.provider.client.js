@@ -7,7 +7,7 @@
  */
 
 import * as React from 'react'
-import {loadXML, makeRequest} from '../_services/api.services.client';
+import {makeRequest} from '../_services/api.services.client';
 import {createNodeRoute, filterPath, reroute, getRoot, createAPIURL } from '../_utils/paths.utils.client';
 import { getStaticView } from '../_services/schema.services.client';
 import { popSessionMsg } from '../_services/session.services.client';
@@ -113,8 +113,8 @@ function RouterProvider(props) {
      *
      * @public
      * @param {String} route
-     *
-     * @param params
+     * @param {Object} params
+     * @return {Promise} response data
      */
 
     const get = async (route, params=null) => {
@@ -133,21 +133,7 @@ function RouterProvider(props) {
         return handleResponse(res);
     };
 
-    /**
-     * Data request method to fetch data from API.
-     *
-     * @public
-     * @param {String} route
-     *
-     * @param params
-     */
 
-    const getXML = async (route, params=null) => {
-
-        // reject null paths or when API is offline
-        if (!route || !online ) return null;
-        return await loadXML(route);
-    };
 
     /**
      * Request method to post data from API.
@@ -156,15 +142,16 @@ function RouterProvider(props) {
      *
      * @param {String} route
      * @param {Object} formData
+     * @param {Boolean} json
      */
 
-    const post = async (route, formData= null) => {
+    const post = async (route, formData= null, json=false) => {
 
         // reject null paths or when API is offline
         if (!route || !online ) return null;
 
         // parse form data
-        const parsedData = formData ? Object.fromEntries(formData) : {};
+        const parsedData = formData && !json ? Object.fromEntries(formData) : formData && json ? formData : {};
 
         let res = await makeRequest({
             url: createAPIURL(route),
@@ -213,7 +200,6 @@ function RouterProvider(props) {
                 setFilter,
                 staticView,
                 get,
-                getXML,
                 post,
                 remove,
                 online,

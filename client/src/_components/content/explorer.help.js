@@ -81,8 +81,8 @@ const explorerHelp = (gotoPage) => {
             Search and filter results are also loaded in the viewer.</p>
         <p>The viewer is where <Button icon={'help'} label={'Capture Images'} onClick={() => {gotoPage(0, 2)}} />
             and <Button icon={'help'} label={'Metadata'} onClick={() => {gotoPage(0, 1)}} /> are
-            loaded for an indepth look at things. For example, navigate to surveyor
-            <a href={"http://localhost:3000/surveyors/show/5"} target={'_blank'} rel={"noreferrer"}>Morrison Parsons Bridgland</a> to see
+            loaded for an indepth look at things. For example, navigate to
+            surveyor <a href={"/surveyors/show/5"} target={'_blank'} rel={"noreferrer"}>Morrison Parsons Bridgland</a> to see
             an extensive list of surveys undertaken in the last century. Each survey in the list can be expanded to
             show metadata for that item, as well as any attached dependent items -- in this case, survey seasons.
             You can also click on the item label to go to open the page for that item.</p>
@@ -443,13 +443,13 @@ const explorerHelp = (gotoPage) => {
                 <th><Icon type={'map'} /></th>
                 <th>Map</th>
                 <td>
-                    <p>The map navigator marks the geographical locations of survey Stations on
-                        a geographical map. Multiple Stations are clustered in markers that
-                        show the cluster size.</p>
-                    <p>Click on the marker to view the list of Stations in the
-                        cluster. Double click on the marker to also zoom and center the map on the cluster.</p>
+                    <p>The map navigator shows the geographical locations survey stations and other features on
+                        a map. Multiple Stations are clustered in markers that show the cluster size.</p>
+                    <p>Click on the cluster or station marker to view details in the view panel. Double click on the
+                        marker to also zoom and center the map on the cluster.</p>
                     <p>Pan by dragging the map; zoom by double clicking the map area, or use the zoom controls at top
-                        left. You can also view different layers by clicking the layers icon at top right.</p>
+                        left. You can also view different base layers by clicking the layers icon at top right.</p>
+                    <p>More information is provided in the <Button icon={'map'} label={'Map Tool Guide'} onClick={() => {gotoPage(1, 0)}} />.</p>
                 </td>
             </tr>
             <tr>

@@ -10,6 +10,10 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
+
+    faMapMarker,
+    faVectorSquare,
+    faLayerGroup,
     faPaperclip,
     faLocationArrow,
     faChartBar,
@@ -113,7 +117,6 @@ import {
  * @public
  */
 
-
 export const facSurveyor = {
     prefix: 'fas',
     iconName: 'surveyor',
@@ -137,6 +140,9 @@ export const facMLPWordmark = {
  */
 
 library.add(
+    faMapMarker,
+    faVectorSquare,
+    faLayerGroup,
     faLocationArrow,
     faArrowsAltH,
     faChartBar,
@@ -277,13 +283,17 @@ const getIconClass = (iconType) => {
         delete: 'trash-alt',
         import: 'file-import',
         export: 'file-export',
+        extract: 'file-export',
         attach: 'paperclip',
         scroll: 'location-arrow',
         externalLink: 'external-link-square-alt',
         align: 'crosshairs',
-        overlay: 'columns',
+        overlay: 'layer-group',
+        clustered: 'map-marker',
+        boundaries: 'vector-square',
         filter: 'filter',
         filterNavigation: 'filter',
+        list: 'list-alt',
         search: 'search',
         undo: 'undo',
         reset: 'undo',
@@ -349,6 +359,8 @@ const getIconClass = (iconType) => {
         supplemental_images: 'image',
         locations: 'compass',
         glass_plate_listings: 'archive',
+        map_objects: 'map',
+        map_features: 'vector-square',
         maps: 'map',
         participants: 'users',
         participant_groups: 'users',
@@ -365,6 +377,7 @@ const getIconClass = (iconType) => {
         raw: 'file-image',
         pdf: 'file-pdf',
         rtf: 'file-alt',
+        zip: 'file-archive',
         default: 'star',
         mlp: 'mlp_logo',
         wordmark: 'mlp_wordmark',

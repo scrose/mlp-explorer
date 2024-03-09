@@ -83,6 +83,7 @@ $$
             'search',
             'tree',
             'map',
+            'overlay',
             'refresh',
             'logout',
             'register',

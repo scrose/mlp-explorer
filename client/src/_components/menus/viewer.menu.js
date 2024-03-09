@@ -11,7 +11,8 @@
  *
  * ---------
  * Revisions
- * - 22-07-2023 Added new download selection button.
+ * - 22-07-2023    Added new download selection button.
+ * - 23-12-2023    Added new Map Object dialog for KMZ data files
  */
 
 import React from 'react';
@@ -85,6 +86,12 @@ const ViewerPanelMenu = () => {
                                 type: 'projects',
                                 label: `Add new ${getModelLabel('projects')}`,
                                 callback: () => {dialog.setCurrent({dialogID: 'new_project'})}
+                            },
+                            {
+                                icon: 'maps',
+                                type: 'map_objects',
+                                label: `Add new ${getModelLabel('map_objects')}`,
+                                callback: () => {dialog.setCurrent({dialogID: 'new_map_object'})}
                             }]} />
                     </li>
                 }

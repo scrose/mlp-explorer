@@ -1,8 +1,18 @@
 /*!
  * Core.API.Router.Files
  * File: files.routes.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * File controller routes settings.
+ *
+ * ---------
+ * Revisions
+ * - 18-11-2023    Added admin-only list of files paths.
  */
 
 
@@ -90,6 +100,13 @@ function FilesRoutes(modelType) {
         download: {
             path: path.join('/files/download/:id'),
             get: this.controller.download,
+            put: null,
+            post: null,
+            delete: null,
+        },
+        settings: {
+            path: path.join('/files/list/'),
+            get: this.controller.directory,
             put: null,
             post: null,
             delete: null,

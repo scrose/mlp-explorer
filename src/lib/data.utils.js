@@ -81,6 +81,9 @@ export function sanitize(data, datatype) {
         'float': function() {
             return isNaN(parseFloat(data)) ? null : parseFloat(data);
         },
+        'json': function() {
+            return JSON.stringify(data);
+        },
         'USER-DEFINED': function() {
             return !Array.isArray(data) ? null : `(${data.join(',')})`;
         },

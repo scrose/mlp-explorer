@@ -95,7 +95,7 @@ export const get = async (id, type, client) => {
 };
 
 /**
- * Get all nodes for top-level station map. Includes dependents data.
+ * Get filtered stations data for map navigation.
  *
  * @public
  * @return {Promise} result
@@ -121,7 +121,6 @@ export const getMap = async function(client) {
             return station;
         })
 }
-
 
 /**
  * Get all nodes for top-level node tree. Includes dependents data.

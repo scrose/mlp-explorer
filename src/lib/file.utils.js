@@ -2,7 +2,17 @@
  * MLP.API.Utilities.Files
  * File: files.utils.js
  * Copyright(c) 2023 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * File utilities.
+ *
+ * ---------
+ * Revisions
+
  */
 
 'use strict';

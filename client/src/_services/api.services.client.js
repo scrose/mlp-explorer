@@ -122,9 +122,9 @@ export const upload = async (route, formData, callback=()=>{}, online=true) => {
     if (!route || !online ) return null;
 
     // DEBUG: Display the key/value pairs of form data
-    for(let pair of formData.entries()) {
-        console.log(pair[0]+ ', '+ pair[1]);
-    }
+    // for(let pair of formData.entries()) {
+    //     console.log(pair[0]+ ', '+ pair[1]);
+    // }
 
     try {
 
@@ -282,25 +282,6 @@ export const download = async (route, callback=()=>{}, filename, online=true, sa
     }
 };
 
-// export const download = async (route, format, online=true) => {
-//
-//     // reject null paths or when API is offline
-//     if (!route || !online ) return null;
-//
-//     return await makeRequest({
-//         url: createAPIURL(route),
-//         method:'GET',
-//         download: format
-//     })
-//         .then(res => {
-//             if (!res || !res.success) { return { error: res.statusText, data: null } }
-//             const {error=null} = res || {};
-//             // return { error: error, data: new Blob([res.response]) }
-//             return { error: error, data: res.response }
-//         })
-//         .catch(console.error);
-// }
-
 /**
  * Get KML metadata as parsed XML string.
  *
@@ -318,6 +299,7 @@ export const loadXML = async (route) => {
     return await fetch(route)
         .then(res => res.text())
         .then(xmlString => {
+
             // Parse XML string
             const parser = new DOMParser();
             return parser.parseFromString(xmlString, 'text/xml');

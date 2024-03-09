@@ -66,7 +66,7 @@ export function getColumns(targetTable) {
 }
 
 /**
- * Query: Check node relation for given node and owner type.
+ * Query: Check node relation allowed for given node and owner types.
  *
  * @return {Object} query binding
  * @param nodeID

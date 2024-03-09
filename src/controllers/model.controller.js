@@ -394,9 +394,13 @@ export default function ModelController(nodeType) {
             // - confirm capture does not have comparisons.
             const comparisons = await getComparisonsMetadata(node, client);
             const isMoveable = await isRelatable(id, owner_id, client);
+
             if (Array.isArray(comparisons) && comparisons.length > 0)
                 return next(new Error('restrictedByComparisons'));
-            if (!isMoveable || (status !== 'unsorted' && status !== 'sorted' && status !== 'missing')) {
+            if (!isMoveable) {
+                return next(new Error('invalidMove'));
+            }
+            if (status !== 'unsorted' && status !== 'sorted' && status !== 'missing') {
                 return next(new Error('invalidMove'));
             }
 

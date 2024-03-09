@@ -80,7 +80,7 @@ export const DependentsEditor = ({owner}) => {
 
     React.useEffect(() => {
         _isMounted.current = true;
-        // request captures for comparison
+        // request dependents
         if (_isMounted.current && !loaded && !error && owner) {
             router.get(createNodeRoute(owner.type, 'show', owner.id))
                 .then(res => {
@@ -133,6 +133,10 @@ export const DependentsEditor = ({owner}) => {
         }
         {
             message && <UserMessage closeable={false} message={message}/>
+        }
+        {
+            // handle attached metadata editor
+            user && <AttachedMetadataEditor owner={owner} />
         }
         {
             // handle dependent metadata editor
@@ -200,10 +204,6 @@ export const DependentsEditor = ({owner}) => {
         {
             // handle files metadata editor
             user && loaded && <FilesEditor files={currentFiles} owner={owner} callback={_handleCancel}/>
-        }
-        {
-            // handle attached metadata editor
-            user && <AttachedMetadataEditor owner={owner} />
         }
     </>;
 };

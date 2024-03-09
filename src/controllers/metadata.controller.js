@@ -198,6 +198,8 @@ export default function MetadataController(metadataType) {
             const ownerID = this.getOwnerId(req);
             let ownerType = null;
 
+            console.log(req.body)
+
             // get owner ID from parameters
             if (ownerID) {
                 // get owner metadata record (if exists)
@@ -529,5 +531,6 @@ export default function MetadataController(metadataType) {
             await client.release(true);
         }
     };
+
 
 }

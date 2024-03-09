@@ -14,7 +14,7 @@ import ServerError from '../error/server.error';
 import Loading from '../common/loading';
 import Image from '../common/image';
 import { useRouter } from '../../_providers/router.provider.client';
-import Iat from "../toolkit/toolkit";
+import Iat from "../alignment/alignment";
 import AdminView from "../views/admin.view";
 
 /**

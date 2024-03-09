@@ -316,6 +316,12 @@ export const getMetadataOptions = async function(client) {
         metadata_file_types: await findMetadataOptions(
             'metadata_file_types', 'name', ['label'], '', client
         ),
+        map_object_types: await findMetadataOptions(
+            'map_object_types', 'name', ['label'], '', client
+        ),
+        map_feature_types: await findMetadataOptions(
+            'map_feature_types', 'name', ['label'], '', client
+        ),
         surveyors: await findNodeOptions(
             'surveyors',
             ['last_name', 'given_names', 'short_name', 'affiliation'],
@@ -337,7 +343,14 @@ export const getMetadataOptions = async function(client) {
             true,
             client
         ),
-        statuses: getStatusTypes()
+        statuses: getStatusTypes(),
+        map_objects: await findNodeOptions(
+            'map_objects',
+            ['name'],
+            '',
+            false,
+            client
+        )
     }
 };
 
@@ -345,6 +358,7 @@ export const getMetadataOptions = async function(client) {
  * Get representative capture image file data.
  * - filters capture files by image state
  * - rank representative images as masters > interim > misc > raw > gridded
+ * - for multiple master images, select the most recent
  *
  * @param files
  * @param owner
@@ -355,7 +369,7 @@ export const getCaptureImage = (files, owner) => {
     const { historic_images=null, modern_images=null } = files || {};
     const captureImages = historic_images || modern_images || [];
     const { id='', type='' } = owner || {};
-    const fileType = type === 'historic_captures' ? 'historic_images' : 'modern_images'
+    const fileType = type === 'historic_captures' ? 'historic_images' : 'modern_images';
     return captureImages.find(file => file.metadata.image_state === 'master')
         || captureImages.find(file => file.metadata.image_state === 'interim')
         || captureImages.find(file => file.metadata.image_state === 'misc')
@@ -410,7 +424,9 @@ export const getAllSettings = async function(client) {
         image_states: await findMetadataOptions(
             'image_states', 'name', ['label'], ', ', client),
         participant_group_types: await findMetadataOptions(
-            'participant_group_types', 'id', ['label'], '', client)
+            'participant_group_types', 'id', ['label'], '', client),
+        map_objects: await findMetadataOptions(
+            'map_objects', 'name', ['label'], '', client)
     }
 };
 
@@ -670,7 +686,13 @@ export const getNodeLabel = async (node, files=[], client) => {
         ),
         maps: queries.metadata.selectLabel(
             id, type, ['nts_map'], '', ', ', 'id'
-        )
+        ),
+        map_objects: queries.metadata.selectLabel(
+            id, type, ['name'], '', ' '
+        ),
+        map_features: queries.metadata.selectLabel(
+            id, type, ['name'], '', ' '
+        ),
     };
 
     if (queriesByType.hasOwnProperty(type)) {

@@ -1,8 +1,18 @@
 /*!
  * MLP.API.Controllers.Files
  * File: files.controller.js
- * Copyright(c) 2021 Runtime Software Development Inc.
+ * Copyright(c) 2023 Runtime Software Development Inc.
+ * Version 2.0
  * MIT Licensed
+ *
+ * ----------
+ * Description
+ *
+ * Controller for file services routes.
+ *
+ * ---------
+ * Revisions
+ * - 18-11-2023    Added file directory list controller.
  */
 
 /**
@@ -13,14 +23,13 @@
 import * as db from '../services/index.services.js';
 import ModelServices from '../services/model.services.js';
 import * as fserve from '../services/files.services.js';
+import {getFilePath} from '../services/files.services.js';
 import * as nserve from '../services/nodes.services.js';
 import * as cserve from "../services/construct.services.js";
-import { prepare } from '../lib/api.utils.js';
+import {prepare} from '../lib/api.utils.js';
 import pool from '../services/db.services.js';
-import { sanitize } from '../lib/data.utils.js';
+import {humanize, sanitize} from '../lib/data.utils.js';
 import * as importer from '../services/import.services.js';
-import { humanize } from '../lib/data.utils.js';
-import {getFilePath} from "../services/files.services.js";
 import {getImageURL} from "../services/images.services.js";
 
 /**
@@ -212,7 +221,7 @@ export default function FilesController(modelType) {
                     // include image urls
                     rs.url = getImageURL(file_type, rs);
                     return rs;
-            }))
+            }));
 
             res.status(200).json(
                 prepare({
@@ -459,15 +468,15 @@ export default function FilesController(modelType) {
         const client = await pool.connect();
 
         try {
-
             // get requested file ID
             const {id} = req.params || {};
 
-            // get owner node; check that node exists in database
-            // and corresponds to requested owner type.
+            // get file path (images require secure token)
             const fileData = await fserve.get(id, client);
-            const { file={} } = fileData || {};
+            const { file={}, metadata={} } = fileData || {};
             const { filename='', mime_type='' } = file || {};
+            const { secure_token='' } = metadata || {};
+            file.secure_token = secure_token;
             const filePath = getFilePath(file);
 
             // file does not exist
@@ -532,5 +541,38 @@ export default function FilesController(modelType) {
         }
     };
 
+    /**
+     * Lists files in directory by file path.
+     *
+     * @param req
+     * @param res
+     * @param next
+     * @src public
+     */
+
+    this.directory = async (req, res, next) => {
+        try {
+
+            // get query parameters
+            const { path='/'} = req.query || {};
+
+            // get directory listing results
+            fserve.listFiles(path, (err, resultData) => {
+                if (err) return next(new Error('invalidRequest'));
+                res.status(200).json(
+                    prepare({
+                        view: 'filter',
+                        data: resultData
+                    }));
+            });
+
+        } catch (err) {
+            console.error(err)
+            return next(err);
+        }
+    };
+
 }
+
+
 

@@ -19,9 +19,9 @@ import React, {useLayoutEffect, useRef, useState} from 'react';
 import { schema } from '../../schema';
 import Loading from './loading';
 import { UserMessage } from './message';
-import {scaleToFit} from '../toolkit/tools/scaler.toolkit';
+import {scaleToFit} from '../alignment/tools/scaler.alignment';
 import InputSelector from "../selectors/input.selector";
-import Canvas from "../toolkit/canvas/default.canvas.toolkit";
+import Canvas from "../alignment/canvas/default.canvas.alignment";
 import styles from '../styles/slider.module.css';
 import {useWindowSize} from "../../_utils/events.utils.client";
 

@@ -8,9 +8,11 @@
 
 import React from 'react';
 import explorerHelpContent from '../content/explorer.help';
-import iatHelpContent from '../content/toolkit.help';
+import iatHelpContent from '../content/alignment.help';
 import editorHelpContent from '../content/editor.help';
+import mapHelpContent from '../content/map.help';
 import Button from '../common/button';
+import mapHelp from "../content/map.help";
 
 /**
  * Tab layout for help pages.
@@ -69,9 +71,7 @@ const HelpTabs = ({
                 </li>
                 <li className={`tab-data ${orientation}`}>
                     {
-                        items.hasOwnProperty(selectedTab)
-                            ? items[selectedTab].data || ''
-                            : ''
+                        items.hasOwnProperty(selectedTab) ? items[selectedTab].data || '' : ''
                     }
                 </li>
             </ul>
@@ -89,6 +89,7 @@ const HelpView = ({ section = 0, page = 0 }) => {
 
     const [sectionSelected, setSectionSelected] = React.useState(section);
     const [explorerPageSelected, setExplorerPageSelected] = React.useState(page);
+    const [mapPageSelected, setMapPageSelected] = React.useState(page);
     const [editorPageSelected, setEditorPageSelected] = React.useState(page);
     const [iatPageSelected, setIATPageSelected] = React.useState(page);
 
@@ -101,8 +102,9 @@ const HelpView = ({ section = 0, page = 0 }) => {
 
         const pageSelector = [
             setExplorerPageSelected,
+            setMapPageSelected,
+            setIATPageSelected,
             setEditorPageSelected,
-            setIATPageSelected
         ]
 
         // set selected page
@@ -114,11 +116,12 @@ const HelpView = ({ section = 0, page = 0 }) => {
     const exploreHelp = explorerHelpContent(gotoPage);
     const editorHelp = editorHelpContent(gotoPage);
     const iatHelp = iatHelpContent(gotoPage);
+    const mapHelp = mapHelpContent(gotoPage)
 
     // index of help sections
     const _sections = [
         {
-            label: 'MLE Explorer',
+            label: 'Explorer Guide',
             data: <HelpTabs
                 orientation={'vertical'}
                 items={exploreHelp}
@@ -128,22 +131,32 @@ const HelpView = ({ section = 0, page = 0 }) => {
             />,
         },
         {
-            label: 'MLE Editor',
+            label: 'Map Tool Guide',
             data: <HelpTabs
                 orientation={'vertical'}
-                items={editorHelp}
-                selectedTab={editorPageSelected}
-                setSelectedTab={setEditorPageSelected}
+                items={mapHelp}
+                selectedTab={mapPageSelected}
+                setSelectedTab={setMapPageSelected}
                 className={'help'}
             />,
         },
         {
-            label: 'Alignment Tool',
+            label: 'Alignment Tool Guide',
             data: <HelpTabs
                 orientation={'vertical'}
                 items={iatHelp}
                 selectedTab={iatPageSelected}
                 setSelectedTab={setIATPageSelected}
+                className={'help'}
+            />,
+        },
+        {
+            label: 'Editor Guide',
+            data: <HelpTabs
+                orientation={'vertical'}
+                items={editorHelp}
+                selectedTab={editorPageSelected}
+                setSelectedTab={setEditorPageSelected}
                 className={'help'}
             />,
         },
