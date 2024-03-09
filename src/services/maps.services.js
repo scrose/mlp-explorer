@@ -8,7 +8,7 @@
 import * as fserve from "./files.services.js";
 import fs from "fs";
 import JSZip from "jszip";
-import {DOMParser} from "xmldom";
+import {JSDOM} from "jsdom";
 import tj from "@mapbox/togeojson";
 import pool from "./db.services.js";
 import queries from "../queries/index.queries.js";
@@ -167,9 +167,10 @@ export const extractMapFeaturesFromFile = async function (file, owner) {
     let result = []
     // extract and convert features from each uncompressed KML file to GeoJSON format
     await Promise.all(kmlDom.map(async (data) => {
-        // convert to geoJSON
-        const kml = new DOMParser().parseFromString(await data);
-        const featuresArray = tj.kml(kml, {styles: false});
+        // convert to JSDOM
+        const dom = new JSDOM(await data);
+        // convert DOM to geoJSON
+        const featuresArray = tj.kml(dom.window.document, {styles: false});
         // extract features for given map object type
         const {metadata} = owner || {};
         const {type} = metadata || {};

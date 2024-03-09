@@ -1,7 +1,7 @@
 /*!
  * MLE.Client.Components.Common.Table
  * File: editor.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2024 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
  */

@@ -1,7 +1,7 @@
 /*!
  * MLE.Client.Components.Common.Icon
  * File: icon.js
- * Copyright(c) 2022 Runtime Software Development Inc.
+ * Copyright(c) 2024 Runtime Software Development Inc.
  * Version 2.0
  * MIT Licensed
  */
