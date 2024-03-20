@@ -597,6 +597,7 @@ const explorerHelp = (gotoPage) => {
             </li>
         </ol></>;
 
+<<<<<<< HEAD
     const mapFeatures = <>
         <h4>Map Features</h4>
         <p>Explorer's map-based navigation tool (
@@ -732,6 +733,8 @@ const explorerHelp = (gotoPage) => {
         </table>
     </>;
 
+=======
+>>>>>>> 514e5c35775bbdc3de8900ef34c2684ba0986616
     // index of editor help content
     return [
         {
