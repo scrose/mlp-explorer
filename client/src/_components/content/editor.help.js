@@ -418,8 +418,6 @@ const explorerHelp = (gotoPage) => {
             </tr>
             </tbody>
         </table>
-
-
     </>;
 
     /**
@@ -599,6 +597,141 @@ const explorerHelp = (gotoPage) => {
             </li>
         </ol></>;
 
+    const mapFeatures = <>
+        <h4>Map Features</h4>
+        <p>Explorer's map-based navigation tool (
+            <Button icon={'help'} label={'Map Tool'} onClick={() => {gotoPage(1, 0)}} />
+            ) has integrations for adding and displaying features such as topographical surveys,
+            map plots and other types of map visualizations. These features can be added to Explorer by uploading
+            KML or Keyhole Markup Language XML data that expresses geographic metadata
+            into visualizations and then linked to Explorer metadata.</p>
+        <p>Map Objects (or 'Feature Groups') are data structures in Explorer used to organize groups of map
+            features. Map Objects have a name, type and description, and one or more attached KMZ files, which are
+            compressed KML metadata files uploaded to Explorer. From these KMZ files, users can
+            extract geometric data as separate Map Features visualized on the navigation map.
+            Each extracted Map Feature has a name, type and description,
+            as well as a snippet of geoJSON that encodes the location and geometry of the feature.</p>
+        <table className={'help'}>
+            <tbody>
+            <tr>
+                <th><Icon type={'new'} /></th>
+                <th>Create Map Object</th>
+                <td>
+                    <ol className={'list'}>
+                        <li>
+                            Log into Explorer
+                        </li>
+                        <li>
+                            Click <Button icon={'new'} label={'New'} /> and then 'Add new Map Feature Group' from dropdown menu.
+                        </li>
+                        <li>
+                            Enter a unique name for the group, its description, and select the object type (e.g., Mapsheet)
+                        </li>
+                    </ol>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'upload'} /></th>
+                <th>Upload KMZ files</th>
+                <td>
+                    <ol className={'list'}>
+                        <li>
+                            Log into Explorer
+                        </li>
+                        <li>
+                            Select and load a Map Object from the tree navigator menu.
+                        </li>
+                        <li>
+                            Click <Button type={'new'} label={'Add new metadata file'} /> to upload and attach the KMZ metadata file.
+                        </li>
+                        <li>
+                            Choose the file in the upload dialog and select 'Geographic Map Data' as the metadata file type.
+                        </li>
+                        <li>
+                            Click 'Add' to attach the file to the Map Object.
+                        </li>
+                    </ol>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'extract'} /></th>
+                <th>Extract Map Features</th>
+                <td>
+                    <ol className={'list'}>
+                        <li>
+                            Log into Explorer
+                        </li>
+                        <li>
+                            Click <Button icon={'extract'} label={'Extract Map Features'} /> from the panel menu to open the extract dialog.
+                        </li>
+                        <li>
+                            Select from the uploaded metadata files for extraction.
+                        </li>
+                        <li>
+                            Click 'Extract Map Features' button to show available features.
+                        </li>
+                        <li>
+                            Select one or more features to added to add to Feature Group and click 'Extract'.
+                        </li>
+                        <li>
+                            Added features will be highlighted in the response message.
+                        </li>
+                    </ol>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'edit'} /></th>
+                <th>Update Map Feature</th>
+                <td>
+                    <ol className={'list'}>
+                        <li>
+                            Log into Explorer
+                        </li>
+                        <li>
+                            Load the Map Feature or Map Features Group to edit.
+                        </li>
+                        <li>
+                            Click the edit icon to open the Edit Dialog.
+                        </li>
+                        <li>
+                            Update the metadata and save.
+                        </li>
+                    </ol>
+                </td>
+            </tr>
+            <tr>
+                <th><Icon type={'maps'} /></th>
+                <th>Link Map Feature</th>
+                <td>
+                    <ol className={'list'}>
+                        <li>
+                            Log into Explorer
+                        </li>
+                        <li>
+                            Search or load the Survey Season to link with map features.
+                        </li>
+                        <li>
+                            Click the edit icon to open the Edit Dialog.
+                        </li>
+                        <li>
+                            Click the 'Maps' dependents editor
+                        </li>
+                        <li>
+                            Click the edit icon for the map to be linked.
+                        </li>
+                        <li>
+                            Filter or select the Map Feature to link and save.
+                        </li>
+                        <li>
+                            <Button icon={'maps'} label={'View on Map'} /> button will now appear in the metadata view for that Survey Season map.
+                        </li>
+                    </ol>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </>;
+
     // index of editor help content
     return [
         {
@@ -624,6 +757,10 @@ const explorerHelp = (gotoPage) => {
         {
             label: 'Metadata Options',
             data: editorOptionsHelp,
+        },
+        {
+            label: 'Map Features',
+            data: mapFeatures,
         },
     ];
 }

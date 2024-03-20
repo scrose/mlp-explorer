@@ -211,3 +211,33 @@ export const insertMapFeatures = async function (features, owner) {
         await client.release(true);
     }
 }
+
+/**
+ * Get map objects data by node ID.
+ *
+ * @public
+ * @param feature
+ * @param owner
+ * @return {Promise} result
+ */
+
+export const updateMapFeature = async function (feature, owner) {
+
+    const client = await pool.connect();
+    return null;
+
+    // try {
+    //     // generate prepared statements collated with data
+    //     const { sql, data } = queries.maps.insertFeatures(features, owner);
+    //     // DEBUG
+    //     // console.log(sql, data)
+    //     // return []
+    //     let response = await client.query(sql, data);
+    //     return response.hasOwnProperty('rows') ? response.rows || [] : [];
+    //
+    // } catch (err) {
+    //     throw err;
+    // } finally {
+    //     await client.release(true);
+    // }
+}
