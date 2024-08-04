@@ -289,6 +289,7 @@ const getIconClass = (iconType) => {
         externalLink: 'external-link-square-alt',
         align: 'crosshairs',
         overlay: 'layer-group',
+        slider: 'columns',
         clustered: 'map-marker',
         boundaries: 'vector-square',
         filter: 'filter',

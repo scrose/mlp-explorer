@@ -637,7 +637,6 @@ export const compress = async (files={}, version) => {
 export const getFilePath = (file, version='medium' ) => {
 
     const { fs_path = '', secure_token = '', file_type='' } = file || {};
-    console.log(file, '****')
     const lowResPath = process.env.LOWRES_PATH;
     const defaultPath = process.env.UPLOAD_DIR;
 

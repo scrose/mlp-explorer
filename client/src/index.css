@@ -1079,6 +1079,10 @@ nav.breadcrumb ul li a:hover {
     background-color: #444444;
     color: #EEEEEE;
 }
+.capture-button.active {
+    background-color: coral;
+    color: #EEEEEE;
+}
 .comparator .prev,
 .comparator .next,
 .carousel .prev,

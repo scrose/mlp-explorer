@@ -220,7 +220,6 @@ export default function ModelServices(model) {
             // [3] process model data query (if provided)
             if (stmts.model) {
                 const { sql, data } = stmts.model(item);
-                console.log(sql)
                 res = await client.query(sql, data);
             }
 

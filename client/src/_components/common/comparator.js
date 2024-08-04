@@ -85,7 +85,6 @@ const Comparator = ({
     // selected slide state
     const [selectedIndex, setSelectedIndex] = React.useState(0);
     const [pairToggle, setPairToggle] = React.useState(false);
-    const [viewerType, setViewerType] = React.useState('overlay');
     const [expandImage, setExpandImage] = React.useState(false);
     const [panelWidth, setPanelWidth] = React.useState(0);
     const [panelHeight, setPanelHeight] = React.useState(0);
@@ -136,44 +135,16 @@ const Comparator = ({
         setSelectedIndex(nextIndex);
     };
 
-    const getViewer = function() {
-        const viewers = {
-            slider: () => {
-                return <Slider
-                    canvasWidth={panelWidth}
-                    canvasHeight={panelHeight}
-                    images={[historic_captures.refImage, modern_captures.refImage]}
-                />
-            },
-            default: () => {
-                return <>
-                    <div className={'slide'} style={{display: pairToggle ? 'block' : 'none'}}>
-                        <Image
-                            url={historic_captures.refImage.url || ''}
-                            scale={'medium'}
-                            width={'500px'}
-                        />
-                    </div>
-                    <div className={'slide'} style={{display: !pairToggle ? 'block' : 'none'}}>
-                        <Image
-                            url={modern_captures.refImage.url || ''}
-                            scale={'medium'}
-                            width={'500px'}
-                        />
-                    </div>
-                </>
-            }
-        }
-        return viewers.hasOwnProperty(viewerType) ? viewers[viewerType]() : viewers.default();
-    }
-
     return (
         <div className="comparator">
             <div ref={slidePanel} className={'slides'}>
-                { images.length > 0 ? getViewer() : <Loading /> }
+                { images.length > 0 ? <Slider
+                    images={[historic_captures.refImage, modern_captures.refImage]}
+                    toggle={pairToggle}
+                /> : <Loading /> }
                 <div className={'numbertext'}>{ selectedIndex + 1 }/{images.length}</div>
                 {
-                    expandable && viewerType === 'overlay' &&
+                    expandable &&
                     <div className={'expand-image'}><Button icon={'enlarge'} onClick={() => {
                         setExpandImage(true);
                     }}/></div>
@@ -184,36 +155,18 @@ const Comparator = ({
                     <ul>
                         <li><Button icon={'prev'} className={'prev'} onClick={prevPair} /></li>
                         <li><Button
-                            title={'View as Overlay'}
-                            className={'capture-button'}
-                            icon={'images'}
-                            disabled={viewerType === 'overlay'}
-                            onClick={()=>{setViewerType('overlay')}}
-                        /></li>
-                        <li><Button
-                            title={'View in Slider'}
-                            className={'capture-button'}
-                            icon={'overlay'}
-                            onClick={()=>{setViewerType('slider')}}
-                            disabled={viewerType === 'slider'}
-                        /></li>
-                        {
-                            viewerType === 'overlay' && <li><Button
                                 className={'capture-button'}
-                                icon={'sync'}
-                                onClick={() => {
-                                    setPairToggle(!pairToggle)
-                                }}
-                                label={pairToggle ? 'Historic' : 'Modern'}
+                                icon={'images'}
+                                onClick={() => setPairToggle(!pairToggle)}
+                                label={pairToggle ? 'Switch to Modern Capture' : 'Switch to Historic Capture'}
                             /></li>
-                        }
                         <li><Button
                             title={'View Capture Details'}
+                            label={label}
                             className={'capture-button'}
                             icon={pairToggle ? 'historic_captures' : 'modern_captures'}
                             onClick={()=>{router.update(link)}}
                         /></li>
-                        <li><a href={link}>{label}</a></li>
                         <li className={'push'}><Button icon={'next'} className={'next'} onClick={nextPair} /></li>
                     </ul>
                 </div>
