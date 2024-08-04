@@ -50,13 +50,47 @@ export const receive = (req, owner_id=null, owner_type=null) => {
         // close request pipeline
         req.on('close', cleanup);
 
+        function onError(err) {
+            console.error(err);
+            cleanup();
+            return reject(err);
+        }
+
+        function onEnd(err) {
+            if (err) {
+                console.error(err);
+                return reject(err);
+            }
+            
+            Promise.all(filePromises)
+                .then(() => {
+                    cleanup();
+                    // include requested owner ID if not null
+                    if (owner_id) metadata.data.owner_id = owner_id;
+                    resolve(metadata);
+                })
+                .catch(reject);
+        }
+
+        function cleanup() {
+            busboy.removeListener('field', onField);
+            busboy.removeListener('file', onFile);
+            busboy.removeListener('close', onEnd);
+            busboy.removeListener('end', cleanup);
+            busboy.removeListener('error', onEnd);
+            busboy.removeListener('partsLimit', onEnd);
+            busboy.removeListener('filesLimit', onEnd);
+            busboy.removeListener('fieldsLimit', onEnd);
+        }
+
+
         // initialize busboy
         busboy
             .on('field', onField.bind(null, metadata.data))
             .on('file', onFile.bind(null, filePromises, metadata, onError))
             .on('error', onError)
             .on('end', onEnd)
-            .on('finish', onEnd);
+            .on('close', onEnd);
 
         busboy.on('partsLimit', function() {
             const err = new Error('Reach parts limit');
@@ -81,38 +115,6 @@ export const receive = (req, owner_id=null, owner_type=null) => {
 
         req.pipe(busboy);
 
-        function onError(err) {
-            console.error(err);
-            cleanup();
-            return reject(err);
-        }
-
-        function onEnd(err) {
-            if (err) {
-                console.error(err);
-                return reject(err);
-            }
-            Promise.all(filePromises)
-                .then(() => {
-                    cleanup();
-                    // include requested owner ID if not null
-                    if (owner_id) metadata.data.owner_id = owner_id;
-                    resolve(metadata);
-                })
-                .catch(reject);
-        }
-
-        function cleanup() {
-            busboy.removeListener('field', onField);
-            busboy.removeListener('file', onFile);
-            busboy.removeListener('close', cleanup);
-            busboy.removeListener('end', cleanup);
-            busboy.removeListener('error', onEnd);
-            busboy.removeListener('partsLimit', onEnd);
-            busboy.removeListener('filesLimit', onEnd);
-            busboy.removeListener('fieldsLimit', onEnd);
-            busboy.removeListener('finish', onEnd);
-        }
     });
 }
 
@@ -131,6 +133,7 @@ export const receive = (req, owner_id=null, owner_type=null) => {
  */
 
 export const onFile = (filePromises, metadata, onError, fieldname, file, filename, encoding, mimetype) => {
+    console.log(filename)
 
     // reject file upload empty of files
     if (!filename) {
@@ -183,8 +186,9 @@ export const onFile = (filePromises, metadata, onError, fieldname, file, filenam
         .on('open', () => file
             .pipe(writeStream)
             .on('error', reject)
-            .on('finish', () => {
+            .on('close', () => {
                 // attach file data to global metadata
+                console.log(index, fileIndex)
                 // - for multiple files on same type, use key index (e.g. 'file_type[2]')
                 // - for multiple files on different type, use file index
                 if (index)
