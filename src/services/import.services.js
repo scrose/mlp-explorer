@@ -133,7 +133,6 @@ export const receive = (req, owner_id=null, owner_type=null) => {
  */
 
 export const onFile = (filePromises, metadata, onError, fieldname, file, filename, encoding, mimetype) => {
-    console.log(filename)
 
     // reject file upload empty of files
     if (!filename) {
@@ -188,7 +187,6 @@ export const onFile = (filePromises, metadata, onError, fieldname, file, filenam
             .on('error', reject)
             .on('close', () => {
                 // attach file data to global metadata
-                console.log(index, fileIndex)
                 // - for multiple files on same type, use key index (e.g. 'file_type[2]')
                 // - for multiple files on different type, use file index
                 if (index)
