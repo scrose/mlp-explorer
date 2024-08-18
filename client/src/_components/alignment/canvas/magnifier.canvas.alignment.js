@@ -82,7 +82,6 @@ const MagnifierTool = forwardRef(function Canvas(props, ref) {
                     panel.properties.render_dims
                 );
 
-                // const sourcePt = scalePoint(pos, panel.properties.magnified_dims, panel.properties.render_dims);
                 let sourceX = sourcePt.x - scopeDims.w / 2;
                 let sourceY = sourcePt.y - scopeDims.h / 2;
 
@@ -96,6 +95,7 @@ const MagnifierTool = forwardRef(function Canvas(props, ref) {
                 let viewX = destX;
                 let viewY = destY;
                 let drawMagImage = true;
+
 
                 // is the mouse over the image?
                 if (

@@ -26,6 +26,8 @@ import Button from './button';
 import Canvas from "../alignment/canvas/default.canvas.alignment";
 import styles from '../styles/slider.module.css';
 import { useWindowSize } from "../../_utils/events.utils.client";
+import {usePointer} from "../alignment/tools/pointer.alignment";
+import MagnifierTool from '../alignment/canvas/magnifier.canvas.alignment';
 
 /**
  * Image slider component.
@@ -34,11 +36,12 @@ import { useWindowSize } from "../../_utils/events.utils.client";
  * @return
  */
 
-const Slider = ({ images = [], toggle=false }) => {
+const Slider = ({ images = [] }) => {
 
-    // default canvas sizes
+    // default canvas sizes and magnification factor
     const DEFAULT_CANVAS_WIDTH = 900;
     const DEFAULT_CANVAS_HEIGHT = 900;
+    const MAGNIFICATION = 2.0;
 
     // window dimensions
     const [winWidth, winHeight] = useWindowSize();
@@ -51,7 +54,12 @@ const Slider = ({ images = [], toggle=false }) => {
     const renderLayer2 = useRef(null);
     const imageLayer1 = useRef(null);
     const imageLayer2 = useRef(null);
-    const controlLayer = useRef();
+    const defaultControlLayer = useRef();
+    const sliderControlLayer = useRef();
+    const magControlLayer = useRef(null);
+    const magnifiedImage1 = useRef(null);
+    const magnifiedImage2 = useRef(null);
+    const magnifierLayer = useRef(null);
 
     // create reference to panel resizer
     let sliding = false;
@@ -67,15 +75,25 @@ const Slider = ({ images = [], toggle=false }) => {
 
     const [viewWidth, setViewWidth] = React.useState(0);
     const [viewDims, setViewDims] = React.useState(null);
-    const [viewSlider, setViewSlider] = React.useState(toggle);
+    const [viewMode, setViewMode] = React.useState(null);
+    const [toggle, setToggle] = React.useState(false);
+    const [properties, setProperties] = React.useState({
+        image_dims: {w: DEFAULT_CANVAS_WIDTH, h: DEFAULT_CANVAS_HEIGHT}, 
+        render_dims: {w: DEFAULT_CANVAS_WIDTH, h: DEFAULT_CANVAS_HEIGHT},
+        base_dims: {w: DEFAULT_CANVAS_WIDTH, h: DEFAULT_CANVAS_HEIGHT}, 
+        magnified_dims: {w: MAGNIFICATION*DEFAULT_CANVAS_WIDTH, h: MAGNIFICATION*DEFAULT_CANVAS_HEIGHT},
+        bounds: {w: DEFAULT_CANVAS_WIDTH, h: DEFAULT_CANVAS_HEIGHT}
+    })
 
     // Image labels
-    const label1 = image1 && image1.hasOwnProperty('label') ? image1.label : 'Image 1';
-    const label2 = image2 && image2.hasOwnProperty('label') ? image2.label : 'Image 2';
+    const label1 = image1 && image1.hasOwnProperty('label') ? image1.label : 'Historic Image';
+    const label2 = image2 && image2.hasOwnProperty('label') ? image2.label : 'Modern Image';
 
     // top layer opacity state
     const [opacity, setOpacity] = useState(100);
 
+    // initialize canvas pointers
+    const pointer = usePointer(properties);
 
     /**
      * Render image 1 data on canvas layer 1
@@ -85,30 +103,110 @@ const Slider = ({ images = [], toggle=false }) => {
 
     const _drawImage1 = () => {
 
-        if (!imageLayer1.current) return;
+        if (!imageLayer1.current || !imageLayer2.current) return;
 
         // compute scaled dimensions for image 1 to fit view canvas
         const viewDims1 = scaleToFit(
             imageLayer1.current.width,
             imageLayer1.current.height,
-            canvasWidth,
-            canvasHeight,
+            DEFAULT_CANVAS_WIDTH,
+            DEFAULT_CANVAS_HEIGHT,
         );
 
-        // compute image x offset
-        const viewOffset1 = (canvasWidth - viewDims1.w) / 2;
+        // compute scaled dimensions for image 2 to fit view canvas
+        const viewDims2 = scaleToFit(
+            imageLayer2.current.width,
+            imageLayer2.current.height,
+            DEFAULT_CANVAS_WIDTH,
+            DEFAULT_CANVAS_HEIGHT,
+        );
 
-        // render image to canvas
-        renderLayer1.current.draw(imageLayer1.current, {
-            view: { x: viewOffset1, y: 0, w: viewSlider && toggle ? viewDims1.w / 2 : viewDims1.w, h: viewDims1.h },
-            source: { x: 0, y: 0, w: viewSlider && toggle ? imageLayer1.current.width / 2 : imageLayer1.current.width, h: imageLayer1.current.height }
-        });
+        // Render image to canvas by view mode
+        if (viewMode === 'slider') {
+            // set canvas width to default;
+            setCanvasWidth(DEFAULT_CANVAS_WIDTH);
+            renderLayer1.current.setWidth(DEFAULT_CANVAS_WIDTH);
+            // compute image x offset
+            const _viewOffset1 = (DEFAULT_CANVAS_WIDTH - viewDims1.w) / 2;
+            renderLayer1.current.draw(imageLayer1.current, {
+                view: { x: _viewOffset1, y: 0, w: toggle ? viewDims1.w / 2 : viewDims1.w, h: viewDims1.h },
+                source: { x: 0, y: 0, w: toggle ? imageLayer1.current.width / 2 : imageLayer1.current.width, h: imageLayer1.current.height }
+            });
+            // draw magnified image to canvas
+            magnifiedImage1.current.setWidth(MAGNIFICATION * viewDims1.w);
+            magnifiedImage1.current.setHeight(MAGNIFICATION * viewDims1.h);
+            magnifiedImage1.current.draw(imageLayer1.current, {
+                view: { x: 0, y: 0, w: MAGNIFICATION * viewDims1.w, h: MAGNIFICATION * viewDims1.h },
+                source: { x: 0, y: 0, w: imageLayer1.current.width, h: imageLayer1.current.height  }
+            });
+            // update properties
+            setProperties(prevState => ({...prevState,
+                bounds: renderLayer1.current.bounds(),
+                base_dims: { w: DEFAULT_CANVAS_WIDTH, h: DEFAULT_CANVAS_HEIGHT },
+                render_dims: { x: _viewOffset1, y: 0, w: viewDims1.w, h: viewDims1.h },
+                magnified_dims: { x: 0, y: 0, w: MAGNIFICATION * viewDims1.w, h: MAGNIFICATION * viewDims1.h }
+            }));
+            
+        }
+        else if (viewMode === 'double') {
+            // set canvas width to double
+            const _combinedWidth = viewDims1.w + viewDims2.w;
+            setCanvasWidth(_combinedWidth);
+            // draw image to render canvas
+            renderLayer1.current.setWidth(_combinedWidth);
+            renderLayer1.current.draw(imageLayer1.current, {
+                view: { x: toggle ? 0 : viewDims1.w, y: 0, w: viewDims1.w, h: viewDims1.h },
+                source: { x: 0, y: 0, w: imageLayer1.current.width, h: imageLayer1.current.height }
+            }, false);
+            // draw magnified image to canvas
+            magnifiedImage1.current.setWidth(MAGNIFICATION * _combinedWidth);
+            magnifiedImage1.current.setHeight(MAGNIFICATION * viewDims1.h);
+            magnifiedImage1.current.draw(imageLayer1.current, {
+                view: { x: toggle ? 0 : MAGNIFICATION * viewDims2.w, y: 0, w: MAGNIFICATION * viewDims1.w, h: MAGNIFICATION * viewDims1.h },
+                source: { x: 0, y: 0, w: imageLayer1.current.width, h: imageLayer1.current.height  }
+            }, false);
+            // update properties
+            setProperties(prevState => ({...prevState,
+                bounds: renderLayer1.current.bounds(),
+                base_dims: { w: _combinedWidth, h: viewDims1.h },
+                render_dims: { x: 0, y: 0, w: _combinedWidth, h: viewDims1.h },
+                magnified_dims: { x: 0, y: 0, w: MAGNIFICATION * _combinedWidth,  h: MAGNIFICATION * viewDims1.h }
+            }));
+        }
+        else {
+            // set canvas width to default
+            setCanvasWidth(DEFAULT_CANVAS_WIDTH);
+            renderLayer1.current.setWidth(DEFAULT_CANVAS_WIDTH);
+            // compute image x offset
+            const _viewOffset1 = (DEFAULT_CANVAS_WIDTH - viewDims1.w) / 2;
+            // draw image to render canvas
+            renderLayer1.current.draw(imageLayer1.current, {
+                view: { x: _viewOffset1, y: 0, w: viewDims1.w, h: viewDims1.h },
+                source: { x: 0, y: 0, w: imageLayer1.current.width, h: imageLayer1.current.height }
+            });
+            // draw magnified image to canvas
+            magnifiedImage1.current.setWidth(MAGNIFICATION * viewDims1.w);
+            magnifiedImage1.current.setHeight(MAGNIFICATION * viewDims1.h);
+            magnifiedImage1.current.draw(imageLayer1.current, {
+                view: { x: 0, y: 0, w: MAGNIFICATION * viewDims1.w, h: MAGNIFICATION * viewDims1.h },
+                source: { x: 0, y: 0, w: imageLayer1.current.width, h: imageLayer1.current.height  }
+            });
+            // update properties
+            setProperties(prevState => ({...prevState,
+                bounds: renderLayer1.current.bounds(),
+                base_dims: { w: DEFAULT_CANVAS_WIDTH, h: DEFAULT_CANVAS_HEIGHT },
+                render_dims: { x: _viewOffset1, y: 0, w: viewDims1.w, h: viewDims1.h },
+                magnified_dims: { x: 0, y: 0, w: MAGNIFICATION * viewDims1.w, h: MAGNIFICATION * viewDims1.h }
+            }));
+        }
+        
+
+        // reset canvas height
+        setCanvasHeight(viewDims1.h);
 
         // set initial view dims
         if (toggle) {
-            setCanvasWidth(viewDims1.w);
-            setCanvasHeight(viewDims1.h);
-            setViewWidth(viewSlider ? viewDims1.w / 2 : viewDims1.w);
+            setViewWidth(viewMode === 'slider' ? viewDims1.w / 2 : viewDims1.w);
             setViewDims(viewDims1);
         }
     }
@@ -121,30 +219,92 @@ const Slider = ({ images = [], toggle=false }) => {
 
     const _drawImage2 = () => {
 
-        if (!imageLayer2.current) return;
+        if (!imageLayer2.current || !imageLayer1.current) return;
+
+        // compute scaled dimensions for image 1 to fit view canvas
+        const viewDims1 = scaleToFit(
+            imageLayer1.current.width,
+            imageLayer1.current.height,
+            DEFAULT_CANVAS_WIDTH,
+            DEFAULT_CANVAS_HEIGHT,
+        );
 
         // compute scaled dimensions for image 2 to fit view canvas
         const viewDims2 = scaleToFit(
             imageLayer2.current.width,
             imageLayer2.current.height,
-            canvasWidth,
-            canvasHeight,
+            DEFAULT_CANVAS_WIDTH,
+            DEFAULT_CANVAS_HEIGHT,
         );
 
-        // compute image x offset
-        const viewOffset2 = (canvasWidth - viewDims2.w) / 2;
+        // Render image to canvas based on view mode
+        if (viewMode === 'slider') {
+            // set canvas width to default
+            setCanvasWidth(DEFAULT_CANVAS_WIDTH);
+            renderLayer2.current.setWidth(DEFAULT_CANVAS_WIDTH);
+            // compute image x offset
+            const _viewOffset2 = (DEFAULT_CANVAS_WIDTH - viewDims1.w) / 2;
+            // render image
+            renderLayer2.current.draw(imageLayer2.current, {
+                view: { x: _viewOffset2, y: 0, w: !toggle ? viewDims2.w / 2 : viewDims2.w, h: viewDims2.h },
+                source: { x: 0, y: 0, w: !toggle ? imageLayer2.current.width / 2 : imageLayer2.current.width, h: imageLayer2.current.height }
+            });
+            // draw magnified image to canvas
+            magnifiedImage2.current.setWidth(MAGNIFICATION * viewDims2.w);
+            magnifiedImage2.current.setHeight(MAGNIFICATION * viewDims2.h);
+            magnifiedImage2.current.draw(imageLayer2.current, {
+                view: { x: 0, y: 0, w: MAGNIFICATION * viewDims2.w, h: MAGNIFICATION * viewDims2.h },
+                source: { x: 0, y: 0, w: imageLayer2.current.width, h: imageLayer2.current.height  }
+            });
+        }
+        else if (viewMode === 'double') {
+            // clear canvas 2 (image 2)
+            renderLayer2.current.clear();
+            // draw image 2 to canvas 1 with offset
+            renderLayer1.current.draw(imageLayer2.current, {
+                view: { x: toggle ? viewDims1.w : 0, y: 0, w: viewDims2.w, h: viewDims2.h },
+                source: { x: 0, y: 0, w: imageLayer2.current.width, h: imageLayer2.current.height }
+            }, false);
+            // clear magnified canvas 2 (image 2)
+            magnifiedImage2.current.clear();
+            // draw magnified image 2 to canvas 1
+            magnifiedImage1.current.draw(imageLayer2.current, {
+                view: { x: toggle ? MAGNIFICATION * viewDims1.w : 0, y: 0, w: MAGNIFICATION * viewDims2.w, h: MAGNIFICATION * viewDims2.h },
+                source: { x: 0, y: 0, w: imageLayer2.current.width, h: imageLayer2.current.height  }
+            }, false);
+        }
+        else {
+            // set canvas width to default
+            setCanvasWidth(DEFAULT_CANVAS_WIDTH);
+            renderLayer2.current.setWidth(DEFAULT_CANVAS_WIDTH);
+            // compute image x offset
+            const _viewOffset2 = (DEFAULT_CANVAS_WIDTH - viewDims1.w) / 2;
+            renderLayer2.current.draw(imageLayer2.current, {
+                view: { x: _viewOffset2, y: 0, w: viewDims2.w, h: viewDims2.h },
+                source: { x: 0, y: 0, w: imageLayer2.current.width, h: imageLayer2.current.height }
+            });
+            // draw magnified image to canvas
+            magnifiedImage2.current.setWidth(MAGNIFICATION * viewDims2.w);
+            magnifiedImage2.current.setHeight(MAGNIFICATION * viewDims2.h);
+            magnifiedImage2.current.draw(imageLayer2.current, {
+                view: { x: 0, y: 0, w: MAGNIFICATION * viewDims2.w, h: MAGNIFICATION * viewDims2.h },
+                source: { x: 0, y: 0, w: imageLayer2.current.width, h: imageLayer2.current.height  }
+            });
+            // update properties
+            setProperties(prevState => ({...prevState,
+                bounds: renderLayer2.current.bounds(),
+                base_dims: { w: DEFAULT_CANVAS_WIDTH, h: DEFAULT_CANVAS_HEIGHT },
+                render_dims: { x: _viewOffset2, y: 0, w: viewDims2.w, h: viewDims2.h },
+                magnified_dims: { x: 0, y: 0, w: MAGNIFICATION * viewDims2.w, h: MAGNIFICATION * viewDims2.h }
+            }));
+        }
 
-        // render image to canvas (toggle sets layer 1 as top layer)
-        renderLayer2.current.draw(imageLayer2.current, {
-            view: { x: viewOffset2, y: 0, w: viewSlider && !toggle ? viewDims2.w / 2 : viewDims2.w, h: viewDims2.h },
-            source: { x: 0, y: 0, w: viewSlider && !toggle ? imageLayer2.current.width / 2 : imageLayer2.current.width, h: imageLayer2.current.height }
-        });
+        // reset canvas height
+        setCanvasHeight(viewDims2.h);
 
         // set initial view dims
         if (!toggle) {
-            setCanvasWidth(viewDims2.w);
-            setCanvasHeight(viewDims2.h);
-            setViewWidth(viewSlider ? viewDims2.w / 2 : viewDims2.w);
+            setViewWidth(viewMode === 'slider' ? viewDims2.w / 2 : viewDims2.w);
             setViewDims(viewDims2);
         }
     }
@@ -162,10 +322,14 @@ const Slider = ({ images = [], toggle=false }) => {
         setStatus1('loading');
         setStatus2('loading');
 
+        // reset canvas size
+        setCanvasWidth(DEFAULT_CANVAS_WIDTH);
+        setCanvasHeight(DEFAULT_CANVAS_HEIGHT);
+
         // set data urls for images
         const url1 = image1 && image1.hasOwnProperty('url') ? image1.url.medium : image1;
         const url2 = image2 && image2.hasOwnProperty('url') ? image2.url.medium : image2;
-        // set image sources
+        // set view image sources
         imageLayer1.current.src = url1;
         imageLayer2.current.src = url2;
 
@@ -180,7 +344,7 @@ const Slider = ({ images = [], toggle=false }) => {
             setMessage({ msg: 'Error: Image could not be loaded.', type: 'error' });
             imageLayer1.current.src = schema.errors.image.fallbackSrc;
         };
-
+        
         // load image 2
         imageLayer2.current.onload = function () {
             // load image data to canvas layer
@@ -192,6 +356,7 @@ const Slider = ({ images = [], toggle=false }) => {
             setMessage({ msg: 'Error: Image could not be loaded.', type: 'error' });
             imageLayer2.current.src = schema.errors.image.fallbackSrc;
         };
+
     }
 
     /**
@@ -221,6 +386,16 @@ const Slider = ({ images = [], toggle=false }) => {
     }
 
     /**
+     * toggle image magnifier tool
+     *
+     * @private
+     */
+
+    const _toggleMagnifier = () => {
+        pointer.magnify ? pointer.magnifyOff() : pointer.magnifyOn();
+    }
+
+    /**
      * Load comparator images
      * - comparison of images in same scale
      * - use the largest dimension to set the scale
@@ -229,24 +404,70 @@ const Slider = ({ images = [], toggle=false }) => {
      */
 
     useLayoutEffect(() => {
-        if (status1 === 'empty' || status2 === 'empty') {
-            _load();
-        }
+        if (status1 === 'empty' || status2 === 'empty') _load();
     }, []);
+
+     /**
+     * Reload images on image source and window size change.
+     *
+     * @private
+     */
 
     useLayoutEffect(() => {
         _load();
-    }, [winWidth, winHeight]);
+    }, [winWidth, winHeight, images]);
 
-    useEffect(() => {
-        setViewSlider(false);
-    }, [toggle]);
+
+    /**
+     * Redraw image to canvas.
+     *
+     * @private
+     */
 
     useLayoutEffect(() => {
         _drawImage1();
         _drawImage2();
         _resetOpacity();
-    }, [viewSlider]);
+    }, [viewMode, toggle]);
+
+    /**
+     * Apply magnification to image.
+     *
+     * @private
+     */
+
+    useEffect(() => {
+
+        // compare current with previously set pointer bounds
+        const _compareBounds = (bounds1, bounds2) => {
+            return bounds1.top === bounds2.top 
+            && bounds1.left === bounds2.left 
+            && bounds1.width === bounds2.width 
+            && bounds1.height === bounds2.height;
+        }
+        
+        // get current canvas bounds
+        const bounds = toggle || viewMode === 'double' ? renderLayer1.current.bounds() : renderLayer2.current.bounds(); 
+
+        // apply magnification if enabled
+        if (pointer.magnify) {    
+            // get current magnified image
+            const _magnifiedImage = toggle || viewMode === 'double' ? magnifiedImage1.current.canvas() : magnifiedImage2.current.canvas();
+            
+            // check pointer bounds to detect canvas translation (e.g., scrolling)
+            if(_compareBounds(bounds, properties.bounds)) {
+                magnifierLayer.current.magnify(_magnifiedImage, {pointer, properties});
+            }
+            else {
+                // update pointer bounds (update properties state)
+                setProperties(prevState => ({...prevState, bounds: bounds }));
+                magnifierLayer.current.magnify(_magnifiedImage, {pointer, properties: {...properties, bounds: bounds}});
+            }
+        }
+        else {
+            magnifierLayer.current.clear();
+        }
+    }, [pointer.x, pointer.y, pointer.magnify, viewMode]);
 
     /* Initialize panel resize */
     function _resizeStart(e) {
@@ -267,6 +488,7 @@ const Slider = ({ images = [], toggle=false }) => {
 
     /* Position the slider and resize panel */
     function _resize(e) {
+
 
         /* if slider is no longer engaged, exit this function: */
         if (!sliding) return false;
@@ -295,24 +517,60 @@ const Slider = ({ images = [], toggle=false }) => {
 
     }
 
+    /* Show magnifier viewer at pointer position */
+    function _setPointer(e) {    
+        e.preventDefault();
+        pointer.set(e, properties);
+    }
+
     return <>
         <div className={styles.slider}>
             {(status1 !== 'loaded' || status2 !== 'loaded') && <Loading className={'centered'} overlay={true} />}
             {message && <UserMessage message={message} />}
             <div className={styles.container} style={{ height: `${canvasHeight}px`, width: `${canvasWidth}px`, margin: 'auto' }}>
-                <Canvas
-                    ref={controlLayer}
-                    id={`slider_image_control`}
-                    style={{'zIndex': viewSlider ? 30 : 0}}
+                {
+                pointer.magnify && <Canvas
+                    ref={magControlLayer}
+                    id={`image_control_magnifier`}
+                    style={{zIndex: 55, cursor: 'crosshair'}}
                     className={styles.overlay}
-                    width={DEFAULT_CANVAS_WIDTH}
+                    width={canvasWidth}
+                    height={DEFAULT_CANVAS_HEIGHT}
+                    onMouseMove={_setPointer}
+                    /> 
+                }
+                {
+                viewMode === 'slider' && <Canvas
+                    ref={sliderControlLayer}
+                    style={{zIndex: 50, cursor: 'col-resize'}}
+                    id={`image_control_slider`}
+                    className={styles.overlay}
+                    width={canvasWidth}
                     height={DEFAULT_CANVAS_HEIGHT}
                     onMouseDown={_resizeStart}
-                    onTouchStart={_resizeStart}
                     onMouseUp={_resizeEnd}
                     onMouseMove={_resize}
+                    onTouchStart={_resizeStart}
                     onTouchEnd={_resizeEnd}
                     onTouchMove={_resize}
+                    /> 
+                }
+                <Canvas
+                    ref={defaultControlLayer}
+                    id={`default_control`}
+                    style={{zIndex: 35, cursor: 'default'}}
+                    className={styles.overlay}
+                    width={canvasWidth}
+                    height={DEFAULT_CANVAS_HEIGHT}
+                    onMouseMove={_setPointer}
+                    /> 
+                <MagnifierTool
+                    style={{'zIndex': 25}}
+                    ref={magnifierLayer}
+                    id={`magnifier_layer`}
+                    className={`layer`}
+                    width={canvasWidth}
+                    height={DEFAULT_CANVAS_HEIGHT}
                 />
                 <Canvas
                     style={{'zIndex': toggle ? 20 : 10}}
@@ -327,6 +585,20 @@ const Slider = ({ images = [], toggle=false }) => {
                     className={styles.image2}
                     ref={renderLayer2}
                     id={`slider_image_layer_2`}
+                    width={DEFAULT_CANVAS_WIDTH}
+                    height={DEFAULT_CANVAS_HEIGHT}
+                />
+                <Canvas
+                    style={{ 'display': 'none' }}
+                    ref={magnifiedImage1}
+                    id={`slider_magnified_image_layer_1`}
+                    width={DEFAULT_CANVAS_WIDTH}
+                    height={DEFAULT_CANVAS_HEIGHT}
+                />
+                <Canvas
+                    style={{ 'display': 'none' }}
+                    ref={magnifiedImage2}
+                    id={`slider_magnified_image_layer_2`}
                     width={DEFAULT_CANVAS_WIDTH}
                     height={DEFAULT_CANVAS_HEIGHT}
                 />
@@ -347,15 +619,42 @@ const Slider = ({ images = [], toggle=false }) => {
             </div>
             <div className={'slide-menu h-menu vcentered'}>
                 <ul>
+                <li><Button
+                        title={'View Image'}
+                        label={'Single View'}
+                        className={`capture-button ${!viewMode && 'active'}`}
+                        icon={'image'}
+                        onClick={() => {setViewMode(null)}}
+                    /></li>
+                    <li><Button
+                        title={'Compare Images side-by-side.'}
+                        label={'Double View'}
+                        className={`capture-button ${viewMode === 'double' && 'active'}`}
+                        icon={'images'}
+                        onClick={() => {setViewMode('double')}}
+                    /></li>
                     <li><Button
                         title={'Compare Images using Slider'}
-                        label={viewSlider ? 'Slider On' : 'Slider Off'}
-                        className={`capture-button ${viewSlider && 'active'}`}
+                        label={'Slider View'}
+                        className={`capture-button ${viewMode === 'slider' && 'active'}`}
                         icon={'slider'}
-                        onClick={() => {setViewSlider(!viewSlider)}}
+                        onClick={() => {setViewMode('slider')}}
+                    /></li>
+                    <li><Button
+                        icon={'sync'}
+                        className={`capture-button`}
+                        onClick={() => setToggle(!toggle)}
+                        label={'Swap Images'}
+                    /></li>
+                    <li><Button
+                        icon={'magnify'}
+                        className={`capture-button ${pointer.magnify && 'active'}`}
+                        onClick={_toggleMagnifier}
+                        label={'Magnify'}
                     /></li>
                     <li className={'push'}>
                         <InputSelector
+                            disabled={viewMode==='double'}
                             style={{ width: '200px' }}
                             id={'layer_opacity'}
                             name={'layer_opacity'}

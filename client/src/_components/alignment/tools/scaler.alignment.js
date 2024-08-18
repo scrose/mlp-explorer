@@ -16,11 +16,13 @@
  */
 
 export const scaleToFit = (ix, iy, cx, cy) => {
-    const ri = ix / iy;
-    const rc = cx / cy;
+    // epsilon for stability
+    const eps = 1e-6;
+    const ri = ix / (iy + eps);
+    const rc = cx / (cy + eps);
     return {
-        w: Math.round(rc > ri ? ix * cy/iy : cx),
-        h: Math.round(rc > ri ? cy : iy * cx/ix)
+        w: Math.round(rc > ri ? ix * cy/(iy + eps) : cx),
+        h: Math.round(rc > ri ? cy : iy * cx/(ix + eps))
     };
 };
 

@@ -55,9 +55,6 @@ export const getPos = (e, properties) => {
         (document && document.scrollTop || 0) -
         (document && document.clientTop || 0 );
 
-    // DEBUG
-    // console.log(pageX, pageY, bounds)
-
     // compute mouse position relative to canvas bounds
     const x = Math.max(
         Math.min(
@@ -95,11 +92,12 @@ export function usePointer(properties, options) {
 
     /**
      * Set current pointer position coordinate
+     * 
      * */
 
-    const set = (e) => {
+    const set = (e, props = null) => {
         // compute current position of mouse
-        const pos = getPos(e, properties);
+        const pos = getPos(e, props ? props : properties);
         // set absolute client mouse coordinate
         setClient({x: e.clientX, y: e.clientY});
         // set actual

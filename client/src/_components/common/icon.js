@@ -10,7 +10,6 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
-
     faMapMarker,
     faVectorSquare,
     faLayerGroup,
@@ -290,12 +289,14 @@ const getIconClass = (iconType) => {
         align: 'crosshairs',
         overlay: 'layer-group',
         slider: 'columns',
+        sideBySide: 'images',
         clustered: 'map-marker',
         boundaries: 'vector-square',
         filter: 'filter',
         filterNavigation: 'filter',
         list: 'list-alt',
         search: 'search',
+        magnify: 'search-plus',
         undo: 'undo',
         reset: 'undo',
         sync: 'sync',

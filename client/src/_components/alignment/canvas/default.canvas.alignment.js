@@ -71,7 +71,7 @@ const Canvas = forwardRef(function Canvas(props, ref) {
                 // put image to canvas
                 context.putImageData(imageData, x || 0, y || 0, 0, 0, w || imageData.width, h || imageData.height);
             },
-            draw: (image, dims) => {
+            draw: (image, dims, clear=true) => {
 
                 /**
                  * Redraws image data to canvas
@@ -96,7 +96,7 @@ const Canvas = forwardRef(function Canvas(props, ref) {
 
                 // clear, resize and render image data to canvas
                 const {source, view} = dims || {};
-                context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+                if (clear) context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
                 // set canvas dimensions
                 // canvasRef.current.width = view && view.w || canvasRef.current.width;
                 // canvasRef.current.height = view && view.h || canvasRef.current.height;
@@ -124,6 +124,12 @@ const Canvas = forwardRef(function Canvas(props, ref) {
             },
             dims: () => {
                 return {w: canvasRef.current.width, h: canvasRef.current.height};
+            },
+            setWidth: (value) => {
+                canvasRef.current.width = value;
+            },
+            setHeight: (value) => {
+                canvasRef.current.height = value;
             },
             bounds: () => {
                 const rect = canvasRef.current.getBoundingClientRect();

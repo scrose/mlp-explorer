@@ -4,6 +4,7 @@
     min-height: 500px;
     width: auto;
     background-color: transparent;
+    cursor: default;
 }
 .container {
     position: relative;
@@ -11,6 +12,7 @@
     background-color: transparent;
     margin: auto;
     height: auto; /*should be the same height as the images*/
+    /* overflow-x: scroll; */
 }
 .slider figure {
     margin: 0;
@@ -27,15 +29,17 @@
     position: absolute;
     z-index: 30;
     background-color: transparent;
-    cursor: col-resize;
+    cursor: inherit;
 }
 .image1 {
     margin: auto;
     position: absolute;
     z-index: 20;
+    cursor: default;
 }
 .image2 {
     margin: auto;
     position: absolute;
     z-index: 10;
+    cursor: default;
 }
