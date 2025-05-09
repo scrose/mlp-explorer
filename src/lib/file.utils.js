@@ -83,6 +83,7 @@ export const imageMIMETypes = {
     'tif': 'image/tiff',
     'tiff': 'image/tiff',
     'x-png': 'image/png',
+    'iiq': 'image/x-phaseone-iiq',
     '3FR': 'image/x-hasselblad-3fr',
     'ARW': 'image/x-sony-arw',
     'CR2': 'image/x-canon-cr2',

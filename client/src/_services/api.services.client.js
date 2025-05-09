@@ -351,6 +351,7 @@ export function getMIME(format) {
         'SR2': 'image/x-sony-sr2',
         'SRF': 'image/x-sony-srf',
         'X3F': 'image/x-sigma-x3f',
+        'IIQ': 'image/x-phaseone-iiq',
     };
     return mime_types.hasOwnProperty(format) ? mime_types[format] : null;
 }

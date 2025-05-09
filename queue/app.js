@@ -58,14 +58,22 @@ app.listen(port, () => {
 
 /**
  * Connect to Redis message broker
+ * A rate limiter is applied (max: 20, duration: 1000), 
+ * which ensures that no more than 20 jobs are processed 
+ * per second. This helps prevent overloading the Redis server.
  * @private
  */
 
 try {
+
     let queue = new Queue('imageProcessor', {
         redis: {
             host: process.env.REDIS_HOST,
             port: process.env.REDIS_PORT,
+        },
+        limiter: {
+            max: 20,
+            duration: 1000,
         },
     });
 
